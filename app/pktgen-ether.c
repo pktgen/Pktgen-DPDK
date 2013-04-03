@@ -53,7 +53,7 @@ char *
 pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 {
 	uint32_t flags;
-
+	uint16_t vlan_id;
 	/* src and dest addr */
 	ether_addr_copy(&pkt->eth_src_addr, &eth->s_addr);
 	ether_addr_copy(&pkt->eth_dst_addr, &eth->d_addr);
@@ -65,7 +65,8 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 
 		/* only set the TCI field for now; don't bother with PCP/DEI */
 		struct vlan_hdr *vlan_hdr = (struct vlan_hdr *)(eth + 1);
-		vlan_hdr->vlan_tci = htons(pkt->vlanid);
+		vlan_id = (pkt->vlanid | (pkt->cos << 13));
+		vlan_hdr->vlan_tci = htons(vlan_id);
 		vlan_hdr->eth_proto = htons(pkt->ethType);
 
 		/* adjust header size for VLAN tag */

@@ -181,6 +181,8 @@ typedef struct port_info_s {
 	uint16_t seqCnt;		/**< Current packet sequence max count */
 	uint16_t prime_cnt;		/**< Set the number of packets to send in a prime command */
 	uint16_t vlanid;		/**< Set the port VLAN ID value */
+	uint8_t cos;			/**< Set the port 802.1p cos value */
+	uint8_t tos;			/**< Set the port tos value */
 	rte_spinlock_t port_lock;	/**< Used to sync up packet constructor between cores */
 	pkt_seq_t *seq_pkt;		/**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
 	range_info_t range;		/**< Range Information */

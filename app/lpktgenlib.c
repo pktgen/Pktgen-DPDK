@@ -285,6 +285,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 	portlist_t portlist;
 	uint32_t pktsize, sport, dport, gtpu_teid;
 	uint16_t vlanid;
+	uint8_t cos, tos;
 	struct ether_addr daddr;
 	struct ether_addr saddr;
 	struct pg_ipaddr ip_daddr;
@@ -320,6 +321,9 @@ set_seq(lua_State *L, uint32_t seqnum)
 	else
 		gtpu_teid = 0;
 
+	cos  = luaL_checkinteger(L, 14);
+	tos  = luaL_checkinteger(L, 15);
+
 	if ( (proto[0] == 'i') && (ip[3] == '6') ) {
 		lua_putstring("Must use IPv4 with ICMP type packets\n");
 		return -1;
@@ -329,7 +333,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 	             pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr,
 	                            &ip_saddr,
 	                            sport, dport, ip[3], proto[0], vlanid,
-	                            pktsize, gtpu_teid) );
+	                            pktsize, gtpu_teid, cos, tos) );
 
 	pktgen_update_display();
 
@@ -383,6 +387,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	portlist_t portlist;
 	uint32_t pktSize, sport, dport, gtpu_teid;
 	uint16_t vlanid;
+	uint8_t cos, tos;
 	struct ether_addr daddr;
 	struct ether_addr saddr;
 	struct pg_ipaddr ip_daddr;
@@ -403,6 +408,8 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	ethType     = getf_string(L, "ethType");
 	vlanid      = getf_integer(L, "vlanid");
 	pktSize     = getf_integer(L, "pktSize");
+	cos         = getf_integer(L, "cos");
+	tos         = getf_integer(L, "tos");
 
 	lua_getfield(L, 3, "gtpu_teid");
 	if (lua_isinteger(L, -1))
@@ -420,7 +427,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	             pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr,
 	                            &ip_saddr,
 	                            sport, dport, ethType[3], ipProto[0],
-	                            vlanid, pktSize, gtpu_teid) );
+	                            vlanid, pktSize, gtpu_teid, cos, tos) );
 
 	pktgen_update_display();
 
@@ -1635,6 +1642,73 @@ single_vlan_id(lua_State *L)
 
 /**************************************************************************//**
  *
+ * pktgen_cos - Set the 802.1p prio for a single port
+ *
+ * DESCRIPTION
+ * Set the 802.1p cos for a single port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+single_cos(lua_State *L) {
+	portlist_t portlist;
+	uint8_t cos;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "cos, wrong number of arguments");
+	case 2:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	cos = luaL_checkinteger(L, 2);
+	if (cos > MAX_COS)
+		cos = 0;
+
+	foreach_port(portlist,
+	             single_set_cos(info, cos) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+
+/**************************************************************************//**
+ *
+ * pktgen_tos - Set the TOS for a single port
+ *
+ * DESCRIPTION
+ * Set the TOS for a single port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+single_tos(lua_State *L) {
+	portlist_t portlist;
+	uint8_t tos;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "tos, wrong number of arguments");
+	case 2:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	tos = luaL_checkinteger(L, 2);
+
+	foreach_port(portlist,
+	             single_set_tos(info, tos) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
  * single_vlan - Enable or Disable vlan header
  *
  * DESCRIPTION
@@ -2831,6 +2905,8 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 	setf_integer(L, "dport", p->dport);
 	setf_integer(L, "sport", p->sport);
 	setf_integer(L, "vlanid", p->vlanid);
+	setf_integer(L, "cos", p->cos);
+	setf_integer(L, "tos", p->tos);
 	setf_string(L,
 		    "ethType",
 		    (char *)(
@@ -3271,6 +3347,10 @@ static const char *lua_help_info[] = {
 	"minVlanID      - Min VLAN ID value\n",
 	"maxVlanID      - Max VLAN ID value\n",
 	"vlanTagSize    - VLAN Tag size\n",
+	"minCos       - Min 802.1p value\n",
+	"maxCos       - Max 802.1p value\n",
+	"minTOS       - Min TOS value\n",
+	"maxTOS       - Max TOS value\n",
 	"mbufCacheSize  - mbuf cache size value]n",
 	"\n",
 	"defaultPktBurst- Default burst packet count\n",
@@ -3370,6 +3450,10 @@ static const luaL_Reg pktgenlib[] = {
 
 	{"vlan",          single_vlan},		/* Enable or disable VLAN header */
 	{"vlanid",        single_vlan_id},	/* Set the vlan ID for a given portlist */
+
+	{"cos",           single_cos},		/* Set the prio for a given portlist */
+	{"tos",           single_tos},	/* Set the tos for a given portlist */
+
 
 	{"mpls",          pktgen_mpls},		/* Enable or disable MPLS header */
 	{"qinq",          pktgen_qinq},		/* Enable or disable Q-in-Q header */
@@ -3482,6 +3566,11 @@ luaopen_pktgen(lua_State *L)
 	setf_integer(L, "maxVlanID", MAX_VLAN_ID);
 	setf_integer(L, "vlanTagSize", VLAN_TAG_SIZE);
 	setf_integer(L, "mbufCacheSize", MBUF_CACHE_SIZE);
+
+	setf_integer(L, "minCos", MIN_COS);
+	setf_integer(L, "maxCos", MAX_COS);
+	setf_integer(L, "minTOS", MIN_TOS);
+	setf_integer(L, "maxTOS", MAX_TOS);
 
 	setf_integer(L, "defaultPktBurst", DEFAULT_PKT_BURST);
 	setf_integer(L, "defaultBuffSize", MBUF_SIZE);

@@ -220,6 +220,12 @@ enum {
 	MIN_VLAN_ID             = 1,
 	MAX_VLAN_ID             = 4095,
 	DEFAULT_VLAN_ID         = MIN_VLAN_ID,
+	MIN_COS             	= 0,
+	MAX_COS 	            = 7,
+	DEFAULT_COS	         	= MIN_COS,
+	MIN_TOS             	= 0,
+	MAX_TOS 	            = 255,
+	DEFAULT_TOS		        = MIN_TOS,
 	MAX_ETHER_TYPE_SIZE     = 0x600,
 	OVERHEAD_FUDGE_VALUE    = 50,
 

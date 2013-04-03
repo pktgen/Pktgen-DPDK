@@ -97,6 +97,8 @@ struct pg_ipaddr;
 void single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip);
 void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
+void single_set_cos(port_info_t *info, uint8_t cos);
+void single_set_tos(port_info_t *info, uint8_t tos);
 void single_set_dst_mac(port_info_t *info, struct ether_addr *mac);
 void single_set_src_mac(port_info_t *info, struct ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);
@@ -166,6 +168,8 @@ void range_set_pkt_size(port_info_t *info,
 				      uint16_t size);
 void range_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid);
 void range_set_vlan_id(port_info_t *info, char *what, uint16_t id);
+void range_set_tos_id(port_info_t *info, char *what, uint8_t id);
+void range_set_cos_id(port_info_t *info, char *what, uint8_t id);
 void range_set_mpls_entry(port_info_t *info, uint32_t mpls_entry);
 void range_set_qinqids(port_info_t *info,
 			       uint16_t outerid,
@@ -186,7 +190,10 @@ void pktgen_set_seq(port_info_t *info,
 			   char proto,
 			   uint16_t vlanid,
 			   uint32_t pktsize,
-			   uint32_t gtpu_teid);
+			   uint32_t gtpu_teid,
+			   uint8_t cos,
+			   uint8_t tos
+			);
 
 /* Packet */
 void pktgen_send_pkt(port_info_t *info, uint32_t seqnum);
@@ -204,7 +211,9 @@ void pktgen_compile_pkt(port_info_t *info,
 			       char proto,
 			       uint16_t vlanid,
 			       uint32_t pktsize,
-			       uint32_t gtpu_teid);
+			       uint32_t gtpu_teid,
+			       uint8_t cos,
+			       uint8_t tos );
 
 /* Pattern */
 void pattern_set_type(port_info_t *info, char *str);

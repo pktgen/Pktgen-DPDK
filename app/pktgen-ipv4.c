@@ -69,7 +69,7 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
 
 	ip->tlen            = htons(tlen);
 	ip->ttl             = 4;
-	ip->tos             = 0;
+	ip->tos             = pkt->tos;
 
 	pktgen.ident        += 27;	/* bump by a prime number */
 	ip->ident           = htons(pktgen.ident);

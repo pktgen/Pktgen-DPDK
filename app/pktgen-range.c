@@ -136,6 +136,42 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 			} else
 				pkt->vlanid = range->vlan_id;
 
+			if (unlikely(range->cos_inc != 0)) {
+				uint32_t p;
+				static uint8_t min_cos_set = 0;
+				if ((pkt->cos == MIN_COS) && !min_cos_set) {
+					p = 0;
+					min_cos_set = 1;
+				} else
+					p = pkt->cos;
+				p += range->cos_inc;
+				if (p < range->cos_min)
+					p = range->cos_max;
+				else if (p > range->cos_max)
+					p = range->cos_min;
+				pkt->cos = p;
+			} else
+				pkt->cos = range->cos;
+
+			if (unlikely(range->tos_inc != 0)) {
+				uint32_t p;
+				static uint8_t min_tos_set = 0;
+				if ((pkt->tos == MIN_TOS) && !min_tos_set) {
+					p = 0;
+					min_tos_set = 1;
+				} else
+					p = pkt->tos;
+				p += range->tos_inc;
+				if (p < range->tos_min)
+					p = range->tos_max;
+				else if (p > range->tos_max)
+					p = range->tos_min;
+				pkt->tos = p;
+			} else
+				pkt->tos = range->tos;
+
+
+
 			if (unlikely(range->pkt_size_inc != 0)) {
 				uint32_t p = pkt->pktSize;
 				p += range->pkt_size_inc;
@@ -254,6 +290,14 @@ pktgen_print_range(void)
 
 	row++;
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "vlan.id / inc");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    min / max");
+
+	row++;
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "cos / inc");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    min / max");
+
+	row++;
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "tos / inc");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    min / max");
 
 	row++;
@@ -384,6 +428,35 @@ pktgen_print_range(void)
 		row++;
 		snprintf(str,
 		         sizeof(str),
+		         "%d/%d",
+		         range->cos,
+		         range->cos_inc);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+		snprintf(str,
+		         sizeof(str),
+		         "%d/%d",
+		         range->cos_min,
+		         range->cos_max);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+
+		row++;
+		snprintf(str,
+		         sizeof(str),
+		         "%3d/%3d",
+		         range->tos,
+		         range->tos_inc);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+		snprintf(str,
+		         sizeof(str),
+		         "%3d/%3d",
+		         range->tos_min,
+		         range->tos_max);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+
+
+		row++;
+		snprintf(str,
+		         sizeof(str),
 		         "%4d/%4d",
 		         range->pkt_size + FCS_SIZE,
 		         range->pkt_size_inc);
@@ -509,6 +582,16 @@ pktgen_range_setup(port_info_t *info)
 	range->vlan_id_inc  = 0;
 	range->vlan_id_min  = MIN_VLAN_ID;
 	range->vlan_id_max  = MAX_VLAN_ID;
+
+	range->cos   	= info->cos;
+	range->cos_inc  = 0;
+	range->cos_min  = MIN_COS;
+	range->cos_max  = MAX_COS;
+
+	range->tos   	= info->tos;
+	range->tos_inc  = 0;
+	range->tos_min  = MIN_TOS;
+	range->tos_max  = MAX_TOS;
 
 	range->pkt_size     = MIN_PKT_SIZE;
 	range->pkt_size_inc = 0;

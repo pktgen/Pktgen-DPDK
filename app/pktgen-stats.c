@@ -119,6 +119,10 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Tx Burst");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src/Dest Port");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "802.1p CoS");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ToS Value:");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  - DSCP value");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  - IPP  value");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst  IP Address");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src  IP Address");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
@@ -132,7 +136,7 @@ pktgen_print_static_data(void)
 
 	/* Display the colon after the row label. */
 	pktgen_display_set_color("stats.colon");
-	for (row = PORT_STATE_ROW; row < ((ip_row + IP_ADDR_ROWS) - 2); row++)
+	for (row = PORT_STATE_ROW; row < ((ip_row + IP_ADDR_ROWS+4) - 2); row++)
 		scrn_printf(row, COLUMN_WIDTH_0 - 1, ":");
 
 	pktgen_display_set_color("stats.stat.values");
@@ -169,6 +173,18 @@ pktgen_print_static_data(void)
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
 		         pkt->vlanid);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d",  (pkt->cos));
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d",  pkt->tos);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d",  (pkt->tos >> 2));
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d",  (pkt->tos >> 5));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

@@ -1,0 +1,91 @@
+#!/usr/bin/env perl
+
+die "Usage: $0 <sourcefile> <depfile>\n" .
+    "\tRead C <sourcefile> and write dependencies in Makefile format to <depfile>\n"
+    unless (@ARGV == 2);
+
+my ($src_fn, $dep_fn) = @ARGV;
+
+open my $in_fh,  '<', $src_fn or die "Could not open $src_fn for reading\n";
+my @source, @libs, @syslibs, @stubs;
+while (<$in_fh>) {
+    chomp;
+
+    if (/\bSOURCE\b/) {
+        # Remove keyword and trailing punctuation/whitespace.
+        s/^.+SOURCE\W+//;
+
+        push @source, split /\s+/;
+    }
+
+    if (/\bLIBS\b/) {
+        # Remove keyword and trailing punctuation/whitespace.
+        s/^.+LIBS\W+//;
+
+        # Add DPDK target lib dir path and .a extension
+        push @libs, map {
+                $ENV{RTE_SDK} . '/' . $ENV{RTE_TARGET} . '/lib/' . $_ . '.a'
+            } split /\s+/;
+    }
+
+    if (/\bSYSLIBS\b/) {
+        # Remove keyword and trailing punctuation/whitespace.
+        s/^.+SYSLIBS\W+//;
+
+        push @syslibs, split /\s+/;
+    }
+
+    if (/\bSTUB\b/) {
+        # Remove keyword and trailing punctuation/whitespace.
+        s/^.+STUB\W+//;
+
+        push @stubs, split /\s+/;
+    }
+}
+close $in_fh;
+
+open my $out_fh, '>', $dep_fn or die "Could not open $dep_fn for writing\n";
+
+# Dependencies for test obj file. Also make '.d' file depend on all the source
+# files that the corresponding '.o' file depends on, so make regenerates the
+# prerequisites whenever any of the source files change.
+# Add '../' prefix to source filenames, so they point to the Pktgen source code.
+(my $obj_fn = 'build/' . $src_fn) =~ s/\.c$/.o/;
+(my $hdr_fn = 'build/' . $src_fn) =~ s/\.c$/.h/;
+print $out_fh "$obj_fn $dep_fn: helpers/test_helpers.h $src_fn $hdr_fn",
+    (map { ' ../' . $_ } @source),
+    "\n\n";
+
+# Extra CFLAGS for the compilation of the object file. "-include ../<foo>.h" is
+# added for every SOURCE file <foo> where such a header file exists.
+print $out_fh "${obj_fn}_CFLAGS :=",
+    (map { ' -include ' . $_ }
+        grep { -r $_ }
+        map { (my $fn = '../' . $_) =~ s/\.c$/.h/; $fn; }
+        @source),
+    "\n";
+print $out_fh "${obj_fn}_CFLAGS += -include ${hdr_fn}\n";
+
+# Dependencies for the test executable. Pktgen source files are compiled to the
+# build/app/ directory (so we can, for example, specify compiler flags for code
+# coverage measuring).
+(my $exe_fn = $src_fn) =~ s/\.c$//;
+print $out_fh "$exe_fn: $obj_fn build/${exe_fn}.stubs.o",
+    (map { (my $obj = $_) =~ s/\.c$/.o/; ' build/app/' . $obj } @source),
+    " @libs",
+    "\n\n";
+
+# Compile those parts of helpers/fake_impl.c that have been stubbed.
+my $fake_fn = "build/${exe_fn}.fake_impl.o";
+print $out_fh "${fake_fn}_CFLAGS := ",
+    (map { ' -DSTUB_' . $_ }
+        map { (my $def = $_) =~ s/\W/_/g; uc $def; }
+        @stubs),
+    "\n\n";
+
+# Extra LDFLAGS for linking the test executable. This links against system
+# libraries specified with SYSLIBS in the test file.
+print $out_fh "${exe_fn}_LDFLAGS :=",
+    (map { ' -l' . $_ } @syslibs),
+    "\n\n";
+

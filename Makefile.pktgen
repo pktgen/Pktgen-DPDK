@@ -1,0 +1,8 @@
+# Makefile.pktgen
+# Created on: Apr 10, 2014
+#     Author: keithw
+
+all:
+	make -C ${RTE_SDK} install T=${RTE_TARGET}
+	make -C examples/pktgen #V=1
+

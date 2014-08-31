@@ -1,0 +1,71 @@
+Test cases for Pktgen-DPDK
+==========================
+
+How to build and test
+---------------------
+1. Compile bundled DPDK
+2. Compile pktgen
+3. Enter test directory (pktgen/app/t)
+4. `make` builds the tests
+5. `make check` runs the tests with `prove`
+
+
+How to write test cases
+-----------------------
+Test cases can be written in C or Perl. To support tests in other languages, edit Makefile. See The section "Tests to build/run" in the Makefile.
+The Makefile looks for *.t.c (C test files) and *.pl.t (Perl test files).
+
+Tests written in C are linked against libtap, provided in the libtap/ subdirectory.
+libtap/tap.h is automatically included for each C file.
+The Pktgen source files that are linked with the tests (see `SOURCE` below), are compiled with code coverage instrumentation.
+When the tests are compiled, execute `make cover` to generate a HTML test coverage report. This requires lcov.
+
+
+Specifying C files to include in compilation and libraries for linking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can specify Pktgen C files to compile together with the test source and libraries to link into the resulting executable test file.
+
+The dependencies are specified through `SOURCE` and `LIBS` keywords in the test sources. The Makefile runs a helper script (`helpers/makedeps`) to extract these dependencies.
+
+`SOURCE` is used to specify pktgen C files to compile together with a test file. The corresponding .h files are #include'd automatically if they exist.
+The path `../` is automatically prepended to the specified filename(s), so the compiler will find the Pktgen C files with the specified names.
+
+`LIBS` is used to specify DPDK libraries to include when linking.
+The path to the `lib/` subdirectory of the DPDK target directory is automatically prepended and a `.a` suffix is added to the specified filenames.
+
+Multiple `SOURCE` and `LIBS` lines may be used, they are cumulative.
+
+
+Examples
+~~~~~~~~
+The following file is compiled as standalone: no extra source code or libraries are included in the compilation.
+------------------------------------------------------------------------------
+int main(void) {
+    return 0;
+}
+------------------------------------------------------------------------------
+
+
+This example also compiles `commands.c` from Pktgen and links apainst it. commands.h is #include'd when compiling the example if it exists.
+------------------------------------------------------------------------------
+/*
+ * SOURCE: commands.c
+ */
+int main(void) {
+    return 0;
+}
+------------------------------------------------------------------------------
+Compiling the above file would result in linker errors: `commands.c` uses functions in a lot of external libraries, but these are not specified for linking.
+
+
+Link the previous example with `librte_cmdline`, so the linker finds those functions, like this.
+------------------------------------------------------------------------------
+/*
+ * SOURCE: commands.c
+ * LIBS: librte_cmdline
+ */
+int main(void) {
+    return 0;
+}
+------------------------------------------------------------------------------
+

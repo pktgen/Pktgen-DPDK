@@ -1,0 +1,6 @@
+pktgen
+t/libtap/libtap.a
+t/libtap/tap.o
+build/
+t/*.t
+!t/*.pl.t

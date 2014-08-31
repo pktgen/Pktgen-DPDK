@@ -1,5 +1,5 @@
 #
-# Copyright (c) <2010-2012>, Wind River Systems, Inc.
+# Copyright (c) <2010-2014>, Wind River Systems, Inc.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
@@ -30,24 +30,3 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Created 2010 by Keith Wiles @ windriver.com
-
-ifeq ($(RTE_SDK),)
-$(error "Please define RTE_SDK environment variable")
-endif
-
-# Default target, can be overriden by command line or environment
-RTE_TARGET ?= x86_64-native-linuxapp-gcc
-
-include $(RTE_SDK)/mk/rte.vars.mk
-unexport RTE_SRCDIR RTE_OUTPUT RTE_EXTMK
-
-DIRS-y += lib app
-
-.PHONY: all clean $(DIRS-y)
-
-clean all: $(DIRS-y)
-
-$(DIRS-y):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
-
-include $(RTE_SDK)/mk/rte.app.mk

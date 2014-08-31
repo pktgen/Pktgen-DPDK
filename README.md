@@ -180,11 +180,11 @@ make sure hyper-threading is enabled.
 Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
 ```
 # cd <InstallDir>
-# git clone git://github.com/Pktgen/Pktgen-DPDK.git
+# git clone git://dpdk.org/dpdk.git
 ```
 ```
 # cd <InstallDir>
-# git clone git://dpdk.org/pktgen
+# git clone git://dpdk.org/pktgen-dpdk.git
 ```
 ** Note **
   The site dpdk.org you must also pull down DPDK repo as well. git://dpdk.org/dpdk
@@ -270,13 +270,15 @@ headers and rebuild the RTE_TARGET directory.
 ```
 # sudo apt-get install libpcap-dev
 
-export RTE_SDK=<installDir>/Pktgen-DPDK/dpdk
-export RTE_TARGET=x86_64-pktgen-linuxapp-gcc
+export RTE_SDK=<DPDKinstallDir>
+export RTE_TARGET=x86_64-native-linuxapp-gcc
+or use clang if you have it installed
+export RTE_TARGET=x86_64-native-linuxapp-clang
 ```
 Create the DPDK build tree:
 ```
 # cd $RTE_SDK
-# make install T=x86_64-pktgen-linuxapp-gcc
+# make install T=x86_64-native-linuxapp-gcc
 ```
 This above command will create the x86_64-pktgen-linuxapp-gcc directory in the
 top level of the current-dkdp directory. The above command will build the basic
@@ -284,7 +286,7 @@ DPDK libraries and build tree.
 
 Next we build pktgen:
 ```
-# cd examples/pktgen
+# cd <PktgenInstallDir>
 # make
 ```
 You should now have pktgen built and to run pktgen type 'sudo ./doit', which is a script

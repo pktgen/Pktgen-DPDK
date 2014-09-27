@@ -94,15 +94,15 @@ static __inline__ void wr_scrn_turn_off(void)		wr_scrn_puts("\033[?25l")			/** D
 static __inline__ void wr_scrn_save(void)			wr_scrn_puts("\0337")				/** Save current cursor position */
 static __inline__ void wr_scrn_restore(void)		wr_scrn_puts("\0338")				/** Restore the saved cursor position */
 static __inline__ void wr_scrn_eol(void)			wr_scrn_puts("\033[K")				/** Clear from cursor to end of line */
-static __inline__ void wr_scrn_cbl(void)			wr_scrn_puts("\033[1K")			/** Clear from cursor to begining of line */
-static __inline__ void wr_scrn_cel(void)			wr_scrn_puts("\033[2K")			/** Clear entire line */
+static __inline__ void wr_scrn_cbl(void)			wr_scrn_puts("\033[1K")				/** Clear from cursor to begining of line */
+static __inline__ void wr_scrn_cel(void)			wr_scrn_puts("\033[2K")				/** Clear entire line */
 static __inline__ void wr_scrn_clw(void)			wr_scrn_puts("\033[J")				/** Clear from cursor to end of screen */
-static __inline__ void wr_scrn_clb(void)			wr_scrn_puts("\033[1J")			/** Clear from cursor to begining of screen */
-static __inline__ void wr_scrn_cls(void)			wr_scrn_puts("\033[2J")			/** Clear the screen, more cursor to home */
-static __inline__ void wr_scrn_reverse(void)		wr_scrn_puts("\033[7m")			/** Start reverse video */
-static __inline__ void wr_scrn_normal(void)		wr_scrn_puts("\033[0m")			/** Stop attribute like reverse and underscore */
-static __inline__ void wr_scrn_scroll(int r)		wr_scrn_puts("\033[%d;r",r)		/** Scroll whole screen up r number of lines */
-static __inline__ void wr_scrn_scroll_up(int r)	wr_scrn_puts("\033[%dS",r)			/** Scroll whole screen up r number of lines */
+static __inline__ void wr_scrn_clb(void)			wr_scrn_puts("\033[1J")				/** Clear from cursor to begining of screen */
+static __inline__ void wr_scrn_cls(void)			wr_scrn_puts("\033[2J")				/** Clear the screen, more cursor to home */
+static __inline__ void wr_scrn_reverse(void)		wr_scrn_puts("\033[7m")				/** Start reverse video */
+static __inline__ void wr_scrn_normal(void)		wr_scrn_puts("\033[0m")					/** Stop attribute like reverse and underscore */
+static __inline__ void wr_scrn_scroll(int r)		wr_scrn_puts("\033[%d;r",r)			/** Scroll whole screen up r number of lines */
+static __inline__ void wr_scrn_scroll_up(int r)	wr_scrn_puts("\033[%dS",r)				/** Scroll whole screen up r number of lines */
 static __inline__ void wr_scrn_scroll_down(int r)	wr_scrn_puts("\033[%dT",r)			/** Scroll whole screen down r number of lines */
 static __inline__ void wr_scrn_nlines(int r)		wr_scrn_puts("\033[%dE",r)			/** Move down nlines plus move to column 1 */
 static __inline__ void wr_scrn_setw(int t)			wr_scrn_puts("\033[%d;r", t)		/** Set window size, from to end of screen */

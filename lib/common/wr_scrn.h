@@ -65,7 +65,7 @@ typedef struct wr_scrn_s {
 extern wr_scrn_t	* __scrn;	/**< Global extern for wr_scrn_t pointer (their can be only one!) */
 
 /** Enable or disable the screen from being updated */
-enum { SCRN_ON = 0, SCRN_OFF = 1 };
+enum { SCRN_RUNNING = 0, SCRN_PAUSED = 1 };
 
 /** Enable or disable the theme or color options */
 enum { THEME_OFF = 0, THEME_ON = 1 };
@@ -125,34 +125,23 @@ static __inline__ void wr_scrn_eol_pos(int r, int c) {
 	wr_scrn_eol();
 }
 
-/** Turn off screen updates if async processes are writing to the screen */
-static __inline__ void wr_scrn_off(void) {
-	rte_atomic32_set(&__scrn->state, SCRN_OFF);
-}
-
-/** Turn on screen updates if being done. */
-static __inline__ void wr_scrn_on(void) {
-	rte_atomic32_set(&__scrn->state, SCRN_ON);
-}
-
-/** Determine if the screen is currently off meaning no updates */
-static __inline__ int wr_scrn_is_off(void) {
-	return (rte_atomic32_read(&__scrn->state) == SCRN_OFF);
-}
+extern void pktgen_set_prompt(void);
 
 /** Stop screen from updating until resumed later */
 static __inline__ void wr_scrn_pause(void) {
-	rte_atomic32_set(&__scrn->pause, 1);
+	rte_atomic32_set(&__scrn->pause, SCRN_PAUSED);
+	pktgen_set_prompt();
 }
 
 /** Resume the screen from a pause */
 static __inline__ void wr_scrn_resume(void) {
-	rte_atomic32_set(&__scrn->pause, 0);
+	rte_atomic32_set(&__scrn->pause, SCRN_RUNNING);
+	pktgen_set_prompt();
 }
 
 /* Is the screen in the paused state */
 static __inline__ int wr_scrn_is_paused(void) {
-	return (rte_atomic32_read(&__scrn->pause) == 1);
+	return (rte_atomic32_read(&__scrn->pause) == SCRN_PAUSED);
 }
 
 /** Output a message of the current line centered */

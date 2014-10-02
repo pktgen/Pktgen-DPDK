@@ -99,8 +99,7 @@ wr_scrn_init(int16_t nrows, int16_t ncols, int theme)
 
 	scrn = malloc(sizeof(wr_scrn_t));
 	if ( scrn  ) {
-		rte_atomic32_set(&scrn->state, SCRN_ON);
-		rte_atomic32_set(&scrn->pause, 1);
+		rte_atomic32_set(&scrn->pause, SCRN_PAUSED);
 
 		scrn->nrows		= nrows;
 		scrn->ncols		= ncols;

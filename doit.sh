@@ -18,7 +18,7 @@ name=`uname -n`
 #88:00.1 Ethernet controller: Intel Corporation 82599ES 10-Gigabit SFI/SFP+ Network Connection (rev 01)
 
 if [ $name == "keithw-W2600CR" ]; then
-./app/pktgen -c 1ff -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:03:00.0 -b 0000:03:00.1 -b 0000:07:00.0 -b 0000:07:00.1 -- -T -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -f themes/black-yellow.theme
+./app/build/pktgen -c 1ff -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:03:00.0 -b 0000:03:00.1 -b 0000:07:00.0 -b 0000:07:00.1 -- -T -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -f themes/black-yellow.theme
 fi
 
 #keithw@keithw-S5520HC:~/projects/dpdk/Pktgen-DPDK/dpdk/examples/pktgen$ lspci | grep Ether
@@ -30,5 +30,5 @@ fi
 #07:00.1 Ethernet controller: Intel Corporation 82599ES 10-Gigabit SFI/SFP+ Network Connection (rev 01)
 
 if [ $name == "keithw-S5520HC" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:01:00.0 -b 0000:01:00.1 -- -T -P -m "[1:3].0, [2:4].2" 
+./app/build/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:01:00.0 -b 0000:01:00.1 -- -T -P -m "[1:3].0, [2:4].2" 
 fi

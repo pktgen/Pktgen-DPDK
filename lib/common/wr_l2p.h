@@ -51,8 +51,8 @@ typedef struct pq_s {
 	uint8_t		rx_cnt;
 	uint8_t		tx_cnt;
 	uint8_t		pad0[2];
-	uint8_t		rx[RTE_MAX_ETHPORTS];
-	uint8_t		tx[RTE_MAX_ETHPORTS];
+	uint16_t	rx[RTE_MAX_ETHPORTS];
+	uint16_t	tx[RTE_MAX_ETHPORTS];
 } pq_t;
 
 typedef struct {
@@ -418,7 +418,7 @@ wr_get_port_lid(l2p_t * l2p, uint8_t pid, uint8_t qid)
  * Get the number of rx qids
  *
  */
-static __inline__ uint8_t
+static __inline__ uint16_t
 wr_get_rxque( l2p_t * l2p, uint8_t lid, uint8_t pid )
 {
 	lobj_t	  * lobj = &l2p->lcores[lid];
@@ -430,7 +430,7 @@ wr_get_rxque( l2p_t * l2p, uint8_t lid, uint8_t pid )
  * Get the number of tx qids
  *
  */
-static __inline__ uint8_t
+static __inline__ uint16_t
 wr_get_txque( l2p_t * l2p, uint8_t lid, uint8_t pid )
 {
 	lobj_t	  * lobj = &l2p->lcores[lid];

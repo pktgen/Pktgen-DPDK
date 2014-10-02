@@ -275,15 +275,15 @@ pktgen_display_set_color(const char *elem) {
 
 
 /* String to use as prompt, with proper ANSI color codes */
-const char *
-pktgen_get_prompt(void)
+void
+pktgen_set_prompt(void)
 {
 	theme_color_map_t *def, *prompt;
 
 	// Set default return value.
 	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_APP_NAME);
 
-	if ( __scrn->theme == THEME_ON ) {
+	if ( (__scrn->theme == THEME_ON) && !wr_scrn_is_paused() ) {
 		// Look up the default and prompt values
 		def    = lookup_item(NULL);
 		prompt = lookup_item("pktgen.prompt");
@@ -297,7 +297,7 @@ pktgen_get_prompt(void)
 					def->attr,    30 + def->fg_color,    40 + def->bg_color);
 	}
 
-	return prompt_str;
+	cmdline_set_prompt(pktgen.cl, prompt_str);
 }
 
 
@@ -378,7 +378,7 @@ pktgen_theme_state(const char * state)
 		__scrn->theme = THEME_OFF;
 	else
 		__scrn->theme = THEME_ON;
-	cmdline_set_prompt(pktgen.cl, pktgen_get_prompt());
+	pktgen_set_prompt();
 }
 
 void

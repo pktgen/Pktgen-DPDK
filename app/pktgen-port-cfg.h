@@ -126,7 +126,8 @@ enum {		// Per port flag bits
 	SEND_GRE_IPv4_HEADER	= 0x00010000,		/**< Encapsulate IPv4 in GRE */
 	SEND_RANDOM_PKTS		= 0x00020000,		/**< Send random bitfields in packets */
 	SEND_GRE_ETHER_HEADER	= 0x00040000,		/**< Encapsulate Ethernet frame in GRE */
-	SENDING_PACKETS			= 0x80000000		/**< sending packets on this port */
+	SENDING_PACKETS			= 0x40000000,		/**< sending packets on this port */
+	SEND_FOREVER			= 0x80000000		/**< Send packets forever */
 };
 
 typedef struct port_info_s {
@@ -215,15 +216,17 @@ extern void pktgen_config_ports(void);
 static inline uint64_t
 pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 {
-	int success = 0;
+	int success;
 	int64_t tmp1, tmp2;
 
-	while (success == 0) {
+	do {
 		tmp1 = v->cnt;
-		tmp2 = (tmp1 > burst) ? burst : tmp1;
-		success = rte_atomic64_cmpset((volatile uint64_t *)&v->cnt,
-		                              tmp1, tmp1 - tmp2);
-	}
+		if ( tmp1 == 0 )
+			return 0;
+		tmp2 = likely(tmp1 > burst) ? burst : tmp1;
+		success = rte_atomic64_cmpset((volatile uint64_t *)&v->cnt, tmp1, tmp1 - tmp2);
+	} while( success == 0 );
+
 	return tmp2;
 }
 

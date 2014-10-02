@@ -251,13 +251,12 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
     m->buf_len		= (uint16_t)buf_len;
 
     /* keep some headroom between start of buffer and data */
-    m->pkt.data = (char *)m->buf_addr + RTE_MIN(RTE_PKTMBUF_HEADROOM, m->buf_len);
+    m->data_off = RTE_MIN(RTE_PKTMBUF_HEADROOM, m->buf_len);
 
     /* init some constant fields */
-    m->type         = RTE_MBUF_PKT;
     m->pool         = mp;
-    m->pkt.nb_segs  = 1;
-    m->pkt.in_port	= 0xff;
+    m->nb_segs  	= 1;
+    m->port			= 0xff;
     m->ol_flags		= 0;
 
     for(;;) {
@@ -279,10 +278,10 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
         else if ( len > (ETHER_MAX_LEN - 4) )
     		len = (ETHER_MAX_LEN - 4);
 
-        m->pkt.data_len = len;
-        m->pkt.pkt_len	= len;
+        m->data_len = len;
+        m->pkt_len	= len;
 
-        rte_memcpy((uint8_t *)m->pkt.data, buffer, len);
+        rte_memcpy((uint8_t *)m->buf_addr + m->data_off, buffer, len);
         break;
     }
 }

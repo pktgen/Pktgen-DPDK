@@ -781,6 +781,18 @@ pktgen_set_random(port_info_t *info, uint32_t onOff)
 		pktgen_clr_port_flags(info, SEND_RANDOM_PKTS);
 }
 
+/*
+ * Local wrapper function to test mp is NULL and return or continue
+ * to call rte_mempool_dump() routine.
+ */
+static void
+__mempool_dump(FILE * f, struct rte_mempool * mp) {
+
+	if ( mp == NULL )
+		return;
+	rte_mempool_dump(f, mp);
+}
+
 /**************************************************************************//**
 *
 * pktgen_mempool_dump - Display the mempool information
@@ -797,25 +809,28 @@ void
 pktgen_mempool_dump(port_info_t * info, char * name)
 {
 	int				all;
-	uint16_t		q = 0;
+	uint16_t		q;
 
 	all = !strcmp(name, "all");
 
-	if ( info->q[q].tx_mp == NULL )
+	if ( info->q[0].tx_mp == NULL )
 		return;
-	for(q = 0; q < NUM_Q; q++) {
-		if ( all || !strcmp(name, "tx") )
-			rte_mempool_dump(stdout, info->q[q].tx_mp);
+
+	for(q = 0; q < wr_get_port_rxcnt(pktgen.l2p, info->pid); q++) {
 		if ( all || !strcmp(name, "rx") )
 			rte_mempool_dump(stdout, info->q[q].rx_mp);
+	}
+	for(q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++) {
+		if ( all || (!strcmp(name, "tx") && (q < wr_get_port_txcnt(pktgen.l2p, info->pid))) )
+			__mempool_dump(stdout, info->q[q].tx_mp);
 		if ( all || !strcmp(name, "range") )
-			rte_mempool_dump(stdout, info->q[q].range_mp);
+			__mempool_dump(stdout, info->q[q].range_mp);
 		if ( all || !strcmp(name, "seq") )
-			rte_mempool_dump(stdout, info->q[q].seq_mp);
+			__mempool_dump(stdout, info->q[q].seq_mp);
 		if ( all || !strcmp(name, "arp") )
-			rte_mempool_dump(stdout, info->q[q].special_mp);
+			__mempool_dump(stdout, info->q[q].special_mp);
 		if ( all || !strcmp(name, "pcap") )
-			rte_mempool_dump(stdout, info->q[q].pcap_mp);
+			__mempool_dump(stdout, info->q[q].pcap_mp);
 	}
 }
 
@@ -841,6 +856,8 @@ pktgen_start_transmitting(port_info_t * info)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 		rte_atomic64_set(&info->current_tx_count, rte_atomic64_read(&info->transmit_count));
 		pktgen_set_port_flags(info, SENDING_PACKETS);
+		if ( rte_atomic64_read(&info->current_tx_count) == 0 )
+			pktgen_set_port_flags(info, SEND_FOREVER);
 	}
 }
 
@@ -862,7 +879,7 @@ pktgen_stop_transmitting(port_info_t * info)
 	uint8_t		q;
 
 	if ( rte_atomic32_read(&info->port_flags) & SENDING_PACKETS ) {
-		pktgen_clr_port_flags(info, SENDING_PACKETS);
+		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
 		for(q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++ )
 			pktgen_set_q_flags(info, q, DO_TX_CLEANUP);
 	}

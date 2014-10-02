@@ -85,7 +85,7 @@ void
 pktgen_packet_dump( struct rte_mbuf * m, int pid )
 {
 	port_info_t * info = &pktgen.info[pid];
-	int plen = (m->pkt.pkt_len + FCS_SIZE);
+	int plen = (m->pkt_len + FCS_SIZE);
 	unsigned char *curr_data;
 	struct rte_mbuf *curr_mbuf;
 
@@ -98,8 +98,8 @@ pktgen_packet_dump( struct rte_mbuf * m, int pid )
 
 	for (curr_data = info->dump_list[info->dump_tail].data, curr_mbuf = m;
 		curr_mbuf != NULL;
-		curr_data += curr_mbuf->pkt.data_len, curr_mbuf = curr_mbuf->pkt.next) {
-		rte_memcpy(curr_data, curr_mbuf->pkt.data, curr_mbuf->pkt.data_len);
+		curr_data += curr_mbuf->data_len, curr_mbuf = curr_mbuf->next) {
+		rte_memcpy(curr_data, (uint8_t *)curr_mbuf->buf_addr + m->data_off, curr_mbuf->data_len);
 	}
 
 	++info->dump_tail;

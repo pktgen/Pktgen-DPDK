@@ -2676,12 +2676,12 @@ cmdline_parse_token_string_t cmd_mempool_dump =
 cmdline_parse_token_portlist_t cmd_mempool_portlist =
 	TOKEN_PORTLIST_INITIALIZER(struct cmd_mempool_result, portlist);
 cmdline_parse_token_string_t cmd_mempool_name =
-	TOKEN_STRING_INITIALIZER(struct cmd_mempool_result, name, "rx#def#range#seq#arp#pcap#all");
+	TOKEN_STRING_INITIALIZER(struct cmd_mempool_result, name, "rx#tx#range#seq#arp#pcap#all");
 
 cmdline_parse_inst_t cmd_mempool = {
 	.f = cmd_mempool_parsed,
 	.data = NULL,
-	.help_str = "mempool dump",
+	.help_str = "mempool dump <portlist> [all|rx|tx|range|seq|arp|pcap]",
 	.tokens = {
 		(void *)&cmd_set_mempool,
 		(void *)&cmd_mempool_dump,
@@ -4149,7 +4149,8 @@ void
 pktgen_cmdline_start(void)
 {
 	// Start up the command line, which exits on Control-D
-	pktgen.cl = cmdline_stdin_new(main_ctx, pktgen_get_prompt());
+	pktgen.cl = cmdline_stdin_new(main_ctx, "Pktgen > ");
+	pktgen_set_prompt();
 
 	if ( pktgen.cl && pktgen.cmd_filename ) {
 		pktgen_log_info("# *** Executing file (%s)", pktgen.cmd_filename);

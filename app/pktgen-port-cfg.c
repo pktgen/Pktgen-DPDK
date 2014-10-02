@@ -88,14 +88,23 @@ enum {
 
 const struct rte_eth_conf port_conf = {
     .rxmode = {
+        .mq_mode = ETH_MQ_RX_RSS,
+        .max_rx_pkt_len = ETHER_MAX_LEN,
         .split_hdr_size = 0,
         .header_split   = 0, /**< Header Split disabled */
-        .hw_ip_checksum = 0, /**< IP checksum offload disabled */
+        .hw_ip_checksum = 1, /**< IP checksum offload enabled */
         .hw_vlan_filter = 0, /**< VLAN filtering disabled */
         .jumbo_frame    = 0, /**< Jumbo Frame Support disabled */
+        .hw_strip_crc   = 0, /**< CRC stripped by hardware */
+    },
+    .rx_adv_conf = {
+        .rss_conf = {
+            .rss_key = NULL,
+            .rss_hf = ETH_RSS_IP,
+        },
     },
     .txmode = {
-    	.mq_mode = ETH_MQ_TX_NONE,
+        .mq_mode = ETH_MQ_TX_NONE,
     },
 };
 
@@ -111,25 +120,21 @@ const struct rte_eth_rxconf rx_conf = {
 #define IXGBE_SIMPLE_FLAGS ((uint32_t)ETH_TXQ_FLAGS_NOMULTSEGS | \
 			    ETH_TXQ_FLAGS_NOOFFLOADS)
 
-const struct rte_eth_txconf tx_conf = {
+static struct rte_eth_txconf tx_conf = {
     .tx_thresh = {
         .pthresh = TX_PTHRESH,
         .hthresh = TX_HTHRESH,
         .wthresh = TX_WTHRESH,
     },
-    .tx_rs_thresh = 0,
     .tx_free_thresh = 0, /* Use PMD default values */
-    .txq_flags = IXGBE_SIMPLE_FLAGS,
+    .tx_rs_thresh = 0, /* Use PMD default values */
+    .txq_flags = (ETH_TXQ_FLAGS_NOMULTSEGS |
+            ETH_TXQ_FLAGS_NOVLANOFFL |
+            ETH_TXQ_FLAGS_NOXSUMSCTP |
+            ETH_TXQ_FLAGS_NOXSUMUDP |
+            ETH_TXQ_FLAGS_NOXSUMTCP)
+
 };
-#if 0
-static struct rte_eth_fc_conf fc_conf = {
-    .mode       = RTE_FC_NONE, //RTE_FC_TX_PAUSE
-    .high_water = 80 * 510 / 100,
-    .low_water  = 60 * 510 / 100,
-    .pause_time = 1337,
-    .send_xon   = 0,
-};
-#endif
 
 /**************************************************************************//**
 *

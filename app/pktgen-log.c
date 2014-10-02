@@ -76,6 +76,7 @@
 #include <libgen.h>
 
 #include "pktgen-display.h"
+#include <rte_rwlock.h>
 
 
 /* Log sizes and data structure */
@@ -99,6 +100,7 @@ typedef struct log_s {
 	uint16_t	head;				/**< index of most recent log msg */
 	uint16_t	tail;				/**< index of oldest log msg */
 	uint8_t		need_refresh;		/**< log page doesn't contain the latest messages */
+	rte_rwlock_t	lock;			/**< multi-threaded list lock */
 } log_t;
 
 log_t log_history;
@@ -135,8 +137,12 @@ void
 pktgen_log(int level, const char *file, long line,
 		const char *func, const char *fmt, ...)
 {
-	log_msg_t *curr_msg = &log_history.msg[log_history.head];
+	log_msg_t *curr_msg;
 	va_list args;
+
+	rte_rwlock_write_lock(&log_history.lock);
+
+	curr_msg = &log_history.msg[log_history.head];
 
 	/* log message metadata */
 	gettimeofday(&curr_msg->tv, NULL);
@@ -177,6 +183,8 @@ pktgen_log(int level, const char *file, long line,
 		fprintf(stdout, "%s\n", pktgen_format_msg_stdout(curr_msg));
 
 	log_history.need_refresh = 1;
+
+	rte_rwlock_write_unlock(&log_history.lock);
 }
 
 

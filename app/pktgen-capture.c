@@ -325,7 +325,7 @@ pktgen_packet_capture_bulk(struct rte_mbuf ** pkts, uint32_t nb_dump, capture_t 
 		 * segment are captured. Capturing all segments uses too much CPU
 		 * cycles, which causes packets to be dropped.
 		 * Hence, data_len is used instead of pkt_len. */
-		plen = (pkt->pkt.data_len + 1) & ~1;
+		plen = (pkt->data_len + 1) & ~1;
 
 		/* If packet to capture is larger than available buffer size, stop
 		 * capturing.
@@ -338,10 +338,10 @@ pktgen_packet_capture_bulk(struct rte_mbuf ** pkts, uint32_t nb_dump, capture_t 
 
 		/* Write untruncated data length and size of the actually captured
 		 * data. */
-		cap->tail->pkt_len	= pkt->pkt.pkt_len;
+		cap->tail->pkt_len	= pkt->pkt_len;
 		cap->tail->data_len	= plen;
 
-		rte_memcpy(cap->tail->pkt, pkt->pkt.data, pkt->pkt.pkt_len);
+		rte_memcpy(cap->tail->pkt, (uint8_t *)pkt->buf_addr + pkt->data_off, pkt->pkt_len);
 		cap->tail = (cap_hdr_t *)(cap->tail->pkt + plen);
 	}
 

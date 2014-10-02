@@ -132,8 +132,8 @@ pktgen_send_arp( uint32_t pid, uint32_t type, uint8_t seq_idx )
     arp->pln    = 4;
     arp->op     = htons(ARP_REQUEST);
 
-    m->pkt.pkt_len  = 60;
-    m->pkt.data_len = 60;
+    m->pkt_len  = 60;
+    m->data_len = 60;
 
     pktgen_send_mbuf(m, pid, qid);
 

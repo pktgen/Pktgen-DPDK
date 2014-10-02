@@ -153,7 +153,7 @@
 #include "pktgen-log.h"
 
 
-#define PKTGEN_VERSION			"2.7.5"
+#define PKTGEN_VERSION			"2.7.6"
 #define PKTGEN_APP_NAME			"Pktgen"
 #define PKTGEN_CREATED_BY		"Keith Wiles"
 
@@ -359,7 +359,7 @@ extern void pktgen_page_display(__attribute__((unused)) struct rte_timer *tim, _
 extern void pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type);
 extern void pktgen_packet_rate(port_info_t * info);
 
-extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint8_t qid);
+extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
 
 extern pkt_seq_t * pktgen_find_matching_ipsrc( port_info_t * info, uint32_t addr );
 extern pkt_seq_t * pktgen_find_matching_ipdst( port_info_t * info, uint32_t addr );

@@ -139,10 +139,10 @@ pktgen_send_ping4( uint32_t pid, uint8_t seq_idx )
     }
 	*ppkt = *spkt;		// Copy the sequence setup to the ping setup.
     pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO);
-	rte_memcpy((uint8_t *)m->pkt.data, (uint8_t *)&ppkt->hdr, ppkt->pktSize);
+	rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&ppkt->hdr, ppkt->pktSize);
 
-    m->pkt.pkt_len  = ppkt->pktSize;
-    m->pkt.data_len = ppkt->pktSize;
+    m->pkt_len  = ppkt->pktSize;
+    m->data_len = ppkt->pktSize;
 
     pktgen_send_mbuf(m, pid, qid);
 
@@ -184,7 +184,7 @@ pktgen_process_ping4( struct rte_mbuf * m, uint32_t pid, uint32_t vlan )
 #endif
 
         // We do not handle IP options, which will effect the IP header size.
-        if ( unlikely(cksum(icmp, (m->pkt.data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0)) ) {
+        if ( unlikely(cksum(icmp, (m->data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0)) ) {
             pktgen_log_error("ICMP checksum failed");
             return;
         }
@@ -212,13 +212,13 @@ pktgen_process_ping4( struct rte_mbuf * m, uint32_t pid, uint32_t vlan )
 
             /* Recompute the ICMP checksum */
             icmp->cksum = 0;
-            icmp->cksum = cksum(icmp, (m->pkt.data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0);
+            icmp->cksum = cksum(icmp, (m->data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0);
 
             // Swap the IP addresses.
             inetAddrSwap(&ip->src, &ip->dst);
 
             // Bump the ident value
-            ip->ident   = htons(ntohs(ip->ident) + m->pkt.data_len);
+            ip->ident   = htons(ntohs(ip->ident) + m->data_len);
 
             // Recompute the IP checksum
             ip->cksum   = 0;

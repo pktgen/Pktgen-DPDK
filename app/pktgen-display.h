@@ -152,17 +152,18 @@ extern void pktgen_display_set_color(const char *elem);
 
 /**************************************************************************//**
 *
-* pktgen_get_prompt - Returns the string to use as a prompt. This string
-* includes ANSI color codes to style the prompt according to the color theme.
+* pktgen_set_prompt - Sets the prompt for the command line.
+* The new string will include color support if enabled, which includes
+* ANSI color codes to style the prompt according to the color theme.
 *
 * DESCRIPTION
-* Returns string to use as prompt.
+* None
 *
 * RETURNS: N/A
 *
 * SEE ALSO:
 */
-extern const char *pktgen_get_prompt(void);
+extern void pktgen_set_prompt(void);
 
 /**************************************************************************//**
 *

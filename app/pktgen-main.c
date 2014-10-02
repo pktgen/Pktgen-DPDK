@@ -363,6 +363,8 @@ main(int argc, char **argv)
     uint32_t i;
     int32_t	ret;
 
+	wr_scrn_setw(1);			// Reset the window size
+
     // call before the rte_eal_init()
     (void)rte_set_application_usage_hook(pktgen_usage);
 
@@ -428,7 +430,7 @@ main(int argc, char **argv)
         if ( ret != 0 )
             pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
     }
-    rte_delay_ms(5000);				// Wait for the lcores to start up.
+    rte_delay_ms(1000);				// Wait for the lcores to start up.
 
 	// Disable printing log messages of level info and below to screen,
     // erase the screen and start updating the screen again.

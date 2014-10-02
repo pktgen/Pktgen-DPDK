@@ -349,6 +349,7 @@ int
 lua_init_socket(lua_State * L, pthread_t * pthread, char * hostname, int port)
 {
 	luaServer_t * p;
+	int		r;
 
 	p = luaL_getprivate(L);
 	if ( p == NULL )
@@ -359,7 +360,9 @@ lua_init_socket(lua_State * L, pthread_t * pthread, char * hostname, int port)
 	p->socket_port		= port;
 	p->hostname			= strdup( (hostname) ? hostname : "localhost" );
 
-	assert( pthread_create(pthread, NULL, lua_server, p) == 0 );
+	/* Split assert and function because using NDEBUG define will remove function */
+	r = pthread_create(pthread, NULL, lua_server, p);
+	assert( r == 0 );
 	return 0;
 }
 

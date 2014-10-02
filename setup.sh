@@ -1,12 +1,21 @@
 #!/bin/bash
 
-sdk=../..
+# Use 'sudo -E ./setup.sh' to include environment variables
+
+if [ -z ${RTE_SDK} ] ; then
+	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
+	exit 1
+else
+	sdk=${RTE_SDK}
+fi
 
 if [ -z ${RTE_TARGET} ]; then
+	echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
 	target=x86_64-pktgen-linuxapp-gcc
 else
 	target=${RTE_TARGET}
 fi
+
 echo "Using directory: "$sdk"/"$target
 
 function nr_hugepages_fn {

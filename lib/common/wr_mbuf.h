@@ -39,35 +39,40 @@
 extern "C" {
 #endif
 
-static inline struct rte_mbuf *rte_pktmbuf_alloc_noreset(struct rte_mempool *mp)
+static inline void __pktmbuf_alloc_noreset(struct rte_mbuf *m)
 {
-	struct rte_mbuf *m;
-	if ((m = __rte_mbuf_raw_alloc(mp)) != NULL) {
-		m->pkt.nb_segs = 1;
-		m->pkt.next = NULL;
-	}
-	return (m);
+    m->next = NULL;
+    //m->pkt_len = 0;
+    //m->l2_l3_len = 0;
+    //m->vlan_tci = 0;
+    m->nb_segs = 1;
+    m->port = 0xff;
+
+    m->ol_flags = 0;
+    m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
+            RTE_PKTMBUF_HEADROOM : m->buf_len;
+
+#ifdef RTE_MBUF_REFCNT
+	rte_mbuf_refcnt_set(m, 1);
+#endif /* RTE_MBUF_REFCNT */
+
+    //m->data_len = 0;
+    //__rte_mbuf_sanity_check(m, 1);
 }
 
-static inline int rte_pktmbuf_alloc_bulk_noreset(struct rte_mempool *mp, void ** obj_table, unsigned cnt)
+static inline int wr_pktmbuf_alloc_bulk_noreset(struct rte_mempool *mp,
+		struct rte_mbuf *m_list[], unsigned cnt)
 {
-	int		ret;
-	unsigned i;
-	struct rte_mbuf * m;
+	int	ret;
 
-	ret = rte_mempool_get_bulk(mp, obj_table, cnt);
+	ret = rte_mempool_get_bulk(mp, (void **)m_list, cnt);
+	if ( ret < 0 )
+		return ret;
 
-	if ( ret == 0 ) {
-		for(i=0; i<cnt; i++) {
-			m = (struct rte_mbuf *)obj_table[i];
-			RTE_MBUF_ASSERT(rte_mbuf_refcnt_read(m) == 0);
-			rte_mbuf_refcnt_set(m, 1);
-			m->pkt.nb_segs = 1;
-			m->pkt.next	= NULL;				// Must set the next pointer to null.
-		}
-		return cnt;
-	}
-	return 0;
+	while(cnt--)
+		__pktmbuf_alloc_noreset(*m_list++);
+
+	return ret;
 }
 
 #ifdef __cplusplus

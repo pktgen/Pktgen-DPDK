@@ -61,17 +61,17 @@ static inline void __pktmbuf_alloc_noreset(struct rte_mbuf *m)
 }
 
 static inline int wr_pktmbuf_alloc_bulk_noreset(struct rte_mempool *mp,
-		struct rte_mbuf *m_list[], unsigned cnt)
+		struct rte_mbuf *m_list[], unsigned int cnt)
 {
 	int	ret;
+	unsigned int i;
 
 	ret = rte_mempool_get_bulk(mp, (void **)m_list, cnt);
-	if ( ret < 0 )
-		return ret;
-
-	while(cnt--)
-		__pktmbuf_alloc_noreset(*m_list++);
-
+	if ( ret == 0 ) {
+		for(i = 0; i < cnt; i++)
+			__pktmbuf_alloc_noreset(*m_list++);
+		ret = cnt;
+	}
 	return ret;
 }
 

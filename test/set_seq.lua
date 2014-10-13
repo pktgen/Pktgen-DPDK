@@ -15,26 +15,3 @@ local seq_table = {			-- entries can be in any order
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );
 pktgen.set("all", "seqCnt", 1);
-
--- Set the first two ports with know values, must set seqCnt to 0 to use.
---  001b:218e:b760    001b:218e:b1e8
-pktgen.set_mac("0", "001b:218e:b760");
-pktgen.set_mac("1", "001b:218e:b1e8");
-
-pktgen.set_ipaddr("0", "dst", "20.10.2.2");
-pktgen.set_ipaddr("0", "src", "20.10.1.2/24");
-
-pktgen.set_ipaddr("1", "dst", "20.10.1.2");
-pktgen.set_ipaddr("1", "src", "20.10.2.2/24");
-
-pktgen.set_proto("all", "udp");
-pktgen.set_type("all", "ipv4");
-
-pktgen.set("all", "size", 64);
-pktgen.set("all", "sport", 5678);
-pktgen.set("all", "dport", 1234);
-
-pktgen.set("all", "count", 0);
-pktgen.set("all", "rate", 100);
-
-pktgen.vlan_id("all", 5);

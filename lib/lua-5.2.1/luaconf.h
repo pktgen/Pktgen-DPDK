@@ -45,7 +45,7 @@
 #define LUA_USE_POSIX
 #define LUA_USE_DLOPEN		/* needs an extra library: -ldl */
 #undef LUA_USE_READLINE	/* needs some extra libraries */
-#define LUA_USE_STRTODHEX	/* assume 'strtod' handles hexa formats */
+#define LUA_USE_STRTODHEX	/* assume 'strtod' handles hex formats */
 #define LUA_USE_AFORMAT		/* assume 'printf' handles 'aA' specifiers */
 #define LUA_USE_LONGLONG	/* assume support for long long */
 #endif
@@ -54,7 +54,7 @@
 #define LUA_USE_POSIX
 #define LUA_USE_DLOPEN		/* does not need -ldl */
 #define LUA_USE_READLINE	/* needs an extra library: -lreadline */
-#define LUA_USE_STRTODHEX	/* assume 'strtod' handles hexa formats */
+#define LUA_USE_STRTODHEX	/* assume 'strtod' handles hex formats */
 #define LUA_USE_AFORMAT		/* assume 'printf' handles 'aA' specifiers */
 #define LUA_USE_LONGLONG	/* assume support for long long */
 #endif
@@ -203,6 +203,7 @@
 ** CHANGE it if you want a different size.
 */
 #define LUA_IDSIZE	60
+
 
 /*
 @@ luai_writestring/luai_writeline define how 'print' prints its results.

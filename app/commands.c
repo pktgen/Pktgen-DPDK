@@ -199,6 +199,7 @@ const char * help_info[] = {
 		"                 prime             - Set the number of packets to send on prime command",
 		"                 seqCnt            - Set the number of packet in the sequence to send",
 		"                 dump              - Dump the next <value> received packets to the screen",
+		"                 vlanid            - Set the VLAN ID value for the portlist",
 		"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6|vlan udp|tcp|icmp vid pktsize",
 		"                                   - Set the sequence packet information, make sure the src-IP",
 		"                                     has the netmask value eg 1.2.3.4/24",
@@ -218,7 +219,7 @@ const char * help_info[] = {
 		"rxtap <portlist> <state>           - Enable/disable Rx tap interface support pg_rxtapN",
 		"txtap <portlist> <state>           - Enable/disable Tx tap interface support pg_txtapN",
 		"vlan <portlist> <state>            - Enable/disable sending VLAN ID in packets",
-		"vlanid <portlist> <vlanid>         - Set the VLAN ID for the portlist",
+		"vlanid <portlist> <vlanid>         - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
 		"mpls <portlist> <state>            - Enable/disable sending MPLS entry in packets",
 		"mpls_entry <portlist> <entry>      - Set the MPLS entry for the portlist (must be specified in hex)",
 		"qinq <portlist> <state>            - Enable/disable sending Q-in-Q header in packets",
@@ -1542,6 +1543,8 @@ static void cmd_set_parsed(void *parsed_result,
 			pktgen_set_port_prime(info, res->value);
 		else if (!strcmp(res->what, "dump"))
 			pktgen_set_port_dump(info, res->value);
+		else if (!strcmp(res->what, "vlanid"))
+			pktgen_set_vlanid(info, res->value);
 	) );
 
 	pktgen_update_display();
@@ -1553,14 +1556,14 @@ cmdline_parse_token_portlist_t cmd_set_portlist =
 	TOKEN_PORTLIST_INITIALIZER(struct cmd_set_result, portlist);
 cmdline_parse_token_string_t cmd_set_what =
 	TOKEN_STRING_INITIALIZER(struct cmd_set_result, what,
-				 "count#size#rate#burst#tx_cycles#sport#dport#seqCnt#prime#dump");
+				 "count#size#rate#burst#tx_cycles#sport#dport#seqCnt#prime#dump#vlanid");
 cmdline_parse_token_num_t cmd_set_value =
 	TOKEN_NUM_INITIALIZER(struct cmd_set_result, value, UINT32);
 
 cmdline_parse_inst_t cmd_set = {
 	.f = cmd_set_parsed,
 	.data = NULL,
-	.help_str = "set <portlist> count|size|rate|burst|tx_cycles|sport|dport|seqCnt|prime|dump value",
+	.help_str = "set <portlist> count|size|rate|burst|tx_cycles|sport|dport|seqCnt|prime|dump|vlanid value",
 	.tokens = {
 		(void *)&cmd_set_set,
 		(void *)&cmd_set_portlist,

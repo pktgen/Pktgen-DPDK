@@ -25,6 +25,12 @@ pktgen.set("all", "dport", 0x9988);
 pktgen.set("all", "prime", 3);
 pktgen.set("all", "seqCnt", 3);
 
+pktgen.vlanid("all", 55);
+
+pktgen.screen("on");
+pktgen.pause("Screen on\n", 2000);
+pktgen.screen("off");
+
 -- sequence command in one line
 pktgen.seq(0, "all", "0000:4455:6677", "0000:1234:5678", "10.11.0.1", "10.10.0.1/16", 5, 6, "ipv4", "udp", 1, 128);
 prints("seq", pktgen.decompile(0, "all"));
@@ -125,11 +131,14 @@ pktgen.blink("0", "on");
 pktgen.pause("Pause for a while, then turn off screen\n", 4000);
 pktgen.screen("off");
 
-printf("Lua Vesrion      : %s\n", pktgen.info.Lua_Version);
+printf("Lua Version      : %s\n", pktgen.info.Lua_Version);
 printf("Pktgen Version   : %s\n", pktgen.info.Pktgen_Version);
 printf("Pktgen Copyright : %s\n", pktgen.info.Pktgen_Copyright);
 
 prints("pktgen.info", pktgen.info);
+
+printf("Port Count %d\n", pktgen.portCount());
+printf("Total port Count %d\n", pktgen.totalPorts());
 
 printf("\nDone, Key pressed is (%s)\n", pktgen.continue("\nPress any key: "));
 if ( key == "s" ) then

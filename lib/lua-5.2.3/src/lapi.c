@@ -1282,3 +1282,10 @@ LUA_API void lua_upvaluejoin (lua_State *L, int fidx1, int n1,
   luaC_objbarrier(L, f1, *up2);
 }
 
+LUA_API void lua_setprivate(lua_State * L, void * val) {
+	L->private = val;
+}
+
+LUA_API void * lua_getprivate(lua_State * L) {
+	return L->private;
+}

@@ -173,6 +173,8 @@ struct lua_State {
   struct lua_longjmp *errorJmp;  /* current error recover point */
   ptrdiff_t errfunc;  /* current error handling function (stack index) */
   CallInfo base_ci;  /* CallInfo for first level (C calling Lua) */
+
+  void * private;
 };
 
 

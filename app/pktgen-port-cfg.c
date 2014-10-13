@@ -252,6 +252,7 @@ void pktgen_config_ports(void)
     	if ( (rt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0 )
             continue;
 
+		pktgen.port_cnt++;
 		snprintf(output_buff, sizeof(output_buff),
 				"Initialize Port %d -- TxQ %d, RxQ %d", pid, rt.tx, rt.rx);
 

@@ -653,6 +653,33 @@ static void createstdfile (lua_State *L, FILE *f, const char *k,
   lua_setfield(L, -2, fname);  /* add file to module */
 }
 
+void
+lua_set_stdfiles(lua_State * L, void * in, void * out, void * err)
+{
+	luaL_getmetatable(L, LUA_FILEHANDLE);
+	if (lua_isnil(L, -1)) {
+	  printf("luaL_getmetatable() returned NIL\n");
+	  return;
+	}
+
+	/* create (and set) default files */
+	createstdfile(L, in, IO_INPUT, "stdin");
+	createstdfile(L, out, IO_OUTPUT, "stdout");
+	createstdfile(L, err, NULL, "stderr");
+}
+
+void
+lua_reset_stdfiles(lua_State * L)
+{
+	luaL_getmetatable(L, LUA_FILEHANDLE);
+	if (lua_isnil(L, -1))
+	  return;
+
+	/* create (and set) default files */
+	createstdfile(L, stdin, IO_INPUT, "stdin");
+	createstdfile(L, stdout, IO_OUTPUT, "stdout");
+	createstdfile(L, stderr, NULL, "stderr");
+}
 
 LUAMOD_API int luaopen_io (lua_State *L) {
   luaL_newlib(L, iolib);  /* new module */

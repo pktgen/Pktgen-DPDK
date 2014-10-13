@@ -53,12 +53,12 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(SRCDIR) -I$(SRCDIR)/../lib/common -I$(SRCDIR)/../lib/lua
-LDFLAGS += -g -lpcap -L$(SRCDIR)/../lib/common/ -L$(SRCDIR)/../lib/lua -llua -lcommon
+CFLAGS += -I$(SRCDIR) -I$(SRCDIR)/../lib/common -I$(SRCDIR)/../lib/lua/src
+LDFLAGS += -g -lpcap -L$(SRCDIR)/../lib/common/ -L$(SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib -llua -lcommon
 
 CFLAGS_commands.o := -Wno-format-nonliteral
 CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 
-DEP_$(APP) += $(SRCDIR)/../lib/common/libcommon.a $(SRCDIR)/../lib/lua/liblua.a
+DEP_$(APP) += $(SRCDIR)/../lib/common/libcommon.a $(SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib/liblua.a
 
 include $(RTE_SDK)/mk/rte.extapp.mk

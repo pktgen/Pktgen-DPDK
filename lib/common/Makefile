@@ -30,7 +30,7 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
 
-include $(RTE_SDK)/mk/rte.vars.mk
+include $(RTE_SDK)/mk/rte.extvars.mk
 
 # library name
 LIB = libcommon.a
@@ -43,4 +43,4 @@ CFLAGS_wr_scrn.o := -Wno-format-nonliteral
 SRCS-y := wr_copyright_info.c wr_port_config.c wr_core_info.c \
 	wr_lscpu.c wr_utils.c wr_coremap.c wr_pcap.c wr_cksum.c wr_l2p.c wr_scrn.c
 
-include $(RTE_SDK)/mk/rte.lib.mk
+include $(RTE_SDK)/mk/rte.extlib.mk

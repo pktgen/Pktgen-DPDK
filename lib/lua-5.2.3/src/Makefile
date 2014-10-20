@@ -30,7 +30,7 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
 
-include $(RTE_SDK)/mk/rte.vars.mk
+include $(RTE_SDK)/mk/rte.extvars.mk
 
 # library name
 LIB = liblua.a
@@ -59,4 +59,4 @@ SRCS-y := \
 	lstring.c lstrlib.c ltable.c ltablib.c ltm.c lua_shell.c \
 	lundump.c lvm.c lzio.c lua-socket.c
 
-include $(RTE_SDK)/mk/rte.lib.mk
+include $(RTE_SDK)/mk/rte.extlib.mk

@@ -30,7 +30,7 @@
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
 
-include $(RTE_SDK)/mk/rte.extvars.mk
+include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
 LIB = liblua.a
@@ -48,7 +48,7 @@ WERROR_FLAGS += -Wcast-align
 WERROR_FLAGS += -Wnested-externs
 WERROR_FLAGS += -Wno-cast-align
 
-CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT $(WERROR_FLAGS) -I$(SRCDIR) -fno-stack-protector
+CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
 
 # all source are stored in SRCS-y
 SRCS-y := \

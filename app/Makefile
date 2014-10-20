@@ -29,7 +29,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Created 2010 by Keith Wiles @ windriver.com
+# Created 2010-2014 by Keith Wiles @ windriver.com
 
 ifeq ($(RTE_SDK),)
 $(error "Please define RTE_SDK environment variable")
@@ -53,12 +53,10 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(SRCDIR) -I$(SRCDIR)/../lib/common -I$(SRCDIR)/../lib/lua/src
-LDFLAGS += -g -lpcap -L$(SRCDIR)/../lib/common/common/$(RTE_TARGET) -L$(SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib -llua -lcommon
+CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common/common/$(RTE_TARGET)/include -I$(RTE_SRCDIR)/../lib/lua/src
+LDFLAGS += -g -lpcap -L$(RTE_SRCDIR)/../lib/common/common/$(RTE_TARGET) -L$(RTE_SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib -llua -lcommon
 
 CFLAGS_commands.o := -Wno-format-nonliteral
 CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 
-DEP_$(APP) += $(SRCDIR)/../lib/common/common/$(RTE_TARGET)/libcommon.a $(SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib/liblua.a
-
-include $(RTE_SDK)/mk/rte.extapp.mk
+include $(RTE_SDK)/mk/rte.app.mk

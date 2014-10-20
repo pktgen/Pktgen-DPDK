@@ -125,18 +125,18 @@ static __inline__ void wr_scrn_eol_pos(int r, int c) {
 	wr_scrn_eol();
 }
 
-extern void pktgen_set_prompt(void);
+extern void __set_prompt(void);
 
 /** Stop screen from updating until resumed later */
 static __inline__ void wr_scrn_pause(void) {
 	rte_atomic32_set(&__scrn->pause, SCRN_PAUSED);
-	pktgen_set_prompt();
+	__set_prompt();
 }
 
 /** Resume the screen from a pause */
 static __inline__ void wr_scrn_resume(void) {
 	rte_atomic32_set(&__scrn->pause, SCRN_RUNNING);
-	pktgen_set_prompt();
+	__set_prompt();
 }
 
 /* Is the screen in the paused state */

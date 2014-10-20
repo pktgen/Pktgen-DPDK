@@ -276,7 +276,7 @@ pktgen_display_set_color(const char *elem) {
 
 /* String to use as prompt, with proper ANSI color codes */
 void
-pktgen_set_prompt(void)
+__set_prompt(void)
 {
 	theme_color_map_t *def, *prompt;
 
@@ -378,7 +378,7 @@ pktgen_theme_state(const char * state)
 		__scrn->theme = THEME_OFF;
 	else
 		__scrn->theme = THEME_ON;
-	pktgen_set_prompt();
+	__set_prompt();
 }
 
 void

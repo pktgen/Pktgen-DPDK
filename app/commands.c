@@ -4153,7 +4153,7 @@ pktgen_cmdline_start(void)
 {
 	// Start up the command line, which exits on Control-D
 	pktgen.cl = cmdline_stdin_new(main_ctx, "Pktgen > ");
-	pktgen_set_prompt();
+	__set_prompt();
 
 	if ( pktgen.cl && pktgen.cmd_filename ) {
 		pktgen_log_info("# *** Executing file (%s)", pktgen.cmd_filename);

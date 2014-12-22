@@ -3707,8 +3707,7 @@ static void cmd_str_parsed(__attribute__ ((unused))void *parsed_result,
 			    __attribute__((unused)) void *data)
 {
 
-	foreach_port( ALL_PORTS,
-			pktgen_start_transmitting(info) );
+	forall_ports( pktgen_start_transmitting(info) );
 }
 
 cmdline_parse_token_string_t cmd_help_str =
@@ -3747,8 +3746,7 @@ static void cmd_stp_parsed(__attribute__ ((unused))void *parsed_result,
 			    __attribute__((unused)) void *data)
 {
 
-	foreach_port( ALL_PORTS,
-		pktgen_stop_transmitting(info) );
+	forall_ports( pktgen_stop_transmitting(info) );
 }
 
 cmdline_parse_token_string_t cmd_help_stp =
@@ -3877,8 +3875,7 @@ static void cmd_clr_parsed(__attribute__((unused)) void *parsed_result,
 			    __attribute__((unused)) void *data)
 {
 
-	foreach_port( ALL_PORTS,
-		pktgen_clear_stats(info) );
+	forall_ports( pktgen_clear_stats(info) );
 }
 
 cmdline_parse_token_string_t cmd_help_clr =
@@ -4038,8 +4035,7 @@ static void cmd_rst_parsed(__attribute__((unused)) void *parsed_result,
 			    __attribute__((unused)) void *data)
 {
 
-	foreach_port( ALL_PORTS,
-		pktgen_reset(info) );
+	forall_ports( pktgen_reset(info) );
 }
 
 cmdline_parse_token_string_t cmd_help_rst =

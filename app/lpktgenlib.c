@@ -168,9 +168,9 @@ setf_udata(lua_State * L, const char * name, void * value) {
 #endif
 
 static __inline__ void
-getf_etheraddr(lua_State * L, const char * field, void * value) {
+getf_etheraddr(lua_State * L, const char * field, cmdline_etheraddr_t * value) {
 	lua_getfield(L, 3, field);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, -1), value);
+	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, -1), value, sizeof(cmdline_etheraddr_t));
 	lua_pop(L, 1);
 }
 
@@ -181,7 +181,7 @@ getf_ipaddr(lua_State * L, const char * field, void * value, uint32_t flags) {
 	lua_getfield(L, 3, field);
 	tk.ipaddr_data.flags = flags;
 	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk,
-	    luaL_checkstring(L, -1), value);
+	    luaL_checkstring(L, -1), value, sizeof(cmdline_ipaddr_t));
 	lua_pop(L, 1);
 }
 
@@ -220,7 +220,8 @@ getf_string(lua_State * L, const char * field) {
 */
 
 static int pktgen_set (lua_State *L) {
-	uint32_t	value, portlist;
+	uint32_t	value;
+	cmdline_portlist_t	portlist;
 	char * what;
 		
 	switch( lua_gettop(L) ) {
@@ -228,11 +229,11 @@ static int pktgen_set (lua_State *L) {
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	what = (char *)luaL_checkstring(L, 2);
 	value = luaL_checkinteger(L, 3);
 
-	foreach_port( portlist, _do(
+	foreach_port( portlist.map, _do(
 		if (!strcasecmp(what, "count"))
 			pktgen_set_tx_count(info, value);
 		else if (!strcasecmp(what, "size"))
@@ -275,7 +276,7 @@ static int pktgen_set (lua_State *L) {
 
  static int set_seq(lua_State * L, uint32_t seqnum)
  {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	uint32_t	pktsize, sport, dport;
 	uint16_t	vlanid;
 	cmdline_etheraddr_t daddr;
@@ -285,15 +286,15 @@ static int pktgen_set (lua_State *L) {
 	cmdline_parse_token_ipaddr_t tkd, tks;
 	char * proto, * ip;
 
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 2), &portlist);
- 	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 3), &daddr);
- 	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 4), &saddr);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 2), &portlist, sizeof(cmdline_portlist_t));
+ 	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 3), &daddr, sizeof(daddr));
+ 	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 4), &saddr, sizeof(saddr));
  	tkd.ipaddr_data.flags = CMDLINE_IPADDR_V4;
  	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
- 	    luaL_checkstring(L, 5), &ip_daddr);
+ 	    luaL_checkstring(L, 5), &ip_daddr, sizeof(cmdline_ipaddr_t));
  	tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V4;
  	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
- 	    luaL_checkstring(L, 6), &ip_saddr);
+ 	    luaL_checkstring(L, 6), &ip_saddr, sizeof(cmdline_ipaddr_t));
  	sport 	= luaL_checkinteger(L, 7);
  	dport 	= luaL_checkinteger(L, 8);
  	proto	= (char *)luaL_checkstring(L, 9);
@@ -306,7 +307,7 @@ static int pktgen_set (lua_State *L) {
  		return -1;
  	}
 
- 	foreach_port(portlist,
+ 	foreach_port(portlist.map,
  		pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr, &ip_saddr,
  				sport, dport, ip[3], proto[0], vlanid, pktsize) );
 
@@ -356,7 +357,7 @@ static int pktgen_seq (lua_State *L) {
 
 static int set_seqTable(lua_State * L, uint32_t seqnum)
 {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	uint32_t	pktSize, sport, dport;
 	uint16_t	vlanid;
 	cmdline_etheraddr_t daddr;
@@ -365,7 +366,7 @@ static int set_seqTable(lua_State * L, uint32_t seqnum)
 	cmdline_ipaddr_t ip_saddr;
 	char * ipProto, * ethType;
 
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 2), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 2), &portlist, sizeof(cmdline_portlist_t));
 
 	getf_etheraddr(L, "eth_dst_addr", &daddr);
 	getf_etheraddr(L, "eth_src_addr", &saddr);
@@ -383,7 +384,7 @@ static int set_seqTable(lua_State * L, uint32_t seqnum)
 		return -1;
 	}
 
-	foreach_port(portlist,
+	foreach_port(portlist.map,
 		pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr, &ip_saddr,
 				sport, dport, ethType[3], ipProto[0], vlanid, pktSize) );
 
@@ -454,15 +455,15 @@ static int pktgen_ports_per_page(lua_State *L) {
 */
 
 static int pktgen_icmp (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "icmp, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
-	foreach_port( portlist,
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
+	foreach_port( portlist.map,
 			pktgen_set_icmp_echo(info, parseState((char *)luaL_checkstring(L, 2))) );
 	return 0;
 }
@@ -480,7 +481,7 @@ static int pktgen_icmp (lua_State *L) {
 */
 
 static int pktgen_sendARP (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	char * what;
 	
 	switch( lua_gettop(L) ) {
@@ -489,8 +490,8 @@ static int pktgen_sendARP (lua_State *L) {
 		break;
 	}
 	what = (char *)luaL_checkstring(L, 2);
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
-	foreach_port(portlist,
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
+	foreach_port(portlist.map,
 			pktgen_send_arp_requests(info, (what[0] == 'g') ? GRATUITOUS_ARP : 0) );
 	return 0;
 }
@@ -508,7 +509,7 @@ static int pktgen_sendARP (lua_State *L) {
 */
 
 static int pktgen_set_mac (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	cmdline_etheraddr_t mac;
 	
 	switch( lua_gettop(L) ) {
@@ -516,10 +517,10 @@ static int pktgen_set_mac (lua_State *L) {
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
+	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac, sizeof(mac));
 
-	foreach_port(portlist,
+	foreach_port(portlist.map,
 		pktgen_set_dst_mac(info, &mac) );
 
 	pktgen_update_display();
@@ -570,17 +571,17 @@ static int pktgen_macFromArp (lua_State *L) {
 
 static int pktgen_prototype (lua_State *L) {
 	char * type;
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "set_proto, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	type = (char *)luaL_checkstring(L, 2);
 
-	foreach_port(portlist,
+	foreach_port(portlist.map,
 		pktgen_set_proto(info, type[0]) );
 
 	return 0;
@@ -599,7 +600,7 @@ static int pktgen_prototype (lua_State *L) {
 */
 
 static int pktgen_set_ip_addr (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	cmdline_ipaddr_t ipaddr;
 	cmdline_parse_token_ipaddr_t tk;
 	char	  * type;
@@ -610,13 +611,13 @@ static int pktgen_set_ip_addr (lua_State *L) {
 		break;
 	}
 	type = (char *)luaL_checkstring(L, 2);
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	tk.ipaddr_data.flags = CMDLINE_IPADDR_V4;
 	if ( type[0] == 's' )
 		tk.ipaddr_data.flags |= CMDLINE_IPADDR_NETWORK;
-	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk, luaL_checkstring(L, 3), &ipaddr);
+	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk, luaL_checkstring(L, 3), &ipaddr, sizeof(cmdline_ipaddr_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_ipaddr(info, type[0], &ipaddr) );
 
 	pktgen_update_display();
@@ -637,7 +638,7 @@ static int pktgen_set_ip_addr (lua_State *L) {
 
 static int pktgen_set_type (lua_State *L) {
 	char * type;
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "set_type, wrong number of arguments");
@@ -645,9 +646,9 @@ static int pktgen_set_type (lua_State *L) {
 		break;
 	}
 	type = (char *)luaL_checkstring(L, 2);
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_pkt_type(info, type) );
 
 	pktgen_update_display();
@@ -667,16 +668,16 @@ static int pktgen_set_type (lua_State *L) {
 */
 
 static int pktgen_send_ping4 (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "ping4, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_ping4(info) );
 
 	return 0;
@@ -696,7 +697,7 @@ static int pktgen_send_ping4 (lua_State *L) {
 */
 
 static int pktgen_send_ping6 (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 
 
 	switch( lua_gettop(L) ) {
@@ -704,9 +705,9 @@ static int pktgen_send_ping6 (lua_State *L) {
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_ping6(info) );
 
 	return 0;
@@ -726,7 +727,7 @@ static int pktgen_send_ping6 (lua_State *L) {
 */
 
 static int pktgen_pcap (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	char * what;
 	
 	switch( lua_gettop(L) ) {
@@ -734,10 +735,10 @@ static int pktgen_pcap (lua_State *L) {
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	what = (char *)luaL_checkstring(L, 2);
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_pcap_enable_disable(info, what) );
 
 	return 0;
@@ -756,16 +757,16 @@ static int pktgen_pcap (lua_State *L) {
 */
 
 static int pktgen_start (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "start, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_start_transmitting(info) );
 
 	return 0;
@@ -784,16 +785,16 @@ static int pktgen_start (lua_State *L) {
 */
 
 static int pktgen_stop (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "stop, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_stop_transmitting(info) );
 	return 0;
 }
@@ -833,16 +834,16 @@ static int pktgen_scrn (lua_State *L) {
 */
 
 static int pktgen_prime (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "prime, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_prime_ports(info) );
 	return 0;
 }
@@ -1075,16 +1076,16 @@ static int pktgen_config_save (lua_State *L) {
 
 static int pktgen_clear (lua_State *L) {
 
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "clear, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_clear_stats(info) );
 
 	return 0;
@@ -1104,10 +1105,7 @@ static int pktgen_clear (lua_State *L) {
 
 static int pktgen_clear_all (__attribute__ ((unused)) lua_State *L) {
 
-	uint64_t	portlist = -1;
-
-	foreach_port( portlist,
-		pktgen_clear_stats(info) );
+	forall_ports( pktgen_clear_stats(info) );
 
 	return 0;
 }
@@ -1163,16 +1161,16 @@ static int pktgen_update_screen (__attribute__ ((unused)) lua_State *L) {
 */
 
 static int pktgen_reset_config (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "reset, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_reset(info) );
 
 	return 0;
@@ -1191,7 +1189,7 @@ static int pktgen_reset_config (lua_State *L) {
 */
 
 static int pktgen_dst_mac (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	cmdline_etheraddr_t mac;
 	
 	switch( lua_gettop(L) ) {
@@ -1199,10 +1197,10 @@ static int pktgen_dst_mac (lua_State *L) {
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
+	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac, sizeof(mac));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_dest_mac(info, "start", &mac) );
 
 	pktgen_update_display();
@@ -1222,7 +1220,7 @@ static int pktgen_dst_mac (lua_State *L) {
 */
 
 static int pktgen_src_mac (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	cmdline_etheraddr_t mac;
 	
 	switch( lua_gettop(L) ) {
@@ -1230,10 +1228,10 @@ static int pktgen_src_mac (lua_State *L) {
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
+	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac, sizeof(mac));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_src_mac(info, "start", &mac) );
 
 	pktgen_update_display();
@@ -1253,7 +1251,7 @@ static int pktgen_src_mac (lua_State *L) {
 */
 
 static int pktgen_dst_ip (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	cmdline_ipaddr_t ipaddr;
 	cmdline_parse_token_ipaddr_t tk;
 	char	  * type;
@@ -1263,12 +1261,12 @@ static int pktgen_dst_ip (lua_State *L) {
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	tk.ipaddr_data.flags = CMDLINE_IPADDR_V4;
-	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk, luaL_checkstring(L, 3), &ipaddr);
+	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk, luaL_checkstring(L, 3), &ipaddr, sizeof(cmdline_ipaddr_t));
 
 	type = (char *)luaL_checkstring(L, 2);
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_dst_ip(info, type, &ipaddr) );
 
 	pktgen_update_display();
@@ -1288,7 +1286,7 @@ static int pktgen_dst_ip (lua_State *L) {
 */
 
 static int pktgen_src_ip (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	cmdline_ipaddr_t ipaddr;
 	cmdline_parse_token_ipaddr_t tk;
 	char	  * type;
@@ -1298,12 +1296,12 @@ static int pktgen_src_ip (lua_State *L) {
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	tk.ipaddr_data.flags = CMDLINE_IPADDR_V4;
-	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk, luaL_checkstring(L, 3), &ipaddr);
+	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk, luaL_checkstring(L, 3), &ipaddr, sizeof(ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_src_ip(info, type, &ipaddr) );
 
 	pktgen_update_display();
@@ -1323,16 +1321,16 @@ static int pktgen_src_ip (lua_State *L) {
 */
 
 static int pktgen_dst_port (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "dst_port, wrong number of arguments");
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_dst_port(info, (char *)luaL_checkstring(L, 2), luaL_checkinteger(L, 3)) );
 
 	pktgen_update_display();
@@ -1352,16 +1350,16 @@ static int pktgen_dst_port (lua_State *L) {
 */
 
 static int pktgen_src_port (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "src_port, wrong number of arguments");
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_src_port(info, (char *)luaL_checkstring(L, 2), luaL_checkinteger(L, 3)));
 
 	pktgen_update_display();
@@ -1381,19 +1379,20 @@ static int pktgen_src_port (lua_State *L) {
 */
 
 static int pktgen_vlan_id (lua_State *L) {
-	uint32_t	portlist, vlan_id;
+	cmdline_portlist_t	portlist;
+	uint32_t vlan_id;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "vlan_id, wrong number of arguments");
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	vlan_id = luaL_checkinteger(L, 3);
 	if ( (vlan_id < MIN_VLAN_ID) || (vlan_id > MAX_VLAN_ID) )
 		vlan_id = 1;
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_vlan_id(info, (char *)luaL_checkstring(L, 2), vlan_id) );
 
 	pktgen_update_display();
@@ -1413,19 +1412,20 @@ static int pktgen_vlan_id (lua_State *L) {
 */
 
 static int pktgen_vlanid (lua_State *L) {
-	uint32_t	portlist, vlanid;
+	cmdline_portlist_t	portlist;
+	uint32_t vlanid;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "vlanid, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	vlanid = luaL_checkinteger(L, 2);
 	if ( (vlanid < MIN_VLAN_ID) || (vlanid > MAX_VLAN_ID) )
 		vlanid = 1;
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_vlanid(info, vlanid) );
 
 	pktgen_update_display();
@@ -1445,15 +1445,15 @@ static int pktgen_vlanid (lua_State *L) {
 */
 
 static int pktgen_vlan (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "process, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_vlan(info, parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1473,17 +1473,18 @@ static int pktgen_vlan (lua_State *L) {
 */
 
 static int pktgen_mpls_entry (lua_State *L) {
-	uint32_t	portlist, mpls_entry;
+	cmdline_portlist_t	portlist;
+	uint32_t mpls_entry;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "mpls_entry, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	mpls_entry = strtoul(luaL_checkstring(L, 2), NULL, 16);
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_mpls_entry(info, mpls_entry) );
 
 	pktgen_update_display();
@@ -1503,15 +1504,15 @@ static int pktgen_mpls_entry (lua_State *L) {
 */
 
 static int pktgen_mpls (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "mpls, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_mpls(info, parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1531,14 +1532,15 @@ static int pktgen_mpls (lua_State *L) {
 */
 
 static int pktgen_qinqids (lua_State *L) {
-	uint32_t	portlist, qinq_id1, qinq_id2;
+	cmdline_portlist_t	portlist;
+	uint32_t qinq_id1, qinq_id2;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "qinqids, wrong number of arguments");
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	qinq_id1 = luaL_checkinteger(L, 2);
 	if ( (qinq_id1 < MIN_VLAN_ID) || (qinq_id1 > MAX_VLAN_ID) )
 		qinq_id1 = 1;
@@ -1547,7 +1549,7 @@ static int pktgen_qinqids (lua_State *L) {
 	if ( (qinq_id2 < MIN_VLAN_ID) || (qinq_id2 > MAX_VLAN_ID) )
 		qinq_id2 = 1;
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_qinqids(info, qinq_id1, qinq_id2) );
 
 	pktgen_update_display();
@@ -1567,15 +1569,15 @@ static int pktgen_qinqids (lua_State *L) {
 */
 
 static int pktgen_qinq (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "qinq, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_qinq(info, parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1595,17 +1597,18 @@ static int pktgen_qinq (lua_State *L) {
 */
 
 static int pktgen_gre_key (lua_State *L) {
-	uint32_t	portlist, gre_key;
+	cmdline_portlist_t	portlist;
+	uint32_t gre_key;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "gre_key, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	gre_key = luaL_checkinteger(L, 2);
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_gre_key(info, gre_key) );
 
 	pktgen_update_display();
@@ -1625,15 +1628,15 @@ static int pktgen_gre_key (lua_State *L) {
 */
 
 static int pktgen_gre (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "gre, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_gre(info, parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1653,15 +1656,15 @@ static int pktgen_gre (lua_State *L) {
 */
 
 static int pktgen_gre_eth (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "gre_eth, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_gre_eth(info, parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1681,7 +1684,8 @@ static int pktgen_gre_eth (lua_State *L) {
 */
 
 static int pktgen_pkt_size (lua_State *L) {
-	uint32_t	portlist, size;
+	cmdline_portlist_t	portlist;
+	uint32_t	size;
 	char	  * type;
 
 	switch( lua_gettop(L) ) {
@@ -1689,11 +1693,11 @@ static int pktgen_pkt_size (lua_State *L) {
 	case 3:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	type = (char *)luaL_checkstring(L, 2);
 	size = luaL_checkinteger(L, 3);
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_set_range_pkt_size(info, type, size) );
 
 	pktgen_update_display();
@@ -1713,16 +1717,16 @@ static int pktgen_pkt_size (lua_State *L) {
 */
 
 static int pktgen_range (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "range, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_range_enable_disable(info, (char *)luaL_checkstring(L,2)) );
 
 	pktgen_update_display();
@@ -1787,16 +1791,16 @@ static int pktgen_port (lua_State *L) {
 */
 
 static int pktgen_process (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "process, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_process_enable_disable(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
@@ -1816,16 +1820,16 @@ static int pktgen_process (lua_State *L) {
 */
 
 static int pktgen_garp (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "process, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_garp_enable_disable(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
@@ -1845,16 +1849,16 @@ static int pktgen_garp (lua_State *L) {
 */
 
 static int pktgen_blink (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "blink, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			pktgen_blink_enable_disable(info, (char *)luaL_checkstring(L, 2)) );
 
 	if ( pktgen.blinklist )
@@ -1900,19 +1904,20 @@ static void isSending(lua_State * L, port_info_t * info)
 */
 
 static int pktgen_isSending (lua_State *L) {
-	uint32_t	portlist, n;
+	cmdline_portlist_t	portlist;
+	uint32_t	n;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "isSending, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
 	lua_newtable(L);
 
 	n = 0;
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			_do( isSending(L, info); n++ ) );
 
 	setf_integer(L, "n", n);
@@ -1956,20 +1961,21 @@ static void link_state(lua_State * L, port_info_t * info)
 */
 
 static int pktgen_linkState (lua_State *L) {
-	uint32_t	portlist, n;
+	cmdline_portlist_t	portlist;
+	uint32_t	n;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "linkState, wrong number of arguments");
 	case 1:
 		break;
 	}
-	portlist = 0;
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	portlist.map = 0;
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
 	lua_newtable(L);
 
 	n = 0;
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			_do( link_state(L, info); n++ ) );
 
 	setf_integer(L, "n", n);
@@ -2026,20 +2032,21 @@ static void port_sizes(lua_State * L, port_info_t * info)
 */
 
 static int pktgen_portSizes (lua_State *L) {
-	uint32_t	portlist, n;
+	cmdline_portlist_t	portlist;
+	uint32_t	n;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "portSizes, wrong number of arguments");
 	case 1:
 		break;
 	}
-	portlist = 0;
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	portlist.map = 0;
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	
 	lua_newtable(L);
 
 	n = 0;
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			_do( port_sizes(L, info); n++ ) );
 
 	setf_integer(L, "n", n);
@@ -2094,20 +2101,21 @@ static void pkt_stats(lua_State * L, port_info_t * info)
 */
 
 static int pktgen_pktStats (lua_State *L) {
-	uint32_t	portlist, n;
+	cmdline_portlist_t	portlist;
+	uint32_t	n;
 	
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "pktStats, wrong number of arguments");
 	case 1:
 		break;
 	}
-	portlist = 0;
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	portlist.map = 0;
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	
 	lua_newtable(L);
 
 	n = 0;
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			_do( pkt_stats(L, info); n++ ) );
 
 	setf_integer(L, "n", n);
@@ -2168,7 +2176,8 @@ static void port_stats(lua_State * L, port_info_t * info, char * type )
 */
 
 static int pktgen_portStats (lua_State *L) {
-	uint32_t	portlist, n;
+	cmdline_portlist_t	portlist;
+	uint32_t	n;
 	char * type;
 	
 	switch( lua_gettop(L) ) {
@@ -2176,14 +2185,14 @@ static int pktgen_portStats (lua_State *L) {
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 	
 	type = (char *)luaL_checkstring(L, 2);
 
 	lua_newtable(L);
 
 	n = 0;
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			_do( port_stats(L, info, type); n++ ) );
 
 	setf_integer(L, "n", n);
@@ -2301,7 +2310,8 @@ static void decompile_pkt(lua_State * L, port_info_t * info, uint32_t seqnum) {
 */
 
 static int pktgen_decompile (lua_State *L) {
-	uint32_t	seqnum, portlist, n;
+	cmdline_portlist_t	portlist;
+	uint32_t	seqnum, n;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "decompile, wrong number of arguments");
@@ -2311,12 +2321,12 @@ static int pktgen_decompile (lua_State *L) {
 	seqnum = luaL_checkinteger(L, 1);
 	if ( seqnum >= NUM_SEQ_PKTS )
 		return 0;
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 2), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 2), &portlist, sizeof(cmdline_portlist_t));
 
 	lua_newtable(L);
 
 	n = 0;
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 			_do ( decompile_pkt(L, info, seqnum); n++ ) );
 
 	setf_integer(L, "n", n);
@@ -2336,20 +2346,21 @@ static int pktgen_decompile (lua_State *L) {
 */
 
 static int pktgen_sendPkt (lua_State *L) {
-	uint32_t	portlist, seqnum;
+	cmdline_portlist_t	portlist;
+	uint32_t	seqnum;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "sendPkt, wrong number of arguments");
 	case 2:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
 
 	seqnum = luaL_checkinteger(L, 2);
-	if ( (seqnum >= NUM_EXTRA_TX_PKTS) || (portlist == 0) )
+	if ( (seqnum >= NUM_EXTRA_TX_PKTS) || (portlist.map == 0) )
 		return 0;
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_send_pkt(info, seqnum) );
 
 	return 0;
@@ -2406,18 +2417,18 @@ static int pktgen_totalPorts(lua_State *L) {
 */
 
 static int pktgen_recvPkt (lua_State *L) {
-	uint32_t	portlist;
+	cmdline_portlist_t	portlist;
 
 	switch( lua_gettop(L) ) {
 	default: return luaL_error(L, "recvPkt, wrong number of arguments");
 	case 1:
 		break;
 	}
-	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist);
-	if ( portlist == 0 )
+	cmdline_parse_portlist(NULL, luaL_checkstring(L, 1), &portlist, sizeof(cmdline_portlist_t));
+	if ( portlist.map == 0 )
 		return 0;
 
-	foreach_port( portlist,
+	foreach_port( portlist.map,
 		pktgen_recv_pkt(info) );
 
 	return 0;

@@ -1,4 +1,4 @@
-Pktgen version 2.7.7 using DPDK-1.8.0
+Pktgen version 2.8.0 using DPDK-1.8.0
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at 10Gbit wire rate traffic with 64 byte frames.**
@@ -6,6 +6,7 @@ Pktgen version 2.7.7 using DPDK-1.8.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.8.0   - Update to release 1.8.0 of DPDK.
  - 2.7.7   - Update Lua to 5.2.3 and fixed setting vlan ID on single ports plus added new Lua functions
 			 New Lua functions are pktgen.portCount() and pktgen.totalPorts() portCount() is the number of
 			 port used by Pktgen and totalPorts() is the total number seen by DPDK.

@@ -260,7 +260,7 @@ void pktgen_config_ports(void)
 
 		// Create the pkt header structures for transmitting sequence of packets.
 		snprintf(buff, sizeof(buff), "seq_hdr_%d", pid);
-		info->seq_pkt = (pkt_seq_t *)rte_zmalloc(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), CACHE_LINE_SIZE);
+		info->seq_pkt = (pkt_seq_t *)rte_zmalloc(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE);
 		if ( info->seq_pkt == NULL )
 			pktgen_log_panic("Unable to allocate %d pkt_seq_t headers", NUM_TOTAL_PKTS);
 

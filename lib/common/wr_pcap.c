@@ -142,7 +142,7 @@ wr_pcap_open(char * filename, uint16_t port)
 		goto leave;
 	}
 	
-	pcap = (pcap_info_t *)rte_malloc("PCAP info", sizeof(pcap_info_t), CACHE_LINE_SIZE);
+	pcap = (pcap_info_t *)rte_malloc("PCAP info", sizeof(pcap_info_t), RTE_CACHE_LINE_SIZE);
 	if ( pcap == NULL ) {
 		printf("%s: malloc failed for pcap_info_t structure\n", __FUNCTION__);
 		goto leave;

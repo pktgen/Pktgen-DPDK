@@ -153,7 +153,7 @@
 #include "pktgen-log.h"
 
 
-#define PKTGEN_VERSION			"2.7.7"
+#define PKTGEN_VERSION			"2.8.0"
 #define PKTGEN_APP_NAME			"Pktgen"
 #define PKTGEN_CREATED_BY		"Keith Wiles"
 
@@ -169,19 +169,51 @@
 
 #define _do(_exp)		do { _exp; } while((0))
 
-#define foreach_port(_portlist, _action)				\
+#define forall_ports(_action)							\
 	do {												\
 		uint32_t		pid;							\
 		for(pid = 0; pid < pktgen.nb_ports; pid++) {	\
 			port_info_t	  * info;						\
-			if ( (_portlist & (1 << pid)) == 0 )		\
-				continue;								\
 			info = &pktgen.info[pid];					\
 			if ( info->seq_pkt == NULL )				\
 				continue;								\
 			_action;									\
 		}												\
 	} while((0))
+
+#define foreach_port(_portlist, _action)				\
+	do {												\
+		uint32_t	* _pl = (uint32_t *)&_portlist;		\
+		uint32_t	pid, idx, bit;						\
+		for(pid = 0; pid < pktgen.nb_ports; pid++) {	\
+			port_info_t	  * info;						\
+			idx = (pid / (sizeof(uint32_t) * 8));		\
+			bit = (pid - (idx * (sizeof(uint32_t) * 8)));\
+			if ( (_pl[idx] & (1 << bit)) == 0 )			\
+				continue;								\
+			info = &pktgen.info[pid];					\
+			if ( info->seq_pkt == NULL )				\
+				continue;								\
+			_action;									\
+		}												\
+	} while((0));
+
+/**
+ * Free a list of packet mbufs back into its original mempool.
+ *
+ * Free a list of mbufs by calling rte_pktmbuf_free() in a loop as a wrapper function.
+ *
+ * @param m_list
+ *   An array of rte_mbuf pointers to be freed.
+ * @param npkts
+ *   Number of packets to free in m_list.
+ */
+static inline void __attribute__((always_inline))
+rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
+{
+    while(npkts--)
+        rte_pktmbuf_free(*m_list++);
+}
 
 typedef enum { PACKET_CONSUMED = 0, UNKNOWN_PACKET = 0xEEEE, DROP_PACKET = 0xFFFE, FREE_PACKET = 0xFFFF } pktType_e;
 
@@ -235,7 +267,6 @@ enum {
 	EXTRA_TX_PKT			= (RANGE_PKT + 1),						// 19
 	NUM_TOTAL_PKTS			= (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
 
-	ALL_PORTS				= ((1LL << RTE_MAX_ETHPORTS) - 1),
 	INTER_FRAME_GAP			= 12,
 	PKT_PREAMBLE_SIZE		= 8,
 	FCS_SIZE				= 4,

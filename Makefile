@@ -45,7 +45,8 @@ DIRS-y += lib app
 
 .PHONY: all clean $(DIRS-y)
 
-clean all: $(DIRS-y)
+all: $(DIRS-y)
+clean:: $(DIRS-y)
 
 $(DIRS-y):
 	$(MAKE) -C $@ $(MAKECMDGOALS)

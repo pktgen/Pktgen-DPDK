@@ -80,6 +80,11 @@ typedef struct pkt_stats_s {
 	uint64_t			dropped_pkts;		/**< Hyperscan dropped packets */
 	uint64_t			unknown_pkts;		/**< Number of Unknown packets */
 	uint64_t			tx_failed;			/**< Transmits that failed to send */
+	uint64_t			imissed;			/**< Number of RX missed packets */
+	uint64_t			ibadcrc;			/**< Number of RX bad crc packets */
+	uint64_t			ibadlen;			/**< Number of RX bad length packets */
+	uint64_t			imcasts;			/**< Number of multicast packets */
+	uint64_t			rx_nombuf;			/**< Number of times we had not mbufs for Rx */
 } pkt_stats_t;
 
 

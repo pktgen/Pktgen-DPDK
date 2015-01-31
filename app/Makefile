@@ -53,8 +53,8 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/include -I$(RTE_SRCDIR)/../lib/lua/src
-LDFLAGS += -g -lpcap -L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib -L$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib -llua -lcommon
+CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common/common/$(RTE_TARGET)/include -I$(RTE_SRCDIR)/../lib/lua/src
+LDFLAGS += -g -lpcap -L$(RTE_SRCDIR)/../lib/common/common/$(RTE_TARGET)/lib -L$(RTE_SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib -llua -lcommon
 
 CFLAGS_commands.o := -Wno-format-nonliteral
 CFLAGS_pktgen-log.o := -Wno-format-nonliteral

@@ -126,6 +126,12 @@ pktgen_print_static_data(void)
 	if ( pktgen.flags & TX_DEBUG_FLAG ) {
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
+
+		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Missed Rx");
+		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad CRC Rx");
+		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad Len Rx");
+		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "mcasts Rx");
+		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "No Mbuf Rx");
 	}
 
 	/* Labels for static fields */
@@ -293,6 +299,12 @@ pktgen_page_stats(void)
         pktgen.cumm_rate_totals.ierrors += info->rate_stats.ierrors;
         pktgen.cumm_rate_totals.oerrors += info->rate_stats.oerrors;
 
+        pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
+        pktgen.cumm_rate_totals.ibadcrc += info->rate_stats.ibadcrc;
+        pktgen.cumm_rate_totals.ibadlen += info->rate_stats.ibadlen;
+        pktgen.cumm_rate_totals.imcasts += info->rate_stats.imcasts;
+        pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
+
         // Packets Sizes
         row = PKT_SIZE_ROW;
         wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.broadcast);
@@ -326,6 +338,17 @@ pktgen_page_stats(void)
 			snprintf(buff, sizeof(buff), "%lu", info->stats.tx_failed);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 			snprintf(buff, sizeof(buff), "%lu/%lu", info->tx_pps, info->tx_cycles);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+			snprintf(buff, sizeof(buff), "%lu", info->stats.imissed);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadcrc);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadlen);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+			snprintf(buff, sizeof(buff), "%lu", info->stats.imcasts);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
     }
@@ -389,12 +412,24 @@ pktgen_process_stats(__attribute__((unused)) struct rte_timer *tim, __attribute_
         stats.ierrors   -= info->init_stats.ierrors;
         stats.oerrors   -= info->init_stats.oerrors;
 
+        stats.imissed += info->init_stats.imissed;
+        stats.ibadcrc += info->init_stats.ibadcrc;
+        stats.ibadlen += info->init_stats.ibadlen;
+        stats.imcasts += info->init_stats.imcasts;
+        stats.rx_nombuf += info->init_stats.rx_nombuf;
+
         info->rate_stats.ipackets   = stats.ipackets - info->port_stats.ipackets;
         info->rate_stats.opackets   = stats.opackets - info->port_stats.opackets;
         info->rate_stats.ibytes     = stats.ibytes - info->port_stats.ibytes;
         info->rate_stats.obytes     = stats.obytes - info->port_stats.obytes;
         info->rate_stats.ierrors    = stats.ierrors - info->port_stats.ierrors;
         info->rate_stats.oerrors    = stats.oerrors - info->port_stats.oerrors;
+
+        info->rate_stats.imissed += stats.imissed - info->init_stats.imissed;
+        info->rate_stats.ibadcrc += stats.ibadcrc - info->init_stats.ibadcrc;
+        info->rate_stats.ibadlen += stats.ibadlen - info->init_stats.ibadlen;
+        info->rate_stats.imcasts += stats.imcasts - info->init_stats.imcasts;
+        info->rate_stats.rx_nombuf += stats.rx_nombuf - info->init_stats.rx_nombuf;
 
         // Use structure move to copy the data.
         *(struct rte_eth_stats *)&info->port_stats = *(struct rte_eth_stats *)&stats;

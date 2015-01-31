@@ -1,0 +1,243 @@
+
+Version 2.8.0
+-------------
+
+- Update to release 1.8.0 of DPDK.
+
+
+Version 2.7.7
+-------------
+
+- Update Lua to 5.2.3 and fixed setting vlan ID on single ports plus added new
+  Lua functions. New Lua functions are ``pktgen.portCount()`` and
+  ``pktgen.totalPorts()`` where ``portCount()`` is the number of port used by
+  Pktgen and ``totalPorts()`` is the total number seen by DPDK.
+
+
+Version 2.7.6
+-------------
+
+- Update code to the dpdk.org version of Pktgen, which hopefully fixes the
+  send forever problem.
+
+
+Version 2.7.5
+-------------
+
+- Update to latest dpdk.org and move scrn to the lib directory with name
+  changes.
+
+
+Version 2.7.4
+-------------
+
+- Replaced deprecated ``printf_info()`` function with ``printf_status()``.
+
+
+Version 2.7.3
+-------------
+
+- Fixed race condition with updating the TX count value with a small count.
+
+
+Version 2.7.1
+-------------
+
+- Add a command line option ``-T`` to enable themes and set themes off by default.
+
+
+Version 2.7.0
+-------------
+
+- Update to DPDK 1.7.0. Note: DPDK 1.7.0 changed how ports are detected and
+  blacklisted, which means the port index is now different. You will now need
+  to blacklist or whitelist ports with the DPDK ``-b`` or ``--pci-blacklist or
+  --pci-whitelist`` options. Pktgen does not blacklist ports anymore.
+- Moved pktgen to the examples directory plus removed ``libwr_*`` from the lib
+  directory.
+- Pktgen now supports ANSI color terminals. Only the main screen ATM, but more
+  will be added later.
+- Output is best viewed on a black background display, unless using the new
+  theme commands.
+- More supported generator types, checkout the help screens.
+
+
+Version 2.6.8
+-------------
+
+- Fixed a transmit problem when count is set to 1. Also increased the link
+  down delays.
+
+
+Version 2.6.7
+-------------
+
+- Add more support for GRE packets, log support and more testing code.
+
+
+Version 2.6.6
+-------------
+
+- Fix compile problem when SSE4.2 instructions are not
+  supported/available. This allows QEMU and other systems to build and run.
+- Added a patch to take into account huge reserved pages.
+
+
+Version 2.6.5
+-------------
+
+- Added support for logging packet information.
+
+
+Version 2.6.4
+-------------
+
+- Improvements to the ``pktgen-random.c`` unit tests.
+- CentOS compilation fixes.
+- Small update to ``tap.{c,h}`` so they are identical to those from
+  zorgnax/libtap on github.
+
+
+Version 2.6.3
+-------------
+
+- Add a delay when traffic stops to make sure all packets are sent.
+  Remove the ``rte_hash_crc.h`` include in the ``wr_pcap.c`` file.
+
+
+Version 2.6.2
+-------------
+
+- Fix GRE and ARP issues.
+
+
+Version 2.6.1
+-------------
+
+- Add random bits support and more cleanup.
+
+
+Version 2.6.0
+-------------
+
+- Split up the code for testing to be added later.
+
+
+Version 2.5.2
+-------------
+
+- Remove extra ``ethertypes.h`` file.
+
+
+Version 2.5.1
+-------------
+
+- Implemented RX packet dump functionality.
+- Added packet capture functionality.
+- Added MPLS functionality.
+- Added Q in Q 802.11ad functionality.
+- Added GRE header generation.
+- Fixed UDP TCP ICMP protocol selection.
+- Added ARP protocol.
+
+
+Version 2.5.0
+-------------
+
+- Update to DPDK 1.6.0 plus a few bug fixes.
+
+
+Version 2.4.1
+-------------
+
+- Fixed a bug in range packets when ``inc`` value is zero.
+
+
+Version 2.4.0
+-------------
+
+- Added support for TX tap packets. Change ``tap`` command to ``rxtap`` and
+  ``txtap``.
+
+
+Version 2.3.4
+-------------
+
+- Minor update to help eliminate RX errors and be able to receive at wire
+  rate.
+
+
+Version 2.3.3
+-------------
+
+- Update to minor release 1.5.2
+
+
+Version 2.3.2
+-------------
+
+- Fixed VLAN detection problem in ARP and special GARP support.
+
+
+Version 2.3.1
+-------------
+
+- Performance improvements. Getting closer to line rate tx speed.
+
+
+Version 2.3.0
+-------------
+
+- Added support for VLAN encapsulated packets and ARP replies.
+- Added special GARP processing to update the destination MAC address to help
+  support a special request for failover support.
+- Added support for DPDK 1.5.1
+
+
+Version 2.2.7
+-------------
+
+- Updated the code to handle multiple TX queues per port.
+
+
+Version 2.2.6
+-------------
+
+- Fixed a crash if the port is not up with link status.
+
+
+Version 2.2.5
+-------------
+
+- Remove the flow control code as some systems it does not work.
+
+
+Version 2.2.4
+-------------
+
+- Fix the `inet_h64tom and inet_mtoh64` functions to account for endianness.
+
+
+Version 2.2.3
+-------------
+
+- range packet fixes for packet size and source/destination MAC.
+
+
+Version 2.2.2
+-------------
+
+- Minor performance changes for receive packet performance.
+
+
+Version 2.2.1
+-------------
+
+- Change MAC address from ``XXXX:XXXX:XXXX`` format to ``XX:XX:XX:XX:XX:XX``.
+- Added facility to allow packet changes without having to restart.
+
+
+Version 2.2.0
+-------------
+
+- Update to DPDK 1.5.0

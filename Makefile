@@ -1,5 +1,5 @@
 #
-# Copyright (c) <2010-2012>, Wind River Systems, Inc.
+# Copyright (c) <2010-2015>, Wind River Systems, Inc.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
@@ -29,7 +29,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Created 2010-2014 by Keith Wiles @ windriver.com
+# Created 2010-2015 by Keith Wiles @ windriver.com
 
 ifeq ($(RTE_SDK),)
 $(error "Please define RTE_SDK environment variable")
@@ -43,9 +43,20 @@ unexport RTE_SRCDIR RTE_OUTPUT RTE_EXTMK
 
 DIRS-y += lib app
 
-.PHONY: all clean $(DIRS-y)
+.PHONY: all clean $(DIRS-y) docs
 
-#all: $(DIRS-y)
-#clean: $(DIRS-y)
+clean all: $(DIRS-y)
 
-include $(RTE_SDK)/mk/rte.extsubdir.mk
+$(DIRS-y):
+	$(MAKE) -C $@ $(MAKECMDGOALS)
+
+include $(RTE_SDK)/mk/rte.app.mk
+
+docs:
+	@make -C docs html
+
+pdf:
+	@make -C docs latexpdf
+
+cleandocs:
+	@make -C docs clean

@@ -45,10 +45,7 @@ DIRS-y += lib app
 
 .PHONY: all clean $(DIRS-y)
 
-all: $(DIRS-y)
-clean:: $(DIRS-y)
+#all: $(DIRS-y)
+#clean: $(DIRS-y)
 
-$(DIRS-y):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
-
-include $(RTE_SDK)/mk/rte.app.mk
+include $(RTE_SDK)/mk/rte.extsubdir.mk

@@ -981,7 +981,7 @@ pktgen_main_receive(port_info_t * info, uint8_t lid, uint8_t idx, struct rte_mbu
 	capture_t *capture;
 
 	pid = info->pid;
-	qid = wr_get_rxque(pktgen.l2p, lid, idx);
+	qid = wr_get_rxque(pktgen.l2p, lid, pid);
 
 	/*
 	 * Read packet from RX queues and free the mbufs

@@ -1,9 +1,0 @@
-eclipse.preferences.version=1
-environment/project/0.544671806/RTE_SDK/delimiter=\:
-environment/project/0.544671806/RTE_SDK/operation=replace
-environment/project/0.544671806/RTE_SDK/value=/home/rkwiles/projects/dpdk-code/dpdk
-environment/project/0.544671806/RTE_TARGET/delimiter=\:
-environment/project/0.544671806/RTE_TARGET/operation=append
-environment/project/0.544671806/RTE_TARGET/value=x86_64-native-linuxapp-clang
-environment/project/0.544671806/append=true
-environment/project/0.544671806/appendContributed=true

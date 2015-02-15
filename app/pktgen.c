@@ -974,7 +974,7 @@ pktgen_main_transmit(port_info_t * info, uint16_t qid)
 */
 
 static __inline__ void
-pktgen_main_receive(port_info_t * info, uint8_t lid, uint8_t idx, struct rte_mbuf *pkts_burst[])
+pktgen_main_receive(port_info_t * info, uint8_t lid, struct rte_mbuf *pkts_burst[])
 {
 	uint8_t pid;
 	uint16_t qid, nb_rx;
@@ -1052,7 +1052,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 			/*
 			 * Read packet from RX queues and free the mbufs
 			 */
-			pktgen_main_receive(infos[idx], lid, idx, pkts_burst);
+			pktgen_main_receive(infos[idx], lid, pkts_burst);
 		}
 
         curr_tsc = rte_rdtsc();
@@ -1178,7 +1178,7 @@ pktgen_main_rx_loop(uint8_t lid)
     do {
 		for(idx = 0; idx < rxcnt; idx++) {
 			// Read packet from RX queues and free the mbufs
-			pktgen_main_receive(infos[idx], lid, idx, pkts_burst);
+			pktgen_main_receive(infos[idx], lid, pkts_burst);
 		}
 		// Exit loop when flag is set.
     } while( wr_lcore_is_running(pktgen.l2p, lid) );

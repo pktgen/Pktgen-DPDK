@@ -93,10 +93,28 @@
 
 enum { RX_IDX = 0, TX_IDX = 1, RXTX_CNT = 2 };
 
+typedef struct ls_s {
+	uint8_t		ls[RTE_MAX_LCORE/8];
+} ls_t;
+
+typedef struct ps_s {
+	uint8_t		ps[RTE_MAX_ETHPORTS/8];
+} ps_t;
+
 typedef struct lcore_port_s {
-	uint64_t	lcores[RXTX_CNT];
-	uint64_t	ports[RXTX_CNT];
+	ls_t		lcores[RXTX_CNT];
+	ps_t		ports[RXTX_CNT];
 } lp_t;
+
+static inline int _btst(uint8_t *p, uint8_t idx) {
+	int32_t	c = (idx/8);
+	return (p[c] & (1 << (idx - (c * 8))));
+}
+
+static inline void _bset(uint8_t * p, uint8_t idx) {
+	int32_t	c = (idx/8);
+	p[c] |= (1 << (idx - (c * 8)));
+}
 
 /**************************************************************************//**
 *
@@ -129,7 +147,7 @@ wr_parse_portmask(const char *portmask)
 */
 
 static int32_t
-wr_parse_rt_list(char * list, uint64_t * map)
+wr_parse_rt_list(char * list, uint8_t * map)
 {
 	char	  * p;
 	int32_t		k, i;
@@ -155,20 +173,20 @@ wr_parse_rt_list(char * list, uint64_t * map)
 			l = strtol(arr[i], NULL, 10);
 			h = strtol(p, NULL, 10);
 			do {
-				map[0] |= (1ULL << l);
+				_bset(map, l);
 			} while( ++l <= h );
 		} else							// Must be a single value
-			map[0] |= (1ULL << strtol(arr[i], NULL, 10));
+			_bset(map, strtol(arr[i], NULL, 10));
 	}
 	return 0;
 }
 
 /**************************************************************************//**
 *
-* wr_parse_lp_list - Parse the lcore-port list string.
+* wr_parse_lcore_list - Parse the lcore list string.
 *
 * DESCRIPTION
-* Parse the lcore-port list strings.
+* Parse the lcore list strings.
 *
 * RETURNS: N/A
 *
@@ -176,7 +194,7 @@ wr_parse_rt_list(char * list, uint64_t * map)
 */
 
 static int32_t
-wr_parse_lp_list( char * list, uint64_t * rt)
+wr_parse_lcore_list( char * list, ls_t *ls)
 {
 	char	  * arr[3];
 	int32_t		k;
@@ -189,16 +207,78 @@ wr_parse_lp_list( char * list, uint64_t * rt)
     }
 
     if ( k == 1 ) {								// Must be a lcore/port number only
-    	wr_parse_rt_list(arr[0], &rt[0]);		// Parse the list with no ':' character
-    	rt[1] = rt[0];							// Update the tx bitmap too.
+    	wr_parse_rt_list(arr[0], ls[RX_IDX].ls);	// Parse the list with no ':' character
+    	memcpy(ls[TX_IDX].ls, ls[RX_IDX].ls, sizeof(ls_t)); // Update the tx bitmap too.
     } else /* k == 2 */ {						// Must be a <rx-list>:<tx-list> pair
-		if ( wr_parse_rt_list(arr[0], &rt[0]) )	// parse <rx-list>
+		if ( wr_parse_rt_list(arr[0], ls[RX_IDX].ls) )	// parse <rx-list>
 			return 1;
 
-		if ( wr_parse_rt_list(arr[1], &rt[1]) )	// parse <tx-list>
+		if ( wr_parse_rt_list(arr[1], ls[TX_IDX].ls) )	// parse <tx-list>
 			return 1;
     }
 	return 0;
+}
+
+/**************************************************************************//**
+*
+* wr_parse_port_list - Parse the port list string.
+*
+* DESCRIPTION
+* Parse the port list strings.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int32_t
+wr_parse_port_list( char * list, ps_t *ps)
+{
+	char	  * arr[3];
+	int32_t		k;
+
+	// Split up the string based on the ':' for Rx:Tx pairs
+    k = wr_strparse( list, ":", arr, countof(arr) );
+    if ( (k == 0) || (k == 3) ) {
+    	fprintf(stderr, "*** Invalid string (%s)\n", list);
+    	return 1;
+    }
+
+    if ( k == 1 ) {								// Must be a lcore/port number only
+    	wr_parse_rt_list(arr[0], ps[RX_IDX].ps);	// Parse the list with no ':' character
+    	memcpy(ps[TX_IDX].ps, ps[RX_IDX].ps, sizeof(ps_t)); // Update the tx bitmap too.
+    } else /* k == 2 */ {						// Must be a <rx-list>:<tx-list> pair
+		if ( wr_parse_rt_list(arr[0], ps[RX_IDX].ps) )	// parse <rx-list>
+			return 1;
+
+		if ( wr_parse_rt_list(arr[1], ps[TX_IDX].ps) )	// parse <tx-list>
+			return 1;
+    }
+	return 0;
+}
+
+static inline void wr_dump_lcore_map(const char * t, uint8_t *m) {
+	int		i;
+
+	fprintf(stderr, "%s( ", t);
+
+	for(i=0; i < RTE_MAX_LCORE; i++){
+		if ( _btst(m, i) )
+			fprintf(stderr, "%d ", i);
+	}
+	fprintf(stderr, ")");
+}
+
+static inline void wr_dump_port_map(const char * t, uint8_t *m) {
+	int		i;
+
+	fprintf(stderr, "%s( ", t);
+
+	for(i=0; i < RTE_MAX_ETHPORTS; i++){
+		if ( _btst(m, i) )
+			fprintf(stderr, "%d ", i);
+	}
+	fprintf(stderr, ")");
 }
 
 /**************************************************************************//**
@@ -282,36 +362,41 @@ wr_parse_matrix(l2p_t * l2p, char * str)
 
         memset(&lp, '\0', sizeof(lp));
 
-		if ( wr_parse_lp_list(arr[0], lp.lcores) ) {
+		if ( wr_parse_lcore_list(arr[0], lp.lcores) ) {
 			fprintf(stderr, "%s: could not parse <lcore-list> (%s) string\n",
 					__FUNCTION__, arr[0]);
 			return 0;
 		}
 
-		if ( wr_parse_lp_list(arr[1], lp.ports) ) {
+		if ( wr_parse_port_list(arr[1], lp.ports) ) {
 			fprintf(stderr, "%s: could not parse <port-list> (%s) string\n",
 					__FUNCTION__, arr[1]);
 			return 0;
 		}
 
 		// Handle the lcore and port list maps
-		fprintf(stderr, "%-16s = lcores(rx %016lx, tx %016lx) ports(rx %016lx, tx %016lx)\n",
-				str, lp.lcores[RX_IDX], lp.lcores[TX_IDX], lp.ports[RX_IDX], lp.ports[TX_IDX]);
+		fprintf(stderr, "%-16s lcores: ", str);
+		wr_dump_lcore_map("RX", lp.lcores[RX_IDX].ls);
+		wr_dump_lcore_map("TX", lp.lcores[TX_IDX].ls);
+		fprintf(stderr, " ports: ");
+		wr_dump_port_map("RX", lp.ports[RX_IDX].ps);
+		wr_dump_port_map("TX", lp.ports[TX_IDX].ps);
+		fprintf(stderr, "\n");
 
     	for(lid = 0; lid < RTE_MAX_LCORE; lid++) {
     		lid_type = 0;
-    		if ( (lp.lcores[RX_IDX] & (1ULL << lid)) != 0 )
+    		if ( _btst(lp.lcores[RX_IDX].ls, lid) )
     			lid_type |= RX_TYPE;
-    		if ( (lp.lcores[TX_IDX] & (1ULL << lid)) != 0 )
+    		if ( _btst(lp.lcores[TX_IDX].ls, lid) )
     			lid_type |= TX_TYPE;
 	   		if ( lid_type == 0 )
 	   			continue;
 
 	   		for(pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
 	   			pid_type = 0;
-	    		if ( (lp.ports[RX_IDX] & (1ULL << pid)) != 0 )
+	    		if ( _btst(lp.ports[RX_IDX].ps, pid) )
 	    			pid_type |= RX_TYPE;
-				if ( (lp.ports[TX_IDX] & (1ULL << pid)) != 0 )
+				if ( _btst(lp.ports[TX_IDX].ps, pid) )
 	    			pid_type |= TX_TYPE;
 		   		if ( pid_type == 0 )
 		   			continue;

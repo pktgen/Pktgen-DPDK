@@ -57,13 +57,11 @@ rmmod rte_kni
 insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
-if [ $name == "crownpass.intel.com" ]; then
-$sdk/tools/dpdk_nic_bind.py -b igb_uio 03:00.0 03:00.1 83:00.0 83:00.1 85:00.0 85:00.1 88:00.0 88:00.1
+if [ $name == "rkwiles-X10DRH" ]; then
+$sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
 fi
 if [ $name == "mini-i7" ]; then
 $sdk/tools/dpdk_nic_bind.py -b igb_uio 01:00.1 01:00.2 01:00.3 01:00.4
 fi
-if [ $name == "crownpass.intel.com" ]; then
-$sdk/tools/dpdk_nic_bind.py -b igb_uio 04:00.0 04:00.1 07:00.0 07:00.1
-fi
 $sdk/tools/dpdk_nic_bind.py --status
+lspci |grep Ether

@@ -38,19 +38,13 @@ endif
 # Default target, can be overriden by command line or environment
 RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
-include $(RTE_SDK)/mk/rte.vars.mk
-unexport RTE_SRCDIR RTE_OUTPUT RTE_EXTMK
+include $(RTE_SDK)/mk/rte.extvars.mk
 
 DIRS-y += lib app
 
-.PHONY: all clean $(DIRS-y) docs
+.PHONY: docs
 
-clean all: $(DIRS-y)
-
-$(DIRS-y):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
-
-include $(RTE_SDK)/mk/rte.app.mk
+include $(RTE_SDK)/mk/rte.extsubdir.mk
 
 docs:
 	@make -C docs html

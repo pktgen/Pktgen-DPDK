@@ -38,7 +38,9 @@ endif
 # Default target, can be overriden by command line or environment
 RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
-include $(RTE_SDK)/mk/rte.vars.mk
+include $(RTE_SDK)/mk/rte.extvars.mk
+
+LUA_DIR = lua-5.2.3
 
 # binary name
 APP = pktgen
@@ -52,9 +54,13 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c
 
+MYLIBS := -L$(RTE_SRCDIR)/../lib/lua-5.2.3/src/lib/lua-5.2.3/src/$(RTE_TARGET) \
+		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
+
+
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common/common/$(RTE_TARGET)/include -I$(RTE_SRCDIR)/../lib/lua/src
-LDFLAGS += -g -lpcap -L$(RTE_SRCDIR)/../lib/common/common/$(RTE_TARGET)/lib -L$(RTE_SRCDIR)/../lib/lua/src/lua/src/$(RTE_TARGET)/lib -llua -lcommon
+CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
+LDFLAGS += -g -lpcap $(MYLIBS)
 
 CFLAGS_commands.o := -Wno-format-nonliteral
 CFLAGS_pktgen-log.o := -Wno-format-nonliteral

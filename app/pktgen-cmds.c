@@ -117,11 +117,9 @@ pktgen_save(char * path)
 	fprintf(fd, "#######################################################################\n");
 	fprintf(fd, "# Pktgen Configuration script information:\n");
 	fprintf(fd, "#   GUI socket is %s\n", (pktgen.flags & ENABLE_GUI_FLAG)? "Enabled" : "Not Enabled");
-//	fprintf(fd, "#   Enabled Port mask: %08x\n", pktgen.enabled_port_mask);
 	fprintf(fd, "#   Flags %08x\n", pktgen.flags);
 	fprintf(fd, "#   Number of ports: %d\n", pktgen.nb_ports);
 	fprintf(fd, "#   Number ports per page: %d\n", pktgen.nb_ports_per_page);
-	fprintf(fd, "#   Coremask 0x%08lx\n", pktgen.coremask);
 	fprintf(fd, "#   Number descriptors: RX %d TX: %d\n", pktgen.nb_rxd, pktgen.nb_txd);
 	fprintf(fd, "#   Promiscuous mode is %s\n\n", (pktgen.flags & PROMISCUOUS_ON_FLAG)? "Enabled" : "Disabled");
 

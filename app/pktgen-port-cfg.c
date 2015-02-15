@@ -203,7 +203,7 @@ void pktgen_config_ports(void)
     // Get a local copy the tx configure information.
     memcpy(&tx, &tx_conf, sizeof(struct rte_eth_txconf));
 
-    pktgen.coremask = wr_get_coremask(&k);
+//    pktgen.coremask = wr_get_coremask(&k);
 
     // Find out the total number of ports in the system.
     // We have already blacklisted the ones we needed to in main routine.

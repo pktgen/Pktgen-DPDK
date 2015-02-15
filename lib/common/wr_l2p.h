@@ -483,24 +483,28 @@ wr_dump_l2p( l2p_t * l2p)
 	lobj_t	  	  * lobj;
 	pobj_t		  * pobj;
 	uint8_t			lid, pid, i;
-	const char	  * types[] = { "Unkn", " RX ", " TX ", "RXTX", NULL };
+	const char	  * types[] = { "Unknown", "RX-Only", "TX-Only", "RX-TX  ", NULL };
 
 	printf("Lcore:\n");
 	for(lid = 0; lid < RTE_MAX_LCORE; lid++) {
 		lobj = &l2p->lcores[lid];
 
 		if ( lobj->pids.rx_cnt || lobj->pids.tx_cnt ) {
-			printf("   %2d, type %s, rx_cnt %2d, tx_cnt %2d private %p,",
-				lobj->lid, types[lobj->type],
-				lobj->pids.rx_cnt, lobj->pids.tx_cnt, lobj->private);
+			printf("   %2d, %s\n",
+				lobj->lid, types[lobj->type]);
 
-			printf(" RX (pid:qid): ");
-			for(i = 0; i < lobj->pids.rx_cnt; i++)
-				printf("(%2d:%2d) ", lobj->pids.rx[i], lobj->qids.rx[lobj->pids.rx[i]]);
-			printf(", TX (pid:qid): ");
-			for(i = 0; i < lobj->pids.tx_cnt; i++)
-				printf("(%2d:%2d) ", lobj->pids.tx[i], lobj->qids.tx[lobj->pids.tx[i]]);
-			printf("\n");
+			if ( lobj->pids.rx_cnt ) {
+				printf("                RX(%2d): ", lobj->pids.rx_cnt);
+				for(i = 0; i < lobj->pids.rx_cnt; i++)
+					printf("(%2d:%2d) ", lobj->pids.rx[i], lobj->qids.rx[lobj->pids.rx[i]]);
+				printf("\n");
+			}
+			if ( lobj->pids.tx_cnt ) {
+				printf("                TX(%2d): ", lobj->pids.tx_cnt);
+				for(i = 0; i < lobj->pids.tx_cnt; i++)
+					printf("(%2d:%2d) ", lobj->pids.tx[i], lobj->qids.tx[lobj->pids.tx[i]]);
+				printf("\n");
+			}
 		}
 	}
 	printf("\n");

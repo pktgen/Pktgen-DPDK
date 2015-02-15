@@ -297,7 +297,6 @@ typedef struct pktgen_s {
 	void				  * L;					/**< Lua State pointer */
 	char				  * hostname;			/**< GUI hostname */
 	wr_scrn_t			  * scrn;				/**< Screen structure pointer */
-	uint64_t				coremask;			/**< Coremask of lcores */
 
 	int32_t					socket_port;		/**< GUI port number */
 	uint32_t				blinklist;			/**< Port list for blinking the led */

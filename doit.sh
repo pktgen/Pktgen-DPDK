@@ -36,7 +36,7 @@ fi
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-desk" ]; then
-./app/app/${target}/pktgen -c 1ffff -n 3 --proc-type auto --socket-mem 1024,1024 --file-prefix pg -- -T -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3, [9:11].4, [10:12].5, [13:15].6, [14:16].7" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -c 1ffff -n 3 --proc-type auto --socket-mem 1024,1024 --file-prefix pg -- -T -P -m "[1:3-6].0, [9:11].4" -f themes/black-yellow.theme
 fi
 
 #00:19.0 Ethernet controller: Intel Corporation Ethernet Connection (2) I218-V

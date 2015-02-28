@@ -250,7 +250,7 @@ At the ${RTE_SDK}/examples/pktgen level directory we have the 'setup' script,
 which needs to be run as root once per boot. The script contains a commands to setup
 the environment.
 
-Make sure you run the setup script as root via 'sudo ./setup'. The setup script
+Make sure you run the setup script as root via 'sudo -E ./setup'. The setup script
 is a bash script and tries to setup the system correctly, but you may have to 
 change the script to match your number of huge pages you configured above.
 
@@ -298,7 +298,7 @@ Next we build pktgen:
 # cd <PktgenInstallDir>
 # make
 ```
-You should now have pktgen built and to run pktgen type 'sudo ./doit', which is a script
+You should now have pktgen built and to run pktgen type 'sudo -E ./doit', which is a script
 to help with the command line options of pktgen. You may need to modify this script for
 your system and configuration.
 ```
@@ -466,7 +466,7 @@ running the new version.
 Running the doit script produces output as follows, but maybe different on your
 system configuration.
 ```
-[22:20][keithw@keithw-S5520HC:pktgen(master)]$ sudo ./doit
+[22:20][keithw@keithw-S5520HC:pktgen(master)]$ sudo -E ./doit
 ------------------------------------------------------------------------
 -----------------------
   

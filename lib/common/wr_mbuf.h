@@ -42,22 +42,12 @@ extern "C" {
 static inline void __pktmbuf_alloc_noreset(struct rte_mbuf *m)
 {
     m->next = NULL;
-    //m->pkt_len = 0;
-    //m->l2_l3_len = 0;
-    //m->vlan_tci = 0;
     m->nb_segs = 1;
     m->port = 0xff;
 
-    m->ol_flags = 0;
     m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
             RTE_PKTMBUF_HEADROOM : m->buf_len;
-
-#ifdef RTE_MBUF_REFCNT
-	rte_mbuf_refcnt_set(m, 1);
-#endif /* RTE_MBUF_REFCNT */
-
-    //m->data_len = 0;
-    //__rte_mbuf_sanity_check(m, 1);
+    rte_mbuf_refcnt_set(m, 1);
 }
 
 static inline int wr_pktmbuf_alloc_bulk_noreset(struct rte_mempool *mp,

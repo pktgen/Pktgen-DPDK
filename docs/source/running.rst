@@ -5,7 +5,9 @@ Running Pktgen
 
 
 A sample commandline to start a ``pktgen`` instance would look something like
-the following::
+the following, which you may need 'sudo -E' added to the front if not superuser.
+The -E option of sudo passes environment variables to sudo shell as the scripts
+need the RTE_SDK and RTE_TARGET variables::
 
    ./app/pktgen -c 0x1f -n 3 -- -p 0x00c -P -m "[1:3].0, [2:4].1
 

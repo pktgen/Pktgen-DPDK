@@ -137,7 +137,7 @@ Please look at the 3rd party PDF for license information.
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
- Pktgen: Created 2010 by Keith Wiles @ windriver.com
+ Pktgen: Created 2010 by Keith Wiles @ windriver.com, now at Intel.com
  ---
 
 **======================== README.pktgen file ==============================**

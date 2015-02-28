@@ -21,7 +21,7 @@ Some of the features of Pktgen are:
 * The software is fully available under a BSD licence.
 
 
-Pktgen was created 2010 by Keith Wiles @ windriver.com
+Pktgen was created 2010 by Keith Wiles @ windriver.com, now at intel.com
 
 .. only:: html
 

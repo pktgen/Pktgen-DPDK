@@ -62,7 +62,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* Created 2011 by Keith Wiles @ windriver.com */
+/* Created 2011 by Keith Wiles @ intel.com */
 
 #ifndef LUA_SHELL_H_
 #define LUA_SHELL_H_

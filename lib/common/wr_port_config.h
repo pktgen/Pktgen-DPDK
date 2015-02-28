@@ -63,7 +63,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* Created 2013 by Keith Wiles @ windriver.com */
+/* Created 2013 by Keith Wiles @ intel.com */
 
 #ifndef _WR_PORT_CONFIG_H
 #define _WR_PORT_CONFIG_H

@@ -30,7 +30,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Created 2010 by Keith Wiles @ windriver.com */
+/* Created 2010 by Keith Wiles @ intel.com */
 
 #include <stdio.h>
 #include <stdlib.h>

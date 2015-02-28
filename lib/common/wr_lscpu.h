@@ -63,7 +63,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* Created 2014 by Keith Wiles @ windriver.com */
+/* Created 2014 by Keith Wiles @ intel.com */
 
 #ifndef __INC_LSCPU_H
 #define __INC_LSCPU_H

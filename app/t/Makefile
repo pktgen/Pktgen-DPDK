@@ -29,7 +29,7 @@ $(shell mkdir -p lcov/html)
 
 
 ### Use DPDK CC, CFLAGS, ...
-include $(RTE_SDK)/mk/rte.extvars.mk
+include $(RTE_SDK)/mk/rte.vars.mk
 
 
 ### Extra flags for test compilation and linking

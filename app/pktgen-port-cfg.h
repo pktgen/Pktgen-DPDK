@@ -68,6 +68,9 @@
 #ifndef _PKTGEN_PORT_CFG_H_
 #define _PKTGEN_PORT_CFG_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <rte_version.h>
 #include <rte_atomic.h>
 
 #undef BPF_MAJOR_VERSION
@@ -310,7 +313,13 @@ pktgen_dump_dev_info(FILE * f, struct rte_eth_dev_info * di) {
 	fprintf(f, "   max_mac_addrs  :%4d max_hash_mac_addrs:%4d max_vmdq_pools:%6d\n",
 			di->max_mac_addrs, di->max_hash_mac_addrs, di->max_vmdq_pools);
 	fprintf(f, "   rx_offload_capa:%4d tx_offload_capa   :%4d reta_size     :%6d flow_type_rss_offloads:%016lx\n",
-			di->rx_offload_capa, di->tx_offload_capa, di->reta_size, di->flow_type_rss_offloads);
+			di->rx_offload_capa, di->tx_offload_capa, di->reta_size,
+#if (RTE_VER_MAJOR < 2)
+			0L
+#else
+			di->flow_type_rss_offloads
+#endif
+			);
 	fprintf(f, "   vmdq_queue_base:%4d vmdq_queue_num    :%4d vmdq_pool_base:%6d\n",
 			di->vmdq_queue_base, di->vmdq_queue_num, di->vmdq_pool_base);
 	pktgen_dump_rx_conf(f, &di->default_rxconf);

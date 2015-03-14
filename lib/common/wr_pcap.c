@@ -85,7 +85,9 @@
 
 #include <rte_log.h>
 #include <rte_tailq.h>
+#if (RTE_VER_MAJOR < 2)
 #include <rte_tailq_elem.h>
+#endif
 #include <rte_common.h>
 #include <rte_memory.h>
 #include <rte_memcpy.h>

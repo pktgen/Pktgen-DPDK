@@ -86,16 +86,16 @@ enum {
 };
 
 
-const struct rte_eth_conf port_conf = {
+const struct rte_eth_conf default_port_conf = {
     .rxmode = {
-        .mq_mode = ETH_MQ_RX_RSS,
-        .max_rx_pkt_len = ETHER_MAX_LEN,
-        .split_hdr_size = 0,
-        .header_split   = 0, /**< Header Split disabled */
-        .hw_ip_checksum = 0, /**< IP checksum offload disabled */
-        .hw_vlan_filter = 0, /**< VLAN filtering disabled */
-        .jumbo_frame    = 0, /**< Jumbo Frame Support disabled */
-        .hw_strip_crc   = 0, /**< CRC stripped by hardware */
+   		.split_hdr_size = 0,
+   		.header_split   = 0, /**< Header Split disabled. */
+   		.hw_ip_checksum = 0, /**< IP checksum offload disabled. */
+   		.hw_vlan_filter = 0, /**< VLAN filtering enabled. */
+   		.hw_vlan_strip  = 0, /**< VLAN strip enabled. */
+   		.hw_vlan_extend = 0, /**< Extended VLAN disabled. */
+   		.jumbo_frame    = 0, /**< Jumbo Frame Support disabled. */
+   		.hw_strip_crc   = 0, /**< CRC stripping by hardware disabled. */
     },
     .rx_adv_conf = {
         .rss_conf = {
@@ -108,7 +108,25 @@ const struct rte_eth_conf port_conf = {
     },
 };
 
-const struct rte_eth_rxconf rx_conf = {
+const ring_conf_t default_ring_conf = {
+	.rx_pthresh = RTE_PMD_PARAM_UNSET,
+	.rx_hthresh = RTE_PMD_PARAM_UNSET,
+	.rx_wthresh = RTE_PMD_PARAM_UNSET,
+
+	.tx_pthresh = RTE_PMD_PARAM_UNSET,
+	.tx_hthresh = RTE_PMD_PARAM_UNSET,
+	.tx_wthresh = RTE_PMD_PARAM_UNSET,
+
+	.rx_free_thresh = RTE_PMD_PARAM_UNSET,
+	.rx_drop_en = RTE_PMD_PARAM_UNSET,
+	.tx_free_thresh = RTE_PMD_PARAM_UNSET,
+	.tx_rs_thresh = RTE_PMD_PARAM_UNSET,
+	.txq_flags = RTE_PMD_PARAM_UNSET,
+	.rss_hf = ETH_RSS_IP
+};
+
+#if 0
+const struct rte_eth_rxconf default_rx_conf = {
     .rx_thresh = {
         .pthresh = RX_PTHRESH,
         .hthresh = RX_HTHRESH,
@@ -120,7 +138,7 @@ const struct rte_eth_rxconf rx_conf = {
 #define IXGBE_SIMPLE_FLAGS ((uint32_t)ETH_TXQ_FLAGS_NOMULTSEGS | \
 			    ETH_TXQ_FLAGS_NOOFFLOADS)
 
-static struct rte_eth_txconf tx_conf = {
+static struct rte_eth_txconf default_tx_conf = {
     .tx_thresh = {
         .pthresh = TX_PTHRESH,
         .hthresh = TX_HTHRESH,
@@ -135,6 +153,7 @@ static struct rte_eth_txconf tx_conf = {
             ETH_TXQ_FLAGS_NOXSUMTCP)
 
 };
+#endif
 
 /**************************************************************************//**
 *
@@ -176,6 +195,93 @@ pktgen_mbuf_pool_create(const char * type, uint8_t pid, uint8_t queue_id,
     return mp;
 }
 
+static void
+rxtx_port_config(uint32_t pid)
+{
+	port_info_t * info = &pktgen.info[pid];
+	ring_conf_t	* rc = &info->ring_conf;
+	struct rte_eth_rxconf *rx_conf = &info->rx_conf;
+	struct rte_eth_txconf *tx_conf = &info->tx_conf;
+
+	memcpy(rx_conf, &info->dev_info.default_rxconf, sizeof(struct rte_eth_rxconf));
+	memcpy(tx_conf, &info->dev_info.default_txconf, sizeof(struct rte_eth_txconf));
+
+	/* Check if any RX/TX parameters have been passed */
+	if (rc->rx_pthresh != RTE_PMD_PARAM_UNSET)
+		rx_conf->rx_thresh.pthresh = rc->rx_pthresh;
+
+	if (rc->rx_hthresh != RTE_PMD_PARAM_UNSET)
+		rx_conf->rx_thresh.hthresh = rc->rx_hthresh;
+
+	if (rc->rx_wthresh != RTE_PMD_PARAM_UNSET)
+		rx_conf->rx_thresh.wthresh = rc->rx_wthresh;
+
+	if (rc->rx_free_thresh != RTE_PMD_PARAM_UNSET)
+		rx_conf->rx_free_thresh = rc->rx_free_thresh;
+
+	if (rc->rx_drop_en != RTE_PMD_PARAM_UNSET)
+		rx_conf->rx_drop_en = rc->rx_drop_en;
+
+	if (rc->tx_pthresh != RTE_PMD_PARAM_UNSET)
+		tx_conf->tx_thresh.pthresh = rc->tx_pthresh;
+
+	if (rc->tx_hthresh != RTE_PMD_PARAM_UNSET)
+		tx_conf->tx_thresh.hthresh = rc->tx_hthresh;
+
+	if (rc->tx_wthresh != RTE_PMD_PARAM_UNSET)
+		tx_conf->tx_thresh.wthresh = rc->tx_wthresh;
+
+	if (rc->tx_rs_thresh != RTE_PMD_PARAM_UNSET)
+		tx_conf->tx_rs_thresh = rc->tx_rs_thresh;
+
+	if (rc->tx_free_thresh != RTE_PMD_PARAM_UNSET)
+		tx_conf->tx_free_thresh = rc->tx_free_thresh;
+
+	if (rc->txq_flags != RTE_PMD_PARAM_UNSET)
+		tx_conf->txq_flags = rc->txq_flags;
+}
+
+static void
+pktgen_port_conf_setup(uint32_t pid, rxtx_t * rt, const struct rte_eth_conf * dpc)
+{
+	port_info_t * info = &pktgen.info[pid];
+	struct rte_eth_conf *conf = &info->port_conf;
+	struct rte_eth_dev_info *dev = &info->dev_info;
+
+	memcpy(conf, dpc, sizeof(struct rte_eth_conf));
+	memcpy(&info->ring_conf, &default_ring_conf, sizeof(ring_conf_t));
+
+	rte_eth_dev_info_get(pid, dev);
+
+	pktgen_dump_dev_info(stdout, dev);
+
+	if (rt->rx > 1) {
+		conf->rx_adv_conf.rss_conf.rss_key	= NULL;
+		conf->rx_adv_conf.rss_conf.rss_hf	= ETH_RSS_IP;
+	} else {
+		conf->rx_adv_conf.rss_conf.rss_key	= NULL;
+		conf->rx_adv_conf.rss_conf.rss_hf	= 0;
+	}
+
+	if ( dev->max_vfs == 0) {
+		if( conf->rx_adv_conf.rss_conf.rss_hf != 0)
+			conf->rxmode.mq_mode = ETH_MQ_RX_RSS;
+		else
+			conf->rxmode.mq_mode = ETH_MQ_RX_NONE;
+	}
+
+	if (dev->max_vfs != 0) {
+		if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
+			conf->rxmode.mq_mode = ETH_MQ_RX_VMDQ_RSS;
+		else
+			conf->rxmode.mq_mode = ETH_MQ_RX_NONE;
+
+		conf->txmode.mq_mode = ETH_MQ_TX_NONE;
+	}
+
+	rxtx_port_config(pid);
+}
+
 /**************************************************************************//**
 *
 * pktgen_config_ports - Configure the ports for RX and TX
@@ -197,13 +303,7 @@ void pktgen_config_ports(void)
     port_info_t     * info;
     char buff[RTE_MEMZONE_NAMESIZE];
     int32_t ret, cache_size;
-    struct rte_eth_txconf tx;
 	char output_buff[256] = { 0 };
-
-    // Get a local copy the tx configure information.
-    memcpy(&tx, &tx_conf, sizeof(struct rte_eth_txconf));
-
-//    pktgen.coremask = wr_get_coremask(&k);
 
     // Find out the total number of ports in the system.
     // We have already blacklisted the ones we needed to in main routine.
@@ -271,7 +371,9 @@ void pktgen_config_ports(void)
 		cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE)?
 							RTE_MEMPOOL_CACHE_MAX_SIZE : info->nb_mbufs;
 
-		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &port_conf)) < 0)
+		pktgen_port_conf_setup(pid, &rt, &default_port_conf);
+
+		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &info->port_conf)) < 0)
 			pktgen_log_panic("Cannot configure device: port=%d, Num queues %d,%d (%d)%s",
 					pid, rt.rx, rt.tx, errno, rte_strerror(-ret));
 
@@ -302,7 +404,7 @@ void pktgen_config_ports(void)
 			if ( info->q[q].rx_mp == NULL )
 				pktgen_log_panic("Cannot init port %d for Default RX mbufs", pid);
 
-			ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rx_conf, pktgen.info[pid].q[q].rx_mp);
+			ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &info->rx_conf, pktgen.info[pid].q[q].rx_mp);
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid, rte_strerror(-ret));
 		}
@@ -340,9 +442,9 @@ void pktgen_config_ports(void)
 			// Find out the link speed to program the WTHRESH value correctly.
 			pktgen_get_link_status(info, pid, 0);
 
-			tx.tx_thresh.wthresh = (info->link.link_speed == 1000)? TX_WTHRESH_1GB : TX_WTHRESH;
+			info->tx_conf.tx_thresh.wthresh = (info->link.link_speed == 1000)? TX_WTHRESH_1GB : TX_WTHRESH;
 
-			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &tx);
+			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &info->tx_conf);
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid, rte_strerror(-ret));
 #if 0

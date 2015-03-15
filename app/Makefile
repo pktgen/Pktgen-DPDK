@@ -40,7 +40,7 @@ RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-LUA_DIR = lua-5.2.3
+LUA_DIR = lua-5.2.4
 
 # binary name
 APP = pktgen
@@ -54,12 +54,13 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c
 
-MYLIBS := -L$(RTE_SRCDIR)/../lib/lua-5.2.3/src/lib/lua-5.2.3/src/$(RTE_TARGET) \
+MYLIBS := -L$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src/lib/$(LUA_DIR)/src/$(RTE_TARGET) \
 		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
 
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
+CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
+CFLAGS += -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
 LDFLAGS += -g -lpcap $(MYLIBS)
 
 CFLAGS_commands.o := -Wno-format-nonliteral

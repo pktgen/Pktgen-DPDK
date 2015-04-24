@@ -6,6 +6,8 @@ Pktgen version 2.8.2 using DPDK-1.8.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.8.5   - Fix compat problem with latest Pktgen and DPDK 1.8.0
+ - 2.8.4   - Minor updates for comments.
  - 2.8.3   - Updated the Makefiles to use rte.extXYZ.mk files.
              Updated the code to build with DPDK 2.0.0-rc1 as some function prototype changed.
  - 2.8.2   - Fix bug in pktgen_main_receive routine not using the correct port number.

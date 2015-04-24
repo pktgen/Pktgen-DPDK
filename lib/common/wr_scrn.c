@@ -53,6 +53,8 @@ wr_scrn_center(int16_t r, int16_t ncols, const char * fmt, ...)
 	va_list	vaList;
 	char	str[512];
 
+	if ( ncols == -1 )
+		ncols = __scrn->ncols;
 	va_start(vaList, fmt);
 	vsnprintf(str, sizeof(str), fmt, vaList);
 	va_end(vaList);

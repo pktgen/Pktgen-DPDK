@@ -297,7 +297,6 @@ pktgen_port_conf_setup(uint32_t pid, rxtx_t * rt, const struct rte_eth_conf * dp
 void pktgen_config_ports(void)
 {
     uint32_t lid, pid, i, s, q, sid;
-	uint64_t	k;
     rxtx_t	rt;
     pkt_seq_t   * pkt;
     port_info_t     * info;
@@ -347,7 +346,7 @@ void pktgen_config_ports(void)
 
     pktgen.total_mem_used = 0;
 
-    for(k = 0, pid = 0; pid < pktgen.nb_ports; pid++) {
+    for(pid = 0; pid < pktgen.nb_ports; pid++) {
     	// Skip if we do not have any lcores attached to a port.
     	if ( (rt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0 )
             continue;
@@ -459,7 +458,7 @@ void pktgen_config_ports(void)
     pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ", (pktgen.total_mem_used + 1023)/1024);
 
     // Start up the ports and display the port Link status
-    for(k = 0, pid = 0; pid < pktgen.nb_ports; pid++) {
+    for(pid = 0; pid < pktgen.nb_ports; pid++) {
         if ( wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0 )
             continue;
 

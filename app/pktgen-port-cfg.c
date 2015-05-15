@@ -172,20 +172,19 @@ pktgen_mbuf_pool_create(const char * type, uint8_t pid, uint8_t queue_id,
 		uint32_t nb_mbufs, int socket_id, int cache_size )
 {
     struct rte_mempool * mp;
-    uint32_t	size = MBUF_SIZE;
     char    name[RTE_MEMZONE_NAMESIZE];
 
     snprintf(name, sizeof(name), "%-12s%u:%u", type, pid, queue_id);
     pktgen_log_info("    Create: %-*s - Memory used (MBUFs %4u x (size %u + Hdr %lu)) + %lu = %6lu KB",
-            16, name, nb_mbufs, size, sizeof(struct rte_mbuf), sizeof(struct rte_mempool),
-            (((nb_mbufs * (size + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool))) + 1023)/1024);
-    pktgen.mem_used += ((nb_mbufs * (size + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
-    pktgen.total_mem_used += ((nb_mbufs * (size + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
+            16, name, nb_mbufs, MBUF_SIZE, sizeof(struct rte_mbuf), sizeof(struct rte_mempool),
+            (((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool))) + 1023)/1024);
+    pktgen.mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
+    pktgen.total_mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
 
     /* create the mbuf pool */
-    mp = rte_mempool_create(name, nb_mbufs, size, cache_size,
+    mp = rte_mempool_create(name, nb_mbufs, MBUF_SIZE, cache_size,
                    sizeof(struct rte_pktmbuf_pool_private),
-                   rte_pktmbuf_pool_init, (void *)((uint64_t)size),
+                   rte_pktmbuf_pool_init, NULL,
                    rte_pktmbuf_init, NULL,
                    socket_id, MEMPOOL_F_DMA);
     if (mp == NULL)

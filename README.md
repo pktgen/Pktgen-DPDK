@@ -1,4 +1,4 @@
-Pktgen version 2.8.2 using DPDK-1.8.0
+Pktgen version 2.8.6 using DPDK-2.0.0
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at 10Gbit wire rate traffic with 64 byte frames.**
@@ -6,6 +6,7 @@ Pktgen version 2.8.2 using DPDK-1.8.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.8.6   - Fix argument for rte_mempool_create, which caused a crash.
  - 2.8.5   - Fix compat problem with latest Pktgen and DPDK 1.8.0
  - 2.8.4   - Minor updates for comments.
  - 2.8.3   - Updated the Makefiles to use rte.extXYZ.mk files.

@@ -42,6 +42,9 @@ include $(RTE_SDK)/mk/rte.vars.mk
 
 DIRS-y += lib app
 
+DEPDIRS-y += lib/libcommon lib/lua
+
+
 .PHONY: docs
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk

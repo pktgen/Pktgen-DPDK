@@ -40,7 +40,7 @@ RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-LUA_DIR = lua-5.2.4
+LUA_DIR = lua-5.3.0
 
 # binary name
 APP = pktgen

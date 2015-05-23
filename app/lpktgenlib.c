@@ -312,7 +312,7 @@ static int pktgen_set (lua_State *L) {
  	pktsize = luaL_checkinteger(L, 12);
 
  	if ( (proto[0] == 'i') && (ip[3] == '6') ) {
- 		luai_putstring(L, "Must use IPv4 with ICMP type packets\n");
+ 		lua_putstring(L, "Must use IPv4 with ICMP type packets\n");
  		return -1;
  	}
 
@@ -389,7 +389,7 @@ static int set_seqTable(lua_State * L, uint32_t seqnum)
 	pktSize		= getf_integer(L, "pktSize");
 
 	if ( (ipProto[0] == 'i') && (ethType[3] == '6') ) {
-		luai_putstring(L, "Must use IPv4 with ICMP type packets\n");
+		lua_putstring(L, "Must use IPv4 with ICMP type packets\n");
 		return -1;
 	}
 
@@ -914,7 +914,7 @@ static int pktgen_pause (lua_State *L) {
 	}
 	str = (char *)luaL_checkstring(L, 1);
 	if ( strlen(str) > 0 )
-		luai_putstring(L, str);
+		lua_putstring(L, str);
 
 	__delay(luaL_checkinteger(L, 2));
 	return 0;
@@ -944,7 +944,7 @@ static int pktgen_continue (lua_State *L) {
 	str = (char *)luaL_checkstring(L, 1);
 
 	if ( strlen(str) > 0 )
-		luai_putstring(L, str);
+		lua_putstring(L, str);
 
 	buf[0] = '\0';
 	n = fread(buf, 1, 1, (FILE *)_get_stdin(L));
@@ -979,7 +979,7 @@ static int pktgen_input (lua_State *L) {
 	str = (char *)luaL_checkstring(L, 1);
 
 	if ( strlen(str) > 0 )
-		luai_putstring(L, str);
+		lua_putstring(L, str);
 
 	idx = 0;
 	buf[idx] = '\0';

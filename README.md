@@ -186,8 +186,7 @@ make sure hyper-threading is enabled.
 
 ** NOTE **
   On a 10GB NIC if the transceivers are not attached the screen updates will go
-  very slow, but you can configure pktgen via the '-p' option to exclude those
-  ports from pktgen and everything will be fine.
+  very slow.
 
 Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
 ```
@@ -292,7 +291,7 @@ Create the DPDK build tree:
 # cd $RTE_SDK
 # make install T=x86_64-native-linuxapp-gcc
 ```
-This above command will create the x86_64-pktgen-linuxapp-gcc directory in the
+This above command will create the x86_64-native-linuxapp-gcc directory in the
 top level of the current-dkdp directory. The above command will build the basic
 DPDK libraries and build tree.
 
@@ -308,17 +307,33 @@ your system and configuration.
 # cat doit
 #!/bin/bash
 
-# Normal setup
-#   different cores for each port.
+#rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
+#06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+#09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+#83:00.1 Ethernet controller: Intel Corporation DH8900CC Null Device (rev 21)
+#87:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#87:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
-name=`uname -n`
-if [ $name == "keithw-W2600CR" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:03:00.0 -b 0000:03:00.1 -- -p 0x00c -P -m "[1:3].0, [2:4].1" 
+if [ $name == "rkwiles-supermicro" ]; then
+./app/app/${target}/pktgen -c 1fff0 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
 fi
 
-if [ $name == "keithw-S5520HC" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:01:00.0 -b 0000:01:00.1 -- -p 0x03 -P -m "[1:3].0, [2:4].1" 
+#00:19.0 Ethernet controller: Intel Corporation Ethernet Connection (2) I218-V
+#01:00.1 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+#01:00.2 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+#01:00.3 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+#01:00.4 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+
+if [ $name == "rkwiles-mini-i7" ]; then
+./app/app/${target}/pktgen -c 1f -n 3 --proc-type auto --socket-mem 512 --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
 fi
+
 ```
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
    The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
@@ -393,8 +408,7 @@ EAL options for DEBUG use only:
 
 ===== Application Usage =====
 
-Usage: ./app/pktgen [EAL options] -- -p PORTMASK [-h] [-P] [-G] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
-  -p PORTMASK  hexadecimal bitmask of ports to configure
+Usage: ./app/pktgen [EAL options] -- [-h] [-P] [-G] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
   -s P:file    PCAP packet stream file, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename
@@ -454,11 +468,11 @@ allows the developer to share ports on the same machine.
 
 name=`uname -n`
 if [ $name == "keithw-W2600CR" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:03:00.0 -b 0000:03:00.1 -- -p 0x00c -P -m "[1:3].0, [2:4].1" 
+./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:03:00.0 -b 0000:03:00.1 -- -P -m "[1:3].0, [2:4].1" 
 fi
 
 if [ $name == "keithw-S5520HC" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:01:00.0 -b 0000:01:00.1 -- -p 0x03 -P -m "[1:3].0, [2:4].1" 
+./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:01:00.0 -b 0000:01:00.1 -- -P -m "[1:3].0, [2:4].1" 
 fi
 ```
 ------------- doit script ----------------
@@ -1120,11 +1134,11 @@ pktgen> quit
 ------------------------------------------------------------------------------------------
 -- Example command lines.
 ```
-./app/pktgen -c 1ff -n 3 --proc-type auto --socket-mem 256,256 -- -p 0x3c -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -p 0x3c -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -p 0x3c -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
-./app/pktgen -c e -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -p 0x14 -P -m "2.0, 3.1"
-./app/pktgen -c 1ff -n 3 --proc-type auto --socket-mem 256,256 -- -p 0x3c -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3"
+./app/pktgen -c 1ff -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
+./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
+./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
+./app/pktgen -c e -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "2.0, 3.1"
+./app/pktgen -c 1ff -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3"
 ```
 
 A command line passing in a pktgen/test/set_seq.pkt file to help initialize pktgen with some
@@ -1132,7 +1146,7 @@ default values and configurations. You can also replace the filename using the '
 with a Lua script file ending in .lua instead of .pkt. BTW, if the filename ends in anything
 other then .lua it is treated as a .pkt file.
  
-`./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 -- -p 0x30 -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
+`./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
 
 -- test/set_seq.pkt
 ```
@@ -1147,7 +1161,7 @@ The Lua version is easier to remember the layout of the agruments if you want to
 use that one instead of set_seq.pkt file.
 
 ```
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 -- -p 0x30 -P -m "[1:3].0, [2:4].1" -f test/set_seq.lua`
+./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.lua`
 
 -- The '--' is a comment in Lua
 local seq_table = {			-- entries can be in any order

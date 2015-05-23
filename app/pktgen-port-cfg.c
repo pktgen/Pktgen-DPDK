@@ -199,45 +199,43 @@ rxtx_port_config(uint32_t pid)
 {
 	port_info_t * info = &pktgen.info[pid];
 	ring_conf_t	* rc = &info->ring_conf;
-	struct rte_eth_rxconf *rx_conf = &info->rx_conf;
-	struct rte_eth_txconf *tx_conf = &info->tx_conf;
 
-	memcpy(rx_conf, &info->dev_info.default_rxconf, sizeof(struct rte_eth_rxconf));
-	memcpy(tx_conf, &info->dev_info.default_txconf, sizeof(struct rte_eth_txconf));
+	info->rx_conf = info->dev_info.default_rxconf;
+	info->tx_conf = info->dev_info.default_txconf;
 
 	/* Check if any RX/TX parameters have been passed */
 	if (rc->rx_pthresh != RTE_PMD_PARAM_UNSET)
-		rx_conf->rx_thresh.pthresh = rc->rx_pthresh;
+		info->rx_conf.rx_thresh.pthresh = rc->rx_pthresh;
 
 	if (rc->rx_hthresh != RTE_PMD_PARAM_UNSET)
-		rx_conf->rx_thresh.hthresh = rc->rx_hthresh;
+		info->rx_conf.rx_thresh.hthresh = rc->rx_hthresh;
 
 	if (rc->rx_wthresh != RTE_PMD_PARAM_UNSET)
-		rx_conf->rx_thresh.wthresh = rc->rx_wthresh;
+		info->rx_conf.rx_thresh.wthresh = rc->rx_wthresh;
 
 	if (rc->rx_free_thresh != RTE_PMD_PARAM_UNSET)
-		rx_conf->rx_free_thresh = rc->rx_free_thresh;
+		info->rx_conf.rx_free_thresh = rc->rx_free_thresh;
 
 	if (rc->rx_drop_en != RTE_PMD_PARAM_UNSET)
-		rx_conf->rx_drop_en = rc->rx_drop_en;
+		info->rx_conf.rx_drop_en = rc->rx_drop_en;
 
 	if (rc->tx_pthresh != RTE_PMD_PARAM_UNSET)
-		tx_conf->tx_thresh.pthresh = rc->tx_pthresh;
+		info->tx_conf.tx_thresh.pthresh = rc->tx_pthresh;
 
 	if (rc->tx_hthresh != RTE_PMD_PARAM_UNSET)
-		tx_conf->tx_thresh.hthresh = rc->tx_hthresh;
+		info->tx_conf.tx_thresh.hthresh = rc->tx_hthresh;
 
 	if (rc->tx_wthresh != RTE_PMD_PARAM_UNSET)
-		tx_conf->tx_thresh.wthresh = rc->tx_wthresh;
+		info->tx_conf.tx_thresh.wthresh = rc->tx_wthresh;
 
 	if (rc->tx_rs_thresh != RTE_PMD_PARAM_UNSET)
-		tx_conf->tx_rs_thresh = rc->tx_rs_thresh;
+		info->tx_conf.tx_rs_thresh = rc->tx_rs_thresh;
 
 	if (rc->tx_free_thresh != RTE_PMD_PARAM_UNSET)
-		tx_conf->tx_free_thresh = rc->tx_free_thresh;
+		info->tx_conf.tx_free_thresh = rc->tx_free_thresh;
 
 	if (rc->txq_flags != RTE_PMD_PARAM_UNSET)
-		tx_conf->txq_flags = rc->txq_flags;
+		info->tx_conf.txq_flags = rc->txq_flags;
 }
 
 static void
@@ -428,7 +426,7 @@ void pktgen_config_ports(void)
 				pktgen_log_panic("Cannot init port %d for Sequence TX mbufs", pid);
 
 			// Used for sending special packets like ARP requests
-			info->q[q].special_mp = pktgen_mbuf_pool_create("Special TX", pid, q, MAX_SPECIAL_MBUFS, sid, cache_size);
+			info->q[q].special_mp = pktgen_mbuf_pool_create("Special TX", pid, q, MAX_SPECIAL_MBUFS, sid, 0);
 			if (info->q[q].special_mp == NULL)
 				pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
 
@@ -440,7 +438,7 @@ void pktgen_config_ports(void)
 			// Find out the link speed to program the WTHRESH value correctly.
 			pktgen_get_link_status(info, pid, 0);
 
-			info->tx_conf.tx_thresh.wthresh = (info->link.link_speed == 1000)? TX_WTHRESH_1GB : TX_WTHRESH;
+//			info->tx_conf.tx_thresh.wthresh = (info->link.link_speed == 1000)? TX_WTHRESH_1GB : TX_WTHRESH;
 
 			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &info->tx_conf);
 			if (ret < 0)

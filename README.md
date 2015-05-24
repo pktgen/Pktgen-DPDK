@@ -6,6 +6,7 @@ Pktgen version 2.8.6 using DPDK-2.0.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.0   - Update to DPDK 2.0.0 and Lua 5.3.0 with README update.
  - 2.8.6   - Fix argument for rte_mempool_create, which caused a crash.
  - 2.8.5   - Fix compat problem with latest Pktgen and DPDK 1.8.0
  - 2.8.4   - Minor updates for comments.
@@ -323,17 +324,6 @@ your system and configuration.
 if [ $name == "rkwiles-supermicro" ]; then
 ./app/app/${target}/pktgen -c 1fff0 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
 fi
-
-#00:19.0 Ethernet controller: Intel Corporation Ethernet Connection (2) I218-V
-#01:00.1 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
-#01:00.2 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
-#01:00.3 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
-#01:00.4 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
-
-if [ $name == "rkwiles-mini-i7" ]; then
-./app/app/${target}/pktgen -c 1f -n 3 --proc-type auto --socket-mem 512 --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
-fi
-
 ```
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
    The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
@@ -467,15 +457,125 @@ allows the developer to share ports on the same machine.
 #   different cores for each port.
 
 name=`uname -n`
-if [ $name == "keithw-W2600CR" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:03:00.0 -b 0000:03:00.1 -- -P -m "[1:3].0, [2:4].1" 
+
+# Use 'sudo -E ./setup.sh' to include environment variables
+
+if [ -z ${RTE_SDK} ] ; then
+    echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
+	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
+	export RTE_TARGET=x86_64-native-linuxapp-clang
+fi
+sdk=${RTE_SDK}
+
+if [ -z ${RTE_TARGET} ]; then
+    echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
+    target=x86_64-pktgen-linuxapp-gcc
+else
+    target=${RTE_TARGET}
 fi
 
-if [ $name == "keithw-S5520HC" ]; then
-./app/pktgen -c 1f -n 3 --proc-type auto --socket-mem 256,256 --file-prefix pg -b 0000:01:00.0 -b 0000:01:00.1 -- -P -m "[1:3].0, [2:4].1" 
+
+#rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
+#06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+#09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+#83:00.1 Ethernet controller: Intel Corporation DH8900CC Null Device (rev 21)
+#87:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#87:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+#89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+
+if [ $name == "rkwiles-supermicro" ]; then
+./app/app/${target}/pktgen -c 1fff0 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
+fi
+
+#00:19.0 Ethernet controller: Intel Corporation Ethernet Connection (2) I218-V
+#01:00.1 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+#01:00.2 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+#01:00.3 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+#01:00.4 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
+
+if [ $name == "rkwiles-mini-i7" ]; then
+./app/app/${target}/pktgen -c 1f -n 3 --proc-type auto --socket-mem 512 --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
 fi
 ```
 ------------- doit script ----------------
+
+------------- setup script ----------------
+```
+#!/bin/bash
+
+# Use 'sudo -E ./setup.sh' to include environment variables
+
+if [ -z ${RTE_SDK} ] ; then
+	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
+	echo "    Using "${RTE_SDK}
+	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
+	export RTE_TARGET=x86_64-native-linuxapp-clang
+fi
+sdk=${RTE_SDK}
+
+if [ -z ${RTE_TARGET} ]; then
+	echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
+	target=x86_64-pktgen-linuxapp-gcc
+else
+	target=${RTE_TARGET}
+fi
+
+echo "Using directory: "$sdk"/"$target
+
+function nr_hugepages_fn {
+    echo /sys/devices/system/node/node${1}/hugepages/hugepages-2048kB/nr_hugepages
+}
+
+function num_cpu_sockets {
+    local sockets=0
+    while [ -f $(nr_hugepages_fn $sockets) ]; do
+		sockets=$(( $sockets + 1 ))
+    done
+    echo $sockets
+	if [ $sockets -eq 0 ]; then
+		echo "Huge TLB support not found make sure you are using a kernel >= 2.6.34" >&2
+		exit 1
+	fi
+}
+
+if [ $UID -ne 0 ]; then
+    echo "You must run this script as root" >&2
+    exit 1
+fi
+
+rm -fr /mnt/huge/*
+
+NR_HUGEPAGES=$(( `sysctl -n vm.nr_hugepages` / $(num_cpu_sockets) ))
+echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages."
+for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
+    echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
+done
+
+grep -i huge /proc/meminfo
+modprobe uio
+echo "trying to remove old igb_uio module and may get an error message, ignore it"
+rmmod igb_uio
+insmod $sdk/$target/kmod/igb_uio.ko
+echo "trying to remove old rte_kni module and may get an error message, ignore it"
+rmmod rte_kni
+insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
+
+name=`uname -n`
+if [ $name == "rkwiles-supermicro" ]; then
+$sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
+fi
+if [ $name == "rkwilesmini-i7" ]; then
+$sdk/tools/dpdk_nic_bind.py -b igb_uio 01:00.1 01:00.2 01:00.3 01:00.4
+fi
+$sdk/tools/dpdk_nic_bind.py --status
+lspci |grep Ether
+```
+------------- setup script ----------------
 
 If you have run pktgen before then remove the files in /mnt/huge/* before
 running the new version.
@@ -919,7 +1019,7 @@ Dst  IP Address :        192.168.1.1        192.168.0.1
 Src  IP Address :     192.168.0.1/24     192.168.1.1/24
 Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
 Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:2.7.1(DPDK-1.7.0) -------------------------------------------------------------------------------------
+-- Pktgen Ver:2.9.0(DPDK-2.0.0) -------------------------------------------------------------------------------------
 
 
 
@@ -1118,7 +1218,7 @@ Port: 0, PCAP Count: 0 of 9716, skipped 0
    23:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
    24:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1466
 
-- Pktgen Ver:2.7.1(DPDK-1.7.0) --------------------------------------------------------------------------------------
+- Pktgen Ver:2.9.0(DPDK-2.0.0) --------------------------------------------------------------------------------------
 
 
 

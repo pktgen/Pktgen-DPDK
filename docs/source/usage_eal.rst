@@ -9,7 +9,7 @@ arguments for the DPDK Environmental Abstraction Layer (EAL) and arguments for
 the application itself. The two sets of arguments are separated using the
 standard convention of ``--``::
 
-   ./app/pktgen -c 0x1f -n 3 -- -p 0x00c -P -m "[1:3].0, [2:4].1
+   ./app/pktgen -c 0x1f -n 3 -- -P -m "[1:3].0, [2:4].1
 
 The usual EAL commandline usage for ``pktgen`` is::
 
@@ -78,10 +78,10 @@ A more typical commandline to start a ``pktgen`` instance would be::
    ./app/pktgen -c 0x1f -n 3 --proc-type auto --socket-mem 256,256
                 -b 0000:03:00.0 -b 0000:03:00.1 \
                  --file-prefix pg \
-                -- \
-                -p 0x00c -P -m "[1:3].0, [2:4].1
+                -- -P -m "[1:3].0, [2:4].1
 
-The coremask ``-c 0x1f`` (0b11111) indicates 5 lcores are used.
+The coremask ``-c 0x1f`` (0b11111) indicates 5 lcores are used, as the first
+lcore is used by Pktgen for display and timers.
 
 The ``--socket-mem 256,256`` DPDK command will allocate 256M from each CPU
 (two in this case).

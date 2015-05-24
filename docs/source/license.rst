@@ -14,7 +14,7 @@ owners.
 Lua
 ---
 
-Lua Version 5.2.1.
+Lua Version 5.3.0.
 
 Lua is a lightweight, embeddable scripting language. Lua combines simple
 procedural syntax with powerful data description constructs based on
@@ -24,7 +24,7 @@ memory management with incremental garbage collection, making it ideal for
 configuration, scripting, and rapid prototyping.
 
 
-**Copyright (c) 1994-2012 Lua.org, PUC-Rio.**
+**Copyright (c) 1994-2015 Lua.org, PUC-Rio.**
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

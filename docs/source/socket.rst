@@ -26,8 +26,8 @@ also send ``pktgen`` a command script file and display the output::
 
    $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
-   Lua Version      : Lua 5.2
-   Pktgen Version   : 2.8.1
+   Lua Version      : Lua 5.3
+   Pktgen Version   : 2.9.0
    Pktgen Copyright : Copyright (c) `<2010-2015>`, Wind River Systems, Inc.
    Pktgen Authors   : Keith Wiles @ Wind River Systems
 
@@ -45,8 +45,8 @@ function::
    $ socat READLINE TCP4:172.25.40.163:22022
    f,e = loadfile("test/hello-world.lua")
    f()
-   Lua Version      : Lua 5.2
-   Pktgen Version   : 2.8.1
+   Lua Version      : Lua 5.3
+   Pktgen Version   : 2.9.0
    Pktgen Copyright : Copyright (c) `<2010-2015>`, Wind River Systems, Inc.
    Pktgen Authors   : Keith Wiles @ Wind River Systems
 
@@ -58,8 +58,8 @@ You can also just send it commands via echo::
 
    $ echo "f,e = loadfile('test/hello-world.lua'); f();" \
           | socat - TCP4:172.25.40.163:22022
-   Lua Version      : Lua 5.2
-   Pktgen Version   : 2.8.1
+   Lua Version      : Lua 5.3
+   Pktgen Version   : 2.9.0
    Pktgen Copyright : Copyright (c) `<2010-2015>`, Wind River Systems, Inc.
    Pktgen Authors   : Keith Wiles @ Wind River Systems
 

@@ -16,7 +16,7 @@ sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
     echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
-    target=x86_64-pktgen-linuxapp-gcc
+    target=x86_64-native-linuxapp-gcc
 else
     target=${RTE_TARGET}
 fi
@@ -36,5 +36,5 @@ fi
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
-./app/app/${target}/pktgen -c ff004 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg2 -b 09:00.0 -b 09:00.1 -b 83:00.1 -b 87:00.0 -b 87:00.1 -b 89:00.0 -b 89:00.1 -- -T -P -m "[12:16].0, [13:17].1, [14:18].2, [15:19].3" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -c ff004 -n 3 --proc-type auto --log-level 0 --socket-mem 512,512 --file-prefix pg2 -b 09:00.0 -b 09:00.1 -b 83:00.1 -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -- -T -P -m "[12:16].0, [13:17].1, [14:18].2, [15:19].3" -f themes/black-yellow.theme
 fi

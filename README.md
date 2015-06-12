@@ -1,4 +1,4 @@
-Pktgen version 2.8.6 using DPDK-2.0.0
+Pktgen version 2.9.1 using DPDK-2.0.0
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at 10Gbit wire rate traffic with 64 byte frames.**
@@ -6,6 +6,7 @@ Pktgen version 2.8.6 using DPDK-2.0.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.1   - Fix up the sequeue help to remove vlan option with ipv4/ipv6
  - 2.9.0   - Update to DPDK 2.0.0 and Lua 5.3.0 with README update.
  - 2.8.6   - Fix argument for rte_mempool_create, which caused a crash.
  - 2.8.5   - Fix compat problem with latest Pktgen and DPDK 1.8.0
@@ -1019,7 +1020,7 @@ Dst  IP Address :        192.168.1.1        192.168.0.1
 Src  IP Address :     192.168.0.1/24     192.168.1.1/24
 Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
 Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:2.9.0(DPDK-2.0.0) -------------------------------------------------------------------------------------
+-- Pktgen Ver:2.9.1(DPDK-2.0.0) -------------------------------------------------------------------------------------
 
 
 
@@ -1053,7 +1054,7 @@ set <portlist> <xxx> value         - Set a few port values
                  prime             - Set the number of packets to send on prime command
                  seqCnt            - Set the number of packet in the sequence to send
                  dump              - Dump the next <value> received packets to the screen
-seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6|vlan udp|tcp|icmp vid pktsize
+seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vid pktsize
                                    - Set the sequence packet information, make sure the src-IP
                                      has the netmask value eg 1.2.3.4/24
 save <path-to-file>                - Save a configuration file using the filename
@@ -1271,7 +1272,7 @@ local seq_table = {			-- entries can be in any order
     ["ip_src_addr"] = "10.12.0.1/16",	-- the 16 is the size of the mask value
     ["sport"] = 9,			-- Standard port numbers
     ["dport"] = 10,			-- Standard port numbers
-    ["ethType"] = "ipv4",	-- ipv4|ipv6|vlan
+    ["ethType"] = "ipv4",	-- ipv4|ipv6
     ["ipProto"] = "udp",	-- udp|tcp|icmp
     ["vlanid"] = 1,			-- 1 - 4095
     ["pktSize"] = 128		-- 64 - 1518
@@ -1280,6 +1281,12 @@ local seq_table = {			-- entries can be in any order
 pktgen.seqTable(0, "all", seq_table );
 pktgen.set("all", "seqCnt", 1);
 ```
+------------------------------------------------------------------------------------------
+-- Two Pktgens running on the same machine with connected via a loopback ports
+
+Look at the two new files pktgen-master.sh and pktgen-slave.sh for some help on
+the configuration to run two pktgens at the same time on the same machine.
+
 ------------------------------------------------------------------------------------------
 -- Socket Support for Pktgen.
 

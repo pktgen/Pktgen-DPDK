@@ -388,20 +388,11 @@ main(int argc, char **argv)
 	pktgen_cpu_init();
 
     /* initialize EAL */
-    ret = rte_eal_init(argc, argv);
+    ret = rte_eal_init_parse(argc, argv, pktgen_parse_args);
     if (ret < 0)
         return -1;
-    argc -= ret;
-    argv += ret;
 
     pktgen.hz = rte_get_timer_hz();		// Get the starting HZ value.
-
-    rte_delay_ms(100);      // Wait a bit for things to settle.
-
-    /* parse application arguments (after the EAL ones) */
-    ret = pktgen_parse_args(argc, argv);
-    if (ret < 0)
-        return -1;
 
     pktgen_init_screen((pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
 

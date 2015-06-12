@@ -115,7 +115,7 @@ pktgen_page_cpu(void)
 	static int counter = 0;
     char buff[1024];
 
-    display_topline("** CPU Information Page **");
+    display_topline("<CPU Page>");
 
 	if ( (pktgen.core_cnt == 0) || (pktgen.lscpu == NULL) )
 		pktgen_cpu_init();

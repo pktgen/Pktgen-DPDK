@@ -94,7 +94,7 @@ pktgen_page_seq(uint32_t pid)
     pkt_seq_t   * pkt;
     char buff[64];
 
-    display_topline("** Sequence Page **");
+    display_topline("<Sequence Page>");
 
     info = &pktgen.info[pid];
 

@@ -95,7 +95,7 @@ pktgen_print_pcap(uint16_t pid)
     char buff[64];
     char pkt_buff[2048];
 
-    display_topline("** PCAP Page **");
+    display_topline("<PCAP Page>");
     wr_scrn_printf(1, 3, "Port %d of %d", pid, pktgen.nb_ports);
 
     info = &pktgen.info[pid];

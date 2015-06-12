@@ -239,7 +239,7 @@ pktgen_print_range(void)
 	struct ether_addr eaddr;
 	char	str[64];
 
-	display_topline("** Range Page **");
+	display_topline("<Range Page>");
 	wr_scrn_printf(1, 3, "Ports %d-%d of %d", pktgen.starting_port, (pktgen.ending_port - 1), pktgen.nb_ports);
 
 	row = PORT_STATE_ROW;

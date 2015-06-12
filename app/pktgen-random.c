@@ -335,7 +335,7 @@ void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_
 	mask[35] = '\0';
 	mask[8] = mask[17] = mask[26] = ' ';
 
-	display_topline("** Random bitfield Page **");
+	display_topline("<Random bitfield Page>");
 
 	wr_scrn_printf(1, 3, "Port %d", pid);
 

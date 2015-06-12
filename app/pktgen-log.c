@@ -231,7 +231,7 @@ pktgen_page_log(uint32_t print_labels)
 	if (!print_labels && !log_history.need_refresh)
 		return;
 
-	display_topline("** Logged messages **");
+	display_topline("<Logged messages>");
 	row = 2;
 
 	/* Header line */

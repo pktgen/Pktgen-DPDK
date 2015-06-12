@@ -186,12 +186,10 @@ pktgen_init_screen(int theme)
 void
 display_topline(const char * msg)
 {
-		wr_scrn_printf(1, 20, "%s", msg);
-		pktgen_display_set_color("top.copyright");
-		wr_scrn_puts("  %s", wr_copyright_msg());
-		pktgen_display_set_color("top.poweredby");
-		wr_scrn_puts(" %s", wr_powered_by());
-		pktgen_display_set_color(NULL);
+	wr_scrn_printf(1, 20, "%s", msg);
+	pktgen_display_set_color("top.copyright");
+	wr_scrn_puts("  %s", wr_copyright_msg());
+	pktgen_display_set_color(NULL);
 }
 
 
@@ -209,6 +207,8 @@ display_dashline(int last_row)
 		wr_scrn_fprintf(0, 0, stdout, "-");
 	pktgen_display_set_color("sep.text");
 	wr_scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
+	pktgen_display_set_color("top.poweredby");
+	wr_scrn_puts(" %s ", wr_powered_by());
 	pktgen_display_set_color(NULL);
 }
 

@@ -1233,7 +1233,7 @@ pktgen_launch_one_lcore(__attribute__ ((unused)) void * arg)
 static void
 pktgen_page_config(void)
 {
-	display_topline("** Configure Page **");
+	display_topline("<Config Page>");
 
     wr_scrn_center(20, pktgen.scrn->ncols, "Need to add the configuration stuff here");
     display_dashline(22);

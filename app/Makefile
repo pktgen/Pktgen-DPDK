@@ -66,6 +66,6 @@ LDFLAGS += -g -lpcap $(MYLIBS)
 CFLAGS_commands.o := -Wno-format-nonliteral
 CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 
-DEPDIRS-y += lib
+DEPDIRS-y += ../lib/common ../lib/$(LUA_DIR)
 
 include $(RTE_SDK)/mk/rte.extapp.mk

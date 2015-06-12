@@ -89,9 +89,10 @@ pktgen_print_static_data(void)
     uint32_t pid, col, row, sp, ip_row;
     pkt_seq_t * pkt;
     char buff[32];
+	int display_cnt;
 
 	pktgen_display_set_color("top.page");
-    display_topline("** Main Page **");
+    display_topline("<Main Page>");
 
 	pktgen_display_set_color("top.ports");
     wr_scrn_printf(1, 3, "Ports %d-%d of %d", pktgen.starting_port, (pktgen.ending_port - 1), pktgen.nb_ports);
@@ -158,6 +159,7 @@ pktgen_print_static_data(void)
 
 	pktgen_display_set_color("stats.stat.values");
     sp = pktgen.starting_port;
+	display_cnt = 0;
     for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
         if ( wr_get_map(pktgen.l2p, pid+sp, RTE_MAX_LCORE) == 0 )
             continue;
@@ -189,10 +191,11 @@ pktgen_print_static_data(void)
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_src_addr), pkt->ip_mask));
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
+		display_cnt++;
     }
 
     // Display the string for total pkts/s rate of all ports
-    col = (COLUMN_WIDTH_1 * pktgen.nb_ports_per_page) + COLUMN_WIDTH_0;
+    col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	pktgen_display_set_color("stats.total.label");
     wr_scrn_printf(LINK_STATE_ROW, col, "%*s", COLUMN_WIDTH_1, "---TotalRate---"); wr_scrn_eol();
 	pktgen_display_set_color(NULL);
@@ -250,6 +253,7 @@ pktgen_page_stats(void)
     unsigned int pid, col, row;
     unsigned sp;
     char buff[32];
+	int display_cnt;
 
     if ( pktgen.flags & PRINT_LABELS_FLAG )
         pktgen_print_static_data();
@@ -257,6 +261,7 @@ pktgen_page_stats(void)
     memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 
     sp = pktgen.starting_port;
+	display_cnt = 0;
     for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
         if ( wr_get_map(pktgen.l2p, pid+sp, RTE_MAX_LCORE) == 0 )
             continue;
@@ -351,10 +356,11 @@ pktgen_page_stats(void)
 			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
+		display_cnt++;
     }
 
     // Display the total pkts/s for all ports
-    col = (COLUMN_WIDTH_1 * pktgen.nb_ports_per_page) + COLUMN_WIDTH_0;
+    col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
     row = LINK_STATE_ROW + 1;
     wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, pktgen.cumm_rate_totals.ipackets); wr_scrn_eol();
     wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, pktgen.cumm_rate_totals.opackets); wr_scrn_eol();

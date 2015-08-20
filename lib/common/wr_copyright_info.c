@@ -84,6 +84,7 @@
 #include "wr_copyright_info.h"
 
 #define COPYRIGHT_MSG			"Copyright (c) <2010-2015>, Wind River Systems, Inc. All rights reserved."
+#define COPYRIGHT_MSG_SHORT		"Copyright (c) <2010-2015>, Wind River Systems"
 #define POWERED_BY_DPDK			"Powered by Intel® DPDK"
 
 static const char * intel_copyright[] = {
@@ -265,6 +266,16 @@ wr_splash_screen(int row, int col, const char * appname, const char * created_by
 const char *
 wr_copyright_msg(void) {
 	return COPYRIGHT_MSG;
+}
+
+/**
+ * Function returning short string for Copyright message."
+ * @return
+ *     string
+ */
+const char *
+wr_copyright_msg_short(void) {
+	return COPYRIGHT_MSG_SHORT;
 }
 
 /**

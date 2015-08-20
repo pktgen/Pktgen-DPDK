@@ -351,9 +351,9 @@ pktgen_transmit_count_rate(int port, char * buff, int len)
 	port_info_t * info = &pktgen.info[port];
 
     if ( rte_atomic64_read(&info->transmit_count) == 0 )
-        snprintf(buff, len, "Forever/%d%%", info->tx_rate);
+        snprintf(buff, len, "Forever /%4d%%", info->tx_rate);
     else
-        snprintf(buff, len, "%ld/%d%%", rte_atomic64_read(&info->transmit_count), info->tx_rate);
+        snprintf(buff, len, "%ld /%4d%%", rte_atomic64_read(&info->transmit_count), info->tx_rate);
 
     return buff;
 }

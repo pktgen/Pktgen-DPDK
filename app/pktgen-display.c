@@ -188,7 +188,7 @@ display_topline(const char * msg)
 {
 	wr_scrn_printf(1, 20, "%s", msg);
 	pktgen_display_set_color("top.copyright");
-	wr_scrn_puts("  %s", wr_copyright_msg());
+	wr_scrn_puts("  %s", wr_copyright_msg_short());
 	pktgen_display_set_color(NULL);
 }
 
@@ -203,7 +203,7 @@ display_dashline(int last_row)
 	last_row--;
 	wr_scrn_pos(last_row, 1);
 	pktgen_display_set_color("sep.dash");
-	for(i=0; i<(__scrn->ncols-15); i++)
+	for(i=0; i<79; i++)
 		wr_scrn_fprintf(0, 0, stdout, "-");
 	pktgen_display_set_color("sep.text");
 	wr_scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());

@@ -240,7 +240,7 @@ static int pktgen_set (lua_State *L) {
 	}
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 	what = (char *)luaL_checkstring(L, 2);
-	value = luaL_checkinteger(L, 3);
+	value = luaL_checknumber(L, 3);
 
 	foreach_port( portlist.map, _do(
 		if (!strcasecmp(what, "count"))
@@ -1894,7 +1894,7 @@ static int pktgen_blink (lua_State *L) {
 static void isSending(lua_State * L, port_info_t * info)
 {
 	lua_pushinteger(L, info->pid);		// Push the table index
-	lua_pushinteger(L, pktgen_port_transmitting(info->pid));
+	lua_pushstring(L, pktgen_port_transmitting(info->pid)? "y" : "n");
 
 	// Now set the table as an array with pid as the index.
 	lua_rawset(L, -3);

@@ -4,13 +4,17 @@ package.path = package.path ..";?.lua;test/?.lua;app/?.lua;../?.lua"
 
 require "Pktgen";
 
-local pktSizes = { 64, 128, 256, 512, 1024, 1280, 1518 };
-local delayTime = 10;		-- Time in seconds to delay.
-local sendport = "0";
-local recvport = "2";
-local dstip = "10.10.0.100";
-local srcip = "10.10.0.101";
-local netmask = "/24";
+local pktSizes		= { 64, 128, 256, 512, 1024, 1280, 1518 };
+local firstDelay	= 3;
+local delayTime		= 30;		-- Time in seconds to wait for tx to stop
+local pauseTime		= 1;
+local sendport		= "0";
+local recvport		= "2";
+local dstip			= "10.10.0.100";
+local srcip			= "10.10.0.101";
+local netmask		= "/24";
+local pktCnt		= 4000000;
+local foundRate;
 
 pktgen.set_ipaddr(sendport, "dst", dstip);
 pktgen.set_ipaddr(sendport, "src", srcip..netmask);
@@ -20,51 +24,106 @@ pktgen.set_ipaddr(recvport, "src", dstip..netmask);
 
 pktgen.set_proto(sendport..","..recvport, "udp");
 
-local function doTest(size, rate, limit)
-	local endStats, diff, limit, prev, flag;
 
-	printf("*** Test packet size %d at rate %d%%\n", size, rate);
-	
+local function doWait(port)
+	local stat, idx, diff;
+
+	-- Try to wait for the total number of packets to be sent.
+	local idx = 0;
+	while( idx < (delayTime - firstDelay) ) do
+		stat = pktgen.portStats(port, "port")[tonumber(port)];
+
+		diff = stat.ipackets - pktCnt;
+		--print(idx.." ipackets "..stat.ipackets.." delta "..diff);
+
+		idx = idx + 1;
+		if ( diff == 0 ) then
+			break;
+		end
+
+		local sending = pktgen.isSending(sendport);
+		if ( sending[tonumber(sendport)] == "n" ) then
+			break;
+		end
+		pktgen.delay(pauseTime * 1000);
+	end
+
+end
+
+local function testRate(size, rate)
+	local stat, diff;
+
 	pktgen.set(sendport, "rate", rate);
 	pktgen.set(sendport, "size", size);
 
 	pktgen.clr();
+	pktgen.delay(500);
 
 	pktgen.start(sendport);
-	sleep(delayTime);
+	pktgen.delay(firstDelay * 1000);
+
+	doWait(recvport);
+
 	pktgen.stop(sendport);
 
-	endStats = pktgen.portStats(sendport..","..recvport, "port");
+	pktgen.delay(pauseTime * 1000);
 
-	diff = endStats[2].ipackets - endStats[0].opackets;
-	printf("%3d Total sent %d recv %d, delta %d\n", cnt, endStats[0].opackets, endStats[2].ipackets, diff);
-	
-	flag = false;
-	if ( diff ~= 0 ) then
-		prev = rate;
-		if ( diff < 0 ) then
-			rate = rate - (prev/2);
-		else
-			rate = rate + (prev/2);
-		end
-		flag = doTest(size, rate, limit);
+	stat = pktgen.portStats(recvport, "port")[tonumber(recvport)];
+	diff = stat.ipackets - pktCnt;
+	--printf(" delta %10d", diff);
+
+	return diff;
+end
+
+local function midpoint(imin, imax)
+	return (imin + ((imax - imin) / 2));
+end
+
+local function doSearch(size, minRate, maxRate)
+	local diff, midRate;
+
+	if ( maxRate < minRate ) then
+		return 0.0;
 	end
 
-	return flag;
+	midRate = midpoint(minRate, maxRate);
+
+	printf("    Testing Packet size %4d at %3.0f%% rate", size, midRate);
+	printf(" (%3.0f, %3.0f, %3.0f)\n", minRate, midRate, maxRate);
+	diff = testRate(size, midRate);
+
+	if ( diff < 0 ) then
+		printf("\n");
+		return doSearch(size, minRate, midRate);
+	elseif ( diff > 0 ) then
+		printf("\n");
+		return doSearch(size, midRate, maxRate);
+	else
+		if ( midRate > foundRate ) then
+			foundRate = midRate;
+		end
+		if ( (foundRate == 100.0) or (foundRate == 1.0) ) then
+			return foundRate;
+		end
+		if ( (minRate == midRate) and (midRate == maxRate) ) then
+			return foundRate;
+		end
+		return doSearch(size, midRate, maxRate);
+	end
 end
 
 function main()
-	local rate, prev, flag, cnt;
+	local size;
+
+	pktgen.clr();
+
+	pktgen.set(sendport, "count", pktCnt);
+
+	print("\nRFC2544 testing... (Not working Completely) ");
 
 	for _,size in pairs(pktSizes) do
-		rate = 100;
-		cnt = 1;
-		flag = true;
-		
-		while( (flag == true) and (cnt < 10 ) ) do
-			flag = doTest(size, rate, 0, rate);
-			cnt = cnt + 1;
-		end
+		foundRate = 0.0;
+		printf("    >>> Max Rate %3.0f%%\n", doSearch(size, 1.0, 100.0));
 	end
 end
 

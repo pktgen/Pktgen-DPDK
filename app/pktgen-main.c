@@ -363,6 +363,8 @@ main(int argc, char **argv)
     uint32_t i;
     int32_t	ret;
 
+	printf("\n%s %s\n", wr_copyright_msg(), wr_powered_by()); fflush(stdout);
+
 	wr_scrn_setw(1);			// Reset the window size
 
     // call before the rte_eal_init()
@@ -375,8 +377,6 @@ main(int argc, char **argv)
     pktgen.nb_rxd           = DEFAULT_RX_DESC;
     pktgen.nb_txd           = DEFAULT_TX_DESC;
     pktgen.nb_ports_per_page= DEFAULT_PORTS_PER_PAGE;
-
-    wr_print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
     if ( (pktgen.l2p = wr_l2p_create()) == NULL )
 		pktgen_log_panic("Unable to create l2p");
@@ -396,14 +396,16 @@ main(int argc, char **argv)
 
     pktgen.hz = rte_get_timer_hz();		// Get the starting HZ value.
 
-    rte_delay_ms(100);      // Wait a bit for things to settle.
-
     /* parse application arguments (after the EAL ones) */
     ret = pktgen_parse_args(argc, argv);
     if (ret < 0)
         return -1;
 
     pktgen_init_screen((pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
+
+    rte_delay_ms(100);      // Wait a bit for things to settle.
+
+    wr_print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
     lua_newlib_add(_lua_openlib);
 

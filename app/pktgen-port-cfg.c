@@ -182,11 +182,7 @@ pktgen_mbuf_pool_create(const char * type, uint8_t pid, uint8_t queue_id,
     pktgen.total_mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
 
     /* create the mbuf pool */
-    mp = rte_mempool_create(name, nb_mbufs, MBUF_SIZE, cache_size,
-                   sizeof(struct rte_pktmbuf_pool_private),
-                   rte_pktmbuf_pool_init, NULL,
-                   rte_pktmbuf_init, NULL,
-                   socket_id, MEMPOOL_F_DMA);
+    mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE, MBUF_SIZE, socket_id);
     if (mp == NULL)
         pktgen_log_panic("Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, socket_id %d: %s",
         		name, pid, queue_id, nb_mbufs, socket_id, rte_strerror(errno));
@@ -491,10 +487,15 @@ void pktgen_config_ports(void)
 
         pktgen_range_setup(info);
 
+		rte_eth_stats_get(pid, &info->init_stats);
+
 		pktgen_rnd_bits_init(&pktgen.info[pid].rnd_bitfields);
     }
+
+	// Clear the log information by putting a blank line
 	pktgen_log_info("");
 
+	// Setup the packet capture per port if needed.
 	for (sid = 0; sid < wr_coremap_cnt(pktgen.core_info, pktgen.core_cnt, 0); sid++)
 		pktgen_packet_capture_init(&pktgen.capture[sid], sid);
 }

@@ -46,6 +46,13 @@ extern void wr_splash_screen(int row, int col, const char * appname, const char 
 const char * wr_copyright_msg(void);
 
 /**
+ * Function returning short string for Copyright message."
+ * @return
+ *     string
+ */
+const char * wr_copyright_msg_short(void);
+
+/**
  * Function returning string for Copyright message."
  * @return
  *     string

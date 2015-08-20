@@ -4,15 +4,13 @@
 
 if [ -z ${RTE_SDK} ] ; then
 	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
-	echo "    Using "${RTE_SDK}
-	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
-	export RTE_TARGET=x86_64-native-linuxapp-clang
+	exit 1
 fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
 	echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
-	target=x86_64-pktgen-linuxapp-gcc
+	exit 1
 else
 	target=${RTE_TARGET}
 fi
@@ -59,11 +57,14 @@ insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
 if [ $name == "rkwiles-supermicro" ]; then
-$sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
-#$sdk/tools/dpdk_nic_bind.py -b igb_uio 87:00.0 87:00.1 89:00.0 89:00.1
+#$sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
+$sdk/tools/dpdk_nic_bind.py -b igb_uio 87:00.0 87:00.1 89:00.0 89:00.1
 fi
 if [ $name == "rkwilesmini-i7" ]; then
 $sdk/tools/dpdk_nic_bind.py -b igb_uio 01:00.1 01:00.2 01:00.3 01:00.4
 fi
 $sdk/tools/dpdk_nic_bind.py --status
+
+echo ""
+echo "Command 'lspci | grep Ether' output for reference"
 lspci |grep Ether

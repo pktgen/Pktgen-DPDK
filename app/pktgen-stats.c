@@ -175,11 +175,11 @@ pktgen_print_static_data(void)
         pktgen_transmit_count_rate(pid, buff, sizeof(buff));
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%d/%d", pkt->pktSize + FCS_SIZE, info->tx_burst);
+        snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + FCS_SIZE, info->tx_burst);
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-        snprintf(buff, sizeof(buff), "%d/%d", pkt->sport, pkt->dport);
+        snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-        snprintf(buff, sizeof(buff), "%s/%s:%04x", (pkt->ethType == ETHER_TYPE_IPv4)? "IPv4" :
+        snprintf(buff, sizeof(buff), "%s / %s:%04x", (pkt->ethType == ETHER_TYPE_IPv4)? "IPv4" :
                                               (pkt->ethType == ETHER_TYPE_IPv6)? "IPv6" :
 											  (pkt->ethType == ETHER_TYPE_ARP)? "ARP" : "Other",
                                               (pkt->ipProto == PG_IPPROTO_TCP)? "TCP" :
@@ -408,6 +408,7 @@ pktgen_process_stats(__attribute__((unused)) struct rte_timer *tim, __attribute_
 
         info = &pktgen.info[pid];
 
+		memset(&stats, 0, sizeof(stats));
         rte_eth_stats_get(pid, &stats);
 
         // Normalize counts to the initial state, used for clearing statistics

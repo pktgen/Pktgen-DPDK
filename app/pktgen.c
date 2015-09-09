@@ -328,14 +328,14 @@ pktgen_tx_cleanup(port_info_t * info, uint16_t qid)
 	pktgen_send_burst(info, qid);
 
 	rte_delay_us(500);
-
+/*
 	// Stop and start the device to flush TX and RX buffers from the device rings.
 	rte_eth_dev_stop(info->pid);
 
 	rte_delay_us(250);
 
 	rte_eth_dev_start(info->pid);
-
+*/
 	pktgen_clr_q_flags(info, qid, DO_TX_CLEANUP);
 }
 

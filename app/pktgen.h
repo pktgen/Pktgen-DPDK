@@ -153,7 +153,7 @@
 #include "pktgen-log.h"
 
 
-#define PKTGEN_VERSION			"2.9.3"
+#define PKTGEN_VERSION			"2.9.4"
 #define PKTGEN_APP_NAME			"Pktgen"
 #define PKTGEN_CREATED_BY		"Keith Wiles"
 

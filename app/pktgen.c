@@ -949,14 +949,14 @@ pktgen_main_transmit(port_info_t * info, uint16_t qid)
 		}
 
 		pktgen_send_pkts(info, qid, mp);
+	}
 
-		flags = rte_atomic32_read(&info->q[qid].flags);
-		if ( unlikely(flags & (DO_TX_CLEANUP |  DO_TX_FLUSH)) ) {
-			if ( flags & DO_TX_CLEANUP )
-				pktgen_tx_cleanup(info, qid);
-			else if ( flags & DO_TX_FLUSH )
-				pktgen_tx_flush(info, qid);
-		}
+	flags = rte_atomic32_read(&info->q[qid].flags);
+	if ( unlikely(flags & (DO_TX_CLEANUP |  DO_TX_FLUSH)) ) {
+		if ( flags & DO_TX_CLEANUP )
+			pktgen_tx_cleanup(info, qid);
+		else if ( flags & DO_TX_FLUSH )
+			pktgen_tx_flush(info, qid);
 	}
 }
 

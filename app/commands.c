@@ -287,6 +287,7 @@ const char * help_info[] = {
 		"cls                                - Clear the screen",
 		"reset <portlist>                   - Reset the configuration to the default",
 		"rst                                - Reset the configuration for all ports",
+		"port.restart <portlist>            - Restart or stop a ethernet port and restart",
 		"help                               - Display this help message",
 		"quit                               - Quit the Pktgen program",
 		"",
@@ -4014,6 +4015,51 @@ cmdline_parse_inst_t cmd_reset = {
 
 /**********************************************************/
 
+struct cmd_port_restart_result {
+	cmdline_fixed_string_t port_restart;
+	cmdline_portlist_t portlist;
+};
+
+/**************************************************************************//**
+*
+* cmd_port_restart_parsed - Port Reset 
+*
+* DESCRIPTION
+* Port Reset 
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static void cmd_port_restart_parsed(__attribute__((unused)) void *parsed_result,
+				__attribute__((unused)) struct cmdline *cl,
+			    __attribute__((unused)) void *data)
+{
+	struct cmd_reset_result *res = parsed_result;
+
+	foreach_port( res->portlist.map,
+		pktgen_port_restart(info) );
+}
+
+cmdline_parse_token_string_t cmd_help_port_restart =
+	TOKEN_STRING_INITIALIZER(struct cmd_port_restart_result, port_restart, "port.restart");
+cmdline_parse_token_portlist_t cmd_port_restart_portlist =
+	TOKEN_PORTLIST_INITIALIZER(struct cmd_port_restart_result, portlist);
+
+cmdline_parse_inst_t cmd_port_restart = {
+	.f = cmd_port_restart_parsed,  /* function to call */
+	.data = NULL,      /* 2nd arg of func */
+	.help_str = "Port Reset",
+	.tokens = {        /* token list, NULL terminated */
+		(void *)&cmd_help_port_restart,
+		(void *)&cmd_reset_portlist,
+		NULL,
+	},
+};
+
+/**********************************************************/
+
 struct cmd_rst_result {
 	cmdline_fixed_string_t rst;
 };
@@ -4099,6 +4145,7 @@ cmdline_parse_ctx_t main_ctx[] = {
 	    (cmdline_parse_inst_t *)&cmd_range,
 		(cmdline_parse_inst_t *)&cmd_rnd,
 	    (cmdline_parse_inst_t *)&cmd_reset,
+	    (cmdline_parse_inst_t *)&cmd_port_restart,
 	    (cmdline_parse_inst_t *)&cmd_save,
 	    (cmdline_parse_inst_t *)&cmd_screen,
 	    (cmdline_parse_inst_t *)&cmd_script,

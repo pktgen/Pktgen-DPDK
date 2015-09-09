@@ -1490,6 +1490,38 @@ void pktgen_reset(port_info_t * info)
 
 /**************************************************************************//**
 *
+* pktgen_port_restart - Reset all ports
+*
+* DESCRIPTION
+* Reset all ports
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void pktgen_port_restart(port_info_t * info)
+{
+	if ( info == NULL )
+		info = &pktgen.info[0];
+
+    pktgen_stop_transmitting(info);
+
+    rte_delay_ms(10);
+
+    // Stop and start the device to flush TX and RX buffers from the device rings.
+    rte_eth_dev_stop(info->pid);
+
+    rte_delay_us(250);
+
+    rte_eth_dev_start(info->pid);
+
+    pktgen.flags &= ~PRINT_LABELS_FLAG;
+	pktgen_update_display();
+}
+
+/**************************************************************************//**
+*
 * pktgen_set_tx_count - Set the number of packets to transmit on a port.
 *
 * DESCRIPTION

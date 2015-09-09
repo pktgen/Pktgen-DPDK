@@ -1187,6 +1187,34 @@ static int pktgen_reset_config (lua_State *L) {
 
 /**************************************************************************//**
 *
+* pktgen_restart - Reset ports
+*
+* DESCRIPTION
+* Reset ports
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int pktgen_restart(lua_State *L) {
+	cmdline_portlist_t	portlist;
+
+	switch( lua_gettop(L) ) {
+	default: return luaL_error(L, "reset, wrong number of arguments");
+	case 1:
+		break;
+	}
+	parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port( portlist.map,
+		pktgen_port_restart(info) );
+
+	return 0;
+}
+
+/**************************************************************************//**
+*
 * pktgen_dst_mac - Set a destination MAC address
 *
 * DESCRIPTION
@@ -2656,6 +2684,7 @@ static const luaL_Reg pktgenlib[] = {
   {"cls",			pktgen_cls_screen},		// Redraw the screen
   {"update",		pktgen_update_screen},	// Update the screen information
   {"reset",			pktgen_reset_config},	// Reset the configuration to all ports
+  {"port_restart",	pktgen_restart},		// Reset ports
   {"portCount",		pktgen_portCount},		// Used port count value
   {"totalPorts",    pktgen_totalPorts},     // Total ports seen by DPDK
 

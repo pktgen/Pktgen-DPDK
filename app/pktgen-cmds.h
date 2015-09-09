@@ -122,6 +122,7 @@ extern void pktgen_ping4(port_info_t * info);
 extern void pktgen_ping6(port_info_t * info);
 #endif
 extern void pktgen_reset(port_info_t * info);
+extern void pktgen_port_restart(port_info_t * info);
 extern void pktgen_set_tx_count(port_info_t * info, uint32_t cnt);
 extern void pktgen_set_port_seqCnt(port_info_t * info, uint32_t cnt);
 extern void pktgen_set_port_prime(port_info_t * info, uint32_t cnt);

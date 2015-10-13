@@ -77,7 +77,7 @@ void test_pktgen_packet_ctor_IPv4_UDP(void)
 	};
 
 
-	lives_ok( { pktgen_packet_ctor(&info, 0, 0); }, "pktgen_packet_ctor must generate IPv4/UDP");
+	lives_ok( { pktgen_packet_ctor(&info, 0, 0, NULL); }, "pktgen_packet_ctor must generate IPv4/UDP");
 
 	note("... with Ethernet header");
 	cmp_mem_lit_incr(data, (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd), "    ... with correct dest MAC");
@@ -133,9 +133,9 @@ void test_pktgen_packet_ctor_IPv4_GRE_Ether(void)
 		.pktSize      = 102,		// Subtract 4 for FCS
 	};
 
-	pktgen_packet_ctor(&info, 0, 0);
+	pktgen_packet_ctor(&info, 0, 0, NULL);
 
-	lives_ok( { pktgen_packet_ctor(&info, 0, 0); }, "pktgen_packet_ctor must generate IPv4 GRE Ethernet frame");
+	lives_ok( { pktgen_packet_ctor(&info, 0, 0, NULL); }, "pktgen_packet_ctor must generate IPv4 GRE Ethernet frame");
 
 	note("... with outer Ethernet header");
 	cmp_mem_lit_incr(data, (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd), "    ... with correct dest MAC");

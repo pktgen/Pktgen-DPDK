@@ -931,7 +931,7 @@ pktgen_set_proto(port_info_t * info, char type)
 	if ( type == 'i' )
 		info->seq_pkt[SINGLE_PKT].ethType = ETHER_TYPE_IPv4;
 
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1067,7 +1067,7 @@ pktgen_set_pkt_type(port_info_t * info, const char * type)
 										(type[3] == '6') ? ETHER_TYPE_IPv6 :
 										/* TODO print error: unknown type */ ETHER_TYPE_IPv4;
 
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1092,7 +1092,7 @@ pktgen_set_vlan(port_info_t * info, uint32_t onOff)
 	}
 	else
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1112,7 +1112,7 @@ pktgen_set_vlanid(port_info_t * info, uint16_t vlanid)
 {
 	info->vlanid = vlanid;
 	info->seq_pkt[SINGLE_PKT].vlanid = info->vlanid;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1137,7 +1137,7 @@ pktgen_set_mpls(port_info_t * info, uint32_t onOff)
 	}
 	else
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1157,7 +1157,7 @@ pktgen_set_mpls_entry(port_info_t * info, uint32_t mpls_entry)
 {
 	info->mpls_entry = mpls_entry;
 	info->seq_pkt[SINGLE_PKT].mpls_entry = info->mpls_entry;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1182,7 +1182,7 @@ pktgen_set_qinq(port_info_t * info, uint32_t onOff)
 	}
 	else
 		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1204,7 +1204,7 @@ pktgen_set_qinqids(port_info_t * info, uint16_t outerid, uint16_t innerid)
 	info->seq_pkt[SINGLE_PKT].qinq_outerid = info->qinq_outerid;
 	info->qinq_innerid = innerid;
 	info->seq_pkt[SINGLE_PKT].qinq_innerid = info->qinq_innerid;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1228,7 +1228,7 @@ pktgen_set_gre(port_info_t * info, uint32_t onOff)
 	}
 	else
 		pktgen_clr_port_flags(info, SEND_GRE_IPv4_HEADER);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1252,7 +1252,7 @@ pktgen_set_gre_eth(port_info_t * info, uint32_t onOff)
 	}
 	else
 		pktgen_clr_port_flags(info, SEND_GRE_ETHER_HEADER);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1272,7 +1272,7 @@ pktgen_set_gre_key(port_info_t * info, uint32_t gre_key)
 {
 	info->gre_key = gre_key;
 	info->seq_pkt[SINGLE_PKT].gre_key = info->gre_key;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1401,7 +1401,7 @@ void pktgen_port_defaults(uint32_t pid, uint8_t seq)
 		memset(&pkt->eth_dst_addr, 0, sizeof (pkt->eth_dst_addr));
 
 
-	pktgen_packet_ctor(info, seq, -1);
+	pktgen_packet_ctor(info, seq, -1, NULL);
 
     pktgen.flags	|= PRINT_LABELS_FLAG;
 }
@@ -1423,7 +1423,7 @@ void pktgen_ping4(port_info_t * info)
 	memcpy(&info->seq_pkt[PING_PKT],
 		   &info->seq_pkt[SINGLE_PKT], sizeof(pkt_seq_t));
 	info->seq_pkt[PING_PKT].ipProto = PG_IPPROTO_ICMP;
-	pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO);
+	pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO, NULL);
 	pktgen_set_port_flags(info, SEND_PING4_REQUEST);
 }
 
@@ -1445,7 +1445,7 @@ void pktgen_ping6(port_info_t * info)
 	memcpy(&info->pkt[PING_PKT],
 		   &info->pkt[SINGLE_PKT], sizeof(pkt_seq_t));
 	info->pkt[PING_PKT].ipProto = PG_IPPROTO_ICMP;
-	pktgen_packet_ctor(info, PING_PKT, ICMP6_ECHO);
+	pktgen_packet_ctor(info, PING_PKT, ICMP6_ECHO, NULL);
 	pktgen_set_port_flags(info, SEND_PING6_REQUEST);
 }
 #endif
@@ -1677,7 +1677,7 @@ void pktgen_set_pkt_size(port_info_t * info, uint32_t size)
 	else if ( (size - FCS_SIZE) > MAX_PKT_SIZE)
 		size = MAX_PKT_SIZE + FCS_SIZE;
 	info->seq_pkt[SINGLE_PKT].pktSize = (size - FCS_SIZE);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 	pktgen_packet_rate(info);
 }
 
@@ -1699,7 +1699,7 @@ void pktgen_set_port_value(port_info_t * info, char type, uint32_t portValue)
 		info->seq_pkt[SINGLE_PKT].dport = (uint16_t)portValue;
 	else
 		info->seq_pkt[SINGLE_PKT].sport = (uint16_t)portValue;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1743,7 +1743,7 @@ void pktgen_set_ipaddr(port_info_t * info, char type, cmdline_ipaddr_t * ip)
 		info->seq_pkt[SINGLE_PKT].ip_src_addr = ntohl(ip->addr.ipv4.s_addr);
 	} else
 		info->seq_pkt[SINGLE_PKT].ip_dst_addr = ntohl(ip->addr.ipv4.s_addr);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -1761,7 +1761,7 @@ void pktgen_set_ipaddr(port_info_t * info, char type, cmdline_ipaddr_t * ip)
 void pktgen_set_dst_mac(port_info_t * info, cmdline_etheraddr_t * mac)
 {
 	memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac->mac, 6);
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -2143,7 +2143,7 @@ void pktgen_set_seq(port_info_t * info, uint32_t seqnum,
 		type = '4';
 	pkt->ethType		= (type == '6')? ETHER_TYPE_IPv6 : ETHER_TYPE_IPv4;
 	pkt->vlanid			= vlanid;
-	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_packet_ctor(info, seqnum, -1, NULL);
 }
 
 /**************************************************************************//**
@@ -2188,7 +2188,7 @@ void pktgen_compile_pkt(port_info_t * info, uint32_t seqnum,
 						  (type == '6')? ETHER_TYPE_IPv6 :
 						  (type == 'n')? ETHER_TYPE_VLAN : ETHER_TYPE_IPv4;
 	pkt->vlanid			= vlanid;
-	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_packet_ctor(info, seqnum, -1, NULL);
 }
 
 /**************************************************************************//**

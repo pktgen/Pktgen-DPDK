@@ -401,8 +401,8 @@ static __inline__ int pktgen_has_work(void) {
 */
 
 void
-pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type) {
-	pkt_seq_t		  * pkt = &info->seq_pkt[seq_idx];
+pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type, pkt_seq_t * seq_pkt) {
+	pkt_seq_t		  * pkt = (seq_pkt == NULL)? &info->seq_pkt[seq_idx] : &seq_pkt[seq_idx];
 	struct ether_hdr  * eth = (struct ether_hdr *)&pkt->hdr.eth;
 	uint16_t			tlen;
 
@@ -812,22 +812,36 @@ static __inline__ void
 pktgen_setup_packets(port_info_t * info, struct rte_mempool * mp, uint16_t qid)
 {
 	struct rte_mbuf	* m, * mm;
-	pkt_seq_t * pkt;
+	pkt_seq_t * pkt, *seq_pkt = NULL;
+	unsigned int i;
+	uint16_t seqIdx;
+	char buff[RTE_MEMZONE_NAMESIZE];
 
 	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
 
 	if ( mp == info->q[qid].pcap_mp )
 		return;
 
+	snprintf(buff, sizeof(buff), "tmp_seq_pkt_%d_%d", info->pid, qid);
+	seq_pkt = (pkt_seq_t *)rte_zmalloc(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE);
+	if (seq_pkt == NULL)
+		pktgen_log_panic("Unable to allocate %d pkt_seq_t headers", NUM_TOTAL_PKTS);
+
+	/* Copy global configuration to construct new packets locally */
+	for (i = 0; i < NUM_TOTAL_PKTS; i++)
+		rte_memcpy((uint8_t *)&seq_pkt[i], (uint8_t *)&info->seq_pkt[i], sizeof(pkt_seq_t));
+
+	seqIdx = info->seqIdx;
+
 	mm	= NULL;
 	pkt = NULL;
 
 	if ( mp == info->q[qid].tx_mp )
-		pkt = &info->seq_pkt[SINGLE_PKT];
+		pkt = &seq_pkt[SINGLE_PKT];
 	else if ( mp == info->q[qid].range_mp )
-		pkt = &info->seq_pkt[RANGE_PKT];
+		pkt = &seq_pkt[RANGE_PKT];
 	else if ( mp == info->q[qid].seq_mp )
-		pkt = &info->seq_pkt[info->seqIdx];
+		pkt = &seq_pkt[info->seqIdx];
 
 	// allocate each mbuf and put them on a list to be freed.
 	for(;;) {
@@ -840,7 +854,7 @@ pktgen_setup_packets(port_info_t * info, struct rte_mempool * mp, uint16_t qid)
 		mm = m;
 
 		if ( mp == info->q[qid].tx_mp ) {
-			pktgen_packet_ctor(info, SINGLE_PKT, -1);
+			pktgen_packet_ctor(info, SINGLE_PKT, -1, seq_pkt);
 
 			rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
@@ -848,16 +862,16 @@ pktgen_setup_packets(port_info_t * info, struct rte_mempool * mp, uint16_t qid)
 			m->data_len = pkt->pktSize;
 		} else if ( mp == info->q[qid].range_mp ) {
 			pktgen_range_ctor(&info->range, pkt);
-			pktgen_packet_ctor(info, RANGE_PKT, -1);
+			pktgen_packet_ctor(info, RANGE_PKT, -1, seq_pkt);
 
 			rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
 			m->pkt_len  = pkt->pktSize;
 			m->data_len = pkt->pktSize;
 		} else if ( mp == info->q[qid].seq_mp ) {
-			pktgen_packet_ctor(info, info->seqIdx++, -1);
-			if ( unlikely(info->seqIdx >= info->seqCnt) )
-				info->seqIdx = 0;
+			pktgen_packet_ctor(info, info->seqIdx++, -1, seq_pkt);
+			if ( unlikely(seqIdx >= info->seqCnt) )
+				seqIdx = 0;
 
 			rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
@@ -865,12 +879,14 @@ pktgen_setup_packets(port_info_t * info, struct rte_mempool * mp, uint16_t qid)
 			m->data_len = pkt->pktSize;
 
 			// move to the next packet in the sequence.
-			pkt = &info->seq_pkt[info->seqIdx];
+			pkt = &seq_pkt[seqIdx];
 		}
 	}
 
 	if ( mm != NULL )
 		rte_pktmbuf_free(mm);
+
+	rte_free(seq_pkt);
 }
 
 /**************************************************************************//**

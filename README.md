@@ -1,11 +1,12 @@
-Pktgen version 2.9.4 using DPDK-2.1.0
+Pktgen version 2.9.5 using DPDK-2.1.0
 =====================================
 
-**Pktgen is a traffic generator powered by Intel's DPDK at 10Gbit wire rate traffic with 64 byte frames.**
+**Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
 
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.5   - Fixed sequence packet race condition for multiple senders.
  - 2.9.4   - Fixed the ARP sends were not being flushed 
  - 2.9.3   - Remove change log and comment out the eth stop when done sending.
              This will most likely screw up the pcap and others, but stopping the port is not good.
@@ -1023,7 +1024,7 @@ Dst  IP Address :        192.168.1.1        192.168.0.1
 Src  IP Address :     192.168.0.1/24     192.168.1.1/24
 Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
 Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:2.9.4(DPDK-2.1.0) -------------------------------------------------------------------------------------
+-- Pktgen Ver:2.9.5(DPDK-2.1.0) -------------------------------------------------------------------------------------
 
 
 
@@ -1222,7 +1223,7 @@ Port: 0, PCAP Count: 0 of 9716, skipped 0
    23:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
    24:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1466
 
-- Pktgen Ver:2.9.4(DPDK-2.1.0) --------------------------------------------------------------------------------------
+- Pktgen Ver:2.9.5(DPDK-2.1.0) --------------------------------------------------------------------------------------
 
 
 

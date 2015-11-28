@@ -154,7 +154,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION			"2.9.5"
+#define PKTGEN_VERSION			"2.9.6"
 #define PKTGEN_APP_NAME			"Pktgen"
 #define PKTGEN_CREATED_BY		"Keith Wiles"
 
@@ -253,6 +253,7 @@ enum {
 	DEFAULT_VLAN_ID			= MIN_VLAN_ID,
 	MAX_ETHER_TYPE_SIZE		= 0x600,
 	OVERHEAD_FUDGE_VALUE	= 50,
+	RDTSC_COUNT				= 1000,
 
 	DEFAULT_PORTS_PER_PAGE	= 4,
 	VLAN_TAG_SIZE			= 4,
@@ -385,7 +386,7 @@ typedef struct cmdline_etheraddr cmdline_etheraddr_t;
 
 extern pktgen_t		pktgen;
 
-extern void pktgen_page_display(__attribute__((unused)) struct rte_timer *tim, __attribute__((unused)) void *arg);
+extern void pktgen_page_display(struct rte_timer *tim, void *arg);
 
 extern void pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type, pkt_seq_t * seq_pkt);
 extern void pktgen_packet_rate(port_info_t * info);
@@ -395,7 +396,7 @@ extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
 extern pkt_seq_t * pktgen_find_matching_ipsrc( port_info_t * info, uint32_t addr );
 extern pkt_seq_t * pktgen_find_matching_ipdst( port_info_t * info, uint32_t addr );
 
-extern int pktgen_launch_one_lcore(__attribute__ ((unused)) void * arg);
+extern int pktgen_launch_one_lcore(void * arg);
 
 extern void rte_timer_setup(void);
 

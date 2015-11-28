@@ -137,7 +137,8 @@ pktgen_packet_rate(port_info_t * info)
     uint64_t	cpp = (pps > 0) ? (pktgen.hz/pps) : (pktgen.hz / 4);
 
     info->tx_pps		= pps;
-    info->tx_cycles 	= ((cpp * info->tx_burst) / wr_get_port_txcnt(pktgen.l2p, info->pid));
+    info->tx_cycles 	= ((cpp * info->tx_burst) /
+                                wr_get_port_txcnt(pktgen.l2p, info->pid));
 	info->tx_cycles		-= ff[info->tx_rate/10];
 }
 
@@ -154,15 +155,28 @@ pktgen_packet_rate(port_info_t * info)
 */
 
 static __inline__ void
-pktgen_fill_pattern( uint8_t * p, uint32_t len, uint32_t type ) {
+pktgen_fill_pattern( uint8_t * p, uint32_t len, uint32_t type, char * user ) {
     uint32_t    i;
 
     switch(type) {
-    case 1:                 // Byte wide ASCII pattern
+    case USER_FILL_PATTERN:
+        memset(p, 0, len);
+        for(i = 0; i < len; i++)
+            p[i] = user[i & (USER_PATTERN_SIZE - 1)];
+        break;
+
+    case NO_FILL_PATTERN:
+        break;
+
+    case ZERO_FILL_PATTERN:
+        memset(p, 0, len);
+        break;
+
+    default:
+    case ABC_FILL_PATTERN:                 // Byte wide ASCII pattern
         for(i = 0; i < len; i++)
             p[i] = "abcdefghijklmnopqrstuvwxyz012345"[i & 0x1f];
         break;
-    default: memset(p, 0, len); break;
     }
 }
 
@@ -407,7 +421,9 @@ pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type, pkt_seq_t 
 	uint16_t			tlen;
 
     // Fill in the pattern for data space.
-    pktgen_fill_pattern((uint8_t *)&pkt->hdr, (sizeof(pkt_hdr_t) + sizeof(pkt->pad)), 1);
+    pktgen_fill_pattern((uint8_t *)&pkt->hdr,
+                        (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
+                        info->fill_pattern_type, info->user_pattern);
 
 	char *ether_hdr = pktgen_ether_hdr_ctor(info, pkt, eth);
 
@@ -1041,7 +1057,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	port_info_t	  * infos[RTE_MAX_ETHPORTS];
 	uint8_t		 	qids[RTE_MAX_ETHPORTS];
     uint8_t			idx, pid, txcnt, rxcnt;
-    uint64_t		 curr_tsc;
+    uint64_t		curr_tsc;
+	uint64_t		next_running;
 	uint64_t		tx_next_cycle;		/**< Next cycle to send a burst of traffic */
 	char			msg[256];
 
@@ -1061,9 +1078,10 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	pktgen_log_info("%s", msg);
 
     tx_next_cycle	= 0;
+	next_running	= 0;
 
     wr_start_lcore(pktgen.l2p, lid);
-    do {
+    for(;;) {
 		for(idx = 0; idx < rxcnt; idx++) {
 			/*
 			 * Read packet from RX queues and free the mbufs
@@ -1087,7 +1105,12 @@ pktgen_main_rxtx_loop(uint8_t lid)
 		}
 
 		// Exit loop when flag is set.
-    } while ( wr_lcore_is_running(pktgen.l2p, lid) );
+		if ( curr_tsc >= next_running ) {
+			if (!wr_lcore_is_running(pktgen.l2p, lid))
+				break;
+			next_running = curr_tsc + pktgen.hz;
+		}
+    }
 
     pktgen_log_debug("Exit %d", lid);
 
@@ -1114,7 +1137,9 @@ pktgen_main_tx_loop(uint8_t lid)
     uint8_t       qids[RTE_MAX_ETHPORTS];
     uint64_t	  curr_tsc;
 	uint64_t	  tx_next_cycle;		/**< Next cycle to send a burst of traffic */
+	uint64_t		next_running;
 	char			msg[256];
+	uint64_t		next_rdtsc;
 
     txcnt = wr_get_lcore_txcnt(pktgen.l2p, lid);
 	snprintf(msg, sizeof(msg),
@@ -1131,10 +1156,15 @@ pktgen_main_tx_loop(uint8_t lid)
 	pktgen_log_info("%s", msg);
 
 	tx_next_cycle = 0;
+	next_running = 0;
+	next_rdtsc = RDTSC_COUNT;
 
 	wr_start_lcore(pktgen.l2p, lid);
-    do {
-		curr_tsc = rte_rdtsc();
+    for(;;) {
+		if ( --next_rdtsc == 0 ) {
+			curr_tsc = rte_rdtsc();
+			next_rdtsc = RDTSC_COUNT;
+		}
 
 		// Determine when is the next time to send packets
 		if ( unlikely(curr_tsc >= tx_next_cycle) ) {
@@ -1148,7 +1178,12 @@ pktgen_main_tx_loop(uint8_t lid)
     	}
 
 		// Exit loop when flag is set.
-    } while( wr_lcore_is_running(pktgen.l2p, lid) );
+		if ( curr_tsc >= next_running ) {
+			if (!wr_lcore_is_running(pktgen.l2p, lid))
+				break;
+			next_running = curr_tsc + pktgen.hz;
+		}
+    }
 
     pktgen_log_debug("Exit %d", lid);
 
@@ -1174,6 +1209,7 @@ pktgen_main_rx_loop(uint8_t lid)
     struct rte_mbuf *pkts_burst[DEFAULT_PKT_BURST];
 	uint8_t			pid, idx, rxcnt;
 	port_info_t	  * infos[RTE_MAX_ETHPORTS];
+	uint64_t		curr_tsc, next_running;
 	char			msg[256];
 
 	rxcnt = wr_get_lcore_rxcnt(pktgen.l2p, lid);
@@ -1190,14 +1226,22 @@ pktgen_main_rx_loop(uint8_t lid)
 	}
 	pktgen_log_info("%s", msg);
 
+	next_running = 0;
+
 	wr_start_lcore(pktgen.l2p, lid);
-    do {
+    for(;;) {
 		for(idx = 0; idx < rxcnt; idx++) {
 			// Read packet from RX queues and free the mbufs
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
 		}
+		curr_tsc = rte_rdtsc();
 		// Exit loop when flag is set.
-    } while( wr_lcore_is_running(pktgen.l2p, lid) );
+		if ( curr_tsc >= next_running ) {
+			if (!wr_lcore_is_running(pktgen.l2p, lid))
+				break;
+			next_running = curr_tsc + pktgen.hz;
+		}
+    }
 
     pktgen_log_debug("Exit %d", lid);
 
@@ -1217,7 +1261,7 @@ pktgen_main_rx_loop(uint8_t lid)
 */
 
 int
-pktgen_launch_one_lcore(__attribute__ ((unused)) void * arg)
+pktgen_launch_one_lcore(void * arg __rte_unused)
 {
 	uint8_t		lid = rte_lcore_id();
 
@@ -1268,7 +1312,7 @@ pktgen_page_config(void)
 */
 
 void
-pktgen_page_display(__attribute__((unused)) struct rte_timer *tim, __attribute__((unused)) void *arg)
+pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
     static unsigned int counter = 0;
 

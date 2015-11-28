@@ -200,6 +200,12 @@ const char * help_info[] = {
 		"                 seqCnt            - Set the number of packet in the sequence to send",
 		"                 dump              - Dump the next <value> received packets to the screen",
 		"                 vlanid            - Set the VLAN ID value for the portlist",
+                "pattern <type>                     - Fill Pattern type",
+                "        abc                        - Default pattern of abc string",
+                "        none                       - No fill pattern, maybe random data",
+                "        zero                       - Fill of zero bytes",
+                "        user                       - User supplied string of max 16 bytes",
+                "user.pattern \"string\"            - A 16 byte string, must set 'pattern user' command",
 		"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
 		"                                   - Set the sequence packet information, make sure the src-IP",
 		"                                     has the netmask value eg 1.2.3.4/24",
@@ -365,9 +371,9 @@ struct cmd_help_result {
 * SEE ALSO:
 */
 
-static void cmd_help_parsed(__attribute__((unused)) void *parsed_result,
+static void cmd_help_parsed( void *parsed_result __rte_unused,
 			    struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+			     void *data __rte_unused)
 {
 	int		i, paused;
 
@@ -435,8 +441,8 @@ struct cmd_theme_state_result {
 */
 
 static void cmd_theme_state_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_theme_state_result *res = parsed_result;
 
@@ -483,8 +489,8 @@ struct cmd_theme_result {
 */
 
 static void cmd_theme_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_theme_result *res = parsed_result;
 
@@ -534,9 +540,9 @@ struct cmd_theme_show_result {
 * SEE ALSO:
 */
 
-static void cmd_theme_show_parsed(__attribute__((unused)) void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_theme_show_parsed( void *parsed_result __rte_unused,
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	pktgen_theme_show();
 }
@@ -574,8 +580,8 @@ struct cmd_theme_save_result {
 */
 
 static void cmd_theme_save_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_theme_save_result *res = parsed_result;
 
@@ -618,8 +624,8 @@ struct cmd_save_result {
 */
 
 static void cmd_save_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_save_result *res = parsed_result;
 
@@ -662,8 +668,8 @@ struct cmd_scripting_result {
 */
 
 static void cmd_script_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_scripting_result *res = parsed_result;
 	lua_State *L = pktgen.L;
@@ -713,8 +719,8 @@ struct cmd_ping4_result {
 */
 
 static void cmd_ping4_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_ping4_result *res = parsed_result;
 
@@ -760,8 +766,8 @@ struct cmd_ping6_result {
 */
 
 static void cmd_ping6_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_ping6_result *res = parsed_result;
 
@@ -808,8 +814,8 @@ struct cmd_set_range_result {
 */
 
 static void cmd_set_range_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_range_result *res = parsed_result;
 
@@ -842,6 +848,108 @@ cmdline_parse_inst_t cmd_range = {
 
 /**********************************************************/
 
+struct cmd_set_pattern_result {
+    cmdline_fixed_string_t pattern;
+    cmdline_portlist_t portlist;
+    cmdline_fixed_string_t what;
+};
+
+/**************************************************************************//**
+*
+* cmd_set_pattern_parsed - Set the fill pattern per port
+*
+* DESCRIPTION
+* Set the fill pattern per port.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static void cmd_set_pattern_parsed(void *parsed_result,
+                                 struct cmdline *cl __rte_unused,
+                                 void *data __rte_unused)
+{
+    struct cmd_set_pattern_result *res = parsed_result;
+
+    foreach_port( res->portlist.map,
+        pktgen_set_pattern_type(info, res->what) );
+
+    pktgen_update_display();
+}
+
+cmdline_parse_token_string_t cmd_set_pattern =
+TOKEN_STRING_INITIALIZER(struct cmd_set_pattern_result, pattern, "pattern#pat");
+cmdline_parse_token_portlist_t cmd_set_pattern_portlist =
+TOKEN_PORTLIST_INITIALIZER(struct cmd_set_pattern_result, portlist);
+cmdline_parse_token_string_t cmd_set_pattern_what =
+TOKEN_STRING_INITIALIZER(struct cmd_set_pattern_result, what, "abc#none#zero#user");
+
+cmdline_parse_inst_t cmd_pattern = {
+    .f = cmd_set_pattern_parsed,
+    .data = NULL,
+    .help_str = "pattern <portlist> <abc|none|zero|user>",
+    .tokens = {
+        (void *)&cmd_set_pattern,
+        (void *)&cmd_set_pattern_portlist,
+        (void *)&cmd_set_pattern_what,
+        NULL,
+    },
+};
+
+/**********************************************************/
+
+struct cmd_user_pattern_result {
+    cmdline_fixed_string_t pattern;
+    cmdline_portlist_t portlist;
+    cmdline_fixed_string_t what;
+};
+
+/**************************************************************************//**
+*
+* cmd_user_pattern_parsed - Set the user fill pattern per port
+*
+* DESCRIPTION
+* Set the user fill pattern per port.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static void cmd_user_pattern_parsed(void *parsed_result,
+                                   struct cmdline *cl __rte_unused,
+                                   void *data __rte_unused)
+{
+    struct cmd_user_pattern_result *res = parsed_result;
+
+    foreach_port( res->portlist.map,
+        pktgen_user_pattern_set(info, res->what) );
+
+    pktgen_update_display();
+}
+
+cmdline_parse_token_string_t cmd_user_pattern =
+TOKEN_STRING_INITIALIZER(struct cmd_user_pattern_result, pattern, "user.pattern#user.pat#user");
+cmdline_parse_token_portlist_t cmd_user_pattern_portlist =
+TOKEN_PORTLIST_INITIALIZER(struct cmd_user_pattern_result, portlist);
+cmdline_parse_token_string_t cmd_user_pattern_what =
+TOKEN_STRING_INITIALIZER(struct cmd_user_pattern_result, what, NULL);
+
+cmdline_parse_inst_t cmd_set_user_pattern = {
+    .f = cmd_user_pattern_parsed,
+    .data = NULL,
+    .help_str = "user.pattern <portlist> <string>",
+    .tokens = {
+        (void *)&cmd_user_pattern,
+        (void *)&cmd_user_pattern_portlist,
+        (void *)&cmd_user_pattern_what,
+        NULL,
+    },
+};
+
+/**********************************************************/
+
 struct cmd_rnd_result {
 	cmdline_fixed_string_t rnd;
 	cmdline_portlist_t portlist;
@@ -863,8 +971,8 @@ struct cmd_rnd_result {
 */
 
 static void cmd_rnd_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_rnd_result *res = parsed_result;
 
@@ -936,8 +1044,8 @@ struct cmd_set_geometry_result {
 */
 
 static void cmd_set_geometry_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_geometry_result *res = parsed_result;
 
@@ -996,9 +1104,9 @@ struct cmd_dev_result {
 * SEE ALSO:
 */
 
-static void cmd_dev_parsed(__attribute__((unused)) void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_dev_parsed( void *parsed_result __rte_unused,
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	rte_eal_devargs_dump(stdout);
 }
@@ -1034,9 +1142,9 @@ struct cmd_pci_result {
 * SEE ALSO:
 */
 
-static void cmd_pci_parsed(__attribute__((unused)) void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_pci_parsed( void *parsed_result __rte_unused,
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	rte_eal_pci_dump(stdout);
 }
@@ -1076,8 +1184,8 @@ struct cmd_dest_mac_result {
 */
 
 static void cmd_dest_mac_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_dest_mac_result *res = parsed_result;
 
@@ -1131,8 +1239,8 @@ struct cmd_src_mac_result {
 */
 
 static void cmd_src_mac_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_src_mac_result *res = parsed_result;
 
@@ -1186,8 +1294,8 @@ struct cmd_src_ip_result {
 */
 
 static void cmd_src_ip_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_src_ip_result *res = parsed_result;
 
@@ -1241,8 +1349,8 @@ struct cmd_dst_ip_result {
 */
 
 static void cmd_dst_ip_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_dst_ip_result *res = parsed_result;
 
@@ -1296,8 +1404,8 @@ struct cmd_src_port_result {
 */
 
 static void cmd_src_port_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_src_port_result *res = parsed_result;
 
@@ -1351,8 +1459,8 @@ struct cmd_dst_port_result {
 */
 
 static void cmd_dst_port_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_dst_port_result *res = parsed_result;
 
@@ -1406,8 +1514,8 @@ struct cmd_vlan_id_result {
 */
 
 static void cmd_vlan_id_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_vlan_id_result *res = parsed_result;
 
@@ -1463,8 +1571,8 @@ struct cmd_pkt_size_result {
 */
 
 static void cmd_pkt_size_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_pkt_size_result *res = parsed_result;
 
@@ -1518,8 +1626,8 @@ struct cmd_set_result {
 */
 
 static void cmd_set_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_result *res = parsed_result;
 
@@ -1595,8 +1703,8 @@ struct cmd_pcap_onoff_result {
 */
 
 static void cmd_pcap_onoff_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_pcap_onoff_result *res = parsed_result;
 
@@ -1646,8 +1754,8 @@ struct cmd_pcap_filter_result {
 */
 
 static void cmd_pcap_filter_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_pcap_filter_result *res = parsed_result;
 
@@ -1694,9 +1802,9 @@ struct cmd_pcap_show_result {
 * SEE ALSO:
 */
 
-static void cmd_pcap_show_parsed(__attribute__((unused)) void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_pcap_show_parsed( void *parsed_result __rte_unused,
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	if ( pktgen.info[pktgen.portNum].pcap )
 		wr_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum, 1);
@@ -1737,8 +1845,8 @@ struct cmd_pcap_index_result {
 */
 
 static void cmd_pcap_index_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_pcap_index_result *res = parsed_result;
 	pcap_info_t	  * pcap = pktgen.info[pktgen.portNum].pcap;
@@ -1791,8 +1899,8 @@ struct cmd_blink_onoff_result {
 */
 
 static void cmd_blink_onoff_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_blink_onoff_result *res = parsed_result;
 
@@ -1847,8 +1955,8 @@ struct cmd_garp_onoff_result {
 */
 
 static void cmd_garp_onoff_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_garp_onoff_result *res = parsed_result;
 
@@ -1899,8 +2007,8 @@ struct cmd_process_onoff_result {
 */
 
 static void cmd_process_onoff_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_process_onoff_result *res = parsed_result;
 
@@ -1949,8 +2057,8 @@ struct cmd_set_ppp_result {
 */
 
 static void cmd_set_ppp_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_ppp_result *res = parsed_result;
 
@@ -1993,8 +2101,8 @@ struct cmd_set_port_result {
 */
 
 static void cmd_set_port_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_port_result *res = parsed_result;
 
@@ -2048,8 +2156,8 @@ struct cmd_set_seq_result {
 */
 
 static void cmd_set_seq_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_seq_result *res = parsed_result;
 
@@ -2142,8 +2250,8 @@ struct cmd_setip_dst_result {
 */
 
 static void cmd_setip_dst_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_setip_dst_result *res = parsed_result;
 
@@ -2201,8 +2309,8 @@ struct cmd_setip_src_result {
 */
 
 static void cmd_setip_src_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_setip_src_result *res = parsed_result;
 
@@ -2259,8 +2367,8 @@ struct cmd_send_arp_result {
 */
 
 static void cmd_send_arp_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_send_arp_result *res = parsed_result;
 
@@ -2316,8 +2424,8 @@ struct cmd_set_proto_result {
 */
 
 static void cmd_set_proto_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_proto_result *res = parsed_result;
 
@@ -2367,7 +2475,7 @@ struct cmd_load_result {
 
 static void cmd_set_load_parsed(void *parsed_result,
 			   struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    void *data __rte_unused)
 {
 	struct cmd_load_result *res = parsed_result;
 
@@ -2413,8 +2521,8 @@ struct cmd_page_result {
 */
 
 static void cmd_set_page_parsed(void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_page_result *res = parsed_result;
 
@@ -2457,8 +2565,8 @@ struct cmd_screen_result {
 */
 
 static void cmd_screen_parsed(void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_screen_result *res = parsed_result;
 
@@ -2499,9 +2607,9 @@ struct cmd_off_result {
 * SEE ALSO:
 */
 
-static void cmd_off_parsed(__attribute__ ((unused))void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_off_parsed(void *parsed_result __rte_unused,
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 
 	pktgen_screen("off");
@@ -2538,9 +2646,9 @@ struct cmd_on_result {
 * SEE ALSO:
 */
 
-static void cmd_on_parsed(__attribute__ ((unused))void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_on_parsed(void *parsed_result __rte_unused,
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 
 	pktgen_screen("on");
@@ -2577,9 +2685,9 @@ struct cmd_tx_debug_result {
 * SEE ALSO:
 */
 
-static void cmd_tx_debug_parsed(__attribute__ ((unused))void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_tx_debug_parsed(void *parsed_result __rte_unused,
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 
 	if ( (pktgen.flags & TX_DEBUG_FLAG) == 0 )
@@ -2620,9 +2728,9 @@ struct cmd_l2p_result {
 * SEE ALSO:
 */
 
-static void cmd_l2p_parsed(__attribute__ ((unused))void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+static void cmd_l2p_parsed(void *parsed_result __rte_unused,
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 
 	pktgen_l2p_dump();
@@ -2663,8 +2771,8 @@ struct cmd_mempool_result {
 */
 
 static void cmd_mempool_parsed(void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+		 struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_mempool_result *res = parsed_result;
 
@@ -2716,8 +2824,8 @@ struct cmd_set_pkt_type_result {
 */
 
 static void cmd_set_pkt_type_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_set_proto_result *res = parsed_result;
 
@@ -2767,8 +2875,8 @@ struct cmd_icmp_echo_result {
 */
 
 static void cmd_icmp_echo_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_icmp_echo_result *res = parsed_result;
 
@@ -2816,8 +2924,8 @@ struct cmd_capture_result {
 */
 
 static void cmd_capture_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_capture_result *res = parsed_result;
 
@@ -2865,8 +2973,8 @@ struct cmd_rx_tap_result {
 */
 
 static void cmd_rx_tap_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_rx_tap_result *res = parsed_result;
 
@@ -2914,8 +3022,8 @@ struct cmd_tx_tap_result {
 */
 
 static void cmd_tx_tap_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_tx_tap_result *res = parsed_result;
 
@@ -2963,8 +3071,8 @@ struct cmd_vlan_result {
 */
 
 static void cmd_vlan_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_vlan_result *res = parsed_result;
 
@@ -3014,8 +3122,8 @@ struct cmd_vlanid_result {
 */
 
 static void cmd_vlanid_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_vlanid_result *res = parsed_result;
 
@@ -3065,8 +3173,8 @@ struct cmd_mpls_result {
 */
 
 static void cmd_mpls_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_mpls_result *res = parsed_result;
 
@@ -3116,8 +3224,8 @@ struct cmd_mpls_entry_result {
 */
 
 static void cmd_mpls_entry_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_mpls_entry_result *res = parsed_result;
 
@@ -3169,8 +3277,8 @@ struct cmd_qinq_result {
 */
 
 static void cmd_qinq_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_qinq_result *res = parsed_result;
 
@@ -3221,8 +3329,8 @@ struct cmd_qinqids_result {
 */
 
 static void cmd_qinqids_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_qinqids_result *res = parsed_result;
 
@@ -3275,8 +3383,8 @@ struct cmd_gre_result {
 */
 
 static void cmd_gre_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_gre_result *res = parsed_result;
 
@@ -3326,8 +3434,8 @@ struct cmd_gre_eth_result {
 */
 
 static void cmd_gre_eth_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_gre_eth_result *res = parsed_result;
 
@@ -3377,8 +3485,8 @@ struct cmd_gre_key_result {
 */
 
 static void cmd_gre_key_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_gre_key_result *res = parsed_result;
 
@@ -3427,8 +3535,8 @@ struct cmd_mac_from_arp_result {
 */
 
 static void cmd_mac_from_arp_parsed(void *parsed_result,
-		__attribute__((unused)) struct cmdline *cl,
-		__attribute__((unused)) void *data)
+		 struct cmdline *cl __rte_unused,
+		 void *data __rte_unused)
 {
 	struct cmd_mac_from_arp_result *res = parsed_result;
 	uint32_t		onOff = parseState(res->onOff);
@@ -3472,8 +3580,8 @@ struct cmd_delay_result {
 */
 
 static void cmd_delay_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_delay_result *res = parsed_result;
 
@@ -3516,8 +3624,8 @@ struct cmd_sleep_result {
 */
 
 static void cmd_sleep_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_sleep_result *res = parsed_result;
 
@@ -3562,8 +3670,8 @@ struct cmd_setmac_result {
 */
 
 static void cmd_setmac_parsed(void *parsed_result,
-			   __attribute__((unused)) struct cmdline *cl,
-			   __attribute__((unused)) void *data)
+			    struct cmdline *cl __rte_unused,
+			    void *data __rte_unused)
 {
 	struct cmd_setmac_result *res = parsed_result;
 
@@ -3615,8 +3723,8 @@ struct cmd_start_result {
 */
 
 static void cmd_start_parsed(void *parsed_result,
-			    __attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+			     struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	struct cmd_start_result *res = parsed_result;
 
@@ -3660,8 +3768,8 @@ struct cmd_stop_result {
 */
 
 static void cmd_stop_parsed(void *parsed_result,
-			    __attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+			     struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	struct cmd_stop_result *res = parsed_result;
 
@@ -3703,9 +3811,9 @@ struct cmd_str_result {
 * SEE ALSO:
 */
 
-static void cmd_str_parsed(__attribute__ ((unused))void *parsed_result,
-			    __attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_str_parsed(void *parsed_result __rte_unused,
+			     struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 
 	forall_ports( pktgen_start_transmitting(info) );
@@ -3742,9 +3850,9 @@ struct cmd_stp_result {
 * SEE ALSO:
 */
 
-static void cmd_stp_parsed(__attribute__ ((unused))void *parsed_result,
-			    __attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_stp_parsed(void *parsed_result __rte_unused,
+			     struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 
 	forall_ports( pktgen_stop_transmitting(info) );
@@ -3783,8 +3891,8 @@ struct cmd_prime_result {
 */
 
 static void cmd_prime_parsed(void *parsed_result,
-			    __attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+			     struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	struct cmd_set_result *res = parsed_result;
 
@@ -3827,9 +3935,9 @@ struct cmd_clear_result {
 * SEE ALSO:
 */
 
-static void cmd_clear_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_clear_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	struct cmd_clear_result *res = parsed_result;
 
@@ -3871,9 +3979,9 @@ struct cmd_clr_result {
 * SEE ALSO:
 */
 
-static void cmd_clr_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_clr_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 
 	forall_ports( pktgen_clear_stats(info) );
@@ -3910,9 +4018,9 @@ struct cmd_quit_result {
 * SEE ALSO:
 */
 
-static void cmd_quit_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_quit_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	pktgen_quit();
 }
@@ -3948,9 +4056,9 @@ struct cmd_cls_result {
 * SEE ALSO:
 */
 
-static void cmd_cls_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_cls_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	pktgen_cls();
 }
@@ -3987,9 +4095,9 @@ struct cmd_reset_result {
 * SEE ALSO:
 */
 
-static void cmd_reset_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_reset_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	struct cmd_reset_result *res = parsed_result;
 
@@ -4032,9 +4140,9 @@ struct cmd_port_restart_result {
 * SEE ALSO:
 */
 
-static void cmd_port_restart_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_port_restart_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 	struct cmd_reset_result *res = parsed_result;
 
@@ -4076,9 +4184,9 @@ struct cmd_rst_result {
 * SEE ALSO:
 */
 
-static void cmd_rst_parsed(__attribute__((unused)) void *parsed_result,
-				__attribute__((unused)) struct cmdline *cl,
-			    __attribute__((unused)) void *data)
+static void cmd_rst_parsed( void *parsed_result __rte_unused,
+				 struct cmdline *cl __rte_unused,
+			     void *data __rte_unused)
 {
 
 	forall_ports( pktgen_reset(info) );
@@ -4188,6 +4296,8 @@ cmdline_parse_ctx_t main_ctx[] = {
 	    (cmdline_parse_inst_t *)&cmd_theme_save,
 	    (cmdline_parse_inst_t *)&cmd_theme_show,
 	    (cmdline_parse_inst_t *)&cmd_theme,
+	    (cmdline_parse_inst_t *)&cmd_pattern,
+	    (cmdline_parse_inst_t *)&cmd_set_user_pattern,
 	NULL,
 };
 

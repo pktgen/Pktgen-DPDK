@@ -1112,7 +1112,7 @@ static int pktgen_clear (lua_State *L) {
 * SEE ALSO:
 */
 
-static int pktgen_clear_all (__attribute__ ((unused)) lua_State *L) {
+static int pktgen_clear_all (lua_State *L __rte_unused) {
 
 	forall_ports( pktgen_clear_stats(info) );
 
@@ -1131,7 +1131,7 @@ static int pktgen_clear_all (__attribute__ ((unused)) lua_State *L) {
 * SEE ALSO:
 */
 
-static int pktgen_cls_screen (__attribute__ ((unused)) lua_State *L) {
+static int pktgen_cls_screen (lua_State *L __rte_unused) {
 
 	pktgen_cls();
 
@@ -1150,7 +1150,7 @@ static int pktgen_cls_screen (__attribute__ ((unused)) lua_State *L) {
 * SEE ALSO:
 */
 
-static int pktgen_update_screen (__attribute__ ((unused)) lua_State *L) {
+static int pktgen_update_screen (lua_State *L __rte_unused) {
 
 	pktgen_update();
 
@@ -1768,6 +1768,64 @@ static int pktgen_range (lua_State *L) {
 
 	pktgen_update_display();
 	return 0;
+}
+
+/**************************************************************************//**
+*
+* pktgen_pattern - Set the pattern type.
+*
+* DESCRIPTION
+* Set the pattern type.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int pktgen_pattern (lua_State *L) {
+    cmdline_portlist_t  portlist;
+
+    switch( lua_gettop(L) ) {
+        default: return luaL_error(L, "pattern, wrong number of arguments");
+        case 2:
+            break;
+    }
+    parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+    foreach_port( portlist.map,
+        pktgen_set_pattern_type(info, (char *)luaL_checkstring(L, 2)) );
+
+    pktgen_update_display();
+    return 0;
+}
+
+/**************************************************************************//**
+*
+* pktgen_pattern - Set the pattern type.
+*
+* DESCRIPTION
+* Set the pattern type.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int pktgen_user_pattern (lua_State *L) {
+    cmdline_portlist_t  portlist;
+
+    switch( lua_gettop(L) ) {
+        default: return luaL_error(L, "user.pattern, wrong number of arguments");
+        case 2:
+            break;
+    }
+    parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+    foreach_port( portlist.map,
+        pktgen_user_pattern_set(info, (char *)luaL_checkstring(L, 2)) );
+
+    pktgen_update_display();
+    return 0;
 }
 
 /**************************************************************************//**
@@ -2734,6 +2792,9 @@ static const luaL_Reg pktgenlib[] = {
   {"run",			pktgen_run},			// Load a Lua string or command file and execute it.
   {"continue",		pktgen_continue},		// Display a message and wait for keyboard key and return
   {"input",			pktgen_input},			// Wait for a keyboard input line and return line.
+
+  {"pattern",       pktgen_pattern},        // Set pattern type
+  {"userPattern",   pktgen_user_pattern},   // Set the user pattern string
 
   {NULL, NULL}
 };

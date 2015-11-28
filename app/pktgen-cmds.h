@@ -181,4 +181,7 @@ extern void pktgen_mac_from_arp(uint32_t onOff);
 
 extern void pktgen_set_random(port_info_t * info, uint32_t onOff);
 
+extern void pktgen_set_pattern_type(port_info_t * info, char * str);
+extern void pktgen_user_pattern_set(port_info_t * info, char * str);
+
 #endif /* _PKTGEN_CMDS_H_ */

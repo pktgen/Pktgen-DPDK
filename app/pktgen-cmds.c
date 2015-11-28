@@ -1790,6 +1790,60 @@ pktgen_range_enable_disable(port_info_t * info, char * str)
 
 /**************************************************************************//**
 *
+* pktgen_set_pattern_type - Set the pattern type per port.
+*
+* DESCRIPTION
+* Set the given pattern type.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void
+pktgen_set_pattern_type(port_info_t * info, char * str)
+{
+    if ( strncmp(str, "abc", 3) == 0 )
+        info->fill_pattern_type = ABC_FILL_PATTERN;
+    else if (strncmp(str, "none", 4) == 0 )
+        info->fill_pattern_type = NO_FILL_PATTERN;
+    else if (strncmp(str, "user", 4) == 0 )
+        info->fill_pattern_type = USER_FILL_PATTERN;
+    else if (strncmp(str, "zero", 4) == 0 )
+        info->fill_pattern_type = ZERO_FILL_PATTERN;
+}
+
+/**************************************************************************//**
+*
+* pktgen_user_pattern_set - Set the user pattern string.
+*
+* DESCRIPTION
+* Set the given user pattern string.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void
+pktgen_user_pattern_set(port_info_t * info, char * str)
+{
+    char    copy[USER_PATTERN_SIZE+1], * cp;
+
+    memset(copy, 0, sizeof(copy));
+    strcpy(copy, str);
+    cp = &copy[0];
+    if ( (cp[0] == '"') || (cp[0] == '\'') ) {
+        cp[strlen(cp) - 1] = 0;
+        cp++;
+    }
+    memset(info->user_pattern, 0, USER_PATTERN_SIZE);
+    strncpy(info->user_pattern, cp, USER_PATTERN_SIZE);
+    info->fill_pattern_type = USER_FILL_PATTERN;
+}
+
+/**************************************************************************//**
+*
 * pktgen_set_dest_mac - Set the destination MAC address
 *
 * DESCRIPTION
@@ -2221,7 +2275,7 @@ void pktgen_send_pkt(port_info_t * info, uint32_t seqnum)
 * SEE ALSO:
 */
 
-void pktgen_recv_pkt(__attribute__ ((unused)) port_info_t * info)
+void pktgen_recv_pkt(port_info_t * info __rte_unused)
 {
 	pktgen_log_warning("Not working yet!");
 }

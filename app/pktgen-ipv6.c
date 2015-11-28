@@ -116,8 +116,8 @@ pktgen_ipv6_ctor(pkt_seq_t * pkt, ipv6Hdr_t * ip)
 */
 
 void
-pktgen_process_ping6( __attribute__ ((unused)) struct rte_mbuf * m,
-__attribute__ ((unused)) uint32_t pid, __attribute__ ((unused)) uint32_t vlan )
+pktgen_process_ping6(struct rte_mbuf * m __rte_unused,
+	uint32_t pid __rte_unused, uint32_t vlan __rte_unused )
 {
 #if 0 /* Broken needs to be updated to do IPv6 packets */
     port_info_t     * info = &pktgen.info[pid];

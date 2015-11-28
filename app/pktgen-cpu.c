@@ -72,7 +72,7 @@
 #include "pktgen.h"
 
 static int
-save_uname(char * line, __attribute__ ((unused))int i) {
+save_uname(char * line,int i __rte_unused) {
 	pktgen.uname = wr_strdupf(pktgen.uname, line);
 	return 0;
 }

@@ -82,7 +82,7 @@
 */
 
 void
-pktgen_udp_hdr_ctor(pkt_seq_t * pkt, udpip_t * uip, __attribute__ ((unused)) int type)
+pktgen_udp_hdr_ctor(pkt_seq_t * pkt, udpip_t * uip, int type __rte_unused)
 {
 	uint16_t		tlen;
 

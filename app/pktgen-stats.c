@@ -121,10 +121,10 @@ pktgen_print_static_data(void)
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Errors Rx/Tx");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx Pkts");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx Pkts");
-    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs ");
-    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs ");
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs");
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
-	if ( pktgen.flags & TX_DEBUG_FLAG ) {
+    if ( pktgen.flags & TX_DEBUG_FLAG ) {
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
 
@@ -138,6 +138,7 @@ pktgen_print_static_data(void)
 	/* Labels for static fields */
 	pktgen_display_set_color("stats.stat.label");
     ip_row = ++row;
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Tx Burst");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src/Dest Port");
@@ -172,6 +173,11 @@ pktgen_print_static_data(void)
         col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
         row = ip_row;
 
+        wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+                        (info->fill_pattern_type == ABC_FILL_PATTERN)? "abcd..." :
+                        (info->fill_pattern_type == NO_FILL_PATTERN)? "None" :
+                        (info->fill_pattern_type == ZERO_FILL_PATTERN)? "Zero" :
+                        info->user_pattern);
         pktgen_transmit_count_rate(pid, buff, sizeof(buff));
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
@@ -305,8 +311,6 @@ pktgen_page_stats(void)
         pktgen.cumm_rate_totals.oerrors += info->rate_stats.oerrors;
 
         pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
-        pktgen.cumm_rate_totals.ibadcrc += info->rate_stats.ibadcrc;
-        pktgen.cumm_rate_totals.ibadlen += info->rate_stats.ibadlen;
         pktgen.cumm_rate_totals.imcasts += info->rate_stats.imcasts;
         pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
@@ -347,10 +351,6 @@ pktgen_page_stats(void)
 
 			snprintf(buff, sizeof(buff), "%lu", info->stats.imissed);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadcrc);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadlen);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 			snprintf(buff, sizeof(buff), "%lu", info->stats.imcasts);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
@@ -382,7 +382,7 @@ pktgen_page_stats(void)
 */
 
 void
-pktgen_process_stats(__attribute__((unused)) struct rte_timer *tim, __attribute__((unused)) void *arg)
+pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
     unsigned int pid;
     struct rte_eth_stats    stats;
@@ -420,8 +420,6 @@ pktgen_process_stats(__attribute__((unused)) struct rte_timer *tim, __attribute_
         stats.oerrors   -= info->init_stats.oerrors;
 
         stats.imissed += info->init_stats.imissed;
-        stats.ibadcrc += info->init_stats.ibadcrc;
-        stats.ibadlen += info->init_stats.ibadlen;
         stats.imcasts += info->init_stats.imcasts;
         stats.rx_nombuf += info->init_stats.rx_nombuf;
 
@@ -433,8 +431,6 @@ pktgen_process_stats(__attribute__((unused)) struct rte_timer *tim, __attribute_
         info->rate_stats.oerrors    = stats.oerrors - info->port_stats.oerrors;
 
         info->rate_stats.imissed += stats.imissed - info->init_stats.imissed;
-        info->rate_stats.ibadcrc += stats.ibadcrc - info->init_stats.ibadcrc;
-        info->rate_stats.ibadlen += stats.ibadlen - info->init_stats.ibadlen;
         info->rate_stats.imcasts += stats.imcasts - info->init_stats.imcasts;
         info->rate_stats.rx_nombuf += stats.rx_nombuf - info->init_stats.rx_nombuf;
 

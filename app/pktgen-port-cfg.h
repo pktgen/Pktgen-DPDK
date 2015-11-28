@@ -86,6 +86,7 @@
 
 
 #define MAX_PORT_DESC_SIZE	132
+#define USER_PATTERN_SIZE   16
 
 
 typedef struct port_sizes_s {
@@ -178,6 +179,13 @@ typedef struct ring_conf_s {
 	uint64_t rss_hf;
 } ring_conf_t;
 
+typedef enum {
+    ZERO_FILL_PATTERN = 1,
+    ABC_FILL_PATTERN,
+    USER_FILL_PATTERN,
+    NO_FILL_PATTERN,
+} fill_t;
+
 typedef struct port_info_s {
 	uint16_t				pid;				/**< Port ID value */
 	uint16_t				tx_burst;			/**< Number of TX burst packets */
@@ -252,8 +260,9 @@ typedef struct port_info_s {
 	struct rte_eth_rxconf   rx_conf;    		/**< RX configuration */
 	struct rte_eth_txconf   tx_conf;    		/**< TX configuration */
 	ring_conf_t				ring_conf;			/**< Misc ring configuration information */
+	char                    user_pattern[USER_PATTERN_SIZE];
+    fill_t                  fill_pattern_type;
 } port_info_t;
-
 
 extern void pktgen_config_ports(void);
 

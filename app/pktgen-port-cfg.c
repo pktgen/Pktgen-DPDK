@@ -350,6 +350,9 @@ void pktgen_config_ports(void)
 
         info = wr_get_port_private(pktgen.l2p, pid);
 
+        info->fill_pattern_type  = ABC_FILL_PATTERN;
+        strncpy(info->user_pattern, "0123456789abcdef", USER_PATTERN_SIZE);
+
 		// Create the pkt header structures for transmitting sequence of packets.
 		snprintf(buff, sizeof(buff), "seq_hdr_%d", pid);
 		info->seq_pkt = (pkt_seq_t *)rte_zmalloc(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE);
@@ -434,8 +437,9 @@ void pktgen_config_ports(void)
 			// Find out the link speed to program the WTHRESH value correctly.
 			pktgen_get_link_status(info, pid, 0);
 
-//			info->tx_conf.tx_thresh.wthresh = (info->link.link_speed == 1000)? TX_WTHRESH_1GB : TX_WTHRESH;
-
+#if 0
+			info->tx_conf.tx_thresh.wthresh = (info->link.link_speed == 1000)? TX_WTHRESH_1GB : TX_WTHRESH;
+#endif
 			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &info->tx_conf);
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid, rte_strerror(-ret));

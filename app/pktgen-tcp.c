@@ -82,7 +82,7 @@
 */
 
 void
-pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, tcpip_t * tip, __attribute__ ((unused)) int type)
+pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, tcpip_t * tip, int type __rte_unused)
 {
 	uint16_t		tlen;
 

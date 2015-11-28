@@ -265,6 +265,7 @@ pktgen_parse_args(int argc, char **argv)
 		case 'p':
 			// Port mask not used anymore
 			break;
+
         case 'f':			// Command file or Lua script.
             pktgen.cmd_filename = strdup(optarg);
             break;

@@ -81,7 +81,7 @@
 */
 
 char *
-pktgen_gre_hdr_ctor(__attribute__ ((unused)) port_info_t * info, pkt_seq_t * pkt, greIp_t * gre)
+pktgen_gre_hdr_ctor(port_info_t * info __rte_unused, pkt_seq_t * pkt, greIp_t * gre)
 {
 	// Zero out the header space
 	memset((char *)gre, 0, sizeof(greIp_t));
@@ -160,7 +160,7 @@ pktgen_gre_hdr_ctor(__attribute__ ((unused)) port_info_t * info, pkt_seq_t * pkt
 */
 
 char *
-pktgen_gre_ether_hdr_ctor(__attribute__ ((unused)) port_info_t * info, pkt_seq_t * pkt, greEther_t * gre)
+pktgen_gre_ether_hdr_ctor(port_info_t * info __rte_unused, pkt_seq_t * pkt, greEther_t * gre)
 {
 	// Zero out the header space
 	memset((char *)gre, 0, sizeof(greEther_t));

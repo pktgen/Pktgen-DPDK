@@ -36,5 +36,5 @@ fi
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
-./app/app/${target}/pktgen -c ff2 -n 3 --proc-type auto --log-level 0 --socket-mem 512,512 --file-prefix pg1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -b 87:00.0 -b 87:00.1 -b 89:00.0 -b 89:00.1 -- -T -P -m "[4:6].0, [5:7].1, [8:10].2, [9:11].3" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -c ff2 -n 3 --proc-type auto --log-level 0 --socket-mem 512,512 --file-prefix pg1 -b 09:00.0 -b 09:00.1 -b -b 87:00.0 -b 87:00.1 -b 89:00.0 -b 89:00.1 -- -T -P -m "[4:6].0, [5:7].1, [8:10].2, [9:11].3" -f themes/black-yellow.theme
 fi

@@ -6,6 +6,13 @@ Pktgen version 2.9.5 using DPDK-2.1.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.6   - Add support for different pattern types and a user patten string.
+             New commands are 'pattern <portlist> type'.
+             Types are abc, none, zero or user
+             New command 'user.pattern <portlist> <string>' The string can not contain a space
+             which is a limitation of the rte_cmdline code.
+             Added new Lua command for the above 'pattern(<portlist>, <type>)'
+             and 'userPatten(<portlist>, <string>)'
  - 2.9.5   - Fixed sequence packet race condition for multiple senders.
  - 2.9.4   - Fixed the ARP sends were not being flushed 
  - 2.9.3   - Remove change log and comment out the eth stop when done sending.

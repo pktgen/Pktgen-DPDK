@@ -1783,10 +1783,11 @@ static int pktgen_range (lua_State *L) {
 */
 
 static int pktgen_latency (lua_State *L) {
+#ifdef LATER
     cmdline_portlist_t  portlist;
 
     switch( lua_gettop(L) ) {
-        default: return luaL_error(L, "range, wrong number of arguments");
+        default: return luaL_error(L, "latency, wrong number of arguments");
         case 2:
             break;
     }
@@ -1797,6 +1798,9 @@ static int pktgen_latency (lua_State *L) {
 
     pktgen_update_display();
     return 0;
+#else
+	return luaL_error(L, "latency is not working yet");
+#endif
 }
 
 /**************************************************************************//**

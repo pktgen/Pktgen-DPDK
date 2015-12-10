@@ -80,7 +80,7 @@
 #include <lualib.h>
 
 #include "pktgen-cmds.h"
-#include "commands.h"
+#include "cmd-functions.h"
 
 extern const char * help_info[];
 
@@ -1772,6 +1772,35 @@ static int pktgen_range (lua_State *L) {
 
 /**************************************************************************//**
 *
+* pktgen_latency - Enable or disable the latency testing.
+*
+* DESCRIPTION
+* Enable or disable the latency testing.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int pktgen_latency (lua_State *L) {
+    cmdline_portlist_t  portlist;
+
+    switch( lua_gettop(L) ) {
+        default: return luaL_error(L, "range, wrong number of arguments");
+        case 2:
+            break;
+    }
+    parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+    foreach_port( portlist.map,
+        pktgen_latency_enable_disable(info, (char *)luaL_checkstring(L,2)) );
+
+    pktgen_update_display();
+    return 0;
+}
+
+/**************************************************************************//**
+*
 * pktgen_pattern - Set the pattern type.
 *
 * DESCRIPTION
@@ -2795,6 +2824,7 @@ static const luaL_Reg pktgenlib[] = {
 
   {"pattern",       pktgen_pattern},        // Set pattern type
   {"userPattern",   pktgen_user_pattern},   // Set the user pattern string
+  {"latency",       pktgen_latency},        // Enable or disable latency testing
 
   {NULL, NULL}
 };

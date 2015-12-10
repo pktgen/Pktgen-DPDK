@@ -93,7 +93,7 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 
-#include "commands.h"
+#include "cmd-functions.h"
 
 #include <stdio.h>
 #include <termios.h>	// cmdline.h uses struct termios
@@ -158,36 +158,10 @@ cmd_port_display(char * buff, uint32_t len, uint64_t portlist) {
 	return buff;
 }
 
- /**************************************************************************//**
- *
- * cmdline_pause - Pause the screen from scrolling and wait for a key.
- *
- * DESCRIPTION
- * Display a message and wait for a response.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-cmdline_pause(struct cmdline *cl, const char * msg)
-{
-	char c;
-	int	n;
-
-	cmdline_printf(cl, "%s", msg);
-	n = read(cl->s_in, &c, 1);
-	if ( n < 0 )
-		return;
-	cmdline_printf(cl, "\r");
-	wr_scrn_eol();
-}
-
 /**********************************************************/
 const char * help_info[] = {
 		"", /* Leave blank not used */
-		"   *** Help Information for Pktgen ***         %s\n",
+		"   *** Help Information for Pktgen ***\n", // leave newline, Copyright is below this line.
 		"set <portlist> <xxx> value         - Set a few port values",
 		"  <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'",
 		"  <xxx>          count             - number of packets to transmit",
@@ -200,13 +174,14 @@ const char * help_info[] = {
 		"                 seqCnt            - Set the number of packet in the sequence to send",
 		"                 dump              - Dump the next <value> received packets to the screen",
 		"                 vlanid            - Set the VLAN ID value for the portlist",
-                "pattern <type>                     - Fill Pattern type",
-                "        abc                        - Default pattern of abc string",
-                "        none                       - No fill pattern, maybe random data",
-                "        zero                       - Fill of zero bytes",
-                "        user                       - User supplied string of max 16 bytes",
-                "user.pattern \"string\"            - A 16 byte string, must set 'pattern user' command",
-		"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
+        "pattern <type>                     - Fill Pattern type",
+        "        abc                        - Default pattern of abc string",
+        "        none                       - No fill pattern, maybe random data",
+        "        zero                       - Fill of zero bytes",
+        "        user                       - User supplied string of max 16 bytes",
+        "user.pattern \"string\"              - A 16 byte string, must set 'pattern user' command",
+        "latency <portlist> <state>         - Enable Latency testing",
+        "seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
 		"                                   - Set the sequence packet information, make sure the src-IP",
 		"                                     has the netmask value eg 1.2.3.4/24",
 		"save <path-to-file>                - Save a configuration file using the filename",
@@ -328,25 +303,26 @@ const char * help_info[] = {
 		"range <portlist> <state>           - Enable or Disable the given portlist for sending a range of packets",
 		"",
 		"<<PageBreak>>",
-		"       Flags: P--------------- - Promiscuous mode enabled",
-		"               E               - ICMP Echo enabled",
-		"                A              - Send ARP Request flag",
-		"                 G             - Send Gratuitous ARP flag",
-		"                  C            - TX Cleanup flag",
-		"                   p           - PCAP enabled flag",
-		"                    S          - Send Sequence packets enabled",
-		"                     R         - Send Range packets enabled",
-		"                      D        - DPI Scanning enabled (If Enabled)",
-		"                       I       - Process packets on input enabled",
-		"                        T      - Using TAP interface for this port",
-		"                         V     - Send VLAN ID tag",
-		"                         M     - Send MPLS header",
-		"                         Q     - Send Q-in-Q tags",
-		"                          g    - Process GARP packets",
-		"                           g   - Perform GRE with IPv4 payload",
-		"                           G   - Perform GRE with Ethernet payload",
-		"                            C  - Capture received packets",
-		"                             R - Random bitfield(s) are applied",
+		"       Flags: P---------------- - Promiscuous mode enabled",
+		"               E                - ICMP Echo enabled",
+		"                A               - Send ARP Request flag",
+		"                 G              - Send Gratuitous ARP flag",
+		"                  C             - TX Cleanup flag",
+		"                   p            - PCAP enabled flag",
+		"                    S           - Send Sequence packets enabled",
+		"                     R          - Send Range packets enabled",
+		"                      D         - DPI Scanning enabled (If Enabled)",
+		"                       I        - Process packets on input enabled",
+		"                        *       - Using TAP interface for this port can be [-rt*]",
+        "                         L      - Send Latency packets"
+		"                          V     - Send VLAN ID tag",
+		"                          M     - Send MPLS header",
+		"                          Q     - Send Q-in-Q tags",
+		"                           g    - Process GARP packets",
+		"                            g   - Perform GRE with IPv4 payload",
+		"                            G   - Perform GRE with Ethernet payload",
+		"                             C  - Capture received packets",
+		"                              R - Random bitfield(s) are applied",
 		"Notes: <state>       - Use enable|disable or on|off to set the state.",
 		"       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'",
         "       Color best seen on a black background for now",
@@ -354,6 +330,33 @@ const char * help_info[] = {
 		"",
 		NULL
 };
+
+/**************************************************************************//**
+*
+* cmdline_pause - Pause the screen from scrolling and wait for a key.
+*
+* DESCRIPTION
+* Display a message and wait for a response.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int
+cmdline_pause(struct cmdline *cl, const char * msg)
+{
+    char c = '\0';
+    int n;
+
+    cmdline_printf(cl, "%s", msg);
+    n = read(cl->s_in, &c, 1);
+    if ( n < 0 )
+        return 1;
+    cmdline_printf(cl, "\r");
+    wr_scrn_eol();
+    return (c == 0x1b)? 1 : 0;
+}
 
 struct cmd_help_result {
 	cmdline_fixed_string_t help;
@@ -385,22 +388,23 @@ static void cmd_help_parsed( void *parsed_result __rte_unused,
 	wr_scrn_cls();
 
 	wr_scrn_pos(0,0);
-	cmdline_printf(cl, help_info[1], wr_copyright_msg());
+	cmdline_printf(cl, "%s%s\n", help_info[1], wr_copyright_msg());
 	wr_scrn_pos(3,0);
 	for(i=2; help_info[i] != NULL; i++ ) {
 		if ( strcmp(help_info[i], "<<PageBreak>>") == 0 ) {
-			cmdline_pause(cl, "   <More Help: Press Return to Continue>");
+			if (cmdline_pause(cl, "   <More Help: Press Return to Continue or ESC>") )
+                goto leave;
 			wr_scrn_cls();
 			wr_scrn_pos(0,0);
-			cmdline_printf(cl, help_info[1], wr_copyright_msg());
+			cmdline_printf(cl, "%s%s\n", help_info[1], wr_copyright_msg());
 			wr_scrn_pos(3,0);
 			continue;
 		}
 		cmdline_printf(cl, "%s\n", help_info[i]);
 	}
 
-	cmdline_pause(cl, "   <Press Return to Continue>");
-
+	cmdline_pause(cl, "   <Press Return to Continue or ESC>");
+leave:
 	if ( !paused ) {
 		wr_scrn_setw(pktgen.last_row+1);
 		wr_scrn_resume();
@@ -848,6 +852,57 @@ cmdline_parse_inst_t cmd_range = {
 
 /**********************************************************/
 
+struct cmd_set_latency_result {
+    cmdline_fixed_string_t latency;
+    cmdline_portlist_t portlist;
+    cmdline_fixed_string_t state;
+};
+
+/**************************************************************************//**
+*
+* cmd_set_latency_parsed - Set the latency testing.
+*
+* DESCRIPTION
+* Set the latency testing.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static void cmd_set_latency_parsed(void *parsed_result,
+                                 struct cmdline *cl __rte_unused,
+                                 void *data __rte_unused)
+{
+    struct cmd_set_latency_result *res = parsed_result;
+
+    foreach_port( res->portlist.map,
+        pktgen_latency_enable_disable(info, res->state) );
+
+    pktgen_update_display();
+}
+
+cmdline_parse_token_string_t cmd_set_latency =
+TOKEN_STRING_INITIALIZER(struct cmd_set_latency_result, latency, "latency");
+cmdline_parse_token_portlist_t cmd_set_latency_portlist =
+TOKEN_PORTLIST_INITIALIZER(struct cmd_set_latency_result, portlist);
+cmdline_parse_token_string_t cmd_set_latency_state =
+TOKEN_STRING_INITIALIZER(struct cmd_set_latency_result, state, "enable#disable#on#off");
+
+cmdline_parse_inst_t cmd_latency = {
+    .f = cmd_set_latency_parsed,
+    .data = NULL,
+    .help_str = "latency <portlist> <state>",
+    .tokens = {
+        (void *)&cmd_set_latency,
+        (void *)&cmd_set_latency_portlist,
+        (void *)&cmd_set_latency_state,
+        NULL,
+    },
+};
+
+/**********************************************************/
+
 struct cmd_set_pattern_result {
     cmdline_fixed_string_t pattern;
     cmdline_portlist_t portlist;
@@ -993,7 +1048,8 @@ static void cmd_rnd_parsed(void *parsed_result,
 
 	foreach_port( res->portlist.map,
 			pktgen_set_random(info,
-				pktgen_set_random_bitfield(info->rnd_bitfields, res->idx, res->off, mask) ? ENABLE_STATE : DISABLE_STATE)
+				pktgen_set_random_bitfield(info->rnd_bitfields,
+                    res->idx, res->off, mask) ? ENABLE_STATE : DISABLE_STATE)
 			);
 
 	pktgen_update_display();
@@ -4298,6 +4354,7 @@ cmdline_parse_ctx_t main_ctx[] = {
 	    (cmdline_parse_inst_t *)&cmd_theme,
 	    (cmdline_parse_inst_t *)&cmd_pattern,
 	    (cmdline_parse_inst_t *)&cmd_set_user_pattern,
+	    (cmdline_parse_inst_t *)&cmd_latency,
 	NULL,
 };
 

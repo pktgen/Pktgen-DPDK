@@ -187,6 +187,16 @@ pktgen_save(char * path)
 		fprintf(fd, "set mac %d %s\n", info->pid, inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
 		fprintf(fd, "vlanid %d %d\n\n", i, pkt->vlanid);
 
+                fprintf(fd, "pattern %d %s\n", i,
+                		(info->fill_pattern_type == ABC_FILL_PATTERN)? "abc" : 
+                		(info->fill_pattern_type == NO_FILL_PATTERN)? "none" :
+                		(info->fill_pattern_type == ZERO_FILL_PATTERN)? "zero" : "user");
+        	if ( strlen(info->user_pattern) )
+           		fprintf(fd, "user.pattern %d %s\n", i, info->user_pattern);
+        	fprintf(fd, "\n");
+
+        	fprintf(fd, "latency %d %s\n", i, (flags & SEND_LATENCY_PKTS)? "enable" : "disable");
+
 		fprintf(fd, "mpls %d %sable\n", i, (flags & SEND_MPLS_LABEL) ? "en" : "dis");
 		sprintf(buff, "%x", pkt->mpls_entry);
 		fprintf(fd, "mpls_entry %d %s\n", i, buff);
@@ -444,7 +454,7 @@ pktgen_flags_string( port_info_t * info )
     static char buff[32];
     uint32_t	flags = rte_atomic32_read(&info->port_flags);
 
-    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
+    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
             (pktgen.flags & PROMISCUOUS_ON_FLAG)? 'P' : '-',
             (flags & ICMP_ECHO_ENABLE_FLAG)? 'E' : '-',
             (flags & SEND_ARP_REQUEST)? 'A' : '-',
@@ -454,6 +464,7 @@ pktgen_flags_string( port_info_t * info )
             (flags & SEND_RANGE_PKTS)? 'R' : '-',
             (flags & PROCESS_INPUT_PKTS)? 'I' : '-',
             "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
+            (flags & SEND_LATENCY_PKTS)? 'L' : '-',
             (flags & SEND_VLAN_ID)? 'V' :
 				(flags & SEND_MPLS_LABEL)? 'M' :
 				(flags & SEND_Q_IN_Q_IDS)? 'Q' : '-',
@@ -1786,6 +1797,27 @@ pktgen_range_enable_disable(port_info_t * info, char * str)
 	} else
 		pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
 	pktgen_packet_rate(info);
+}
+
+/**************************************************************************//**
+*
+* pktgen_latency_enable_disable - Enable or disable latency testing.
+*
+* DESCRIPTION
+* Enable or disable latency testing.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void
+pktgen_latency_enable_disable(port_info_t * info, char * str)
+{
+    if ( parseState(str) == ENABLE_STATE )
+        pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
+    else
+        pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
 }
 
 /**************************************************************************//**

@@ -92,6 +92,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <assert.h>
+#include <time.h>
 
 #include <rte_version.h>
 #include <rte_config.h>
@@ -121,6 +122,7 @@
 #include <rte_ring.h>
 #include <rte_mempool.h>
 #include <rte_mbuf.h>
+#include <rte_ip.h>
 #include <wr_scrn.h>
 
 #include <wr_copyright_info.h>
@@ -253,7 +255,6 @@ enum {
 	DEFAULT_VLAN_ID			= MIN_VLAN_ID,
 	MAX_ETHER_TYPE_SIZE		= 0x600,
 	OVERHEAD_FUDGE_VALUE	= 50,
-	RDTSC_COUNT				= 1000,
 
 	DEFAULT_PORTS_PER_PAGE	= 4,
 	VLAN_TAG_SIZE			= 4,
@@ -362,6 +363,7 @@ enum {		// Pktgen flags bits
 	ENABLE_GUI_FLAG			= (1 << 5),			/**< GUI support is enabled */
 	LUA_SHELL_FLAG			= (1 << 6),			/**< Enable Lua Shell */
 	TX_DEBUG_FLAG			= (1 << 7),			/**< TX Debug output */
+	Not_USED                = (1 << 8),         /**< Not Used */
 	FAKE_PORTS_FLAG			= (1 << 9),			/**< Fake ports enabled */
 	BLINK_PORTS_FLAG		= (1 << 10),		/**< Blink the port leds */
 	ENABLE_THEME_FLAG		= (1 << 11),		/**< Enable theme or color support */

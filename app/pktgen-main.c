@@ -73,7 +73,7 @@
 #include "lua-socket.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
-#include "commands.h"
+#include "cmd-functions.h"
 #include "pktgen-display.h"
 #include "pktgen-log.h"
 

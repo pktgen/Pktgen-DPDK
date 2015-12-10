@@ -266,17 +266,19 @@ leave:
 */
 
 void
-pktgen_rnd_bits_apply(struct rte_mbuf ** pkts, size_t cnt, rnd_bits_t * rnd_bits)
+pktgen_rnd_bits_apply(port_info_t * info, struct rte_mbuf ** pkts, size_t cnt, rnd_bits_t * rbits)
 {
+    rnd_bits_t * rnd_bits;
 	size_t mbuf_cnt;
 	uint32_t active_specs;
 	uint32_t * pkt_data;
 	BITFIELD_T rnd_value;
 	bf_spec_t * bf_spec;
 
-	if ((active_specs = rnd_bits->active_specs) == 0) {
+    // the info pointer could be null.
+    rnd_bits = (rbits)? rbits : info->rnd_bitfields;
+    if ((active_specs = rnd_bits->active_specs) == 0)
 		return;
-	}
 
 	for (mbuf_cnt = 0; mbuf_cnt < cnt; ++mbuf_cnt) {
 		bf_spec = rnd_bits->specs;

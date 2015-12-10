@@ -155,13 +155,13 @@ void test_pktgen_rnd_bits_apply(void)
 	/* Work correctly when no bitmasks are enabled */
 	/* all 0's */
 	memset(mbuf->pkt.data, 0x00, 64);
-	pktgen_rnd_bits_apply(&mbuf, 1, rnd);
+	pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd);
 
 	cmp_mem(data_ptr, all_0x00, 64, "Must not set bits when called with no bitmasks enabled");
 
 	/* all 1's */
 	memset(mbuf->pkt.data, 0xff, 64);
-	pktgen_rnd_bits_apply(&mbuf, 1, rnd);
+	pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd);
 
 	cmp_mem(data_ptr, all_0xff, 64, "Must not clear bits when called with no bitmasks enabled");
 
@@ -209,7 +209,7 @@ void test_pktgen_rnd_bits_apply(void)
 		 */
 		memset(mbuf->pkt.data, 0x00, 64);
 
-		lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
+		lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
 		cmp_mem(data_ptr, all_0x00, i, "    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *) &(data_ptr[i]), "==", 0, "    ... and affecting the bits at the offset");
 		cmp_mem(data_ptr + i + 4, all_0x00 + i + 4, 64 - (i + 4), "    ... and without touching anything after the offset");
@@ -219,7 +219,7 @@ void test_pktgen_rnd_bits_apply(void)
 		 */
 		memset(mbuf->pkt.data, 0xff, 64);
 
-		lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
+		lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
 		cmp_mem(data_ptr, all_0xff, i, "    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *) &(data_ptr[i]), "==", htonl(~(uint32_t)0 >> i), "    ... and affecting the bits at the offset");
 		cmp_mem(data_ptr + i + 4, all_0xff + i + 4, 64 - (i + 4), "    ... and without touching anything after the offset");
@@ -260,7 +260,7 @@ void test_pktgen_rnd_bits_apply(void)
 		 */
 		memset(mbuf->pkt.data, 0x00, 64);
 
-		lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
+		lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
 		cmp_mem(data_ptr, all_0x00, i, "    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *) &(data_ptr[i]), "==", htonl((~(uint32_t)0) << (MAX_BITFIELD_SIZE - i)),
 				"    ... and affecting the bits at the offset");
@@ -271,7 +271,7 @@ void test_pktgen_rnd_bits_apply(void)
 		 */
 		memset(mbuf->pkt.data, 0xff, 64);
 
-		lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
+		lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
 		cmp_mem(data_ptr, all_0xff, i, "    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *) &(data_ptr[i]), "==", ~(uint32_t)0,
 				"    ... and affecting the bits at the offset");
@@ -311,7 +311,7 @@ void test_pktgen_rnd_bits_apply(void)
 		 */
 		memset(mbuf->pkt.data, 0x00, 64);
 
-		lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
+		lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
 		cmp_mem(data_ptr, all_0x00, 64, "    ... without touching any bits");
 
 		/* Set memory to all 1's and check if only bits at the specified offset
@@ -319,7 +319,7 @@ void test_pktgen_rnd_bits_apply(void)
 		 */
 		memset(mbuf->pkt.data, 0xff, 64);
 
-		lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
+		lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
 		cmp_mem(data_ptr, all_0xff, 64, "    ... without touching any bits");
 
 
@@ -369,7 +369,7 @@ void test_pktgen_rnd_bits_apply(void)
 			 */
 			memset(mbuf->pkt.data, 0x00, 64);
 
-			lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
+			lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 0 bits");
 			cmp_mem(data_ptr, all_0x00, i, "    ... without touching anything before the offset");
 			cmp_ok(*(uint32_t *) &(data_ptr[i]), "==",
 					htonl((rnd_func == 0) ? 0 : (~(uint32_t)0 << (MAX_BITFIELD_SIZE - i))),
@@ -381,7 +381,7 @@ void test_pktgen_rnd_bits_apply(void)
 			 */
 			memset(mbuf->pkt.data, 0xff, 64);
 
-			lives_ok( { pktgen_rnd_bits_apply(&mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
+			lives_ok( { pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd); }, "... and must be applied to all 1 bits");
 			cmp_mem(data_ptr, all_0xff, i,
 					"    ... without touching anything before the offset");
 			cmp_ok(*(uint32_t *) &(data_ptr[i]), "==",

@@ -75,7 +75,6 @@
 
 
 extern char * cmd_port_display(char * buff, uint32_t len, uint64_t portlist);
-extern void cmdline_pause(struct cmdline *cl, const char * msg);
 extern void pktgen_cmdline_start(void);
 
 extern int pktgen_load_cmds(char * filename);

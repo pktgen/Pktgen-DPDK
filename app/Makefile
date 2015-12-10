@@ -47,7 +47,7 @@ APP = pktgen
 
 # all source are stored in SRCS-y
 SRCS-y := \
-	commands.c lpktgenlib.c pktgen-cmds.c pktgen.c \
+	cmd-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c \
 	pktgen-main.c pktgen-pcap.c pktgen-range.c pktgen-cpu.c \
 	pktgen-seq.c pktgen-dump.c pktgen-capture.c pktgen-stats.c \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \

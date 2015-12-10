@@ -36,7 +36,7 @@ fi
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
-#./app/app/${target}/pktgen -l 4-20  -n 3 --proc-type auto --log-level=0 --socket-mem 1024,1024 --file-prefix pg -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3, [13:15].4, [14:16].5, [17:19].6, [18:20].7" -f themes/black-yellow.theme
-./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --log-level=0 --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
+#./app/app/${target}/pktgen -l 1-17  -n 3 --proc-type auto --log-level=0 --socket-mem 1024,1024 --file-prefix pg -- -T -P -m "[2:3].0, [4:5].1, [6:7].2, [8:9].3, [10:11].4, [12:13].5, [14:15].6, [16:17].7" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --log-level=0 --socket-mem 1024,1024 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:6].0, [7:8].1, [9:10].2, [11:12].3" -f themes/black-yellow.theme
 fi
 

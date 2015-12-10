@@ -119,7 +119,6 @@ enum {		// Per port flag bits
 	PROCESS_INPUT_PKTS		= 0x00000040,		/**< Process input packets */
 	SEND_PING4_REQUEST		= 0x00000080,		/**< Send a IPv4 Ping request */
 	SEND_PING6_REQUEST		= 0x00000100,		/**< Send a IPv6 Ping request */
-	SEND_ARP_PING_REQUESTS	= (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST),
 	PROCESS_RX_TAP_PKTS		= 0x00000200,		/**< Handle RX TAP interface packets */
 	PROCESS_TX_TAP_PKTS		= 0x00000400,		/**< Handle TX TAP interface packets */
 	SEND_VLAN_ID			= 0x00000800,		/**< Send packets with VLAN ID */
@@ -130,8 +129,10 @@ enum {		// Per port flag bits
 	SEND_GRE_IPv4_HEADER	= 0x00010000,		/**< Encapsulate IPv4 in GRE */
 	SEND_RANDOM_PKTS		= 0x00020000,		/**< Send random bitfields in packets */
 	SEND_GRE_ETHER_HEADER	= 0x00040000,		/**< Encapsulate Ethernet frame in GRE */
+    SEND_LATENCY_PKTS       = 0x00080000,       /**< Send latency packets */
 	SENDING_PACKETS			= 0x40000000,		/**< sending packets on this port */
-	SEND_FOREVER			= 0x80000000		/**< Send packets forever */
+	SEND_FOREVER			= 0x80000000,		/**< Send packets forever */
+	SEND_ARP_PING_REQUESTS  = (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST)
 };
 
 #define RTE_PMD_PARAM_UNSET -1
@@ -186,8 +187,12 @@ typedef enum {
     NO_FILL_PATTERN,
 } fill_t;
 
+typedef void (*tx_func_t)(struct port_info_s * info, uint16_t qid);
+
 typedef struct port_info_s {
-	uint16_t				pid;				/**< Port ID value */
+        tx_func_t               send_burst;         /**< Function pointer to use for sending */
+        struct rte_mempool    * curr_tx_mp;         /**< Current TX mempool pointer */
+        uint16_t				pid;				/**< Port ID value */
 	uint16_t				tx_burst;			/**< Number of TX burst packets */
 	uint8_t					pad0;
 	uint8_t					tx_rate;			/**< Percentage rate for tx packets */

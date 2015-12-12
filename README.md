@@ -243,6 +243,8 @@ number you need it to be. In some cases pktgen needs a fair number of pages
 and making it too small will effect performance or pktgen will terminate on
 startup looking for more pages.
 ```
+# On Ubuntu 15.10 I noticed mounting /mnt/huge is not required as /dev/hugepages
+# is already mounted. Check your system and verify that /mnt/huge is required.
 # vi /etc/fstab
 Add to the bottom of the file:
 huge /mnt/huge hugetlbfs defaults 0 0

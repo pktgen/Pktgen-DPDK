@@ -311,6 +311,10 @@ pktgen_page_stats(void)
         pktgen.cumm_rate_totals.oerrors += info->rate_stats.oerrors;
 
         pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
+#if RTE_VERSION < RTE_VERSION_NUM(2,2,0,0)
+        pktgen.cumm_rate_totals.ibadcrc += info->rate_stats.ibadcrc;
+        pktgen.cumm_rate_totals.ibadlen += info->rate_stats.ibadlen;
+#endif
         pktgen.cumm_rate_totals.imcasts += info->rate_stats.imcasts;
         pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
@@ -351,6 +355,12 @@ pktgen_page_stats(void)
 
 			snprintf(buff, sizeof(buff), "%lu", info->stats.imissed);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+#if RTE_VERSION < RTE_VERSION_NUM(2,2,0,0)
+			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadcrc);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadlen);
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+#endif
 			snprintf(buff, sizeof(buff), "%lu", info->stats.imcasts);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
@@ -420,6 +430,10 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
         stats.oerrors   -= info->init_stats.oerrors;
 
         stats.imissed += info->init_stats.imissed;
+#if RTE_VERSION < RTE_VERSION_NUM(2,2,0,0)
+        stats.ibadcrc += info->init_stats.ibadcrc;
+        stats.ibadlen += info->init_stats.ibadlen;
+#endif
         stats.imcasts += info->init_stats.imcasts;
         stats.rx_nombuf += info->init_stats.rx_nombuf;
 
@@ -431,6 +445,10 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
         info->rate_stats.oerrors    = stats.oerrors - info->port_stats.oerrors;
 
         info->rate_stats.imissed += stats.imissed - info->init_stats.imissed;
+#if RTE_VERSION < RTE_VERSION_NUM(2,2,0,0)
+        info->rate_stats.ibadcrc += stats.ibadcrc - info->init_stats.ibadcrc;
+        info->rate_stats.ibadlen += stats.ibadlen - info->init_stats.ibadlen;
+#endif
         info->rate_stats.imcasts += stats.imcasts - info->init_stats.imcasts;
         info->rate_stats.rx_nombuf += stats.rx_nombuf - info->init_stats.rx_nombuf;
 

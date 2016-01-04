@@ -42,25 +42,25 @@ extern "C" {
 static inline void
 __pktmbuf_alloc_noreset(struct rte_mbuf *m)
 {
-    m->next = NULL;
-    m->nb_segs = 1;
-    m->port = 0xff;
+	m->next = NULL;
+	m->nb_segs = 1;
+	m->port = 0xff;
 
-    m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
-            RTE_PKTMBUF_HEADROOM : m->buf_len;
-    rte_mbuf_refcnt_set(m, 1);
+	m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
+	        RTE_PKTMBUF_HEADROOM : m->buf_len;
+	rte_mbuf_refcnt_set(m, 1);
 }
 
 static inline int
 wr_pktmbuf_alloc_bulk_noreset(struct rte_mempool *mp,
-		struct rte_mbuf *m_list[], unsigned int cnt)
+                              struct rte_mbuf *m_list[], unsigned int cnt)
 {
-	int	ret;
+	int ret;
 	unsigned int i;
 
-	ret = rte_mempool_get_bulk(mp, (void **)m_list, cnt);
-	if ( ret == 0 ) {
-		for(i = 0; i < cnt; i++)
+	ret = rte_mempool_get_bulk(mp, (void * *)m_list, cnt);
+	if (ret == 0) {
+		for (i = 0; i < cnt; i++)
 			__pktmbuf_alloc_noreset(*m_list++);
 		ret = cnt;
 	}

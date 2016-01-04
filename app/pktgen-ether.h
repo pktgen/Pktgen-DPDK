@@ -72,10 +72,10 @@
 
 #include "pktgen-seq.h"
 
-typedef struct rte_eth_stats	eth_stats_t;
+typedef struct rte_eth_stats eth_stats_t;
 
 struct port_info_s;
 
-extern char * pktgen_ether_hdr_ctor(struct port_info_s * info, pkt_seq_t * pkt, struct ether_hdr * eth);
+extern char *pktgen_ether_hdr_ctor(struct port_info_s *info, pkt_seq_t *pkt, struct ether_hdr *eth);
 
-#endif	// _PKTGEN_ETHER_H_
+#endif  /* _PKTGEN_ETHER_H_ */

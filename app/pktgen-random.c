@@ -78,34 +78,30 @@
 
 #include "xorshift128plus.h"	/* PRNG function */
 
-
 /*** TEST_INCLUDE_START ***/
 /* Random bitfield specification */
 typedef struct bf_spec_s {
-	uint8_t		offset;			/**< Offset (in bytes) of where to apply the bitmask */
+	uint8_t offset;	/**< Offset (in bytes) of where to apply the bitmask */
 
-	BITFIELD_T	andMask;		/**< Mask to bitwise AND value with */
-	BITFIELD_T	orMask;			/**< Mask to bitwise OR value with */
-	BITFIELD_T	rndMask;		/**< Which bits will get random value */
+	BITFIELD_T andMask;	/**< Mask to bitwise AND value with */
+	BITFIELD_T orMask;	/**< Mask to bitwise OR value with */
+	BITFIELD_T rndMask;	/**< Which bits will get random value */
 } bf_spec_t;
 
 typedef struct rnd_bits_s {
-	uint32_t active_specs;				/**< Boolean vector identifying active specs */
+	uint32_t active_specs;	/**< Boolean vector identifying active specs */
 
 	bf_spec_t specs[MAX_RND_BITFIELDS];	/**< Bitmask specifications */
 } rnd_bits_t;
 /*** TEST_INCLUDE_END ***/
-
 
 /* Allow PRNG function to be changed at runtime for testing*/
 #ifdef TESTING
 static rnd_func_t _rnd_func = NULL;
 #endif
 
-
 /* Forward declaration */
 static void pktgen_init_default_rnd(void);
-
 
 /**************************************************************************//**
 *
@@ -123,11 +119,11 @@ static void pktgen_init_default_rnd(void);
 *
 * SEE ALSO:
 */
-static __inline__ uint32_t pktgen_default_rnd_func(void)
+static __inline__ uint32_t
+pktgen_default_rnd_func(void)
 {
 	return xor_next();
 }
-
 
 /**************************************************************************//**
 *
@@ -150,13 +146,12 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 
 	/* Initialize mask to all ignore */
 	for (i = 0; i < MAX_RND_BITFIELDS; ++i) {
-		pktgen_set_random_bitfield(*rnd_bits, i, 0, "????????????????????????????????");	/* 32 ?'s */
+		pktgen_set_random_bitfield(*rnd_bits, i, 0, "????????????????????????????????");/* 32 ?'s */
 		pktgen_set_random_bitfield(*rnd_bits, i, 0, "");
 	}
 
 	pktgen_init_default_rnd();
 }
-
 
 /**************************************************************************//**
 *
@@ -172,18 +167,16 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 */
 
 uint32_t
-pktgen_set_random_bitfield(rnd_bits_t * rnd_bits, uint8_t idx, uint8_t offset, const char *mask)
+pktgen_set_random_bitfield(rnd_bits_t *rnd_bits, uint8_t idx, uint8_t offset, const char *mask)
 {
-	if (idx >= MAX_RND_BITFIELDS) {
+	if (idx >= MAX_RND_BITFIELDS)
 		goto leave;
-	}
 
 	size_t mask_len = strlen(mask);
-	if (mask_len > MAX_BITFIELD_SIZE) {
+	if (mask_len > MAX_BITFIELD_SIZE)
 		goto leave;
-	}
 
-	// Disable spec number idx when no mask is specified
+	/* Disable spec number idx when no mask is specified */
 	if (mask_len == 0) {
 		rnd_bits->active_specs &= ~((uint32_t)1 << idx);
 		goto leave;
@@ -203,11 +196,11 @@ pktgen_set_random_bitfield(rnd_bits_t * rnd_bits, uint8_t idx, uint8_t offset, c
 		maskRnd <<= 1;
 
 		switch (mask[i]) {
-			case '0': mask0   += 1; break;
-			case '1': mask1   += 1; break;
-			case '.': /* ignore bit */ break;
-			case 'X': maskRnd += 1; break;
-			default: /* print error: "Unknown char in bitfield spec" */ goto leave;
+		case '0': mask0   += 1; break;
+		case '1': mask1   += 1; break;
+		case '.': /* ignore bit */ break;
+		case 'X': maskRnd += 1; break;
+		default: /* print error: "Unknown char in bitfield spec" */ goto leave;
 		}
 	}
 
@@ -266,28 +259,28 @@ leave:
 */
 
 void
-pktgen_rnd_bits_apply(port_info_t * info, struct rte_mbuf ** pkts, size_t cnt, rnd_bits_t * rbits)
+pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd_bits_t *rbits)
 {
-    rnd_bits_t * rnd_bits;
+	rnd_bits_t *rnd_bits;
 	size_t mbuf_cnt;
 	uint32_t active_specs;
-	uint32_t * pkt_data;
+	uint32_t *pkt_data;
 	BITFIELD_T rnd_value;
-	bf_spec_t * bf_spec;
+	bf_spec_t *bf_spec;
 
-    // the info pointer could be null.
-    rnd_bits = (rbits)? rbits : info->rnd_bitfields;
-    if ((active_specs = rnd_bits->active_specs) == 0)
+	/* the info pointer could be null. */
+	rnd_bits = (rbits) ? rbits : info->rnd_bitfields;
+	if ((active_specs = rnd_bits->active_specs) == 0)
 		return;
 
 	for (mbuf_cnt = 0; mbuf_cnt < cnt; ++mbuf_cnt) {
 		bf_spec = rnd_bits->specs;
 
 		while (active_specs > 0) {
-			if ( likely(active_specs & 1) ) {
-				// Get pointer to byte <offset> in mbuf data as uint32_t*, so
-				// the masks can be applied.
-				pkt_data = (uint32_t*)(&rte_pktmbuf_mtod(pkts[mbuf_cnt], uint8_t *)[bf_spec->offset]);
+			if (likely(active_specs & 1) ) {
+				/* Get pointer to byte <offset> in mbuf data as uint32_t*, so */
+				/* the masks can be applied. */
+				pkt_data = (uint32_t *)(&rte_pktmbuf_mtod(pkts[mbuf_cnt], uint8_t *)[bf_spec->offset]);
 
 				*pkt_data &= bf_spec->andMask;
 				*pkt_data |= bf_spec->orMask;
@@ -305,14 +298,13 @@ pktgen_rnd_bits_apply(port_info_t * info, struct rte_mbuf ** pkts, size_t cnt, r
 				}
 			}
 
-			++bf_spec;				// prepare to use next bitfield spec
-			active_specs >>= 1;		// use next bit in active spec bitfield
+			++bf_spec;		/* prepare to use next bitfield spec */
+			active_specs >>= 1;	/* use next bit in active spec bitfield */
 		}
 
 		active_specs = rnd_bits->active_specs;
 	}
 }
-
 
 /**************************************************************************//**
  *
@@ -325,7 +317,8 @@ pktgen_rnd_bits_apply(port_info_t * info, struct rte_mbuf ** pkts, size_t cnt, r
  *
  * SEE ALSO:
  */
-void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t * rnd_bits)
+void
+pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t *rnd_bits)
 {
 	uint32_t row, bitmask_idx, i, curr_bit;
 	char mask[36];	/* 4*8 bits, 3 delimiter spaces, \0 */
@@ -350,8 +343,8 @@ void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_
 	}
 	/* Header line */
 	wr_scrn_printf(row++, 1, "%8s %8s %8s  %s",
-			"Index", "Offset", "Act?",
-			"Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]");
+	               "Index", "Offset", "Act?",
+	               "Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]");
 
 	for (bitmask_idx = 0; bitmask_idx < MAX_RND_BITFIELDS; ++bitmask_idx) {
 		curr_spec = &rnd_bits->specs[bitmask_idx];
@@ -364,24 +357,24 @@ void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_
 			 * Need to check rndMask before andMask: for random bits, the
 			 * andMask is also 0. */
 			mask[i + (i >> 3)] = ((ntohl(curr_spec->rndMask) & curr_bit) != 0) ? 'X'
-							   : ((ntohl(curr_spec->andMask) & curr_bit) == 0) ? '0'
-							   : ((ntohl(curr_spec->orMask)  & curr_bit) != 0) ? '1'
-							   : '.';
+				: ((ntohl(curr_spec->andMask) & curr_bit) == 0) ? '0'
+				: ((ntohl(curr_spec->orMask)  & curr_bit) != 0) ? '1'
+				: '.';
 		}
 
 		wr_scrn_printf(row++, 1, "%8d %8d %7s   %s",
-				bitmask_idx,
-				curr_spec->offset,
-				(rnd_bits->active_specs & (1 << bitmask_idx)) ? "YES" : "no",
-				mask);
+		               bitmask_idx,
+		               curr_spec->offset,
+		               (rnd_bits->active_specs & (1 << bitmask_idx)) ? "YES" : "no",
+		               mask);
 	}
 
 leave:
 	display_dashline(++row);
 }
 
-
-static void pktgen_init_default_rnd(void)
+static void
+pktgen_init_default_rnd(void)
 {
 	FILE *dev_random;
 
@@ -394,11 +387,11 @@ static void pktgen_init_default_rnd(void)
 	if (fread(xor_seed, sizeof(xor_seed[0]), 2, dev_random) != 2) {
 		pktgen_log_error("Could not read enough random data for PRNG seed");
 		return;
-	};
+	}
+	;
 
 	fclose(dev_random);
 }
-
 
 #ifdef TESTING
 /**************************************************************************//**
@@ -418,8 +411,10 @@ rnd_func_t
 pktgen_set_rnd_func(rnd_func_t rnd_func)
 {
 	rnd_func_t prev_rnd_func = _rnd_func;
+
 	_rnd_func = rnd_func;
 
 	return prev_rnd_func;
 }
+
 #endif

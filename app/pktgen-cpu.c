@@ -72,7 +72,7 @@
 #include "pktgen.h"
 
 static int
-save_uname(char * line,int i __rte_unused) {
+save_uname(char *line, int i __rte_unused) {
 	pktgen.uname = wr_strdupf(pktgen.uname, line);
 	return 0;
 }
@@ -84,14 +84,13 @@ pktgen_get_uname(void)
 }
 
 static __inline__ uint8_t
-sct( uint8_t s, uint8_t c, uint8_t t) {
-	lc_info_t	* lc = &pktgen.core_info[0];
-	uint8_t		i;
+sct(uint8_t s, uint8_t c, uint8_t t) {
+	lc_info_t   *lc = &pktgen.core_info[0];
+	uint8_t i;
 
-	for(i=0; i<pktgen.core_cnt; i++, lc++) {
-		if ( lc->s.socket_id == s && lc->s.core_id == c && lc->s.thread_id == t )
+	for (i = 0; i < pktgen.core_cnt; i++, lc++)
+		if (lc->s.socket_id == s && lc->s.core_id == c && lc->s.thread_id == t)
 			return lc->s.id;
-	}
 
 	return 0;
 }
@@ -111,49 +110,49 @@ sct( uint8_t s, uint8_t c, uint8_t t) {
 void
 pktgen_page_cpu(void)
 {
-    uint32_t    i, row, cnt, nb_sockets, nb_cores, nb_threads;
+	uint32_t i, row, cnt, nb_sockets, nb_cores, nb_threads;
 	static int counter = 0;
-    char buff[1024];
+	char buff[1024];
 
-    display_topline("<CPU Page>");
+	display_topline("<CPU Page>");
 
 	if ( (pktgen.core_cnt == 0) || (pktgen.lscpu == NULL) )
 		pktgen_cpu_init();
 
-	cnt			= pktgen.core_cnt;
-    nb_sockets	= wr_coremap_cnt(pktgen.core_info, cnt, 0);
-    nb_cores	= wr_coremap_cnt(pktgen.core_info, cnt, 1);
-    nb_threads	= wr_coremap_cnt(pktgen.core_info, cnt, 2);
+	cnt         = pktgen.core_cnt;
+	nb_sockets  = wr_coremap_cnt(pktgen.core_info, cnt, 0);
+	nb_cores    = wr_coremap_cnt(pktgen.core_info, cnt, 1);
+	nb_threads  = wr_coremap_cnt(pktgen.core_info, cnt, 2);
 
-    if ( (counter++ & 3) != 0 )
-    	return;
+	if ( (counter++ & 3) != 0)
+		return;
 
-    row = 3;
-    wr_scrn_printf(row++, 1, "Kernel: %s", pktgen.uname);
-    row++;
-    wr_scrn_printf(row++, 1, "Model Name: %s", pktgen.lscpu->model_name);
-    wr_scrn_printf(row++, 1, "CPU Speed : %s", pktgen.lscpu->cpu_mhz);
-    wr_scrn_printf(row++, 1, "Cache Size: %s", pktgen.lscpu->cache_size);
-    row++;
-    wr_scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
-    row += 4;
+	row = 3;
+	wr_scrn_printf(row++, 1, "Kernel: %s", pktgen.uname);
+	row++;
+	wr_scrn_printf(row++, 1, "Model Name: %s", pktgen.lscpu->model_name);
+	wr_scrn_printf(row++, 1, "CPU Speed : %s", pktgen.lscpu->cpu_mhz);
+	wr_scrn_printf(row++, 1, "Cache Size: %s", pktgen.lscpu->cache_size);
+	row++;
+	wr_scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
+	row += 4;
 
-    wr_scrn_printf(row++, 5, "%d sockets, %d cores per socket and %d threads per core.",
-    	nb_sockets, nb_cores, nb_threads);
+	wr_scrn_printf(row++, 5, "%d sockets, %d cores per socket and %d threads per core.",
+	               nb_sockets, nb_cores, nb_threads);
 
-    sprintf(buff, "Socket   : ");
-    for(i = 0; i< nb_sockets; i++)
-        strncatf(buff, "%4d      ", i);
-    wr_scrn_printf(row++, 3, "%s", buff);
+	sprintf(buff, "Socket   : ");
+	for (i = 0; i < nb_sockets; i++)
+		strncatf(buff, "%4d      ", i);
+	wr_scrn_printf(row++, 3, "%s", buff);
 
-    buff[0] = '\0';
-	for(i = 0; i< nb_cores; i++) {
-        strncatf(buff, "  Core %3d : [%2d,%2d]   ", i, sct(0, i, 0),   sct(0, i, 1));
-		if ( nb_sockets > 1 )
+	buff[0] = '\0';
+	for (i = 0; i < nb_cores; i++) {
+		strncatf(buff, "  Core %3d : [%2d,%2d]   ", i, sct(0, i, 0),   sct(0, i, 1));
+		if (nb_sockets > 1)
 			strncatf(buff, "[%2d,%2d]   ", sct(1, i, 0), sct(1, i, 1));
-		if ( nb_sockets > 2 )
+		if (nb_sockets > 2)
 			strncatf(buff, "[%2d,%2d]   ", sct(2, i, 0), sct(2, i, 1));
-		if ( nb_sockets > 3 )
+		if (nb_sockets > 3)
 			strncatf(buff, "[%2d,%2d]   ", sct(3, i, 0), sct(3, i, 1));
 		strncatf(buff, "\n");
 	}
@@ -161,17 +160,16 @@ pktgen_page_cpu(void)
 
 	wr_port_matrix_dump(pktgen.l2p);
 
-	if ( pktgen.flags & PRINT_LABELS_FLAG ) {
+	if (pktgen.flags & PRINT_LABELS_FLAG) {
 
 		pktgen.last_row = 36;
-	    display_dashline(pktgen.last_row);
+		display_dashline(pktgen.last_row);
 
 		wr_scrn_setw(pktgen.last_row);
-		wr_scrn_printf(100, 1, "");        // Put cursor on the last row.
+		wr_scrn_printf(100, 1, "");	/* Put cursor on the last row. */
 	}
-    pktgen.flags &= ~PRINT_LABELS_FLAG;
+	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
-
 
 /**************************************************************************//**
 *
@@ -188,8 +186,8 @@ pktgen_page_cpu(void)
 void
 pktgen_cpu_init(void)
 {
-    pktgen_get_uname();
-    memset(&pktgen.core_info, 0xff, (sizeof(lc_info_t) * RTE_MAX_LCORE));
-    pktgen.core_cnt		= wr_coremap("array", pktgen.core_info, RTE_MAX_LCORE, NULL);
-    pktgen.lscpu		= wr_lscpu_info(NULL, NULL);
+	pktgen_get_uname();
+	memset(&pktgen.core_info, 0xff, (sizeof(lc_info_t) * RTE_MAX_LCORE));
+	pktgen.core_cnt     = wr_coremap("array", pktgen.core_info, RTE_MAX_LCORE, NULL);
+	pktgen.lscpu        = wr_lscpu_info(NULL, NULL);
 }

@@ -24,13 +24,14 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
 
 uint64_t xor_seed[ 2 ];
 
-static inline uint64_t xor_next(void) {
+static inline uint64_t
+xor_next(void) {
 	uint64_t s1 = xor_seed[ 0 ];
 	const uint64_t s0 = xor_seed[ 1 ];
+
 	xor_seed[ 0 ] = s0;
-	s1 ^= s1 << 23; // a
-	return ( xor_seed[ 1 ] = ( s1 ^ s0 ^ ( s1 >> 17 ) ^ ( s0 >> 26 ) ) ) + s0; // b, c
+	s1 ^= s1 << 23;									/* a */
+	return ( xor_seed[ 1 ] = ( s1 ^ s0 ^ ( s1 >> 17 ) ^ ( s0 >> 26 ) ) ) + s0;	/* b, c */
 }
 
-
-#endif  // _XORSHIFT128PLUS_H_
+#endif  /* _XORSHIFT128PLUS_H_ */

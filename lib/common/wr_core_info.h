@@ -75,25 +75,25 @@
 * \returns number of lcores enabled.
 */
 static __inline__ uint32_t
-wr_lcore_mask(uint8_t * first, uint8_t * last) {
-	int32_t		cnt, lid;
+wr_lcore_mask(uint8_t *first, uint8_t *last) {
+	int32_t cnt, lid;
 
 	lid  = rte_get_master_lcore();
-	if ( first )
+	if (first)
 		*first  = lid;
 
-    // Count the number of lcores being used.
-    for(cnt = 0; lid < RTE_MAX_LCORE; lid++) {
-        if ( ! rte_lcore_is_enabled(lid) )
-            continue;
-        cnt++;
-        if ( last )
-        	*last = lid;
-    }
+	/* Count the number of lcores being used. */
+	for (cnt = 0; lid < RTE_MAX_LCORE; lid++) {
+		if (!rte_lcore_is_enabled(lid) )
+			continue;
+		cnt++;
+		if (last)
+			*last = lid;
+	}
 
-    return cnt;
+	return cnt;
 }
 
-extern uint32_t wr_sct_convert( char * sct[] );
+extern uint32_t wr_sct_convert(char *sct[]);
 
 #endif /* _WR_CORE_INFO_H */

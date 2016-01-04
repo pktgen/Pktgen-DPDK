@@ -70,10 +70,8 @@
 
 #include "pktgen-seq.h"
 
+extern void pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip);
+extern void pktgen_send_ping4(uint32_t pid, uint8_t seq_idx);
+extern void pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan);
 
-extern void pktgen_ipv4_ctor(pkt_seq_t * pkt, ipHdr_t * ip);
-extern void pktgen_send_ping4( uint32_t pid, uint8_t seq_idx );
-extern void pktgen_process_ping4( struct rte_mbuf * m, uint32_t pid, uint32_t vlan );
-
-
-#endif	//  _PKTGEN_IPV4_H_
+#endif  /*  _PKTGEN_IPV4_H_ */

@@ -82,29 +82,29 @@
 */
 
 void
-pktgen_udp_hdr_ctor(pkt_seq_t * pkt, udpip_t * uip, int type __rte_unused)
+pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type __rte_unused)
 {
-	uint16_t		tlen;
+	uint16_t tlen;
 
-    // Zero out the header space
-    memset((char *)uip, 0, sizeof(udpip_t));
+	/* Zero out the header space */
+	memset((char *)uip, 0, sizeof(udpip_t));
 
-    // Create the UDP header
-    uip->ip.src         = htonl(pkt->ip_src_addr);
-    uip->ip.dst         = htonl(pkt->ip_dst_addr);
-    tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
+	/* Create the UDP header */
+	uip->ip.src         = htonl(pkt->ip_src_addr);
+	uip->ip.dst         = htonl(pkt->ip_dst_addr);
+	tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
 
-    uip->ip.len         = htons(tlen);
-    uip->ip.proto       = pkt->ipProto;
+	uip->ip.len         = htons(tlen);
+	uip->ip.proto       = pkt->ipProto;
 
-	uip->udp.len		= htons(tlen);
-    uip->udp.sport      = htons(pkt->sport);
-    uip->udp.dport      = htons(pkt->dport);
+	uip->udp.len        = htons(tlen);
+	uip->udp.sport      = htons(pkt->sport);
+	uip->udp.dport      = htons(pkt->dport);
 
-	// Includes the pseudo header information
-    tlen                = pkt->pktSize - pkt->ether_hdr_size;
+	/* Includes the pseudo header information */
+	tlen                = pkt->pktSize - pkt->ether_hdr_size;
 
-    uip->udp.cksum      = cksum(uip, tlen, 0);
-    if ( uip->udp.cksum == 0 )
-        uip->udp.cksum = 0xFFFF;
+	uip->udp.cksum      = cksum(uip, tlen, 0);
+	if (uip->udp.cksum == 0)
+		uip->udp.cksum = 0xFFFF;
 }

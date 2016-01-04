@@ -82,9 +82,8 @@
 * SEE ALSO:
 */
 
-extern void pktgen_ipv6_ctor(pkt_seq_t * pkt, ipv6Hdr_t * ip);
+extern void pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip);
 
-extern void pktgen_process_ping6( struct rte_mbuf * m, uint32_t pid, uint32_t vlan );
+extern void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid, uint32_t vlan);
 
-
-#endif	// _PKTGEN_IPV6_H_
+#endif  /* _PKTGEN_IPV6_H_ */

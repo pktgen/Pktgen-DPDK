@@ -10,19 +10,18 @@
 
 #include "pktgen.h"
 
-
 /* wr_scrn.h function stub */
-void wr_scrn_printf(int16_t r, int16_t c, const char * fmt, ...) { return; }
-
+void
+wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
 
 pktgen_t pktgen;
 
+/* Test driver */
+int
+main(void) {
+	plan(1);
+	ok(1, "ok works");
 
-// Test driver
-int main(void) {
-    plan(1);
-    ok(1, "ok works");
-
-    done_testing();
-    return 0;
+	done_testing();
+	return 0;
 }

@@ -76,31 +76,29 @@
 
 #include "pktgen-port-cfg.h"
 
-
 typedef struct cap_hdr_s {
-    uint16_t    pkt_len;
-    uint16_t    data_len;
-    uint8_t     pkt[0];
+	uint16_t pkt_len;
+	uint16_t data_len;
+	uint8_t pkt[0];
 } cap_hdr_t;
 
 /* packet capture data */
 typedef struct capture_s {
-	const struct rte_memzone  * mz;			/**< Memory region to store packets */
-	cap_hdr_t				  * tail;		/**< Current tailt pointer in the pkt buffer */
-	cap_hdr_t				  * end;		/**< Points to just before the end[-1] of the buffer */
-	size_t						used;		/**< Memory used by captured packets */
-	uint8_t						lcore;		/**< lcore that captures to this memzone */
-	uint8_t						port;		/**< port for this memzone */
+	const struct rte_memzone  *mz;	/**< Memory region to store packets */
+	cap_hdr_t                 *tail;/**< Current tailt pointer in the pkt buffer */
+	cap_hdr_t                 *end;	/**< Points to just before the end[-1] of the buffer */
+	size_t used;			/**< Memory used by captured packets */
+	uint8_t lcore;			/**< lcore that captures to this memzone */
+	uint8_t port;			/**< port for this memzone */
 } capture_t;
-
 
 /* Capture initialization */
 extern void pktgen_packet_capture_init(capture_t *capture, int socket_id);
 
 /* Enable/disable capture for port */
-extern void pktgen_set_capture(port_info_t * info, uint32_t onOff);
+extern void pktgen_set_capture(port_info_t *info, uint32_t onOff);
 
 /* Perform capture of packets */
-extern void pktgen_packet_capture_bulk(struct rte_mbuf ** pkts, uint32_t nb_dump, capture_t *capture );
+extern void pktgen_packet_capture_bulk(struct rte_mbuf **pkts, uint32_t nb_dump, capture_t *capture);
 
-#endif  // _PKTGEN_CAPTURE_H_
+#endif  /* _PKTGEN_CAPTURE_H_ */

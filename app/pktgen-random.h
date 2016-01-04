@@ -74,13 +74,11 @@
 
 #include "pktgen-seq.h"
 
-
 /* Bitfield size and max. entries */
-#define MAX_RND_BITFIELDS		32
+#define MAX_RND_BITFIELDS       32
 
-#define BITFIELD_T				uint32_t
-#define MAX_BITFIELD_SIZE		(sizeof(BITFIELD_T) << 3)
-
+#define BITFIELD_T              uint32_t
+#define MAX_BITFIELD_SIZE       (sizeof(BITFIELD_T) << 3)
 
 struct rnd_bits_s;
 struct port_info_s;
@@ -89,14 +87,13 @@ struct port_info_s;
 extern void pktgen_rnd_bits_init(struct rnd_bits_s **rnd_bits);
 
 /* Set random bitfield */
-extern uint32_t pktgen_set_random_bitfield(struct rnd_bits_s * rnd_bits, uint8_t idx, uint8_t offset, const char *mask);
+extern uint32_t pktgen_set_random_bitfield(struct rnd_bits_s *rnd_bits, uint8_t idx, uint8_t offset, const char *mask);
 
 /* Apply random bitfields description to packet contents */
-extern void pktgen_rnd_bits_apply(struct port_info_s * info, struct rte_mbuf ** pkt, size_t cnt, struct rnd_bits_s *rbits);
+extern void pktgen_rnd_bits_apply(struct port_info_s *info, struct rte_mbuf **pkt, size_t cnt, struct rnd_bits_s *rbits);
 
 /* Display page with random bitfield settings */
-extern void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, struct rnd_bits_s * rnd_bits);
-
+extern void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, struct rnd_bits_s *rnd_bits);
 
 #ifdef TESTING
 /* Change PRNG function at runtime */
@@ -104,4 +101,4 @@ typedef BITFIELD_T (*rnd_func_t)(void);
 rnd_func_t pktgen_set_rnd_func(rnd_func_t rnd_func);
 #endif
 
-#endif	// _PKTGEN_RANDOM_H_
+#endif  /* _PKTGEN_RANDOM_H_ */

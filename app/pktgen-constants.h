@@ -70,28 +70,25 @@
 
 #include <rte_mbuf.h>
 
-
 enum {
-	DEFAULT_PKT_BURST		= 32,		// Increasing this number consumes memory very fast
+	DEFAULT_PKT_BURST       = 32,	/* Increasing this number consumes memory very fast */
 #ifdef RTE_LIBRTE_VMXNET3_PMD
-	DEFAULT_RX_DESC			= (DEFAULT_PKT_BURST * 8 * 2),
-	DEFAULT_TX_DESC			= DEFAULT_RX_DESC,
+	DEFAULT_RX_DESC         = (DEFAULT_PKT_BURST * 8 * 2),
+	DEFAULT_TX_DESC         = DEFAULT_RX_DESC,
 #else
-	DEFAULT_RX_DESC			= (DEFAULT_PKT_BURST * 8),
-	DEFAULT_TX_DESC			= DEFAULT_RX_DESC,
+	DEFAULT_RX_DESC         = (DEFAULT_PKT_BURST * 8),
+	DEFAULT_TX_DESC         = DEFAULT_RX_DESC,
 #endif
 
-	MAX_MBUFS_PER_PORT		= (DEFAULT_TX_DESC * 8),	// number of buffers to support per port
-	MAX_SPECIAL_MBUFS		= 64,
-	MBUF_CACHE_SIZE			= (MAX_MBUFS_PER_PORT/8),
+	MAX_MBUFS_PER_PORT      = (DEFAULT_TX_DESC * 8),/* number of buffers to support per port */
+	MAX_SPECIAL_MBUFS       = 64,
+	MBUF_CACHE_SIZE         = (MAX_MBUFS_PER_PORT / 8),
 
+	DEFAULT_BUFF_SIZE       = 2048,
+	DEFAULT_PRIV_SIZE       = 0,
+	MBUF_SIZE               = (DEFAULT_BUFF_SIZE - sizeof(struct rte_mbuf) - DEFAULT_PRIV_SIZE),
 
-	DEFAULT_BUFF_SIZE		= 2048,
-	DEFAULT_PRIV_SIZE		= 0,
-	MBUF_SIZE				= (DEFAULT_BUFF_SIZE - sizeof(struct rte_mbuf) - DEFAULT_PRIV_SIZE),
-
-	NUM_Q					= 8,	/**< Number of cores per port. */
+	NUM_Q                   = 8,	/**< Number of cores per port. */
 };
 
-
-#endif	// _PKTGEN_CONSTANTS_H_
+#endif  /* _PKTGEN_CONSTANTS_H_ */

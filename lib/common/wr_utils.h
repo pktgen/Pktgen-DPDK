@@ -74,8 +74,8 @@
 */
 
 static __inline__ char *
-wr_strdupf(char * str, char * new) {
-	if ( str ) free(str);
+wr_strdupf(char *str, char *new) {
+	if (str) free(str);
 	return (new == NULL) ? NULL : strdup(new);
 }
 
@@ -87,31 +87,30 @@ wr_strdupf(char * str, char * new) {
 */
 
 static __inline__ char *
-wr_strtrimset( char * str, const char * set)
+wr_strtrimset(char *str, const char *set)
 {
-	int		len;
+	int len;
 
 	len = strlen(set);
 	if ( (len == 0) || (len & 1) )
 		return NULL;
 
-	for( ;set && (set[0] != '\0'); set += 2 ) {
-		if ( *str != *set )
+	for (; set && (set[0] != '\0'); set += 2) {
+		if (*str != *set)
 			continue;
 
-		if ( *str == *set++ )
+		if (*str == *set++)
 			str++;
 
 		len = strlen(str);
-		if ( len && (str[len - 1] == *set) )
+		if (len && (str[len - 1] == *set) )
 			str[len - 1] = '\0';
 	}
 	return str;
 }
 
-extern uint32_t wr_strparse(char * s, const char * delim, char ** entries, uint32_t max_entries);
-extern char * wr_strtrim(char * line);
-extern char * wr_strccpy(char * t, char * f, const char * str);
-
+extern uint32_t wr_strparse(char *s, const char *delim, char **entries, uint32_t max_entries);
+extern char *wr_strtrim(char *line);
+extern char *wr_strccpy(char *t, char *f, const char *str);
 
 #endif /* _UTILS_H_ */

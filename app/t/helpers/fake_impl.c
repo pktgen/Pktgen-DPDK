@@ -9,14 +9,15 @@
  * files appear in a STUB directive in the test source.
  */
 
-
 #ifdef STUB_RTE_MALLOC_H
 
 #include <stdlib.h>
 #include <string.h>
-void * rte_zmalloc (const char *type, size_t size, unsigned align)
+void *
+rte_zmalloc(const char *type, size_t size, unsigned align)
 {
 	char *mem = malloc(size);
+
 	memset(mem, 0, size);
 
 	return mem;
@@ -24,13 +25,14 @@ void * rte_zmalloc (const char *type, size_t size, unsigned align)
 
 #endif
 
-
 #ifdef STUB_RTE_DEBUG_H
 
 #include <stdio.h>
-void __rte_panic(const char *funcname , const char *format, ...)
+void
+__rte_panic(const char *funcname, const char *format, ...)
 {
 	va_list ap;
+
 	va_start(ap, format);
 	fprintf(stderr, "PANIC: %s(): ", funcname);
 	fprintf(stderr, format, ap);
@@ -38,7 +40,6 @@ void __rte_panic(const char *funcname , const char *format, ...)
 }
 
 #endif
-
 
 #ifdef STUB_CMDLINE_H
 
@@ -51,16 +52,14 @@ struct cmdline_token_ops cmdline_token_ipaddr_ops;
 
 #endif
 
-
 #ifdef STUB_LUA_SOCKET_H
 
 #include <lua.h>
-void execute_lua_close(lua_State * L) {
-	return;
+void
+execute_lua_close(lua_State *L) {
 }
 
 #endif
-
 
 #ifdef STUB_RTE_LCORE_H
 
@@ -69,7 +68,6 @@ struct lcore_config lcore_config[RTE_MAX_LCORE];
 
 #endif
 
-
 #ifdef STUB_RTE_SCRN_H
 
 #include <wr_scrn.h>
@@ -77,5 +75,4 @@ wr_scrn_t *scrn;
 
 #endif
 
-
-#endif  // _FAKE_IMPL_H
+#endif  /* _FAKE_IMPL_H */

@@ -72,7 +72,6 @@
 
 #include "pktgen-seq.h"
 
-
 /**************************************************************************//**
 *
 * pktgen_tcp_hdr_ctor - TCP header constructor routine.
@@ -87,4 +86,4 @@
 
 extern void pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, tcpip_t * tip, __attribute__ ((unused)) int type);
 
-#endif	// _PKTGEN_TCP_H_
+#endif  /* _PKTGEN_TCP_H_ */

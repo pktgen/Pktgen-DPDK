@@ -69,7 +69,6 @@
 #include "pktgen-seq.h"
 #include "pktgen-port-cfg.h"
 
-
 /**************************************************************************//**
 *
 * pktgen_ether_hdr_ctor - Ethernet header constructor routine.
@@ -83,30 +82,29 @@
 */
 
 char *
-pktgen_ether_hdr_ctor(port_info_t * info, pkt_seq_t * pkt, struct ether_hdr * eth)
+pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 {
-	uint32_t	flags;
+	uint32_t flags;
 
-    /* src and dest addr */
-    ether_addr_copy(&pkt->eth_src_addr, &eth->s_addr);
-    ether_addr_copy(&pkt->eth_dst_addr, &eth->d_addr);
+	/* src and dest addr */
+	ether_addr_copy(&pkt->eth_src_addr, &eth->s_addr);
+	ether_addr_copy(&pkt->eth_dst_addr, &eth->d_addr);
 
-    flags = rte_atomic32_read(&info->port_flags);
-    if ( flags & SEND_VLAN_ID ) {
+	flags = rte_atomic32_read(&info->port_flags);
+	if (flags & SEND_VLAN_ID) {
 		/* vlan ethernet header */
 		eth->ether_type = htons(ETHER_TYPE_VLAN);
 
 		/* only set the TCI field for now; don't bother with PCP/DEI */
-		struct vlan_hdr *vlan_hdr = (struct vlan_hdr *)(eth+1);
+		struct vlan_hdr *vlan_hdr = (struct vlan_hdr *)(eth + 1);
 		vlan_hdr->vlan_tci = htons(pkt->vlanid);
 		vlan_hdr->eth_proto = htons(pkt->ethType);
 
 		/* adjust header size for VLAN tag */
 		pkt->ether_hdr_size = sizeof(struct ether_hdr) + sizeof(struct vlan_hdr);
 
-		return (char *)(vlan_hdr+1);
-    }
-	else if ( rte_atomic32_read(&info->port_flags) & SEND_MPLS_LABEL) {
+		return (char *)(vlan_hdr + 1);
+	} else if (rte_atomic32_read(&info->port_flags) & SEND_MPLS_LABEL) {
 		/* MPLS unicast ethernet header */
 		eth->ether_type = htons(ETHER_TYPE_MPLS_UNICAST);
 
@@ -123,8 +121,7 @@ pktgen_ether_hdr_ctor(port_info_t * info, pkt_seq_t * pkt, struct ether_hdr * et
 		pkt->ether_hdr_size = sizeof(struct ether_hdr) + sizeof(mplsHdr_t);
 
 		return (char *)(mpls_hdr + 1);
-	}
-	else if (rte_atomic32_read(&info->port_flags) & SEND_Q_IN_Q_IDS) {
+	} else if (rte_atomic32_read(&info->port_flags) & SEND_Q_IN_Q_IDS) {
 		/* Q-in-Q ethernet header */
 		eth->ether_type = htons(ETHER_TYPE_Q_IN_Q);
 
@@ -142,12 +139,11 @@ pktgen_ether_hdr_ctor(port_info_t * info, pkt_seq_t * pkt, struct ether_hdr * et
 		pkt->ether_hdr_size = sizeof(struct ether_hdr) + sizeof(qinqHdr_t);
 
 		return (char *)(qinq_hdr + 1);
+	} else {
+		/* normal ethernet header */
+		eth->ether_type = htons(pkt->ethType);
+		pkt->ether_hdr_size = sizeof(struct ether_hdr);
 	}
-    else {
-        /* normal ethernet header */
-        eth->ether_type = htons(pkt->ethType);
-        pkt->ether_hdr_size = sizeof(struct ether_hdr);
-    }
 
-    return (char *)(eth+1);
+	return (char *)(eth + 1);
 }

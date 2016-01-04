@@ -68,7 +68,6 @@
 #include "pktgen.h"
 #include "pktgen-log.h"
 
-
 /**************************************************************************//**
 *
 * pktgen_packet_dump - Dump the contents of a packet
@@ -82,9 +81,9 @@
 */
 
 void
-pktgen_packet_dump( struct rte_mbuf * m, int pid )
+pktgen_packet_dump(struct rte_mbuf *m, int pid)
 {
-	port_info_t * info = &pktgen.info[pid];
+	port_info_t *info = &pktgen.info[pid];
 	int plen = (m->pkt_len + FCS_SIZE);
 	unsigned char *curr_data;
 	struct rte_mbuf *curr_mbuf;
@@ -97,10 +96,9 @@ pktgen_packet_dump( struct rte_mbuf * m, int pid )
 	info->dump_list[info->dump_tail].len = plen;
 
 	for (curr_data = info->dump_list[info->dump_tail].data, curr_mbuf = m;
-		curr_mbuf != NULL;
-		curr_data += curr_mbuf->data_len, curr_mbuf = curr_mbuf->next) {
+	     curr_mbuf != NULL;
+	     curr_data += curr_mbuf->data_len, curr_mbuf = curr_mbuf->next)
 		rte_memcpy(curr_data, (uint8_t *)curr_mbuf->buf_addr + m->data_off, curr_mbuf->data_len);
-	}
 
 	++info->dump_tail;
 }
@@ -118,9 +116,9 @@ pktgen_packet_dump( struct rte_mbuf * m, int pid )
 */
 
 void
-pktgen_packet_dump_bulk(struct rte_mbuf ** pkts, int nb_dump, int pid )
+pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
 {
-	port_info_t * info = &pktgen.info[pid];
+	port_info_t *info = &pktgen.info[pid];
 	int i;
 
 	/* Don't dump more packets than the user asked */
@@ -131,15 +129,15 @@ pktgen_packet_dump_bulk(struct rte_mbuf ** pkts, int nb_dump, int pid )
 	if (nb_dump > MAX_DUMP_PACKETS - info->dump_tail)
 		nb_dump = MAX_DUMP_PACKETS - info->dump_tail;
 
-	if (nb_dump == 0) {
+	if (nb_dump == 0)
 		return;
-	}
 
 	for (i = 0; i < nb_dump; i++)
 		pktgen_packet_dump(pkts[i], pid);
 
 	info->dump_count -= nb_dump;
 }
+
 /**************************************************************************//**
 *
 * pktgen_print_packet_dump - Print captured packets to the screen
@@ -156,16 +154,16 @@ pktgen_packet_dump_bulk(struct rte_mbuf ** pkts, int nb_dump, int pid )
 void
 pktgen_print_packet_dump(void)
 {
-	port_info_t * info;
+	port_info_t *info;
 
 	unsigned int pid;
 	unsigned int i, j;
-	unsigned char * pdata;
+	unsigned char *pdata;
 	uint32_t plen;
 	char buff[4096];
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		if ( wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0 )
+		if (wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
 		info = &pktgen.info[pid];
@@ -174,7 +172,7 @@ pktgen_print_packet_dump(void)
 			plen = info->dump_list[info->dump_head].len;
 
 			snprintf(buff, sizeof(buff),
-					"Port %d, packet with length %d:", pid, plen);
+			         "Port %d, packet with length %d:", pid, plen);
 
 			for (i = 0; i < plen; i += 16) {
 				strncatf(buff, "\n\t");
@@ -197,10 +195,9 @@ pktgen_print_packet_dump(void)
 				/* Separate hex. values and raw characters */
 				strncatf(buff, "\t");
 
-				for (j = 0; j < 16; ++j) {
+				for (j = 0; j < 16; ++j)
 					if (i + j < plen)
 						strncatf(buff, "%c", isprint(pdata[i + j]) ? pdata[i + j] : '.');
-				}
 			}
 			pktgen_log_info("%s", buff);
 
@@ -209,4 +206,3 @@ pktgen_print_packet_dump(void)
 		}
 	}
 }
-

@@ -89,6 +89,22 @@ pktgen_range_ctor(range_info_t * range, pkt_seq_t * pkt)
 		switch(pkt->ipProto) {
 		case PG_IPPROTO_TCP:
 		case PG_IPPROTO_UDP:
+
+			if(pkt->dport == PG_IPPROTO_L4_GTPU_PORT)
+			{
+				if ( unlikely(range->gtpu_teid_inc != 0) ) {
+					uint32_t teid = pkt->gtpu_teid;
+					teid += range->gtpu_teid_inc;
+					if ( teid < range->gtpu_teid_min )
+						teid = range->gtpu_teid_max;
+					if ( teid > range->gtpu_teid_max )
+						teid = range->gtpu_teid_min;
+					pkt->gtpu_teid = teid;
+				}
+				else
+					pkt->gtpu_teid = range->gtpu_teid;
+			}
+
 			if ( unlikely(range->src_port_inc != 0) ) {
 				uint16_t sport = pkt->sport;
 				sport += range->src_port_inc;
@@ -283,6 +299,10 @@ pktgen_print_range(void)
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    min");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    max");
 
+	row++;
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "gtpu.teid / inc");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      min / max");
+
 	// Get the last location to use for the window starting row.
 	pktgen.last_row = ++row;
 	display_dashline(pktgen.last_row);
@@ -353,6 +373,12 @@ pktgen_print_range(void)
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac_inc, &eaddr)));
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac_min, &eaddr)));
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac_max, &eaddr)));
+
+		row++;
+		snprintf(str, sizeof(str), "%5d/%5d", range->gtpu_teid, range->gtpu_teid_inc);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+		snprintf(str, sizeof(str), "%5d/%5d", range->gtpu_teid_min, range->gtpu_teid_max);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 	}
 
 	pktgen.flags &= ~PRINT_LABELS_FLAG;

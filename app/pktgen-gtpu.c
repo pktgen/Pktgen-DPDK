@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2015>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,69 +63,70 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* Created 2010 by Keith Wiles @ intel.com */
+/* Created 2015 by abhinandan.gujjar@intel.com */
 
-#ifndef _PKTGEN_RANGE_H_
-#define _PKTGEN_RANGE_H_
+#include "pktgen.h"
 
-#include <stdint.h>
+#include "pktgen-gtpu.h"
 
-#include "pktgen-seq.h"
+/**************************************************************************//**
+*
+* pktgen_gtpu_udp_hdr_ctor - GTP-U header constructor routine for TCP/UDP.
+*
+* DESCRIPTION
+* Construct the GTP-U header in a packer buffer.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
 
+void
+pktgen_gtpu_hdr_ctor(pkt_seq_t * pkt, gtpuHdr_t * guip, uint16_t ipProto)
+{
+	unsigned char * buffer = (unsigned char *)guip;
+	unsigned int l4HdrSize = 0;
 
-typedef struct range_info_s {
-	uint32_t				src_ip_inc;			/**< Source IP increment */
-	uint32_t				dst_ip_inc;			/**< Destination increment IP address */
-	uint16_t				src_port_inc;		/**< Source port increment */
-	uint16_t				dst_port_inc;		/**< Destination port increment */
-	uint16_t				vlan_id_inc;		/**< VLAN id increment */
-	uint16_t				pkt_size_inc;		/**< PKT size increment */
-    uint64_t				src_mac_inc;		/**< Source MAC increment */
-    uint64_t				dst_mac_inc;		/**< Destination MAC increment */
+	if(ipProto == PG_IPPROTO_UDP)
+		l4HdrSize = sizeof(udpHdr_t);
+	else
+		l4HdrSize = sizeof(tcpHdr_t);
 
-	uint32_t				src_ip;				/**< Source starting IP address */
-	uint32_t				src_ip_min;			/**< Source IP minimum */
-	uint32_t				src_ip_max;			/**< Source IP maximum */
+	gtpuHdr_t *gtppHdr = (gtpuHdr_t *)(buffer + sizeof(ipHdr_t) + l4HdrSize);
 
-	uint32_t				dst_ip;				/**< Destination starting IP address */
-	uint32_t				dst_ip_min;			/**< Destination minimum IP address */
-	uint32_t				dst_ip_max;			/**< Destination maximum IP address */
+	// Zero out the header space
+	memset((char *)guip, 0, sizeof(gtpuHdr_t));
 
-	uint16_t				src_port;			/**< Source port starting */
-	uint16_t				src_port_min;		/**< Source port minimum */
-	uint16_t				src_port_max;		/**< Source port maximum */
+	/* Version: It is a 3-bit field. For GTPv1, this has a value of 1. */
+	gtppHdr->version_flags = GTPu_VERSION;
 
-	uint16_t				dst_port;			/**< Destination port starting */
-	uint16_t				dst_port_min;		/**< Destination port minimum */
-	uint16_t				dst_port_max;		/**< Destination port maximum */
+	/* Message Type: an 8-bit field that indicates the type of GTP message.
+	Different types of messages are defined in 3GPP TS 29.060 section 7.1
+	*/
+	gtppHdr->msg_type = 0xff;
 
-	uint16_t				vlan_id;			/**< VLAN id starting */
-	uint16_t				vlan_id_min;		/**< VLAN id minimum */
-	uint16_t				vlan_id_max;		/**< VLAN id maximum */
+	/* Message Length - a 16-bit field that indicates the length of the payload in bytes
+	(rest of the packet following the mandatory 8-byte GTP header). Includes the optional fields.
+	*/
+	gtppHdr->tot_len = htons(pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t) + l4HdrSize + sizeof(gtpuHdr_t)));
 
-	uint16_t				pkt_size;			/**< PKT Size starting */
-	uint16_t				pkt_size_min;		/**< PKT Size minimum */
-	uint16_t				pkt_size_max;		/**< PKT Size maximum */
+	/* Tunnel endpoint identifier (TEID)
+	A 32-bit(4-octet) field used to multiplex different connections in the same GTP tunnel.
+	*/
+	gtppHdr->teid = htonl(pkt->gtpu_teid);
 
-	uint64_t				dst_mac;			/**< Destination starting MAC address */
-	uint64_t				dst_mac_min;		/**< Destination minimum MAC address */
-	uint64_t				dst_mac_max;		/**< Destination maximum MAC address */
+	/* Sequence number an (optional) 16-bit field.
+	This field exists if any of the E, S, or PN bits are on. The field must be interpreted only if the S bit is on.
+	*/
+	gtppHdr->seq_no = 0x0;
 
-	uint64_t				src_mac;			/**< Source starting MAC address */
-	uint64_t				src_mac_min;		/**< Source minimum MAC address */
-	uint64_t				src_mac_max;		/**< Source maximum MAC address */
+	/* N-PDU number an (optional) 8-bit field. This field exists if any of the E, S, or PN bits are on.
+	The field must be interpreted only if the PN bit is on.
+	*/
+	gtppHdr->npdu_no = 0x0;
 
-	uint32_t				gtpu_teid;			/**< GTP-U TEID starting */
-	uint32_t				gtpu_teid_inc;		/**< GTP-U TEID inc */
-	uint32_t				gtpu_teid_min;		/**< GTP-U TEID minimum */
-	uint32_t				gtpu_teid_max;		/**< GTP-U TEID maximum */
-} range_info_t;
-
-struct port_info_s;
-
-extern void pktgen_range_ctor(range_info_t * range, pkt_seq_t * pkt);
-extern void pktgen_range_setup(struct port_info_s * info);
-
-extern void pktgen_page_range(void);
-
-#endif  // _PKTGEN_RANGE_H_
+	/* Next extension header type an (optional) 8-bit field. This field exists if any of the E, S, or PN bits are on.
+	The field must be interpreted only if the E bit is on.
+	*/
+	gtppHdr->next_ext_hdr_type = 0x0;
+}

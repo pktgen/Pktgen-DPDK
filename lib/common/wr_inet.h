@@ -187,10 +187,41 @@ typedef struct ipv6Hdr_s {
 #define PG_IPPROTO_RAW          IPPROTO_RAW
 #define PG_IPPROTO_MAX          256
 
+#define PG_IPPROTO_L4_GTPU_PORT 2152
+
 #define IPv4(a,b,c,d)	((uint32_t)(((a) & 0xff) << 24) |	\
 				(((b) & 0xff) << 16) |		\
 				(((c) & 0xff) << 8)  |		\
 				((d) & 0xff))
+
+/*************************************************************************
+*
+* GTP -U Header
+*
+ +---+----+-+-+-+-+--+------------+-----------------+------------------+
+ |   |0-2 |3|4|5|6|7 |  8-15      |    16-23        |    24-31         |
+ +---+----+-+-+-+-+--+------------+-----------------+------------------+
+ |0  |Veri|P|*|E|S|PN| Message    |                                    |
+ |   |son | | | | |  |  Type      |        Total length                |
+ +---+----+-+-+-+-+--+------------+------------------------------------+
+ |32 |                TEID (only present if T=1)                       |
+ |   |                                                                 |
+ +---+----------------------------+-----------------+------------------+
+ |64 |      Sequence number       |N-PDU number     |Next extension    |
+ |   |                            |                 |header type       |
+ +---+----------------------------+-----------------+------------------+
+
+***************************************************************************/
+
+typedef struct gtpuHdr_s{
+     uint8_t version_flags;
+     uint8_t msg_type;
+     uint16_t tot_len;
+     uint32_t teid;
+     uint16_t seq_no;
+     uint8_t npdu_no;
+     uint8_t next_ext_hdr_type;
+} __attribute__((__packed__)) gtpuHdr_t;
 
 /* IP overlay header for the pseudo header */
 typedef struct ipOverlay_s {
@@ -226,6 +257,13 @@ typedef struct udpip_s {
     ipOverlay_t		ip;         /* IPv4 overlay header */
     udpHdr_t		udp;        /* UDP header for protocol */
 } __attribute__((__packed__)) udpip_t;
+
+/* The GTP-U/UDP/IP Pseudo header */
+typedef struct gtpuUdpIp_s {
+    ipOverlay_t		ip;         /* IPv4 overlay header */
+    udpHdr_t		udp;        /* UDP header for protocol */
+    gtpuHdr_t           gtpu;       /* GTP-U header */
+} __attribute__((__packed__)) gtpuUdpIp_t;
 
 /* The UDP/IPv6 Pseudo header */
 typedef struct udpipv6_s {
@@ -277,6 +315,13 @@ typedef struct tcpip_s {
     ipOverlay_t		ip;         /* IPv4 overlay header */
     tcpHdr_t    	tcp;        /* TCP header for protocol */
 } __attribute__((__packed__)) tcpip_t;
+
+/* The GTPu/TCP/IPv4 Pseudo header */
+typedef struct gtpuTcpIp_s {
+    ipOverlay_t		ip;         /* IPv4 overlay header */
+    tcpHdr_t    	tcp;        /* TCP header for protocol */
+    gtpuHdr_t           gtpu;       /* GTP-U header */
+} __attribute__((__packed__)) gtpuTcpIp_t;
 
 /* The TCP/IPv6 Pseudo header */
 typedef struct tcpipv6_s {
@@ -528,6 +573,7 @@ typedef struct pkt_hdr_s {
 		ipv6Hdr_t		ipv6;		/**< IPv6 Header */
 		tcpip_t			tip;		/**< TCP + IPv4 Headers */
 		udpip_t			uip;		/**< UDP + IPv4 Headers */
+		gtpuUdpIp_t		guip;		/**< GTP-U + UDP + IPv4 Header */
 		icmpv4Hdr_t		icmp;		/**< ICMP + IPv4 Headers */
 		tcpipv6_t		tip6;		/**< TCP + IPv6 Headers */
 		udpipv6_t		uip6;		/**< UDP + IPv6 Headers */

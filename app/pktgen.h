@@ -174,11 +174,11 @@
 
 #define forall_ports(_action)                           \
 	do {                                                \
-		uint32_t pid;                            \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {    \
-			port_info_t   *info;                       \
+		uint32_t pid;                                   \
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
+			port_info_t   *info;                        \
 			info = &pktgen.info[pid];                   \
-			if (info->seq_pkt == NULL)                \
+			if (info->seq_pkt == NULL)                  \
 				continue;                               \
 			_action;                                    \
 		}                                               \
@@ -186,16 +186,16 @@
 
 #define foreach_port(_portlist, _action)                \
 	do {                                                \
-		uint32_t    *_pl = (uint32_t *)&_portlist;     \
-		uint32_t pid, idx, bit;                      \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {    \
-			port_info_t   *info;                       \
+		uint32_t    *_pl = (uint32_t *)&_portlist;      \
+		uint32_t pid, idx, bit;                         \
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
+			port_info_t   *info;                        \
 			idx = (pid / (sizeof(uint32_t) * 8));       \
 			bit = (pid - (idx * (sizeof(uint32_t) * 8))); \
-			if ( (_pl[idx] & (1 << bit)) == 0)         \
+			if ( (_pl[idx] & (1 << bit)) == 0)          \
 				continue;                               \
 			info = &pktgen.info[pid];                   \
-			if (info->seq_pkt == NULL)                \
+			if (info->seq_pkt == NULL)                  \
 				continue;                               \
 			_action;                                    \
 		}                                               \

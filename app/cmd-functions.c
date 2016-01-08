@@ -2464,12 +2464,13 @@ cmd_send_arp_parsed(void *parsed_result,
 {
 	struct cmd_send_arp_result *res = parsed_result;
 
-	if (res->what[0] == 'g')
+	if (res->what[0] == 'g') {
 		foreach_port(res->portlist.map,
 		             pktgen_send_arp_requests(info, GRATUITOUS_ARP) );
-	else
+	} else {
 		foreach_port(res->portlist.map,
 		             pktgen_send_arp_requests(info, 0) );
+	}
 }
 
 cmdline_parse_token_string_t cmd_set_send_arp =

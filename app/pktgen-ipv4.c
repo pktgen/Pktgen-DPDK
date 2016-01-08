@@ -178,11 +178,8 @@ pktgen_process_ping4( struct rte_mbuf * m, uint32_t pid, uint32_t vlan )
     // Look for a ICMP echo requests, but only if enabled.
     if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
     		(ip->proto == PG_IPPROTO_ICMP) ) {
-#if !defined(RTE_ARCH_X86_64)
-        icmpv4Hdr_t * icmp = (icmpv4Hdr_t *)((uint32_t)ip + sizeof(ipHdr_t));
-#else
-        icmpv4Hdr_t * icmp = (icmpv4Hdr_t *)((uint64_t)ip + sizeof(ipHdr_t));
-#endif
+
+        icmpv4Hdr_t * icmp = (icmpv4Hdr_t *)((uintptr_t)ip + sizeof(ipHdr_t));
 
         // We do not handle IP options, which will effect the IP header size.
         if ( unlikely(cksum(icmp, (m->data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0)) ) {

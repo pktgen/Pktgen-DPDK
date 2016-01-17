@@ -169,8 +169,10 @@ setf_udata(lua_State *L, const char *name, void *value) {
 
 static __inline__ void
 getf_etheraddr(lua_State *L, const char *field, cmdline_etheraddr_t *value) {
+
 	lua_getfield(L, 3, field);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, -1), value, sizeof(cmdline_etheraddr_t));
+	if ( lua_isstring(L, 1) )
+		cmdline_parse_etheraddr(NULL, luaL_checkstring(L, -1), value, sizeof(cmdline_etheraddr_t));
 	lua_pop(L, 1);
 }
 
@@ -179,18 +181,21 @@ getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags) {
 	cmdline_parse_token_ipaddr_t tk;
 
 	lua_getfield(L, 3, field);
-	tk.ipaddr_data.flags = flags;
-	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk,
+	if ( lua_isstring(L, 1) ) {
+		tk.ipaddr_data.flags = flags;
+		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk,
 	                     luaL_checkstring(L, -1), value, sizeof(cmdline_ipaddr_t));
+	}
 	lua_pop(L, 1);
 }
 
 static __inline__ uint32_t
 getf_integer(lua_State *L, const char *field) {
-	uint32_t value;
+	uint32_t value = 0;
 
 	lua_getfield(L, 3, field);
-	value   = luaL_checkinteger(L, -1);
+	if ( lua_isinteger(L, 1) )
+		value   = luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
 	return value;
@@ -198,10 +203,11 @@ getf_integer(lua_State *L, const char *field) {
 
 static __inline__ char *
 getf_string(lua_State *L, const char *field) {
-	char      *value;
+	char      *value = NULL;
 
 	lua_getfield(L, 3, field);
-	value   = (char *)luaL_checkstring(L, -1);
+	if ( lua_isstring(L, 1) )
+		value   = (char *)luaL_checkstring(L, -1);
 	lua_pop(L, 1);
 
 	return value;
@@ -289,7 +295,7 @@ static int
 set_seq(lua_State *L, uint32_t seqnum)
 {
 	cmdline_portlist_t portlist;
-	uint32_t pktsize, sport, dport;
+	uint32_t pktsize, sport, dport, gtpu_teid;
 	uint16_t vlanid;
 	cmdline_etheraddr_t daddr;
 	cmdline_etheraddr_t saddr;
@@ -313,6 +319,10 @@ set_seq(lua_State *L, uint32_t seqnum)
 	ip      = (char *)luaL_checkstring(L, 10);
 	vlanid  = luaL_checkinteger(L, 11);
 	pktsize = luaL_checkinteger(L, 12);
+	if ( lua_gettop(L) == 13 )
+		gtpu_teid = luaL_checkinteger(L, 13);
+	else
+		gtpu_teid = 0;
 
 	if ( (proto[0] == 'i') && (ip[3] == '6') ) {
 		lua_putstring(L, "Must use IPv4 with ICMP type packets\n");
@@ -321,7 +331,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 
 	foreach_port(portlist.map,
 	             pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr, &ip_saddr,
-	                            sport, dport, ip[3], proto[0], vlanid, pktsize) );
+	                            sport, dport, ip[3], proto[0], vlanid, pktsize, gtpu_teid) );
 
 	pktgen_update_display();
 
@@ -347,6 +357,7 @@ pktgen_seq(lua_State *L) {
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "seq, wrong number of arguments");
 	case 12:
+	case 13:
 		break;
 	}
 	seqnum = luaL_checkinteger(L, 1);
@@ -372,7 +383,7 @@ static int
 set_seqTable(lua_State *L, uint32_t seqnum)
 {
 	cmdline_portlist_t portlist;
-	uint32_t pktSize, sport, dport;
+	uint32_t pktSize, sport, dport, gtpu_teid;
 	uint16_t vlanid;
 	cmdline_etheraddr_t daddr;
 	cmdline_etheraddr_t saddr;
@@ -393,6 +404,13 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	vlanid      = getf_integer(L, "vlanid");
 	pktSize     = getf_integer(L, "pktSize");
 
+    lua_getfield(L, 3, "gtpu_teid");
+    if ( lua_isinteger(L, -1) )
+        gtpu_teid   = luaL_checkinteger(L, -1);
+    else
+        gtpu_teid   = 0;
+    lua_pop(L, 1);
+
 	if ( (ipProto[0] == 'i') && (ethType[3] == '6') ) {
 		lua_putstring(L, "Must use IPv4 with ICMP type packets\n");
 		return -1;
@@ -400,7 +418,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 
 	foreach_port(portlist.map,
 	             pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr, &ip_saddr,
-	                            sport, dport, ethType[3], ipProto[0], vlanid, pktSize) );
+	                            sport, dport, ethType[3], ipProto[0], vlanid, pktSize, gtpu_teid) );
 
 	pktgen_update_display();
 
@@ -1446,6 +1464,35 @@ pktgen_src_port(lua_State *L) {
 
 /**************************************************************************//**
 *
+* pktgen_gtpu_teid - Set the GTPU-TEID value in the range data.
+*
+* DESCRIPTION
+* Set the source port value in the range data.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+static int pktgen_gtpu_teid (lua_State *L) {
+   cmdline_portlist_t  portlist;
+
+   switch( lua_gettop(L) ) {
+   default: return luaL_error(L, "GTP-U TEID, wrong number of arguments");
+   case 3:
+       break;
+   }
+   parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+   foreach_port( portlist.map,
+       pktgen_set_gtpu_teid(info, (char *)luaL_checkstring(L, 2), luaL_checkinteger(L, 3)));
+
+   pktgen_update_display();
+   return 0;
+}
+
+/**************************************************************************//**
+*
 * pktgen_vlan_id - Set the VLAN id in the range data.
 *
 * DESCRIPTION
@@ -1468,8 +1515,6 @@ pktgen_vlan_id(lua_State *L) {
 	}
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 	vlan_id = luaL_checkinteger(L, 3);
-	if ( (vlan_id < MIN_VLAN_ID) || (vlan_id > MAX_VLAN_ID) )
-		vlan_id = 1;
 
 	foreach_port(portlist.map,
 	             pktgen_set_vlan_id(info, (char *)luaL_checkstring(L, 2), vlan_id) );
@@ -2498,6 +2543,7 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum) {
 
 	setf_integer(L, "pktSize", p->pktSize + FCS_SIZE);
 	setf_integer(L, "tlen", p->tlen);
+	setf_integer(L, "gtpu_teid", p->gtpu_teid);
 
 	/* Now set the table as an array with pid as the index. */
 	lua_rawset(L, -3);
@@ -2915,6 +2961,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"pattern",       pktgen_pattern},	/* Set pattern type */
 	{"userPattern",   pktgen_user_pattern},	/* Set the user pattern string */
 	{"latency",       pktgen_latency},	/* Enable or disable latency testing */
+	{"gtpu_teid",     pktgen_gtpu_teid}, /* set GTP-U TEID. */
 
 	{NULL, NULL}
 };

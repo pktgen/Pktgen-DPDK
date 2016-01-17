@@ -156,7 +156,7 @@ extern void pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
                                cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
                                cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
                                uint32_t sport, uint32_t dport, char type, char proto,
-                               uint16_t vlanid, uint32_t pktsize);
+                               uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid);
 
 extern void pktgen_quit(void);
 
@@ -179,6 +179,10 @@ extern void pktgen_garp_enable_disable(port_info_t *info, char *str);
 extern void pktgen_mac_from_arp(uint32_t onOff);
 
 extern void pktgen_set_random(port_info_t *info, uint32_t onOff);
+
+extern void pktgen_set_gtpu_teid(port_info_t * info, char * what, uint32_t teid);
+extern void pktgen_set_proto_range(port_info_t * info, char type);
+extern void pktgen_set_pkt_type_range(port_info_t * info, const char * type);
 
 extern void pktgen_set_pattern_type(port_info_t *info, char *str);
 extern void pktgen_user_pattern_set(port_info_t *info, char *str);

@@ -2229,6 +2229,7 @@ struct cmd_set_seq_result {
 	cmdline_fixed_string_t proto;
 	uint16_t vlanid;
 	uint32_t pktsize;
+	uint32_t gtpu_teid;
 };
 
 /**************************************************************************//**
@@ -2262,7 +2263,7 @@ cmd_set_seq_parsed(void *parsed_result,
 	             pktgen_set_seq(info, res->seqnum,
 	                            &res->daddr, &res->saddr, &res->ip_daddr, &res->ip_saddr,
 	                            res->sport, res->dport, res->eth[3], res->proto[0],
-	                            res->vlanid, res->pktsize) );
+	                            res->vlanid, res->pktsize, res->gtpu_teid) );
 
 	pktgen_update_display();
 }

@@ -941,6 +941,32 @@ pktgen_set_proto(port_info_t *info, char type)
 
 /**************************************************************************//**
 *
+* pktgen_set_proto_range - Set up the protocol type for a port/packet.
+*
+* DESCRIPTION
+* Setup all range packets with a protocol types with the port list.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void
+pktgen_set_proto_range(port_info_t * info, char type)
+{
+   info->seq_pkt[RANGE_PKT].ipProto = (type == 'u')? PG_IPPROTO_UDP :
+                                   (type == 'i') ? PG_IPPROTO_ICMP :
+                                   (type == 't') ? PG_IPPROTO_TCP :
+                                   /* TODO print error: unknown type */ PG_IPPROTO_TCP;
+
+   // ICMP only works on IPv4 packets.
+   if ( type == 'i' )
+       info->seq_pkt[RANGE_PKT].ethType = ETHER_TYPE_IPv4;
+
+}
+
+/**************************************************************************//**
+*
 * pktgen_pcap_enable_disable - Enable or disable PCAP sending of packets.
 *
 * DESCRIPTION
@@ -1050,6 +1076,28 @@ pktgen_garp_enable_disable(port_info_t *info, char *str)
 		pktgen_set_port_flags(info, PROCESS_GARP_PKTS | PROCESS_INPUT_PKTS);
 	else
 		pktgen_clr_port_flags(info, PROCESS_GARP_PKTS | PROCESS_INPUT_PKTS);
+}
+
+/**************************************************************************//**
+*
+* pktgen_set_pkt_type_range - Set the packet type value for range packets.
+*
+* DESCRIPTION
+* Set the packet type value for the given port list.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void
+pktgen_set_pkt_type_range(port_info_t * info, const char * type)
+{
+   info->seq_pkt[RANGE_PKT].ethType = (type[0] == 'a') ? ETHER_TYPE_ARP :
+                      (type[3] == '4') ? ETHER_TYPE_IPv4 :
+                      (type[3] == '6') ? ETHER_TYPE_IPv6 :
+                      /* TODO print error: unknown type */ ETHER_TYPE_IPv4;
+
 }
 
 /**************************************************************************//**
@@ -1903,8 +1951,11 @@ pktgen_set_dest_mac(port_info_t *info, const char *what, cmdline_etheraddr_t *ma
 		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_max);
 	else if (!strcmp(what, "inc") )
 		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_inc);
-	else if (!strcmp(what, "start") )
+	else if (!strcmp(what, "start") ) {
 		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac);
+		/* Changes add below to reflect MAC value in range */
+        memcpy(&info->seq_pkt[RANGE_PKT].eth_dst_addr, mac->mac, 6);
+	}
 }
 
 /**************************************************************************//**
@@ -1928,8 +1979,11 @@ pktgen_set_src_mac(port_info_t *info, const char *what, cmdline_etheraddr_t *mac
 		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_max);
 	else if (!strcmp(what, "inc") )
 		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_inc);
-	else if (!strcmp(what, "start") )
+	else if (!strcmp(what, "start") ) {
 		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac);
+        /* Changes add below to reflect MAC value in range */
+        memcpy(&info->seq_pkt[RANGE_PKT].eth_src_addr, mac->mac, 6);
+	}
 }
 
 /**************************************************************************//**
@@ -2013,6 +2067,36 @@ pktgen_set_src_port(port_info_t *info, char *what, uint16_t port)
 
 /**************************************************************************//**
 *
+* pktgen_set_gtpu_teid - Set the TEID for GTPU header
+*
+* DESCRIPTION
+* Set the GTP-U TEID for the ports listed.
+*
+* RETURNS: N/A
+*
+* SEE ALSO:
+*/
+
+void pktgen_set_gtpu_teid(port_info_t * info, char * what, uint32_t teid)
+{
+   if ( !strcmp(what, "inc") ) {
+       if ( teid != 0 )
+           info->range.gtpu_teid_inc = teid;
+   } else {
+       if ( !strcmp(what, "min") )
+           info->range.gtpu_teid_min = teid;
+       else if ( !strcmp(what, "max") )
+           info->range.gtpu_teid_max = teid;
+       else if ( !strcmp(what, "start") )
+       {
+           info->range.gtpu_teid = teid;
+           info->seq_pkt[RANGE_PKT].gtpu_teid = teid;
+       }
+   }
+}
+
+/**************************************************************************//**
+*
 * pktgen_set_dst_port - Set the destination port value
 *
 * DESCRIPTION
@@ -2060,10 +2144,8 @@ pktgen_set_vlan_id(port_info_t *info, char *what, uint16_t id)
 			id = 64;
 		info->range.vlan_id_inc = id;
 	} else {
-		if (id < MIN_VLAN_ID)
+		if ( (id < MIN_VLAN_ID) || (id > MAX_VLAN_ID) )
 			id = MIN_VLAN_ID;
-		else if (id > MAX_VLAN_ID)
-			id = MAX_VLAN_ID;
 
 		if (!strcmp(what, "min") )
 			info->range.vlan_id_min = id;
@@ -2226,7 +2308,7 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
                cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
                cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
                uint32_t sport, uint32_t dport, char type, char proto,
-               uint16_t vlanid, uint32_t pktsize)
+               uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -2246,6 +2328,7 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 		type = '4';
 	pkt->ethType        = (type == '6') ? ETHER_TYPE_IPv6 : ETHER_TYPE_IPv4;
 	pkt->vlanid         = vlanid;
+	pkt->gtpu_teid		= gtpu_teid;
 	pktgen_packet_ctor(info, seqnum, -1, NULL);
 }
 

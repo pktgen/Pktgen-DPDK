@@ -72,6 +72,7 @@
 #include <string.h>
 #include <rte_version.h>
 #include <rte_atomic.h>
+#include <rte_spinlock.h>
 
 #undef BPF_MAJOR_VERSION
 #include <pcap/pcap.h>
@@ -206,13 +207,14 @@ typedef struct port_info_s {
 	uint16_t seqCnt;		/**< Current packet sequence max count */
 	uint16_t prime_cnt;		/**< Set the number of packets to send in a prime command */
 	uint16_t vlanid;		/**< Set the port VLAN ID value */
-	pkt_seq_t             *seq_pkt;	/**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
+	rte_spinlock_t port_lock;	/**< Used to sync up packet constructor between cores */
+	pkt_seq_t *seq_pkt;		/**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
 	range_info_t range;		/**< Range Information */
 
 	uint32_t mpls_entry;	/**< Set the port MPLS entry */
 	uint16_t qinq_outerid;	/**< Set the port outer VLAN ID value for Q-in-Q */
 	uint16_t qinq_innerid;	/**< Set the port inner VLAN ID value for Q-in-Q */
-	uint32_t gre_key;	/**< GRE key if used */
+	uint32_t gre_key;		/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
 	uint16_t pad1;

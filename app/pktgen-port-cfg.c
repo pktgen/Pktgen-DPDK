@@ -67,8 +67,6 @@
 
 #include "pktgen-port-cfg.h"
 
-#include <rte_memzone.h>
-
 #include "pktgen.h"
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
@@ -122,35 +120,6 @@ const ring_conf_t default_ring_conf = {
 	.txq_flags = RTE_PMD_PARAM_UNSET,
 	.rss_hf = ETH_RSS_IP
 };
-
-#if 0
-const struct rte_eth_rxconf default_rx_conf = {
-	.rx_thresh = {
-		.pthresh = RX_PTHRESH,
-		.hthresh = RX_HTHRESH,
-		.wthresh = RX_WTHRESH,
-	},
-	.rx_free_thresh = 32,
-};
-
-#define IXGBE_SIMPLE_FLAGS ((uint32_t)ETH_TXQ_FLAGS_NOMULTSEGS | \
-	                    ETH_TXQ_FLAGS_NOOFFLOADS)
-
-static struct rte_eth_txconf default_tx_conf = {
-	.tx_thresh = {
-		.pthresh = TX_PTHRESH,
-		.hthresh = TX_HTHRESH,
-		.wthresh = TX_WTHRESH,
-	},
-	.tx_free_thresh = 0,	/* Use PMD default values */
-	.tx_rs_thresh = 0,	/* Use PMD default values */
-	.txq_flags = (ETH_TXQ_FLAGS_NOMULTSEGS |
-	              ETH_TXQ_FLAGS_NOVLANOFFL |
-	              ETH_TXQ_FLAGS_NOXSUMSCTP |
-	              ETH_TXQ_FLAGS_NOXSUMUDP |
-	              ETH_TXQ_FLAGS_NOXSUMTCP)
-};
-#endif
 
 /**************************************************************************//**
 *
@@ -350,9 +319,12 @@ pktgen_config_ports(void)
 		info->fill_pattern_type  = ABC_FILL_PATTERN;
 		strncpy(info->user_pattern, "0123456789abcdef", USER_PATTERN_SIZE);
 
+		rte_spinlock_init(&info->port_lock);
+
 		/* Create the pkt header structures for transmitting sequence of packets. */
 		snprintf(buff, sizeof(buff), "seq_hdr_%d", pid);
-		info->seq_pkt = (pkt_seq_t *)rte_zmalloc(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE);
+		info->seq_pkt = (pkt_seq_t *)rte_zmalloc_socket(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
+														RTE_CACHE_LINE_SIZE, rte_socket_id());
 		if (info->seq_pkt == NULL)
 			pktgen_log_panic("Unable to allocate %d pkt_seq_t headers", NUM_TOTAL_PKTS);
 
@@ -433,17 +405,9 @@ pktgen_config_ports(void)
 			/* Find out the link speed to program the WTHRESH value correctly. */
 			pktgen_get_link_status(info, pid, 0);
 
-#if 0
-			info->tx_conf.tx_thresh.wthresh = (info->link.link_speed == 1000) ? TX_WTHRESH_1GB : TX_WTHRESH;
-#endif
 			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &info->tx_conf);
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid, rte_strerror(-ret));
-#if 0
-			ret = rte_eth_dev_flow_ctrl_set(pid, &fc_conf);
-			if (ret < 0)
-				pktgen_log_panic("rte_eth_dev_flow_ctrl_set: err=%d, port=%d, %s", ret, pid, rte_strerror(-ret));
-#endif
 			pktgen_log_info("");
 		}
 		pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ", (pktgen.mem_used + 1023) / 1024);

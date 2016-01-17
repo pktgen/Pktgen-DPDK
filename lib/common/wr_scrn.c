@@ -41,7 +41,6 @@
 #include <rte_config.h>
 #include <rte_atomic.h>
 #include <rte_malloc.h>
-#include <rte_spinlock.h>
 
 #include "wr_scrn.h"
 

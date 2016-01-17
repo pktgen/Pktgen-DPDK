@@ -91,7 +91,6 @@
 #include <rte_lpm.h>
 #include <rte_string_fns.h>
 #include <rte_byteorder.h>
-#include <rte_spinlock.h>
 #include <rte_errno.h>
 
 #include "wr_copyright_info.h"

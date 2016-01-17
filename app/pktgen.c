@@ -488,8 +488,8 @@ pktgen_exit_cleanup(uint8_t lid)
 */
 
 static __inline__ int
-pktgen_has_work(void) {
-
+pktgen_has_work(void)
+{
 	if (!wr_get_map(pktgen.l2p, RTE_MAX_ETHPORTS, rte_lcore_id()) ) {
 		pktgen_log_warning("Nothing to do on lcore %d: exiting", rte_lcore_id());
 		return 1;
@@ -510,7 +510,8 @@ pktgen_has_work(void) {
 */
 
 void
-pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type, pkt_seq_t *seq_pkt) {
+pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type, pkt_seq_t *seq_pkt)
+{
 	pkt_seq_t         *pkt = (seq_pkt == NULL) ? &info->seq_pkt[seq_idx] : &seq_pkt[seq_idx];
 	struct ether_hdr  *eth = (struct ether_hdr *)&pkt->hdr.eth;
 	uint16_t tlen;
@@ -909,24 +910,16 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 {
 	struct rte_mbuf *m, *mm;
 	pkt_seq_t *pkt, *seq_pkt = NULL;
-	unsigned int i;
 	uint16_t seqIdx;
-	char buff[RTE_MEMZONE_NAMESIZE];
 
 	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
 
 	if (mp == info->q[qid].pcap_mp)
 		return;
 
-	snprintf(buff, sizeof(buff), "tmp_seq_pkt_%d_%d", info->pid, qid);
-	seq_pkt = (pkt_seq_t *)rte_zmalloc(buff, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE);
-	if (seq_pkt == NULL)
-		pktgen_log_panic("Unable to allocate %d pkt_seq_t headers", NUM_TOTAL_PKTS);
+	rte_spinlock_lock(&info->port_lock);
 
-	/* Copy global configuration to construct new packets locally */
-	for (i = 0; i < NUM_TOTAL_PKTS; i++)
-		rte_memcpy((uint8_t *)&seq_pkt[i], (uint8_t *)&info->seq_pkt[i], sizeof(pkt_seq_t));
-
+	seq_pkt = info->seq_pkt;
 	seqIdx = info->seqIdx;
 
 	mm  = NULL;
@@ -978,11 +971,10 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 			pkt = &seq_pkt[seqIdx];
 		}
 	}
+	rte_spinlock_unlock(&info->port_lock);
 
 	if (mm != NULL)
 		rte_pktmbuf_free(mm);
-
-	rte_free(seq_pkt);
 }
 
 /**************************************************************************//**

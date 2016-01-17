@@ -142,7 +142,8 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 {
 	int i;
 
-	*rnd_bits = (rnd_bits_t *)rte_zmalloc("Random bitfield structure", sizeof(rnd_bits_t), 0);
+	*rnd_bits = (rnd_bits_t *)rte_zmalloc_socket("Random bitfield structure", sizeof(rnd_bits_t),
+												 0, rte_socket_id());
 
 	/* Initialize mask to all ignore */
 	for (i = 0; i < MAX_RND_BITFIELDS; ++i) {

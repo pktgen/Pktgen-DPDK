@@ -37,7 +37,7 @@ cmd=./app/app/${target}/pktgen
 #89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
-dpdk_opts="-l 4-12 -n 3 --proc-type auto --log-level 0 --socket-mem 1024,1024 --file-prefix pg"
+dpdk_opts="-l 4-12 -n 3 --proc-type auto --log-level 7 --socket-mem 512,512 --file-prefix pg"
 pktgen_opts="-T -P"
 port_map='-m "[5:7].0, [6:8].1, [9:11].2, [10:12].3"'
 load_file="-f themes/black-yellow.theme"

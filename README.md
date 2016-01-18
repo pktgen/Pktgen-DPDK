@@ -1,4 +1,4 @@
-Pktgen version 2.9.5 using DPDK-2.1.0
+Pktgen version 2.9.7 using DPDK-2.2.0
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
@@ -6,6 +6,11 @@ Pktgen version 2.9.5 using DPDK-2.1.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.7   - Changed all rte_zmalloc to rte_zmalloc_socket calls and change seq_pkt support.
+             The fix for multiple cores accessing seq_pkts was to allocate memory and copy
+             into a private area. This sometimes caused memory allocation problems, so I
+             removed the allocation and used spinlocks around the code. Most likely slower
+             in some areas but better then allocating memory.
  - 2.9.6   - Add support for different pattern types and a user patten string.
              New commands are 'pattern <portlist> type'.
              Types are abc, none, zero or user
@@ -91,7 +96,7 @@ Pktgen version 2.9.5 using DPDK-2.1.0
 Please look at the 3rd party PDF for license information.
 
 ---
-**Copyright &copy; \<2010-2015\>, Intel Corporation All rights reserved.**
+**Copyright &copy; \<2010-2016\>, Intel Corporation All rights reserved.**
  
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
@@ -123,7 +128,7 @@ Please look at the 3rd party PDF for license information.
  OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
-**Copyright &copy; \<2010-2015\>, Wind River Systems, Inc.**
+**Copyright &copy; \<2010-2016\>, Wind River Systems, Inc.**
 
  Redistribution and use in source and binary forms, with or without modification, are
  permitted provided that the following conditions are met:
@@ -159,7 +164,7 @@ Please look at the 3rd party PDF for license information.
 **======================== README.pktgen file ==============================**
 
                           *** Pktgen ****
-          Copyright &copy \<2010-2015\>, Wind River Systems, Inc.
+          Copyright &copy \<2010-2016\>, Wind River Systems, Inc.
 
 README for setting up Pktgen with DPDK on Ubuntu 10.04 to 13.10 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
@@ -603,7 +608,7 @@ system configuration.
   
      BSD LICENSE
   
-     Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
+     Copyright(c) 2010-2016 Intel Corporation. All rights reserved.
      All rights reserved.
   
      Redistribution and use in source and binary forms, with or without
@@ -633,7 +638,7 @@ system configuration.
      OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   
 -----------------------
-    Copyright (c) <2010-2015>, Wind River Systems, Inc.
+    Copyright (c) <2010-2016>, Wind River Systems, Inc.
 
      Redistribution and use in source and binary forms, with or without modification, are
      permitted provided that the following conditions are met:
@@ -964,12 +969,12 @@ Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
       #     #     #    #    #     #    #       #    #  #    #
        #####      #     ####      #    ######  #    #   ####
 
-               Copyright (c) <2010-2015>, Wind River Systems, Inc.
+               Copyright (c) <2010-2016>, Wind River Systems, Inc.
                      >>> Pktgen is Powered by IntelÂ® DPDK <<<
 
 ---------------------
 
-               Copyright (c) <2010-2015>, Wind River Systems, Inc.
+               Copyright (c) <2010-2016>, Wind River Systems, Inc.
 
          Redistribution and use in source and binary forms, with or without modification, are
          permitted provided that the following conditions are met:
@@ -1003,7 +1008,7 @@ Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 ```
 ------------------
 ```
-- Ports 0-3 of 6   ** Main Page **  Copyright (c) <2010-2015>, Wind River Systems, Inc. Powered by IntelÂ® DPDK
+- Ports 0-3 of 6   ** Main Page **  Copyright (c) <2010-2016>, Wind River Systems, Inc. Powered by IntelÂ® DPDK
   Flags:Port    :   P-------------:0   P-------------:1
 Link State      :      <UP-10000-FD>      <UP-10000-FD>                                          ---TotalRate---
 Pkts/s  Rx      :                  0                  0                                                        0
@@ -1033,7 +1038,7 @@ Dst  IP Address :        192.168.1.1        192.168.0.1
 Src  IP Address :     192.168.0.1/24     192.168.1.1/24
 Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
 Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:2.9.5(DPDK-2.1.0) -------------------------------------------------------------------------------------
+-- Pktgen Ver:2.9.7(DPDK-2.2.0) -------------------------------------------------------------------------------------
 
 
 
@@ -1054,7 +1059,7 @@ $
 ```
 ------------------------------------------------------------------------
 ```
-   *** Help Information for Pktgen ***         Copyright (c) <2010-2015>, Wind River Systems, Inc.
+   *** Help Information for Pktgen ***         Copyright (c) <2010-2016>, Wind River Systems, Inc.
 
 set <portlist> <xxx> value         - Set a few port values
   <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'
@@ -1203,7 +1208,7 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
 ```
 ---------------------------------------------------------------------------
 ```
-\  Port 0 of 4    ** PCAP Page **   Copyright (c) <2010-2015>, Wind River Systems, Inc., Powered by Intel® DPDK
+\  Port 0 of 4    ** PCAP Page **   Copyright (c) <2010-2016>, Wind River Systems, Inc., Powered by Intel® DPDK
 Port: 0, PCAP Count: 0 of 9716, skipped 0
   Seq            Dst MAC           Src MAC            Dst IP              Src IP    Port S/D  Protocol:VLAN Size-FCS
     0:    0014:2273:0a68    000f:ea34:177e    192.168.119.23     192.168.117.213    43934/53  IPv4/UDP:   0   73
@@ -1232,7 +1237,7 @@ Port: 0, PCAP Count: 0 of 9716, skipped 0
    23:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
    24:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1466
 
-- Pktgen Ver:2.9.5(DPDK-2.1.0) --------------------------------------------------------------------------------------
+- Pktgen Ver:2.9.7(DPDK-2.2.0) --------------------------------------------------------------------------------------
 
 
 
@@ -1327,8 +1332,8 @@ You can also just send Pktgen a script file and display the ouptut.
 $ socat - TCP4:localhost:22022 < test/hello-world.lua 
 
 Lua Vesrion      : Lua 5.2
-Pktgen Version   : 2.8.1
-Pktgen Copyright : Copyright (c) `<2010-2015>`, Wind River Systems, Inc.
+Pktgen Version   : 2.9.7
+Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
 Pktgen Authors   : Keith Wiles @ Wind River Systems
 
 Hello World!!!!
@@ -1355,8 +1360,8 @@ $ socat READLINE TCP4:172.25.40.163:22022
 f,e = loadfile("test/hello-world.lua")
 f()
 Lua Version      : Lua 5.2
-Pktgen Version   : 2.8.1
-Pktgen Copyright : Copyright (c) `<2010-2015>`, Wind River Systems, Inc.
+Pktgen Version   : 2.9.7
+Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
 Pktgen Authors   : Keith Wiles @ Wind River Systems
 
 Hello World!!!!
@@ -1368,8 +1373,8 @@ You can also just send it commands via echo.
 -----------------
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
 Lua Version      : Lua 5.2
-Pktgen Version   : 2.8.1
-Pktgen Copyright : Copyright (c) `<2010-2015>`, Wind River Systems, Inc.
+Pktgen Version   : 2.9.7
+Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
 Pktgen Authors   : Keith Wiles @ Wind River Systems
 
 Hello World!!!!

@@ -72,7 +72,6 @@
 
 #include "pktgen-seq.h"
 
-
 /**************************************************************************//**
 *
 * pktgen_udp_hdr_ctor - UDP header constructor routine.
@@ -85,6 +84,6 @@
 * SEE ALSO:
 */
 
-extern void pktgen_udp_hdr_ctor(pkt_seq_t * pkt, udpip_t * uip, int type);
+extern void pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type);
 
-#endif	// _PKTGEN_UDP_H_
+#endif  /* _PKTGEN_UDP_H_ */

@@ -93,22 +93,22 @@
 *
 * SEE ALSO:
 */
-void pktgen_packet_capture_init(capture_t *capture, int socket_id)
+void
+pktgen_packet_capture_init(capture_t *capture, int socket_id)
 {
 	char memzone_name[RTE_MEMZONE_NAMESIZE];
 
 	if (!capture)
 		return;
 
-	capture->lcore	= RTE_MAX_LCORE;
-	capture->port	= RTE_MAX_ETHPORTS;
-	capture->used	= 0;
+	capture->lcore  = RTE_MAX_LCORE;
+	capture->port   = RTE_MAX_ETHPORTS;
+	capture->used   = 0;
 
 	snprintf(memzone_name, sizeof(memzone_name), "Capture_MZ_%d", socket_id);
 	capture->mz = rte_memzone_reserve(memzone_name, 0, socket_id,
-			RTE_MEMZONE_1GB | RTE_MEMZONE_SIZE_HINT_ONLY);
+	                                  RTE_MEMZONE_1GB | RTE_MEMZONE_SIZE_HINT_ONLY);
 }
-
 
 /**************************************************************************//**
 *
@@ -128,13 +128,13 @@ void pktgen_packet_capture_init(capture_t *capture, int socket_id)
 */
 
 void
-pktgen_set_capture(port_info_t * info, uint32_t onOff)
+pktgen_set_capture(port_info_t *info, uint32_t onOff)
 {
-	capture_t	* cap;
+	capture_t   *cap;
 
-	if ( onOff == ENABLE_STATE ) {
+	if (onOff == ENABLE_STATE) {
 		/* Enabling an aleady enabled port is a no-op */
-		if ( rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS )
+		if (rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS)
 			return;
 
 		if (wr_get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
@@ -142,7 +142,7 @@ pktgen_set_capture(port_info_t * info, uint32_t onOff)
 			return;
 		}
 
-		// Find an lcore that can capture packets for the requested port
+		/* Find an lcore that can capture packets for the requested port */
 		uint8_t lid_idx, lid, rxid;
 		for (lid_idx = 0; lid_idx < wr_get_port_nb_lids(pktgen.l2p, info->pid); ++lid_idx) {
 			lid = wr_get_port_lid(pktgen.l2p, info->pid, lid_idx);
@@ -158,7 +158,7 @@ found_rx_lid:
 			return;
 		}
 
-		// Get socket of the selected lcore and check if capturing is possible
+		/* Get socket of the selected lcore and check if capturing is possible */
 		uint8_t sid = pktgen.core_info[lid].s.socket_id;
 		if (pktgen.capture[sid].mz == NULL) {
 			pktgen_log_warning("No memory allocated for capturing on socket %d, are hugepages allocated on this socket?", sid);
@@ -172,35 +172,36 @@ found_rx_lid:
 			return;
 		}
 
-		// Everything checks out: enable packet capture
-		cap->used	= 0;
-		cap->lcore	= lid;
-		cap->port	= info->pid;
-		cap->tail	= (cap_hdr_t *)cap->mz->addr;
-		cap->end	= (cap_hdr_t *)((char *)cap->mz->addr + (cap->mz->len - sizeof(cap_hdr_t)));
+		/* Everything checks out: enable packet capture */
+		cap->used   = 0;
+		cap->lcore  = lid;
+		cap->port   = info->pid;
+		cap->tail   = (cap_hdr_t *)cap->mz->addr;
+		cap->end    = (cap_hdr_t *)((char *)cap->mz->addr + (cap->mz->len - sizeof(cap_hdr_t)));
 
-		// Write end-of-data sentinel to start of capture memory. This
-		// effectively clears previously captured data.
+		/* Write end-of-data sentinel to start of capture memory. This */
+		/* effectively clears previously captured data. */
 		memset(cap->tail, 0, sizeof(cap_hdr_t));
 		memset(cap->end, 0, sizeof(cap_hdr_t));
 
 		pktgen_set_port_flags(info, CAPTURE_PKTS);
 
 		pktgen_log_info("Capturing on port %d, lcore %d, socket %d; buffer size: %.2f MB (~%.2f seconds for 64 byte packets at line rate)",
-				info->pid, lid, sid,
-				(double)cap->mz->len / (1024 * 1024),
-				(double)cap->mz->len /
-					(66 /* 64 bytes payload + 2 bytes for payload size */
-					* ((double)info->link.link_speed * 1000 * 1000 / 8) /* Xbit -> Xbyte */
-					/ 84) /* 64 bytes payload + 20 byte etherrnet frame overhead: 84 bytes per packet */
-		);
-	}
-	else {
+		                info->pid, lid, sid,
+		                (double)cap->mz->len / (1024 * 1024),
+		                (double)cap->mz->len /
+		                (66							/* 64 bytes payload + 2 bytes for payload
+											size */
+		                 * ((double)info->link.link_speed * 1000 * 1000 / 8)	/* Xbit -> Xbyte */
+		                 / 84)							/* 64 bytes payload + 20 byte etherrnet
+											frame overhead: 84 bytes per packet */
+		                );
+	} else {
 		if (!(rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS))
 			return;
 
-		// This should never happen: capture cannot have been enabled when
-		// this condition is true.
+		/* This should never happen: capture cannot have been enabled when */
+		/* this condition is true. */
 		if (wr_get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
 			pktgen_log_warning("Port %d has no RX queue: capture is not possible", info->pid);
 			return;
@@ -213,7 +214,7 @@ found_rx_lid:
 				break;
 		}
 
-		// This should never happen.
+		/* This should never happen. */
 		if (sid == RTE_MAX_NUMA_NODES) {
 			pktgen_log_error("Could not find socket for port %d", info->pid);
 			return;
@@ -224,16 +225,16 @@ found_rx_lid:
 			pcap_t *pcap;
 			pcap_dumper_t *pcap_dumper;
 			struct pcap_pkthdr pcap_hdr;
-			cap_hdr_t * hdr;
-			time_t	t;
-			char	filename[64];
-			char	str_time[64];
+			cap_hdr_t *hdr;
+			time_t t;
+			char filename[64];
+			char str_time[64];
 			size_t mem_dumped = 0;
 			unsigned int pct = 0;
 
 			char status[256];
 			sprintf(status, "\r    Dumping ~%.2fMB of captured data to disk: 0%%",
-					(double)cap->used / (1024 * 1024));
+			        (double)cap->used / (1024 * 1024));
 			rte_printf_status("\n%s", status);
 
 			pcap = pcap_open_dead(DLT_EN10MB, 65535);
@@ -245,10 +246,10 @@ found_rx_lid:
 
 			hdr = (cap_hdr_t *)cap->mz->addr;
 
-			while ( hdr->pkt_len ) {
+			while (hdr->pkt_len) {
 
-				pcap_hdr.ts.tv_sec = 0 ;	// FIXME use real timestamp
-				pcap_hdr.ts.tv_usec = 0 ;	// FIXME use real timestamp
+				pcap_hdr.ts.tv_sec = 0;	/* FIXME use real timestamp */
+				pcap_hdr.ts.tv_usec = 0;/* FIXME use real timestamp */
 				pcap_hdr.len    = hdr->pkt_len;
 				pcap_hdr.caplen = hdr->data_len;
 
@@ -258,9 +259,9 @@ found_rx_lid:
 
 				mem_dumped = hdr->pkt - (unsigned char *)cap->mz->addr;
 
-				// The amount of data to dump to disk, is potentially very large
-				// (a few gigabytes), so print a percentage counter.
-				if ( pct < ((mem_dumped * 100) / cap->used) ) {
+				/* The amount of data to dump to disk, is potentially very large */
+				/* (a few gigabytes), so print a percentage counter. */
+				if (pct < ((mem_dumped * 100) / cap->used) ) {
 					pct = (mem_dumped * 100) / cap->used;
 
 					if (pct % 10 == 0)
@@ -272,22 +273,20 @@ found_rx_lid:
 				}
 			}
 			rte_printf_status("\r");
-			rte_printf_status("\n");	// Clean of the screen a bit
+			rte_printf_status("\n");/* Clean of the screen a bit */
 
 			pcap_dump_close(pcap_dumper);
 			pcap_close(pcap);
 		}
 
-		cap->used	= 0;
-		cap->tail	= (cap_hdr_t *)cap->mz->addr;
-		cap->lcore	= RTE_MAX_LCORE;
-		cap->port	= RTE_MAX_ETHPORTS;
+		cap->used   = 0;
+		cap->tail   = (cap_hdr_t *)cap->mz->addr;
+		cap->lcore  = RTE_MAX_LCORE;
+		cap->port   = RTE_MAX_ETHPORTS;
 
 		pktgen_clr_port_flags(info, CAPTURE_PKTS);
 	}
 }
-
-
 
 /**************************************************************************//**
 *
@@ -308,7 +307,7 @@ found_rx_lid:
 */
 
 void
-pktgen_packet_capture_bulk(struct rte_mbuf ** pkts, uint32_t nb_dump, capture_t * cap )
+pktgen_packet_capture_bulk(struct rte_mbuf **pkts, uint32_t nb_dump, capture_t *cap)
 {
 	uint32_t plen, i;
 	struct rte_mbuf *pkt;
@@ -338,8 +337,8 @@ pktgen_packet_capture_bulk(struct rte_mbuf ** pkts, uint32_t nb_dump, capture_t 
 
 		/* Write untruncated data length and size of the actually captured
 		 * data. */
-		cap->tail->pkt_len	= pkt->pkt_len;
-		cap->tail->data_len	= plen;
+		cap->tail->pkt_len  = pkt->pkt_len;
+		cap->tail->data_len = plen;
 
 		rte_memcpy(cap->tail->pkt, (uint8_t *)pkt->buf_addr + pkt->data_off, pkt->pkt_len);
 		cap->tail = (cap_hdr_t *)(cap->tail->pkt + plen);

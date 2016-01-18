@@ -40,12 +40,13 @@
 extern "C" {
 #endif
 
-static __inline__ void wr_delay_us( uint32_t us ) {
+static __inline__ void
+wr_delay_us(uint32_t us) {
 	uint64_t start;
 	uint64_t ticks;
-	uint32_t	resolution_fs;
+	uint32_t resolution_fs;
 
-	resolution_fs = (uint32_t)((1000ULL*1000ULL*1000ULL*1000ULL*1000ULL) / rte_get_timer_hz());
+	resolution_fs = (uint32_t)((1000ULL * 1000ULL * 1000ULL * 1000ULL * 1000ULL) / rte_get_timer_hz());
 
 	ticks = (uint64_t)us * 1000ULL * 1000ULL * 1000ULL;
 	ticks /= resolution_fs;
@@ -58,12 +59,14 @@ static __inline__ void wr_delay_us( uint32_t us ) {
 	}
 }
 
-static __inline__ void wr_delay_ms( uint32_t ms ) {
-	wr_delay_us( ms * 1000);
+static __inline__ void
+wr_delay_ms(uint32_t ms) {
+	wr_delay_us(ms * 1000);
 }
 
-static __inline__ void wr_sleep( uint32_t secs ) {
-	wr_delay_us( secs * (1000 * 1000));
+static __inline__ void
+wr_sleep(uint32_t secs) {
+	wr_delay_us(secs * (1000 * 1000));
 }
 
 #ifdef __cplusplus

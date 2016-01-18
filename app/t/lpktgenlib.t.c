@@ -8,19 +8,18 @@
  * SYSLIBS: m dl pthread
  */
 
-
 #include "pktgen.h"
 
 pktgen_t pktgen;
 
-const char * help_info[] = {"", "Help info stub", NULL };
+const char *help_info[] = {"", "Help info stub", NULL };
 
+/* Test driver */
+int
+main(void) {
+	plan(1);
+	ok(1, "ok works");
 
-// Test driver
-int main(void) {
-    plan(1);
-    ok(1, "ok works");
-
-    done_testing();
-    return 0;
+	done_testing();
+	return 0;
 }

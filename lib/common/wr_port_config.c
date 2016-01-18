@@ -88,7 +88,7 @@
 #include "wr_port_config.h"
 #include "wr_core_info.h"
 
-#define PORT_STRING_SIZE	256
+#define PORT_STRING_SIZE    256
 
 /**************************************************************************//**
 *
@@ -103,49 +103,49 @@
 */
 
 uint32_t
-wr_get_portdesc(struct rte_pci_addr * pciAddr, uint8_t ** portdesc, uint32_t num, int verbose )
+wr_get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, int verbose)
 {
-	FILE * fd;
-	uint32_t	idx;
+	FILE *fd;
+	uint32_t idx;
 	char buff[PORT_STRING_SIZE], *p;
 
 	if ( (num <= 0) || (pciAddr == NULL) || (portdesc == NULL) )
 		return 0;
 
-	// Only parse the Ethernet cards on the PCI bus.
+	/* Only parse the Ethernet cards on the PCI bus. */
 	fd = popen("lspci -D | grep Ethernet", "r");
-	if ( fd == NULL )
+	if (fd == NULL)
 		rte_panic("*** Unable to do lspci may need to be installed");
 
-	if ( verbose )
+	if (verbose)
 		fprintf(stdout, "\n** Bit Mask: All ports in system\n");
 
 	idx = 0;
-	while( fgets(buff, sizeof(buff), fd) ) {
+	while (fgets(buff, sizeof(buff), fd) ) {
 		p = &buff[0];
 
-		// add a null at the end of the string.
-		p[strlen(buff)-1] = 0;
+		/* add a null at the end of the string. */
+		p[strlen(buff) - 1] = 0;
 
-		// Decode the 0000:00:00.0 PCI device address.
-		pciAddr[idx].domain		= strtol(  p, &p, 16);
-		pciAddr[idx].bus		= strtol(++p, &p, 16);
-		pciAddr[idx].devid		= strtol(++p, &p, 16);
-		pciAddr[idx].function	= strtol(++p, &p, 16);
+		/* Decode the 0000:00:00.0 PCI device address. */
+		pciAddr[idx].domain     = strtol(p, &p, 16);
+		pciAddr[idx].bus        = strtol(++p, &p, 16);
+		pciAddr[idx].devid      = strtol(++p, &p, 16);
+		pciAddr[idx].function   = strtol(++p, &p, 16);
 
-		if ( verbose )
+		if (verbose)
 			fprintf(stdout, " 0x%016llx: %s\n", (1ULL << idx), buff);
 
-		// Save the port description for later if asked to do so.
-		if ( portdesc )
-			portdesc[idx] = (uint8_t *)strdup(buff);		// portdesc[idx] needs to be NULL or we lose memory.
+		/* Save the port description for later if asked to do so. */
+		if (portdesc)
+			portdesc[idx] = (uint8_t *)strdup(buff);/* portdesc[idx] needs to be NULL or we lose memory. */
 
-		if ( ++idx >= num )
+		if (++idx >= num)
 			break;
 	}
 
 	pclose(fd);
-	if ( verbose )
+	if (verbose)
 		fprintf(stdout, "\nFound %d ports\n", idx);
 
 	return idx;
@@ -164,12 +164,12 @@ wr_get_portdesc(struct rte_pci_addr * pciAddr, uint8_t ** portdesc, uint32_t num
 */
 
 void
-wr_free_portdesc( uint8_t ** portdesc, uint32_t num )
+wr_free_portdesc(uint8_t **portdesc, uint32_t num)
 {
-	uint32_t		i;
+	uint32_t i;
 
-	for( i = 0; i < num; i++ ) {
-		if ( portdesc[i] )
+	for (i = 0; i < num; i++) {
+		if (portdesc[i])
 			free((char *)portdesc[i]);
 		portdesc[i] = NULL;
 	}
@@ -188,18 +188,18 @@ wr_free_portdesc( uint8_t ** portdesc, uint32_t num )
 */
 
 uint32_t
-wr_create_blacklist(uint64_t portmask, struct rte_pci_addr * portlist, uint32_t port_cnt, uint8_t * desc[]) {
-    uint32_t i, idx;
-    char pci_addr_str[32];
+wr_create_blacklist(uint64_t portmask, struct rte_pci_addr *portlist, uint32_t port_cnt, uint8_t *desc[]) {
+	uint32_t i, idx;
+	char pci_addr_str[32];
 
-    if ( (portmask == 0) || (portlist == NULL) || (port_cnt == 0) || (desc == NULL) )
-    	return 0;
+	if ( (portmask == 0) || (portlist == NULL) || (port_cnt == 0) || (desc == NULL) )
+		return 0;
 
 	fprintf(stdout, "Ports: Port Mask: %016lx blacklisted = --, not-blacklisted = ++\n", portmask);
 	idx = 0;
-    for(i = 0; i < port_cnt; i++) {
+	for (i = 0; i < port_cnt; i++) {
 		memset(pci_addr_str, 0, sizeof(pci_addr_str));
-		if ( (portmask & (1ULL << i)) == 0 ) {
+		if ( (portmask & (1ULL << i)) == 0) {
 			fprintf(stdout, "-- %s\n", desc[i]);
 			strncpy(pci_addr_str, (void *)desc[i], 12);
 			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI, pci_addr_str);
@@ -210,8 +210,8 @@ wr_create_blacklist(uint64_t portmask, struct rte_pci_addr * portlist, uint32_t 
 			fprintf(stdout, "++ %s\n", desc[i]);
 		}
 	}
-    if ( desc )
-    	fprintf(stdout, "\n");
+	if (desc)
+		fprintf(stdout, "\n");
 
 	return idx;
 }

@@ -34,29 +34,29 @@
 #ifndef _WR_COPYRIGHT_INFO_H
 #define _WR_COPYRIGHT_INFO_H
 
-extern void wr_print_copyright(const char * appname, const char * created_by);
-extern void wr_logo(int row, int col, const char * appname);
-extern void wr_splash_screen(int row, int col, const char * appname, const char * created_by);
+extern void wr_print_copyright(const char *appname, const char *created_by);
+extern void wr_logo(int row, int col, const char *appname);
+extern void wr_splash_screen(int row, int col, const char *appname, const char *created_by);
 
 /**
  * Function returning string for Copyright message."
  * @return
  *     string
  */
-const char * wr_copyright_msg(void);
+const char *wr_copyright_msg(void);
 
 /**
  * Function returning short string for Copyright message."
  * @return
  *     string
  */
-const char * wr_copyright_msg_short(void);
+const char *wr_copyright_msg_short(void);
 
 /**
  * Function returning string for Copyright message."
  * @return
  *     string
  */
-const char * wr_powered_by(void);
+const char *wr_powered_by(void);
 
 #endif /* _WR_COPYRIGHT_INFO_H */

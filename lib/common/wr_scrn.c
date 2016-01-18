@@ -41,19 +41,18 @@
 #include <rte_config.h>
 #include <rte_atomic.h>
 #include <rte_malloc.h>
-#include <rte_spinlock.h>
 
 #include "wr_scrn.h"
 
-	wr_scrn_t	* __scrn;		/**< Global screen structure pointer, their can be only one */
+wr_scrn_t   *__scrn;		/**< Global screen structure pointer, their can be only one */
 
 void
-wr_scrn_center(int16_t r, int16_t ncols, const char * fmt, ...)
+wr_scrn_center(int16_t r, int16_t ncols, const char *fmt, ...)
 {
-	va_list	vaList;
-	char	str[512];
+	va_list vaList;
+	char str[512];
 
-	if ( ncols == -1 )
+	if (ncols == -1)
 		ncols = __scrn->ncols;
 	va_start(vaList, fmt);
 	vsnprintf(str, sizeof(str), fmt, vaList);
@@ -64,10 +63,10 @@ wr_scrn_center(int16_t r, int16_t ncols, const char * fmt, ...)
 }
 
 void
-wr_scrn_printf(int16_t r, int16_t c, const char * fmt, ...)
+wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 {
-	va_list	vaList;
-	
+	va_list vaList;
+
 	if ( (r != 0) && (c != 0) )
 		wr_scrn_pos(r, c);
 	va_start(vaList, fmt);
@@ -77,9 +76,9 @@ wr_scrn_printf(int16_t r, int16_t c, const char * fmt, ...)
 }
 
 void
-wr_scrn_fprintf(int16_t r, int16_t c, FILE * f, const char * fmt, ...)
+wr_scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...)
 {
-	va_list	vaList;
+	va_list vaList;
 
 	if ( (r != 0) && (c != 0) )
 		wr_scrn_pos(r, c);
@@ -92,20 +91,20 @@ wr_scrn_fprintf(int16_t r, int16_t c, FILE * f, const char * fmt, ...)
 wr_scrn_t *
 wr_scrn_init(int16_t nrows, int16_t ncols, int theme)
 {
-	wr_scrn_t *	scrn;
+	wr_scrn_t *scrn;
 
-	if ( __scrn != NULL ) {
+	if (__scrn != NULL) {
 		free(__scrn);
 		__scrn = NULL;
 	}
 
 	scrn = malloc(sizeof(wr_scrn_t));
-	if ( scrn  ) {
+	if (scrn) {
 		rte_atomic32_set(&scrn->pause, SCRN_PAUSED);
 
-		scrn->nrows		= nrows;
-		scrn->ncols		= ncols;
-		scrn->theme		= theme;
+		scrn->nrows     = nrows;
+		scrn->ncols     = ncols;
+		scrn->theme     = theme;
 		wr_scrn_color(DEFAULT_FG, DEFAULT_BG, OFF);
 
 		wr_scrn_erase(nrows);

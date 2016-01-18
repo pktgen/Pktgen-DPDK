@@ -68,7 +68,6 @@
 #ifndef _PKTGEN_CPU_H_
 #define _PKTGEN_CPU_H_
 
-
 /**************************************************************************//**
 *
 * pktgen_cpu_init - Init the CPU information
@@ -97,5 +96,4 @@ extern void pktgen_cpu_init(void);
 
 extern void pktgen_page_cpu(void);
 
-
-#endif	// _PKTGEN_CPU_H_
+#endif  /* _PKTGEN_CPU_H_ */

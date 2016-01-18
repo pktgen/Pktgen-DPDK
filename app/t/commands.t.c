@@ -12,21 +12,19 @@
 #include "pktgen.h"
 #include "lpktgenlib.h"
 
-
 #include <wr_scrn.h>
 wr_scrn_t *scrn = NULL;
-
 
 pktgen_t pktgen;
 int rte_cycles_vmware_tsc_map = 0;
 enum timer_source eal_timer_source = EAL_TIMER_HPET;
 
+/* Test driver */
+int
+main(void) {
+	plan(1);
+	ok(1, "ok works");
 
-// Test driver
-int main(void) {
-    plan(1);
-    ok(1, "ok works");
-
-    done_testing();
-    return 0;
+	done_testing();
+	return 0;
 }

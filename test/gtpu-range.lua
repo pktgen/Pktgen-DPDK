@@ -8,12 +8,12 @@ package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 local function doWait(port, waitTime)
     local idx;
 
-	pktgen.delay(1000);
+   pktgen.delay(1000);
 
-	if ( waitTime == 0 ) then
-		return;
-	end
-	waitTime = waitTime - 1;
+   if ( waitTime == 0 ) then
+       return;
+   end
+   waitTime = waitTime - 1;
 
     -- Try to wait for the total number of packets to be sent.
     local idx = 0;
@@ -34,8 +34,7 @@ end
 pktgen.reset("all");
 
 -- 'set' commands for a number of per port values
-pktgen.set("all", "rate", 100);
-
+pktgen+.set("all", "rate", 100);
 
 pktgen.screen("on");
 pktgen.clear("all");
@@ -101,6 +100,11 @@ pktgen.pause("Wait a second, then go back to main page\n", 1000);
 pktgen.page("0");
 --pktgen.pause("About to do range\n", 2000);
 
+pktgen.pause("Wait a second, then go back to main page\n", 1000);
+pktgen.page("0");
+--pktgen.pause("About to do range\n", 2000);
+
 pktgen.start("all");
 doWait("all", 1);
 --printf("Done\n");
+

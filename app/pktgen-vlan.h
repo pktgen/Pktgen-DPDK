@@ -72,8 +72,6 @@
 
 #include <rte_mbuf.h>
 
+extern void pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid);
 
-extern void pktgen_process_vlan( struct rte_mbuf * m, uint32_t pid );
-
-
-#endif	// _PKTGEN_VLAN_H_
+#endif  /* _PKTGEN_VLAN_H_ */

@@ -80,6 +80,7 @@
 #include "pktgen-display.h"
 #include "pktgen-random.h"
 #include "pktgen-log.h"
+#include "pktgen-gtpu.h"
 
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
@@ -532,32 +533,66 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type, pkt_seq_t *
 	if (likely(pkt->ethType == ETHER_TYPE_IPv4) ) {
 
 		if (likely(pkt->ipProto == PG_IPPROTO_TCP) ) {
-			tcpip_t   *tip;
+           if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
+               tcpip_t   * tip;
 
-			/* Start from Ethernet header */
-			tip = (tcpip_t *)ether_hdr;
+				/* Start from Ethernet header */
+				tip = (tcpip_t *)ether_hdr;
 
-			/* Construct the TCP header */
-			pktgen_tcp_hdr_ctor(pkt, tip, ETHER_TYPE_IPv4);
+				/* Construct the TCP header */
+				pktgen_tcp_hdr_ctor(pkt, tip, ETHER_TYPE_IPv4);
 
-			/* IPv4 Header constructor */
-			pktgen_ipv4_ctor(pkt, (ipHdr_t *)tip);
+				/* IPv4 Header constructor */
+				pktgen_ipv4_ctor(pkt, (ipHdr_t *)tip);
 
-			pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) + sizeof(tcpHdr_t);
+				pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) + sizeof(tcpHdr_t);
+           } else {
+               gtpuTcpIp_t     * tcpGtpu;
+
+               // Start from Ethernet header
+                tcpGtpu = (gtpuTcpIp_t *)ether_hdr;
+               // Construct the GTP-U header
+               pktgen_gtpu_hdr_ctor(pkt, (gtpuHdr_t *)tcpGtpu, pkt->ipProto);
+
+               // Construct the TCP header
+               pktgen_tcp_hdr_ctor(pkt, (tcpip_t *)tcpGtpu, ETHER_TYPE_IPv4);
+
+               // IPv4 Header constructor
+               pktgen_ipv4_ctor(pkt, (ipHdr_t *)tcpGtpu);
+
+               pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) + sizeof(tcpHdr_t) + sizeof(gtpuHdr_t);
+           }
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
-			udpip_t   *udp;
+           if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
+               udpip_t   * udp;
 
-			/* Construct the Ethernet header */
-			/* udp = (udpip_t *)pktgen_ether_hdr_ctor(info, pkt, eth); */
-			udp = (udpip_t *)ether_hdr;
+				/* Construct the Ethernet header */
+				/* udp = (udpip_t *)pktgen_ether_hdr_ctor(info, pkt, eth); */
+				udp = (udpip_t *)ether_hdr;
 
-			/* Construct the UDP header */
-			pktgen_udp_hdr_ctor(pkt, udp, ETHER_TYPE_IPv4);
+				/* Construct the UDP header */
+				pktgen_udp_hdr_ctor(pkt, udp, ETHER_TYPE_IPv4);
 
-			/* IPv4 Header constructor */
-			pktgen_ipv4_ctor(pkt, (ipHdr_t *)udp);
+				/* IPv4 Header constructor */
+				pktgen_ipv4_ctor(pkt, (ipHdr_t *)udp);
 
-			pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) + sizeof(udpHdr_t);
+				pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) + sizeof(udpHdr_t);
+           } else {
+               gtpuUdpIp_t   * udpGtpu;
+
+               udpGtpu = (gtpuUdpIp_t *)ether_hdr;
+
+               // Construct the GTP-U header
+               pktgen_gtpu_hdr_ctor(pkt, (gtpuHdr_t *)udpGtpu, pkt->ipProto);
+
+               // Construct the UDP header
+               pktgen_udp_hdr_ctor(pkt, (udpip_t *)udpGtpu, ETHER_TYPE_IPv4);
+
+               // IPv4 Header constructor
+               pktgen_ipv4_ctor(pkt, (ipHdr_t *)udpGtpu);
+
+               pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) + sizeof(udpHdr_t) + sizeof(gtpuHdr_t);
+           }
 		} else if (pkt->ipProto == PG_IPPROTO_ICMP) {
 			udpip_t           *uip;
 			icmpv4Hdr_t       *icmp;

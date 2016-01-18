@@ -52,7 +52,7 @@ SRCS-y := \
 	pktgen-seq.c pktgen-dump.c pktgen-capture.c pktgen-stats.c \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
-	pktgen-random.c pktgen-display.c pktgen-log.c
+	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c
 
 MYLIBS := -L$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src/lib/$(LUA_DIR)/src/$(RTE_TARGET) \
 		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon

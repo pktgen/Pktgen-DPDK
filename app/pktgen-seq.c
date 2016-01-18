@@ -102,15 +102,16 @@ pktgen_page_seq(uint32_t pid)
 	row = PORT_STATE_ROW;
 	col = 1;
 	wr_scrn_printf(row++, col, "Port: %2d, Sequence Count: %2d of %2d  ", pid, info->seqCnt, NUM_SEQ_PKTS);
-	wr_scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s",
+	wr_scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s%*s",
 	               6, "Seq:",
 	               COLUMN_WIDTH_0, "Dst MAC",
 	               COLUMN_WIDTH_0, "Src MAC",
 	               COLUMN_WIDTH_0, "Dst IP",
-	               COLUMN_WIDTH_0 + 2, "Src IP",
-	               12, "Port S/D",
-	               15, "Protocol:VLAN",
-	               5, "Size");
+                   COLUMN_WIDTH_0, "Src IP",
+                   COLUMN_WIDTH_0, "Port S/D",
+                   COLUMN_WIDTH_0, "Protocol:VLAN",
+                   10, "Size",
+                   10, "GTPu-TEID");
 	for (i = 0; i < NUM_SEQ_PKTS; i++) {
 		col = 1;
 		pkt = &info->seq_pkt[i];
@@ -132,16 +133,20 @@ pktgen_page_seq(uint32_t pid)
 		col += COLUMN_WIDTH_1 + 2;
 
 		snprintf(buff, sizeof(buff), "%d/%d", pkt->sport, pkt->dport);
-		wr_scrn_printf(row, col, "%*s", 12, buff);
-		col += 12;
+        wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_0, buff);
+        col += COLUMN_WIDTH_0;
+
 		snprintf(buff, sizeof(buff), "%s/%s:%04x", (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
 		         (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
 		         pkt->vlanid);
-		wr_scrn_printf(row, col, "%*s", 15, buff);
-		col += 15;
+        wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_0, buff);
+        col += COLUMN_WIDTH_1;
+
 		wr_scrn_printf(row, col, "%5d", pkt->pktSize + FCS_SIZE);
+        col += 10;
+        wr_scrn_printf(row, col, "%5d", pkt->gtpu_teid);
 		row++;
 	}
 

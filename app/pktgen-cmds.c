@@ -2349,7 +2349,7 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
                    cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
                    cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
                    uint32_t sport, uint32_t dport, char type, char proto,
-                   uint16_t vlanid, uint32_t pktsize)
+                   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -2375,6 +2375,7 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 	        (type == '6') ? ETHER_TYPE_IPv6 :
 	        (type == 'n') ? ETHER_TYPE_VLAN : ETHER_TYPE_IPv4;
 	pkt->vlanid         = vlanid;
+	pkt->gtpu_teid		= gtpu_teid;
 	pktgen_packet_ctor(info, seqnum, -1, NULL);
 }
 

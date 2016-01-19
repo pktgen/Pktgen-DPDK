@@ -1,4 +1,4 @@
-Pktgen version 2.9.7 using DPDK-2.2.0
+Pktgen version 2.9.8 using DPDK-2.2.0
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
@@ -6,6 +6,7 @@ Pktgen version 2.9.7 using DPDK-2.2.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.8   - Fixed the crash when using the sequence packets.
  - 2.9.7   - Changed all rte_zmalloc to rte_zmalloc_socket calls and change seq_pkt support.
              The fix for multiple cores accessing seq_pkts was to allocate memory and copy
              into a private area. This sometimes caused memory allocation problems, so I

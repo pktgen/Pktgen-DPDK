@@ -511,9 +511,9 @@ pktgen_has_work(void)
 */
 
 void
-pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type, pkt_seq_t *seq_pkt)
+pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 {
-	pkt_seq_t         *pkt = (seq_pkt == NULL) ? &info->seq_pkt[seq_idx] : &seq_pkt[seq_idx];
+	pkt_seq_t         *pkt = &info->seq_pkt[seq_idx];
 	struct ether_hdr  *eth = (struct ether_hdr *)&pkt->hdr.eth;
 	uint16_t tlen;
 
@@ -978,31 +978,38 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 		mm = m;
 
 		if (mp == info->q[qid].tx_mp) {
-			pktgen_packet_ctor(info, SINGLE_PKT, -1, seq_pkt);
+			pktgen_packet_ctor(info, SINGLE_PKT, -1);
 
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+					   (uint8_t *)&pkt->hdr,
+					   MAX_PKT_SIZE);
 
 			m->pkt_len  = pkt->pktSize;
 			m->data_len = pkt->pktSize;
 		} else if (mp == info->q[qid].range_mp) {
 			pktgen_range_ctor(&info->range, pkt);
-			pktgen_packet_ctor(info, RANGE_PKT, -1, seq_pkt);
+			pktgen_packet_ctor(info, RANGE_PKT, -1);
 
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+					   (uint8_t *)&pkt->hdr,
+					   MAX_PKT_SIZE);
 
 			m->pkt_len  = pkt->pktSize;
 			m->data_len = pkt->pktSize;
 		} else if (mp == info->q[qid].seq_mp) {
-			pktgen_packet_ctor(info, info->seqIdx++, -1, seq_pkt);
-			if (unlikely(seqIdx >= info->seqCnt) )
-				seqIdx = 0;
+			pktgen_packet_ctor(info, seqIdx, -1);
 
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+					   (uint8_t *)&pkt->hdr,
+					   MAX_PKT_SIZE);
 
 			m->pkt_len  = pkt->pktSize;
 			m->data_len = pkt->pktSize;
 
 			/* move to the next packet in the sequence. */
+			if (unlikely(++seqIdx >= info->seqCnt) )
+				seqIdx = 0;
+			info->seqIdx = seqIdx;
 			pkt = &seq_pkt[seqIdx];
 		}
 	}

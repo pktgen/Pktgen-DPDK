@@ -156,7 +156,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "2.9.7"
+#define PKTGEN_VERSION          "2.9.8"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -390,7 +390,7 @@ extern pktgen_t pktgen;
 
 extern void pktgen_page_display(struct rte_timer *tim, void *arg);
 
-extern void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type, pkt_seq_t *seq_pkt);
+extern void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
 extern void pktgen_packet_rate(port_info_t *info);
 
 extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);

@@ -566,7 +566,7 @@ typedef struct pkt_hdr_s {
 		ipv6Hdr_t ipv6;		/**< IPv6 Header */
 		tcpip_t tip;		/**< TCP + IPv4 Headers */
 		udpip_t uip;		/**< UDP + IPv4 Headers */
-		gtpuUdpIp_t guip;       /**< GTP-U + UDP + IPv4 Header */
+		gtpuUdpIp_t guip;	/**< GTP-U + UDP + IPv4 Header */
 		icmpv4Hdr_t icmp;	/**< ICMP + IPv4 Headers */
 		tcpipv6_t tip6;		/**< TCP + IPv6 Headers */
 		udpipv6_t uip6;		/**< UDP + IPv6 Headers */

@@ -189,7 +189,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 
 				rte_memcpy(&pkt->eth_dst_addr, &arp->sha, 6);
 				for (i = 0; i < info->seqCnt; i++)
-					pktgen_packet_ctor(info, i, -1, NULL);
+					pktgen_packet_ctor(info, i, -1);
 			}
 
 			/* Swap the two MAC addresses */

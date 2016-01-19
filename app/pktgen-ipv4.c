@@ -137,7 +137,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 		return;
 	}
 	*ppkt = *spkt;	/* Copy the sequence setup to the ping setup. */
-	pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO, NULL);
+	pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO);
 	rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
 	           (uint8_t *)&ppkt->hdr, ppkt->pktSize);
 

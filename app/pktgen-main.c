@@ -363,9 +363,10 @@ main(int argc, char **argv)
 	uint32_t i;
 	int32_t ret;
 
-	printf("\n%s %s\n", wr_copyright_msg(), wr_powered_by()); fflush(stdout);
-
 	wr_scrn_setw(1);/* Reset the window size */
+	wr_scrn_pos(100, 1);
+
+	printf("\n%s %s\n", wr_copyright_msg(), wr_powered_by()); fflush(stdout);
 
 	/* call before the rte_eal_init() */
 	(void)rte_set_application_usage_hook(pktgen_usage);

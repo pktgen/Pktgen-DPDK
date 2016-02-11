@@ -1,9 +1,9 @@
-Pktgen version 2.9.9 using DPDK-2.2.0
+Pktgen-DPDK version 2.9.10
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
 
-**Sounds like 'Packet-Gen'**
+** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
  - 2.9.10  - Reformat the code and get ready for the next release of DPDK.
@@ -131,7 +131,7 @@ Please look at the 3rd party PDF for license information.
  OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
-**Copyright &copy; \<2010-2016\>, Wind River Systems, Inc.**
+**Copyright &copy; \<2010-2014\>, Wind River Systems, Inc.**
 
  Redistribution and use in source and binary forms, with or without modification, are
  permitted provided that the following conditions are met:
@@ -164,10 +164,11 @@ Please look at the 3rd party PDF for license information.
  Pktgen: Created 2010 by Keith Wiles @ windriver.com, now at Intel.com
  ---
 
-**======================== README.pktgen file ==============================**
+**======================== README.md file ==============================**
 
                           *** Pktgen ****
-          Copyright &copy \<2010-2016\>, Wind River Systems, Inc.
+          Copyright &copy \<2015-2016\>, Intel Corporation.
+          Copyright &copy \<2010-2014\>, Wind River Systems, Inc.
 
 README for setting up Pktgen with DPDK on Ubuntu 10.04 to 13.10 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
@@ -175,10 +176,12 @@ should work on most Linux systems as long as the kernel has hugeTLB page support
 *** Note: Tested with Ubuntu 13.10 and up to 14.04 kernel version
     Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
 
-I am using Ubuntu 13.10 x86_64 (64 bit support) for running pktgen/DPDK on a
-Westmere Dual socket board running at 2.4GHz with 12GB of ram 6GB per socket.
+I am using Ubuntu 13.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
+Crownpass Dual socket board running at 2.4GHz with 32GB of ram 16GB per socket.
 The current kernel version is 3.5.0-25 (as of 2013-03-18) support, but should
 work on just about any new Linux kernel version.
+
+Currently using as of 2016-02-10 Ubuntu 15.10 Kernel 4.2.0-27-generic system.
 
 To get hugeTLB page support your Linux kernel must be at least 2.6.33 and in the
 DPDK documents it talks about how you can upgrade your Linux kernel.
@@ -190,9 +193,10 @@ http://usablesoftware.wordpress.com/2010/05/26/switch-to-a-newer-kernel-in-ubunt
 The pktgen output display needs 132 columns and about 42 lines to display
 correctly. I am using an xterm of 132x42, but you can have a larger display
 and maybe a bit smaller. If you are displaying more then 4-6 ports then you
-will need a wider display. The pktgen allows you to view a set ports if they
-do not all fit on the screen at one time via the 'page' command in pktgen.
-Type 'help' at the 'pktgen>' prompt to see the complete pktgen command line
+will need a wider display. Pktgen allows you to view a set of ports if they
+do not all fit on the screen at one time via the 'page' command.
+
+Type 'help' at the 'Pktgen>' prompt to see the complete Pktgen command line
 commands. Pktgen uses VT100 control codes or escape codes to display the screens,
 which means your terminal must support VT100. The Hyperterminal in windows is not
 going to work for Pktgen as it has a few problems with VT100 codes.
@@ -641,7 +645,7 @@ system configuration.
      OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   
 -----------------------
-    Copyright (c) <2010-2016>, Wind River Systems, Inc.
+    Copyright (c) <2010-2014>, Wind River Systems, Inc.
 
      Redistribution and use in source and binary forms, with or without modification, are
      permitted provided that the following conditions are met:
@@ -948,70 +952,11 @@ Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 === TX processing on lcore  3, txcnt 1, port/qid, 0/0                                                                               
 === TX processing on lcore  4, txcnt 1, port/qid, 1/0
 
-      #     #
-      #  #  #     #    #    #  #####
-      #  #  #     #    ##   #  #    #
-      #  #  #     #    # #  #  #    #
-      #  #  #     #    #  # #  #    #
-      #  #  #     #    #   ##  #    #
-       ## ##      #    #    #  #####
-
-      ######
-      #     #     #    #    #  ######  #####
-      #     #     #    #    #  #       #    #
-      ######      #    #    #  #####   #    #
-      #   #       #    #    #  #       #####
-      #    #      #     #  #   #       #   #
-      #     #     #      ##    ######  #    #
-
-       #####
-      #     #   #   #   ####    #####  ######  #    #   ####
-      #          # #   #          #    #       ##  ##  #
-       #####      #     ####      #    #####   # ## #   ####
-            #     #         #     #    #       #    #       #
-      #     #     #    #    #     #    #       #    #  #    #
-       #####      #     ####      #    ######  #    #   ####
-
-               Copyright (c) <2010-2016>, Wind River Systems, Inc.
-                     >>> Pktgen is Powered by IntelÂ® DPDK <<<
-
----------------------
-
-               Copyright (c) <2010-2016>, Wind River Systems, Inc.
-
-         Redistribution and use in source and binary forms, with or without modification, are
-         permitted provided that the following conditions are met:
-
-           1) Redistributions of source code must retain the above copyright notice,
-              this list of conditions and the following disclaimer.
-
-           2) Redistributions in binary form must reproduce the above copyright notice,
-              this list of conditions and the following disclaimer in the documentation and/or
-              other materials provided with the distribution.
-
-           3) Neither the name of Wind River Systems nor the names of its contributors may be
-              used to endorse or promote products derived from this software without specific
-              prior written permission.
-
-           4) The screens displayed by the application must contain the copyright notice as defined
-              above and can not be removed without specific prior written permission.
-
-         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-         AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-         IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-         ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-         LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-         DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-         SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-         CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-         OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
-         USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
                Pktgen created by Keith Wiles -- >>> Powered by IntelÂ® DPDK <<<
 ```
 ------------------
 ```
-- Ports 0-3 of 6   ** Main Page **  Copyright (c) <2010-2016>, Wind River Systems, Inc. Powered by IntelÂ® DPDK
+- Ports 0-3 of 6   ** Main Page **  Copyright (c) <2010-2016>, Intel Corporation. Powered by IntelÂ® DPDK
   Flags:Port    :   P-------------:0   P-------------:1
 Link State      :      <UP-10000-FD>      <UP-10000-FD>                                          ---TotalRate---
 Pkts/s  Rx      :                  0                  0                                                        0
@@ -1062,7 +1007,7 @@ $
 ```
 ------------------------------------------------------------------------
 ```
-   *** Help Information for Pktgen ***         Copyright (c) <2010-2016>, Wind River Systems, Inc.
+   *** Help Information for Pktgen ***         Copyright (c) <2010-2016>, Intel Corporation.
 
 set <portlist> <xxx> value         - Set a few port values
   <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'
@@ -1211,7 +1156,7 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
 ```
 ---------------------------------------------------------------------------
 ```
-\  Port 0 of 4    ** PCAP Page **   Copyright (c) <2010-2016>, Wind River Systems, Inc., Powered by Intel® DPDK
+\  Port 0 of 4    ** PCAP Page **   Copyright (c) <2010-2016>, Intel Corporation, Powered by Intel® DPDK
 Port: 0, PCAP Count: 0 of 9716, skipped 0
   Seq            Dst MAC           Src MAC            Dst IP              Src IP    Port S/D  Protocol:VLAN Size-FCS
     0:    0014:2273:0a68    000f:ea34:177e    192.168.119.23     192.168.117.213    43934/53  IPv4/UDP:   0   73
@@ -1336,8 +1281,8 @@ $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
 Lua Vesrion      : Lua 5.2
 Pktgen Version   : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
-Pktgen Authors   : Keith Wiles @ Wind River Systems
+Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
+Pktgen Authors   : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 --------
@@ -1364,8 +1309,8 @@ f,e = loadfile("test/hello-world.lua")
 f()
 Lua Version      : Lua 5.2
 Pktgen Version   : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
-Pktgen Authors   : Keith Wiles @ Wind River Systems
+Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
+Pktgen Authors   : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 <Control-D>
@@ -1377,10 +1322,10 @@ You can also just send it commands via echo.
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
 Lua Version      : Lua 5.2
 Pktgen Version   : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
-Pktgen Authors   : Keith Wiles @ Wind River Systems
+Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
+Pktgen Authors   : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 ----------------------
 
-Keith Wiles @ Wind River Systems
+Keith Wiles @ Intel Corporation

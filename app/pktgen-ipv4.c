@@ -73,16 +73,16 @@
 #include "pktgen.h"
 
 /**************************************************************************//**
-*
-* pktgen_ipv4_ctor - Construct the IPv4 header for a packet
-*
-* DESCRIPTION
-* Constructor for the IPv4 header for a given packet.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_ipv4_ctor - Construct the IPv4 header for a packet
+ *
+ * DESCRIPTION
+ * Constructor for the IPv4 header for a given packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip)
@@ -111,16 +111,16 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip)
 }
 
 /**************************************************************************//**
-*
-* pktgen_send_ping4 - Create and send a Ping or ICMP echo packet.
-*
-* DESCRIPTION
-* Create a ICMP echo request packet and send the packet to a give port.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_send_ping4 - Create and send a Ping or ICMP echo packet.
+ *
+ * DESCRIPTION
+ * Create a ICMP echo request packet and send the packet to a give port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
@@ -150,16 +150,16 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 }
 
 /**************************************************************************//**
-*
-* pktgen_process_ping4 - Process a input ICMP echo packet for IPv4.
-*
-* DESCRIPTION
-* Process a input packet for IPv4 ICMP echo request and send response if needed.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_process_ping4 - Process a input ICMP echo packet for IPv4.
+ *
+ * DESCRIPTION
+ * Process a input packet for IPv4 ICMP echo request and send response if needed.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
@@ -177,19 +177,25 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 	/* Look for a ICMP echo requests, but only if enabled. */
 	if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
 	     (ip->proto == PG_IPPROTO_ICMP) ) {
-
-		icmpv4Hdr_t *icmp = (icmpv4Hdr_t *)((uintptr_t)ip + sizeof(ipHdr_t));
+		icmpv4Hdr_t *icmp =
+		        (icmpv4Hdr_t *)((uintptr_t)ip + sizeof(ipHdr_t));
 
 		/* We do not handle IP options, which will effect the IP header size. */
-		if (unlikely(cksum(icmp, (m->data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0)) ) {
+		if (unlikely(cksum(icmp,
+		                   (m->data_len - sizeof(struct ether_hdr) -
+		                    sizeof(ipHdr_t)),
+		                   0)) ) {
 			pktgen_log_error("ICMP checksum failed");
 			return;
 		}
 
 		if (unlikely(icmp->type == ICMP4_ECHO) ) {
 			if (ntohl(ip->dst) == INADDR_BROADCAST) {
-				pktgen_log_warning("IP address %s is a Broadcast",
-				                   inet_ntop4(buff, sizeof(buff), ip->dst, INADDR_BROADCAST));
+				pktgen_log_warning(
+				        "IP address %s is a Broadcast",
+				        inet_ntop4(buff,
+				                   sizeof(buff), ip->dst,
+				                   INADDR_BROADCAST));
 				return;
 			}
 
@@ -199,7 +205,10 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 			/* ARP request not for this interface. */
 			if (unlikely(pkt == NULL) ) {
 				pktgen_log_warning("IP address %s not found",
-				                   inet_ntop4(buff, sizeof(buff), ip->dst, INADDR_BROADCAST));
+				                   inet_ntop4(buff,
+				                              sizeof(buff),
+				                              ip->dst,
+				                              INADDR_BROADCAST));
 				return;
 			}
 
@@ -209,7 +218,10 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 
 			/* Recompute the ICMP checksum */
 			icmp->cksum = 0;
-			icmp->cksum = cksum(icmp, (m->data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0);
+			icmp->cksum =
+			        cksum(icmp,
+			              (m->data_len - sizeof(struct ether_hdr) -
+			               sizeof(ipHdr_t)), 0);
 
 			/* Swap the IP addresses. */
 			inetAddrSwap(&ip->src, &ip->dst);

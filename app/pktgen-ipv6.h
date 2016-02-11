@@ -71,19 +71,20 @@
 #include "pktgen.h"
 
 /**************************************************************************//**
-*
-* pktgen_ipv6_ctor - IPv6 packet header constructor routine.
-*
-* DESCRIPTION
-* Construct the IPv6 header constructor routine.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_ipv6_ctor - IPv6 packet header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct the IPv6 header constructor routine.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 extern void pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip);
 
-extern void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid, uint32_t vlan);
+extern void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid,
+                                 uint32_t vlan);
 
 #endif  /* _PKTGEN_IPV6_H_ */

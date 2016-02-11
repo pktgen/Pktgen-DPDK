@@ -36,7 +36,10 @@
 
 extern void wr_print_copyright(const char *appname, const char *created_by);
 extern void wr_logo(int row, int col, const char *appname);
-extern void wr_splash_screen(int row, int col, const char *appname, const char *created_by);
+extern void wr_splash_screen(int row,
+                             int col,
+                             const char *appname,
+                             const char *created_by);
 
 /**
  * Function returning string for Copyright message."

@@ -56,23 +56,23 @@
 #define MAX_PARSE_SIZE      256
 
 /******************************************************************************
-* wr_strtrim  - Remove leading and trailing white space from a string.
-*
-* SYNOPSIS
-* char * wr_strtrim
-*     (
-*     char *    str
-*     )
-*
-* DESCRIPTION
-* Remove leading and trailing white space from a string.
-*
-* RETURNS: pointer to the trimmed string or NULL <str> is Null.
-*
-* ERRNO: N/A
-*
-* \NOMANUAL
-*/
+ * wr_strtrim  - Remove leading and trailing white space from a string.
+ *
+ * SYNOPSIS
+ * char * wr_strtrim
+ *     (
+ *     char *    str
+ *     )
+ *
+ * DESCRIPTION
+ * Remove leading and trailing white space from a string.
+ *
+ * RETURNS: pointer to the trimmed string or NULL <str> is Null.
+ *
+ * ERRNO: N/A
+ *
+ * \NOMANUAL
+ */
 char *
 wr_strtrim(char *str)
 {
@@ -82,7 +82,8 @@ wr_strtrim(char *str)
 	if ( (str != NULL) && (len = strlen(str)) ) {
 		/* skip white spaces at the front of the string */
 		for (; *str != 0; str++)
-			if ( (*str != ' ') && (*str != '\t') && (*str != '\r') && (*str != '\n') )
+			if ( (*str != ' ') && (*str != '\t') &&
+			     (*str != '\r') && (*str != '\n') )
 				break;
 
 		len = strlen(str);
@@ -91,7 +92,8 @@ wr_strtrim(char *str)
 
 		/* Trim trailing characters */
 		for (p = &str[len - 1]; p > str; p--) {
-			if ( (*p != ' ') && (*p != '\t') && (*p != '\r') && (*p != '\n') )
+			if ( (*p != ' ') && (*p != '\t') && (*p != '\r') &&
+			     (*p != '\n') )
 				break;
 			*p = '\0';
 		}
@@ -105,7 +107,8 @@ wr_strparse(char *str, const char *delim, char **entries, uint32_t max_entries)
 	uint32_t i;
 	char      *saved;
 
-	if ( (str == NULL) || (delim == NULL) || (entries == NULL) || (max_entries == 0) )
+	if ( (str == NULL) || (delim == NULL) || (entries == NULL) ||
+	     (max_entries == 0) )
 		return 0;
 
 	memset(entries, '\0', (sizeof(char *) * max_entries));

@@ -1,8 +1,8 @@
 /*
-libtap - Write tests in C
-Copyright 2012 Jake Gelbman <gelbman@gmail.com>
-This file is licensed under the GPLv2 or any later version
-*/
+ * libtap - Write tests in C
+ * Copyright 2012 Jake Gelbman <gelbman@gmail.com>
+ * This file is licensed under the GPLv2 or any later version
+ */
 
 #define _BSD_SOURCE 1
 
@@ -204,7 +204,8 @@ cmp_mem_at_loc(const char *file, int line, const void *got,
 	if (diff == 1) {
 		diag("    Difference starts at offset %d", offset);
 		diag("         got: 0x%02x", ((unsigned char *)got)[offset]);
-		diag("    expected: 0x%02x", ((unsigned char *)expected)[offset]);
+		diag("    expected: 0x%02x",
+		     ((unsigned char *)expected)[offset]);
 	} else if (diff == 2) {
 		diag("         got: %s", got ? "not NULL" : "NULL");
 		diag("    expected: %s", expected ? "not NULL" : "NULL");
@@ -263,7 +264,8 @@ exit_status() {
 		printf("1..%d\n", current_test);
 	else if (current_test != expected_tests) {
 		diag("Looks like you planned %d test%s but ran %d.",
-		     expected_tests, expected_tests > 1 ? "s" : "", current_test);
+		     expected_tests, expected_tests > 1 ? "s" : "",
+		     current_test);
 		retval = 255;
 	}
 	if (failed_tests) {
@@ -330,7 +332,7 @@ tap_end_todo() {
 #endif
 
 /* Create a shared memory int to keep track of whether a piece of code executed
-dies. to be used in the dies_ok and lives_ok macros.  */
+ * dies. to be used in the dies_ok and lives_ok macros.  */
 int
 tap_test_died(int status) {
 	static int *test_died = NULL;
@@ -358,8 +360,12 @@ like_at_loc(int for_match, const char *file, int line, const char *got,
 	if (err) {
 		char errbuf[256];
 		regerror(err, &re, errbuf, sizeof errbuf);
-		fprintf(stderr, "Unable to compile regex '%s': %s at %s line %d\n",
-		        expected, errbuf, file, line);
+		fprintf(stderr,
+		        "Unable to compile regex '%s': %s at %s line %d\n",
+		        expected,
+		        errbuf,
+		        file,
+		        line);
 		exit(255);
 	}
 	err = regexec(&re, got, 0, NULL, 0);

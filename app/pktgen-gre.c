@@ -69,19 +69,20 @@
 #include "pktgen.h"
 
 /**************************************************************************//**
-*
-* pktgen_gre_hdr_ctor - IPv4/GRE header construction routine.
-*
-* DESCRIPTION
-* Construct an IPv4/GRE header in a packet buffer.
-*
-* RETURNS: Pointer to memory after the GRE header.
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_gre_hdr_ctor - IPv4/GRE header construction routine.
+ *
+ * DESCRIPTION
+ * Construct an IPv4/GRE header in a packet buffer.
+ *
+ * RETURNS: Pointer to memory after the GRE header.
+ *
+ * SEE ALSO:
+ */
 
 char *
-pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greIp_t *gre)
+pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt,
+                    greIp_t *gre)
 {
 	/* Zero out the header space */
 	memset((char *)gre, 0, sizeof(greIp_t));
@@ -118,7 +119,7 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greIp_t *gre
 
 	gre->gre.version     = 0;
 	gre->gre.eth_type    = htons(ETHER_TYPE_IPv4);	/* FIXME get EtherType of the actual encapsulated packet instead of
-							defaulting to IPv4 */
+							 * defaulting to IPv4 */
 
 	int extra_count = 0;
 	if (gre->gre.chk_present)
@@ -146,19 +147,21 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greIp_t *gre
 }
 
 /**************************************************************************//**
-*
-* pktgen_gre_ether_hdr_ctor - GRE/Ethernet header construction routine.
-*
-* DESCRIPTION
-* Construct a GRE/Ethernet header in a packet buffer.
-*
-* RETURNS: Pointer to memory after the GRE header.
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_gre_ether_hdr_ctor - GRE/Ethernet header construction routine.
+ *
+ * DESCRIPTION
+ * Construct a GRE/Ethernet header in a packet buffer.
+ *
+ * RETURNS: Pointer to memory after the GRE header.
+ *
+ * SEE ALSO:
+ */
 
 char *
-pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greEther_t *gre)
+pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused,
+                          pkt_seq_t *pkt,
+                          greEther_t *gre)
 {
 	/* Zero out the header space */
 	memset((char *)gre, 0, sizeof(greEther_t));
@@ -224,7 +227,7 @@ pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greEth
 	ether_addr_copy(&pkt->eth_src_addr, &eth_hdr->s_addr);			/* FIXME get inner Ethernet parameters from user */
 	ether_addr_copy(&pkt->eth_dst_addr, &eth_hdr->d_addr);			/* FIXME get inner Ethernet parameters from user */
 	eth_hdr->ether_type = htons(ETHER_TYPE_IPv4);				/* FIXME get Ethernet type from actual encapsulated
-										packet instead of hardcoding */
+										 * packet instead of hardcoding */
 
 	/* 4 * (3 - extra_count) is the amount of bytes that are not used by */
 	/* optional fields, but are included in sizeof(greIp_t). */

@@ -202,7 +202,8 @@ pktgen_log_set_file(const char *filename)
 	fp = fopen(filename, "w");
 
 	if (fp == NULL)
-		pktgen_log_warning("Unable to open log file '%s' for writing", filename);
+		pktgen_log_warning("Unable to open log file '%s' for writing",
+		                   filename);
 
 	/* Unbuffered output if file is successfully opened */
 	if (fp != NULL)
@@ -234,7 +235,8 @@ pktgen_page_log(uint32_t print_labels)
 
 	curr_line = output_lines = 0;
 	curr_msg = log_history.head;
-	while ((curr_msg != log_history.tail) && (output_lines < MAX_PAGE_LINES)) {
+	while ((curr_msg != log_history.tail) &&
+	       (output_lines < MAX_PAGE_LINES)) {
 		/* Go backwards and wrap around */
 		curr_msg = (curr_msg + LOG_HISTORY - 1) % LOG_HISTORY;
 
@@ -245,7 +247,8 @@ pktgen_page_log(uint32_t print_labels)
 		 * because of screen width is not counted, \n's embedded in the log
 		 * message are counted.
 		 */
-		for (curr_char = 0; lines[curr_line][curr_char] != '\0'; ++curr_char)
+		for (curr_char = 0; lines[curr_line][curr_char] != '\0';
+		     ++curr_char)
 			if (lines[curr_line][curr_char] == '\n')
 				++output_lines;
 
@@ -263,7 +266,8 @@ pktgen_page_log(uint32_t print_labels)
 		wr_scrn_printf(row++, 1, "%s", lines[curr_line]);
 
 		/* Increase row for each embedded \n */
-		for (curr_char = 0; lines[curr_line][curr_char] != '\0'; ++curr_char)
+		for (curr_char = 0; lines[curr_line][curr_char] != '\0';
+		     ++curr_char)
 			if (lines[curr_line][curr_char] == '\n')
 				++row;
 	}
@@ -278,23 +282,23 @@ pktgen_page_log(uint32_t print_labels)
 }
 
 /**************************************************************************//**
-*
-* pktgen_format_msg_page - formats the log entry for the log page
-*
-* DESCRIPTION
-* Generates a string representation of the log entry, suitable for the log page.
-* No effort is made to prettify multi-line messages: if indentation
-* of multiple lines is required, the log msg itself must contain appropriate
-* whitespace.
-*
-* RETURNS: Pointer to formatted string. The memory associated with the pointer
-*          is managed by this function and must not be free'd by the calling
-*          function.
-*          The memory pointed to may be altered on subsequent calls to this
-*          function. Copy the result if needed.
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_format_msg_page - formats the log entry for the log page
+ *
+ * DESCRIPTION
+ * Generates a string representation of the log entry, suitable for the log page.
+ * No effort is made to prettify multi-line messages: if indentation
+ * of multiple lines is required, the log msg itself must contain appropriate
+ * whitespace.
+ *
+ * RETURNS: Pointer to formatted string. The memory associated with the pointer
+ *          is managed by this function and must not be free'd by the calling
+ *          function.
+ *          The memory pointed to may be altered on subsequent calls to this
+ *          function. Copy the result if needed.
+ *
+ * SEE ALSO:
+ */
 static const char *
 pktgen_format_msg_page(const log_msg_t *log_msg)
 {
@@ -310,7 +314,9 @@ pktgen_format_msg_page(const log_msg_t *log_msg)
 
 	if (strlen(log_msg->func) > sizeof(func) - 1)
 		snprintf(func, sizeof(func), "…%s",
-		         &log_msg->func[strlen(log_msg->func) - sizeof(func) - 2]);
+		         &log_msg->func[strlen(
+		                                log_msg->func) - sizeof(func) -
+		                        2]);
 	else
 		sprintf(func, "%s", log_msg->func);
 
@@ -328,26 +334,26 @@ pktgen_format_msg_page(const log_msg_t *log_msg)
 }
 
 /**************************************************************************//**
-*
-* pktgen_format_msg_file - formats the log entry for output to disk
-*
-* DESCRIPTION
-* Generates a string representation of the log entry, suitable for writing to
-* disk.
-* The output is more verbose than the output of the format log functions for
-* stdout and page.
-* No effort is made to prettify multi-line messages: if indentation
-* of multiple lines is required, the log msg itself must contain appropriate
-* whitespace.
-*
-* RETURNS: Pointer to formatted string. The memory associated with the pointer
-*          is managed by this function and must not be free'd by the calling
-*          function.
-*          The memory pointed to may be altered on subsequent calls to this
-*          function. Copy the result if needed.
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_format_msg_file - formats the log entry for output to disk
+ *
+ * DESCRIPTION
+ * Generates a string representation of the log entry, suitable for writing to
+ * disk.
+ * The output is more verbose than the output of the format log functions for
+ * stdout and page.
+ * No effort is made to prettify multi-line messages: if indentation
+ * of multiple lines is required, the log msg itself must contain appropriate
+ * whitespace.
+ *
+ * RETURNS: Pointer to formatted string. The memory associated with the pointer
+ *          is managed by this function and must not be free'd by the calling
+ *          function.
+ *          The memory pointed to may be altered on subsequent calls to this
+ *          function. Copy the result if needed.
+ *
+ * SEE ALSO:
+ */
 static const char *
 pktgen_format_msg_file(const log_msg_t *log_msg)
 {
@@ -380,26 +386,26 @@ pktgen_format_msg_file(const log_msg_t *log_msg)
 }
 
 /**************************************************************************//**
-*
-* pktgen_format_msg_stdout - formats the log entry for output to screen
-*
-* DESCRIPTION
-* Generates a string representation of the log entry, suitable for writing to
-* the screen.
-* For info mesaages, just the message is printed. Warnings and more severe
-* messages get an appropriate label.
-* No effort is made to prettify multi-line messages: if indentation
-* of multiple lines is required, the log msg itself must contain appropriate
-* whitespace.
-*
-* RETURNS: Pointer to formatted string. The memory associated with the pointer
-*          is managed by this function and must not be free'd by the calling
-*          function.
-*          The memory pointed to may be altered on subsequent calls to this
-*          function. Copy the result if needed.
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_format_msg_stdout - formats the log entry for output to screen
+ *
+ * DESCRIPTION
+ * Generates a string representation of the log entry, suitable for writing to
+ * the screen.
+ * For info mesaages, just the message is printed. Warnings and more severe
+ * messages get an appropriate label.
+ * No effort is made to prettify multi-line messages: if indentation
+ * of multiple lines is required, the log msg itself must contain appropriate
+ * whitespace.
+ *
+ * RETURNS: Pointer to formatted string. The memory associated with the pointer
+ *          is managed by this function and must not be free'd by the calling
+ *          function.
+ *          The memory pointed to may be altered on subsequent calls to this
+ *          function. Copy the result if needed.
+ *
+ * SEE ALSO:
+ */
 static const char *
 pktgen_format_msg_stdout(const log_msg_t *log_msg)
 {

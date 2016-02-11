@@ -69,9 +69,9 @@
 #define _UTILS_H_
 
 /**************************************************************************//**
-* The function is a wrapper around strdup() and will free the previous string
-* if the pointer is present.
-*/
+ * The function is a wrapper around strdup() and will free the previous string
+ * if the pointer is present.
+ */
 
 static __inline__ char *
 wr_strdupf(char *str, char *new) {
@@ -80,11 +80,11 @@ wr_strdupf(char *str, char *new) {
 }
 
 /**************************************************************************//**
-* Trim a set of characters like "[]" or "{}" from the start and end of string.
-* The <set> string is a set of two character values to be removed from the string.
-* The <set> string must be an even number of characters long as each set is
-* two characters and can be any characters you want to call a set.
-*/
+ * Trim a set of characters like "[]" or "{}" from the start and end of string.
+ * The <set> string is a set of two character values to be removed from the string.
+ * The <set> string must be an even number of characters long as each set is
+ * two characters and can be any characters you want to call a set.
+ */
 
 static __inline__ char *
 wr_strtrimset(char *str, const char *set)
@@ -109,7 +109,10 @@ wr_strtrimset(char *str, const char *set)
 	return str;
 }
 
-extern uint32_t wr_strparse(char *s, const char *delim, char **entries, uint32_t max_entries);
+extern uint32_t wr_strparse(char *s,
+                            const char *delim,
+                            char **entries,
+                            uint32_t max_entries);
 extern char *wr_strtrim(char *line);
 extern char *wr_strccpy(char *t, char *f, const char *str);
 

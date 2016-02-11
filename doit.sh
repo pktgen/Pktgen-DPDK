@@ -37,14 +37,21 @@ cmd=./app/app/${target}/pktgen
 #89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
-dpdk_opts="-l 4-12 -n 3 --proc-type auto --log-level 7 --socket-mem 512,512 --file-prefix pg"
-pktgen_opts="-T -P"
-port_map='-m "[5:7].0, [6:8].1, [9:11].2, [10:12].3"'
-load_file="-f themes/black-yellow.theme"
-#black_list="-b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1"
+#enp6s0f0  Link encap:Ethernet  HWaddr 68:05:ca:28:49:a3  
+#enp6s0f1  Link encap:Ethernet  HWaddr 68:05:ca:28:49:a2  
+#ens9f0    Link encap:Ethernet  HWaddr 68:05:ca:28:49:a0  
+#ens9f1    Link encap:Ethernet  HWaddr 68:05:ca:28:49:a1  
 
-if [ $name == "rkwiles-supermicro" ]; then
-	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" ${load_file}
-	${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" ${load_file}
+
+dpdk_opts="-l 20-28 -n 3 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
+pktgen_opts="-T -P"
+port_map="-m [21:22].0 -m [23:24].1 -m [25:26].2 -m [27:28].3"
+load_file="-f themes/black-yellow.theme"
+#load_file="-f themes/white-black.theme"
+black_list="-b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1"
+
+if [ $name == "supermicro" ]; then
+	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+	${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 fi
 

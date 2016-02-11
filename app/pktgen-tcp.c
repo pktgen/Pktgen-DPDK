@@ -70,16 +70,16 @@
 #include "pktgen-tcp.h"
 
 /**************************************************************************//**
-*
-* pktgen_tcp_hdr_ctor - TCP header constructor routine.
-*
-* DESCRIPTION
-* Construct a TCP header in the packet buffer provided.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_tcp_hdr_ctor - TCP header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct a TCP header in the packet buffer provided.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, tcpip_t *tip, int type __rte_unused)
@@ -92,7 +92,8 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, tcpip_t *tip, int type __rte_unused)
 	/* Create the TCP header */
 	tip->ip.src         = htonl(pkt->ip_src_addr);
 	tip->ip.dst         = htonl(pkt->ip_dst_addr);
-	tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
+	tlen                = pkt->pktSize -
+	        (pkt->ether_hdr_size + sizeof(ipHdr_t));
 
 	tip->ip.len         = htons(tlen);
 	tip->ip.proto       = pkt->ipProto;

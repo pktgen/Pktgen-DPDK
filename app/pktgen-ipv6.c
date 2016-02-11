@@ -70,16 +70,16 @@
 #include "pktgen-ipv6.h"
 
 /**************************************************************************//**
-*
-* pktgen_ipv6_ctor - IPv6 packet header constructor routine.
-*
-* DESCRIPTION
-* Construct the IPv6 header constructor routine.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_ipv6_ctor - IPv6 packet header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct the IPv6 header constructor routine.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip)
@@ -91,7 +91,8 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip)
 	memset(ip, 0, sizeof(ipv6Hdr_t));
 
 	ip->ver_tc_fl       = htonl(IPv6_VERSION << 28);
-	tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipv6Hdr_t));
+	tlen                = pkt->pktSize -
+	        (pkt->ether_hdr_size + sizeof(ipv6Hdr_t));
 
 	ip->payload_length  = htons(tlen);
 	ip->hop_limit       = 4;
@@ -104,16 +105,16 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip)
 }
 
 /**************************************************************************//**
-*
-* pktgen_process_ping6 - Process a IPv6 ICMP echo request packet.
-*
-* DESCRIPTION
-* Process a IPv6 ICMP echo request packet and send response if needed.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_process_ping6 - Process a IPv6 ICMP echo request packet.
+ *
+ * DESCRIPTION
+ * Process a IPv6 ICMP echo request packet and send response if needed.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
@@ -132,24 +133,35 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 	if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
 	     (ip->next_header == PG_IPPROTO_ICMPV6) ) {
 #if !defined(RTE_ARCH_X86_64)
-		icmpv4Hdr_t *icmp = (icmpv4Hdr_t *)((uint32_t)ip + sizeof(ipHdr_t));
+		icmpv4Hdr_t *icmp =
+		        (icmpv4Hdr_t *)((uint32_t)ip + sizeof(ipHdr_t));
 #else
-		icmpv4Hdr_t *icmp = (icmpv4Hdr_t *)((uint64_t)ip + sizeof(ipHdr_t));
+		icmpv4Hdr_t *icmp =
+		        (icmpv4Hdr_t *)((uint64_t)ip + sizeof(ipHdr_t));
 #endif
 		/* We do not handle IP options, which will effect the IP header size. */
-		if (cksum(icmp, (m->pkt.data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0) ) {
+		if (cksum(icmp,
+		          (m->pkt.data_len - sizeof(struct ether_hdr) -
+		           sizeof(ipHdr_t)),
+		          0) ) {
 			rte_printf_status("ICMP checksum failed\n");
 			goto leave :
 		}
 
 		if (icmp->type == ICMP4_ECHO) {
 			/* Toss all broadcast addresses and requests not for this port */
-			if ( (ip->dst == INADDR_BROADCAST) || (ip->dst != info->ip_src_addr) ) {
+			if ( (ip->dst == INADDR_BROADCAST) ||
+			     (ip->dst != info->ip_src_addr) ) {
 				char buff[24];
 				rte_printf_status("IP address %s != ",
-				                  inet_ntop4(buff, sizeof(buff), ip->dst, INADDR_BROADCAST));
+				                  inet_ntop4(buff, sizeof(buff),
+				                             ip->dst,
+				                             INADDR_BROADCAST));
 				rte_printf_status("%s\n",
-				                  inet_ntop4(buff, sizeof(buff), htonl(info->ip_src_addr), INADDR_BROADCAST));
+				                  inet_ntop4(buff, sizeof(buff),
+				                             htonl(info->
+				                                   ip_src_addr),
+				                             INADDR_BROADCAST));
 				goto leave;
 			}
 
@@ -159,7 +171,11 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 
 			/* Recompute the ICMP checksum */
 			icmp->cksum = 0;
-			icmp->cksum = cksum(icmp, (m->pkt.data_len - sizeof(struct ether_hdr) - sizeof(ipHdr_t)), 0);
+			icmp->cksum =
+			        cksum(icmp,
+			              (m->pkt.data_len -
+			               sizeof(struct ether_hdr) -
+			               sizeof(ipHdr_t)), 0);
 
 			/* Swap the IP addresses. */
 			inetAddrSwap(&ip->src, &ip->dst);

@@ -121,16 +121,16 @@ _bset(uint8_t *p, uint8_t idx) {
 }
 
 /**************************************************************************//**
-*
-* wr_parse_portmask - Parse the portmask from the command line.
-*
-* DESCRIPTION
-* Parse the portmask string from the command line.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_parse_portmask - Parse the portmask from the command line.
+ *
+ * DESCRIPTION
+ * Parse the portmask string from the command line.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 uint32_t
 wr_parse_portmask(const char *portmask)
@@ -139,16 +139,16 @@ wr_parse_portmask(const char *portmask)
 }
 
 /**************************************************************************//**
-*
-* wr_parse_rt_list - Parse the Rx/Tx list string.
-*
-* DESCRIPTION
-* Parse the Rx/Tx list string and update the bitmaps.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_parse_rt_list - Parse the Rx/Tx list string.
+ *
+ * DESCRIPTION
+ * Parse the Rx/Tx list string and update the bitmaps.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static int32_t
 wr_parse_rt_list(char *list, uint8_t *map)
@@ -186,16 +186,16 @@ wr_parse_rt_list(char *list, uint8_t *map)
 }
 
 /**************************************************************************//**
-*
-* wr_parse_lcore_list - Parse the lcore list string.
-*
-* DESCRIPTION
-* Parse the lcore list strings.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_parse_lcore_list - Parse the lcore list string.
+ *
+ * DESCRIPTION
+ * Parse the lcore list strings.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static int32_t
 wr_parse_lcore_list(char *list, ls_t *ls)
@@ -214,7 +214,7 @@ wr_parse_lcore_list(char *list, ls_t *ls)
 		wr_parse_rt_list(arr[0], ls[RX_IDX].ls);		/* Parse the list with no ':' character */
 		memcpy(ls[TX_IDX].ls, ls[RX_IDX].ls, sizeof(ls_t));	/* Update the tx bitmap too. */
 	} else {							/* k == 2 */						/*
-									   Must be a <rx-list>:<tx-list> pair */
+									 * Must be a <rx-list>:<tx-list> pair */
 		if (wr_parse_rt_list(arr[0], ls[RX_IDX].ls) )		/* parse <rx-list> */
 			return 1;
 
@@ -225,16 +225,16 @@ wr_parse_lcore_list(char *list, ls_t *ls)
 }
 
 /**************************************************************************//**
-*
-* wr_parse_port_list - Parse the port list string.
-*
-* DESCRIPTION
-* Parse the port list strings.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_parse_port_list - Parse the port list string.
+ *
+ * DESCRIPTION
+ * Parse the port list strings.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static int32_t
 wr_parse_port_list(char *list, ps_t *ps)
@@ -253,7 +253,7 @@ wr_parse_port_list(char *list, ps_t *ps)
 		wr_parse_rt_list(arr[0], ps[RX_IDX].ps);		/* Parse the list with no ':' character */
 		memcpy(ps[TX_IDX].ps, ps[RX_IDX].ps, sizeof(ps_t));	/* Update the tx bitmap too. */
 	} else {							/* k == 2 */						/*
-									   Must be a <rx-list>:<tx-list> pair */
+									 * Must be a <rx-list>:<tx-list> pair */
 		if (wr_parse_rt_list(arr[0], ps[RX_IDX].ps) )		/* parse <rx-list> */
 			return 1;
 
@@ -288,48 +288,48 @@ wr_dump_port_map(const char *t, uint8_t *m) {
 }
 
 /**************************************************************************//**
-*
-* wr_parse_matrix - Parse the command line argument for port configuration
-*
-* DESCRIPTION
-* Parse the command line argument for port configuration.
-*
-* BNF: (or kind of BNF)
-*               <matrix-string> := """ <lcore-port> { "," <lcore-port>} """
-*		<lcore-port>	:= <lcore-list> "." <port-list>
-*		<lcore-list>	:= "[" <rx-list> ":" <tx-list> "]"
-*		<port-list>		:= "[" <rx-list> ":" <tx-list>"]"
-*		<rx-list>		:= <num> { "/" (<num> | <list>) }
-*		<tx-list>		:= <num> { "/" (<num> | <list>) }
-*		<list>			:= <num>           { "/" (<range> | <list>) }
-*		<range>			:= <num> "-" <num> { "/" <range> }
-*		<num>			:= <digit>+
-*		<digit>			:= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-*
-*	1.0, 2.1, 3.2                                   - core 1 handles port 0 rx/tx,
-*									  core 2 handles port 1 rx/tx
-*	1.[0-2], 2.3, ...				- core 1 handle ports 0,1,2 rx/tx,
-*									  core 2 handle port 3 rx/tx
-*	[0-1].0, [2/4-5].1, ...			- cores 0-1 handle port 0 rx/tx,
-*									  cores 2,4,5 handle port 1 rx/tx
-*	[1:2].0, [4:6].1, ...			- core 1 handles port 0 rx,
-*									  core 2 handles port 0 tx,
-*	[1:2].[0-1], [4:6].[2/3], ...	- core 1 handles port 0 & 1 rx,
-*									  core 2 handles port  0 & 1 tx
-*	[1:2-3].0, [4:5-6].1, ...		- core 1 handles port 1 rx, cores 2,3 handle port 0 tx
-*									  core 4 handles port 1 rx & core 5,6 handles port 1 tx
-*	[1-2:3].0, [4-5:6].1, ...		- core 1,2 handles port 0 rx, core 3 handles port 0 tx
-*									  core 4,5 handles port 1 rx & core 6 handles port 1 tx
-*	[1-2:3-5].0, [4-5:6/8].1, ...	- core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx
-*									  core 4,5 handles port 1 rx & core 6,8 handles port 1 tx
-*	[1:2].[0:0-7], [3:4].[1:0-7],   - core 1 handles port 0 rx, core 2 handles ports 0-7 tx
-*									  core 3 handles port 1 rx & core 4 handles port 0-7 tx
-*	BTW: you can use "{}" instead of "[]" as it does not matter to the syntax.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_parse_matrix - Parse the command line argument for port configuration
+ *
+ * DESCRIPTION
+ * Parse the command line argument for port configuration.
+ *
+ * BNF: (or kind of BNF)
+ *               <matrix-string> := """ <lcore-port> { "," <lcore-port>} """
+ *		<lcore-port>	:= <lcore-list> "." <port-list>
+ *		<lcore-list>	:= "[" <rx-list> ":" <tx-list> "]"
+ *		<port-list>		:= "[" <rx-list> ":" <tx-list>"]"
+ *		<rx-list>		:= <num> { "/" (<num> | <list>) }
+ *		<tx-list>		:= <num> { "/" (<num> | <list>) }
+ *		<list>			:= <num>           { "/" (<range> | <list>) }
+ *		<range>			:= <num> "-" <num> { "/" <range> }
+ *		<num>			:= <digit>+
+ *		<digit>			:= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+ *
+ *	1.0, 2.1, 3.2                                   - core 1 handles port 0 rx/tx,
+ *									  core 2 handles port 1 rx/tx
+ *	1.[0-2], 2.3, ...				- core 1 handle ports 0,1,2 rx/tx,
+ *									  core 2 handle port 3 rx/tx
+ *	[0-1].0, [2/4-5].1, ...			- cores 0-1 handle port 0 rx/tx,
+ *									  cores 2,4,5 handle port 1 rx/tx
+ *	[1:2].0, [4:6].1, ...			- core 1 handles port 0 rx,
+ *									  core 2 handles port 0 tx,
+ *	[1:2].[0-1], [4:6].[2/3], ...	- core 1 handles port 0 & 1 rx,
+ *									  core 2 handles port  0 & 1 tx
+ *	[1:2-3].0, [4:5-6].1, ...		- core 1 handles port 1 rx, cores 2,3 handle port 0 tx
+ *									  core 4 handles port 1 rx & core 5,6 handles port 1 tx
+ *	[1-2:3].0, [4-5:6].1, ...		- core 1,2 handles port 0 rx, core 3 handles port 0 tx
+ *									  core 4,5 handles port 1 rx & core 6 handles port 1 tx
+ *	[1-2:3-5].0, [4-5:6/8].1, ...	- core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx
+ *									  core 4,5 handles port 1 rx & core 6,8 handles port 1 tx
+ *	[1:2].[0:0-7], [3:4].[1:0-7],   - core 1 handles port 0 rx, core 2 handles ports 0-7 tx
+ *									  core 3 handles port 1 rx & core 4 handles port 0-7 tx
+ *	BTW: you can use "{}" instead of "[]" as it does not matter to the syntax.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 int
 wr_parse_matrix(l2p_t *l2p, char *str)
@@ -361,22 +361,28 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 		/* Parse the string into <lcore-list> and <port-list> */
 		m = wr_strparse(lcore_port[i], ".", arr, 3);
 		if (m != 2) {
-			fprintf(stderr, "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
-			        __FUNCTION__, lcore_port[i]);
+			fprintf(stderr,
+			        "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
+			        __FUNCTION__,
+			        lcore_port[i]);
 			return 0;
 		}
 
 		memset(&lp, '\0', sizeof(lp));
 
 		if (wr_parse_lcore_list(arr[0], lp.lcores) ) {
-			fprintf(stderr, "%s: could not parse <lcore-list> (%s) string\n",
-			        __FUNCTION__, arr[0]);
+			fprintf(stderr,
+			        "%s: could not parse <lcore-list> (%s) string\n",
+			        __FUNCTION__,
+			        arr[0]);
 			return 0;
 		}
 
 		if (wr_parse_port_list(arr[1], lp.ports) ) {
-			fprintf(stderr, "%s: could not parse <port-list> (%s) string\n",
-			        __FUNCTION__, arr[1]);
+			fprintf(stderr,
+			        "%s: could not parse <port-list> (%s) string\n",
+			        __FUNCTION__,
+			        arr[1]);
 			return 0;
 		}
 
@@ -438,16 +444,16 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 }
 
 /**************************************************************************//**
-*
-* wr_port_matrix_dump - Dump out the matrix for all ports
-*
-* DESCRIPTION
-* Display the matrix of ports and mappings for all ports.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_port_matrix_dump - Dump out the matrix for all ports
+ *
+ * DESCRIPTION
+ * Display the matrix of ports and mappings for all ports.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_port_matrix_dump(l2p_t *l2p)
@@ -488,7 +494,8 @@ wr_port_matrix_dump(l2p_t *l2p)
 		printf(" %2d:%2d", cnt.rx, cnt.tx);
 	}
 
-	printf("\n    Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
-	       rte_get_master_lcore());
+	printf(
+	        "\n    Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
+	        rte_get_master_lcore());
 	fflush(stdout);
 }

@@ -104,21 +104,21 @@ static rnd_func_t _rnd_func = NULL;
 static void pktgen_init_default_rnd(void);
 
 /**************************************************************************//**
-*
-* pktgen_default_rnd_func - Default function used to generate random values
-*
-* DESCRIPTION
-* Default function to use for generating random values. This function is used
-* when no external random function is set using pktgen_set_rnd_func();
-* The random function used is ISAAC: see
-* http://www.burtleburtle.net/bob/rand/isaacafa.html for information.
-*
-*
-*
-* RETURNS: 32-bit random value.
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_default_rnd_func - Default function used to generate random values
+ *
+ * DESCRIPTION
+ * Default function to use for generating random values. This function is used
+ * when no external random function is set using pktgen_set_rnd_func();
+ * The random function used is ISAAC: see
+ * http://www.burtleburtle.net/bob/rand/isaacafa.html for information.
+ *
+ *
+ *
+ * RETURNS: 32-bit random value.
+ *
+ * SEE ALSO:
+ */
 static __inline__ uint32_t
 pktgen_default_rnd_func(void)
 {
@@ -126,28 +126,34 @@ pktgen_default_rnd_func(void)
 }
 
 /**************************************************************************//**
-*
-* pktgen_rnd_bits_init - Initialize random bitfield structures and PRNG
-*
-* DESCRIPTION
-* Initialize the random bitfield structures the PRNG context.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_rnd_bits_init - Initialize random bitfield structures and PRNG
+ *
+ * DESCRIPTION
+ * Initialize the random bitfield structures the PRNG context.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 {
 	int i;
 
-	*rnd_bits = (rnd_bits_t *)rte_zmalloc_socket("Random bitfield structure", sizeof(rnd_bits_t),
-												 0, rte_socket_id());
+	*rnd_bits = (rnd_bits_t *)rte_zmalloc_socket(
+	                "Random bitfield structure",
+	                sizeof(rnd_bits_t),
+	                0,
+	                rte_socket_id());
 
 	/* Initialize mask to all ignore */
 	for (i = 0; i < MAX_RND_BITFIELDS; ++i) {
-		pktgen_set_random_bitfield(*rnd_bits, i, 0, "????????????????????????????????");/* 32 ?'s */
+		pktgen_set_random_bitfield(*rnd_bits,
+		                           i,
+		                           0,
+		                           "????????????????????????????????");	/* 32 ?'s */
 		pktgen_set_random_bitfield(*rnd_bits, i, 0, "");
 	}
 
@@ -155,20 +161,23 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 }
 
 /**************************************************************************//**
-*
-* pktgen_set_random_bitfield - Set random bit specification
-*
-* DESCRIPTION
-* Set random bit specification. This extracts the 0, 1 and random bitmasks from
-* the provided bitmask template.
-*
-* RETURNS: Active specifications
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_set_random_bitfield - Set random bit specification
+ *
+ * DESCRIPTION
+ * Set random bit specification. This extracts the 0, 1 and random bitmasks from
+ * the provided bitmask template.
+ *
+ * RETURNS: Active specifications
+ *
+ * SEE ALSO:
+ */
 
 uint32_t
-pktgen_set_random_bitfield(rnd_bits_t *rnd_bits, uint8_t idx, uint8_t offset, const char *mask)
+pktgen_set_random_bitfield(rnd_bits_t *rnd_bits,
+                           uint8_t idx,
+                           uint8_t offset,
+                           const char *mask)
 {
 	if (idx >= MAX_RND_BITFIELDS)
 		goto leave;
@@ -201,7 +210,8 @@ pktgen_set_random_bitfield(rnd_bits_t *rnd_bits, uint8_t idx, uint8_t offset, co
 		case '1': mask1   += 1; break;
 		case '.': /* ignore bit */ break;
 		case 'X': maskRnd += 1; break;
-		default: /* print error: "Unknown char in bitfield spec" */ goto leave;
+		default: /* print error: "Unknown char in bitfield spec" */ goto
+			leave;
 		}
 	}
 
@@ -247,20 +257,23 @@ leave:
 }
 
 /**************************************************************************//**
-*
-* pktgen_rnd_bits_apply - Set random bitfields in packet.
-*
-* DESCRIPTION
-* Set bitfields in packet specified packet to random values according to the
-* requested bitfield specification.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_rnd_bits_apply - Set random bitfields in packet.
+ *
+ * DESCRIPTION
+ * Set bitfields in packet specified packet to random values according to the
+ * requested bitfield specification.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
-pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd_bits_t *rbits)
+pktgen_rnd_bits_apply(port_info_t *info,
+                      struct rte_mbuf **pkts,
+                      size_t cnt,
+                      rnd_bits_t *rbits)
 {
 	rnd_bits_t *rnd_bits;
 	size_t mbuf_cnt;
@@ -281,7 +294,12 @@ pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd
 			if (likely(active_specs & 1) ) {
 				/* Get pointer to byte <offset> in mbuf data as uint32_t*, so */
 				/* the masks can be applied. */
-				pkt_data = (uint32_t *)(&rte_pktmbuf_mtod(pkts[mbuf_cnt], uint8_t *)[bf_spec->offset]);
+				pkt_data =
+				        (uint32_t *)(&rte_pktmbuf_mtod(pkts[
+				                                               mbuf_cnt
+				                                       ],
+				                                       uint8_t *)
+				                     [bf_spec->offset]);
 
 				*pkt_data &= bf_spec->andMask;
 				*pkt_data |= bf_spec->orMask;
@@ -289,7 +307,9 @@ pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd
 				if (bf_spec->rndMask) {
 #ifdef TESTING
 					/* Allow PRNG to be set when testing */
-					rnd_value  = _rnd_func ? _rnd_func() : pktgen_default_rnd_func();
+					rnd_value  =
+					        _rnd_func ? _rnd_func() :
+					        pktgen_default_rnd_func();
 #else
 					/* ... but allow inlining for production build */
 					rnd_value  = pktgen_default_rnd_func();
@@ -319,7 +339,9 @@ pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd
  * SEE ALSO:
  */
 void
-pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t *rnd_bits)
+pktgen_page_random_bitfields(uint32_t print_labels,
+                             uint16_t pid,
+                             rnd_bits_t *rnd_bits)
 {
 	uint32_t row, bitmask_idx, i, curr_bit;
 	char mask[36];	/* 4*8 bits, 3 delimiter spaces, \0 */
@@ -338,7 +360,9 @@ pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t *rn
 	row = PORT_STATE_ROW;
 
 	if (rnd_bits == NULL) {
-		wr_scrn_center(10, pktgen.scrn->ncols, "** Port is not active - no random bitfields set **");
+		wr_scrn_center(10,
+		               pktgen.scrn->ncols,
+		               "** Port is not active - no random bitfields set **");
 		row = 28;
 		goto leave;
 	}
@@ -357,13 +381,21 @@ pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t *rn
 			/* + i >> 3 for space delimiter after every 8 bits.
 			 * Need to check rndMask before andMask: for random bits, the
 			 * andMask is also 0. */
-			mask[i + (i >> 3)] = ((ntohl(curr_spec->rndMask) & curr_bit) != 0) ? 'X'
-				: ((ntohl(curr_spec->andMask) & curr_bit) == 0) ? '0'
-				: ((ntohl(curr_spec->orMask)  & curr_bit) != 0) ? '1'
+			mask[i +
+			     (i >>
+			      3)] =
+			        ((ntohl(curr_spec->rndMask) & curr_bit) !=
+			         0) ? 'X'
+				: ((ntohl(curr_spec->andMask) & curr_bit) ==
+			           0) ? '0'
+				: ((ntohl(curr_spec->orMask)  & curr_bit) !=
+			           0) ? '1'
 				: '.';
 		}
 
-		wr_scrn_printf(row++, 1, "%8d %8d %7s   %s",
+		wr_scrn_printf(row++,
+		               1,
+		               "%8d %8d %7s   %s",
 		               bitmask_idx,
 		               curr_spec->offset,
 		               (rnd_bits->active_specs & (1 << bitmask_idx)) ? "YES" : "no",
@@ -386,27 +418,27 @@ pktgen_init_default_rnd(void)
 
 	/* Use contents of /dev/urandom as seed for ISAAC */
 	if (fread(xor_seed, sizeof(xor_seed[0]), 2, dev_random) != 2) {
-		pktgen_log_error("Could not read enough random data for PRNG seed");
+		pktgen_log_error(
+		        "Could not read enough random data for PRNG seed");
 		return;
 	}
-	;
 
 	fclose(dev_random);
 }
 
 #ifdef TESTING
 /**************************************************************************//**
-*
-* pktgen_set_rnd_func - Set function to use as random number generator
-*
-* DESCRIPTION
-* Set function to use as random number generator.
-*
-* RETURNS: Previous random number function (or NULL if the default function was
-*          used).
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_set_rnd_func - Set function to use as random number generator
+ *
+ * DESCRIPTION
+ * Set function to use as random number generator.
+ *
+ * RETURNS: Previous random number function (or NULL if the default function was
+ *          used).
+ *
+ * SEE ALSO:
+ */
 
 rnd_func_t
 pktgen_set_rnd_func(rnd_func_t rnd_func)

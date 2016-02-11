@@ -72,16 +72,16 @@
 #include "pktgen-log.h"
 
 /**************************************************************************//**
-*
-* pktgen_send_arp - Send an ARP request packet.
-*
-* DESCRIPTION
-* Create and send an ARP request packet.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_send_arp - Send an ARP request packet.
+ *
+ * DESCRIPTION
+ * Create and send an ARP request packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
@@ -140,16 +140,16 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 }
 
 /**************************************************************************//**
-*
-* pktgen_process_arp - Handle a ARP request input packet and send a response.
-*
-* DESCRIPTION
-* Handle a ARP request input packet and send a response if required.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_process_arp - Handle a ARP request input packet and send a response.
+ *
+ * DESCRIPTION
+ * Handle a ARP request input packet and send a response if required.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
@@ -165,15 +165,19 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 
 	/* Process all ARP requests if they are for us. */
 	if (arp->op == htons(ARP_REQUEST) ) {
-		if ((rte_atomic32_read(&info->port_flags) & PROCESS_GARP_PKTS) &&
+		if ((rte_atomic32_read(&info->port_flags) &
+		     PROCESS_GARP_PKTS) &&
 		    (arp->tpa._32 == arp->spa._32) ) {	/* Must be a GARP packet */
-
 			pkt = pktgen_find_matching_ipdst(info, arp->spa._32);
 
 			/* Found a matching packet, replace the dst address */
 			if (pkt) {
 				rte_memcpy(&pkt->eth_dst_addr, &arp->sha, 6);
-				pktgen_set_q_flags(info, wr_get_txque(pktgen.l2p, rte_lcore_id(), pid), DO_TX_CLEANUP);
+				pktgen_set_q_flags(info,
+				                   wr_get_txque(pktgen.l2p,
+				                                rte_lcore_id(),
+				                                pid),
+				                   DO_TX_FLUSH);
 				pktgen_redisplay(0);
 			}
 			return;

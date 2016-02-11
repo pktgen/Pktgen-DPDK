@@ -82,7 +82,11 @@ typedef union {
 	uint32_t word;
 } lc_info_t;
 
-extern int wr_coremap(const char *opt, lc_info_t *get, int cnt, const char *proc_cpuinfo);
-extern unsigned wr_coremap_cnt(const lc_info_t *lc, unsigned max_cnt, unsigned t);
+extern int wr_coremap(const char *opt,
+                      lc_info_t *get,
+                      int cnt,
+                      const char *proc_cpuinfo);
+extern unsigned wr_coremap_cnt(const lc_info_t *lc, unsigned max_cnt,
+                               unsigned t);
 
 #endif

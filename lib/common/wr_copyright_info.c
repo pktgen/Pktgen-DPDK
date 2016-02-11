@@ -83,16 +83,17 @@
 #include "wr_scrn.h"
 #include "wr_copyright_info.h"
 
-#define COPYRIGHT_MSG           "Copyright (c) <2010-2015>, Wind River Systems, Inc. All rights reserved."
-#define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2015>, Wind River Systems"
+#define COPYRIGHT_MSG \
+	"Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
+#define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2016>, Intel Corporation"
 #define POWERED_BY_DPDK         "Powered by Intel® DPDK"
 
+#ifdef ENABLE_COPYRIGHT_OUTPUT
 static const char *intel_copyright[] = {
 	"",
 	"   BSD LICENSE",
 	"",
-	"   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.",
-	"   All rights reserved.",
+	"   Copyright(c) 2010-2016 Intel Corporation. All rights reserved.",
 	"",
 	"   Redistribution and use in source and binary forms, with or without",
 	"   modification, are permitted provided that the following conditions",
@@ -154,22 +155,24 @@ static const char *wr_copyright[] = {
 	"",
 	NULL
 };
+#endif
 
 /**************************************************************************//**
-*
-* wr_print_copyright - Print out the copyright notices.
-*
-* DESCRIPTION
-* Output the copyright notices.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_print_copyright - Print out the copyright notices.
+ *
+ * DESCRIPTION
+ * Output the copyright notices.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_print_copyright(const char *appname, const char *created_by)
 {
+#ifdef COPYRIGHT_OUTPUT_ENABLED
 	int i;
 
 	rte_printf_status("-----------------------\n");
@@ -182,14 +185,25 @@ wr_print_copyright(const char *appname, const char *created_by)
 		rte_printf_status("  %s\n", wr_copyright[i]);
 
 	wr_scrn_color(YELLOW, NO_CHANGE, OFF);
-	rte_printf_status("  %s created by: %s -- >>> %s <<<\n", appname, created_by, POWERED_BY_DPDK);
+	rte_printf_status("  %s created by: %s -- >>> %s <<<\n",
+	                  appname,
+	                  created_by,
+	                  POWERED_BY_DPDK);
 	wr_scrn_color(BLUE, NO_CHANGE, OFF);
 	rte_printf_status("-----------------------\n");
+#else
+	printf("   %s\n", COPYRIGHT_MSG);
+	printf("   %s created by: %s -- >>> %s <<<\n\n",
+					  appname,
+				   created_by,
+				   POWERED_BY_DPDK);
+#endif
 }
 
 void
 wr_logo(int row, int col, const char *appname)
 {
+#ifdef INCLUDE_LOGO_OUTPUT
 	int i;
 	static const char *logo[] = {
 		"#     #",
@@ -226,7 +240,11 @@ wr_logo(int row, int col, const char *appname)
 	wr_scrn_color(MAGENTA, NO_CHANGE, OFF);
 	wr_scrn_printf(++row, col, "%s", COPYRIGHT_MSG);
 	wr_scrn_color(BLUE, NO_CHANGE, BOLD);
-	wr_scrn_printf(++row, col + 6, ">>> %s is %s <<<", appname, POWERED_BY_DPDK);
+	wr_scrn_printf(++row,
+	               col + 6,
+	               ">>> %s is %s <<<",
+	               appname,
+	               POWERED_BY_DPDK);
 	wr_scrn_color(BLACK, NO_CHANGE, OFF);
 	wr_scrn_pos(++row, 1);
 
@@ -234,11 +252,17 @@ wr_logo(int row, int col, const char *appname)
 
 	wr_scrn_cls();
 	wr_scrn_pos(100, 1);
+#else
+	(void)row;
+	(void)col;
+	(void)appname;
+#endif
 }
 
 void
 wr_splash_screen(int row, int col, const char *appname, const char *created_by)
 {
+#ifdef ENABLE_COPYRIGHT_OUTPUT
 	int i;
 
 	row = 3;
@@ -248,7 +272,12 @@ wr_splash_screen(int row, int col, const char *appname, const char *created_by)
 	for (i = 0, row++; wr_copyright[i] != NULL; i++)
 		wr_scrn_printf(row++, 7, "%s", wr_copyright[i]);
 	wr_scrn_color(BLUE, NO_CHANGE, BOLD);
-	wr_scrn_printf(row++, col, "%s created by %s -- >>> %s <<<", appname, created_by, POWERED_BY_DPDK);
+	wr_scrn_printf(row++,
+	               col,
+	               "%s created by %s -- >>> %s <<<",
+	               appname,
+	               created_by,
+	               POWERED_BY_DPDK);
 	wr_scrn_color(BLACK, NO_CHANGE, OFF);
 	wr_scrn_pos(++row, 1);
 
@@ -256,6 +285,12 @@ wr_splash_screen(int row, int col, const char *appname, const char *created_by)
 
 	wr_scrn_cls();
 	wr_scrn_pos(100, 1);
+#else
+	(void)row;
+	(void)col;
+	(void)appname;
+	(void)created_by;
+#endif
 }
 
 /**

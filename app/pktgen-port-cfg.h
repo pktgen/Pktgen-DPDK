@@ -129,7 +129,9 @@ enum {						/* Per port flag bits */
 	SEND_LATENCY_PKTS       = 0x00080000,	/**< Send latency packets */
 	SENDING_PACKETS         = 0x40000000,	/**< sending packets on this port */
 	SEND_FOREVER            = 0x80000000,	/**< Send packets forever */
-	SEND_ARP_PING_REQUESTS  = (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST)
+	SEND_ARP_PING_REQUESTS  =
+	        (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST |
+	         SEND_PING6_REQUEST)
 };
 
 #define RTE_PMD_PARAM_UNSET -1
@@ -187,20 +189,19 @@ typedef enum {
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
 typedef struct port_info_s {
-	tx_func_t send_burst;			/**< Function pointer to use for sending */
-	struct rte_mempool    *curr_tx_mp;	/**< Current TX mempool pointer */
-	uint16_t pid;				/**< Port ID value */
-	uint16_t tx_burst;			/**< Number of TX burst packets */
+	tx_func_t send_burst;	/**< Function pointer to use for sending */
+	uint16_t pid;		/**< Port ID value */
+	uint16_t tx_burst;	/**< Number of TX burst packets */
 	uint8_t pad0;
 	uint8_t tx_rate;		/**< Percentage rate for tx packets */
 	rte_atomic32_t port_flags;	/**< Special send flags for ARP and other */
 
 	rte_atomic64_t transmit_count;	/**< Packets to transmit loaded into current_tx_count */
 	rte_atomic64_t current_tx_count;/**< Current number of packets to send */
-	uint64_t tx_cycles;		/**< Number cycles between TX bursts */
-	uint64_t tx_pps;		/**< Transmit packets per seconds */
-	uint64_t delta;			/**< Delta value for latency testing */
-	uint64_t tx_count;		/**< Total count of tx attempts */
+	uint64_t tx_cycles;	/**< Number cycles between TX bursts */
+	uint64_t tx_pps;	/**< Transmit packets per seconds */
+	uint64_t delta;		/**< Delta value for latency testing */
+	uint64_t tx_count;	/**< Total count of tx attempts */
 
 	/* Packet buffer space for traffic generator, shared for all packets per port */
 	uint16_t seqIdx;		/**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
@@ -214,7 +215,7 @@ typedef struct port_info_s {
 	uint32_t mpls_entry;	/**< Set the port MPLS entry */
 	uint16_t qinq_outerid;	/**< Set the port outer VLAN ID value for Q-in-Q */
 	uint16_t qinq_innerid;	/**< Set the port inner VLAN ID value for Q-in-Q */
-	uint32_t gre_key;		/**< GRE key if used */
+	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
 	uint16_t pad1;
@@ -222,9 +223,9 @@ typedef struct port_info_s {
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */
 
-	eth_stats_t init_stats;		/**< Initial packet statistics */
-	eth_stats_t port_stats;		/**< current port statistics */
-	eth_stats_t rate_stats;		/**< current packet rate statistics */
+	eth_stats_t init_stats;	/**< Initial packet statistics */
+	eth_stats_t port_stats;	/**< current port statistics */
+	eth_stats_t rate_stats;	/**< current packet rate statistics */
 
 	struct rte_eth_link link;	/**< Link Information like speed and duplex */
 
@@ -244,7 +245,7 @@ typedef struct port_info_s {
 	pcap_info_t           *pcap;	/**< PCAP information header */
 	uint64_t pcap_cycles;		/**< number of cycles for pcap sending */
 
-	int32_t pcap_result;		/**< PCAP result of filter compile */
+	int32_t pcap_result;	/**< PCAP result of filter compile */
 	struct bpf_program pcap_program;/**< PCAP filter program structure */
 
 	/* Packet dump related */
@@ -290,7 +291,9 @@ pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 		if (tmp1 == 0)
 			return 0;
 		tmp2 = likely(tmp1 > burst) ? burst : tmp1;
-		success = rte_atomic64_cmpset((volatile uint64_t *)&v->cnt, tmp1, tmp1 - tmp2);
+		success = rte_atomic64_cmpset((volatile uint64_t *)&v->cnt,
+		                              tmp1,
+		                              tmp1 - tmp2);
 	} while (success == 0);
 
 	return tmp2;
@@ -298,42 +301,66 @@ pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 
 static inline void
 pktgen_dump_rx_conf(FILE *f, struct rte_eth_rxconf *rx){
-
 	fprintf(f, "** RX Conf **\n");
-	fprintf(f, "   pthreash       :%4d hthresh          :%4d wthresh        :%6d\n",
-	        rx->rx_thresh.pthresh, rx->rx_thresh.hthresh, rx->rx_thresh.wthresh);
-	fprintf(f, "   Free Thresh    :%4d Drop Enable      :%4d Deferred Start :%6d\n",
-	        rx->rx_free_thresh, rx->rx_drop_en, rx->rx_deferred_start);
+	fprintf(f,
+	        "   pthreash       :%4d hthresh          :%4d wthresh        :%6d\n",
+	        rx->rx_thresh.pthresh,
+	        rx->rx_thresh.hthresh,
+	        rx->rx_thresh.wthresh);
+	fprintf(f,
+	        "   Free Thresh    :%4d Drop Enable      :%4d Deferred Start :%6d\n",
+	        rx->rx_free_thresh,
+	        rx->rx_drop_en,
+	        rx->rx_deferred_start);
 }
 
 static inline void
 pktgen_dump_tx_conf(FILE *f, struct rte_eth_txconf *tx){
-
 	fprintf(f, "** TX Conf **\n");
-	fprintf(f, "   pthreash       :%4d hthresh          :%4d wthresh        :%6d\n",
-	        tx->tx_thresh.pthresh, tx->tx_thresh.hthresh, tx->tx_thresh.wthresh);
-	fprintf(f, "   Free Thresh    :%4d RS Thresh        :%4d Deferred Start :%6d TXQ Flags:%08x\n",
-	        tx->tx_free_thresh, tx->tx_rs_thresh, tx->tx_deferred_start, tx->txq_flags);
+	fprintf(f,
+	        "   pthreash       :%4d hthresh          :%4d wthresh        :%6d\n",
+	        tx->tx_thresh.pthresh,
+	        tx->tx_thresh.hthresh,
+	        tx->tx_thresh.wthresh);
+	fprintf(f,
+	        "   Free Thresh    :%4d RS Thresh        :%4d Deferred Start :%6d TXQ Flags:%08x\n",
+	        tx->tx_free_thresh,
+	        tx->tx_rs_thresh,
+	        tx->tx_deferred_start,
+	        tx->txq_flags);
 }
 
 static inline void
 pktgen_dump_dev_info(FILE *f, struct rte_eth_dev_info *di) {
-
 	fprintf(f, "\n** Dev Info (%s:%d) **\n", di->driver_name, di->if_index);
-	fprintf(f, "   max_vfs        :%4d min_rx_bufsize    :%4d max_rx_pktlen :%6d max_rx_queues         :%4d max_tx_queues:%4d\n",
-	        di->pci_dev->max_vfs, di->min_rx_bufsize, di->max_rx_pktlen, di->max_rx_queues, di->max_tx_queues);
-	fprintf(f, "   max_mac_addrs  :%4d max_hash_mac_addrs:%4d max_vmdq_pools:%6d\n",
-	        di->max_mac_addrs, di->max_hash_mac_addrs, di->max_vmdq_pools);
-	fprintf(f, "   rx_offload_capa:%4d tx_offload_capa   :%4d reta_size     :%6d flow_type_rss_offloads:%016lx\n",
-	        di->rx_offload_capa, di->tx_offload_capa, di->reta_size,
-#if (RTE_VER_MAJOR < 2)
+	fprintf(f,
+	        "   max_vfs        :%4d min_rx_bufsize    :%4d max_rx_pktlen :%6d max_rx_queues         :%4d max_tx_queues:%4d\n",
+	        di->pci_dev->max_vfs,
+	        di->min_rx_bufsize,
+	        di->max_rx_pktlen,
+	        di->max_rx_queues,
+	        di->max_tx_queues);
+	fprintf(f,
+	        "   max_mac_addrs  :%4d max_hash_mac_addrs:%4d max_vmdq_pools:%6d\n",
+	        di->max_mac_addrs,
+	        di->max_hash_mac_addrs,
+	        di->max_vmdq_pools);
+	fprintf(f,
+	        "   rx_offload_capa:%4d tx_offload_capa   :%4d reta_size     :%6d flow_type_rss_offloads:%016lx\n",
+	        di->rx_offload_capa,
+	        di->tx_offload_capa,
+	        di->reta_size,
+#if defined(RTE_VER_MAJOR) && (RTE_VER_MAJOR < 2)
 	        0L
 #else
 	        di->flow_type_rss_offloads
 #endif
 	        );
-	fprintf(f, "   vmdq_queue_base:%4d vmdq_queue_num    :%4d vmdq_pool_base:%6d\n",
-	        di->vmdq_queue_base, di->vmdq_queue_num, di->vmdq_pool_base);
+	fprintf(f,
+	        "   vmdq_queue_base:%4d vmdq_queue_num    :%4d vmdq_pool_base:%6d\n",
+	        di->vmdq_queue_base,
+	        di->vmdq_queue_num,
+	        di->vmdq_pool_base);
 	pktgen_dump_rx_conf(f, &di->default_rxconf);
 	pktgen_dump_tx_conf(f, &di->default_txconf);
 	fprintf(f, "\n");

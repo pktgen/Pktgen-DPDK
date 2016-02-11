@@ -162,7 +162,9 @@ static lcore_t *
 set_thread_id_str(const char *unused, lcore_t *lc)
 {
 	(void)unused;
-	lc->u.s.thread_id = get_next_thread_id(lc->next, lc->u.s.socket_id, lc->u.s.core_id);
+	lc->u.s.thread_id = get_next_thread_id(lc->next,
+	                                       lc->u.s.socket_id,
+	                                       lc->u.s.core_id);
 	return lc;
 }
 
@@ -263,7 +265,11 @@ print_and_free_lcores(lcore_t *lc)
 {
 	if (lc) {
 		print_and_free_lcores(lc->next);
-		printf("%u/%u/%u\t%u\n", lc->u.s.socket_id, lc->u.s.core_id, lc->u.s.thread_id, lc->u.s.id);
+		printf("%u/%u/%u\t%u\n",
+		       lc->u.s.socket_id,
+		       lc->u.s.core_id,
+		       lc->u.s.thread_id,
+		       lc->u.s.id);
 		free(lc);
 	}
 }
@@ -284,7 +290,8 @@ print_matching_lcores(lcore_t *lc, unsigned s, unsigned c, unsigned t)
 {
 	if (lc) {
 		print_matching_lcores(lc->next, s, c, t);
-		if (lc->u.s.socket_id == s && lc->u.s.core_id == c && lc->u.s.thread_id == t)
+		if (lc->u.s.socket_id == s && lc->u.s.core_id == c &&
+		    lc->u.s.thread_id == t)
 			printf("%u ", lc->u.s.id);
 	}
 }
@@ -361,7 +368,10 @@ count_cores(lcore_t *lcores)
 }
 
 int
-wr_coremap(const char *arg, lc_info_t *get_lcores, int max_cnt, const char *proc_cpuinfo)
+wr_coremap(const char *arg,
+           lc_info_t *get_lcores,
+           int max_cnt,
+           const char *proc_cpuinfo)
 {
 	FILE         *f;
 	char         *line = NULL;
@@ -375,7 +385,8 @@ wr_coremap(const char *arg, lc_info_t *get_lcores, int max_cnt, const char *proc
 		proc_cpuinfo = PROC_CPUINFO;
 
 	if ( (f = fopen(proc_cpuinfo, "r")) == NULL) {
-		fprintf(stderr, "Cannot open %s on this system\n", proc_cpuinfo);
+		fprintf(stderr, "Cannot open %s on this system\n",
+		        proc_cpuinfo);
 		return -1;
 	}
 
@@ -402,7 +413,9 @@ wr_coremap(const char *arg, lc_info_t *get_lcores, int max_cnt, const char *proc
 		} else if (strcmp(arg, "array") == 0) {
 			int num_cores = count_cores(lcores);
 			if ( (get_lcores != NULL) || (max_cnt > 0) )
-				get_and_free_lcores(lcores, &get_lcores[0], max_cnt);
+				get_and_free_lcores(lcores,
+				                    &get_lcores[0],
+				                    max_cnt);
 			return num_cores;
 		}
 	}
@@ -458,7 +471,8 @@ unsigned
 wr_coremap_cnt(const lc_info_t *lc, unsigned max_cnt, unsigned t)
 {
 	_getter_fn get;
-	_getter_fn _type[] = { _get_socket_id, _get_core_id, _get_thread_id, _get_lcore_id, NULL };
+	_getter_fn _type[] =
+	{ _get_socket_id, _get_core_id, _get_thread_id, _get_lcore_id, NULL };
 	unsigned cnt = 0, i;
 
 	get = _type[t];

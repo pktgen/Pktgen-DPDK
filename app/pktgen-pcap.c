@@ -71,16 +71,16 @@
 #include "pktgen.h"
 
 /**************************************************************************//**
-*
-* pktgen_print_pcap - Display the pcap data page.
-*
-* DESCRIPTION
-* Display the pcap data page on the screen.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_print_pcap - Display the pcap data page.
+ *
+ * DESCRIPTION
+ * Display the pcap data page on the screen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 pktgen_print_pcap(uint16_t pid)
@@ -104,7 +104,9 @@ pktgen_print_pcap(uint16_t pid)
 	row = PORT_STATE_ROW;
 	col = 1;
 	if (pcap == NULL) {
-		wr_scrn_center(10, pktgen.scrn->ncols, "** Port does not have a PCAP file assigned **");
+		wr_scrn_center(10,
+		               pktgen.scrn->ncols,
+		               "** Port does not have a PCAP file assigned **");
 		row = 28;
 		goto leave;
 	}
@@ -155,9 +157,11 @@ pktgen_print_pcap(uint16_t pid)
 
 		wr_scrn_printf(row, col, "%5d:", i);
 		col += 7;
-		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), &hdr->eth.d_addr));
+		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
+		               inet_mtoa(buff, sizeof(buff), &hdr->eth.d_addr));
 		col += COLUMN_WIDTH_1;
-		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, inet_mtoa(buff, sizeof(buff), &hdr->eth.s_addr));
+		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
+		               inet_mtoa(buff, sizeof(buff), &hdr->eth.s_addr));
 		col += COLUMN_WIDTH_1;
 
 		type = ntohs(hdr->eth.ether_type);
@@ -170,19 +174,34 @@ pktgen_print_pcap(uint16_t pid)
 		}
 
 		if (type == ETHER_TYPE_IPv4) {
-			wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, inet_ntop4(buff, sizeof(buff), hdr->u.ipv4.dst, 0xFFFFFFFF));
+			wr_scrn_printf(row,
+			               col,
+			               "%*s",
+			               COLUMN_WIDTH_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          hdr->u.ipv4.dst,
+			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1;
-			wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1 + 2, inet_ntop4(buff, sizeof(buff), hdr->u.ipv4.src, 0xFFFFFFFF));
+			wr_scrn_printf(row,
+			               col,
+			               "%*s",
+			               COLUMN_WIDTH_1 + 2,
+			               inet_ntop4(buff, sizeof(buff),
+			                          hdr->u.ipv4.src,
+			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1 + 2;
 
-			snprintf(buff, sizeof(buff), "%d/%d", ntohs(hdr->u.uip.udp.sport), ntohs(hdr->u.uip.udp.dport));
+			snprintf(buff, sizeof(buff), "%d/%d",
+			         ntohs(hdr->u.uip.udp.sport),
+			         ntohs(hdr->u.uip.udp.dport));
 			wr_scrn_printf(row, col, "%*s", 12, buff);
 			col += 12;
 		} else {
 			skip++;
 			col += ((2 * COLUMN_WIDTH_1) + 2 + 12);
 		}
-		snprintf(buff, sizeof(buff), "%s/%s:%4d", (type == ETHER_TYPE_IPv4) ? "IPv4" :
+		snprintf(buff, sizeof(buff), "%s/%s:%4d",
+		         (type == ETHER_TYPE_IPv4) ? "IPv4" :
 		         (type == ETHER_TYPE_IPv6) ? "IPv6" : "Other",
 		         (type == PG_IPPROTO_TCP) ? "TCP" :
 		         (proto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
@@ -204,16 +223,16 @@ leave:
 }
 
 /**************************************************************************//**
-*
-* pktgen_page_pcap - Display the PCAP data page.
-*
-* DESCRIPTION
-* Display the PCAP data page for a given port.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_page_pcap - Display the PCAP data page.
+ *
+ * DESCRIPTION
+ * Display the PCAP data page for a given port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_page_pcap(uint16_t pid)
@@ -223,18 +242,21 @@ pktgen_page_pcap(uint16_t pid)
 }
 
 /**************************************************************************//**
-*
-* pktgen_pcap_mbuf_ctor - Callback routine to construct PCAP packets.
-*
-* DESCRIPTION
-* Callback routine to construct a set of PCAP packet buffers.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_pcap_mbuf_ctor - Callback routine to construct PCAP packets.
+ *
+ * DESCRIPTION
+ * Callback routine to construct a set of PCAP packet buffers.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 static void
-pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsigned i)
+pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
+                      void *opaque_arg,
+                      void *_m,
+                      unsigned i)
 {
 	struct rte_mbuf *m = _m;
 	uint32_t buf_len = mp->elt_size - sizeof(struct rte_mbuf);
@@ -267,7 +289,8 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
 			i++;
 		}
 
-		if (unlikely(wr_pcap_read(pcap, &hdr, buffer, sizeof(buffer)) <= 0) ) {
+		if (unlikely(wr_pcap_read(pcap, &hdr, buffer,
+		                          sizeof(buffer)) <= 0) ) {
 			wr_pcap_rewind(pcap);
 			continue;
 		}
@@ -289,16 +312,16 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
 }
 
 /**************************************************************************//**
-*
-* pktgen_pcap_parse - Parse a PCAP file.
-*
-* DESCRIPTION
-* Parse a pcap file into packet buffers.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_pcap_parse - Parse a PCAP file.
+ *
+ * DESCRIPTION
+ * Parse a pcap file into packet buffers.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 int
 pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
@@ -321,7 +344,6 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
 	/* The wr_pcap_open left the file pointer to the first packet. */
 	while (wr_pcap_read(pcap, &hdr, buffer, sizeof(buffer)) > 0) {
-
 		/* Skip any jumbo packets or packets that are too small */
 		len = hdr.incl_len;
 
@@ -353,18 +375,32 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		elt_count = rte_align32pow2(elt_count);
 
 		rte_printf_status("\r    Create: %-*s   \b", 16, name);
-		info->q[qid].pcap_mp = rte_mempool_create(name, elt_count, MBUF_SIZE, 0,
-		                                          sizeof(struct rte_pktmbuf_pool_private),
-		                                          rte_pktmbuf_pool_init, NULL,
-		                                          pktgen_pcap_mbuf_ctor, (void *)pcap,
-		                                          rte_lcore_to_socket_id(0), MEMPOOL_F_DMA);
+		info->q[qid].pcap_mp = rte_mempool_create(name,
+		                                          elt_count,
+		                                          MBUF_SIZE,
+		                                          0,
+		                                          sizeof(struct
+		                                                 rte_pktmbuf_pool_private),
+		                                          rte_pktmbuf_pool_init,
+		                                          NULL,
+		                                          pktgen_pcap_mbuf_ctor,
+		                                          (void *)pcap,
+		                                          rte_lcore_to_socket_id(
+		                                                  0),
+		                                          MEMPOOL_F_DMA);
 		rte_printf_status("\r");
 		if (info->q[qid].pcap_mp == NULL)
-			pktgen_log_panic("Cannot init port %d for PCAP packets", info->pid);
+			pktgen_log_panic("Cannot init port %d for PCAP packets",
+			                 info->pid);
 
 		data_size = (info->pcap->pkt_count * MBUF_SIZE);
-		rte_printf_status("    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
-		                  16, name, elt_count, info->pcap->pkt_count, (data_size + 1023) / 1024);
+		rte_printf_status(
+		        "    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
+		        16,
+		        name,
+		        elt_count,
+		        info->pcap->pkt_count,
+		        (data_size + 1023) / 1024);
 		pktgen.mem_used         += data_size;
 		pktgen.total_mem_used   += data_size;
 

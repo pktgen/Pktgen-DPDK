@@ -56,7 +56,7 @@ rmmod rte_kni
 insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
-if [ $name == "rkwiles-supermicro" ]; then
+if [ $name == "supermicro" ]; then
 $sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
 #$sdk/tools/dpdk_nic_bind.py -b igb_uio 87:00.0 87:00.1 89:00.0 89:00.1
 fi

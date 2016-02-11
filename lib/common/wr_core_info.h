@@ -69,11 +69,11 @@
 #define _WR_CORE_INFO_H
 
 /**************************************************************************//**
-*
-* Return the first and last lcore index values into the char pointers args.
-*
-* \returns number of lcores enabled.
-*/
+ *
+ * Return the first and last lcore index values into the char pointers args.
+ *
+ * \returns number of lcores enabled.
+ */
 static __inline__ uint32_t
 wr_lcore_mask(uint8_t *first, uint8_t *last) {
 	int32_t cnt, lid;

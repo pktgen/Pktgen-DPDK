@@ -99,6 +99,8 @@ extern void pktgen_packet_capture_init(capture_t *capture, int socket_id);
 extern void pktgen_set_capture(port_info_t *info, uint32_t onOff);
 
 /* Perform capture of packets */
-extern void pktgen_packet_capture_bulk(struct rte_mbuf **pkts, uint32_t nb_dump, capture_t *capture);
+extern void pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
+                                       uint32_t nb_dump,
+                                       capture_t *capture);
 
 #endif  /* _PKTGEN_CAPTURE_H_ */

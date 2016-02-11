@@ -81,16 +81,16 @@
 extern void execute_lua_close(lua_State *L);
 
 /**************************************************************************//**
-*
-* pktgen_l2p_dump - Dump the l2p table
-*
-* DESCRIPTION
-* Dump the l2p table
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_l2p_dump - Dump the l2p table
+ *
+ * DESCRIPTION
+ * Dump the l2p table
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_l2p_dump(void)
@@ -101,16 +101,16 @@ pktgen_l2p_dump(void)
 #include <poll.h>
 
 /**************************************************************************//**
-*
-* pktgen_interact - Main interaction routine for command line and display
-*
-* DESCRIPTION
-* Process keyboard input and is called from the main command line loop.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_interact - Main interaction routine for command line and display
+ *
+ * DESCRIPTION
+ * Process keyboard input and is called from the main command line loop.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_interact(struct cmdline *cl)
@@ -135,7 +135,8 @@ pktgen_interact(struct cmdline *cl)
 		if (unlikely(curr_tsc >= next_poll)  ) {
 			next_poll = curr_tsc + reload;
 			if (poll(&fds, 1, 0) ) {
-				if ( (fds.revents & (POLLERR | POLLNVAL | POLLHUP)) )
+				if ( (fds.revents &
+				      (POLLERR | POLLNVAL | POLLHUP)) )
 					break;
 				if ( (fds.revents & POLLIN) ) {
 					if (read(cl->s_in, &c, 1) < 0)
@@ -149,16 +150,16 @@ pktgen_interact(struct cmdline *cl)
 }
 
 /**************************************************************************//**
-*
-* pktgen_get_lua - Get Lua state pointer.
-*
-* DESCRIPTION
-* Get the Lua state pointer value.
-*
-* RETURNS: Lua pointer
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_get_lua - Get Lua state pointer.
+ *
+ * DESCRIPTION
+ * Get the Lua state pointer value.
+ *
+ * RETURNS: Lua pointer
+ *
+ * SEE ALSO:
+ */
 
 void *
 pktgen_get_lua(void)
@@ -167,16 +168,16 @@ pktgen_get_lua(void)
 }
 
 /**************************************************************************//**
-*
-* pktgen_usage - Display the help for the command line.
-*
-* DESCRIPTION
-* Display the help message for the command line.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_usage - Display the help for the command line.
+ *
+ * DESCRIPTION
+ * Display the help message for the command line.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 pktgen_usage(const char *prgname)
@@ -228,16 +229,16 @@ pktgen_usage(const char *prgname)
 }
 
 /**************************************************************************//**
-*
-* pktgen_parse_args - Main parsing routine for the command line.
-*
-* DESCRIPTION
-* Main parsing routine for the command line.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_parse_args - Main parsing routine for the command line.
+ *
+ * DESCRIPTION
+ * Main parsing routine for the command line.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static int
 pktgen_parse_args(int argc, char **argv)
@@ -276,7 +277,8 @@ pktgen_parse_args(int argc, char **argv)
 
 		case 'm':	/* Matrix for port mapping. */
 			if (wr_parse_matrix(pktgen.l2p, optarg) == -1) {
-				pktgen_log_error("invalid matrix string (%s)", optarg);
+				pktgen_log_error("invalid matrix string (%s)",
+				                 optarg);
 				pktgen_usage(prgname);
 				return -1;
 			}
@@ -285,8 +287,12 @@ pktgen_parse_args(int argc, char **argv)
 		case 's':	/* Read a PCAP packet capture file (stream) */
 			port = strtol(optarg, NULL, 10);
 			p = strchr(optarg, ':');
-			if ( (p == NULL) || (pktgen.info[port].pcap = wr_pcap_open(++p, port)) == NULL) {
-				pktgen_log_error("Invalid PCAP filename (%s) must include port number as P:filename", optarg);
+			if ( (p == NULL) ||
+			     (pktgen.info[port].pcap =
+			              wr_pcap_open(++p, port)) == NULL) {
+				pktgen_log_error(
+				        "Invalid PCAP filename (%s) must include port number as P:filename",
+				        optarg);
 				pktgen_usage(prgname);
 				return -1;
 			}
@@ -309,16 +315,24 @@ pktgen_parse_args(int argc, char **argv)
 
 			p = strchr(optarg, ':');
 			if (p == NULL)	/* No : symbol means pktgen is a server application. */
-				pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
+				pktgen.hostname = (char *)strdupf(
+				                pktgen.hostname,
+				                optarg);
 			else {
 				char c = *p;
 
 				*p = '\0';
 				if (p != optarg)
-					pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
+					pktgen.hostname = (char *)strdupf(
+					                pktgen.hostname,
+					                optarg);
 
 				pktgen.socket_port = strtol(++p, NULL, 0);
-				pktgen_log_info(">>> Socket GUI support %s%c0x%x", pktgen.hostname, c, pktgen.socket_port);
+				pktgen_log_info(
+				        ">>> Socket GUI support %s%c0x%x",
+				        pktgen.hostname,
+				        c,
+				        pktgen.socket_port);
 			}
 			break;
 
@@ -346,16 +360,16 @@ pktgen_parse_args(int argc, char **argv)
 }
 
 /**************************************************************************//**
-*
-* main - Main routine to setup pktgen.
-*
-* DESCRIPTION
-* Main routine to setup pktgen.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * main - Main routine to setup pktgen.
+ *
+ * DESCRIPTION
+ * Main routine to setup pktgen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 int
 main(int argc, char **argv)
@@ -363,10 +377,11 @@ main(int argc, char **argv)
 	uint32_t i;
 	int32_t ret;
 
-	wr_scrn_setw(1);/* Reset the window size */
-	wr_scrn_pos(100, 1);
+	wr_scrn_setw(1);	/* Reset the window size, from possible crash run. */
+	wr_scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
-	printf("\n%s %s\n", wr_copyright_msg(), wr_powered_by()); fflush(stdout);
+	printf("\n%s %s\n", wr_copyright_msg(), wr_powered_by());
+	fflush(stdout);
 
 	/* call before the rte_eal_init() */
 	(void)rte_set_application_usage_hook(pktgen_usage);
@@ -382,7 +397,10 @@ main(int argc, char **argv)
 	if ( (pktgen.l2p = wr_l2p_create()) == NULL)
 		pktgen_log_panic("Unable to create l2p");
 
-	pktgen.portdesc_cnt = wr_get_portdesc(pktgen.portlist, pktgen.portdesc, RTE_MAX_ETHPORTS, 0);
+	pktgen.portdesc_cnt = wr_get_portdesc(pktgen.portlist,
+	                                      pktgen.portdesc,
+	                                      RTE_MAX_ETHPORTS,
+	                                      0);
 
 	/* Initialize the screen and logging */
 	pktgen_init_log();
@@ -402,7 +420,8 @@ main(int argc, char **argv)
 	if (ret < 0)
 		return -1;
 
-	pktgen_init_screen((pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
+	pktgen_init_screen(
+	        (pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
 
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 
@@ -416,8 +435,13 @@ main(int argc, char **argv)
 		return -1;
 	}
 
-	pktgen_log_info(">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
-	                DEFAULT_PKT_BURST, DEFAULT_RX_DESC, DEFAULT_TX_DESC, MAX_MBUFS_PER_PORT, MBUF_CACHE_SIZE);
+	pktgen_log_info(
+	        ">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
+	        DEFAULT_PKT_BURST,
+	        DEFAULT_RX_DESC,
+	        DEFAULT_TX_DESC,
+	        MAX_MBUFS_PER_PORT,
+	        MBUF_CACHE_SIZE);
 
 	/* Configure and initialize the ports */
 	pktgen_config_ports();
@@ -431,7 +455,9 @@ main(int argc, char **argv)
 			continue;
 		ret = rte_eal_remote_launch(pktgen_launch_one_lcore, NULL, i);
 		if (ret != 0)
-			pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
+			pktgen_log_error("Failed to start lcore %d, return %d",
+			                 i,
+			                 ret);
 	}
 	rte_delay_ms(1000);	/* Wait for the lcores to start up. */
 
@@ -457,7 +483,10 @@ main(int argc, char **argv)
 			wr_scrn_pos(pktgen.scrn->nrows, 1);
 		}
 
-		lua_init_socket(pktgen.L, &pktgen.thread, pktgen.hostname, pktgen.socket_port);
+		lua_init_socket(pktgen.L,
+		                &pktgen.thread,
+		                pktgen.hostname,
+		                pktgen.socket_port);
 	}
 
 	pktgen_cmdline_start();
@@ -477,16 +506,16 @@ main(int argc, char **argv)
 }
 
 /***********************************************************************//**
-*
-* pktgen_stop_running - Stop pktgen to exit in a clean way
-*
-* DESCRIPTION
-* Stop all of the logical core threads to stop pktgen cleanly.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_stop_running - Stop pktgen to exit in a clean way
+ *
+ * DESCRIPTION
+ * Stop all of the logical core threads to stop pktgen cleanly.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_stop_running(void)

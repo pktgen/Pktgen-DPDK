@@ -46,7 +46,9 @@ wr_delay_us(uint32_t us) {
 	uint64_t ticks;
 	uint32_t resolution_fs;
 
-	resolution_fs = (uint32_t)((1000ULL * 1000ULL * 1000ULL * 1000ULL * 1000ULL) / rte_get_timer_hz());
+	resolution_fs =
+	        (uint32_t)((1000ULL * 1000ULL * 1000ULL * 1000ULL * 1000ULL) /
+	                   rte_get_timer_hz());
 
 	ticks = (uint64_t)us * 1000ULL * 1000ULL * 1000ULL;
 	ticks /= resolution_fs;

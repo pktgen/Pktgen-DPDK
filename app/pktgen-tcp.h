@@ -73,17 +73,18 @@
 #include "pktgen-seq.h"
 
 /**************************************************************************//**
-*
-* pktgen_tcp_hdr_ctor - TCP header constructor routine.
-*
-* DESCRIPTION
-* Construct a TCP header in the packet buffer provided.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_tcp_hdr_ctor - TCP header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct a TCP header in the packet buffer provided.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
-extern void pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, tcpip_t * tip, __attribute__ ((unused)) int type);
+extern void pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, tcpip_t * tip, __attribute__ (
+                                        (unused)) int type);
 
 #endif  /* _PKTGEN_TCP_H_ */

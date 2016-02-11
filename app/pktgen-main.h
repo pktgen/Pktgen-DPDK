@@ -85,16 +85,16 @@ extern void *pktgen_get_lua(void);
 extern void pktgen_stop_running(void);
 
 /**************************************************************************//**
-*
-* pktgen_get_lua - Get Lua state pointer.
-*
-* DESCRIPTION
-* Get the Lua state pointer value.
-*
-* RETURNS: Lua pointer
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_get_lua - Get Lua state pointer.
+ *
+ * DESCRIPTION
+ * Get the Lua state pointer value.
+ *
+ * RETURNS: Lua pointer
+ *
+ * SEE ALSO:
+ */
 
 extern void *pktgen_get_lua(void);
 

@@ -73,14 +73,14 @@
 #include "pktgen-seq.h"
 
 typedef struct range_info_s {
-	uint32_t src_ip_inc;		/**< Source IP increment */
-	uint32_t dst_ip_inc;		/**< Destination increment IP address */
-	uint16_t src_port_inc;		/**< Source port increment */
-	uint16_t dst_port_inc;		/**< Destination port increment */
-	uint16_t vlan_id_inc;		/**< VLAN id increment */
-	uint16_t pkt_size_inc;		/**< PKT size increment */
-	uint64_t src_mac_inc;		/**< Source MAC increment */
-	uint64_t dst_mac_inc;		/**< Destination MAC increment */
+	uint32_t src_ip_inc;	/**< Source IP increment */
+	uint32_t dst_ip_inc;	/**< Destination increment IP address */
+	uint16_t src_port_inc;	/**< Source port increment */
+	uint16_t dst_port_inc;	/**< Destination port increment */
+	uint16_t vlan_id_inc;	/**< VLAN id increment */
+	uint16_t pkt_size_inc;	/**< PKT size increment */
+	uint64_t src_mac_inc;	/**< Source MAC increment */
+	uint64_t dst_mac_inc;	/**< Destination MAC increment */
 
 	uint32_t src_ip;	/**< Source starting IP address */
 	uint32_t src_ip_min;	/**< Source IP minimum */
@@ -114,10 +114,10 @@ typedef struct range_info_s {
 	uint64_t src_mac_min;	/**< Source minimum MAC address */
 	uint64_t src_mac_max;	/**< Source maximum MAC address */
 
-    uint32_t gtpu_teid; /**< GTP-U TEID starting */
-    uint32_t gtpu_teid_inc; /**< GTP-U TEID inc */
-    uint32_t gtpu_teid_min; /**< GTP-U TEID minimum */
-    uint32_t gtpu_teid_max; /**< GTP-U TEID maximum */
+	uint32_t gtpu_teid;	/**< GTP-U TEID starting */
+	uint32_t gtpu_teid_inc;	/**< GTP-U TEID inc */
+	uint32_t gtpu_teid_min;	/**< GTP-U TEID minimum */
+	uint32_t gtpu_teid_max;	/**< GTP-U TEID maximum */
 } range_info_t;
 
 struct port_info_s;

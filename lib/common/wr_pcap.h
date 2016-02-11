@@ -135,7 +135,10 @@ extern void wr_pcap_close(pcap_info_t *pcap);
 extern void wr_pcap_rewind(pcap_info_t *pcap);
 extern void wr_pcap_skip(pcap_info_t *pcap, uint32_t skip);
 extern void wr_pcap_info(pcap_info_t *pcap, uint16_t port, int flag);
-extern size_t wr_pcap_read(pcap_info_t *pcap, pcaprec_hdr_t *pHdr, char *pktBuff, uint32_t bufLen);
+extern size_t wr_pcap_read(pcap_info_t *pcap,
+                           pcaprec_hdr_t *pHdr,
+                           char *pktBuff,
+                           uint32_t bufLen);
 extern int wr_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
                             unsigned int *length);
 

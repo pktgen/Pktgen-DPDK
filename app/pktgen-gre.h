@@ -73,7 +73,10 @@
 #include "pktgen-port-cfg.h"
 #include "pktgen-seq.h"
 
-extern char *pktgen_gre_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, greIp_t *gre);
-extern char *pktgen_gre_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, greEther_t *gre);
+extern char *pktgen_gre_hdr_ctor(port_info_t *info, pkt_seq_t *pkt,
+                                 greIp_t *gre);
+extern char *pktgen_gre_ether_hdr_ctor(port_info_t *info,
+                                       pkt_seq_t *pkt,
+                                       greEther_t *gre);
 
 #endif  /* _PKTGEN_GRE_H_ */

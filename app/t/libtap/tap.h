@@ -1,8 +1,8 @@
 /*
-libtap - Write tests in C
-Copyright 2012 Jake Gelbman <gelbman@gmail.com>
-This file is licensed under the GPLv2 or any later version
-*/
+ * libtap - Write tests in C
+ * Copyright 2012 Jake Gelbman <gelbman@gmail.com>
+ * This file is licensed under the GPLv2 or any later version
+ */
 
 #ifndef __TAP_H__
 #define __TAP_H__

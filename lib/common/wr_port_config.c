@@ -91,19 +91,22 @@
 #define PORT_STRING_SIZE    256
 
 /**************************************************************************//**
-*
-* wr_get_portdesc - Parse the lspci command output to find ports.
-*
-* DESCRIPTION
-* Parse the lspci command output to find valid ports to use.
-*
-* RETURNS: Number of ports found.
-*
-* SEE ALSO:
-*/
+ *
+ * wr_get_portdesc - Parse the lspci command output to find ports.
+ *
+ * DESCRIPTION
+ * Parse the lspci command output to find valid ports to use.
+ *
+ * RETURNS: Number of ports found.
+ *
+ * SEE ALSO:
+ */
 
 uint32_t
-wr_get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, int verbose)
+wr_get_portdesc(struct rte_pci_addr *pciAddr,
+                uint8_t **portdesc,
+                uint32_t num,
+                int verbose)
 {
 	FILE *fd;
 	uint32_t idx;
@@ -134,7 +137,8 @@ wr_get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, 
 		pciAddr[idx].function   = strtol(++p, &p, 16);
 
 		if (verbose)
-			fprintf(stdout, " 0x%016llx: %s\n", (1ULL << idx), buff);
+			fprintf(stdout, " 0x%016llx: %s\n", (1ULL << idx),
+			        buff);
 
 		/* Save the port description for later if asked to do so. */
 		if (portdesc)
@@ -152,16 +156,16 @@ wr_get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, 
 }
 
 /**************************************************************************//**
-*
-* wr_free_portdesc - Free the allocated memory for port descriptions.
-*
-* DESCRIPTION
-* Free the allocated memory for the port descriptions
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_free_portdesc - Free the allocated memory for port descriptions.
+ *
+ * DESCRIPTION
+ * Free the allocated memory for the port descriptions
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_free_portdesc(uint8_t **portdesc, uint32_t num)
@@ -176,37 +180,45 @@ wr_free_portdesc(uint8_t **portdesc, uint32_t num)
 }
 
 /**************************************************************************//**
-*
-* wr_create_blacklist - Create a port blacklist.
-*
-* DESCRIPTION
-* Create a port blacklist from the port and port descriptions.
-*
-* RETURNS: Number of ports in list.
-*
-* SEE ALSO:
-*/
+ *
+ * wr_create_blacklist - Create a port blacklist.
+ *
+ * DESCRIPTION
+ * Create a port blacklist from the port and port descriptions.
+ *
+ * RETURNS: Number of ports in list.
+ *
+ * SEE ALSO:
+ */
 
 uint32_t
-wr_create_blacklist(uint64_t portmask, struct rte_pci_addr *portlist, uint32_t port_cnt, uint8_t *desc[]) {
+wr_create_blacklist(uint64_t portmask,
+                    struct rte_pci_addr *portlist,
+                    uint32_t port_cnt,
+                    uint8_t *desc[]) {
 	uint32_t i, idx;
 	char pci_addr_str[32];
 
-	if ( (portmask == 0) || (portlist == NULL) || (port_cnt == 0) || (desc == NULL) )
+	if ( (portmask == 0) || (portlist == NULL) || (port_cnt == 0) ||
+	     (desc == NULL) )
 		return 0;
 
-	fprintf(stdout, "Ports: Port Mask: %016lx blacklisted = --, not-blacklisted = ++\n", portmask);
+	fprintf(stdout,
+	        "Ports: Port Mask: %016lx blacklisted = --, not-blacklisted = ++\n",
+	        portmask);
 	idx = 0;
 	for (i = 0; i < port_cnt; i++) {
 		memset(pci_addr_str, 0, sizeof(pci_addr_str));
 		if ( (portmask & (1ULL << i)) == 0) {
 			fprintf(stdout, "-- %s\n", desc[i]);
 			strncpy(pci_addr_str, (void *)desc[i], 12);
-			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI, pci_addr_str);
+			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI,
+			                    pci_addr_str);
 			idx++;
 		} else {
 			strncpy(pci_addr_str, (void *)desc[i], 12);
-			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI, pci_addr_str);
+			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI,
+			                    pci_addr_str);
 			fprintf(stdout, "++ %s\n", desc[i]);
 		}
 	}

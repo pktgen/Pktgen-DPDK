@@ -75,17 +75,19 @@
 #define GTPu_VERSION 0x30
 
 /**************************************************************************//**
-*
-* pktgen_gtpu_hdr_ctor - GTP-U header constructor routine.
-*
-* DESCRIPTION
-* Construct the GTP-U header in a packer buffer.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_gtpu_hdr_ctor - GTP-U header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct the GTP-U header in a packer buffer.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
-extern void pktgen_gtpu_hdr_ctor(pkt_seq_t * pkt, gtpuHdr_t * guip, uint16_t ipProto);
+extern void pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt,
+                                 gtpuHdr_t *guip,
+                                 uint16_t ipProto);
 
-#endif	// _PKTGEN_GTPU_H_
+#endif  /* _PKTGEN_GTPU_H_ */

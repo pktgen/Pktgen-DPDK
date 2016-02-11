@@ -1,4 +1,4 @@
-Pktgen version 2.9.8 using DPDK-2.2.0
+Pktgen version 2.9.9 using DPDK-2.2.0
 =====================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
@@ -6,6 +6,8 @@ Pktgen version 2.9.8 using DPDK-2.2.0
 **Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.10  - Reformat the code and get ready for the next release of DPDK.
+ - 2.9.9   - Update the init screen output to not screw up DPDK screen output.
  - 2.9.8   - Fixed the crash when using the sequence packets.
  - 2.9.7   - Changed all rte_zmalloc to rte_zmalloc_socket calls and change seq_pkt support.
              The fix for multiple cores accessing seq_pkts was to allocate memory and copy
@@ -1039,7 +1041,7 @@ Dst  IP Address :        192.168.1.1        192.168.0.1
 Src  IP Address :     192.168.0.1/24     192.168.1.1/24
 Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
 Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:2.9.7(DPDK-2.2.0) -------------------------------------------------------------------------------------
+-- Pktgen Ver:2.9.x(DPDK-2.X.0) -------------------------------------------------------------------------------------
 
 
 
@@ -1238,7 +1240,7 @@ Port: 0, PCAP Count: 0 of 9716, skipped 0
    23:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
    24:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1466
 
-- Pktgen Ver:2.9.7(DPDK-2.2.0) --------------------------------------------------------------------------------------
+- Pktgen Ver:2.9.x(DPDK-2.X.0) --------------------------------------------------------------------------------------
 
 
 
@@ -1333,7 +1335,7 @@ You can also just send Pktgen a script file and display the ouptut.
 $ socat - TCP4:localhost:22022 < test/hello-world.lua 
 
 Lua Vesrion      : Lua 5.2
-Pktgen Version   : 2.9.7
+Pktgen Version   : 2.9.x
 Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
 Pktgen Authors   : Keith Wiles @ Wind River Systems
 
@@ -1361,7 +1363,7 @@ $ socat READLINE TCP4:172.25.40.163:22022
 f,e = loadfile("test/hello-world.lua")
 f()
 Lua Version      : Lua 5.2
-Pktgen Version   : 2.9.7
+Pktgen Version   : 2.9.x
 Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
 Pktgen Authors   : Keith Wiles @ Wind River Systems
 
@@ -1374,7 +1376,7 @@ You can also just send it commands via echo.
 -----------------
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
 Lua Version      : Lua 5.2
-Pktgen Version   : 2.9.7
+Pktgen Version   : 2.9.x
 Pktgen Copyright : Copyright (c) `<2010-2016>`, Wind River Systems, Inc.
 Pktgen Authors   : Keith Wiles @ Wind River Systems
 

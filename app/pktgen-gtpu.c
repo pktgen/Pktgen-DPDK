@@ -70,63 +70,67 @@
 #include "pktgen-gtpu.h"
 
 /**************************************************************************//**
-*
-* pktgen_gtpu_udp_hdr_ctor - GTP-U header constructor routine for TCP/UDP.
-*
-* DESCRIPTION
-* Construct the GTP-U header in a packer buffer.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_gtpu_udp_hdr_ctor - GTP-U header constructor routine for TCP/UDP.
+ *
+ * DESCRIPTION
+ * Construct the GTP-U header in a packer buffer.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
-pktgen_gtpu_hdr_ctor(pkt_seq_t * pkt, gtpuHdr_t * guip, uint16_t ipProto)
+pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, gtpuHdr_t *guip, uint16_t ipProto)
 {
-	unsigned char * buffer = (unsigned char *)guip;
+	unsigned char *buffer = (unsigned char *)guip;
 	unsigned int l4HdrSize = 0;
 
-	if(ipProto == PG_IPPROTO_UDP)
+	if (ipProto == PG_IPPROTO_UDP)
 		l4HdrSize = sizeof(udpHdr_t);
 	else
 		l4HdrSize = sizeof(tcpHdr_t);
 
-	gtpuHdr_t *gtppHdr = (gtpuHdr_t *)(buffer + sizeof(ipHdr_t) + l4HdrSize);
+	gtpuHdr_t *gtppHdr =
+	        (gtpuHdr_t *)(buffer + sizeof(ipHdr_t) + l4HdrSize);
 
-	// Zero out the header space
+	/* Zero out the header space */
 	memset((char *)guip, 0, sizeof(gtpuHdr_t));
 
 	/* Version: It is a 3-bit field. For GTPv1, this has a value of 1. */
 	gtppHdr->version_flags = GTPu_VERSION;
 
 	/* Message Type: an 8-bit field that indicates the type of GTP message.
-	Different types of messages are defined in 3GPP TS 29.060 section 7.1
-	*/
+	 * Different types of messages are defined in 3GPP TS 29.060 section 7.1
+	 */
 	gtppHdr->msg_type = 0xff;
 
 	/* Message Length - a 16-bit field that indicates the length of the payload in bytes
-	(rest of the packet following the mandatory 8-byte GTP header). Includes the optional fields.
-	*/
-	gtppHdr->tot_len = htons(pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t) + l4HdrSize + sizeof(gtpuHdr_t)));
+	 * (rest of the packet following the mandatory 8-byte GTP header). Includes the optional fields.
+	 */
+	gtppHdr->tot_len =
+	        htons(pkt->pktSize -
+	              (pkt->ether_hdr_size + sizeof(ipHdr_t) + l4HdrSize +
+	               sizeof(gtpuHdr_t)));
 
 	/* Tunnel endpoint identifier (TEID)
-	A 32-bit(4-octet) field used to multiplex different connections in the same GTP tunnel.
-	*/
+	 * A 32-bit(4-octet) field used to multiplex different connections in the same GTP tunnel.
+	 */
 	gtppHdr->teid = htonl(pkt->gtpu_teid);
 
 	/* Sequence number an (optional) 16-bit field.
-	This field exists if any of the E, S, or PN bits are on. The field must be interpreted only if the S bit is on.
-	*/
+	 * This field exists if any of the E, S, or PN bits are on. The field must be interpreted only if the S bit is on.
+	 */
 	gtppHdr->seq_no = 0x0;
 
 	/* N-PDU number an (optional) 8-bit field. This field exists if any of the E, S, or PN bits are on.
-	The field must be interpreted only if the PN bit is on.
-	*/
+	 * The field must be interpreted only if the PN bit is on.
+	 */
 	gtppHdr->npdu_no = 0x0;
 
 	/* Next extension header type an (optional) 8-bit field. This field exists if any of the E, S, or PN bits are on.
-	The field must be interpreted only if the E bit is on.
-	*/
+	 * The field must be interpreted only if the E bit is on.
+	 */
 	gtppHdr->next_ext_hdr_type = 0x0;
 }

@@ -263,7 +263,9 @@ pktgen_display_set_color(const char *elem) {
 		return;
 	}
 
-	wr_scrn_color(theme_color->fg_color, theme_color->bg_color, theme_color->attr);
+	wr_scrn_color(theme_color->fg_color,
+	              theme_color->bg_color,
+	              theme_color->attr);
 }
 
 /* String to use as prompt, with proper ANSI color codes */
@@ -282,11 +284,19 @@ __set_prompt(void)
 
 		if ( (def == NULL) || (prompt == NULL) )
 			pktgen_log_error("Prompt and/or default color undefined");
+
+
 		else
-			snprintf(prompt_str, sizeof(prompt_str), "\033[%d;%d;%dm%s>\033[%d;%d;%dm ",
-			         prompt->attr, 30 + prompt->fg_color, 40 + prompt->bg_color,
+			snprintf(prompt_str,
+			         sizeof(prompt_str),
+			         "\033[%d;%d;%dm%s>\033[%d;%d;%dm ",
+			         prompt->attr,
+			         30 + prompt->fg_color,
+			         40 + prompt->bg_color,
 			         PKTGEN_APP_NAME,
-			         def->attr,    30 + def->fg_color,    40 + def->bg_color);
+			         def->attr,
+			         30 + def->fg_color,
+			         40 + def->bg_color);
 	}
 
 	cmdline_set_prompt(pktgen.cl, prompt_str);
@@ -341,8 +351,13 @@ pktgen_theme_show(void)
 {
 	int i;
 
-	printf("*** Theme Color Map Names (%s) ***\n", __scrn->theme ? "Enabled" : "Disabled");
-	printf("   %-30s %-10s %-10s %s\n", "name", "FG Color", "BG Color", "Attribute");
+	printf("*** Theme Color Map Names (%s) ***\n",
+	       __scrn->theme ? "Enabled" : "Disabled");
+	printf("   %-30s %-10s %-10s %s\n",
+	       "name",
+	       "FG Color",
+	       "BG Color",
+	       "Attribute");
 	for (i = 0; theme_color_map[i].name; i++) {
 		printf("   %-32s %-10s %-10s %-6s",
 		       theme_color_map[i].name,
@@ -385,8 +400,12 @@ pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr)
 	bg = get_color_by_name(bg_color);
 	at = get_attr_by_name(attr);
 
-	if ( (fg == UNKNOWN_COLOR) || (bg == UNKNOWN_COLOR) || (at == UNKNOWN_ATTR) ) {
-		pktgen_log_error("Unknown color or attribute (%s, %s, %s)\n", fg_color, bg_color, attr);
+	if ( (fg == UNKNOWN_COLOR) || (bg == UNKNOWN_COLOR) ||
+	     (at == UNKNOWN_ATTR) ) {
+		pktgen_log_error("Unknown color or attribute (%s, %s, %s)\n",
+		                 fg_color,
+		                 bg_color,
+		                 attr);
 		return;
 	}
 

@@ -69,16 +69,16 @@
 #include "pktgen-log.h"
 
 /**************************************************************************//**
-*
-* pktgen_packet_dump - Dump the contents of a packet
-*
-* DESCRIPTION
-* Dump the contents of a packet.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_packet_dump - Dump the contents of a packet
+ *
+ * DESCRIPTION
+ * Dump the contents of a packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_packet_dump(struct rte_mbuf *m, int pid)
@@ -92,28 +92,32 @@ pktgen_packet_dump(struct rte_mbuf *m, int pid)
 	if (info->dump_list[info->dump_tail].data != NULL)
 		rte_free(info->dump_list[info->dump_tail].data);
 
-	info->dump_list[info->dump_tail].data = rte_malloc("Packet data", plen, 0);
+	info->dump_list[info->dump_tail].data = rte_malloc("Packet data",
+	                                                   plen,
+	                                                   0);
 	info->dump_list[info->dump_tail].len = plen;
 
 	for (curr_data = info->dump_list[info->dump_tail].data, curr_mbuf = m;
 	     curr_mbuf != NULL;
 	     curr_data += curr_mbuf->data_len, curr_mbuf = curr_mbuf->next)
-		rte_memcpy(curr_data, (uint8_t *)curr_mbuf->buf_addr + m->data_off, curr_mbuf->data_len);
+		rte_memcpy(curr_data,
+		           (uint8_t *)curr_mbuf->buf_addr + m->data_off,
+		           curr_mbuf->data_len);
 
 	++info->dump_tail;
 }
 
 /**************************************************************************//**
-*
-* pktgen_packet_dump_bulk - Dump packet contents.
-*
-* DESCRIPTION
-* Dump packet contents for later inspection.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_packet_dump_bulk - Dump packet contents.
+ *
+ * DESCRIPTION
+ * Dump packet contents for later inspection.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
@@ -139,17 +143,17 @@ pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
 }
 
 /**************************************************************************//**
-*
-* pktgen_print_packet_dump - Print captured packets to the screen
-*
-* DESCRIPTION
-* When some packets are captured on user request, print the packet data to
-* the screen.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_print_packet_dump - Print captured packets to the screen
+ *
+ * DESCRIPTION
+ * When some packets are captured on user request, print the packet data to
+ * the screen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_print_packet_dump(void)
@@ -168,7 +172,9 @@ pktgen_print_packet_dump(void)
 
 		info = &pktgen.info[pid];
 		for (; info->dump_head < info->dump_tail; ++info->dump_head) {
-			pdata = (unsigned char *)info->dump_list[info->dump_head].data;
+			pdata =
+			        (unsigned char *)info->dump_list[info->dump_head
+			        ].data;
 			plen = info->dump_list[info->dump_head].len;
 
 			snprintf(buff, sizeof(buff),
@@ -183,7 +189,8 @@ pktgen_print_packet_dump(void)
 				for (j = 0; j < 16; ++j) {
 					/* Hex. value of character */
 					if (i + j < plen)
-						strncatf(buff, "%02x ", pdata[i + j]);
+						strncatf(buff, "%02x ",
+						         pdata[i + j]);
 					else
 						strncatf(buff, "   ");
 
@@ -197,7 +204,10 @@ pktgen_print_packet_dump(void)
 
 				for (j = 0; j < 16; ++j)
 					if (i + j < plen)
-						strncatf(buff, "%c", isprint(pdata[i + j]) ? pdata[i + j] : '.');
+						strncatf(buff, "%c",
+						         isprint(pdata[i +
+						                       j]) ? pdata[
+						                 i + j] : '.');
 			}
 			pktgen_log_info("%s", buff);
 

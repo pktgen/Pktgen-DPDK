@@ -69,30 +69,30 @@
 #define _PKTGEN_CPU_H_
 
 /**************************************************************************//**
-*
-* pktgen_cpu_init - Init the CPU information
-*
-* DESCRIPTION
-* initialize the CPU information
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_cpu_init - Init the CPU information
+ *
+ * DESCRIPTION
+ * initialize the CPU information
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 extern void pktgen_cpu_init(void);
 
 /**************************************************************************//**
-*
-* pktgen_page_cpu - Display the CPU data page.
-*
-* DESCRIPTION
-* Display the CPU data page for a given port.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_page_cpu - Display the CPU data page.
+ *
+ * DESCRIPTION
+ * Display the CPU data page for a given port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 extern void pktgen_page_cpu(void);
 

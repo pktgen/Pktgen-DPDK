@@ -118,20 +118,19 @@
 cmdline_parse_ctx_t main_ctx[];
 
 /**************************************************************************//**
-*
-* cmd_port_display - Create a string based on the port list.
-*
-* DESCRIPTION
-* Create a string based on the port list and use the short hand format.
-*
-* RETURNS: Null if ERROR or a string pointer to the port list.
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_port_display - Create a string based on the port list.
+ *
+ * DESCRIPTION
+ * Create a string based on the port list and use the short hand format.
+ *
+ * RETURNS: Null if ERROR or a string pointer to the port list.
+ *
+ * SEE ALSO:
+ */
 
 char *
 cmd_port_display(char *buff, uint32_t len, uint64_t portlist) {
-
 	char      *p = buff;
 	uint32_t bit = 0, first, comma = 0;
 
@@ -143,9 +142,13 @@ cmd_port_display(char *buff, uint32_t len, uint64_t portlist) {
 		while ( (portlist & (1ULL << bit)) )
 			bit++;
 		if (first == (bit - 1) )
-			snprintf(p, len - strlen(buff), "%s%d", (comma) ? "," : "", first);
+			snprintf(p, len - strlen(
+			                 buff), "%s%d", (comma) ? "," : "",
+			         first);
 		else
-			snprintf(p, len - strlen(buff), "%s%d-%d", (comma) ? "," : "", first, (bit - 1));
+			snprintf(p, len - strlen(
+			                 buff), "%s%d-%d", (comma) ? "," : "", first,
+			         (bit - 1));
 
 		p = buff + strlen(buff);
 		if (strlen(buff) > (len - 5) )
@@ -329,16 +332,16 @@ const char *help_info[] = {
 };
 
 /**************************************************************************//**
-*
-* cmdline_pause - Pause the screen from scrolling and wait for a key.
-*
-* DESCRIPTION
-* Display a message and wait for a response.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmdline_pause - Pause the screen from scrolling and wait for a key.
+ *
+ * DESCRIPTION
+ * Display a message and wait for a response.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static int
 cmdline_pause(struct cmdline *cl, const char *msg)
@@ -360,16 +363,16 @@ struct cmd_help_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_help_parsed - Display the help screen and pause if needed.
-*
-* DESCRIPTION
-* Display the help and use pause to show screen full of messages.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_help_parsed - Display the help screen and pause if needed.
+ *
+ * DESCRIPTION
+ * Display the help and use pause to show screen full of messages.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_help_parsed(void *parsed_result __rte_unused,
@@ -390,11 +393,15 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 	wr_scrn_pos(3, 0);
 	for (i = 2; help_info[i] != NULL; i++) {
 		if (strcmp(help_info[i], "<<PageBreak>>") == 0) {
-			if (cmdline_pause(cl, "   <More Help: Press Return to Continue or ESC>") )
+			if (cmdline_pause(cl,
+			                  "   <More Help: Press Return to Continue or ESC>") )
 				goto leave;
 			wr_scrn_cls();
 			wr_scrn_pos(0, 0);
-			cmdline_printf(cl, "%s%s\n", help_info[1], wr_copyright_msg());
+			cmdline_printf(cl,
+			               "%s%s\n",
+			               help_info[1],
+			               wr_copyright_msg());
 			wr_scrn_pos(3, 0);
 			continue;
 		}
@@ -431,16 +438,16 @@ struct cmd_theme_state_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_theme_state - Enable or disable the theme
-*
-* DESCRIPTION
-* Enable or disable the theme.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_theme_state - Enable or disable the theme
+ *
+ * DESCRIPTION
+ * Enable or disable the theme.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_theme_state_parsed(void *parsed_result,
@@ -456,7 +463,9 @@ cmd_theme_state_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_theme_theme =
         TOKEN_STRING_INITIALIZER(struct cmd_theme_state_result, theme, "theme");
 cmdline_parse_token_string_t cmd_theme_onOff =
-        TOKEN_STRING_INITIALIZER(struct cmd_theme_state_result, onOff, "stop#start#off#on#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_theme_state_result,
+                                 onOff,
+                                 "stop#start#off#on#enable#disable");
 
 cmdline_parse_inst_t cmd_theme_state = {
 	.f = cmd_theme_state_parsed,
@@ -480,16 +489,16 @@ struct cmd_theme_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_theme - Set a color for a given item
-*
-* DESCRIPTION
-* Set the given item to the give color/attr
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_theme - Set a color for a given item
+ *
+ * DESCRIPTION
+ * Set the given item to the give color/attr
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_theme_parsed(void *parsed_result,
@@ -533,16 +542,16 @@ struct cmd_theme_show_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_theme_show - show the item names and attributes
-*
-* DESCRIPTION
-* show the item names and attributes
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_theme_show - show the item names and attributes
+ *
+ * DESCRIPTION
+ * show the item names and attributes
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_theme_show_parsed(void *parsed_result __rte_unused,
@@ -553,7 +562,9 @@ cmd_theme_show_parsed(void *parsed_result __rte_unused,
 }
 
 cmdline_parse_token_string_t cmd_theme_show_data =
-        TOKEN_STRING_INITIALIZER(struct cmd_theme_show_result, theme_show, "theme.show");
+        TOKEN_STRING_INITIALIZER(struct cmd_theme_show_result,
+                                 theme_show,
+                                 "theme.show");
 
 cmdline_parse_inst_t cmd_theme_show = {
 	.f = cmd_theme_show_parsed,
@@ -573,16 +584,16 @@ struct cmd_theme_save_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_theme_save - Save a theme to a file
-*
-* DESCRIPTION
-* Save the current theme to a file.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_theme_save - Save a theme to a file
+ *
+ * DESCRIPTION
+ * Save the current theme to a file.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_theme_save_parsed(void *parsed_result,
@@ -595,7 +606,9 @@ cmd_theme_save_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_theme_save_data =
-        TOKEN_STRING_INITIALIZER(struct cmd_theme_save_result, theme_save, "theme.save");
+        TOKEN_STRING_INITIALIZER(struct cmd_theme_save_result,
+                                 theme_save,
+                                 "theme.save");
 cmdline_parse_token_string_t cmd_theme_save_filename =
         TOKEN_STRING_INITIALIZER(struct cmd_theme_save_result, filename, NULL);
 
@@ -618,16 +631,16 @@ struct cmd_save_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_save - Save a configuration
-*
-* DESCRIPTION
-* Save the configuration into a script file.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_save - Save a configuration
+ *
+ * DESCRIPTION
+ * Save the configuration into a script file.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_save_parsed(void *parsed_result,
@@ -663,16 +676,16 @@ struct cmd_scripting_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_script_parsed - Command to execute a script.
-*
-* DESCRIPTION
-* Load the script file and execute the commands.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_script_parsed - Command to execute a script.
+ *
+ * DESCRIPTION
+ * Load the script file and execute the commands.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_script_parsed(void *parsed_result,
@@ -715,16 +728,16 @@ struct cmd_ping4_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_ping4_parsed - Ping command for IPv4
-*
-* DESCRIPTION
-* Ping command for IPv4 sending a ICMP echo request.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_ping4_parsed - Ping command for IPv4
+ *
+ * DESCRIPTION
+ * Ping command for IPv4 sending a ICMP echo request.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_ping4_parsed(void *parsed_result,
@@ -763,16 +776,16 @@ struct cmd_ping6_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_ping6_parsed - Send a Ping IPv6 command
-*
-* DESCRIPTION
-* Send a ICMP Ping IPv6 request.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_ping6_parsed - Send a Ping IPv6 command
+ *
+ * DESCRIPTION
+ * Send a ICMP Ping IPv6 request.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_ping6_parsed(void *parsed_result,
@@ -812,16 +825,16 @@ struct cmd_set_range_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_range_parsed - Set the range command options.
-*
-* DESCRIPTION
-* Set the range port options.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_range_parsed - Set the range command options.
+ *
+ * DESCRIPTION
+ * Set the range port options.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_range_parsed(void *parsed_result,
@@ -841,7 +854,9 @@ cmdline_parse_token_string_t cmd_set_range =
 cmdline_parse_token_portlist_t cmd_set_range_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_range_result, portlist);
 cmdline_parse_token_string_t cmd_set_range_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_range_result, what, "enable#disable#on#off");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_range_result,
+                                 what,
+                                 "enable#disable#on#off");
 
 cmdline_parse_inst_t cmd_range = {
 	.f = cmd_set_range_parsed,
@@ -864,16 +879,16 @@ struct cmd_set_latency_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_latency_parsed - Set the latency testing.
-*
-* DESCRIPTION
-* Set the latency testing.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_latency_parsed - Set the latency testing.
+ *
+ * DESCRIPTION
+ * Set the latency testing.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_latency_parsed(void *parsed_result,
@@ -894,11 +909,15 @@ cmd_set_latency_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_latency =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_latency_result, latency, "latency");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_latency_result,
+                                 latency,
+                                 "latency");
 cmdline_parse_token_portlist_t cmd_set_latency_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_latency_result, portlist);
 cmdline_parse_token_string_t cmd_set_latency_state =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_latency_result, state, "enable#disable#on#off");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_latency_result,
+                                 state,
+                                 "enable#disable#on#off");
 
 cmdline_parse_inst_t cmd_latency = {
 	.f = cmd_set_latency_parsed,
@@ -921,16 +940,16 @@ struct cmd_set_pattern_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_pattern_parsed - Set the fill pattern per port
-*
-* DESCRIPTION
-* Set the fill pattern per port.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_pattern_parsed - Set the fill pattern per port
+ *
+ * DESCRIPTION
+ * Set the fill pattern per port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_pattern_parsed(void *parsed_result,
@@ -946,11 +965,15 @@ cmd_set_pattern_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_pattern =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_pattern_result, pattern, "pattern#pat");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_pattern_result,
+                                 pattern,
+                                 "pattern#pat");
 cmdline_parse_token_portlist_t cmd_set_pattern_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_pattern_result, portlist);
 cmdline_parse_token_string_t cmd_set_pattern_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_pattern_result, what, "abc#none#zero#user");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_pattern_result,
+                                 what,
+                                 "abc#none#zero#user");
 
 cmdline_parse_inst_t cmd_pattern = {
 	.f = cmd_set_pattern_parsed,
@@ -973,16 +996,16 @@ struct cmd_user_pattern_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_user_pattern_parsed - Set the user fill pattern per port
-*
-* DESCRIPTION
-* Set the user fill pattern per port.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_user_pattern_parsed - Set the user fill pattern per port
+ *
+ * DESCRIPTION
+ * Set the user fill pattern per port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_user_pattern_parsed(void *parsed_result,
@@ -998,7 +1021,9 @@ cmd_user_pattern_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_user_pattern =
-        TOKEN_STRING_INITIALIZER(struct cmd_user_pattern_result, pattern, "user.pattern#user.pat#user");
+        TOKEN_STRING_INITIALIZER(struct cmd_user_pattern_result,
+                                 pattern,
+                                 "user.pattern#user.pat#user");
 cmdline_parse_token_portlist_t cmd_user_pattern_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_user_pattern_result, portlist);
 cmdline_parse_token_string_t cmd_user_pattern_what =
@@ -1027,16 +1052,16 @@ struct cmd_rnd_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_rnd_parsed - Set random bitfields.
-*
-* DESCRIPTION
-* Set random bitfields.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_rnd_parsed - Set random bitfields.
+ *
+ * DESCRIPTION
+ * Set random bitfields.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_rnd_parsed(void *parsed_result,
@@ -1053,14 +1078,21 @@ cmd_rnd_parsed(void *parsed_result,
 		/* Filter invalid characters from provided mask. This way the user can
 		 * more easily enter long bitmasks, using for example '_' as a separator
 		 * every 8 bits. */
-		for (i = 0; (mask_idx < 32) && ((curr_bit = res->mask[i]) != '\0'); ++i)
-			if ((curr_bit == '0') || (curr_bit == '1') || (curr_bit == '.') || (curr_bit == 'X'))
+		for (i = 0;
+		     (mask_idx < 32) && ((curr_bit = res->mask[i]) != '\0');
+		     ++i)
+			if ((curr_bit == '0') || (curr_bit == '1') ||
+			    (curr_bit == '.') || (curr_bit == 'X'))
 				mask[mask_idx++] = curr_bit;
 
 	foreach_port(res->portlist.map,
 	             pktgen_set_random(info,
-	                               pktgen_set_random_bitfield(info->rnd_bitfields,
-	                                                          res->idx, res->off, mask) ? ENABLE_STATE : DISABLE_STATE)
+	                               pktgen_set_random_bitfield(info->
+	                                                          rnd_bitfields,
+	                                                          res->idx,
+	                                                          res->off,
+	                                                          mask) ?
+	                               ENABLE_STATE : DISABLE_STATE)
 	             );
 
 	pktgen_update_display();
@@ -1099,16 +1131,16 @@ struct cmd_set_geometry_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_geometry_parsed - Set teh display geometry values.
-*
-* DESCRIPTION
-* Set the number of columns and rows for the display.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_geometry_parsed - Set teh display geometry values.
+ *
+ * DESCRIPTION
+ * Set the number of columns and rows for the display.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_geometry_parsed(void *parsed_result,
@@ -1132,14 +1164,18 @@ cmd_set_geometry_parsed(void *parsed_result,
 			pktgen_display_set_geometry(rows, cols);
 			pktgen_cls();
 		} else
-			pktgen_log_error("Geometry string is invalid (%s) must be CxR format", res->what);
+			pktgen_log_error(
+			        "Geometry string is invalid (%s) must be CxR format",
+			        res->what);
 		pktgen_display_get_geometry(&rows, &cols);
 		pktgen_log_debug("New geometry is %dx%d", cols, rows);
 	}
 }
 
 cmdline_parse_token_string_t cmd_set_geometry =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_geometry_result, geometry, "geometry");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_geometry_result,
+                                 geometry,
+                                 "geometry");
 cmdline_parse_token_string_t cmd_set_geometry_what =
         TOKEN_STRING_INITIALIZER(struct cmd_set_geometry_result, what, NULL);
 
@@ -1161,16 +1197,16 @@ struct cmd_dev_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_dev_parsed - Display the PCI bus devices.
-*
-* DESCRIPTION
-* Display all of the PCI bus devices.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_dev_parsed - Display the PCI bus devices.
+ *
+ * DESCRIPTION
+ * Display all of the PCI bus devices.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_dev_parsed(void *parsed_result __rte_unused,
@@ -1200,16 +1236,16 @@ struct cmd_pci_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_pci_parsed - Display the PCI bus devices.
-*
-* DESCRIPTION
-* Display all of the PCI bus devices.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_pci_parsed - Display the PCI bus devices.
+ *
+ * DESCRIPTION
+ * Display all of the PCI bus devices.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_pci_parsed(void *parsed_result __rte_unused,
@@ -1242,16 +1278,16 @@ struct cmd_dest_mac_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_dest_mac_parsed - Set the Destination MAC address
-*
-* DESCRIPTION
-* Set the destination MAC address for given port(s).
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_dest_mac_parsed - Set the Destination MAC address
+ *
+ * DESCRIPTION
+ * Set the destination MAC address for given port(s).
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_dest_mac_parsed(void *parsed_result,
@@ -1267,9 +1303,12 @@ cmd_dest_mac_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_dest_mac =
-        TOKEN_STRING_INITIALIZER(struct cmd_dest_mac_result, dst_mac, "dst.mac");
+        TOKEN_STRING_INITIALIZER(struct cmd_dest_mac_result, dst_mac,
+                                 "dst.mac");
 cmdline_parse_token_string_t cmd_dest_mac_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_dest_mac_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_dest_mac_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_dest_mac_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_dest_mac_result, portlist);
 cmdline_parse_token_etheraddr_t cmd_dest_mac_addr =
@@ -1298,16 +1337,16 @@ struct cmd_src_mac_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_src_mac_parsed - Set the source MAC address
-*
-* DESCRIPTION
-* Set the source MAC address values.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_src_mac_parsed - Set the source MAC address
+ *
+ * DESCRIPTION
+ * Set the source MAC address values.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_src_mac_parsed(void *parsed_result,
@@ -1325,7 +1364,9 @@ cmd_src_mac_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_src_mac =
         TOKEN_STRING_INITIALIZER(struct cmd_src_mac_result, src_mac, "src.mac");
 cmdline_parse_token_string_t cmd_src_mac_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_src_mac_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_src_mac_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_src_mac_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_src_mac_result, portlist);
 cmdline_parse_token_etheraddr_t cmd_src_mac_addr =
@@ -1354,16 +1395,16 @@ struct cmd_src_ip_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_src_ip_parsed - Set the source IP address.
-*
-* DESCRIPTION
-* Set the source IP address.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_src_ip_parsed - Set the source IP address.
+ *
+ * DESCRIPTION
+ * Set the source IP address.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_src_ip_parsed(void *parsed_result,
@@ -1381,7 +1422,9 @@ cmd_src_ip_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_src_ip =
         TOKEN_STRING_INITIALIZER(struct cmd_src_ip_result, src_ip, "src.ip");
 cmdline_parse_token_string_t cmd_src_ip_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_src_ip_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_src_ip_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_src_ip_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_src_ip_result, portlist);
 cmdline_parse_token_ipaddr_t cmd_src_ip_addr =
@@ -1410,16 +1453,16 @@ struct cmd_dst_ip_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_dst_ip_parsed - Set the destination IP address.
-*
-* DESCRIPTION
-* Set the destination IP address.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_dst_ip_parsed - Set the destination IP address.
+ *
+ * DESCRIPTION
+ * Set the destination IP address.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_dst_ip_parsed(void *parsed_result,
@@ -1437,7 +1480,9 @@ cmd_dst_ip_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_dst_ip =
         TOKEN_STRING_INITIALIZER(struct cmd_dst_ip_result, dst_ip, "dst.ip");
 cmdline_parse_token_string_t cmd_dst_ip_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_dst_ip_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_dst_ip_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_dst_ip_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_dst_ip_result, portlist);
 cmdline_parse_token_ipaddr_t cmd_dst_ip_addr =
@@ -1466,16 +1511,16 @@ struct cmd_src_port_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_src_port_parsed - Set the source port value.
-*
-* DESCRIPTION
-* Set the port source value.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_src_port_parsed - Set the source port value.
+ *
+ * DESCRIPTION
+ * Set the port source value.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_src_port_parsed(void *parsed_result,
@@ -1491,9 +1536,13 @@ cmd_src_port_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_src_port =
-        TOKEN_STRING_INITIALIZER(struct cmd_src_port_result, src_port, "src.port");
+        TOKEN_STRING_INITIALIZER(struct cmd_src_port_result,
+                                 src_port,
+                                 "src.port");
 cmdline_parse_token_string_t cmd_src_port_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_src_port_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_src_port_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_src_port_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_src_port_result, portlist);
 cmdline_parse_token_num_t cmd_src_port_addr =
@@ -1522,16 +1571,16 @@ struct cmd_dst_port_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_dst_ip_port_parsed - Set the destination port value
-*
-* DESCRIPTION
-* Set the destination port value.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_dst_ip_port_parsed - Set the destination port value
+ *
+ * DESCRIPTION
+ * Set the destination port value.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_dst_port_parsed(void *parsed_result,
@@ -1547,9 +1596,13 @@ cmd_dst_port_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_dst_port =
-        TOKEN_STRING_INITIALIZER(struct cmd_dst_port_result, dst_port, "dst.port");
+        TOKEN_STRING_INITIALIZER(struct cmd_dst_port_result,
+                                 dst_port,
+                                 "dst.port");
 cmdline_parse_token_string_t cmd_dst_port_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_dst_port_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_dst_port_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_dst_port_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_dst_port_result, portlist);
 cmdline_parse_token_num_t cmd_dst_port_addr =
@@ -1578,16 +1631,16 @@ struct cmd_vlan_id_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_vlan_id_parsed - Set the vlan id value
-*
-* DESCRIPTION
-* Set the vlan id value
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_vlan_id_parsed - Set the vlan id value
+ *
+ * DESCRIPTION
+ * Set the vlan id value
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_vlan_id_parsed(void *parsed_result,
@@ -1605,7 +1658,9 @@ cmd_vlan_id_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_vlan_id =
         TOKEN_STRING_INITIALIZER(struct cmd_vlan_id_result, vlan_id, "vlan.id");
 cmdline_parse_token_string_t cmd_vlan_id_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_vlan_id_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_vlan_id_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_vlan_id_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_vlan_id_result, portlist);
 cmdline_parse_token_num_t cmd_vlan_id_addr =
@@ -1636,16 +1691,16 @@ struct cmd_pkt_size_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_pkt_size_parsed - Set the PKT Size value
-*
-* DESCRIPTION
-* Set the PKT Size value
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_pkt_size_parsed - Set the PKT Size value
+ *
+ * DESCRIPTION
+ * Set the PKT Size value
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_pkt_size_parsed(void *parsed_result,
@@ -1661,9 +1716,13 @@ cmd_pkt_size_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_range_pkt_size =
-        TOKEN_STRING_INITIALIZER(struct cmd_pkt_size_result, pkt_size, "pkt.size");
+        TOKEN_STRING_INITIALIZER(struct cmd_pkt_size_result,
+                                 pkt_size,
+                                 "pkt.size");
 cmdline_parse_token_string_t cmd_pkt_size_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_pkt_size_result, what, "start#min#max#inc");
+        TOKEN_STRING_INITIALIZER(struct cmd_pkt_size_result,
+                                 what,
+                                 "start#min#max#inc");
 cmdline_parse_token_portlist_t cmd_pkt_size_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_pkt_size_result, portlist);
 cmdline_parse_token_num_t cmd_pkt_size_addr =
@@ -1692,16 +1751,16 @@ struct cmd_set_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_parsed - Set a value for a set of options.
-*
-* DESCRIPTION
-* Set a value for a given set of variables.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_parsed - Set a value for a set of options.
+ *
+ * DESCRIPTION
+ * Set a value for a given set of variables.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_parsed(void *parsed_result,
@@ -1722,9 +1781,11 @@ cmd_set_parsed(void *parsed_result,
 	                     else if (!strcmp(res->what, "tx_cycles"))
 				     pktgen_set_tx_cycles(info, res->value);
 	                     else if (!strcmp(res->what, "sport"))
-				     pktgen_set_port_value(info, res->what[0], res->value);
+				     pktgen_set_port_value(info, res->what[0],
+				                           res->value);
 	                     else if (!strcmp(res->what, "dport"))
-				     pktgen_set_port_value(info, res->what[0], res->value);
+				     pktgen_set_port_value(info, res->what[0],
+				                           res->value);
 	                     else if (!strcmp(res->what, "seqCnt"))
 				     pktgen_set_port_seqCnt(info, res->value);
 	                     else if (!strcmp(res->what, "prime"))
@@ -1743,7 +1804,8 @@ cmdline_parse_token_string_t cmd_set_set =
 cmdline_parse_token_portlist_t cmd_set_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_result, portlist);
 cmdline_parse_token_string_t cmd_set_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_result, what,
+        TOKEN_STRING_INITIALIZER(struct cmd_set_result,
+                                 what,
                                  "count#size#rate#burst#tx_cycles#sport#dport#seqCnt#prime#dump#vlanid");
 cmdline_parse_token_num_t cmd_set_value =
         TOKEN_NUM_INITIALIZER(struct cmd_set_result, value, UINT32);
@@ -1751,7 +1813,8 @@ cmdline_parse_token_num_t cmd_set_value =
 cmdline_parse_inst_t cmd_set = {
 	.f = cmd_set_parsed,
 	.data = NULL,
-	.help_str = "set <portlist> count|size|rate|burst|tx_cycles|sport|dport|seqCnt|prime|dump|vlanid value",
+	.help_str =
+	        "set <portlist> count|size|rate|burst|tx_cycles|sport|dport|seqCnt|prime|dump|vlanid value",
 	.tokens = {
 		(void *)&cmd_set_set,
 		(void *)&cmd_set_portlist,
@@ -1770,16 +1833,16 @@ struct cmd_pcap_onoff_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_pcap_onoff - Enable/Disable PCAP sending on a given port list.
-*
-* DESCRIPTION
-* Enable/Disable PCAP sending of data for a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_pcap_onoff - Enable/Disable PCAP sending on a given port list.
+ *
+ * DESCRIPTION
+ * Enable/Disable PCAP sending of data for a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_pcap_onoff_parsed(void *parsed_result,
@@ -1799,7 +1862,9 @@ cmdline_parse_token_string_t cmd_set_pcap_onoff =
 cmdline_parse_token_portlist_t cmd_pcap_onoff_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_pcap_onoff_result, portlist);
 cmdline_parse_token_string_t cmd_pcap_onoff_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_pcap_onoff_result, what, "enable#disable#on#off");
+        TOKEN_STRING_INITIALIZER(struct cmd_pcap_onoff_result,
+                                 what,
+                                 "enable#disable#on#off");
 
 cmdline_parse_inst_t cmd_pcap_onoff = {
 	.f = cmd_pcap_onoff_parsed,
@@ -1822,16 +1887,16 @@ struct cmd_pcap_filter_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_pcap_filter - Set PCAP port filtering on a set of ports.
-*
-* DESCRIPTION
-* Compile a filter for a set of ports.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_pcap_filter - Set PCAP port filtering on a set of ports.
+ *
+ * DESCRIPTION
+ * Compile a filter for a set of ports.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_pcap_filter_parsed(void *parsed_result,
@@ -1847,11 +1912,15 @@ cmd_pcap_filter_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_pcap_filter =
-        TOKEN_STRING_INITIALIZER(struct cmd_pcap_filter_result, pcap_filter, "pcap.filter");
+        TOKEN_STRING_INITIALIZER(struct cmd_pcap_filter_result,
+                                 pcap_filter,
+                                 "pcap.filter");
 cmdline_parse_token_portlist_t cmd_pcap_filter_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_pcap_filter_result, portlist);
 cmdline_parse_token_string_t cmd_pcap_filter_string =
-        TOKEN_STRING_INITIALIZER(struct cmd_pcap_filter_result, filter_string, NULL);
+        TOKEN_STRING_INITIALIZER(struct cmd_pcap_filter_result,
+                                 filter_string,
+                                 NULL);
 
 cmdline_parse_inst_t cmd_pcap_filter = {
 	.f = cmd_pcap_filter_parsed,
@@ -1872,16 +1941,16 @@ struct cmd_pcap_show_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_pcap_show - Show PCAP information.
-*
-* DESCRIPTION
-* Show PCAP information.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_pcap_show - Show PCAP information.
+ *
+ * DESCRIPTION
+ * Show PCAP information.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_pcap_show_parsed(void *parsed_result __rte_unused,
@@ -1889,13 +1958,17 @@ cmd_pcap_show_parsed(void *parsed_result __rte_unused,
                      void *data __rte_unused)
 {
 	if (pktgen.info[pktgen.portNum].pcap)
-		wr_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum, 1);
+		wr_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum,
+		             1);
 	else
-		pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.portNum);
+		pktgen_log_error(" ** PCAP file is not loaded on port %d",
+		                 pktgen.portNum);
 }
 
 cmdline_parse_token_string_t cmd_set_pcap_show =
-        TOKEN_STRING_INITIALIZER(struct cmd_pcap_show_result, pcap_show, "pcap.show");
+        TOKEN_STRING_INITIALIZER(struct cmd_pcap_show_result,
+                                 pcap_show,
+                                 "pcap.show");
 
 cmdline_parse_inst_t cmd_pcap_show = {
 	.f = cmd_pcap_show_parsed,
@@ -1915,16 +1988,16 @@ struct cmd_pcap_index_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_pcap_index - Set PCAP index value
-*
-* DESCRIPTION
-* Set PCAP index value.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_pcap_index - Set PCAP index value
+ *
+ * DESCRIPTION
+ * Set PCAP index value.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_pcap_index_parsed(void *parsed_result,
@@ -1937,16 +2010,20 @@ cmd_pcap_index_parsed(void *parsed_result,
 
 	if (pcap) {
 		if (res->value >= max_cnt)
-			pcap->pkt_idx = max_cnt - RTE_MIN(PCAP_PAGE_SIZE, (int)max_cnt);
+			pcap->pkt_idx = max_cnt - RTE_MIN(PCAP_PAGE_SIZE,
+			                                  (int)max_cnt);
 		else
 			pcap->pkt_idx = res->value;
 		pktgen.flags |= PRINT_LABELS_FLAG;
 	} else
-		pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.portNum);
+		pktgen_log_error(" ** PCAP file is not loaded on port %d",
+		                 pktgen.portNum);
 }
 
 cmdline_parse_token_string_t cmd_set_pcap_index =
-        TOKEN_STRING_INITIALIZER(struct cmd_pcap_index_result, pcap_index, "pcap.index");
+        TOKEN_STRING_INITIALIZER(struct cmd_pcap_index_result,
+                                 pcap_index,
+                                 "pcap.index");
 cmdline_parse_token_num_t cmd_set_pcap_value =
         TOKEN_NUM_INITIALIZER(struct cmd_pcap_index_result, value, UINT32);
 
@@ -1970,16 +2047,16 @@ struct cmd_blink_onoff_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_blink_onoff_parsed - Enable/disable blinking a port led.
-*
-* DESCRIPTION
-* Enable/disable blinking a port led.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_blink_onoff_parsed - Enable/disable blinking a port led.
+ *
+ * DESCRIPTION
+ * Enable/disable blinking a port led.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_blink_onoff_parsed(void *parsed_result,
@@ -2003,7 +2080,9 @@ cmdline_parse_token_string_t cmd_set_blink_onoff =
 cmdline_parse_token_portlist_t cmd_blink_onoff_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_blink_onoff_result, portlist);
 cmdline_parse_token_string_t cmd_blink_onoff_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_blink_onoff_result, what, "enable#disable#on#off");
+        TOKEN_STRING_INITIALIZER(struct cmd_blink_onoff_result,
+                                 what,
+                                 "enable#disable#on#off");
 
 cmdline_parse_inst_t cmd_blink_onoff = {
 	.f = cmd_blink_onoff_parsed,
@@ -2026,17 +2105,17 @@ struct cmd_garp_onoff_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_garp_onoff - Enable/Disable GARP packet processing
-*
-* DESCRIPTION
-* Enable/Disable packet GARP processing for ARP, ICMP and a number of other
-* related processing for a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_garp_onoff - Enable/Disable GARP packet processing
+ *
+ * DESCRIPTION
+ * Enable/Disable packet GARP processing for ARP, ICMP and a number of other
+ * related processing for a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_garp_onoff_parsed(void *parsed_result,
@@ -2056,7 +2135,9 @@ cmdline_parse_token_string_t cmd_set_garp_onoff =
 cmdline_parse_token_portlist_t cmd_garp_onoff_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_garp_onoff_result, portlist);
 cmdline_parse_token_string_t cmd_garp_onoff_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_garp_onoff_result, what, "enable#disable#on#off");
+        TOKEN_STRING_INITIALIZER(struct cmd_garp_onoff_result,
+                                 what,
+                                 "enable#disable#on#off");
 
 cmdline_parse_inst_t cmd_garp_onoff = {
 	.f = cmd_garp_onoff_parsed,
@@ -2079,17 +2160,17 @@ struct cmd_process_onoff_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_process_onoff - Enable/Disable input packet processing for ARP, ICMP, ...
-*
-* DESCRIPTION
-* Enable/Disable packet input processing for ARP, ICMP and a number of other
-* related processing for a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_process_onoff - Enable/Disable input packet processing for ARP, ICMP, ...
+ *
+ * DESCRIPTION
+ * Enable/Disable packet input processing for ARP, ICMP and a number of other
+ * related processing for a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_process_onoff_parsed(void *parsed_result,
@@ -2105,11 +2186,15 @@ cmd_process_onoff_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_process_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_process_onoff_result, process, "process");
+        TOKEN_STRING_INITIALIZER(struct cmd_process_onoff_result,
+                                 process,
+                                 "process");
 cmdline_parse_token_portlist_t cmd_process_onoff_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_process_onoff_result, portlist);
 cmdline_parse_token_string_t cmd_process_onoff_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_process_onoff_result, what, "enable#disable#on#off");
+        TOKEN_STRING_INITIALIZER(struct cmd_process_onoff_result,
+                                 what,
+                                 "enable#disable#on#off");
 
 cmdline_parse_inst_t cmd_process_onoff = {
 	.f = cmd_process_onoff_parsed,
@@ -2131,16 +2216,16 @@ struct cmd_set_ppp_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_ppp_parsed - Set the number of port per page to display
-*
-* DESCRIPTION
-* Set the number of ports per page to display.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_ppp_parsed - Set the number of port per page to display
+ *
+ * DESCRIPTION
+ * Set the number of ports per page to display.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_ppp_parsed(void *parsed_result,
@@ -2176,16 +2261,16 @@ struct cmd_set_port_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_port_parsed - Set the current working port number
-*
-* DESCRIPTION
-* Set the current working port number for sequence configuration.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_port_parsed - Set the current working port number
+ *
+ * DESCRIPTION
+ * Set the current working port number for sequence configuration.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_port_parsed(void *parsed_result,
@@ -2233,16 +2318,16 @@ struct cmd_set_seq_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_seq_parsed - Set a sequence config for given port and slot.
-*
-* DESCRIPTION
-* Set up the sequence packets for a given port and slot.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_seq_parsed - Set a sequence config for given port and slot.
+ *
+ * DESCRIPTION
+ * Set up the sequence packets for a given port and slot.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_seq_parsed(void *parsed_result,
@@ -2261,9 +2346,12 @@ cmd_set_seq_parsed(void *parsed_result,
 
 	foreach_port(res->portlist.map,
 	             pktgen_set_seq(info, res->seqnum,
-	                            &res->daddr, &res->saddr, &res->ip_daddr, &res->ip_saddr,
-	                            res->sport, res->dport, res->eth[3], res->proto[0],
-	                            res->vlanid, res->pktsize, res->gtpu_teid) );
+	                            &res->daddr, &res->saddr, &res->ip_daddr,
+	                            &res->ip_saddr,
+	                            res->sport, res->dport, res->eth[3],
+	                            res->proto[0],
+	                            res->vlanid, res->pktsize,
+	                            res->gtpu_teid) );
 
 	pktgen_update_display();
 }
@@ -2289,7 +2377,9 @@ cmdline_parse_token_num_t cmd_set_seq_dport =
 cmdline_parse_token_string_t cmd_set_seq_eth =
         TOKEN_STRING_INITIALIZER(struct cmd_set_seq_result, eth, "ipv4#ipv6");
 cmdline_parse_token_string_t cmd_set_seq_proto =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_seq_result, proto, "udp#tcp#icmp");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_seq_result,
+                                 proto,
+                                 "udp#tcp#icmp");
 cmdline_parse_token_num_t cmd_set_seq_vlanid =
         TOKEN_NUM_INITIALIZER(struct cmd_set_seq_result, vlanid, UINT16);
 cmdline_parse_token_num_t cmd_set_seq_pktsize =
@@ -2298,7 +2388,8 @@ cmdline_parse_token_num_t cmd_set_seq_pktsize =
 cmdline_parse_inst_t cmd_seq = {
 	.f = cmd_set_seq_parsed,
 	.data = NULL,
-	.help_str = "seq <seqN> <portlist> dst-MAC src-MAC dst-IP src-IP sport dport type proto vlanid size",
+	.help_str =
+	        "seq <seqN> <portlist> dst-MAC src-MAC dst-IP src-IP sport dport type proto vlanid size",
 	.tokens = {
 		(void *)&cmd_set_set_seq,
 		(void *)&cmd_set_seqnum,
@@ -2328,16 +2419,16 @@ struct cmd_setip_dst_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_setip_dst_parsed - Set the IP address for the main single packet.
-*
-* DESCRIPTION
-* Set the primary IP address for the single packet type based on src/dst flags.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_setip_dst_parsed - Set the IP address for the main single packet.
+ *
+ * DESCRIPTION
+ * Set the primary IP address for the single packet type based on src/dst flags.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_setip_dst_parsed(void *parsed_result,
@@ -2388,16 +2479,16 @@ struct cmd_setip_src_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_setip_src_parsed - Set the IP address for the main single packet.
-*
-* DESCRIPTION
-* Set the primary IP address for the single packet type based on src/dst flags.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_setip_src_parsed - Set the IP address for the main single packet.
+ *
+ * DESCRIPTION
+ * Set the primary IP address for the single packet type based on src/dst flags.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_setip_src_parsed(void *parsed_result,
@@ -2447,16 +2538,16 @@ struct cmd_send_arp_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_send_arp_parsed - Send a ARP request on a given port list.
-*
-* DESCRIPTION
-* Send an ARP request or gratuitous ARP packet for a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_send_arp_parsed - Send a ARP request on a given port list.
+ *
+ * DESCRIPTION
+ * Send an ARP request or gratuitous ARP packet for a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_send_arp_parsed(void *parsed_result,
@@ -2465,13 +2556,12 @@ cmd_send_arp_parsed(void *parsed_result,
 {
 	struct cmd_send_arp_result *res = parsed_result;
 
-	if (res->what[0] == 'g') {
+	if (res->what[0] == 'g')
 		foreach_port(res->portlist.map,
 		             pktgen_send_arp_requests(info, GRATUITOUS_ARP) );
-	} else {
+	else
 		foreach_port(res->portlist.map,
 		             pktgen_send_arp_requests(info, 0) );
-	}
 }
 
 cmdline_parse_token_string_t cmd_set_send_arp =
@@ -2505,16 +2595,16 @@ struct cmd_set_proto_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_proto_parsed - Set the protocol type for a packet.
-*
-* DESCRIPTION
-* Set the protocol type for a set of given ports.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_proto_parsed - Set the protocol type for a packet.
+ *
+ * DESCRIPTION
+ * Set the protocol type for a set of given ports.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_proto_parsed(void *parsed_result,
@@ -2532,7 +2622,9 @@ cmd_set_proto_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_set_proto =
         TOKEN_STRING_INITIALIZER(struct cmd_set_proto_result, set, "proto");
 cmdline_parse_token_string_t cmd_set_type =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_proto_result, type, "udp#tcp#icmp");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_proto_result,
+                                 type,
+                                 "udp#tcp#icmp");
 cmdline_parse_token_portlist_t cmd_set_proto_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_proto_result, portlist);
 
@@ -2556,16 +2648,16 @@ struct cmd_load_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_load_parsed - load a command or script file to be executed.
-*
-* DESCRIPTION
-* Load and execute a set of commands or a script file.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_load_parsed - load a command or script file to be executed.
+ *
+ * DESCRIPTION
+ * Load and execute a set of commands or a script file.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_load_parsed(void *parsed_result,
@@ -2604,16 +2696,16 @@ struct cmd_page_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_page_parsed - Set which page to display on the screen.
-*
-* DESCRIPTION
-* Set the page to display on the screen.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_page_parsed - Set which page to display on the screen.
+ *
+ * DESCRIPTION
+ * Set the page to display on the screen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_page_parsed(void *parsed_result,
@@ -2628,12 +2720,15 @@ cmd_set_page_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_page =
         TOKEN_STRING_INITIALIZER(struct cmd_page_result, page, "page");
 cmdline_parse_token_string_t cmd_set_pageType =
-        TOKEN_STRING_INITIALIZER(struct cmd_page_result, pageType, "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log");
+        TOKEN_STRING_INITIALIZER(struct cmd_page_result,
+                                 pageType,
+                                 "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log");
 
 cmdline_parse_inst_t cmd_page = {
 	.f = cmd_set_page_parsed,
 	.data = NULL,
-	.help_str = "page [0-7]|main|range|config|sequence|seq|pcap|next|cpu|rnd|log",
+	.help_str =
+	        "page [0-7]|main|range|config|sequence|seq|pcap|next|cpu|rnd|log",
 	.tokens = {
 		(void *)&cmd_set_page,
 		(void *)&cmd_set_pageType,
@@ -2649,16 +2744,16 @@ struct cmd_screen_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_screen_parsed - Enable or Disable the screen updates.
-*
-* DESCRIPTION
-* Enable or disable screen updates.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_screen_parsed - Enable or Disable the screen updates.
+ *
+ * DESCRIPTION
+ * Enable or disable screen updates.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_screen_parsed(void *parsed_result,
@@ -2673,7 +2768,9 @@ cmd_screen_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_screen =
         TOKEN_STRING_INITIALIZER(struct cmd_screen_result, screen, "screen");
 cmdline_parse_token_string_t cmd_screen_onOff =
-        TOKEN_STRING_INITIALIZER(struct cmd_screen_result, onOff, "stop#start#off#on#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_screen_result,
+                                 onOff,
+                                 "stop#start#off#on#enable#disable");
 
 cmdline_parse_inst_t cmd_screen = {
 	.f = cmd_screen_parsed,
@@ -2693,23 +2790,22 @@ struct cmd_off_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_off_parsed - Enable or Disable the screen updates.
-*
-* DESCRIPTION
-* Enable or disable screen updates.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_off_parsed - Enable or Disable the screen updates.
+ *
+ * DESCRIPTION
+ * Enable or disable screen updates.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_off_parsed(void *parsed_result __rte_unused,
                struct cmdline *cl __rte_unused,
                void *data __rte_unused)
 {
-
 	pktgen_screen("off");
 }
 
@@ -2733,23 +2829,22 @@ struct cmd_on_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_on_parsed - Enable or Disable the screen updates.
-*
-* DESCRIPTION
-* Enable or disable screen updates.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_on_parsed - Enable or Disable the screen updates.
+ *
+ * DESCRIPTION
+ * Enable or disable screen updates.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_on_parsed(void *parsed_result __rte_unused,
               struct cmdline *cl __rte_unused,
               void *data __rte_unused)
 {
-
 	pktgen_screen("on");
 }
 
@@ -2773,23 +2868,22 @@ struct cmd_tx_debug_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_tx_debug_parsed - Toggle TX debug data
-*
-* DESCRIPTION
-* Toggle TX debug data
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_tx_debug_parsed - Toggle TX debug data
+ *
+ * DESCRIPTION
+ * Toggle TX debug data
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_tx_debug_parsed(void *parsed_result __rte_unused,
                     struct cmdline *cl __rte_unused,
                     void *data __rte_unused)
 {
-
 	if ( (pktgen.flags & TX_DEBUG_FLAG) == 0)
 		pktgen.flags |= TX_DEBUG_FLAG;
 	else
@@ -2798,7 +2892,9 @@ cmd_tx_debug_parsed(void *parsed_result __rte_unused,
 }
 
 cmdline_parse_token_string_t cmd_set_tx_debug =
-        TOKEN_STRING_INITIALIZER(struct cmd_tx_debug_result, tx_debug, "tx_debug");
+        TOKEN_STRING_INITIALIZER(struct cmd_tx_debug_result,
+                                 tx_debug,
+                                 "tx_debug");
 
 cmdline_parse_inst_t cmd_tx_debug = {
 	.f = cmd_tx_debug_parsed,
@@ -2817,23 +2913,22 @@ struct cmd_l2p_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_l2p_parsed - Display the l2p table information
-*
-* DESCRIPTION
-* Display the l2p table information.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_l2p_parsed - Display the l2p table information
+ *
+ * DESCRIPTION
+ * Display the l2p table information.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_l2p_parsed(void *parsed_result __rte_unused,
                struct cmdline *cl __rte_unused,
                void *data __rte_unused)
 {
-
 	pktgen_l2p_dump();
 }
 
@@ -2860,16 +2955,16 @@ struct cmd_mempool_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_mempool_parsed - Display the memory pool information
-*
-* DESCRIPTION
-* Display the memory pool information.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_mempool_parsed - Display the memory pool information
+ *
+ * DESCRIPTION
+ * Display the memory pool information.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_mempool_parsed(void *parsed_result,
@@ -2890,7 +2985,9 @@ cmdline_parse_token_string_t cmd_mempool_dump =
 cmdline_parse_token_portlist_t cmd_mempool_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_mempool_result, portlist);
 cmdline_parse_token_string_t cmd_mempool_name =
-        TOKEN_STRING_INITIALIZER(struct cmd_mempool_result, name, "rx#tx#range#seq#arp#pcap#all");
+        TOKEN_STRING_INITIALIZER(struct cmd_mempool_result,
+                                 name,
+                                 "rx#tx#range#seq#arp#pcap#all");
 
 cmdline_parse_inst_t cmd_mempool = {
 	.f = cmd_mempool_parsed,
@@ -2914,16 +3011,16 @@ struct cmd_set_pkt_type_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_set_pkt_type_parsed - Set the packet type for a port IPv4 or IPv6
-*
-* DESCRIPTION
-* Set the ports to the given type IPv4 or IPv6.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_set_pkt_type_parsed - Set the packet type for a port IPv4 or IPv6
+ *
+ * DESCRIPTION
+ * Set the ports to the given type IPv4 or IPv6.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_set_pkt_type_parsed(void *parsed_result,
@@ -2941,7 +3038,9 @@ cmd_set_pkt_type_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_set_pkt_type =
         TOKEN_STRING_INITIALIZER(struct cmd_set_pkt_type_result, set, "type");
 cmdline_parse_token_string_t cmd_set_pkt_type =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_pkt_type_result, type, "ipv4#ipv6#arp");
+        TOKEN_STRING_INITIALIZER(struct cmd_set_pkt_type_result,
+                                 type,
+                                 "ipv4#ipv6#arp");
 cmdline_parse_token_portlist_t cmd_set_pkt_type_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_pkt_type_result, portlist);
 
@@ -2966,16 +3065,16 @@ struct cmd_icmp_echo_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_icmp_echo_parsed - Enable or Disable the processing of ICMP packets
-*
-* DESCRIPTION
-* Enable or disable the processing of ICMP echo requests.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_icmp_echo_parsed - Enable or Disable the processing of ICMP packets
+ *
+ * DESCRIPTION
+ * Enable or disable the processing of ICMP echo requests.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_icmp_echo_parsed(void *parsed_result,
@@ -2989,11 +3088,15 @@ cmd_icmp_echo_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_icmp =
-        TOKEN_STRING_INITIALIZER(struct cmd_icmp_echo_result, icmp_echo, "icmp.echo");
+        TOKEN_STRING_INITIALIZER(struct cmd_icmp_echo_result,
+                                 icmp_echo,
+                                 "icmp.echo");
 cmdline_parse_token_portlist_t cmd_set_icmp_echo_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_icmp_echo_result, portlist);
 cmdline_parse_token_string_t cmd_set_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_icmp_echo_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_icmp_echo_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_icmp_echo = {
 	.f = cmd_icmp_echo_parsed,
@@ -3016,16 +3119,16 @@ struct cmd_capture_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_capture_parsed - Enable or Disable packet capturing
-*
-* DESCRIPTION
-* Enable or Disable packet capturing
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_capture_parsed - Enable or Disable packet capturing
+ *
+ * DESCRIPTION
+ * Enable or Disable packet capturing
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_capture_parsed(void *parsed_result,
@@ -3043,7 +3146,9 @@ cmdline_parse_token_string_t cmd_set_capture =
 cmdline_parse_token_portlist_t cmd_set_capture_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_capture_result, portlist);
 cmdline_parse_token_string_t cmd_set_capture_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_capture_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_capture_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_capture = {
 	.f = cmd_capture_parsed,
@@ -3066,16 +3171,16 @@ struct cmd_rx_tap_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_rx_tap_parsed - Enable or Disable the Rx TAP interface option
-*
-* DESCRIPTION
-* Enable or Disable the Rx TAP interface option
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_rx_tap_parsed - Enable or Disable the Rx TAP interface option
+ *
+ * DESCRIPTION
+ * Enable or Disable the Rx TAP interface option
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_rx_tap_parsed(void *parsed_result,
@@ -3093,7 +3198,9 @@ cmdline_parse_token_string_t cmd_set_rx_tap =
 cmdline_parse_token_portlist_t cmd_set_rx_tap_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_rx_tap_result, portlist);
 cmdline_parse_token_string_t cmd_set_rx_tap_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_rx_tap_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_rx_tap_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_rx_tap = {
 	.f = cmd_rx_tap_parsed,
@@ -3116,16 +3223,16 @@ struct cmd_tx_tap_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_tx_tap_parsed - Enable or Disable the Tx TAP interface option
-*
-* DESCRIPTION
-* Enable or Disable the Tx TAP interface option
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_tx_tap_parsed - Enable or Disable the Tx TAP interface option
+ *
+ * DESCRIPTION
+ * Enable or Disable the Tx TAP interface option
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_tx_tap_parsed(void *parsed_result,
@@ -3143,7 +3250,9 @@ cmdline_parse_token_string_t cmd_set_tx_tap =
 cmdline_parse_token_portlist_t cmd_set_tx_tap_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_tx_tap_result, portlist);
 cmdline_parse_token_string_t cmd_set_tx_tap_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_tx_tap_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_tx_tap_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_tx_tap = {
 	.f = cmd_tx_tap_parsed,
@@ -3166,16 +3275,16 @@ struct cmd_vlan_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_vlan_parsed - Enable or Disable sending VLAN ID on each packet
-*
-* DESCRIPTION
-* Enable or Disable sending the VLAN ID on each packet
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_vlan_parsed - Enable or Disable sending VLAN ID on each packet
+ *
+ * DESCRIPTION
+ * Enable or Disable sending the VLAN ID on each packet
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_vlan_parsed(void *parsed_result,
@@ -3195,7 +3304,9 @@ cmdline_parse_token_string_t cmd_set_vlan =
 cmdline_parse_token_portlist_t cmd_set_vlan_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_vlan_result, portlist);
 cmdline_parse_token_string_t cmd_set_vlan_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_vlan_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_vlan_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_vlan = {
 	.f = cmd_vlan_parsed,
@@ -3218,16 +3329,16 @@ struct cmd_vlanid_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_vlanid_parsed - Set the VLAN ID for a given port
-*
-* DESCRIPTION
-* Set the VLAN ID value for each port given.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_vlanid_parsed - Set the VLAN ID for a given port
+ *
+ * DESCRIPTION
+ * Set the VLAN ID value for each port given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_vlanid_parsed(void *parsed_result,
@@ -3270,16 +3381,16 @@ struct cmd_mpls_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_mpls_parsed - Enable or Disable sending mpls ID on each packet
-*
-* DESCRIPTION
-* Enable or Disable sending the mpls ID on each packet
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_mpls_parsed - Enable or Disable sending mpls ID on each packet
+ *
+ * DESCRIPTION
+ * Enable or Disable sending the mpls ID on each packet
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_mpls_parsed(void *parsed_result,
@@ -3299,7 +3410,9 @@ cmdline_parse_token_string_t cmd_set_mpls =
 cmdline_parse_token_portlist_t cmd_set_mpls_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_mpls_result, portlist);
 cmdline_parse_token_string_t cmd_set_mpls_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_mpls_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_mpls_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_mpls = {
 	.f = cmd_mpls_parsed,
@@ -3322,16 +3435,16 @@ struct cmd_mpls_entry_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_mpls_entry_parsed - Set the MPLS entry for a given port
-*
-* DESCRIPTION
-* Set the VLAN ID value for each port given.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_mpls_entry_parsed - Set the MPLS entry for a given port
+ *
+ * DESCRIPTION
+ * Set the VLAN ID value for each port given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_mpls_entry_parsed(void *parsed_result,
@@ -3349,7 +3462,9 @@ cmd_mpls_entry_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_mpls_entry =
-        TOKEN_STRING_INITIALIZER(struct cmd_mpls_entry_result, mpls_entry, "mpls_entry");
+        TOKEN_STRING_INITIALIZER(struct cmd_mpls_entry_result,
+                                 mpls_entry,
+                                 "mpls_entry");
 cmdline_parse_token_portlist_t cmd_set_mpls_entry_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_mpls_entry_result, portlist);
 cmdline_parse_token_string_t cmd_set_mpls_entry_entry =
@@ -3376,16 +3491,16 @@ struct cmd_qinq_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_qinq_parsed - Enable or Disable sending Q-in-Q tag on each packet
-*
-* DESCRIPTION
-* Enable or Disable sending the Q-in-Q tag on each packet
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_qinq_parsed - Enable or Disable sending Q-in-Q tag on each packet
+ *
+ * DESCRIPTION
+ * Enable or Disable sending the Q-in-Q tag on each packet
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_qinq_parsed(void *parsed_result,
@@ -3405,7 +3520,9 @@ cmdline_parse_token_string_t cmd_set_qinq =
 cmdline_parse_token_portlist_t cmd_set_qinq_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_qinq_result, portlist);
 cmdline_parse_token_string_t cmd_set_qinq_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_qinq_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_qinq_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_qinq = {
 	.f = cmd_qinq_parsed,
@@ -3429,16 +3546,16 @@ struct cmd_qinqids_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_qinqids_parsed - Set the Q-in-Q ID's for a given port
-*
-* DESCRIPTION
-* Set the Q-in-Q ID values for each port given.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_qinqids_parsed - Set the Q-in-Q ID's for a given port
+ *
+ * DESCRIPTION
+ * Set the Q-in-Q ID values for each port given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_qinqids_parsed(void *parsed_result,
@@ -3484,16 +3601,16 @@ struct cmd_gre_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_gre_parsed - Enable or Disable GRE with IPv4 payload
-*
-* DESCRIPTION
-* Enable or Disable GRE with IPv4 payload
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_gre_parsed - Enable or Disable GRE with IPv4 payload
+ *
+ * DESCRIPTION
+ * Enable or Disable GRE with IPv4 payload
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_gre_parsed(void *parsed_result,
@@ -3513,7 +3630,9 @@ cmdline_parse_token_string_t cmd_set_gre =
 cmdline_parse_token_portlist_t cmd_set_gre_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_gre_result, portlist);
 cmdline_parse_token_string_t cmd_set_gre_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_gre_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_gre_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_gre = {
 	.f = cmd_gre_parsed,
@@ -3536,16 +3655,16 @@ struct cmd_gre_eth_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_gre_eth_parsed - Enable or Disable GRE with Ethernet payload
-*
-* DESCRIPTION
-* Enable or Disable GRE with Ethernet payload
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_gre_eth_parsed - Enable or Disable GRE with Ethernet payload
+ *
+ * DESCRIPTION
+ * Enable or Disable GRE with Ethernet payload
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_gre_eth_parsed(void *parsed_result,
@@ -3565,7 +3684,9 @@ cmdline_parse_token_string_t cmd_set_gre_eth =
 cmdline_parse_token_portlist_t cmd_set_gre_eth_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_gre_eth_result, portlist);
 cmdline_parse_token_string_t cmd_set_gre_eth_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_gre_eth_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_gre_eth_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_gre_eth = {
 	.f = cmd_gre_eth_parsed,
@@ -3588,16 +3709,16 @@ struct cmd_gre_key_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_gre_key_parsed - Set the GRE key for a given port
-*
-* DESCRIPTION
-* Set the GRE key for each port given.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_gre_key_parsed - Set the GRE key for a given port
+ *
+ * DESCRIPTION
+ * Set the GRE key for each port given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_gre_key_parsed(void *parsed_result,
@@ -3613,7 +3734,9 @@ cmd_gre_key_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_gre_key_str =
-        TOKEN_STRING_INITIALIZER(struct cmd_gre_key_result, gre_key_str, "gre_key");
+        TOKEN_STRING_INITIALIZER(struct cmd_gre_key_result,
+                                 gre_key_str,
+                                 "gre_key");
 cmdline_parse_token_portlist_t cmd_set_gre_key_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_gre_key_result, portlist);
 cmdline_parse_token_num_t cmd_set_gre_key_gre_key =
@@ -3639,16 +3762,16 @@ struct cmd_mac_from_arp_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_mac_from_arp_parsed - Enable or Disable the ARP packets setting the MAC address
-*
-* DESCRIPTION
-* Enable or disable having ARP packets set the MAC address.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_mac_from_arp_parsed - Enable or Disable the ARP packets setting the MAC address
+ *
+ * DESCRIPTION
+ * Enable or disable having ARP packets set the MAC address.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_mac_from_arp_parsed(void *parsed_result,
@@ -3662,9 +3785,13 @@ cmd_mac_from_arp_parsed(void *parsed_result,
 }
 
 cmdline_parse_token_string_t cmd_set_mac_from_arp =
-        TOKEN_STRING_INITIALIZER(struct cmd_mac_from_arp_result, mac_from_arp, "mac_from_arp");
+        TOKEN_STRING_INITIALIZER(struct cmd_mac_from_arp_result,
+                                 mac_from_arp,
+                                 "mac_from_arp");
 cmdline_parse_token_string_t cmd_set_mac_from_arp_onoff =
-        TOKEN_STRING_INITIALIZER(struct cmd_mac_from_arp_result, onOff, "on#off#enable#disable");
+        TOKEN_STRING_INITIALIZER(struct cmd_mac_from_arp_result,
+                                 onOff,
+                                 "on#off#enable#disable");
 
 cmdline_parse_inst_t cmd_mac_from_arp = {
 	.f = cmd_mac_from_arp_parsed,
@@ -3685,16 +3812,16 @@ struct cmd_delay_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_delay_parsed - Delay the script for a given number of milli-seconds
-*
-* DESCRIPTION
-* Delay the script processing for a given number of milli-seconds.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_delay_parsed - Delay the script for a given number of milli-seconds
+ *
+ * DESCRIPTION
+ * Delay the script processing for a given number of milli-seconds.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_delay_parsed(void *parsed_result,
@@ -3730,16 +3857,16 @@ struct cmd_sleep_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_sleep_parsed - Sleep the script for a given number of seconds
-*
-* DESCRIPTION
-* Sleep the script processing for a given number of seconds.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_sleep_parsed - Sleep the script for a given number of seconds
+ *
+ * DESCRIPTION
+ * Sleep the script processing for a given number of seconds.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_sleep_parsed(void *parsed_result,
@@ -3777,16 +3904,16 @@ struct cmd_setmac_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_setmac_parsed - Set the single packet MAC address
-*
-* DESCRIPTION
-* Set the single packet MAC address.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_setmac_parsed - Set the single packet MAC address
+ *
+ * DESCRIPTION
+ * Set the single packet MAC address.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_setmac_parsed(void *parsed_result,
@@ -3831,16 +3958,16 @@ struct cmd_start_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_start_parsed - Start sending packets in a given port list.
-*
-* DESCRIPTION
-* Start sending packets on a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_start_parsed - Start sending packets in a given port list.
+ *
+ * DESCRIPTION
+ * Start sending packets on a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_start_parsed(void *parsed_result,
@@ -3877,16 +4004,16 @@ struct cmd_stop_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_stop_parsed - Stop ports from sending packets on a given port list
-*
-* DESCRIPTION
-* Stop ports from sending packetss on a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_stop_parsed - Stop ports from sending packets on a given port list
+ *
+ * DESCRIPTION
+ * Stop ports from sending packetss on a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_stop_parsed(void *parsed_result,
@@ -3922,23 +4049,22 @@ struct cmd_str_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_str_parsed - Start sending packets in a given port list.
-*
-* DESCRIPTION
-* Start sending packets on a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_str_parsed - Start sending packets in a given port list.
+ *
+ * DESCRIPTION
+ * Start sending packets on a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_str_parsed(void *parsed_result __rte_unused,
                struct cmdline *cl __rte_unused,
                void *data __rte_unused)
 {
-
 	forall_ports(pktgen_start_transmitting(info) );
 }
 
@@ -3962,23 +4088,22 @@ struct cmd_stp_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_stp_parsed - Stop ports from sending packets on a given port list
-*
-* DESCRIPTION
-* Stop ports from sending packetss on a given port list.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_stp_parsed - Stop ports from sending packets on a given port list
+ *
+ * DESCRIPTION
+ * Stop ports from sending packetss on a given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_stp_parsed(void *parsed_result __rte_unused,
                struct cmdline *cl __rte_unused,
                void *data __rte_unused)
 {
-
 	forall_ports(pktgen_stop_transmitting(info) );
 }
 
@@ -4003,16 +4128,16 @@ struct cmd_prime_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_prime_parsed - Send a small number of packets to prime the forwarding tables.
-*
-* DESCRIPTION
-* Send a small number of packets on a given port list to prime the fowarding tables.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_prime_parsed - Send a small number of packets to prime the forwarding tables.
+ *
+ * DESCRIPTION
+ * Send a small number of packets on a given port list to prime the fowarding tables.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_prime_parsed(void *parsed_result,
@@ -4049,16 +4174,16 @@ struct cmd_clear_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_clear_parsed - Clear the statistics on all ports.
-*
-* DESCRIPTION
-* Clear all statistics on all ports.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_clear_parsed - Clear the statistics on all ports.
+ *
+ * DESCRIPTION
+ * Clear all statistics on all ports.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_clear_parsed(void *parsed_result __rte_unused,
@@ -4094,23 +4219,22 @@ struct cmd_clr_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_clr_parsed - Clear the statistics on all ports.
-*
-* DESCRIPTION
-* Clear all statistics on all ports.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_clr_parsed - Clear the statistics on all ports.
+ *
+ * DESCRIPTION
+ * Clear all statistics on all ports.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_clr_parsed(void *parsed_result __rte_unused,
                struct cmdline *cl __rte_unused,
                void *data __rte_unused)
 {
-
 	forall_ports(pktgen_clear_stats(info) );
 }
 
@@ -4134,16 +4258,16 @@ struct cmd_quit_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_quit_parsed - quit pktgen.
-*
-* DESCRIPTION
-* Close down and quit Pktgen.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_quit_parsed - quit pktgen.
+ *
+ * DESCRIPTION
+ * Close down and quit Pktgen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_quit_parsed(void *parsed_result __rte_unused,
@@ -4173,16 +4297,16 @@ struct cmd_cls_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_cls_parsed - Clear the screen and redisplay the data again.
-*
-* DESCRIPTION
-* Clear the screen and redisplay the data on the screen.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_cls_parsed - Clear the screen and redisplay the data again.
+ *
+ * DESCRIPTION
+ * Clear the screen and redisplay the data on the screen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_cls_parsed(void *parsed_result __rte_unused,
@@ -4213,16 +4337,16 @@ struct cmd_reset_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_reset_parsed - Reset Pktgen to the default configuration state.
-*
-* DESCRIPTION
-* Reset Pktgen to the default configuration state.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_reset_parsed - Reset Pktgen to the default configuration state.
+ *
+ * DESCRIPTION
+ * Reset Pktgen to the default configuration state.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_reset_parsed(void *parsed_result __rte_unused,
@@ -4259,16 +4383,16 @@ struct cmd_port_restart_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_port_restart_parsed - Port Reset
-*
-* DESCRIPTION
-* Port Reset
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_port_restart_parsed - Port Reset
+ *
+ * DESCRIPTION
+ * Port Reset
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_port_restart_parsed(void *parsed_result __rte_unused,
@@ -4282,7 +4406,9 @@ cmd_port_restart_parsed(void *parsed_result __rte_unused,
 }
 
 cmdline_parse_token_string_t cmd_help_port_restart =
-        TOKEN_STRING_INITIALIZER(struct cmd_port_restart_result, port_restart, "port.restart");
+        TOKEN_STRING_INITIALIZER(struct cmd_port_restart_result,
+                                 port_restart,
+                                 "port.restart");
 cmdline_parse_token_portlist_t cmd_port_restart_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_port_restart_result, portlist);
 
@@ -4304,23 +4430,22 @@ struct cmd_rst_result {
 };
 
 /**************************************************************************//**
-*
-* cmd_rst_parsed - Reset Pktgen to the default configuration state.
-*
-* DESCRIPTION
-* Reset Pktgen to the default configuration state.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * cmd_rst_parsed - Reset Pktgen to the default configuration state.
+ *
+ * DESCRIPTION
+ * Reset Pktgen to the default configuration state.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 static void
 cmd_rst_parsed(void *parsed_result __rte_unused,
                struct cmdline *cl __rte_unused,
                void *data __rte_unused)
 {
-
 	forall_ports(pktgen_reset(info) );
 }
 
@@ -4441,10 +4566,13 @@ pktgen_cmdline_start(void)
 	__set_prompt();
 
 	if (pktgen.cl && pktgen.cmd_filename) {
-		pktgen_log_info("# *** Executing file (%s)", pktgen.cmd_filename);
+		pktgen_log_info("# *** Executing file (%s)",
+		                pktgen.cmd_filename);
 		cmdline_in(pktgen.cl, "\r", 1);
 		if (pktgen_load_cmds(pktgen.cmd_filename) == -1)
-			pktgen_log_warning("*** Unable to find file (%s) or invalid call", pktgen.cmd_filename);
+			pktgen_log_warning(
+			        "*** Unable to find file (%s) or invalid call",
+			        pktgen.cmd_filename);
 		else
 			pktgen_log_info("# *** Done.");
 		cmdline_in(pktgen.cl, "\r", 1);
@@ -4459,16 +4587,16 @@ pktgen_cmdline_start(void)
 }
 
 /**************************************************************************//**
-*
-* pktgen_load_cmds - Load and execute a command file or Lua script file.
-*
-* DESCRIPTION
-* Load and execute a command file or Lua script file.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_load_cmds - Load and execute a command file or Lua script file.
+ *
+ * DESCRIPTION
+ * Load and execute a command file or Lua script file.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 int
 pktgen_load_cmds(char *filename)

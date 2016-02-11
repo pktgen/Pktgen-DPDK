@@ -35,22 +35,23 @@
 /**
  * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
  * 1) Redistributions of source code must retain the above copyright notice,
  * this list of conditions and the following disclaimer.
  *
  * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
  *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
+ * 3) Neither the name of Wind River Systems nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
+ * 4) The screens displayed by the application must contain the copyright notice
+ * as defined above and can not be removed without specific prior written
+ * permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -156,7 +157,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "2.9.8"
+#define PKTGEN_VERSION          "2.9.10"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -184,27 +185,28 @@
 		}                                               \
 	} while ((0))
 
-#define foreach_port(_portlist, _action)                \
-	do {                                                \
-		uint32_t    *_pl = (uint32_t *)&_portlist;      \
-		uint32_t pid, idx, bit;                         \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
-			port_info_t   *info;                        \
-			idx = (pid / (sizeof(uint32_t) * 8));       \
-			bit = (pid - (idx * (sizeof(uint32_t) * 8))); \
-			if ( (_pl[idx] & (1 << bit)) == 0)          \
-				continue;                               \
-			info = &pktgen.info[pid];                   \
-			if (info->seq_pkt == NULL)                  \
-				continue;                               \
-			_action;                                    \
-		}                                               \
-	} while ((0));
+#define foreach_port(_portlist, _action)                    \
+	do {                                                    \
+		uint32_t    *_pl = (uint32_t *)&_portlist;          \
+		uint32_t pid, idx, bit;                             \
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {       \
+			port_info_t   *info;                            \
+			idx = (pid / (sizeof(uint32_t) * 8));           \
+			bit = (pid - (idx * (sizeof(uint32_t) * 8)));   \
+			if ( (_pl[idx] & (1 << bit)) == 0)              \
+				continue;                                   \
+			info = &pktgen.info[pid];                       \
+			if (info->seq_pkt == NULL)                      \
+				continue;                                   \
+			_action;                                        \
+		}                                                   \
+	} while ((0))
 
 /**
  * Free a list of packet mbufs back into its original mempool.
  *
- * Free a list of mbufs by calling rte_pktmbuf_free() in a loop as a wrapper function.
+ * Free a list of mbufs by calling rte_pktmbuf_free() in a loop as a
+ * wrapper function.
  *
  * @param m_list
  *   An array of rte_mbuf pointers to be freed.
@@ -218,7 +220,8 @@ rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
 		rte_pktmbuf_free(*m_list++);
 }
 
-typedef enum { PACKET_CONSUMED = 0, UNKNOWN_PACKET = 0xEEEE, DROP_PACKET = 0xFFFE, FREE_PACKET = 0xFFFF } pktType_e;
+typedef enum { PACKET_CONSUMED = 0, UNKNOWN_PACKET = 0xEEEE,
+	       DROP_PACKET = 0xFFFE, FREE_PACKET = 0xFFFF } pktType_e;
 
 enum {
 	MAX_SCRN_ROWS           = 44,
@@ -295,13 +298,13 @@ typedef union {
 
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
-	struct cmdline        *cl;		/**< Command Line information pointer */
-	char                  *cmd_filename;	/**< Command file path and name */
-	void                  *L;		/**< Lua State pointer */
-	char                  *hostname;	/**< GUI hostname */
-	wr_scrn_t             *scrn;		/**< Screen structure pointer */
+	struct cmdline *cl;	/**< Command Line information pointer */
+	char *cmd_filename;	/**< Command file path and name */
+	void *L;			/**< Lua State pointer */
+	char *hostname;		/**< GUI hostname */
+	wr_scrn_t *scrn;	/**< Screen structure pointer */
 
-	int32_t socket_port;		/**< GUI port number */
+	int32_t socket_port;	/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */
 	uint32_t flags;			/**< Flag values */
 	uint16_t ident;			/**< IPv4 ident value */
@@ -318,40 +321,39 @@ typedef struct pktgen_s {
 	uint64_t hz;		/**< Number of events per seconds */
 
 	int (*callout)(void *callout_arg);
-	void                  *callout_arg;
+	void *callout_arg;
 
 	struct rte_pci_addr blacklist[RTE_MAX_ETHPORTS];
 	struct rte_pci_addr portlist[RTE_MAX_ETHPORTS];
-	uint8_t               *portdesc[RTE_MAX_ETHPORTS];
+	uint8_t *portdesc[RTE_MAX_ETHPORTS];
 	uint32_t portdesc_cnt;
 	uint32_t blacklist_cnt;
 
 	/* port to lcore mapping */
-	l2p_t                 *l2p;
+	l2p_t *l2p;
 
 	port_info_t info[RTE_MAX_ETHPORTS];	/**< Port information */
 	lc_info_t core_info[RTE_MAX_LCORE];
 	uint16_t core_cnt;
 	uint16_t pad0;
-	lscpu_t               *lscpu;
-	char                  *uname;
+	lscpu_t *lscpu;
+	char *uname;
 	eth_stats_t cumm_rate_totals;	/**< port rates total values */
 
 	pthread_t thread;	/**< Thread structure for Lua server */
 
-	uint64_t counter;		/**< A debug counter */
-	uint64_t mem_used;		/**< Display memory used counters per ports */
-	uint64_t total_mem_used;	/**< Display memory used for all ports */
-	int32_t argc;			/**< Number of arguments */
-	char                  *argv[64];/**< Argument list */
+	uint64_t counter;	/**< A debug counter */
+	uint64_t mem_used;	/**< Display memory used counters per ports */
+	uint64_t total_mem_used;/**< Display memory used for all ports */
+	int32_t argc;		/**< Number of arguments */
+	char *argv[64];		/**< Argument list */
 
-	capture_t capture[RTE_MAX_NUMA_NODES];		/**< Packet capture, 1 struct per socket */
+	capture_t capture[RTE_MAX_NUMA_NODES];	/**< Packet capture, 1 struct per socket */
 } pktgen_t;
 
 enum {						/* Queue flags */
-	DO_TX_CLEANUP           = 0x00000001,	/**< Do a TX cleanup */
-	CLEAR_FAST_ALLOC_FLAG   = 0x00000002,	/**< Clear the TX fast alloc flag */
-	DO_TX_FLUSH             = 0x00000004	/**< Do a TX Flush by sending all of the pkts in the queue */
+	CLEAR_FAST_ALLOC_FLAG   = 0x00000001,	/**< Clear the TX fast alloc flag */
+	DO_TX_FLUSH             = 0x00000002	/**< Do a TX Flush by sending all of the pkts in the queue */
 };
 
 enum {						/* Pktgen flags bits */
@@ -377,8 +379,10 @@ enum {						/* Pktgen flags bits */
 	LOG_PAGE_FLAG           = (1 << 22)	/**< Display the message log page */
 };
 
-#define PAGE_MASK_BITS      (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | \
-	                     PCAP_PAGE_FLAG | CPU_PAGE_FLAG | RND_BITFIELD_PAGE_FLAG | \
+#define PAGE_MASK_BITS      (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
+	                     RANGE_PAGE_FLAG | \
+	                     PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
+	                     RND_BITFIELD_PAGE_FLAG | \
 	                     LOG_PAGE_FLAG)
 
 struct cmdline_etheraddr {
@@ -390,7 +394,8 @@ extern pktgen_t pktgen;
 
 extern void pktgen_page_display(struct rte_timer *tim, void *arg);
 
-extern void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
+extern void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx,
+                               int32_t type);
 extern void pktgen_packet_rate(port_info_t *info);
 
 extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
@@ -408,7 +413,8 @@ pktgen_set_port_flags(port_info_t *info, uint32_t flags) {
 
 	do
 		val = rte_atomic32_read(&info->port_flags);
-	while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt, val, (val | flags)) == 0);
+	while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt,
+	                           val, (val | flags)) == 0);
 }
 
 static __inline__ void
@@ -417,7 +423,8 @@ pktgen_clr_port_flags(port_info_t *info, uint32_t flags) {
 
 	do
 		val = rte_atomic32_read(&info->port_flags);
-	while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt, val, (val & ~flags)) == 0);
+	while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt,
+	                           val, (val & ~flags)) == 0);
 }
 
 static __inline__ void
@@ -426,7 +433,8 @@ pktgen_set_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 
 	do
 		val = rte_atomic32_read(&info->q[q].flags);
-	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt, val, (val | flags)) == 0);
+	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
+	                           val, (val | flags)) == 0);
 }
 
 static __inline__ void
@@ -435,7 +443,8 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 
 	do
 		val = rte_atomic32_read(&info->q[q].flags);
-	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt, val, (val & ~flags)) == 0);
+	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
+	                           val, (val & ~flags)) == 0);
 }
 
 /**
@@ -453,21 +462,23 @@ pktgen_version(void) {
 
 static __inline__ char *
 strdupf(char *str, const char *new) {
-	if (str) free(str);
+	if (str)
+		free(str);
 	return (new == NULL) ? NULL : strdup(new);
 }
 
 /**************************************************************************//**
-*
-* do_command - Internal function to execute a shell command and grab the output.
-*
-* DESCRIPTION
-* Internal function to execute a shell command and grab the output from the command.
-*
-* RETURNS: Nubmer of lines read.
-*
-* SEE ALSO:
-*/
+ *
+ * do_command - Internal function to execute a shell command and grab the output.
+ *
+ * DESCRIPTION
+ * Internal function to execute a shell command and grab the output from the
+ * command.
+ *
+ * RETURNS: Nubmer of lines read.
+ *
+ * SEE ALSO:
+ */
 
 static __inline__ int
 do_command(const char *cmd, int (*display)(char *, int)) {
@@ -486,8 +497,10 @@ do_command(const char *cmd, int (*display)(char *, int)) {
 	while (getline(&line, &line_size, f) > 0)
 		i = display(line, i);
 
-	if (f) fclose(f);
-	if (line) free(line);
+	if (f)
+		fclose(f);
+	if (line)
+		free(line);
 
 	return i;
 }

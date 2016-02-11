@@ -194,32 +194,32 @@ typedef struct ipv6Hdr_s {
 	                    ((d) & 0xff))
 
 /*************************************************************************
-*
-* GTP -U Header
-*
- +---+----+-+-+-+-+--+------------+-----------------+------------------+
+ *
+ * GTP -U Header
+ *
+ **+---+----+-+-+-+-+--+------------+-----------------+------------------+
  |   |0-2 |3|4|5|6|7 |  8-15      |    16-23        |    24-31         |
- +---+----+-+-+-+-+--+------------+-----------------+------------------+
- |0  |Veri|P|*|E|S|PN| Message    |                                    |
+ ||+---+----+-+-+-+-+--+------------+-----------------+------------------+
+ |||0  |Veri|P|*|E|S|PN| Message    |                                    |
  |   |son | | | | |  |  Type      |        Total length                |
- +---+----+-+-+-+-+--+------------+------------------------------------+
- |32 |                TEID (only present if T=1)                       |
+ ||+---+----+-+-+-+-+--+------------+------------------------------------+
+ |||32 |                TEID (only present if T=1)                       |
  |   |                                                                 |
- +---+----------------------------+-----------------+------------------+
- |64 |      Sequence number       |N-PDU number     |Next extension    |
+ ||+---+----------------------------+-----------------+------------------+
+ |||64 |      Sequence number       |N-PDU number     |Next extension    |
  |   |                            |                 |header type       |
- +---+----------------------------+-----------------+------------------+
+ ||+---+----------------------------+-----------------+------------------+
+ |
+ ***************************************************************************/
 
-***************************************************************************/
-
-typedef struct gtpuHdr_s{
-     uint8_t version_flags;
-     uint8_t msg_type;
-     uint16_t tot_len;
-     uint32_t teid;
-     uint16_t seq_no;
-     uint8_t npdu_no;
-     uint8_t next_ext_hdr_type;
+typedef struct gtpuHdr_s {
+	uint8_t version_flags;
+	uint8_t msg_type;
+	uint16_t tot_len;
+	uint32_t teid;
+	uint16_t seq_no;
+	uint8_t npdu_no;
+	uint8_t next_ext_hdr_type;
 } __attribute__((__packed__)) gtpuHdr_t;
 
 /* IP overlay header for the pseudo header */
@@ -259,9 +259,9 @@ typedef struct udpip_s {
 
 /* The GTP-U/UDP/IP Pseudo header */
 typedef struct gtpuUdpIp_s {
-    ipOverlay_t        ip;         /* IPv4 overlay header */
-    udpHdr_t       udp;        /* UDP header for protocol */
-    gtpuHdr_t           gtpu;       /* GTP-U header */
+	ipOverlay_t ip;	/* IPv4 overlay header */
+	udpHdr_t udp;	/* UDP header for protocol */
+	gtpuHdr_t gtpu;	/* GTP-U header */
 } __attribute__((__packed__)) gtpuUdpIp_t;
 
 /* The UDP/IPv6 Pseudo header */
@@ -307,7 +307,8 @@ typedef struct tcpHdr_s {
 	uint8_t opts[0];/* Place holder for options */
 } __attribute__((__packed__)) tcpHdr_t;
 
-enum { URG_FLAG = 0x20, ACK_FLAG = 0x10, PSH_FLAG = 0x08, RST_FLAG = 0x04, SYN_FLAG = 0x02, FIN_FLAG = 0x01 };
+enum { URG_FLAG = 0x20, ACK_FLAG = 0x10, PSH_FLAG = 0x08, RST_FLAG = 0x04,
+       SYN_FLAG = 0x02, FIN_FLAG = 0x01 };
 
 /* The TCP/IPv4 Pseudo header */
 typedef struct tcpip_s {
@@ -317,9 +318,9 @@ typedef struct tcpip_s {
 
 /* The GTPu/TCP/IPv4 Pseudo header */
 typedef struct gtpuTcpIp_s {
-    ipOverlay_t        ip;         /* IPv4 overlay header */
-    tcpHdr_t       tcp;        /* TCP header for protocol */
-    gtpuHdr_t           gtpu;       /* GTP-U header */
+	ipOverlay_t ip;	/* IPv4 overlay header */
+	tcpHdr_t tcp;	/* TCP header for protocol */
+	gtpuHdr_t gtpu;	/* GTP-U header */
 } __attribute__((__packed__)) gtpuTcpIp_t;
 
 /* The TCP/IPv6 Pseudo header */
@@ -330,9 +331,9 @@ typedef struct tcpipv6_s {
 
 /* ICMPv4 Packet structure */
 typedef struct icmpv4Hdr_s {
-	uint8_t type;		/* Message Type */
-	uint8_t code;		/* Code value */
-	uint16_t cksum;		/* checksum */
+	uint8_t type;	/* Message Type */
+	uint8_t code;	/* Code value */
+	uint16_t cksum;	/* checksum */
 
 	union {
 		struct {
@@ -534,7 +535,8 @@ typedef struct greEther_s {
 #define ETHER_TYPE_TRANSP_ETH_BR    0x6558	/* Transparent Ethernet Bridge */
 
 /* RARP and ARP opcodes */
-enum {  ARP_REQUEST = 1, ARP_REPLY = 2, RARP_REQUEST = 3, RARP_REPLY = 4, GRATUITOUS_ARP = 5 };
+enum {  ARP_REQUEST = 1, ARP_REPLY = 2, RARP_REQUEST = 3, RARP_REPLY = 4,
+	GRATUITOUS_ARP = 5 };
 
 typedef union {
 	uint16_t _16[3];
@@ -614,7 +616,8 @@ typedef struct l3_6route_s {
  *   32bit calculated hash value.
  */
 static inline uint32_t
-rte_hash6_crc(const void *data, __attribute__ ((unused)) uint32_t data_len, uint32_t init_val)
+rte_hash6_crc(const void *data, __attribute__ (
+                      (unused)) uint32_t data_len, uint32_t init_val)
 {
 #ifdef RTE_MACHINE_CPUFLAG_SSE4_2
 	const uint32_t *p32 = (const uint32_t *)data;

@@ -70,16 +70,16 @@
 #include "pktgen-udp.h"
 
 /**************************************************************************//**
-*
-* pktgen_udp_hdr_ctor - UDP header constructor routine.
-*
-* DESCRIPTION
-* Construct the UDP header in a packer buffer.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_udp_hdr_ctor - UDP header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct the UDP header in a packer buffer.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type __rte_unused)
@@ -92,7 +92,8 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type __rte_unused)
 	/* Create the UDP header */
 	uip->ip.src         = htonl(pkt->ip_src_addr);
 	uip->ip.dst         = htonl(pkt->ip_dst_addr);
-	tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
+	tlen                = pkt->pktSize -
+	        (pkt->ether_hdr_size + sizeof(ipHdr_t));
 
 	uip->ip.len         = htons(tlen);
 	uip->ip.proto       = pkt->ipProto;

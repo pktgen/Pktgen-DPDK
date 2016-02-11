@@ -73,16 +73,16 @@
 #include "pktgen-seq.h"
 
 /**************************************************************************//**
-*
-* pktgen_udp_hdr_ctor - UDP header constructor routine.
-*
-* DESCRIPTION
-* Construct the UDP header in a packer buffer.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * pktgen_udp_hdr_ctor - UDP header constructor routine.
+ *
+ * DESCRIPTION
+ * Construct the UDP header in a packer buffer.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 extern void pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type);
 

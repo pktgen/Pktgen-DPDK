@@ -85,7 +85,7 @@
 
 #include <rte_log.h>
 #include <rte_tailq.h>
-#if (RTE_VER_MAJOR < 2)
+#if defined(RTE_VER_MAJOR) && (RTE_VER_MAJOR < 2)
 #include <rte_tailq_elem.h>
 #endif
 #include <rte_common.h>
@@ -122,16 +122,16 @@
 #include "wr_inet.h"
 
 /**************************************************************************//**
-*
-* wr_pcap_open - Open a PCAP file.
-*
-* DESCRIPTION
-* Open a PCAP file to be used in sending from a port.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_pcap_open - Open a PCAP file.
+ *
+ * DESCRIPTION
+ * Open a PCAP file to be used in sending from a port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 pcap_info_t *
 wr_pcap_open(char *filename, uint16_t port)
@@ -143,9 +143,12 @@ wr_pcap_open(char *filename, uint16_t port)
 		goto leave;
 	}
 
-	pcap = (pcap_info_t *)rte_malloc("PCAP info", sizeof(pcap_info_t), RTE_CACHE_LINE_SIZE);
+	pcap = (pcap_info_t *)rte_malloc("PCAP info",
+	                                 sizeof(pcap_info_t),
+	                                 RTE_CACHE_LINE_SIZE);
 	if (pcap == NULL) {
-		printf("%s: malloc failed for pcap_info_t structure\n", __FUNCTION__);
+		printf("%s: malloc failed for pcap_info_t structure\n",
+		       __FUNCTION__);
 		goto leave;
 	}
 	memset((char *)pcap, 0, sizeof(pcap_info_t));
@@ -156,7 +159,8 @@ wr_pcap_open(char *filename, uint16_t port)
 		goto leave;
 	}
 
-	if (fread(&pcap->info, 1, sizeof(pcap_hdr_t), pcap->fd) != sizeof(pcap_hdr_t) ) {
+	if (fread(&pcap->info, 1, sizeof(pcap_hdr_t),
+	          pcap->fd) != sizeof(pcap_hdr_t) ) {
 		printf("%s: failed to read the file header\n", __FUNCTION__);
 		goto leave;
 	}
@@ -168,13 +172,15 @@ wr_pcap_open(char *filename, uint16_t port)
 	/* Make sure we have a valid PCAP file for Big or Little Endian formats. */
 	if ( (pcap->info.magic_number != PCAP_MAGIC_NUMBER) &&
 	     (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER)) ) {
-		printf("%s: Magic Number does not match!\n", __FUNCTION__); fflush(stdout);
+		printf("%s: Magic Number does not match!\n", __FUNCTION__);
+		fflush(stdout);
 		goto leave;
 	}
 
 	/* Convert from big-endian to little-endian. */
 	if (pcap->info.magic_number == ntohl(PCAP_MAGIC_NUMBER) ) {
-		printf("PCAP: Big Endian file format found, converting to little endian\n");
+		printf(
+		        "PCAP: Big Endian file format found, converting to little endian\n");
 		pcap->endian                = BIG_ENDIAN;
 		pcap->info.magic_number     = ntohl(pcap->info.magic_number);
 		pcap->info.network          = ntohl(pcap->info.network);
@@ -196,23 +202,25 @@ leave:
 }
 
 /**************************************************************************//**
-*
-* wr_pcap_info - Display the PCAP information.
-*
-* DESCRIPTION
-* Dump out the PCAP information.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_pcap_info - Display the PCAP information.
+ *
+ * DESCRIPTION
+ * Dump out the PCAP information.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 {
 	printf("\nPCAP file for port %d: %s\n", port, pcap->filename);
 	printf("  magic: %08x,", pcap->info.magic_number);
-	printf(" Version: %d.%d,", pcap->info.version_major, pcap->info.version_minor);
+	printf(" Version: %d.%d,",
+	       pcap->info.version_major,
+	       pcap->info.version_minor);
 	printf(" Zone: %d,", pcap->info.thiszone);
 	printf(" snaplen: %d,", pcap->info.snaplen);
 	printf(" sigfigs: %d,", pcap->info.sigfigs);
@@ -225,16 +233,16 @@ wr_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 }
 
 /**************************************************************************//**
-*
-* wr_pcap_rewind - Rewind or start over on a PCAP file.
-*
-* DESCRIPTION
-* Rewind or start over on a PCAP file.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_pcap_rewind - Rewind or start over on a PCAP file.
+ *
+ * DESCRIPTION
+ * Rewind or start over on a PCAP file.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_pcap_rewind(pcap_info_t *pcap)
@@ -250,16 +258,16 @@ wr_pcap_rewind(pcap_info_t *pcap)
 }
 
 /**************************************************************************//**
-*
-* wr_pcap_skip - Rewind and skip to the given packet location.
-*
-* DESCRIPTION
-* Rewind and skip to the given packet location.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_pcap_skip - Rewind and skip to the given packet location.
+ *
+ * DESCRIPTION
+ * Rewind and skip to the given packet location.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
@@ -277,7 +285,8 @@ wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
 
 	phdr = &hdr;
 	while (skip--) {
-		if (fread(phdr, 1, sizeof(pcaprec_hdr_t), pcap->fd) != sizeof(pcaprec_hdr_t) )
+		if (fread(phdr, 1, sizeof(pcaprec_hdr_t),
+		          pcap->fd) != sizeof(pcaprec_hdr_t) )
 			break;
 
 		/* Convert the packet header to the correct format. */
@@ -288,16 +297,16 @@ wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
 }
 
 /**************************************************************************//**
-*
-* wr_pcap_close - Close a PCAP file
-*
-* DESCRIPTION
-* Close the PCAP file for sending.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_pcap_close - Close a PCAP file
+ *
+ * DESCRIPTION
+ * Close the PCAP file for sending.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 wr_pcap_close(pcap_info_t *pcap)
@@ -313,21 +322,22 @@ wr_pcap_close(pcap_info_t *pcap)
 }
 
 /**************************************************************************//**
-*
-* wr_payloadOffset - Determine the packet data offset value.
-*
-* DESCRIPTION
-* Determine the packet data offset value in bytes.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_payloadOffset - Determine the packet data offset value.
+ *
+ * DESCRIPTION
+ * Determine the packet data offset value in bytes.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 int
 wr_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
                  unsigned int *length) {
-	const ipHdr_t *iph = (const ipHdr_t *)(pkt_data + sizeof(struct ether_hdr));
+	const ipHdr_t *iph =
+	        (const ipHdr_t *)(pkt_data + sizeof(struct ether_hdr));
 	const tcpHdr_t *th = NULL;
 
 	/* Ignore packets that aren't IPv4 */
@@ -361,22 +371,26 @@ wr_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 }
 
 /**************************************************************************//**
-*
-* wr_pcap_read - Read data from the PCAP file and parse it
-*
-* DESCRIPTION
-* Parse the data from the PCAP file.
-*
-* RETURNS: N/A
-*
-* SEE ALSO:
-*/
+ *
+ * wr_pcap_read - Read data from the PCAP file and parse it
+ *
+ * DESCRIPTION
+ * Parse the data from the PCAP file.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 size_t
-wr_pcap_read(pcap_info_t *pcap, pcaprec_hdr_t *pHdr, char *pktBuff, uint32_t bufLen)
+wr_pcap_read(pcap_info_t *pcap,
+             pcaprec_hdr_t *pHdr,
+             char *pktBuff,
+             uint32_t bufLen)
 {
 	do {
-		if (fread(pHdr, 1, sizeof(pcaprec_hdr_t), pcap->fd) != sizeof(pcaprec_hdr_t) )
+		if (fread(pHdr, 1, sizeof(pcaprec_hdr_t),
+		          pcap->fd) != sizeof(pcaprec_hdr_t) )
 			return 0;
 
 		/* Convert the packet header to the correct format. */

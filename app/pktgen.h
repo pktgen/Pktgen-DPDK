@@ -454,10 +454,11 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
  */
 static inline const char *
 pktgen_version(void) {
-	return "Ver:"PKTGEN_VERSION "(DPDK-"
-	       RTE_STR(RTE_VER_MAJOR) "."
-	       RTE_STR(RTE_VER_MINOR) "."
-	       RTE_STR(RTE_VER_PATCH_LEVEL) ")";
+	static char pkt_version[128];
+
+	snprintf(pkt_version, sizeof(pkt_version),
+		 "Ver: %s (%s)", PKTGEN_VERSION, rte_version());
+	return pkt_version;
 }
 
 static __inline__ char *

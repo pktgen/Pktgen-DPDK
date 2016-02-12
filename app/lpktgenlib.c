@@ -3053,10 +3053,7 @@ luaopen_pktgen(lua_State *L) {
 	setf_string(L,
 	            "Pktgen_Authors",
 	            (char *)"Keith Wiles @ Wind River Systems");
-	setf_string(L, "DPDK_Version",
-	            (char *)("DPDK-"RTE_STR (RTE_VER_MAJOR)"."RTE_STR (
-	                             RTE_VER_MINOR)"."RTE_STR (
-	                             RTE_VER_PATCH_LEVEL)));
+	setf_string(L, "DPDK_Version", (char *)rte_version());
 	setf_string(L, "DPDK_Copyright", (char *)wr_powered_by());
 
 	setf_integer(L, "startSeqIdx", FIRST_SEQ_PKT);

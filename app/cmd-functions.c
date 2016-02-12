@@ -284,6 +284,7 @@ const char *help_info[] = {
 	"dst.ip min <portlist> ipaddr       - Set destination IP minimum address",
 	"dst.ip max <portlist> ipaddr       - Set destination IP maximum address",
 	"dst.ip inc <portlist> ipaddr       - Set destination IP increment address",
+	"ip.proto <portlist> [tcp|udp]      - Set the IP protocol type",
 	"src.port start <portlist> value    - Set source port start address",
 	"src.port min <portlist> value      - Set source port minimum address",
 	"src.port max <portlist> value      - Set source port maximum address",
@@ -1557,6 +1558,62 @@ cmdline_parse_inst_t cmd_src_port = {
 		(void *)&cmd_src_port_what,
 		(void *)&cmd_src_port_portlist,
 		(void *)&cmd_src_port_addr,
+		NULL,
+	},
+};
+
+/**********************************************************/
+
+struct cmd_ip_proto_result {
+	cmdline_fixed_string_t ip_proto;
+	cmdline_portlist_t portlist;
+	cmdline_fixed_string_t proto;
+};
+
+/**************************************************************************//**
+ *
+ * cmd_ip_proto_parsed - Set IP Protocol type
+ *
+ * DESCRIPTION
+ * Set the IP protocol type
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static void
+cmd_ip_proto_parsed(void *parsed_result,
+                    struct cmdline *cl __rte_unused,
+                    void *data __rte_unused)
+{
+	struct cmd_ip_proto_result *res = parsed_result;
+
+	foreach_port(res->portlist.map,
+	             pktgen_set_proto_range(info, res->proto[0]) );
+
+	pktgen_update_display();
+}
+
+cmdline_parse_token_string_t cmd_set_ip_proto =
+        TOKEN_STRING_INITIALIZER(struct cmd_ip_proto_result,
+                                 ip_proto,
+                                 "range.proto");
+cmdline_parse_token_portlist_t cmd_ip_proto_portlist =
+        TOKEN_PORTLIST_INITIALIZER(struct cmd_ip_proto_result, portlist);
+cmdline_parse_token_string_t cmd_set_proto =
+        TOKEN_STRING_INITIALIZER(struct cmd_ip_proto_result,
+                                 proto,
+                                 "udp#tcp#icmp");
+
+cmdline_parse_inst_t cmd_ip_proto = {
+	.f = cmd_ip_proto_parsed,
+	.data = NULL,
+	.help_str = "range.proto <portlist> [tcp|udp|icmp]",
+	.tokens = {
+		(void *)&cmd_set_ip_proto,
+		(void *)&cmd_ip_proto_portlist,
+		(void *)&cmd_set_proto,
 		NULL,
 	},
 };
@@ -4523,6 +4580,7 @@ cmdline_parse_ctx_t main_ctx[] = {
 	(cmdline_parse_inst_t *)&cmd_set_pppp,
 	(cmdline_parse_inst_t *)&cmd_sleep,
 	(cmdline_parse_inst_t *)&cmd_src_ip,
+	(cmdline_parse_inst_t *)&cmd_ip_proto,
 	(cmdline_parse_inst_t *)&cmd_src_mac,
 	(cmdline_parse_inst_t *)&cmd_src_port,
 	(cmdline_parse_inst_t *)&cmd_start,

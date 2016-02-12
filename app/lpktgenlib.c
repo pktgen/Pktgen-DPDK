@@ -1472,6 +1472,38 @@ pktgen_dst_port(lua_State *L) {
  */
 
 static int
+pktgen_ip_proto(lua_State *L) {
+	cmdline_portlist_t portlist;
+	const char * ip;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "ip_proto, wrong number of arguments");
+	case 2:
+		break;
+	}
+	parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	ip = luaL_checkstring(L, 2);
+	foreach_port(portlist.map,
+		     pktgen_set_proto_range(info, ip[0]));
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_src_port - Set the source port value in the range data.
+ *
+ * DESCRIPTION
+ * Set the source port value in the range data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
 pktgen_src_port(lua_State *L) {
 	cmdline_portlist_t portlist;
 
@@ -2980,6 +3012,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"src_mac",       pktgen_src_mac},	/* Set the src MAC address for a port */
 	{"src_ip",        pktgen_src_ip},	/* Set the source IP address and netmask value */
 	{"dst_ip",        pktgen_dst_ip},	/* Set the destination IP address */
+	{"range_proto",   pktgen_ip_proto},	/* Set the IP Protocol type */
 	{"src_port",      pktgen_src_port},	/* Set the IP source port number */
 	{"dst_port",      pktgen_dst_port},	/* Set the IP destination port number */
 	{"vlan_id",       pktgen_vlan_id},	/* Set the vlan id value */

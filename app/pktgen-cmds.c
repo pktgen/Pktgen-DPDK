@@ -1116,6 +1116,7 @@ pktgen_set_proto_range(port_info_t *info, char type)
 	        (type == 'i') ? PG_IPPROTO_ICMP :
 	        (type == 't') ? PG_IPPROTO_TCP :
 		/* TODO print error: unknown type */ PG_IPPROTO_TCP;
+	info->range.ip_proto = info->seq_pkt[RANGE_PKT].ipProto;
 
 	/* ICMP only works on IPv4 packets. */
 	if (type == 'i')

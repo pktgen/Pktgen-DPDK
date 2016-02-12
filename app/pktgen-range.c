@@ -266,6 +266,9 @@ pktgen_print_range(void)
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    max");
 
 	row++;
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ip_proto");
+
+	row++;
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "dst.port / inc");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "     min / max");
 
@@ -355,6 +358,10 @@ pktgen_print_range(void)
 		               inet_ntop4(buff, sizeof(buff),
 		                          htonl(range->src_ip_max),
 		                          0xFFFFFFFF));
+
+		row++;
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+			 (range->ip_proto == PG_IPPROTO_TCP)? "TCP" : "UDP");
 
 		row++;
 		snprintf(str,
@@ -509,6 +516,8 @@ pktgen_range_setup(port_info_t *info)
 	range->src_ip_min   = IPv4(192, 168, info->pid, 1);
 	range->src_ip_max   = IPv4(192, 168, info->pid, 254);
 	range->src_ip_inc   = 0x00000000;
+
+	range->ip_proto     = PG_IPPROTO_TCP;
 
 	range->dst_port     = (info->pid << 8);
 	range->dst_port_inc = 0x0001;

@@ -6,6 +6,7 @@ Pktgen-DPDK version 2.9.10
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.11  - Fix version string for new version style in DPDK.
  - 2.9.10  - Reformat the code and get ready for the next release of DPDK.
  - 2.9.9   - Update the init screen output to not screw up DPDK screen output.
  - 2.9.8   - Fixed the crash when using the sequence packets.

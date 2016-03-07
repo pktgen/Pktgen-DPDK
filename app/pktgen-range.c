@@ -126,26 +126,26 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 				pkt->dport = range->dst_port;
 
 			if (unlikely(range->src_ip_inc != 0)) {
-				uint32_t p = pkt->ip_src_addr;
+				uint32_t p = pkt->ip_src_addr.addr.ipv4.s_addr;
 				p += range->src_ip_inc;
 				if (p < range->src_ip_min)
 					p = range->src_ip_max;
 				else if (p > range->src_ip_max)
 					p = range->src_ip_min;
-				pkt->ip_src_addr = p;
+				pkt->ip_src_addr.addr.ipv4.s_addr = p;
 			} else
-				pkt->ip_src_addr = range->src_ip;
+				pkt->ip_src_addr.addr.ipv4.s_addr = range->src_ip;
 
 			if (unlikely(range->dst_ip_inc != 0)) {
-				uint32_t p = pkt->ip_dst_addr;
+				uint32_t p = pkt->ip_dst_addr.addr.ipv4.s_addr;
 				p += range->dst_ip_inc;
 				if (p < range->dst_ip_min)
 					p = range->dst_ip_max;
 				else if (p > range->dst_ip_max)
 					p = range->dst_ip_min;
-				pkt->ip_dst_addr = p;
+				pkt->ip_dst_addr.addr.ipv4.s_addr = p;
 			} else
-				pkt->ip_dst_addr = range->dst_ip;
+				pkt->ip_dst_addr.addr.ipv4.s_addr = range->dst_ip;
 
 			if (unlikely(range->vlan_id_inc != 0)) {
 				uint32_t p = pkt->vlanid;

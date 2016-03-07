@@ -111,16 +111,16 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 	memset(arp, 0, sizeof(arpPkt_t));
 
 	rte_memcpy(&arp->sha, &pkt->eth_src_addr, 6);
-	addr = htonl(pkt->ip_src_addr);
+	addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 	inetAddrCopy(&arp->spa, &addr);
 
 	if (likely(type == GRATUITOUS_ARP) ) {
 		rte_memcpy(&arp->tha, &pkt->eth_src_addr, 6);
-		addr = htonl(pkt->ip_src_addr);
+		addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 		inetAddrCopy(&arp->tpa, &addr);
 	} else {
 		memset(&arp->tha, 0, 6);
-		addr = htonl(pkt->ip_dst_addr);
+		addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 		inetAddrCopy(&arp->tpa, &addr);
 	}
 
@@ -226,7 +226,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 		/* ARP request not for this interface. */
 		if (likely(pkt != NULL) ) {
 			/* Grab the real destination MAC address */
-			if (pkt->ip_dst_addr == ntohl(arp->spa._32) )
+			if (pkt->ip_dst_addr.addr.ipv4.s_addr == ntohl(arp->spa._32) )
 				rte_memcpy(&pkt->eth_dst_addr, &arp->sha, 6);
 
 			pktgen.flags |= PRINT_LABELS_FLAG;

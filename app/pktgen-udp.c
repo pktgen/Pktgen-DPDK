@@ -90,8 +90,8 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type __rte_unused)
 	memset((char *)uip, 0, sizeof(udpip_t));
 
 	/* Create the UDP header */
-	uip->ip.src         = htonl(pkt->ip_src_addr);
-	uip->ip.dst         = htonl(pkt->ip_dst_addr);
+	uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+	uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	tlen                = pkt->pktSize -
 	        (pkt->ether_hdr_size + sizeof(ipHdr_t));
 

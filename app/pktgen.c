@@ -206,14 +206,14 @@ pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr)
 
 	/* Search the sequence packets for a match */
 	for (i = 0; i < info->seqCnt; i++)
-		if (addr == info->seq_pkt[i].ip_src_addr) {
+		if (addr == info->seq_pkt[i].ip_src_addr.addr.ipv4.s_addr) {
 			pkt = &info->seq_pkt[i];
 			break;
 		}
 
 	/* Now try to match the single packet address */
 	if (pkt == NULL)
-		if (addr == info->seq_pkt[SINGLE_PKT].ip_src_addr)
+		if (addr == info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr)
 			pkt = &info->seq_pkt[SINGLE_PKT];
 
 	return pkt;
@@ -241,19 +241,19 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 
 	/* Search the sequence packets for a match */
 	for (i = 0; i < info->seqCnt; i++)
-		if (addr == info->seq_pkt[i].ip_dst_addr) {
+		if (addr == info->seq_pkt[i].ip_dst_addr.addr.ipv4.s_addr) {
 			pkt = &info->seq_pkt[i];
 			break;
 		}
 
 	/* Now try to match the single packet address */
 	if (pkt == NULL)
-		if (addr == info->seq_pkt[SINGLE_PKT].ip_dst_addr)
+		if (addr == info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr)
 			pkt = &info->seq_pkt[SINGLE_PKT];
 
 	/* Now try to match the range packet address */
 	if (pkt == NULL)
-		if (addr == info->seq_pkt[RANGE_PKT].ip_dst_addr)
+		if (addr == info->seq_pkt[RANGE_PKT].ip_dst_addr.addr.ipv4.s_addr)
 			pkt = &info->seq_pkt[RANGE_PKT];
 
 	return pkt;
@@ -605,8 +605,8 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			uip = (udpip_t *)ether_hdr;
 
 			/* Create the ICMP header */
-			uip->ip.src         = htonl(pkt->ip_src_addr);
-			uip->ip.dst         = htonl(pkt->ip_dst_addr);
+			uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+			uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 			tlen                = pkt->pktSize -
 			        (pkt->ether_hdr_size + sizeof(ipHdr_t));
 			uip->ip.len         = htons(tlen);
@@ -643,16 +643,15 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		}
 	} else if (pkt->ethType == ETHER_TYPE_IPv6) {
 		if (pkt->ipProto == PG_IPPROTO_TCP) {
-			uint32_t addr;
 			tcpipv6_t         *tip;
 
 			/* Start from Ethernet header */
 			tip = (tcpipv6_t *)ether_hdr;
 
 			/* Create the pseudo header and TCP information */
-			(void)rte_memcpy(tip->ip.daddr, &pkt->ip_dst_addr,
+			(void)rte_memcpy(tip->ip.daddr, &pkt->ip_dst_addr.addr.ipv4.s_addr,
 			                 sizeof(struct in6_addr));
-			(void)rte_memcpy(tip->ip.saddr, &pkt->ip_src_addr,
+			(void)rte_memcpy(tip->ip.saddr, &pkt->ip_src_addr.addr.ipv4.s_addr,
 			                 sizeof(struct in6_addr));
 
 			tlen                = sizeof(tcpHdr_t) +
@@ -691,10 +690,10 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			uip = (udpipv6_t *)ether_hdr;
 
 			/* Create the pseudo header and TCP information */
-			addr                = htonl(pkt->ip_dst_addr);
+			addr                = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 			(void)rte_memcpy(&uip->ip.daddr[8], &addr,
 			                 sizeof(uint32_t));
-			addr                = htonl(pkt->ip_src_addr);
+			addr                = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 			(void)rte_memcpy(&uip->ip.saddr[8], &addr,
 			                 sizeof(uint32_t));
 
@@ -736,11 +735,11 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
 		ether_addr_copy(&pkt->eth_src_addr,
 		                (struct ether_addr *)&arp->sha);
-		arp->spa._32 = htonl(pkt->ip_src_addr);
+		arp->spa._32 = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 
 		ether_addr_copy(&pkt->eth_dst_addr,
 		                (struct ether_addr *)&arp->tha);
-		arp->tpa._32 = htonl(pkt->ip_dst_addr);
+		arp->tpa._32 = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	} else
 		pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
 }

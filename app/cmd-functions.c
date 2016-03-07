@@ -101,6 +101,7 @@
 
 #include <cmdline_rdline.h>
 #include <cmdline_parse_string.h>
+#include <cmdline_parse_ipaddr.h>
 #include <cmdline.h>
 #include <rte_atomic.h>
 #include <rte_devargs.h>

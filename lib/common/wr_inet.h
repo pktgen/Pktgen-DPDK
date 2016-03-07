@@ -79,6 +79,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include <arpa/inet.h>
+
 #include <rte_ether.h>
 
 /* Internet protocol header structure */
@@ -727,6 +729,15 @@ size_to_mask(int len) {
 /* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
 static __inline__ char *
 inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
+#if 1
+	char	lbuf[64];
+
+	inet_ntop(AF_INET, &ip_addr, buff, len);
+	if (mask != 0xFFFFFFFF) {
+		snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, mask_size(mask));
+		strncpy(buff, lbuf, len);
+	}
+#else
 	if (mask == 0xFFFFFFFF)
 		snprintf(buff, len, "%lu.%lu.%lu.%lu",
 		         ((ip_addr >> 0) & 0xFF), ((ip_addr >> 8) & 0xFF),
@@ -736,8 +747,17 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 		         ((ip_addr >> 0) & 0xFF), ((ip_addr >> 8) & 0xFF),
 		         ((ip_addr >> 16) & 0xFF), ((ip_addr >> 24) & 0xFF),
 		         mask_size(mask));
+#endif
 	return buff;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+static __inline__ char *
+inet_ntop6(char * buff, int len, uint8_t * ip6) {
+	return inet_ntop(AF_INET6, ip6, buff, len);
+}
+#pragma GCC diagnostic pop
 
 /* char * inet_mtoa(char * buff, int len, struct ether_addr * eaddr) - Convert MAC address to ascii */
 static __inline__ char *

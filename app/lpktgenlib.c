@@ -2608,7 +2608,7 @@ pktgen_compile(lua_State *L) {
 
 static void
 decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum) {
-	char buff[32];
+	char buff[128];
 	pkt_seq_t *p;
 
 	p = &info->seq_pkt[seqnum];
@@ -2621,12 +2621,19 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum) {
 	            inet_mtoa(buff, sizeof(buff), &p->eth_dst_addr));
 	setf_string(L, "eth_src_addr",
 	            inet_mtoa(buff, sizeof(buff), &p->eth_src_addr));
-	setf_string(L, "ip_dst_addr",
-	            inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr),
+	if (p->ethType == ETHER_TYPE_IPv4) {
+		setf_string(L, "ip_dst_addr",
+	            inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr.addr.ipv4.s_addr),
 	                       0xFFFFFFFF));
-	setf_string(L, "ip_src_addr",
-	            inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr),
+		setf_string(L, "ip_src_addr",
+	            inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr.addr.ipv4.s_addr),
 	                       p->ip_mask));
+	} else {
+		setf_string(L, "ip_dst_addr",
+	            inet_ntop6(buff, sizeof(buff), p->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8));
+		setf_string(L, "ip_src_addr",
+	            inet_ntop6(buff, sizeof(buff), p->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8));
+	}
 	setf_integer(L, "dport", p->dport);
 	setf_integer(L, "sport", p->sport);
 	setf_integer(L, "vlanid", p->vlanid);

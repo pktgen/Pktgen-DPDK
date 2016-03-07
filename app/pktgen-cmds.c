@@ -211,10 +211,10 @@ pktgen_save(char *path)
 		        (pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
 		        (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp", i);
 		fprintf(fd, "set ip dst %d %s\n", i,
-		        inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr),
+		        inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 		                   0xFFFFFFFF));
 		fprintf(fd, "set ip src %d %s\n", i,
-		        inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr),
+		        inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 		                   pkt->ip_mask));
 		fprintf(fd, "set mac %d %s\n", info->pid,
 		        inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
@@ -396,11 +396,11 @@ pktgen_save(char *path)
 			                  &pkt->eth_src_addr));
 			fprintf(fd, "%s ",
 			        inet_ntop4(buff, sizeof(buff),
-			                   htonl(pkt->ip_dst_addr),
+			                   htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 			                   0xFFFFFFFF));
 			fprintf(fd, "%s ",
 			        inet_ntop4(buff, sizeof(buff),
-			                   htonl(pkt->ip_src_addr),
+			                   htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
 			                   pkt->ip_mask));
 			fprintf(fd,
 			        "%d %d %s %s %d %d\n",
@@ -1601,12 +1601,12 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 
 	pkt->ip_mask = DEFAULT_NETMASK;
 	if ( (pid & 1) == 0) {
-		pkt->ip_src_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-		pkt->ip_dst_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
+		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+		pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
 		dst_info = info + 1;
 	} else {
-		pkt->ip_src_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-		pkt->ip_dst_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
+		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+		pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
 		dst_info = info - 1;
 	}
 
@@ -1970,10 +1970,10 @@ pktgen_set_ipaddr(port_info_t *info, char type, cmdline_ipaddr_t *ip)
 {
 	if (type == 's') {
 		info->seq_pkt[SINGLE_PKT].ip_mask = size_to_mask(ip->prefixlen);
-		info->seq_pkt[SINGLE_PKT].ip_src_addr = ntohl(
+		info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr = ntohl(
 		                ip->addr.ipv4.s_addr);
 	} else
-		info->seq_pkt[SINGLE_PKT].ip_dst_addr = ntohl(
+		info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
 		                ip->addr.ipv4.s_addr);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
@@ -2491,12 +2491,12 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
 	pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
 	if (type == '4') {
-		pkt->ip_src_addr.ipv4.s_addr = htonl(ip_saddr->addr.ipv4.s_addr);
-		pkt->ip_dst_addr.ipv4.s_addr = htonl(ip_daddr->addr.ipv4.s_addr);
+		pkt->ip_src_addr.addr.ipv4.s_addr = htonl(ip_saddr->addr.ipv4.s_addr);
+		pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(ip_daddr->addr.ipv4.s_addr);
 	} else {
-		memcpy(&pkt->ip_src_addr.ipv6.__in6_u.__u6_addr8,
+		memcpy(&pkt->ip_src_addr.addr.ipv6.__in6_u.__u6_addr8,
 			ip_saddr->addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
-		memcpy(&pkt->ip_dst_addr.ipv6.__in6_u.__u6_addr8,
+		memcpy(&pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8,
 			ip_daddr->addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
 	}
 	pkt->dport          = dport;
@@ -2542,8 +2542,8 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 	memcpy(&pkt->eth_dst_addr, daddr->mac, 6);
 	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
 	pkt->ip_mask        = size_to_mask(ip_saddr->prefixlen);
-	pkt->ip_src_addr    = htonl(ip_saddr->addr.ipv4.s_addr);
-	pkt->ip_dst_addr    = htonl(ip_daddr->addr.ipv4.s_addr);
+	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->addr.ipv4.s_addr);
+	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->addr.ipv4.s_addr);
 	pkt->dport          = dport;
 	pkt->sport          = sport;
 	pkt->pktSize        = pktsize - FCS_SIZE;

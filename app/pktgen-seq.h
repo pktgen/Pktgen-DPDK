@@ -78,8 +78,8 @@ typedef struct pkt_seq_s {
 	struct ether_addr eth_dst_addr;	/**< Destination Ethernet address */
 	struct ether_addr eth_src_addr;	/**< Source Ethernet address */
 
-	uint32_t ip_src_addr;	/**< Source IPv4 address also used for IPv6 */
-	uint32_t ip_dst_addr;	/**< Destination IPv4 address */
+	struct cmdline_addr ip_src_addr; /**< Source IPv4 address also used for IPv6 */
+	struct cmdline_addr ip_dst_addr; /**< Destination IPv4 address */
 	uint32_t ip_mask;	/**< IPv4 Netmask value */
 
 	uint16_t sport;		/**< Source port value */

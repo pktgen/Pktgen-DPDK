@@ -1041,8 +1041,9 @@ pktgen_stop_transmitting(port_info_t *info)
 
 	if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
 		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
-		for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
+		for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++) {
 			pktgen_set_q_flags(info, q, DO_TX_FLUSH);
+		}
 	}
 }
 
@@ -2488,9 +2489,16 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	pkt = &info->seq_pkt[seqnum];
 	memcpy(&pkt->eth_dst_addr, daddr->mac, 6);
 	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
-	pkt->ip_mask        = size_to_mask(ip_saddr->prefixlen);
-	pkt->ip_src_addr    = htonl(ip_saddr->addr.ipv4.s_addr);
-	pkt->ip_dst_addr    = htonl(ip_daddr->addr.ipv4.s_addr);
+	pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
+	if (type == '4') {
+		pkt->ip_src_addr.ipv4.s_addr = htonl(ip_saddr->addr.ipv4.s_addr);
+		pkt->ip_dst_addr.ipv4.s_addr = htonl(ip_daddr->addr.ipv4.s_addr);
+	} else {
+		memcpy(&pkt->ip_src_addr.ipv6.__in6_u.__u6_addr8,
+			ip_saddr->addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
+		memcpy(&pkt->ip_dst_addr.ipv6.__in6_u.__u6_addr8,
+			ip_daddr->addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
+	}
 	pkt->dport          = dport;
 	pkt->sport          = sport;
 	pkt->pktSize        = pktsize - FCS_SIZE;
@@ -2501,7 +2509,7 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 		type = '4';
 	pkt->ethType        = (type == '6') ? ETHER_TYPE_IPv6 : ETHER_TYPE_IPv4;
 	pkt->vlanid         = vlanid;
-	pkt->gtpu_teid          = gtpu_teid;
+	pkt->gtpu_teid      = gtpu_teid;
 	pktgen_packet_ctor(info, seqnum, -1);
 }
 

@@ -5,7 +5,7 @@ theme top.page black none off
 theme top.copyright yellow none off
 theme top.poweredby blue none bold
 theme sep.dash blue none off
-theme sep.text white none off
+theme sep.text red none off
 theme stats.port.label blue none bold
 theme stats.port.flags blue none bold
 theme stats.port.status green none bold

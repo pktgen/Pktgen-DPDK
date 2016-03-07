@@ -238,6 +238,7 @@ typedef struct port_info_s {
 		struct rte_mempool *seq_mp;	/**< Pool pointer for port Sequence TX mbufs */
 		struct rte_mempool *pcap_mp;	/**< Pool pointer for port PCAP TX mbufs */
 		struct rte_mempool *special_mp;	/**< Pool pointer for special TX mbufs */
+		uint64_t tx_cnt, rx_cnt;
 	} q[NUM_Q];
 
 	int32_t rx_tapfd;		/**< Rx Tap file descriptor */
@@ -264,8 +265,8 @@ typedef struct port_info_s {
 	struct rte_eth_rxconf rx_conf;		/**< RX configuration */
 	struct rte_eth_txconf tx_conf;		/**< TX configuration */
 	ring_conf_t ring_conf;			/**< Misc ring configuration information */
-	char user_pattern[USER_PATTERN_SIZE];
-	fill_t fill_pattern_type;
+	char user_pattern[USER_PATTERN_SIZE];	/**< User set pattern values */
+	fill_t fill_pattern_type;		/**< Type of pattern to fill with */
 } port_info_t;
 
 extern void pktgen_config_ports(void);

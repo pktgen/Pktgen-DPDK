@@ -63,3 +63,10 @@ seqTable = {
 }
 
 prints("seqTable", seqTable);
+
+pktgen.seqTable(0, "all", seqTable[0]);
+pktgen.seqTable(1, "all", seqTable[1]);
+pktgen.seqTable(2, "all", seqTable[2]);
+pktgen.seqTable(3, "all", seqTable[3]);
+
+-- TODO: Need to create a pktgen.seqTableN("all", seqTable); like support

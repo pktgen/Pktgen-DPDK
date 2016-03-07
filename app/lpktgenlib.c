@@ -314,18 +314,30 @@ set_seq(lua_State *L, uint32_t seqnum)
 	                        sizeof(daddr));
 	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 4), &saddr,
 	                        sizeof(saddr));
-	tkd.ipaddr_data.flags = CMDLINE_IPADDR_V4;
-	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
-	                     luaL_checkstring(L, 5), &ip_daddr,
-	                     sizeof(cmdline_ipaddr_t));
-	tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V4;
-	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
-	                     luaL_checkstring(L, 6), &ip_saddr,
-	                     sizeof(cmdline_ipaddr_t));
+	/* Determine if we are IPv4 or IPv6 packets */
+	ip      = (char *)luaL_checkstring(L, 10);
+	if (ip[3] == '6') {
+		tkd.ipaddr_data.flags = CMDLINE_IPADDR_V6;
+		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
+				     luaL_checkstring(L, 5), &ip_daddr,
+				     sizeof(cmdline_ipaddr_t));
+		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V6;
+		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
+				     luaL_checkstring(L, 6), &ip_saddr,
+				     sizeof(cmdline_ipaddr_t));
+	} else {
+		tkd.ipaddr_data.flags = CMDLINE_IPADDR_V4;
+		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
+				     luaL_checkstring(L, 5), &ip_daddr,
+				     sizeof(cmdline_ipaddr_t));
+		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V4;
+		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
+				     luaL_checkstring(L, 6), &ip_saddr,
+				     sizeof(cmdline_ipaddr_t));
+	}
 	sport   = luaL_checkinteger(L, 7);
 	dport   = luaL_checkinteger(L, 8);
 	proto   = (char *)luaL_checkstring(L, 9);
-	ip      = (char *)luaL_checkstring(L, 10);
 	vlanid  = luaL_checkinteger(L, 11);
 	pktsize = luaL_checkinteger(L, 12);
 	if (lua_gettop(L) == 13)

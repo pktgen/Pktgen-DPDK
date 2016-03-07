@@ -133,17 +133,17 @@ pktgen_wire_size(port_info_t *info) {
 void
 pktgen_packet_rate(port_info_t *info)
 {
-	/*   0   1   2   3   4   5   6   7   8   9  10 */
+	/*                         0   1   2   3   4   5   6   7   8   9  10 */
 	static int64_t ff[11] = { 31, 30, 25, 30, 17, 17, 17, 20, 50, 60, 90 };
 	uint64_t wire_size = (pktgen_wire_size(info) * 8);
 	uint64_t link = (uint64_t)info->link.link_speed * Million;
 	uint64_t pps = ((link / wire_size) * info->tx_rate) / 100;
 	uint64_t cpp = (pps > 0) ? (pktgen.hz / pps) : (pktgen.hz / 4);
 
-	info->tx_pps        = pps;
-	info->tx_cycles     = ((cpp * info->tx_burst) /
+	info->tx_pps    = pps;
+	info->tx_cycles = ((cpp * info->tx_burst) /
 	                       wr_get_port_txcnt(pktgen.l2p, info->pid));
-	info->tx_cycles     -= ff[info->tx_rate / 10];
+	info->tx_cycles -= ff[info->tx_rate / 10];
 }
 
 /**************************************************************************//**
@@ -650,12 +650,10 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			tip = (tcpipv6_t *)ether_hdr;
 
 			/* Create the pseudo header and TCP information */
-			addr                = htonl(pkt->ip_dst_addr);
-			(void)rte_memcpy(&tip->ip.daddr[8], &addr,
-			                 sizeof(uint32_t));
-			addr                = htonl(pkt->ip_src_addr);
-			(void)rte_memcpy(&tip->ip.saddr[8], &addr,
-			                 sizeof(uint32_t));
+			(void)rte_memcpy(tip->ip.daddr, &pkt->ip_dst_addr,
+			                 sizeof(struct in6_addr));
+			(void)rte_memcpy(tip->ip.saddr, &pkt->ip_src_addr,
+			                 sizeof(struct in6_addr));
 
 			tlen                = sizeof(tcpHdr_t) +
 			        (pkt->pktSize - pkt->ether_hdr_size -
@@ -732,7 +730,9 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		arp->pro = htons(ETHER_TYPE_IPv4);
 		arp->hln = ETHER_ADDR_LEN;
 		arp->pln = 4;
-		arp->op  = htons(2);	/* FIXME make request/reply operation selectable by user */
+
+		/* FIXME make request/reply operation selectable by user */
+		arp->op  = htons(2);
 
 		ether_addr_copy(&pkt->eth_src_addr,
 		                (struct ether_addr *)&arp->sha);
@@ -1089,6 +1089,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		                                    info->tx_burst);
 		if (likely(len) ) {
 			info->q[qid].tx_mbufs.len = len;
+			info->q[qid].tx_cnt += len;
 			info->send_burst(info, qid);
 		}
 	} else {
@@ -1138,7 +1139,7 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
 		pktgen_send_special(info, flags);
 
 	/* When not transmitting on this port then continue. */
-	if (likely( (flags & SENDING_PACKETS) == SENDING_PACKETS) ) {
+	if (likely(flags & SENDING_PACKETS) ) {
 		mp = info->q[qid].tx_mp;
 
 		if (unlikely(flags &
@@ -1192,6 +1193,8 @@ pktgen_main_receive(port_info_t *info,
 	                               info->tx_burst)) == 0)
 		return;
 
+	info->q[qid].rx_cnt += nb_rx;
+
 	/* packets are not freed in the next call. */
 	pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid);
 
@@ -1244,8 +1247,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 	for (idx = 0; idx < wr_get_lcore_txcnt(pktgen.l2p, lid); idx++) {
 		pid = wr_get_rx_pid(pktgen.l2p, lid, idx);
-		if ( (infos[idx] =
-		              wr_get_port_private(pktgen.l2p, pid)) == NULL)
+		if ((infos[idx] = wr_get_port_private(pktgen.l2p, pid)) == NULL)
 			continue;
 		qids[idx] = wr_get_txque(pktgen.l2p, lid, pid);
 		strncatf(msg, " %d/%d", infos[idx]->pid, qids[idx]);
@@ -1253,7 +1255,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	}
 	pktgen_log_info("%s", msg);
 
-	tx_next_cycle   = 0;
+	tx_next_cycle   = rte_rdtsc() + (infos[0]->tx_cycles * 2);
 	next_running    = 0;
 
 	wr_start_lcore(pktgen.l2p, lid);
@@ -1328,8 +1330,8 @@ pktgen_main_tx_loop(uint8_t lid)
 	}
 	pktgen_log_info("%s", msg);
 
-	tx_next_cycle = 0;
-	next_running = 0;
+	tx_next_cycle   = rte_rdtsc() + (infos[0]->tx_cycles * 2);
+	next_running    = 0;
 
 	wr_start_lcore(pktgen.l2p, lid);
 	for (;; ) {

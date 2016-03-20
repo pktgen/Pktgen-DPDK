@@ -43,9 +43,9 @@ cmd=./app/app/${target}/pktgen
 #ens9f1    Link encap:Ethernet  HWaddr 68:05:ca:28:49:a1  
 
 
-dpdk_opts="-l 1-10 -n 3 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
+dpdk_opts="-l 18-26 -n 3 --proc-type auto --log-level 7 --socket-mem 256,256 --file-prefix pg"
 pktgen_opts="-T -P"
-port_map="-m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
+port_map="-m [19:20].0 -m [21:22].1 -m [23:24].2 -m [25:26].3"
 #port_map="-m [2-4].0 -m [5-7].1"
 load_file="-f themes/black-yellow.theme"
 #load_file="-f themes/white-black.theme"
@@ -54,5 +54,6 @@ black_list="-b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b
 if [ $name == "supermicro" ]; then
 	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 	${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+	stty sane
 fi
 

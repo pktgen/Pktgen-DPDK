@@ -1065,8 +1065,11 @@ pktgen_prime_ports(port_info_t *info)
 {
 	uint8_t q;
 
+	for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
+		pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 	rte_atomic64_set(&info->current_tx_count, info->prime_cnt);
 	pktgen_set_port_flags(info, SENDING_PACKETS);
+	rte_delay_ms(300);
 	for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
 		pktgen_set_q_flags(info, q, DO_TX_FLUSH);
 }

@@ -247,7 +247,7 @@ enum {
 	DEFAULT_IP_ADDR         = (192 << 24) | (168 << 16),
 	DEFAULT_TX_COUNT        = 0,	/* Forever */
 	DEFAULT_TX_RATE         = 100,
-	DEFAULT_PRIME_COUNT     = 3,
+	DEFAULT_PRIME_COUNT     = 1,
 	DEFAULT_SRC_PORT        = 1234,
 	DEFAULT_DST_PORT        = 5678,
 	DEFAULT_PKT_NUMBER      = 0x012345678,

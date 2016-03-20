@@ -132,9 +132,12 @@ wr_get_portdesc(struct rte_pci_addr *pciAddr,
 
 		/* Decode the 0000:00:00.0 PCI device address. */
 		pciAddr[idx].domain     = strtol(p, &p, 16);
-		pciAddr[idx].bus        = strtol(++p, &p, 16);
-		pciAddr[idx].devid      = strtol(++p, &p, 16);
-		pciAddr[idx].function   = strtol(++p, &p, 16);
+		p++;
+		pciAddr[idx].bus        = strtol(p, &p, 16);
+		p++;
+		pciAddr[idx].devid      = strtol(p, &p, 16);
+		p++;
+		pciAddr[idx].function   = strtol(p, &p, 16);
 
 		if (verbose)
 			fprintf(stdout, " 0x%016llx: %s\n", (1ULL << idx),

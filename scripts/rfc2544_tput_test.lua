@@ -41,6 +41,7 @@ local function runTrial(pkt_size, rate, duration, count)
 
 	pktgen.clr();
 	pktgen.set(sendport, "rate", rate);
+	pktgen.set(sendport, "size", pkt_size);
 
 	pktgen.start(sendport);
 	print("Running trial " .. count .. ". % Rate: " .. rate .. ". Packet Size: " .. pkt_size .. ". Duration (mS):" .. duration);
@@ -80,6 +81,9 @@ local function runThroughputTest(pkt_size)
 		end
 		trial_rate = min_rate + ((max_rate - min_rate)/2);
 	end
+
+	-- Ensure we test confirmation run with the last succesfull zero-drop rate
+	trial_rate = min_rate;
 
 	-- confirm throughput rate for at least 60 seconds
 	num_dropped = runTrial(pkt_size, trial_rate, confirmDuration, "Confirmation");

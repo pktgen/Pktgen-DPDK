@@ -141,7 +141,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 
 	snprintf(name, sizeof(name), "%-12s%u:%u", type, pid, queue_id);
 	pktgen_log_info(
-	        "    Create: %-*s - Memory used (MBUFs %4u x (size %u + Hdr %lu)) + %lu = %6lu KB",
+	        "    Create: %-*s - Memory used (MBUFs %4u x (size %u + Hdr %lu)) + %lu = %6lu KB headroom %d %d",
 	        16,
 	        name,
 	        nb_mbufs,
@@ -149,7 +149,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	        sizeof(struct rte_mbuf),
 	        sizeof(struct rte_mempool),
 	        (((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
-	           sizeof(struct rte_mempool))) + 1023) / 1024);
+	           sizeof(struct rte_mempool))) + 1023) / 1024, RTE_PKTMBUF_HEADROOM, RTE_MBUF_DEFAULT_BUF_SIZE);
 	pktgen.mem_used +=
 	        ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
 	          sizeof(struct rte_mempool)));

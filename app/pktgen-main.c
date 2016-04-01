@@ -386,6 +386,8 @@ main(int argc, char **argv)
 	/* call before the rte_eal_init() */
 	(void)rte_set_application_usage_hook(pktgen_usage);
 
+//	rte_pktmbuf_headroom_set(256);
+
 	memset(&pktgen, 0, sizeof(pktgen));
 
 	pktgen.flags            = PRINT_LABELS_FLAG;

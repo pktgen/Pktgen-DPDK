@@ -1,11 +1,12 @@
-Pktgen-DPDK version 2.9.10
-=====================================
+Pktgen - Traffic Generator powered by Intel's DPDK
+=====================================================
 
 **Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
 
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.13  - Add max last seen RX/TX packets to display.
  - 2.9.12  - Was not able to set IP protocol type for range packets.
              New command range.proto <portlist> udp|tcp|icmp
              Lua command is range_proto("all", "udp")

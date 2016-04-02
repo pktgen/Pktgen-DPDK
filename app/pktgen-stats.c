@@ -105,8 +105,8 @@ pktgen_print_static_data(void)
 	/* Labels for dynamic fields (update every second) */
 	pktgen_display_set_color("stats.dyn.label");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Link State");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s  Rx");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "        Tx");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Max/Rx");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Max/Tx");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Broadcast");
@@ -225,8 +225,8 @@ pktgen_print_static_data(void)
 	wr_scrn_printf(LINK_STATE_ROW,
 	               col,
 	               "%*s",
-	               COLUMN_WIDTH_1,
-	               "---TotalRate---"); wr_scrn_eol();
+	               COLUMN_WIDTH_3,
+	               "----TotalRate----"); wr_scrn_eol();
 	pktgen_display_set_color(NULL);
 
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
@@ -320,16 +320,13 @@ pktgen_page_stats(void)
 
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
-		wr_scrn_printf(row++,
-		               col,
-		               "%*llu",
-		               COLUMN_WIDTH_1,
-		               info->rate_stats.ipackets);
-		wr_scrn_printf(row++,
-		               col,
-		               "%*llu",
-		               COLUMN_WIDTH_1,
-		               info->rate_stats.opackets);
+        snprintf(buff, sizeof(buff), "%lu/%lu",
+                 info->max_ipackets, info->rate_stats.ipackets);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        snprintf(buff, sizeof(buff), "%lu/%lu",
+                 info->max_opackets, info->rate_stats.opackets);
+        wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu",
 		         iBitsTotal(info->rate_stats) / Million,
@@ -342,6 +339,11 @@ pktgen_page_stats(void)
 		pktgen.cumm_rate_totals.obytes += info->rate_stats.obytes;
 		pktgen.cumm_rate_totals.ierrors += info->rate_stats.ierrors;
 		pktgen.cumm_rate_totals.oerrors += info->rate_stats.oerrors;
+
+        if (pktgen.cumm_rate_totals.ipackets > pktgen.max_total_ipackets)
+            pktgen.max_total_ipackets = pktgen.cumm_rate_totals.ipackets;
+        if (pktgen.cumm_rate_totals.opackets > pktgen.max_total_opackets)
+            pktgen.max_total_opackets = pktgen.cumm_rate_totals.opackets;
 
 		pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
@@ -473,20 +475,16 @@ pktgen_page_stats(void)
 	/* Display the total pkts/s for all ports */
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	row = LINK_STATE_ROW + 1;
-	wr_scrn_printf(row++,
-	               col,
-	               "%*llu",
-	               COLUMN_WIDTH_1,
-	               pktgen.cumm_rate_totals.ipackets); wr_scrn_eol();
-	wr_scrn_printf(row++,
-	               col,
-	               "%*llu",
-	               COLUMN_WIDTH_1,
-	               pktgen.cumm_rate_totals.opackets); wr_scrn_eol();
+    snprintf(buff, sizeof(buff), "%lu/%lu",
+             pktgen.max_total_ipackets, pktgen.cumm_rate_totals.ipackets);
+	wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff); wr_scrn_eol();
+    snprintf(buff, sizeof(buff), "%lu/%lu",
+             pktgen.max_total_opackets, pktgen.cumm_rate_totals.opackets);
+    wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff); wr_scrn_eol();
 	snprintf(buff, sizeof(buff), "%lu/%lu",
 	         iBitsTotal(pktgen.cumm_rate_totals) / Million,
 	         oBitsTotal(pktgen.cumm_rate_totals) / Million);
-	wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff); wr_scrn_eol();
+	wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff); wr_scrn_eol();
 }
 
 /**************************************************************************//**
@@ -558,6 +556,11 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		        info->port_stats.ierrors;
 		info->rate_stats.oerrors    = stats.oerrors -
 		        info->port_stats.oerrors;
+
+        if (info->rate_stats.ipackets > info->max_ipackets)
+            info->max_ipackets = info->rate_stats.ipackets;
+        if (info->rate_stats.opackets > info->max_opackets)
+            info->max_opackets = info->rate_stats.opackets;
 
 		info->rate_stats.imissed += stats.imissed -
 		        info->init_stats.imissed;

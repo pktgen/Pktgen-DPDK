@@ -1510,6 +1510,10 @@ pktgen_clear_stats(port_info_t *info)
 	memset(&info->rate_stats, 0, sizeof(eth_stats_t));
 
 	rte_eth_stats_get(info->pid, &info->init_stats);
+    pktgen.max_total_ipackets   = 0;
+    pktgen.max_total_opackets   = 0;
+    info->max_ipackets          = 0;
+    info->max_opackets          = 0;
 	info->stats.dropped_pkts    = 0;
 	info->stats.arp_pkts        = 0;
 	info->stats.echo_pkts       = 0;

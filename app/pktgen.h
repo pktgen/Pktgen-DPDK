@@ -157,7 +157,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "2.9.12"
+#define PKTGEN_VERSION          "2.9.13"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -228,7 +228,8 @@ enum {
 	MAX_SCRN_COLS           = 132,
 
 	COLUMN_WIDTH_0          = 18,
-	COLUMN_WIDTH_1          = 19,
+	COLUMN_WIDTH_1          = 20,
+    COLUMN_WIDTH_3          = 24,
 
 	/* Row locations for start of data */
 	PORT_STATE_ROWS         = 1,
@@ -339,6 +340,8 @@ typedef struct pktgen_s {
 	lscpu_t *lscpu;
 	char *uname;
 	eth_stats_t cumm_rate_totals;	/**< port rates total values */
+    uint64_t    max_total_ipackets; /**< Total Max seen input packet rate */
+    uint64_t    max_total_opackets; /**< Total Max seen output packet rate */
 
 	pthread_t thread;	/**< Thread structure for Lua server */
 

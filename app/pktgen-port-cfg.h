@@ -338,7 +338,7 @@ pktgen_dump_dev_info(FILE *f, struct rte_eth_dev_info *di) {
 	fprintf(f, "\n** Dev Info (%s:%d) **\n", di->driver_name, di->if_index);
 	fprintf(f,
 	        "   max_vfs        :%4d min_rx_bufsize    :%4d max_rx_pktlen :%6d max_rx_queues         :%4d max_tx_queues:%4d\n",
-	        di->pci_dev->max_vfs,
+	        di->pci_dev ? di->pci_dev->max_vfs : 0,
 	        di->min_rx_bufsize,
 	        di->max_rx_pktlen,
 	        di->max_rx_queues,

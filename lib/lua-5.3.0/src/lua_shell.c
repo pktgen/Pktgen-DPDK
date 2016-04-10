@@ -78,8 +78,8 @@ static void laction(int i) {
 
 static void l_message(lua_State * L, const char *pname, const char *msg) {
 	if (pname)
-		lua_writestringerror(L, "%s: ", pname);
-	lua_writestringerror(L, "%s\n", msg);
+		lua_writestringerror("%s: ", pname);
+	lua_writestringerror("%s\n", msg);
 }
 
 static int report(lua_State *L, int status) {

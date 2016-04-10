@@ -751,13 +751,10 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 	return buff;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-static __inline__ char *
+static __inline__ const char *
 inet_ntop6(char * buff, int len, uint8_t * ip6) {
 	return inet_ntop(AF_INET6, ip6, buff, len);
 }
-#pragma GCC diagnostic pop
 
 /* char * inet_mtoa(char * buff, int len, struct ether_addr * eaddr) - Convert MAC address to ascii */
 static __inline__ char *

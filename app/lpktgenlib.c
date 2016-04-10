@@ -123,7 +123,7 @@ setf_integer(lua_State *L, const char *name, lua_Integer value) {
  */
 
 static __inline__ void
-setf_string(lua_State *L, const char *name, char *value) {
+setf_string(lua_State *L, const char *name, const char *value) {
 	lua_pushstring(L, value);
 	lua_setfield(L, -2, name);
 }

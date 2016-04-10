@@ -21,7 +21,7 @@ else
     target=${RTE_TARGET}
 fi
 
-cmd=./app/app/${target}/pktgen
+cmd=./app/app/${target}/app/pktgen
 
 
 #rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether

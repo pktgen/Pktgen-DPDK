@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.15  - Update Lua to version 5.3.2
  - 2.9.14  - Fix compiler error for gcc-4.9 and inet_ntop() routine
  - 2.9.13  - Add max last seen RX/TX packets to display.
  - 2.9.12  - Was not able to set IP protocol type for range packets.

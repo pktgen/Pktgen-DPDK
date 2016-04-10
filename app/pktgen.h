@@ -157,7 +157,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "2.9.14"
+#define PKTGEN_VERSION          "2.9.15"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 

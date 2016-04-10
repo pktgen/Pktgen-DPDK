@@ -1018,18 +1018,3 @@ LUALIB_API void luaL_checkversion_ (lua_State *L, lua_Number ver, size_t sz) {
                   ver, *v);
 }
 
-LUALIB_API void *
-luaL_getprivate(lua_State * L)
-{
-	return (L == NULL) ? NULL : lua_getprivate(L);
-}
-
-LUALIB_API int
-luaL_setprivate(lua_State * L, void * val)
-{
-	if ( L == NULL )
-		return -1;
-	lua_setprivate(L, val);
-	return 0;
-}
-

@@ -606,7 +606,7 @@
 
 
 /*
-@@ lua_number2strx converts a float to an hexadecimal numeric string. 
+@@ lua_number2strx converts a float to an hexadecimal numeric string.
 ** In C99, 'sprintf' (with format specifiers '%a'/'%A') does that.
 ** Otherwise, you can leave 'lua_number2strx' undefined and Lua will
 ** provide its own implementation.
@@ -761,6 +761,26 @@
 
 
 
+/*
+@@ luai_writestring/luai_writeline define how 'print' prints its results.
+** They are only used in libraries and the stand-alone program. (The #if
+** avoids including 'stdio.h' everywhere.)
+*/
+#if defined(LUA_LIB) || defined(lua_c)
+#include <stdio.h>
+extern void * _get_stdout(void * L);
+#define lua_putstring(s)        (fwrite((s), sizeof(char), strlen(s), _get_stdout(L)), fflush(_get_stdout(L)))
+#define lua_writestring(s,l)   (fwrite((s), sizeof(char), (l), _get_stdout(L)), fflush(_get_stdout(L)))
+#define lua_writeline()  (lua_writestring("\n", 1), fflush(_get_stdout(L)))
+#endif
+
+/*
+@@ luai_writestringerror defines how to print error messages.
+** (A format string with one argument is enough for Lua...)
+*/
+extern void * _get_stderr(void * L);
+#define lua_writestringerror(s, p) \
+    (fprintf(_get_stderr(L), (s), (p)), fflush(_get_stderr(L)))
 
 
 #endif

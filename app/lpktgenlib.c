@@ -66,6 +66,7 @@
 
 #define lpktgenlib_c
 #define LUA_LIB
+#define lua_c
 
 #include "lpktgenlib.h"
 
@@ -76,6 +77,7 @@
 #include <cmdline_parse_etheraddr.h>
 #include <cmdline_parse_ipaddr.h>
 #include <cmdline_parse_portlist.h>
+#include <luaconf.h>
 #include <lua-socket.h>
 #include <lualib.h>
 
@@ -346,7 +348,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 		gtpu_teid = 0;
 
 	if ( (proto[0] == 'i') && (ip[3] == '6') ) {
-		lua_putstring(L, "Must use IPv4 with ICMP type packets\n");
+		lua_putstring("Must use IPv4 with ICMP type packets\n");
 		return -1;
 	}
 
@@ -438,7 +440,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	lua_pop(L, 1);
 
 	if ( (ipProto[0] == 'i') && (ethType[3] == '6') ) {
-		lua_putstring(L, "Must use IPv4 with ICMP type packets\n");
+		lua_putstring("Must use IPv4 with ICMP type packets\n");
 		return -1;
 	}
 
@@ -993,7 +995,7 @@ pktgen_pause(lua_State *L) {
 	}
 	str = (char *)luaL_checkstring(L, 1);
 	if (strlen(str) > 0)
-		lua_putstring(L, str);
+		lua_putstring(str);
 
 	__delay(luaL_checkinteger(L, 2));
 	return 0;
@@ -1024,7 +1026,7 @@ pktgen_continue(lua_State *L) {
 	str = (char *)luaL_checkstring(L, 1);
 
 	if (strlen(str) > 0)
-		lua_putstring(L, str);
+		lua_putstring(str);
 
 	buf[0] = '\0';
 	n = fread(buf, 1, 1, (FILE *)_get_stdin(L));
@@ -1060,7 +1062,7 @@ pktgen_input(lua_State *L) {
 	str = (char *)luaL_checkstring(L, 1);
 
 	if (strlen(str) > 0)
-		lua_putstring(L, str);
+		lua_putstring(str);
 
 	idx = 0;
 	buf[idx] = '\0';

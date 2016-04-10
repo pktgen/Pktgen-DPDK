@@ -249,8 +249,7 @@ LUALIB_API void (luaL_openlib) (lua_State *L, const char *libname,
 #endif
 /* }============================================================ */
 
-LUALIB_API int luaL_setprivate(lua_State * L, void * val);
-LUALIB_API void * luaL_getprivate(lua_State * L);
+
 
 #endif
 

@@ -76,7 +76,7 @@ static void laction(int i) {
 	lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 }
 
-static void l_message(const char *pname, const char *msg) {
+static void l_message(lua_State *L, const char *pname, const char *msg) {
 	if (pname)
 		lua_writestringerror("%s: ", pname);
 	lua_writestringerror("%s\n", msg);
@@ -87,7 +87,7 @@ static int report(lua_State *L, int status) {
 		const char *msg = lua_tostring(L, -1);
 		if (msg == NULL )
 			msg = "(error object is not a string)";
-		l_message(progname, msg);
+		l_message(L, progname, msg);
 		lua_pop(L, 1);
 		/* force a complete garbage collection in case of errors */
 		lua_gc(L, LUA_GCCOLLECT, 0);
@@ -102,7 +102,7 @@ static void finalreport(lua_State *L, int status) {
 				(lua_type(L, -1) == LUA_TSTRING) ? lua_tostring(L, -1) : NULL;
 		if (msg == NULL )
 			msg = "(error object is not a string)";
-		l_message(progname, msg);
+		l_message(L, progname, msg);
 		lua_pop(L, 1);
 	}
 }
@@ -236,7 +236,7 @@ static void dotty(lua_State *L) {
 			lua_getglobal(L, "print");
 			lua_insert(L, 1);
 			if (lua_pcall(L, lua_gettop(L)-1, 0, 0) != LUA_OK)
-				l_message(progname,
+				l_message(L, progname,
 						lua_pushfstring(L,
 								"error calling " LUA_QL("print") " (%s)",
 								lua_tostring(L, -1)));
@@ -308,7 +308,7 @@ int lua_shell(void * pServer) {
 
 	L = luaL_newstate(); /* create state */
 	if (L == NULL ) {
-		l_message("Lua-Shell", "cannot create state: not enough memory");
+		l_message(L, "Lua-Shell", "cannot create state: not enough memory");
 		return EXIT_FAILURE;
 	}
 	luaL_setprivate(L, pServer);
@@ -366,5 +366,56 @@ execute_lua_close(lua_State * L)
 {
 	if ( L )
 		lua_close(L);
+}
+
+LUA_API void lua_setprivate(lua_State * L, void * val) {
+	L->private = val;
+}
+
+LUA_API void * lua_getprivate(lua_State * L) {
+	return L->private;
+}
+
+LUALIB_API void *
+luaL_getprivate(lua_State * L)
+{
+	return (L == NULL) ? NULL : lua_getprivate(L);
+}
+
+LUALIB_API int
+luaL_setprivate(lua_State * L, void * val)
+{
+	if ( L == NULL )
+		return -1;
+	lua_setprivate(L, val);
+	return 0;
+}
+
+void
+lua_set_stdfiles(lua_State * L, void * in, void * out, void * err)
+{
+	luaL_getmetatable(L, LUA_FILEHANDLE);
+	if (lua_isnil(L, -1)) {
+	  printf("luaL_getmetatable() returned NIL\n");
+	  return;
+	}
+
+	/* create (and set) default files */
+	createstdfile(L, in, IO_INPUT, "stdin");
+	createstdfile(L, out, IO_OUTPUT, "stdout");
+	createstdfile(L, err, NULL, "stderr");
+}
+
+void
+lua_reset_stdfiles(lua_State * L)
+{
+	luaL_getmetatable(L, LUA_FILEHANDLE);
+	if (lua_isnil(L, -1))
+	  return;
+
+	/* create (and set) default files */
+	createstdfile(L, stdin, IO_INPUT, "stdin");
+	createstdfile(L, stdout, IO_OUTPUT, "stdout");
+	createstdfile(L, stderr, NULL, "stderr");
 }
 

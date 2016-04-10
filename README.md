@@ -6,6 +6,9 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.16  - Fix include problems with cmdline_parse.h file.
+             missing cmdline_parse_token_hdr_t define and looks like the header was not
+             included in the pktgen-seq.h file for DPDK v2.2.0 and pktgen-2.9.15
  - 2.9.15  - Update Lua to version 5.3.2
  - 2.9.14  - Fix compiler error for gcc-4.9 and inet_ntop() routine
  - 2.9.13  - Add max last seen RX/TX packets to display.

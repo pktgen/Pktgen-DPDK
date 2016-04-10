@@ -71,10 +71,24 @@
 #include "lua.h"
 #include "lauxlib.h"
 
+#define IO_PREFIX       "_IO_"
+#define IOPREF_LEN      (sizeof(IO_PREFIX)/sizeof(char) - 1)
+#define IO_INPUT        (IO_PREFIX "input")
+#define IO_OUTPUT       (IO_PREFIX "output")
+
 #define MAX_NEW_LIBS	16
 typedef void (*newlib_t)(lua_State * L);
 
 extern int lua_newlib_add(newlib_t n);
 extern void lua_newlibs_init(lua_State * L);
+
+LUALIB_API int luaL_setprivate(lua_State * L, void * val);
+LUALIB_API void * luaL_getprivate(lua_State * L);
+
+LUA_API void (lua_setprivate) (lua_State * L, void * val) ;
+LUA_API void * (lua_getprivate) (lua_State * L);
+
+void createstdfile (lua_State *L, FILE *f, const char *k,
+                           const char *fname);
 
 #endif /* LUA_SHELL_H_ */

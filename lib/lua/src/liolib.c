@@ -740,7 +740,7 @@ static int io_noclose (lua_State *L) {
 }
 
 
-static void createstdfile (lua_State *L, FILE *f, const char *k,
+void createstdfile (lua_State *L, FILE *f, const char *k,
                            const char *fname) {
   LStream *p = newprefile(L);
   p->f = f;

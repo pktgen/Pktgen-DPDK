@@ -31,7 +31,7 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-DIRS-y += common lua-5.3.2
+DIRS-y += common lua
 
 DEPDIRS-y = common
 

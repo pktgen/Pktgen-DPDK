@@ -42,7 +42,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 
 DIRS-y += lib app
 
-DEPDIRS-y += lib/libcommon lib/lua-5.3.0
+DEPDIRS-y += lib/libcommon lib/lua
 
 
 .PHONY: docs

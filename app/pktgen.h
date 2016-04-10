@@ -124,12 +124,6 @@
 #include <rte_mempool.h>
 #include <rte_mbuf.h>
 #include <rte_ip.h>
-#include <wr_scrn.h>
-
-#include <wr_copyright_info.h>
-#include <wr_l2p.h>
-#include <wr_port_config.h>
-#include <wr_core_info.h>
 
 #include <cmdline_rdline.h>
 #include <cmdline_parse.h>
@@ -140,6 +134,13 @@
 #include <cmdline_parse_etheraddr.h>
 #include <cmdline_parse_portlist.h>
 #include <cmdline.h>
+
+#include <wr_scrn.h>
+
+#include <wr_copyright_info.h>
+#include <wr_l2p.h>
+#include <wr_port_config.h>
+#include <wr_core_info.h>
 
 #include <wr_pcap.h>
 #include <wr_inet.h>

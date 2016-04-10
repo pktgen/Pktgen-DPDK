@@ -106,6 +106,8 @@
 #include <rte_atomic.h>
 #include <rte_devargs.h>
 
+#include "pktgen.h"
+
 #include "wr_copyright_info.h"
 #include "pktgen-cmds.h"
 #include "pktgen-main.h"
@@ -113,8 +115,6 @@
 #include "pktgen-display.h"
 #include "pktgen-random.h"
 #include "pktgen-log.h"
-
-#include "pktgen.h"
 
 cmdline_parse_ctx_t main_ctx[];
 

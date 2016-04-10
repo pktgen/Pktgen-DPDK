@@ -65,12 +65,11 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#include "pktgen-ipv4.h"
-
 #include <arpa/inet.h>
 
-#include "pktgen-log.h"
 #include "pktgen.h"
+#include "pktgen-log.h"
+#include "pktgen-ipv4.h"
 
 /**************************************************************************//**
  *

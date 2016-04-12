@@ -54,14 +54,28 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c
 
+# GUI support is a work in progress
+ifeq ($(GUI),true)
+CFLAGS += -DGUI
+
+GTK_INCLUDE := $(shell pkg-config --cflags glib-2.0)
+GTK_INCLUDE += $(shell pkg-config --cflags gtk+-2.0)
+
+GTK_LIB = -L/usr/lib64/gtk-2.0/ -lgtk-x11-2.0 -lgdk-x11-2.0 -lpangocairo-1.0 -latk-1.0 -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -lfreetype
+endif
+
 MYLIBS := -L$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src/lib/$(LUA_DIR)/src/$(RTE_TARGET) \
 		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
 
+ifeq ($(GUI),true)
+MYLIBS += -L$(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib -lgui
+endif
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 CFLAGS += -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
-LDFLAGS += -g -lpcap $(MYLIBS)
+
+LDFLAGS += -g -lpcap $(MYLIBS) $(GTK_LIB)
 
 CFLAGS_commands.o := -Wno-format-nonliteral
 CFLAGS_pktgen-log.o := -Wno-format-nonliteral

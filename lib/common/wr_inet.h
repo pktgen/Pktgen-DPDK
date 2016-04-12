@@ -729,7 +729,6 @@ size_to_mask(int len) {
 /* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
 static __inline__ char *
 inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
-#if 1
 	char	lbuf[64];
 
 	inet_ntop(AF_INET, &ip_addr, buff, len);
@@ -737,17 +736,6 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 		snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, mask_size(mask));
 		strncpy(buff, lbuf, len);
 	}
-#else
-	if (mask == 0xFFFFFFFF)
-		snprintf(buff, len, "%lu.%lu.%lu.%lu",
-		         ((ip_addr >> 0) & 0xFF), ((ip_addr >> 8) & 0xFF),
-		         ((ip_addr >> 16) & 0xFF), ((ip_addr >> 24) & 0xFF));
-	else
-		snprintf(buff, len, "%lu.%lu.%lu.%lu/%d",
-		         ((ip_addr >> 0) & 0xFF), ((ip_addr >> 8) & 0xFF),
-		         ((ip_addr >> 16) & 0xFF), ((ip_addr >> 24) & 0xFF),
-		         mask_size(mask));
-#endif
 	return buff;
 }
 

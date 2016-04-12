@@ -1041,9 +1041,8 @@ pktgen_stop_transmitting(port_info_t *info)
 
 	if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
 		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
-		for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++) {
+		for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, DO_TX_FLUSH);
-		}
 	}
 }
 

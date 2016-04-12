@@ -40,7 +40,14 @@ RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
+# GUI is a work in progress
+ifeq ($(GUI),true)
+DIRS-y += lib gui app
+else
 DIRS-y += lib app
+endif
+
+export GUI
 
 DEPDIRS-y += lib/libcommon lib/lua
 

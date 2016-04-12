@@ -79,6 +79,9 @@
 
 /* Defined in examples/pktgen/lib/lua/lua_shell.c */
 extern void execute_lua_close(lua_State *L);
+#ifdef GUI
+extern int pktgen_gui_main(int argc, char *argv[]);
+#endif
 
 /**************************************************************************//**
  *
@@ -386,8 +389,6 @@ main(int argc, char **argv)
 	/* call before the rte_eal_init() */
 	(void)rte_set_application_usage_hook(pktgen_usage);
 
-//	rte_pktmbuf_headroom_set(256);
-
 	memset(&pktgen, 0, sizeof(pktgen));
 
 	pktgen.flags            = PRINT_LABELS_FLAG;
@@ -489,6 +490,9 @@ main(int argc, char **argv)
 		                &pktgen.thread,
 		                pktgen.hostname,
 		                pktgen.socket_port);
+#ifdef GUI
+        pktgen_gui_main(argc, argv);
+#endif
 	}
 
 	pktgen_cmdline_start();

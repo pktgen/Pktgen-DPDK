@@ -337,7 +337,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
 	wr_pcap_rewind(pcap);
 
-	snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP TX", info->pid, 0);
+	snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP TX", info->pid, qid);
 	rte_printf_status("    Process: %-*s ", 18, name);
 
 	pkt_sizes = elt_count = i = 0;

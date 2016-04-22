@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 2.9.18  - Fix the range command to set IP proto value and be able to save that value.
  - 2.9.17  - Fix PCAP crash when using multiple tx queues.
  - 2.9.16  - Fix include problems with cmdline_parse.h file.
              missing cmdline_parse_token_hdr_t define and looks like the header was not

@@ -350,6 +350,11 @@ pktgen_save(char *path)
 		                   0xFFFFFFFF));
 
 		fprintf(fd, "\n");
+		fprintf(fd, "ip.proto %d %s\n", i,
+			(range->ip_proto == PG_IPPROTO_UDP)? "udp" :
+			(range->ip_proto == PG_IPPROTO_ICMP)? "icmp" : "tcp");
+
+		fprintf(fd, "\n");
 		fprintf(fd, "src.port start %d %d\n", i, range->src_port);
 		fprintf(fd, "src.port min %d %d\n", i, range->src_port_min);
 		fprintf(fd, "src.port max %d %d\n", i, range->src_port_max);

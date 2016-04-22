@@ -285,7 +285,7 @@ const char *help_info[] = {
 	"dst.ip min <portlist> ipaddr       - Set destination IP minimum address",
 	"dst.ip max <portlist> ipaddr       - Set destination IP maximum address",
 	"dst.ip inc <portlist> ipaddr       - Set destination IP increment address",
-	"ip.proto <portlist> [tcp|udp]      - Set the IP protocol type",
+	"ip.proto <portlist> [tcp|udp]      - Set the IP protocol type (alias range.proto)",
 	"src.port start <portlist> value    - Set source port start address",
 	"src.port min <portlist> value      - Set source port minimum address",
 	"src.port max <portlist> value      - Set source port maximum address",
@@ -1599,7 +1599,7 @@ cmd_ip_proto_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_ip_proto =
         TOKEN_STRING_INITIALIZER(struct cmd_ip_proto_result,
                                  ip_proto,
-                                 "range.proto");
+                                 "range.proto#ip.proto");
 cmdline_parse_token_portlist_t cmd_ip_proto_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_ip_proto_result, portlist);
 cmdline_parse_token_string_t cmd_set_proto =

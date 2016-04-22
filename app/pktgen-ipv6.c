@@ -97,8 +97,8 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip)
 	ip->hop_limit       = 4;
 	ip->next_header     = pkt->ipProto;
 
-	(void)rte_memcpy(&ip->daddr[8], pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
-	(void)rte_memcpy(&ip->saddr[8], pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
+	rte_memcpy(&ip->daddr[8], pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
+	rte_memcpy(&ip->saddr[8], pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
 }
 
 /**************************************************************************//**

@@ -350,7 +350,9 @@ pktgen_page_stats(void)
 		pktgen.cumm_rate_totals.ibadcrc += info->rate_stats.ibadcrc;
 		pktgen.cumm_rate_totals.ibadlen += info->rate_stats.ibadlen;
 #endif
+#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 		pktgen.cumm_rate_totals.imcasts += info->rate_stats.imcasts;
+#endif
 		pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
 		/* Packets Sizes */
@@ -460,9 +462,13 @@ pktgen_page_stats(void)
 			         info->stats.ibadlen);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #endif
+#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 			snprintf(buff, sizeof(buff), "%lu",
 			         info->stats.imcasts);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+#else
+			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
+#endif
 			snprintf(buff,
 			         sizeof(buff),
 			         "%lu",
@@ -541,7 +547,9 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		stats.ibadcrc += info->init_stats.ibadcrc;
 		stats.ibadlen += info->init_stats.ibadlen;
 #endif
+#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 		stats.imcasts += info->init_stats.imcasts;
+#endif
 		stats.rx_nombuf += info->init_stats.rx_nombuf;
 
 		info->rate_stats.ipackets   = stats.ipackets -
@@ -570,8 +578,10 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		info->rate_stats.ibadlen += stats.ibadlen -
 		        info->init_stats.ibadlen;
 #endif
+#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 		info->rate_stats.imcasts += stats.imcasts -
 		        info->init_stats.imcasts;
+#endif
 		info->rate_stats.rx_nombuf += stats.rx_nombuf -
 		        info->init_stats.rx_nombuf;
 

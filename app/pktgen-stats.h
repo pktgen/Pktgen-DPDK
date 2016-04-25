@@ -82,7 +82,9 @@ typedef struct pkt_stats_s {
 	uint64_t imissed;	/**< Number of RX missed packets */
 	uint64_t ibadcrc;	/**< Number of RX bad crc packets */
 	uint64_t ibadlen;	/**< Number of RX bad length packets */
+#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 	uint64_t imcasts;	/**< Number of multicast packets */
+#endif
 	uint64_t rx_nombuf;	/**< Number of times we had not mbufs for Rx */
 } pkt_stats_t;
 

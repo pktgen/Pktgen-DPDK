@@ -6,7 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
- - 2.9.19  - Fixed code to ifdef the imcasts counters that were deprecated.
+ - 3.0.00  - Fixed code to ifdef the imcasts counters that were deprecated.
  - 2.9.18  - Fix the range command to set IP proto value and be able to save that value.
  - 2.9.17  - Fix PCAP crash when using multiple tx queues.
  - 2.9.16  - Fix include problems with cmdline_parse.h file.

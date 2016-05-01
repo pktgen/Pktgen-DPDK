@@ -45,7 +45,7 @@ cmd=./app/app/${target}/app/pktgen
 
 dpdk_opts="-l 13-17 -n 3 --proc-type auto --log-level 7 --socket-mem 256,256 --file-prefix pg"
 #dpdk_opts="-l 18-26 -n 3 --proc-type auto --log-level 7 --socket-mem 256,256 --file-prefix pg"
-pktgen_opts="-T -P"
+pktgen_opts="-G -T -P"
 #port_map="-m [19:20].0 -m [21:22].1 -m [23:24].2 -m [25:26].3"
 port_map="-m [14:15].0 -m [16:17].1"
 #port_map="-m [2-4].0 -m [5-7].1"

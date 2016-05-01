@@ -6,7 +6,7 @@
 #
 # 1) Redistributions of source code must retain the above copyright notice,
 # this list of conditions and the following disclaimer.
-#
+# 
 # 2) Redistributions in binary form must reproduce the above copyright notice,
 # this list of conditions and the following disclaimer in the documentation and/or
 # other materials provided with the distribution.
@@ -51,9 +51,9 @@ CFLAGS += $(GTK_INCLUDE)
 CFLAGS += -Wno-strict-prototypes -Wno-cast-qual
 
 # all source are stored in SRCS-y
-SRCS-y := pktgen-gui.c
+SRCS-y := pktgen-gui.c pktgen-gui-streams.c pktgen-gui-misc.c
 
-SYMLINK-y-include := pktgen-gui.h
+SYMLINK-y-include := pktgen-gui.h pktgen-gui-cfg.h
 
 DEPDIRS-y += ../lib/common ../lib/$(LUA_DIR)
 

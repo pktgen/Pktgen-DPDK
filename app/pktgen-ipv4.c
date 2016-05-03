@@ -100,7 +100,7 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip)
 	ip->ttl             = 4;
 	ip->tos             = 0;
 
-	pktgen.ident        += 27;/* bump by a prime number */
+	pktgen.ident        += 27;	/* bump by a prime number */
 	ip->ident           = htons(pktgen.ident);
 	ip->ffrag           = 0;
 	ip->proto           = pkt->ipProto;

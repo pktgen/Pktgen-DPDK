@@ -81,7 +81,7 @@ test_pktgen_packet_ctor_IPv4_UDP(void)
 		.ethType      = ETHER_TYPE_IPv4,
 		.ipProto      = PG_IPPROTO_UDP,
 
-		.pktSize      = 60,/* Subtract 4 for FCS */
+		.pktSize      = 60,	/* Subtract 4 for FCS */
 	};
 
 	lives_ok({ pktgen_packet_ctor(&info,
@@ -162,7 +162,7 @@ test_pktgen_packet_ctor_IPv4_GRE_Ether(void)
 		.ethType      = ETHER_TYPE_IPv4,
 		.ipProto      = PG_IPPROTO_UDP,
 
-		.pktSize      = 102,/* Subtract 4 for FCS */
+		.pktSize      = 102,	/* Subtract 4 for FCS */
 	};
 
 	pktgen_packet_ctor(&info, 0, 0);

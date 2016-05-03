@@ -441,8 +441,7 @@ cell_edited_callback(GtkCellRendererText *cell,
 			i = gtk_tree_path_get_indices(path)[0];
 
 			switch (gtk_notebook_get_current_page(GTK_NOTEBOOK(
-			                                              notebook)))
-			{
+			                                              notebook))) {
 			case 0:
 				index_offset = 0;
 				break;

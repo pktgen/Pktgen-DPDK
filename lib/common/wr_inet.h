@@ -191,9 +191,9 @@ typedef struct ipv6Hdr_s {
 #define PG_IPPROTO_L4_GTPU_PORT 2152
 
 #define IPv4(a, b, c, d)   ((uint32_t)(((a) & 0xff) << 24) |   \
-	                    (((b) & 0xff) << 16) |      \
-	                    (((c) & 0xff) << 8)  |      \
-	                    ((d) & 0xff))
+                            (((b) & 0xff) << 16) |      \
+                            (((c) & 0xff) << 8)  |      \
+                            ((d) & 0xff))
 
 /*************************************************************************
  *
@@ -211,7 +211,7 @@ typedef struct ipv6Hdr_s {
  * |64 |      Sequence number       |N-PDU number     |Next extension    |
  * |   |                            |                 |header type       |
  * +---+----------------------------+-----------------+------------------+
-***************************************************************************/
+ ***************************************************************************/
 
 typedef struct gtpuHdr_s {
 	uint8_t version_flags;
@@ -429,8 +429,8 @@ typedef struct icmpv4Hdr_s {
  */
 
 /* Set/clear Bottom of Stack flag */
-#define MPLS_SET_BOS(mpls_label) do { mpls_label |=  (1 << 8); } while (0);
-#define MPLS_CLR_BOS(mpls_label) do { mpls_label &= ~(1 << 8); } while (0);
+#define MPLS_SET_BOS(mpls_label) do { mpls_label |=  (1 << 8); } while ((0))
+#define MPLS_CLR_BOS(mpls_label) do { mpls_label &= ~(1 << 8); } while ((0))
 
 typedef struct mplsHdr_s {
 	uint32_t label;	/**< MPLS label */
@@ -618,7 +618,7 @@ typedef struct l3_6route_s {
  */
 static inline uint32_t
 rte_hash6_crc(const void *data,
-      __attribute__ ((unused)) uint32_t data_len, uint32_t init_val)
+              __attribute__ ((unused)) uint32_t data_len, uint32_t init_val)
 {
 #ifdef RTE_MACHINE_CPUFLAG_SSE4_2
 	const uint32_t *p32 = (const uint32_t *)data;
@@ -728,7 +728,7 @@ size_to_mask(int len) {
 /* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
 static __inline__ char *
 inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
-	char	lbuf[64];
+	char lbuf[64];
 
 	inet_ntop(AF_INET, &ip_addr, buff, len);
 	if (mask != 0xFFFFFFFF) {
@@ -739,7 +739,7 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 }
 
 static __inline__ const char *
-inet_ntop6(char * buff, int len, uint8_t * ip6) {
+inet_ntop6(char *buff, int len, uint8_t *ip6) {
 	return inet_ntop(AF_INET6, ip6, buff, len);
 }
 

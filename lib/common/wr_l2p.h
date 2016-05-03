@@ -501,7 +501,6 @@ wr_dump_l2p(l2p_t *l2p)
 					       lobj->pids.rx[i],
 					       lobj->qids.rx[lobj->pids.rx[i]]);
 
-
 				printf("\n");
 			}
 			if (lobj->pids.tx_cnt) {
@@ -511,7 +510,6 @@ wr_dump_l2p(l2p_t *l2p)
 					printf("(%2d:%2d) ",
 					       lobj->pids.tx[i],
 					       lobj->qids.tx[lobj->pids.tx[i]]);
-
 
 				printf("\n");
 			}

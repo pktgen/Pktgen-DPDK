@@ -134,7 +134,8 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 					p = range->src_ip_min;
 				pkt->ip_src_addr.addr.ipv4.s_addr = p;
 			} else
-				pkt->ip_src_addr.addr.ipv4.s_addr = range->src_ip;
+				pkt->ip_src_addr.addr.ipv4.s_addr =
+				        range->src_ip;
 
 			if (unlikely(range->dst_ip_inc != 0)) {
 				uint32_t p = pkt->ip_dst_addr.addr.ipv4.s_addr;
@@ -145,7 +146,8 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 					p = range->dst_ip_min;
 				pkt->ip_dst_addr.addr.ipv4.s_addr = p;
 			} else
-				pkt->ip_dst_addr.addr.ipv4.s_addr = range->dst_ip;
+				pkt->ip_dst_addr.addr.ipv4.s_addr =
+				        range->dst_ip;
 
 			if (unlikely(range->vlan_id_inc != 0)) {
 				uint32_t p = pkt->vlanid;
@@ -184,7 +186,6 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 			} else
 				inet_h64tom(range->src_mac, &pkt->eth_src_addr);
 
-
 			if (unlikely(range->dst_mac_inc != 0)) {
 				uint64_t p;
 
@@ -199,7 +200,6 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 				inet_h64tom(p, &pkt->eth_dst_addr);
 			} else
 				inet_h64tom(range->dst_mac, &pkt->eth_dst_addr);
-
 
 			break;
 		default:
@@ -360,8 +360,13 @@ pktgen_print_range(void)
 		                          0xFFFFFFFF));
 
 		row++;
-		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			 (range->ip_proto == PG_IPPROTO_TCP)? "TCP" : "UDP");
+		wr_scrn_printf(
+		        row++,
+		        col,
+		        "%*s",
+		        COLUMN_WIDTH_1,
+		        (range->ip_proto ==
+		                PG_IPPROTO_TCP) ? "TCP" : "UDP");
 
 		row++;
 		snprintf(str,

@@ -185,50 +185,51 @@ pktgen_get_lua(void)
 static void
 pktgen_usage(const char *prgname)
 {
-	printf("Usage: %s [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
-	       "  -s P:file    PCAP packet stream file, 'P' is the port number\n"
-	       "  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
-	       "  -l filename  Write log to filename\n"
-	       "  -P           Enable PROMISCUOUS mode on all ports\n"
-	       "  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
-	       "               If -g is used that enable socket support as a server application\n"
-	       "  -G           Enable socket support using default server values localhost:0x5606 \n"
-	       "  -N           Enable NUMA support\n"
-	       "  -T           Enable the color output\n"
-	       "  -m <string>  matrix for mapping ports to logical cores\n"
-	       "      BNF: (or kind of BNF)\n"
-	       "      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
-	       "      <lcore-port>      := <lcore-list> \".\" <port-list>\n"
-	       "      <lcore-list>      := \"[\" <rx-list> \":\" <tx-list> \"]\"\n"
-	       "      <port-list>       := \"[\" <rx-list> \":\" <tx-list>\"]\"\n"
-	       "      <rx-list>         := <num> { \"/\" (<num> | <list>) }\n"
-	       "      <tx-list>         := <num> { \"/\" (<num> | <list>) }\n"
-	       "      <list>            := <num> { \"/\" (<range> | <list>) }\n"
-	       "      <range>           := <num> \"-\" <num> { \"/\" <range> }\n"
-	       "      <num>             := <digit>+\n"
-	       "      <digit>           := 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
-	       "      1.0, 2.1, 3.2                 - core 1 handles port 0 rx/tx,\n"
-	       "                                      core 2 handles port 1 rx/tx\n"
-	       "                                      core 3 handles port 2 rx/tx\n"
-	       "      1.[0-2], 2.3, ...             - core 1 handle ports 0,1,2 rx/tx,\n"
-	       "                                      core 2 handle port 3 rx/tx\n"
-	       "      [0-1].0, [2/4-5].1, ...       - cores 0-1 handle port 0 rx/tx,\n"
-	       "                                      cores 2,4,5 handle port 1 rx/tx\n"
-	       "      [1:2].0, [4:6].1, ...         - core 1 handles port 0 rx,\n"
-	       "                                      core 2 handles port 0 tx,\n"
-	       "      [1:2].[0-1], [4:6].[2/3], ... - core 1 handles port 0 & 1 rx,\n"
-	       "                                      core 2 handles port  0 & 1 tx\n"
-	       "      [1:2-3].0, [4:5-6].1, ...     - core 1 handles port 0 rx, cores 2,3 handle port 0 tx\n"
-	       "                                      core 4 handles port 1 rx & core 5,6 handles port 1 tx\n"
-	       "      [1-2:3].0, [4-5:6].1, ...     - core 1,2 handles port 0 rx, core 3 handles port 0 tx\n"
-	       "                                      core 4,5 handles port 1 rx & core 6 handles port 1 tx\n"
-	       "      [1-2:3-5].0, [4-5:6/8].1, ... - core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx\n"
-	       "                                      core 4,5 handles port 1 rx & core 6,8 handles port 1 tx\n"
-	       "      [1:2].[0:0-7], [3:4].[1:0-7], - core 1 handles port 0 rx, core 2 handles ports 0-7 tx\n"
-	       "                                      core 3 handles port 1 rx & core 4 handles port 0-7 tx\n"
-	       "      BTW: you can use \"{}\" instead of \"[]\" as it does not matter to the syntax.\n"
-	       "  -h           Display the help information\n",
-	       prgname);
+	printf(
+	        "Usage: %s [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
+	        "  -s P:file    PCAP packet stream file, 'P' is the port number\n"
+	        "  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
+	        "  -l filename  Write log to filename\n"
+	        "  -P           Enable PROMISCUOUS mode on all ports\n"
+	        "  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
+	        "               If -g is used that enable socket support as a server application\n"
+	        "  -G           Enable socket support using default server values localhost:0x5606 \n"
+	        "  -N           Enable NUMA support\n"
+	        "  -T           Enable the color output\n"
+	        "  -m <string>  matrix for mapping ports to logical cores\n"
+	        "      BNF: (or kind of BNF)\n"
+	        "      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
+	        "      <lcore-port>      := <lcore-list> \".\" <port-list>\n"
+	        "      <lcore-list>      := \"[\" <rx-list> \":\" <tx-list> \"]\"\n"
+	        "      <port-list>       := \"[\" <rx-list> \":\" <tx-list>\"]\"\n"
+	        "      <rx-list>         := <num> { \"/\" (<num> | <list>) }\n"
+	        "      <tx-list>         := <num> { \"/\" (<num> | <list>) }\n"
+	        "      <list>            := <num> { \"/\" (<range> | <list>) }\n"
+	        "      <range>           := <num> \"-\" <num> { \"/\" <range> }\n"
+	        "      <num>             := <digit>+\n"
+	        "      <digit>           := 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
+	        "      1.0, 2.1, 3.2                 - core 1 handles port 0 rx/tx,\n"
+	        "                                      core 2 handles port 1 rx/tx\n"
+	        "                                      core 3 handles port 2 rx/tx\n"
+	        "      1.[0-2], 2.3, ...             - core 1 handle ports 0,1,2 rx/tx,\n"
+	        "                                      core 2 handle port 3 rx/tx\n"
+	        "      [0-1].0, [2/4-5].1, ...       - cores 0-1 handle port 0 rx/tx,\n"
+	        "                                      cores 2,4,5 handle port 1 rx/tx\n"
+	        "      [1:2].0, [4:6].1, ...         - core 1 handles port 0 rx,\n"
+	        "                                      core 2 handles port 0 tx,\n"
+	        "      [1:2].[0-1], [4:6].[2/3], ... - core 1 handles port 0 & 1 rx,\n"
+	        "                                      core 2 handles port  0 & 1 tx\n"
+	        "      [1:2-3].0, [4:5-6].1, ...     - core 1 handles port 0 rx, cores 2,3 handle port 0 tx\n"
+	        "                                      core 4 handles port 1 rx & core 5,6 handles port 1 tx\n"
+	        "      [1-2:3].0, [4-5:6].1, ...     - core 1,2 handles port 0 rx, core 3 handles port 0 tx\n"
+	        "                                      core 4,5 handles port 1 rx & core 6 handles port 1 tx\n"
+	        "      [1-2:3-5].0, [4-5:6/8].1, ... - core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx\n"
+	        "                                      core 4,5 handles port 1 rx & core 6,8 handles port 1 tx\n"
+	        "      [1:2].[0:0-7], [3:4].[1:0-7], - core 1 handles port 0 rx, core 2 handles ports 0-7 tx\n"
+	        "                                      core 3 handles port 1 rx & core 4 handles port 0-7 tx\n"
+	        "      BTW: you can use \"{}\" instead of \"[]\" as it does not matter to the syntax.\n"
+	        "  -h           Display the help information\n",
+	        prgname);
 }
 
 /**************************************************************************//**
@@ -491,8 +492,8 @@ main(int argc, char **argv)
 		                pktgen.hostname,
 		                pktgen.socket_port);
 #ifdef GUI
-printf("%s: Here\n", __func__);
-        pktgen_gui_main(argc, argv);
+		printf("%s: Here\n", __func__);
+		pktgen_gui_main(argc, argv);
 #endif
 	}
 

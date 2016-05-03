@@ -142,7 +142,7 @@ pktgen_packet_rate(port_info_t *info)
 
 	info->tx_pps    = pps;
 	info->tx_cycles = ((cpp * info->tx_burst) /
-	                       wr_get_port_txcnt(pktgen.l2p, info->pid));
+	                   wr_get_port_txcnt(pktgen.l2p, info->pid));
 	info->tx_cycles -= ff[info->tx_rate / 10];
 }
 
@@ -213,7 +213,8 @@ pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr)
 
 	/* Now try to match the single packet address */
 	if (pkt == NULL)
-		if (addr == info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr)
+		if (addr ==
+		    info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr)
 			pkt = &info->seq_pkt[SINGLE_PKT];
 
 	return pkt;
@@ -248,12 +249,14 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 
 	/* Now try to match the single packet address */
 	if (pkt == NULL)
-		if (addr == info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr)
+		if (addr ==
+		    info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr)
 			pkt = &info->seq_pkt[SINGLE_PKT];
 
 	/* Now try to match the range packet address */
 	if (pkt == NULL)
-		if (addr == info->seq_pkt[RANGE_PKT].ip_dst_addr.addr.ipv4.s_addr)
+		if (addr ==
+		    info->seq_pkt[RANGE_PKT].ip_dst_addr.addr.ipv4.s_addr)
 			pkt = &info->seq_pkt[RANGE_PKT];
 
 	return pkt;
@@ -428,7 +431,7 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 		info->send_burst(info, qid);
 
 	rte_delay_ms(2);
-//	rte_eth_dev_tx_queue_flush(info->pid, qid);
+/*	rte_eth_dev_tx_queue_flush(info->pid, qid); */
 
 	pktgen_clr_q_flags(info, qid, DO_TX_FLUSH);
 }
@@ -453,12 +456,15 @@ pktgen_exit_cleanup(uint8_t lid)
 
 	for (idx = 0; idx < wr_get_lcore_txcnt(pktgen.l2p, lid); idx++) {
 		pid = wr_get_tx_pid(pktgen.l2p, lid, idx);
-		if ( (info = (port_info_t *)wr_get_port_private(pktgen.l2p, pid)) != NULL) {
+		if ( (info =
+		              (port_info_t *)wr_get_port_private(pktgen.l2p,
+		                                                 pid)) !=
+		     NULL) {
 			qid = wr_get_txque(pktgen.l2p, lid, pid);
 			pktgen_tx_flush(info, qid);
-            rte_delay_ms(100);
-            rte_eth_dev_stop(pid);
-            rte_eth_dev_close(pid);
+			rte_delay_ms(100);
+			rte_eth_dev_stop(pid);
+			rte_eth_dev_close(pid);
 		}
 	}
 }
@@ -605,8 +611,10 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			uip = (udpip_t *)ether_hdr;
 
 			/* Create the ICMP header */
-			uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-			uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+			uip->ip.src         = htonl(
+			                pkt->ip_src_addr.addr.ipv4.s_addr);
+			uip->ip.dst         = htonl(
+			                pkt->ip_dst_addr.addr.ipv4.s_addr);
 			tlen                = pkt->pktSize -
 			        (pkt->ether_hdr_size + sizeof(ipHdr_t));
 			uip->ip.len         = htons(tlen);
@@ -649,9 +657,11 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			tip = (tcpipv6_t *)ether_hdr;
 
 			/* Create the pseudo header and TCP information */
-			(void)rte_memcpy(tip->ip.daddr, &pkt->ip_dst_addr.addr.ipv4.s_addr,
+			(void)rte_memcpy(tip->ip.daddr,
+			                 &pkt->ip_dst_addr.addr.ipv4.s_addr,
 			                 sizeof(struct in6_addr));
-			(void)rte_memcpy(tip->ip.saddr, &pkt->ip_src_addr.addr.ipv4.s_addr,
+			(void)rte_memcpy(tip->ip.saddr,
+			                 &pkt->ip_src_addr.addr.ipv4.s_addr,
 			                 sizeof(struct in6_addr));
 
 			tlen                = sizeof(tcpHdr_t) +
@@ -690,10 +700,12 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			uip = (udpipv6_t *)ether_hdr;
 
 			/* Create the pseudo header and TCP information */
-			addr                = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+			addr                = htonl(
+			                pkt->ip_dst_addr.addr.ipv4.s_addr);
 			(void)rte_memcpy(&uip->ip.daddr[8], &addr,
 			                 sizeof(uint32_t));
-			addr                = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+			addr                = htonl(
+			                pkt->ip_src_addr.addr.ipv4.s_addr);
 			(void)rte_memcpy(&uip->ip.saddr[8], &addr,
 			                 sizeof(uint32_t));
 
@@ -1083,9 +1095,11 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		info->send_burst = _send_burst_fast;
 
 	if (likely(flags & SEND_FOREVER) ) {
-		len = wr_pktmbuf_alloc_bulk_noreset(mp,
-		                                    info->q[qid].tx_mbufs.m_table,
-		                                    info->tx_burst);
+		len = wr_pktmbuf_alloc_bulk_noreset(
+		                mp,
+		                info->q[qid].tx_mbufs.
+		                m_table,
+		                info->tx_burst);
 		if (likely(len) ) {
 			info->q[qid].tx_mbufs.len = len;
 			info->q[qid].tx_cnt += len;
@@ -1097,9 +1111,11 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count,
 		                              info->tx_burst);
 		if (likely(txCnt) ) {
-			len = wr_pktmbuf_alloc_bulk_noreset(mp,
-			                                    info->q[qid].tx_mbufs.m_table,
-			                                    txCnt);
+			len = wr_pktmbuf_alloc_bulk_noreset(
+			                mp,
+			                info->q[qid].
+			                tx_mbufs.m_table,
+			                txCnt);
 			if (likely(len) ) {
 				info->q[qid].tx_mbufs.len = len;
 				info->send_burst(info, qid);
@@ -1107,7 +1123,6 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		} else
 			pktgen_clr_port_flags(info,
 			                      (SENDING_PACKETS | SEND_FOREVER));
-
 	}
 }
 
@@ -1511,10 +1526,11 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	else if (pktgen.flags & SEQUENCE_PAGE_FLAG)
 		pktgen_page_seq(pktgen.portNum);
 	else if (pktgen.flags & RND_BITFIELD_PAGE_FLAG)
-		pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
-		                             pktgen.portNum,
-		                             pktgen.info[pktgen.portNum].rnd_bitfields);
-
+		pktgen_page_random_bitfields(
+		        pktgen.flags & PRINT_LABELS_FLAG,
+		        pktgen.portNum,
+		        pktgen.info[pktgen.portNum].
+		        rnd_bitfields);
 
 	else if (pktgen.flags & LOG_PAGE_FLAG)
 		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);

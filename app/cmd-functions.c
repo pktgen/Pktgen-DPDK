@@ -148,7 +148,8 @@ cmd_port_display(char *buff, uint32_t len, uint64_t portlist) {
 			         first);
 		else
 			snprintf(p, len - strlen(
-			                 buff), "%s%d-%d", (comma) ? "," : "", first,
+			                 buff), "%s%d-%d", (comma) ? "," : "",
+			         first,
 			         (bit - 1));
 
 		p = buff + strlen(buff);
@@ -1862,9 +1863,10 @@ cmdline_parse_token_string_t cmd_set_set =
 cmdline_parse_token_portlist_t cmd_set_portlist =
         TOKEN_PORTLIST_INITIALIZER(struct cmd_set_result, portlist);
 cmdline_parse_token_string_t cmd_set_what =
-        TOKEN_STRING_INITIALIZER(struct cmd_set_result,
-                                 what,
-                                 "count#size#rate#burst#tx_cycles#sport#dport#seqCnt#prime#dump#vlanid");
+        TOKEN_STRING_INITIALIZER(
+                struct cmd_set_result,
+                what,
+                "count#size#rate#burst#tx_cycles#sport#dport#seqCnt#prime#dump#vlanid");
 cmdline_parse_token_num_t cmd_set_value =
         TOKEN_NUM_INITIALIZER(struct cmd_set_result, value, UINT32);
 
@@ -2405,7 +2407,7 @@ cmd_set_seq_parsed(void *parsed_result,
 	foreach_port(res->portlist.map,
 	             pktgen_set_seq(info, res->seqnum,
 	                            &res->daddr, &res->saddr,
-				    			&res->ip_daddr, &res->ip_saddr,
+	                            &res->ip_daddr, &res->ip_saddr,
 	                            res->sport, res->dport, res->eth[3],
 	                            res->proto[0],
 	                            res->vlanid, res->pktsize,
@@ -2778,9 +2780,10 @@ cmd_set_page_parsed(void *parsed_result,
 cmdline_parse_token_string_t cmd_set_page =
         TOKEN_STRING_INITIALIZER(struct cmd_page_result, page, "page");
 cmdline_parse_token_string_t cmd_set_pageType =
-        TOKEN_STRING_INITIALIZER(struct cmd_page_result,
-                                 pageType,
-                                 "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log");
+        TOKEN_STRING_INITIALIZER(
+                struct cmd_page_result,
+                pageType,
+                "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log");
 
 cmdline_parse_inst_t cmd_page = {
 	.f = cmd_set_page_parsed,

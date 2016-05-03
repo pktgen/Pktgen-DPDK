@@ -173,7 +173,8 @@ pktgen_print_packet_dump(void)
 		info = &pktgen.info[pid];
 		for (; info->dump_head < info->dump_tail; ++info->dump_head) {
 			pdata =
-			        (unsigned char *)info->dump_list[info->dump_head
+			        (unsigned char *)info->dump_list[info->
+			                                         dump_head
 			        ].data;
 			plen = info->dump_list[info->dump_head].len;
 
@@ -206,7 +207,8 @@ pktgen_print_packet_dump(void)
 					if (i + j < plen)
 						strncatf(buff, "%c",
 						         isprint(pdata[i +
-						                       j]) ? pdata[
+						                       j]) ?
+						         pdata[
 						                 i + j] : '.');
 			}
 			pktgen_log_info("%s", buff);

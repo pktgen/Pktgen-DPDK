@@ -149,7 +149,9 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	        sizeof(struct rte_mbuf),
 	        sizeof(struct rte_mempool),
 	        (((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
-	           sizeof(struct rte_mempool))) + 1023) / 1024, RTE_PKTMBUF_HEADROOM, RTE_MBUF_DEFAULT_BUF_SIZE);
+	           sizeof(struct rte_mempool))) + 1023) / 1024,
+	        RTE_PKTMBUF_HEADROOM,
+	        RTE_MBUF_DEFAULT_BUF_SIZE);
 	pktgen.mem_used +=
 	        ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
 	          sizeof(struct rte_mempool)));
@@ -413,23 +415,27 @@ pktgen_config_ports(void)
 			                                               q));
 
 			/* Create and initialize the default Receive buffers. */
-			info->q[q].rx_mp = pktgen_mbuf_pool_create("Default RX",
-			                                           pid,
-			                                           q,
-			                                           info->nb_mbufs,
-			                                           sid,
-			                                           cache_size);
+			info->q[q].rx_mp = pktgen_mbuf_pool_create(
+			                "Default RX",
+			                pid,
+			                q,
+			                info->
+			                nb_mbufs,
+			                sid,
+			                cache_size);
 			if (info->q[q].rx_mp == NULL)
 				pktgen_log_panic(
 				        "Cannot init port %d for Default RX mbufs",
 				        pid);
 
-			ret = rte_eth_rx_queue_setup(pid,
-			                             q,
-			                             pktgen.nb_rxd,
-			                             sid,
-			                             &info->rx_conf,
-			                             pktgen.info[pid].q[q].rx_mp);
+			ret = rte_eth_rx_queue_setup(
+			                pid,
+			                q,
+			                pktgen.nb_rxd,
+			                sid,
+			                &info->rx_conf,
+			                pktgen.info[pid].q[q].
+			                rx_mp);
 			if (ret < 0)
 				pktgen_log_panic(
 				        "rte_eth_rx_queue_setup: err=%d, port=%d, %s",
@@ -447,12 +453,13 @@ pktgen_config_ports(void)
 			                                               q));
 
 			/* Create and initialize the default Transmit buffers. */
-			info->q[q].tx_mp = pktgen_mbuf_pool_create("Default TX",
-			                                           pid,
-			                                           q,
-			                                           MAX_MBUFS_PER_PORT,
-			                                           sid,
-			                                           cache_size);
+			info->q[q].tx_mp = pktgen_mbuf_pool_create(
+			                "Default TX",
+			                pid,
+			                q,
+			                MAX_MBUFS_PER_PORT,
+			                sid,
+			                cache_size);
 			if (info->q[q].tx_mp == NULL)
 				pktgen_log_panic(
 				        "Cannot init port %d for Default TX mbufs",
@@ -547,7 +554,8 @@ pktgen_config_ports(void)
 			         "Port %2d: Link Up - speed %u Mbps - %s",
 			         pid,
 			         (uint32_t)info->link.link_speed,
-			         (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ?
+			         (info->link.link_duplex ==
+			          ETH_LINK_FULL_DUPLEX) ?
 			         ("full-duplex") : ("half-duplex"));
 		else
 			snprintf(output_buff,

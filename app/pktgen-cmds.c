@@ -118,7 +118,8 @@ pktgen_save(char *path)
 		fprintf(fd, "%s ", pktgen.argv[i]);
 	fprintf(fd, "\n\n");
 
-	fprintf(fd,
+	fprintf(
+	        fd,
 	        "#######################################################################\n");
 	fprintf(fd, "# Pktgen Configuration script information:\n");
 	fprintf(fd,
@@ -138,7 +139,8 @@ pktgen_save(char *path)
 #if 0
 	fprintf(fd, "# Port Descriptions (-- = blacklisted port):\n");
 	for (i = 0; i < RTE_MAX_ETHPORTS; i++)
-		if (pktgen.portdesc[i] && strlen((char *)pktgen.portdesc[i]) ) {
+		if (pktgen.portdesc[i] &&
+		    strlen((char *)pktgen.portdesc[i]) ) {
 			if ( (pktgen.enabled_port_mask & (1 << i)) == 0)
 				strcpy(buff, "--");
 			else
@@ -148,7 +150,8 @@ pktgen_save(char *path)
 		}
 
 #endif
-	fprintf(fd,
+	fprintf(
+	        fd,
 	        "\n#######################################################################\n");
 
 	fprintf(fd, "# Global configuration:\n");
@@ -167,7 +170,8 @@ pktgen_save(char *path)
 		if (info->tx_burst == 0)
 			continue;
 
-		fprintf(fd,
+		fprintf(
+		        fd,
 		        "######################### Port %2d ##################################\n",
 		        i);
 		if (rte_atomic64_read(&info->transmit_count) == 0)
@@ -177,7 +181,8 @@ pktgen_save(char *path)
 			         rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "#\n");
 		flags = rte_atomic32_read(&info->port_flags);
-		fprintf(fd,
+		fprintf(
+		        fd,
 		        "# Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
 		        info->pid,
 		        info->tx_burst,
@@ -211,10 +216,12 @@ pktgen_save(char *path)
 		        (pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
 		        (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp", i);
 		fprintf(fd, "set ip dst %d %s\n", i,
-		        inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+		        inet_ntop4(buff, sizeof(buff),
+		                   ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 		                   0xFFFFFFFF));
 		fprintf(fd, "set ip src %d %s\n", i,
-		        inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
+		        inet_ntop4(buff, sizeof(buff),
+		                   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 		                   pkt->ip_mask));
 		fprintf(fd, "set mac %d %s\n", info->pid,
 		        inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
@@ -351,8 +358,8 @@ pktgen_save(char *path)
 
 		fprintf(fd, "\n");
 		fprintf(fd, "ip.proto %d %s\n", i,
-			(range->ip_proto == PG_IPPROTO_UDP)? "udp" :
-			(range->ip_proto == PG_IPPROTO_ICMP)? "icmp" : "tcp");
+		        (range->ip_proto == PG_IPPROTO_UDP) ? "udp" :
+		        (range->ip_proto == PG_IPPROTO_ICMP) ? "icmp" : "tcp");
 
 		fprintf(fd, "\n");
 		fprintf(fd, "src.port start %d %d\n", i, range->src_port);
@@ -401,21 +408,26 @@ pktgen_save(char *path)
 			                  &pkt->eth_src_addr));
 			fprintf(fd, "%s ",
 			        inet_ntop4(buff, sizeof(buff),
-			                   htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+			                   htonl(pkt->ip_dst_addr.addr.ipv4.
+			                         s_addr),
 			                   0xFFFFFFFF));
 			fprintf(fd, "%s ",
 			        inet_ntop4(buff, sizeof(buff),
-			                   htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
+			                   htonl(pkt->ip_src_addr.addr.ipv4.
+			                         s_addr),
 			                   pkt->ip_mask));
-			fprintf(fd,
+			fprintf(
+			        fd,
 			        "%d %d %s %s %d %d\n",
 			        pkt->sport,
 			        pkt->dport,
 			        (pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
 			        (pkt->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
-			        (pkt->ethType == ETHER_TYPE_VLAN) ? "vlan" : "Other",
+			        (pkt->ethType ==
+			         ETHER_TYPE_VLAN) ? "vlan" : "Other",
 			        (pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
-			        (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp",
+			        (pkt->ipProto ==
+			         PG_IPPROTO_ICMP) ? "icmp" : "udp",
 			        pkt->vlanid,
 			        pkt->pktSize + FCS_SIZE);
 		}
@@ -431,7 +443,8 @@ pktgen_save(char *path)
 		}
 		fprintf(fd, "\n");
 	}
-	fprintf(fd,
+	fprintf(
+	        fd,
 	        "################################ Done #################################\n");
 
 	fclose(fd);
@@ -606,7 +619,8 @@ pktgen_flags_string(port_info_t *info)
 	         (flags & SEND_SEQ_PKTS) ? 'S' : '-',
 	         (flags & SEND_RANGE_PKTS) ? 'R' : '-',
 	         (flags & PROCESS_INPUT_PKTS) ? 'I' : '-',
-	         "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >>
+	         "-rt*"[(flags &
+	                 (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >>
 	                9],
 	         (flags & SEND_LATENCY_PKTS) ? 'L' : '-',
 	         (flags & SEND_VLAN_ID) ? 'V' :
@@ -1286,7 +1300,8 @@ pktgen_set_pkt_type_range(port_info_t *info, const char *type)
 void
 pktgen_set_pkt_type(port_info_t *info, const char *type)
 {
-	info->seq_pkt[SINGLE_PKT].ethType = (type[0] == 'a') ? ETHER_TYPE_ARP  :
+	info->seq_pkt[SINGLE_PKT].ethType =
+	        (type[0] == 'a') ? ETHER_TYPE_ARP  :
 	        (type[3] == '4') ? ETHER_TYPE_IPv4 :
 	        (type[3] == '6') ? ETHER_TYPE_IPv6 :
 		/* TODO print error: unknown type */ ETHER_TYPE_IPv4;
@@ -1514,10 +1529,10 @@ pktgen_clear_stats(port_info_t *info)
 	memset(&info->rate_stats, 0, sizeof(eth_stats_t));
 
 	rte_eth_stats_get(info->pid, &info->init_stats);
-    pktgen.max_total_ipackets   = 0;
-    pktgen.max_total_opackets   = 0;
-    info->max_ipackets          = 0;
-    info->max_opackets          = 0;
+	pktgen.max_total_ipackets   = 0;
+	pktgen.max_total_opackets   = 0;
+	info->max_ipackets          = 0;
+	info->max_opackets          = 0;
 	info->stats.dropped_pkts    = 0;
 	info->stats.arp_pkts        = 0;
 	info->stats.echo_pkts       = 0;
@@ -1612,12 +1627,16 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 
 	pkt->ip_mask = DEFAULT_NETMASK;
 	if ( (pid & 1) == 0) {
-		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-		pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
+		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR |
+		        (pid << 8) | 1;
+		pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR |
+		        ((pid + 1) << 8) | 1;
 		dst_info = info + 1;
 	} else {
-		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-		pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
+		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR |
+		        (pid << 8) | 1;
+		pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR |
+		        ((pid - 1) << 8) | 1;
 		dst_info = info - 1;
 	}
 
@@ -2502,13 +2521,17 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
 	pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
 	if (type == '4') {
-		pkt->ip_src_addr.addr.ipv4.s_addr = htonl(ip_saddr->addr.ipv4.s_addr);
-		pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(ip_daddr->addr.ipv4.s_addr);
+		pkt->ip_src_addr.addr.ipv4.s_addr = htonl(
+		                ip_saddr->addr.ipv4.s_addr);
+		pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(
+		                ip_daddr->addr.ipv4.s_addr);
 	} else {
 		memcpy(&pkt->ip_src_addr.addr.ipv6.__in6_u.__u6_addr8,
-			ip_saddr->addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
+		       ip_saddr->addr.ipv6.__in6_u.__u6_addr8,
+		       sizeof(struct in6_addr));
 		memcpy(&pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8,
-			ip_daddr->addr.ipv6.__in6_u.__u6_addr8, sizeof(struct in6_addr));
+		       ip_daddr->addr.ipv6.__in6_u.__u6_addr8,
+		       sizeof(struct in6_addr));
 	}
 	pkt->dport          = dport;
 	pkt->sport          = sport;

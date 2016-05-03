@@ -283,8 +283,8 @@ __set_prompt(void)
 		prompt = lookup_item("pktgen.prompt");
 
 		if ( (def == NULL) || (prompt == NULL) )
-			pktgen_log_error("Prompt and/or default color undefined");
-
+			pktgen_log_error(
+			        "Prompt and/or default color undefined");
 
 		else
 			snprintf(prompt_str,

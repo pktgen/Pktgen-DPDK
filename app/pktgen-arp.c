@@ -226,7 +226,8 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 		/* ARP request not for this interface. */
 		if (likely(pkt != NULL) ) {
 			/* Grab the real destination MAC address */
-			if (pkt->ip_dst_addr.addr.ipv4.s_addr == ntohl(arp->spa._32) )
+			if (pkt->ip_dst_addr.addr.ipv4.s_addr ==
+			    ntohl(arp->spa._32) )
 				rte_memcpy(&pkt->eth_dst_addr, &arp->sha, 6);
 
 			pktgen.flags |= PRINT_LABELS_FLAG;

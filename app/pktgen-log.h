@@ -96,55 +96,55 @@
  */
 #if LOG_LEVEL <= LOG_LEVEL_TRACE
 #define pktgen_log_trace(fmt, ...) pktgen_log(LOG_LEVEL_TRACE, \
-	                                      __FILE__, \
-	                                      __LINE__, \
-	                                      __FUNCTION__, \
-	                                      fmt, \
-	                                      ## __VA_ARGS__)
+                                              __FILE__, \
+                                              __LINE__, \
+                                              __FUNCTION__, \
+                                              fmt, \
+                                              ## __VA_ARGS__)
 #else
 #define pktgen_log_trace(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_DEBUG
 #define pktgen_log_debug(fmt, ...) pktgen_log(LOG_LEVEL_DEBUG, \
-	                                      __FILE__, \
-	                                      __LINE__, \
-	                                      __FUNCTION__, \
-	                                      fmt, \
-	                                      ## __VA_ARGS__)
+                                              __FILE__, \
+                                              __LINE__, \
+                                              __FUNCTION__, \
+                                              fmt, \
+                                              ## __VA_ARGS__)
 #else
 #define pktgen_log_debug(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_INFO
 #define pktgen_log_info(fmt, ...) pktgen_log(LOG_LEVEL_INFO, \
-	                                     __FILE__, \
-	                                     __LINE__, \
-	                                     __FUNCTION__, \
-	                                     fmt, \
-	                                     ## __VA_ARGS__)
+                                             __FILE__, \
+                                             __LINE__, \
+                                             __FUNCTION__, \
+                                             fmt, \
+                                             ## __VA_ARGS__)
 #else
 #define pktgen_log_info(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_WARNING
 #define pktgen_log_warning(fmt, ...) pktgen_log(LOG_LEVEL_WARNING, \
-	                                        __FILE__, \
-	                                        __LINE__, \
-	                                        __FUNCTION__, \
-	                                        fmt, \
-	                                        ## __VA_ARGS__)
+                                                __FILE__, \
+                                                __LINE__, \
+                                                __FUNCTION__, \
+                                                fmt, \
+                                                ## __VA_ARGS__)
 #else
 #define pktgen_log_warning(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_ERROR
 #define pktgen_log_error(fmt, ...) pktgen_log(LOG_LEVEL_ERROR, \
-	                                      __FILE__, \
-	                                      __LINE__, \
-	                                      __FUNCTION__, \
-	                                      fmt, \
-	                                      ## __VA_ARGS__)
+                                              __FILE__, \
+                                              __LINE__, \
+                                              __FUNCTION__, \
+                                              fmt, \
+                                              ## __VA_ARGS__)
 #else
 #define pktgen_log_error(fmt, ...)	/* no-op */
 #endif

@@ -202,7 +202,7 @@ int update_ports_stat(void *arg);
 void update_ports_static_stat(unsigned int pid);
 GtkWidget *pktgen_show_statistic_data(void);
 GtkWidget *pktgen_show_static_conf(void);
-GtkWidget *pktgen_show_total_data(void/*GtkWidget *frame_horz_stats, GtkWidget *scrolled_window*/);
+GtkWidget *pktgen_show_total_data(void /*GtkWidget *frame_horz_stats, GtkWidget *scrolled_window*/);
 
 void start_stop_traffic(GtkTreeModel  *model,
                         GtkTreePath   *path,

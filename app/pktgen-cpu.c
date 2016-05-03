@@ -138,12 +138,13 @@ pktgen_page_cpu(void)
 	wr_scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
 	row += 4;
 
-	wr_scrn_printf(row++,
-	               5,
-	               "%d sockets, %d cores per socket and %d threads per core.",
-	               nb_sockets,
-	               nb_cores,
-	               nb_threads);
+	wr_scrn_printf(
+	        row++,
+	        5,
+	        "%d sockets, %d cores per socket and %d threads per core.",
+	        nb_sockets,
+	        nb_cores,
+	        nb_threads);
 
 	sprintf(buff, "Socket   : ");
 	for (i = 0; i < nb_sockets; i++)

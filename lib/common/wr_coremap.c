@@ -391,7 +391,7 @@ wr_coremap(const char *arg,
 	}
 
 	while (getline(&line, &line_sz, f) >= 0)
-		lcores = get_matching_action(line)(line, lcores);
+		lcores = get_matching_action(line) (line, lcores);
 
 	if (f) fclose(f);
 	if (line) free(line);

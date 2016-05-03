@@ -96,7 +96,8 @@ pktgen_edit_stream(void)
 
 		if (no_rows == 0) {
 			GtkWidget *dialog;
-			dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+			dialog = gtk_message_dialog_new(GTK_WINDOW(
+			                                        window),
 			                                GTK_DIALOG_DESTROY_WITH_PARENT,
 			                                GTK_MESSAGE_ERROR,
 			                                GTK_BUTTONS_OK,
@@ -106,7 +107,8 @@ pktgen_edit_stream(void)
 			gtk_widget_destroy(dialog);
 		} else if (no_rows > 1) {
 			GtkWidget *dialog;
-			dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+			dialog = gtk_message_dialog_new(GTK_WINDOW(
+			                                        window),
 			                                GTK_DIALOG_DESTROY_WITH_PARENT,
 			                                GTK_MESSAGE_ERROR,
 			                                GTK_BUTTONS_OK,
@@ -167,7 +169,10 @@ add_entry(GtkTreeStore *tree, GtkTreePath *path)
 
 	if (!check_entry(tree, path)) {
 		if (depth == 1)	/* if this is a child of the root node, use NULL instead of iter */
-			while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(tree), NULL) == (index + 1)))
+			while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(
+			                                                tree),
+			                                        NULL) ==
+			         (index + 1)))
 				gtk_tree_store_append(tree, &iter, NULL);
 		else {
 			GtkTreePath *parent_path;

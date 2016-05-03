@@ -79,7 +79,8 @@ static __inline__ uint32_t
 parseState(const char *state) {
 	return ( !strcasecmp(state,
 	                     "on") ||
-	         !strcasecmp(state, "enable") || !strcasecmp(state, "start") ) ?
+	         !strcasecmp(state,
+	                     "enable") || !strcasecmp(state, "start") ) ?
 	       ENABLE_STATE : DISABLE_STATE;
 }
 

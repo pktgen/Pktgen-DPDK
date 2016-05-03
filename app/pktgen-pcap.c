@@ -375,19 +375,20 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		elt_count = rte_align32pow2(elt_count);
 
 		rte_printf_status("\r    Create: %-*s   \b", 16, name);
-		info->q[qid].pcap_mp = rte_mempool_create(name,
-		                                          elt_count,
-		                                          MBUF_SIZE,
-		                                          0,
-		                                          sizeof(struct
-		                                                 rte_pktmbuf_pool_private),
-		                                          rte_pktmbuf_pool_init,
-		                                          NULL,
-		                                          pktgen_pcap_mbuf_ctor,
-		                                          (void *)pcap,
-		                                          rte_lcore_to_socket_id(
-		                                                  0),
-		                                          MEMPOOL_F_DMA);
+		info->q[qid].pcap_mp = rte_mempool_create(
+		                name,
+		                elt_count,
+		                MBUF_SIZE,
+		                0,
+		                sizeof(struct
+		                       rte_pktmbuf_pool_private),
+		                rte_pktmbuf_pool_init,
+		                NULL,
+		                pktgen_pcap_mbuf_ctor,
+		                (void *)pcap,
+		                rte_lcore_to_socket_id(
+		                        0),
+		                MEMPOOL_F_DMA);
 		rte_printf_status("\r");
 		if (info->q[qid].pcap_mp == NULL)
 			pktgen_log_panic("Cannot init port %d for PCAP packets",

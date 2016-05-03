@@ -50,7 +50,7 @@ void    tap_end_todo(void);
 #define is(...)          is_at_loc(__FILE__, __LINE__, __VA_ARGS__, NULL)
 #define isnt(...)        isnt_at_loc(__FILE__, __LINE__, __VA_ARGS__, NULL)
 #define cmp_ok(...)      cmp_ok_at_loc(__FILE__, __LINE__, __VA_ARGS__, NULL)
-#define cmp_mem(...)     cmp_mem_at_loc(__FILE__, __LINE__, __VA_ARGS__, NULL);
+#define cmp_mem(...)     cmp_mem_at_loc(__FILE__, __LINE__, __VA_ARGS__, NULL)
 #define plan(...)        tap_plan(__VA_ARGS__, NULL)
 #define done_testing()   return exit_status()
 #define BAIL_OUT(...)    bail_out(0, "" __VA_ARGS__, NULL)
@@ -70,7 +70,7 @@ void    tap_end_todo(void);
 #define like(...)        tap_skip(1, "like is not implemented on Windows")
 #define unlike           tap_skip(1, "unlike is not implemented on Windows")
 #define dies_ok_common(...) \
-	tap_skip(1, "Death detection is not supported on Windows")
+        tap_skip(1, "Death detection is not supported on Windows")
 #else
 #define like(...)        like_at_loc(1, __FILE__, __LINE__, __VA_ARGS__, NULL)
 #define unlike(...)      like_at_loc(0, __FILE__, __LINE__, __VA_ARGS__, NULL)
@@ -82,7 +82,7 @@ int     like_at_loc(int for_match, const char *file, int line,
 #include <sys/wait.h>
 int tap_test_died(int status);
 #define dies_ok_common(for_death, code, ...)                \
-	do {                                                    \
+        do {                                                    \
 		int cpid;                                           \
 		int it_died;                                        \
 		tap_test_died(1);                                   \

@@ -76,6 +76,6 @@ extern void wr_free_portdesc(uint8_t **portdesc, uint32_t num);
 extern uint32_t wr_create_blacklist(uint64_t portmask,
                                     struct rte_pci_addr *portlist,
                                     uint32_t port_cnt,
-                                    uint8_t *desc[]);
+                                    uint8_t * desc[]);
 
 #endif /* _WR_PORT_CONFIG_H */

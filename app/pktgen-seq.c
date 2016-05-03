@@ -138,12 +138,14 @@ pktgen_page_seq(uint32_t pid)
 		col += COLUMN_WIDTH_1;
 		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
 		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+		                          htonl(pkt->ip_dst_addr.addr.ipv4.
+		                                s_addr),
 		                          0xFFFFFFFF));
 		col += COLUMN_WIDTH_1;
 		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1 + 2,
 		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
+		                          htonl(pkt->ip_src_addr.addr.ipv4.
+		                                s_addr),
 		                          pkt->ip_mask));
 		col += COLUMN_WIDTH_1 + 2;
 
@@ -165,12 +167,14 @@ pktgen_page_seq(uint32_t pid)
 		col += COLUMN_WIDTH_1;
 		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
 		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+		                          htonl(pkt->ip_dst_addr.addr.ipv4.
+		                                s_addr),
 		                          0xFFFFFFFF));
 		col += COLUMN_WIDTH_1;
 		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1 + 2,
 		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
+		                          htonl(pkt->ip_src_addr.addr.ipv4.
+		                                s_addr),
 		                          pkt->ip_mask));
 		col += COLUMN_WIDTH_1 + 2;
 

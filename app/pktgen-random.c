@@ -210,7 +210,8 @@ pktgen_set_random_bitfield(rnd_bits_t *rnd_bits,
 		case '1': mask1   += 1; break;
 		case '.': /* ignore bit */ break;
 		case 'X': maskRnd += 1; break;
-		default: /* print error: "Unknown char in bitfield spec" */ goto
+		default: /* print error: "Unknown char in bitfield spec" */
+			goto
 			leave;
 		}
 	}
@@ -298,7 +299,8 @@ pktgen_rnd_bits_apply(port_info_t *info,
 				        (uint32_t *)(&rte_pktmbuf_mtod(pkts[
 				                                               mbuf_cnt
 				                                       ],
-				                                       uint8_t *)
+				                                       uint8_t
+				                                       *)
 				                     [bf_spec->offset]);
 
 				*pkt_data &= bf_spec->andMask;
@@ -360,16 +362,22 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 	row = PORT_STATE_ROW;
 
 	if (rnd_bits == NULL) {
-		wr_scrn_center(10,
-		               pktgen.scrn->ncols,
-		               "** Port is not active - no random bitfields set **");
+		wr_scrn_center(
+		        10,
+		        pktgen.scrn->ncols,
+		        "** Port is not active - no random bitfields set **");
 		row = 28;
 		goto leave;
 	}
 	/* Header line */
-	wr_scrn_printf(row++, 1, "%8s %8s %8s  %s",
-	               "Index", "Offset", "Act?",
-	               "Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]");
+	wr_scrn_printf(
+	        row++,
+	        1,
+	        "%8s %8s %8s  %s",
+	        "Index",
+	        "Offset",
+	        "Act?",
+	        "Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]");
 
 	for (bitmask_idx = 0; bitmask_idx < MAX_RND_BITFIELDS; ++bitmask_idx) {
 		curr_spec = &rnd_bits->specs[bitmask_idx];
@@ -393,13 +401,15 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 				: '.';
 		}
 
-		wr_scrn_printf(row++,
-		               1,
-		               "%8d %8d %7s   %s",
-		               bitmask_idx,
-		               curr_spec->offset,
-		               (rnd_bits->active_specs & (1 << bitmask_idx)) ? "YES" : "no",
-		               mask);
+		wr_scrn_printf(
+		        row++,
+		        1,
+		        "%8d %8d %7s   %s",
+		        bitmask_idx,
+		        curr_spec->offset,
+		        (rnd_bits->active_specs &
+		                (1 << bitmask_idx)) ? "YES" : "no",
+		        mask);
 	}
 
 leave:

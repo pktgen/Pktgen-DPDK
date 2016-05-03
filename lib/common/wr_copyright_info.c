@@ -84,7 +84,7 @@
 #include "wr_copyright_info.h"
 
 #define COPYRIGHT_MSG \
-	"Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
+        "Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
 #define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2016>, Intel Corporation"
 #define POWERED_BY_DPDK         "Powered by Intel® DPDK"
 
@@ -194,9 +194,9 @@ wr_print_copyright(const char *appname, const char *created_by)
 #else
 	printf("   %s\n", COPYRIGHT_MSG);
 	printf("   %s created by: %s -- >>> %s <<<\n\n",
-					  appname,
-				   created_by,
-				   POWERED_BY_DPDK);
+	       appname,
+	       created_by,
+	       POWERED_BY_DPDK);
 #endif
 }
 

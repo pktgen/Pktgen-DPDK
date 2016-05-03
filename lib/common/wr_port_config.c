@@ -145,7 +145,7 @@ wr_get_portdesc(struct rte_pci_addr *pciAddr,
 
 		/* Save the port description for later if asked to do so. */
 		if (portdesc)
-			portdesc[idx] = (uint8_t *)strdup(buff);/* portdesc[idx] needs to be NULL or we lose memory. */
+			portdesc[idx] = (uint8_t *)strdup(buff);	/* portdesc[idx] needs to be NULL or we lose memory. */
 
 		if (++idx >= num)
 			break;

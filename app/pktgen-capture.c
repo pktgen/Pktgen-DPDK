@@ -212,12 +212,12 @@ found_rx_lid:
 		        sid,
 		        (double)cap->mz->len / (1024 * 1024),
 		        (double)cap->mz->len /
-		        (66			/* 64 bytes payload + 2 bytes for payload
-						 * size */
+		        (66	/* 64 bytes payload + 2 bytes for payload
+				 * size */
 		         * ((double)info->link.link_speed * 1000 *
-		            1000 / 8)			/* Xbit -> Xbyte */
-		         / 84)				/* 64 bytes payload + 20 byte etherrnet
-							 * frame overhead: 84 bytes per packet */
+		            1000 / 8)	/* Xbit -> Xbyte */
+		         / 84)		/* 64 bytes payload + 20 byte etherrnet
+					 * frame overhead: 84 bytes per packet */
 		        );
 	} else {
 		if (!(rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS))
@@ -259,7 +259,8 @@ found_rx_lid:
 			unsigned int pct = 0;
 
 			char status[256];
-			sprintf(status,
+			sprintf(
+			        status,
 			        "\r    Dumping ~%.2fMB of captured data to disk: 0%%",
 			        (double)cap->used / (1024 * 1024));
 			rte_printf_status("\n%s", status);

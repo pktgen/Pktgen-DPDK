@@ -150,7 +150,7 @@ cmp_ok_at_loc(const char *file, int line, int a, const char *op, int b,
 		: eq(op, "==") ? a == b
 		: eq(op, "!=") ? a != b
 		: eq(op, "<")  ? a <  b
-		: eq(op, ">")  ? a >  b
+				      : eq(op, ">")  ? a >  b
 		: eq(op, "<=") ? a <= b
 		: eq(op, ">=") ? a >= b
 		: eq(op, "<<") ? a << b

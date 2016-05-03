@@ -321,21 +321,23 @@ set_seq(lua_State *L, uint32_t seqnum)
 	if (ip[3] == '6') {
 		tkd.ipaddr_data.flags = CMDLINE_IPADDR_V6;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
-				     luaL_checkstring(L, 5), &ip_daddr,
-				     sizeof(cmdline_ipaddr_t));
-		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V6;
+		                     luaL_checkstring(L, 5), &ip_daddr,
+		                     sizeof(cmdline_ipaddr_t));
+		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK |
+		        CMDLINE_IPADDR_V6;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
-				     luaL_checkstring(L, 6), &ip_saddr,
-				     sizeof(cmdline_ipaddr_t));
+		                     luaL_checkstring(L, 6), &ip_saddr,
+		                     sizeof(cmdline_ipaddr_t));
 	} else {
 		tkd.ipaddr_data.flags = CMDLINE_IPADDR_V4;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
-				     luaL_checkstring(L, 5), &ip_daddr,
-				     sizeof(cmdline_ipaddr_t));
-		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V4;
+		                     luaL_checkstring(L, 5), &ip_daddr,
+		                     sizeof(cmdline_ipaddr_t));
+		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK |
+		        CMDLINE_IPADDR_V4;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
-				     luaL_checkstring(L, 6), &ip_saddr,
-				     sizeof(cmdline_ipaddr_t));
+		                     luaL_checkstring(L, 6), &ip_saddr,
+		                     sizeof(cmdline_ipaddr_t));
 	}
 	sport   = luaL_checkinteger(L, 7);
 	dport   = luaL_checkinteger(L, 8);
@@ -1488,7 +1490,7 @@ pktgen_dst_port(lua_State *L) {
 static int
 pktgen_ip_proto(lua_State *L) {
 	cmdline_portlist_t portlist;
-	const char * ip;
+	const char *ip;
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "ip_proto, wrong number of arguments");
@@ -1499,7 +1501,7 @@ pktgen_ip_proto(lua_State *L) {
 
 	ip = luaL_checkstring(L, 2);
 	foreach_port(portlist.map,
-		     pktgen_set_proto_range(info, ip[0]));
+	             pktgen_set_proto_range(info, ip[0]));
 
 	pktgen_update_display();
 	return 0;
@@ -2625,16 +2627,22 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum) {
 	            inet_mtoa(buff, sizeof(buff), &p->eth_src_addr));
 	if (p->ethType == ETHER_TYPE_IPv4) {
 		setf_string(L, "ip_dst_addr",
-	            inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr.addr.ipv4.s_addr),
-	                       0xFFFFFFFF));
+		            inet_ntop4(buff, sizeof(buff),
+		                       htonl(p->ip_dst_addr.addr.ipv4.s_addr),
+		                       0xFFFFFFFF));
 		setf_string(L, "ip_src_addr",
-	            inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr.addr.ipv4.s_addr),
-	                       p->ip_mask));
+		            inet_ntop4(buff, sizeof(buff),
+		                       htonl(p->ip_dst_addr.addr.ipv4.s_addr),
+		                       p->ip_mask));
 	} else {
 		setf_string(L, "ip_dst_addr",
-	            inet_ntop6(buff, sizeof(buff), p->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8));
+		            inet_ntop6(buff, sizeof(buff),
+		                       p->ip_dst_addr.addr.ipv6.__in6_u.
+		                       __u6_addr8));
 		setf_string(L, "ip_src_addr",
-	            inet_ntop6(buff, sizeof(buff), p->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8));
+		            inet_ntop6(buff, sizeof(buff),
+		                       p->ip_dst_addr.addr.ipv6.__in6_u.
+		                       __u6_addr8));
 	}
 	setf_integer(L, "dport", p->dport);
 	setf_integer(L, "sport", p->sport);
@@ -2814,8 +2822,9 @@ pktgen_recvPkt(lua_State *L) {
 static int
 pktgen_run(lua_State *L) {
 	switch (lua_gettop(L) ) {
-	default: return luaL_error(L,
-		                   "run( ['cmd'|'lua'], <string_or_path>), arguments wrong.");
+	default: return luaL_error(
+		               L,
+		               "run( ['cmd'|'lua'], <string_or_path>), arguments wrong.");
 	case 3:
 		break;
 	}
@@ -2826,9 +2835,9 @@ pktgen_run(lua_State *L) {
 	else if (strcasecmp("lua", luaL_checkstring(L, 1)) == 0)/* Only a Lua script in memory. */
 		execute_lua_string(L, (char *)luaL_checkstring(L, 2));
 	else
-		return luaL_error(L,
-		                  "run( ['cmd'|'lua'], <string>), arguments wrong.");
-
+		return luaL_error(
+		               L,
+		               "run( ['cmd'|'lua'], <string>), arguments wrong.");
 
 	return 0;
 }

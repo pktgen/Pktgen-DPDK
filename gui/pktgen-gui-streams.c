@@ -706,7 +706,7 @@ void
 pktgen_port_stream_apply_callback(void)
 {
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(view));
+	                GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    pktgen_conf_traffic_stream,

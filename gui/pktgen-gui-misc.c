@@ -90,14 +90,13 @@ pktgen_edit_stream(void)
 
 	{
 		GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-		                GTK_TREE_VIEW(view));
+		                GTK_TREE_VIEW(chassis_view));
 
 		no_rows = gtk_tree_selection_count_selected_rows(selection);
 
 		if (no_rows == 0) {
 			GtkWidget *dialog;
-			dialog = gtk_message_dialog_new(GTK_WINDOW(
-			                                        window),
+			dialog = gtk_message_dialog_new(GTK_WINDOW(window),
 			                                GTK_DIALOG_DESTROY_WITH_PARENT,
 			                                GTK_MESSAGE_ERROR,
 			                                GTK_BUTTONS_OK,
@@ -107,8 +106,7 @@ pktgen_edit_stream(void)
 			gtk_widget_destroy(dialog);
 		} else if (no_rows > 1) {
 			GtkWidget *dialog;
-			dialog = gtk_message_dialog_new(GTK_WINDOW(
-			                                        window),
+			dialog = gtk_message_dialog_new(GTK_WINDOW(window),
 			                                GTK_DIALOG_DESTROY_WITH_PARENT,
 			                                GTK_MESSAGE_ERROR,
 			                                GTK_BUTTONS_OK,
@@ -169,10 +167,7 @@ add_entry(GtkTreeStore *tree, GtkTreePath *path)
 
 	if (!check_entry(tree, path)) {
 		if (depth == 1)	/* if this is a child of the root node, use NULL instead of iter */
-			while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(
-			                                                tree),
-			                                        NULL) ==
-			         (index + 1)))
+			while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(tree), NULL) == (index + 1)))
 				gtk_tree_store_append(tree, &iter, NULL);
 		else {
 			GtkTreePath *parent_path;
@@ -184,8 +179,7 @@ add_entry(GtkTreeStore *tree, GtkTreePath *path)
 			if (!check_entry(tree, parent_path))
 				add_entry(tree, parent_path);
 			/* append new nodes up to index-th child of parent */
-			gtk_tree_model_get_iter(GTK_TREE_MODEL(
-			                                tree), &parent,
+			gtk_tree_model_get_iter(GTK_TREE_MODEL(tree), &parent,
 			                        parent_path);
 			while (!(gtk_tree_model_iter_n_children(
 			                 GTK_TREE_MODEL(tree),
@@ -228,7 +222,7 @@ traffic_apply_callback(GtkWidget __attribute__(
 {
 	guint flag = 1;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(view));
+	                GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    pktgen_apply_traffic,
@@ -275,7 +269,7 @@ pktgen_stream_box(void)
 
 	frame = gtk_frame_new("Configuration");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.5, 0.5);
-	gtk_widget_set_size_request(frame, 200, 200);
+	gtk_widget_set_size_request(frame, 220, 200);
 
 	apply_button = gtk_button_new_with_label("Apply");
 	gtk_widget_set_tooltip_text(GTK_WIDGET(apply_button), "Apply");

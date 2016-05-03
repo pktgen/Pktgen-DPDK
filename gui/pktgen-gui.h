@@ -109,7 +109,7 @@ GtkWidget           *hscale;
 gint tx_rate;
 GtkWidget           *notebook;
 
-GtkWidget           *view;
+GtkWidget           *chassis_view;
 
 typedef struct highlight_stats_s {
 	uint64_t __64;		/**< Number of 64 byte packets */
@@ -198,10 +198,11 @@ GtkTreeModel *pktgen_stats_header_fill(gboolean is_static);
 void pktgen_gui_main(int argc, char *argv[]);
 void pktgen_start_gui(void);
 void pktgen_gui_close(void);
-void update_ports_stat(void *arg);
+int update_ports_stat(void *arg);
 void update_ports_static_stat(unsigned int pid);
 GtkWidget *pktgen_show_statistic_data(void);
 GtkWidget *pktgen_show_static_conf(void);
+GtkWidget *pktgen_show_total_data(void/*GtkWidget *frame_horz_stats, GtkWidget *scrolled_window*/);
 
 void start_stop_traffic(GtkTreeModel  *model,
                         GtkTreePath   *path,

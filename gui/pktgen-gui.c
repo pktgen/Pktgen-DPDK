@@ -68,6 +68,32 @@
 #include "pktgen-gui.h"
 #include "pktgen-gui-cfg.h"
 
+#define static_store(p, b) do {                                     \
+        gtk_tree_store_set(treestore_static[(p)],                   \
+                           &toplevel, COL_CHASSIS_PORTS, (b), -1);  \
+    } while((0))
+
+#define chassis_store(t, b) do {                                    \
+        gtk_tree_store_set(treestore_chassis,                       \
+                           &(t), COL_CHASSIS_PORTS, (b), -1);       \
+    } while((0))
+
+#define stats_store(p, v) do {                                      \
+        gtk_tree_store_set(treestore_stats[(p)],                    \
+                           &toplevel, COL_CHASSIS_PORTS, (v), -1);  \
+    } while((0))
+
+#define stats_store_next(p, v) do {                                 \
+        gboolean rc;                                                \
+        stats_store(p, v);                                          \
+        rc = gtk_tree_model_iter_next(model_stats[(p)], &toplevel); \
+        if ((rc == FALSE) && (errno != 11)) {                       \
+            printf("%s: Pid %d - %s Error %s\n",                    \
+                __func__, (p), #v, strerror(errno));                \
+            continue;                                               \
+        }                                                           \
+    } while((0))
+
 GtkTreeModel *
 fill_chassis_info(void)
 {
@@ -82,9 +108,7 @@ fill_chassis_info(void)
 
 	/* Append a second top level row, and fill it with some data */
 	gtk_tree_store_append(treestore_chassis, &toplevel, NULL);
-	gtk_tree_store_set(treestore_chassis, &toplevel,
-	                   COL_CHASSIS_PORTS, "[127.0.0.1]",
-	                   -1);
+    chassis_store(toplevel, "[127.0.0.1]");
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
 		cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
@@ -95,11 +119,7 @@ fill_chassis_info(void)
 
 		/* Append a child to the second top level row, and fill in some data */
 		gtk_tree_store_append(treestore_chassis, &child, &toplevel);
-		gtk_tree_store_set(treestore_chassis,
-		                   &child,
-		                   COL_CHASSIS_PORTS,
-		                   str_port,
-		                   -1);
+        chassis_store(child, str_port);
 	}
 
 	return GTK_TREE_MODEL(treestore_chassis);
@@ -119,11 +139,7 @@ fill_port_info(unsigned int pid, gboolean is_static)
 			gtk_tree_store_append(treestore_static[pid],
 			                      &toplevel,
 			                      NULL);
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   "0",
-			                   -1);
+            static_store(pid, "0");
 		}
 
 		return GTK_TREE_MODEL(treestore_static[pid]);
@@ -135,11 +151,7 @@ fill_port_info(unsigned int pid, gboolean is_static)
 			gtk_tree_store_append(treestore_stats[pid],
 			                      &toplevel,
 			                      NULL);
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   0,
-			                   -1);
+            stats_store(pid, 0);
 		}
 
 		return GTK_TREE_MODEL(treestore_stats[pid]);
@@ -163,179 +175,86 @@ update_ports_static_stat(unsigned int pid)
 	for (i = 0; i < (PKTGEN_GUI_MAX_STATIC); i++) {
 		switch (i) {
 		case 0:
-			g_snprintf(
-			        buf,
-			        sizeof(buf),
-			        "%s",
-			        (info->fill_pattern_type ==
-			         ABC_FILL_PATTERN) ? "abcd..." :
-			        (info->fill_pattern_type ==
-			         NO_FILL_PATTERN) ? "None" :
-			        (info->fill_pattern_type ==
-			         ZERO_FILL_PATTERN) ? "Zero" : info->
-			        user_pattern);
-
-			/* Tx Count, Rate(%), Packet Size, Tx Burst */
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
-
+            /* Tx Count, Rate(%), Packet Size, Tx Burst */
+			g_snprintf(buf, sizeof(buf), "%s",
+			        (info->fill_pattern_type == ABC_FILL_PATTERN) ? "abcd..." :
+			        (info->fill_pattern_type == NO_FILL_PATTERN) ? "None" :
+			        (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" : info-> user_pattern);
 			break;
 
 		case 1:
+            /* Tx Count, Rate(%), Packet Size, Tx Burst */
 			if (rte_atomic64_read(&info->transmit_count) == 0)
 				g_snprintf(buf, sizeof(buf), "%s", "Forever");
 			else
-				g_snprintf(buf,
-				           sizeof(buf),
-				           "%lu",
-				           rte_atomic64_read(&info->
-				                             transmit_count));
-			/* Tx Count, Rate(%), Packet Size, Tx Burst */
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
+				g_snprintf(buf, sizeof(buf), "%lu",
+				           rte_atomic64_read(&info->transmit_count));
 			break;
 
 		case 2:
-
 			g_snprintf(buf, sizeof(buf), "%d", info->tx_rate);
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 
 		case 3:
-
-			g_snprintf(buf, sizeof(buf), "%d",
-			           (pkt->pktSize + FCS_SIZE));
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
+			g_snprintf(buf, sizeof(buf), "%d", (pkt->pktSize + FCS_SIZE));
 			break;
 
 		case 4:
 			g_snprintf(buf, sizeof(buf), "%d", info->tx_burst);
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 
 		case 5:
 			g_snprintf(buf, sizeof(buf), "%d", pkt->sport);
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 
 		case 6:
 			g_snprintf(buf, sizeof(buf), "%d", pkt->dport);
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 		case 7:
-			g_snprintf(
-			        buf,
-			        sizeof(buf),
-			        "%s",
+			g_snprintf( buf, sizeof(buf), "%s",
 			        (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
 			        (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
 			        (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" :
 			        (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
-			        (pkt->ipProto ==
-			         PG_IPPROTO_ICMP) ? "ICMP" : "UDP");
-
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
+			        (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP");
 			break;
 
 		case 8:
 			g_snprintf(buf, sizeof(buf), "%d", pkt->vlanid);
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 
 		case 9:
 			strcpy(buf, inet_ntop4(buf, sizeof(buf),
-			                       htonl(pkt->ip_dst_addr.addr.ipv4
-			                             .s_addr),
+			                       htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 			                       0xFFFFFFFF));
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 
 		case 10:
 			strcpy(buf, inet_ntop4(buf, sizeof(buf),
-			                       htonl(pkt->ip_src_addr.addr.ipv4
-			                             .s_addr),
+			                       htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
 			                       pkt->ip_mask));
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
 			break;
 
 		case 11:
-			strcpy(buf, inet_mtoa(buf, sizeof(buf),
-			                      &pkt->eth_dst_addr));
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
+			strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_dst_addr));
 			break;
 
 		case 12:
-			strcpy(buf, inet_mtoa(buf, sizeof(buf),
-			                      &pkt->eth_src_addr));
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   buf,
-			                   -1);
+			strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_src_addr));
 			break;
 
 		default:
-			gtk_tree_store_set(treestore_static[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   "0",
-			                   -1);
+            strcpy(buf, "0");
+            break;
 		}
+		static_store(pid, buf);
 
-		if (FALSE ==
-		    gtk_tree_model_iter_next(model_static[pid],
-		                             &toplevel))
+		if (!gtk_tree_model_iter_next(model_static[pid], &toplevel))
 			break;
 	}
 }
 
-void
+int
 update_ports_stat(void *arg)
 {
 	GtkWidget *window = (GtkWidget *)arg;
@@ -343,328 +262,97 @@ update_ports_stat(void *arg)
 	port_info_t *info = NULL;
 
 	GtkTreeIter toplevel;
-	GtkTreeIter totToplevel;
 	rxtx_t cnt;
 	eth_stats_t tot_stats = {0};
 
-	if (gui_created == TRUE) {
-		for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-			cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
-			if (cnt.rxtx == 0)
-				continue;
+	if (gui_created == FALSE)
+        return TRUE;
 
-			info = &pktgen.info[pid];
+    for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
+        cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
+        if (cnt.rxtx == 0)
+            continue;
 
-			tot_stats.ipackets += info->rate_stats.ipackets;
-			tot_stats.opackets += info->rate_stats.opackets;
-			tot_stats.ibytes += info->rate_stats.ibytes;
-			tot_stats.obytes += info->rate_stats.obytes;
-			tot_stats.ierrors += info->rate_stats.ierrors;
-			tot_stats.oerrors += info->rate_stats.oerrors;
+        info = &pktgen.info[pid];
 
-			tot_stats.imissed += info->rate_stats.imissed;
+        tot_stats.ipackets  += info->rate_stats.ipackets;
+        tot_stats.opackets  += info->rate_stats.opackets;
+        tot_stats.ibytes    += info->rate_stats.ibytes;
+        tot_stats.obytes    += info->rate_stats.obytes;
+        tot_stats.ierrors   += info->rate_stats.ierrors;
+        tot_stats.oerrors   += info->rate_stats.oerrors;
+
+        tot_stats.imissed   += info->rate_stats.imissed;
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-			tot_stats.ibadcrc += info->rate_stats.ibadcrc;
-			tot_stats.ibadlen += info->rate_stats.ibadlen;
+        tot_stats.ibadcrc   += info->rate_stats.ibadcrc;
+        tot_stats.ibadlen   += info->rate_stats.ibadlen;
 #endif
 #if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-			tot_stats.imcasts += info->rate_stats.imcasts;
+        tot_stats.imcasts   += info->rate_stats.imcasts;
 #endif
-			tot_stats.rx_nombuf += info->rate_stats.rx_nombuf;
+        tot_stats.rx_nombuf += info->rate_stats.rx_nombuf;
 
-			gtk_tree_model_get_iter_first(model_stats[pid],
-			                              &toplevel);
+        gtk_tree_model_get_iter_first(model_stats[pid], &toplevel);
 
-			/* Update Rx/Tx Pkts/s & Mb/s stats value */
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->rate_stats.ipackets,
-			                   -1);
+        stats_store_next(pid, info->rate_stats.ipackets);
+        stats_store_next(pid, info->rate_stats.opackets);
+        stats_store_next(pid, iBitsTotal(info->rate_stats) / Million);
+        stats_store_next(pid, oBitsTotal(info->rate_stats) / Million);
 
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+        /* Packets Sizes */
+        stats_store_next(pid, info->sizes.broadcast);
+        stats_store_next(pid, info->sizes.multicast);
+        stats_store_next(pid, info->sizes._64);
+        stats_store_next(pid, info->sizes._65_127);
+        stats_store_next(pid, info->sizes._128_255);
+        stats_store_next(pid, info->sizes._256_511);
+        stats_store_next(pid, info->sizes._512_1023);
+        stats_store_next(pid, info->sizes._1024_1518);
 
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->rate_stats.opackets,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+        /* Runt & Jumbo pkts */
+        stats_store_next(pid, info->sizes.runt);
+        stats_store_next(pid, info->sizes.jumbo);
 
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   iBitsTotal(
-			                           info->rate_stats) / Million,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+        /* Rx/Tx Errors */
+        stats_store_next(pid, info->port_stats.ierrors);
+        stats_store_next(pid, info->port_stats.oerrors);
 
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   oBitsTotal(
-			                           info->rate_stats) / Million,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+        /* Total Rx/Tx  packets */
+        stats_store_next(pid, info->port_stats.ipackets);
+        stats_store_next(pid, info->port_stats.opackets);
 
-			/* Packets Sizes */
-			prev_stats_val[pid].__broadcast = info->sizes.broadcast;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes.broadcast,
-			                   -1);
+        /* Total Rx/Tx mbits */
+        stats_store_next(pid, iBitsTotal(info->port_stats) / Million);
+        stats_store_next(pid, oBitsTotal(info->port_stats) / Million);
 
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+        /* ARP & ICMP Pkts */
+        stats_store_next(pid, info->stats.arp_pkts);
+        stats_store_next(pid, info->stats.echo_pkts);
 
-			prev_stats_val[pid].__multicast = info->sizes.multicast;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes.multicast,
-			                   -1);
+        prev_stats_val[pid].__broadcast = info->sizes.broadcast;
+        prev_stats_val[pid].__multicast = info->sizes.multicast;
+        prev_stats_val[pid].__64        = info->sizes._64;
+        prev_stats_val[pid].__65_127    = info->sizes._65_127;
+        prev_stats_val[pid].__128_255   = info->sizes._128_255;
+        prev_stats_val[pid].__256_511   = info->sizes._256_511;
+        prev_stats_val[pid].__512_1023  = info->sizes._512_1023;
+        prev_stats_val[pid].__1024_1518 = info->sizes._1024_1518;
+        prev_stats_val[pid].__ierrors   = info->port_stats.ierrors;
+        prev_stats_val[pid].__oerrors   = info->port_stats.oerrors;
+    }
 
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+    gtk_tree_model_get_iter_first(model_stats[pktgen.ending_port], &toplevel);
 
-			prev_stats_val[pid].__64 = info->sizes._64;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes._64,
-			                   -1);
+    stats_store_next(pktgen.ending_port, tot_stats.ipackets);
+    stats_store_next(pktgen.ending_port, tot_stats.opackets);
 
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+    stats_store_next(pktgen.ending_port, iBitsTotal(tot_stats) / Million);
+    stats_store_next(pktgen.ending_port, oBitsTotal(tot_stats) / Million);
 
-			prev_stats_val[pid].__65_127 = info->sizes._65_127;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes._65_127,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
+    gtk_widget_queue_draw(GTK_WIDGET(window));
+    gtk_widget_show_all(window);
 
-			prev_stats_val[pid].__128_255 = info->sizes._128_255;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes._128_255,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			prev_stats_val[pid].__256_511 = info->sizes._256_511;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes._256_511,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			prev_stats_val[pid].__512_1023 = info->sizes._512_1023;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes._512_1023,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			prev_stats_val[pid].__1024_1518 =
-			        info->sizes._1024_1518;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes._1024_1518,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			/* Runt & Jumbo pkts */
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes.runt,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->sizes.jumbo,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			/* Rx/Tx Errors */
-			prev_stats_val[pid].__ierrors =
-			        info->port_stats.ierrors;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->port_stats.ierrors,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			prev_stats_val[pid].__oerrors =
-			        info->port_stats.oerrors;
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->port_stats.oerrors,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			/* Total Rx/Tx  packets */
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->port_stats.ipackets,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->port_stats.opackets,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			/* Total Rx/Tx mbits */
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   iBitsTotal(
-			                           info->port_stats) / Million,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   oBitsTotal(
-			                           info->port_stats) / Million,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			/* ARP & ICMP Pkts */
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->stats.arp_pkts,
-			                   -1);
-			if (FALSE ==
-			    gtk_tree_model_iter_next(model_stats[pid],
-			                             &toplevel))
-				goto _exit;
-
-			gtk_tree_store_set(treestore_stats[pid],
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   info->stats.echo_pkts,
-			                   -1);
-_exit:
-			continue;
-		}
-
-		gtk_tree_model_get_iter_first(model_stats[pktgen.ending_port],
-		                              &totToplevel);
-
-		gtk_tree_store_set(treestore_stats[pktgen.ending_port],
-		                   &totToplevel,
-		                   COL_CHASSIS_PORTS,
-		                   tot_stats.ipackets,
-		                   -1);
-		if (FALSE ==
-		    gtk_tree_model_iter_next(model_stats[pktgen.ending_port],
-		                             &totToplevel))
-			goto _exit_1;
-
-		gtk_tree_store_set(treestore_stats[pktgen.ending_port],
-		                   &totToplevel,
-		                   COL_CHASSIS_PORTS,
-		                   tot_stats.opackets,
-		                   -1);
-		if (FALSE ==
-		    gtk_tree_model_iter_next(model_stats[pktgen.ending_port],
-		                             &totToplevel))
-			goto _exit_1;
-
-		gtk_tree_store_set(treestore_stats[pktgen.ending_port],
-		                   &totToplevel,
-		                   COL_CHASSIS_PORTS,
-		                   iBitsTotal(tot_stats) / Million,
-		                   -1);
-		if (FALSE ==
-		    gtk_tree_model_iter_next(model_stats[pktgen.ending_port],
-		                             &totToplevel))
-			goto _exit_1;
-
-		gtk_tree_store_set(treestore_stats[pktgen.ending_port],
-		                   &totToplevel,
-		                   COL_CHASSIS_PORTS,
-		                   oBitsTotal(tot_stats) / Million,
-		                   -1);
-
-_exit_1:
-		gtk_widget_queue_draw(GTK_WIDGET(window));
-		gtk_widget_show_all(window);
-	}
+    return TRUE;
 }
 
 void
@@ -703,20 +391,15 @@ about_dialog(void)
 
 	GtkWidget *about_dialog = gtk_about_dialog_new();
 
-	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(
-	                                  about_dialog), PKTGEN_APP_NAME);
-	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(
-	                                     about_dialog), PKTGEN_VERSION);
-	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(
-	                                       about_dialog), COPYRIGHT_MSG);
-	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(
-	                                      about_dialog), POWERED_BY_DPDK);
-	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(
-	                                     about_dialog), "http://dpdk.org");
-	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(
-	                                     about_dialog), intel_copyright);
+	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_APP_NAME);
+	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_VERSION);
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_dialog), COPYRIGHT_MSG);
+	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), POWERED_BY_DPDK);
+	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), "http://dpdk.org");
+	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(about_dialog), intel_copyright);
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), authors);
 	gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(about_dialog), pixbuf);
+
 	g_object_unref(pixbuf), pixbuf = NULL;
 	gtk_dialog_run(GTK_DIALOG(about_dialog));
 	gtk_widget_destroy(about_dialog);
@@ -735,9 +418,9 @@ traffic_start_callback(GtkWidget __attribute__(
                                (unused)) *w, gpointer __attribute__(
                                (unused)) data)
 {
-	guint flag = 1;
+    guint flag = 1;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(view));
+	                GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    start_stop_traffic,
@@ -751,7 +434,7 @@ traffic_stop_callback(GtkWidget __attribute__(
 {
 	guint flag = 2;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(view));
+	                GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    start_stop_traffic,
@@ -789,7 +472,7 @@ capture_start_callback(GtkWidget __attribute__(
 {
 	guint flag = 1;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(view));
+	                GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    start_stop_capture,
@@ -803,7 +486,7 @@ capture_stop_callback(GtkWidget __attribute__(
 {
 	guint flag = 2;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(view));
+	                GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    start_stop_capture,
@@ -821,14 +504,13 @@ about_callback(GtkWidget __attribute__(
 GtkWidget *
 chassis_tree_view(void)
 {
-	/* GtkWidget           *view; */
 	GtkTreeViewColumn   *col;
 	GtkCellRenderer     *renderer;
 	GtkTreeModel        *model;
 
 	GtkTreeSelection    *chassis_selection;
 
-	view = gtk_tree_view_new();
+	chassis_view = gtk_tree_view_new();
 
 	col = gtk_tree_view_column_new();
 
@@ -836,7 +518,7 @@ chassis_tree_view(void)
 	gtk_tree_view_column_set_expand(col, TRUE);
 
 	/* pack tree view column into tree view */
-	gtk_tree_view_append_column(GTK_TREE_VIEW(view), col);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(chassis_view), col);
 
 	renderer = gtk_cell_renderer_text_new();
 
@@ -845,24 +527,20 @@ chassis_tree_view(void)
 
 	/* connect 'text' property of the cell renderer to
 	 *  model column that contains the first name */
-	gtk_tree_view_column_add_attribute(col,
-	                                   renderer,
-	                                   "text",
-	                                   COL_CHASSIS_PORTS);
+	gtk_tree_view_column_add_attribute(col, renderer, "text", COL_CHASSIS_PORTS);
 
-	gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(view),
-	                             GTK_TREE_VIEW_GRID_LINES_BOTH);
+	gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(chassis_view), GTK_TREE_VIEW_GRID_LINES_BOTH);
 
 	model = fill_chassis_info();
-	gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(chassis_view), model);
 	g_object_unref(model);
 
-	gtk_tree_view_expand_all(GTK_TREE_VIEW(view));
+	gtk_tree_view_expand_all(GTK_TREE_VIEW(chassis_view));
 
-	chassis_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
+	chassis_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(chassis_view));
 	gtk_tree_selection_set_mode(chassis_selection, GTK_SELECTION_MULTIPLE);
 
-	return view;
+	return chassis_view;
 }
 
 GtkWidget *
@@ -879,14 +557,10 @@ port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
 
 	if (is_static == TRUE) {
 		view_static[port_id] = gtk_tree_view_new();
-		gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view_static[
-		                                                        port_id
-		                                                ]), TRUE);
+		gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view_static[port_id]), TRUE);
 	} else {
 		view_stats[port_id] = gtk_tree_view_new();
-		gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view_stats[
-		                                                        port_id
-		                                                ]), TRUE);
+		gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view_stats[port_id]), TRUE);
 	}
 
 	col_stats = gtk_tree_view_column_new();
@@ -900,14 +574,10 @@ port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
 
 	if (is_static == TRUE)
 		/* pack tree view column into tree view */
-		gtk_tree_view_append_column(GTK_TREE_VIEW(
-		                                    view_static[port_id]),
-		                            col_stats);
+		gtk_tree_view_append_column(GTK_TREE_VIEW(view_static[port_id]),col_stats);
 	else
 		/* pack tree view column into tree view */
-		gtk_tree_view_append_column(GTK_TREE_VIEW(
-		                                    view_stats[port_id]),
-		                            col_stats);
+		gtk_tree_view_append_column(GTK_TREE_VIEW(view_stats[port_id]),col_stats);
 
 	renderer_stats = gtk_cell_renderer_text_new();
 
@@ -916,25 +586,17 @@ port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
 
 	/* connect 'text' property of the cell renderer to
 	 *  model column that contains the first name */
-	gtk_tree_view_column_add_attribute(col_stats,
-	                                   renderer_stats,
-	                                   "text",
-	                                   COL_CHASSIS_PORTS);
+	gtk_tree_view_column_add_attribute(col_stats, renderer_stats, "text", COL_CHASSIS_PORTS);
 
 	if (is_static == TRUE) {
-		gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(
-		                                     view_static[port_id]),
-		                             GTK_TREE_VIEW_GRID_LINES_BOTH);
+		gtk_tree_view_set_grid_lines(GTK_TREE_VIEW( view_static[port_id]), GTK_TREE_VIEW_GRID_LINES_BOTH);
 		model_static[port_id] = fill_port_info(port_id, TRUE);
-		gtk_tree_view_set_model(GTK_TREE_VIEW(view_static[port_id]),
-		                        model_static[port_id]);
+		gtk_tree_view_set_model(GTK_TREE_VIEW(view_static[port_id]), model_static[port_id]);
 		return view_static[port_id];
 	} else {
-		gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(view_stats[port_id]),
-		                             GTK_TREE_VIEW_GRID_LINES_BOTH);
+		gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(view_stats[port_id]), GTK_TREE_VIEW_GRID_LINES_BOTH);
 		model_stats[port_id] = fill_port_info(port_id, FALSE);
-		gtk_tree_view_set_model(GTK_TREE_VIEW(view_stats[port_id]),
-		                        model_stats[port_id]);
+		gtk_tree_view_set_model(GTK_TREE_VIEW(view_stats[port_id]), model_stats[port_id]);
 		return view_stats[port_id];
 	}
 }
@@ -955,19 +617,13 @@ button_box(GtkWidget __attribute__(
 	g_object_set(default_settings, "gtk-button-images", TRUE, NULL);
 
 	buttonImageStr = gtk_image_new();
-	gtk_image_set_from_file(GTK_IMAGE(
-	                                buttonImageStr),
-	                        "gui/icons/traffic_start.png");
+	gtk_image_set_from_file(GTK_IMAGE(buttonImageStr), "gui/icons/traffic_start.png");
 
 	traffic_start_button = gtk_button_new();
-	gtk_widget_set_tooltip_text(GTK_WIDGET(
-	                                    traffic_start_button),
-	                            "Start Traffic");
-	gtk_button_set_relief((GtkButton *)traffic_start_button,
-	                      GTK_RELIEF_NONE);
+	gtk_widget_set_tooltip_text(GTK_WIDGET(traffic_start_button), "Start Traffic");
+	gtk_button_set_relief((GtkButton *)traffic_start_button, GTK_RELIEF_NONE);
 	gtk_button_set_image((GtkButton *)traffic_start_button, buttonImageStr);
-	gtk_button_set_image_position((GtkButton *)traffic_start_button,
-	                              GTK_POS_RIGHT);
+	gtk_button_set_image_position((GtkButton *)traffic_start_button, GTK_POS_RIGHT);
 
 	frame = gtk_frame_new(title);
 	bbox = gtk_vbutton_box_new();
@@ -977,84 +633,61 @@ button_box(GtkWidget __attribute__(
 	gtk_container_set_border_width(GTK_CONTAINER(traffic_start_button), 5);
 	gtk_container_add(GTK_CONTAINER(bbox), traffic_start_button);
 
-	g_signal_connect(GTK_OBJECT(traffic_start_button),
-	                 "clicked",
-	                 GTK_SIGNAL_FUNC(traffic_start_callback),
-	                 NULL);
+	g_signal_connect(GTK_OBJECT(traffic_start_button), "clicked",
+	                 GTK_SIGNAL_FUNC(traffic_start_callback), NULL);
 
 	traffic_stop_button = gtk_button_new();
-	gtk_widget_set_tooltip_text(GTK_WIDGET(
-	                                    traffic_stop_button),
-	                            "Stop Traffic");
+	gtk_widget_set_tooltip_text(GTK_WIDGET(traffic_stop_button), "Stop Traffic");
 
 	buttonImageStp = gtk_image_new();
-	gtk_image_set_from_file(GTK_IMAGE(
-	                                buttonImageStp),
-	                        "gui/icons/traffic_stop.png");
+	gtk_image_set_from_file(GTK_IMAGE(buttonImageStp), "gui/icons/traffic_stop.png");
 	gtk_button_set_relief((GtkButton *)traffic_stop_button, GTK_RELIEF_NONE);
 	gtk_button_set_image((GtkButton *)traffic_stop_button, buttonImageStp);
-	gtk_button_set_image_position((GtkButton *)traffic_stop_button,
-	                              GTK_POS_RIGHT);
+	gtk_button_set_image_position((GtkButton *)traffic_stop_button, GTK_POS_RIGHT);
 
 	gtk_container_set_border_width(GTK_CONTAINER(traffic_stop_button), 5);
 	gtk_container_add(GTK_CONTAINER(bbox), traffic_stop_button);
 
-	g_signal_connect(GTK_OBJECT(traffic_stop_button),
-	                 "clicked",
-	                 GTK_SIGNAL_FUNC(traffic_stop_callback),
-	                 NULL);
+	g_signal_connect(GTK_OBJECT(traffic_stop_button), "clicked",
+	                 GTK_SIGNAL_FUNC(traffic_stop_callback), NULL);
 
 	capture_start_button = gtk_button_new();
-	gtk_widget_set_tooltip_text(GTK_WIDGET(
-	                                    capture_start_button),
-	                            "Start Capture");
+	gtk_widget_set_tooltip_text(GTK_WIDGET(capture_start_button), "Start Capture");
 
 	buttonImageCapStr = gtk_image_new();
 	gtk_image_set_from_file(GTK_IMAGE(buttonImageCapStr),
 	                        "gui/icons/capture_start.png");
-	gtk_button_set_relief((GtkButton *)capture_start_button,
-	                      GTK_RELIEF_NONE);
-	gtk_button_set_image((GtkButton *)capture_start_button,
-	                     buttonImageCapStr);
-	gtk_button_set_image_position((GtkButton *)capture_start_button,
-	                              GTK_POS_LEFT);
+	gtk_button_set_relief((GtkButton *)capture_start_button, GTK_RELIEF_NONE);
+	gtk_button_set_image((GtkButton *)capture_start_button, buttonImageCapStr);
+	gtk_button_set_image_position((GtkButton *)capture_start_button, GTK_POS_LEFT);
 
 	gtk_container_set_border_width(GTK_CONTAINER(capture_start_button), 5);
 	gtk_container_add(GTK_CONTAINER(bbox), capture_start_button);
 
-	g_signal_connect(GTK_OBJECT(capture_start_button),
-	                 "clicked",
-	                 GTK_SIGNAL_FUNC(capture_start_callback),
-	                 NULL);
+	g_signal_connect(GTK_OBJECT(capture_start_button), "clicked",
+	                 GTK_SIGNAL_FUNC(capture_start_callback), NULL);
 
 	capture_stop_button = gtk_button_new();
-	gtk_widget_set_tooltip_text(GTK_WIDGET(
-	                                    capture_stop_button),
-	                            "Stop Capture");
+	gtk_widget_set_tooltip_text(GTK_WIDGET(capture_stop_button), "Stop Capture");
 
 	buttonImageCapStp = gtk_image_new();
 	gtk_image_set_from_file(GTK_IMAGE(buttonImageCapStp),
 	                        "gui/icons/capture_stop.png");
 	gtk_button_set_relief((GtkButton *)capture_stop_button, GTK_RELIEF_NONE);
-	gtk_button_set_image((GtkButton *)capture_stop_button,
-	                     buttonImageCapStp);
-	gtk_button_set_image_position((GtkButton *)capture_stop_button,
-	                              GTK_POS_RIGHT);
+	gtk_button_set_image((GtkButton *)capture_stop_button, buttonImageCapStp);
+	gtk_button_set_image_position((GtkButton *)capture_stop_button, GTK_POS_RIGHT);
 
 	gtk_container_set_border_width(GTK_CONTAINER(capture_stop_button), 5);
 	gtk_container_add(GTK_CONTAINER(bbox), capture_stop_button);
 
-	g_signal_connect(GTK_OBJECT(capture_stop_button),
-	                 "clicked",
-	                 GTK_SIGNAL_FUNC(capture_stop_callback),
-	                 NULL);
+	g_signal_connect(GTK_OBJECT(capture_stop_button), "clicked",
+	                 GTK_SIGNAL_FUNC(capture_stop_callback), NULL);
 
 	about_button = gtk_button_new();
 	gtk_widget_set_tooltip_text(GTK_WIDGET(about_button), "About");
 
 	buttonImageAbt = gtk_image_new();
-	gtk_image_set_from_file(GTK_IMAGE(
-	                                buttonImageAbt), "gui/icons/about.png");
+	gtk_image_set_from_file(GTK_IMAGE(buttonImageAbt), "gui/icons/about.png");
 	gtk_button_set_relief((GtkButton *)about_button, GTK_RELIEF_NONE);
 	gtk_button_set_image((GtkButton *)about_button, buttonImageAbt);
 	gtk_button_set_image_position((GtkButton *)about_button, GTK_POS_RIGHT);
@@ -1062,10 +695,8 @@ button_box(GtkWidget __attribute__(
 	gtk_container_set_border_width(GTK_CONTAINER(about_button), 5);
 	gtk_container_add(GTK_CONTAINER(bbox), about_button);
 
-	g_signal_connect(GTK_OBJECT(about_button),
-	                 "clicked",
-	                 GTK_SIGNAL_FUNC(about_callback),
-	                 NULL);
+	g_signal_connect(GTK_OBJECT(about_button), "clicked",
+	                 GTK_SIGNAL_FUNC(about_callback), NULL);
 
 	/* Set the appearance of the Button Box */
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(bbox), layout);
@@ -1114,9 +745,9 @@ create_chassis(void)
 
 	gtk_widget_set_size_request(frame, 300, 200);
 
-	view = chassis_tree_view();
+	chassis_view = chassis_tree_view();
 
-	gtk_container_add(GTK_CONTAINER(frame), view);
+	gtk_container_add(GTK_CONTAINER(frame), chassis_view);
 
 	return frame;
 }
@@ -1143,11 +774,8 @@ pktgen_console_box(const char *title)
 	gtk_container_add(GTK_CONTAINER(scrolledwindow), textArea);
 	gtk_table_set_homogeneous(GTK_TABLE(console), FALSE);
 
-	gtk_table_attach_defaults(GTK_TABLE(
-	                                  console), scrolledwindow, 0, 1, 0, 1);
-	gtk_table_attach(GTK_TABLE(
-	                         console), textEntry, 0, 1, 1, 2, GTK_FILL,
-	                 GTK_FILL, 0, 0);
+	gtk_table_attach_defaults(GTK_TABLE(console), scrolledwindow, 0, 1, 0, 1);
+	gtk_table_attach(GTK_TABLE(console), textEntry, 0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
 
 	gtk_text_buffer_get_iter_at_offset(buffer, &buffer_iter, 0);
 	gtk_entry_set_max_length(GTK_ENTRY(textEntry), 250);
@@ -1172,27 +800,19 @@ pktgen_stats_header_fill(gboolean is_static)
 	if (is_static == TRUE)
 		for (i = 0; i < PKTGEN_GUI_MAX_STATIC; i++) {
 			/* Append a top level row, and fill it with some data */
-			gtk_tree_store_append(stats_label_treestore,
-			                      &toplevel,
-			                      NULL);
+			gtk_tree_store_append(stats_label_treestore, &toplevel, NULL);
 			gtk_tree_store_set(stats_label_treestore,
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   pktgen_static_fields[i],
-			                   -1);
+			                   &toplevel, COL_CHASSIS_PORTS,
+			                   pktgen_static_fields[i], -1);
 		}
 
 	else
 		for (i = 0; i < PKTGEN_GUI_MAX_STATS; i++) {
 			/* Append a top level row, and fill it with some data */
-			gtk_tree_store_append(stats_label_treestore,
-			                      &toplevel,
-			                      NULL);
+			gtk_tree_store_append(stats_label_treestore, &toplevel, NULL);
 			gtk_tree_store_set(stats_label_treestore,
-			                   &toplevel,
-			                   COL_CHASSIS_PORTS,
-			                   pktgen_stats_fields[i],
-			                   -1);
+			                   &toplevel, COL_CHASSIS_PORTS,
+			                   pktgen_stats_fields[i], -1);
 		}
 
 	return GTK_TREE_MODEL(stats_label_treestore);
@@ -1220,15 +840,13 @@ pktgen_stats_header_tree_view(gboolean is_static)
 
 	gtk_tree_view_column_set_alignment(stats_label_col, 0.5);
 
-	gtk_tree_view_column_set_sizing(GTK_TREE_VIEW_COLUMN(
-	                                        stats_label_col),
+	gtk_tree_view_column_set_sizing(GTK_TREE_VIEW_COLUMN(stats_label_col),
 	                                GTK_TREE_VIEW_COLUMN_FIXED);
 	gtk_tree_view_column_set_min_width(stats_label_col, 200);
 	gtk_tree_view_column_set_max_width(stats_label_col, 200);
 
 	gtk_tree_view_column_set_fixed_width(stats_label_col, 200);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(
-	                                    stats_label_view), stats_label_col);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(stats_label_view), stats_label_col);
 
 	stats_label_renderer = gtk_cell_renderer_text_new();
 
@@ -1304,8 +922,7 @@ pktgen_show_static_conf(void)
 	gtk_table_set_row_spacings(GTK_TABLE(table), 5);
 	gtk_table_set_col_spacings(GTK_TABLE(table), 5);
 
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(
-	                                              scrolled_window), table);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), table);
 	gtk_widget_show(table);
 
 	/* Create a column of statistics label on the first column of table */
@@ -1363,15 +980,12 @@ pktgen_show_statistic_data(void)
 	gtk_table_set_row_spacings(GTK_TABLE(table), 5);
 	gtk_table_set_col_spacings(GTK_TABLE(table), 5);
 
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(
-	                                              scrolled_window), table);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), table);
 	gtk_widget_show(table);
 
 	/* Create a column of statistics label on the first column of table */
-	gtk_table_attach_defaults(GTK_TABLE(
-	                                  table),
-	                          pktgen_stats_header_tree_view(
-	                                  FALSE), 0, 1, 0, 1);
+	gtk_table_attach_defaults(GTK_TABLE(table),
+	                          pktgen_stats_header_tree_view(FALSE), 0, 1, 0, 1);
 
 	/* Create columns of statistics for selected ports on the table */
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
@@ -1383,14 +997,12 @@ pktgen_show_statistic_data(void)
 		                          port_tree_view(pid, "Port", FALSE),
 		                          (pid + 1), (pid + 2), 0, 1);
 	}
-
-	/* Create a column of total statistics on the last column of table */
-	gtk_table_attach_defaults(GTK_TABLE(table),
-	                          port_tree_view(pktgen.ending_port,
-	                                         "Total Rate", FALSE),
-	                          (pktgen.ending_port + 1),
-	                          (pktgen.ending_port + 2), 0, 1);
-
+    /* Create a column of total statistics on the last column of table */
+    gtk_table_attach_defaults(GTK_TABLE(table),
+                              port_tree_view(pktgen.ending_port,
+                                             "Total Rate", FALSE),
+                              (pktgen.ending_port + 1),
+                              (pktgen.ending_port + 2), 0, 1);
 	return frame_horz_stats;
 }
 
@@ -1430,9 +1042,8 @@ pktgen_start_gui(void)
 	gtk_box_pack_start(GTK_BOX(hbox), create_chassis(), FALSE, TRUE, 0);
 
 	gtk_box_pack_start(GTK_BOX(hbox),
-	                   button_box(view, "Traffic",
-	                              GTK_BUTTONBOX_CENTER),
-	                   FALSE, FALSE, 5);
+	                   button_box(chassis_view, "Traffic", GTK_BUTTONBOX_CENTER),
+                       FALSE, FALSE, 5);
 
 	gtk_box_pack_start(GTK_BOX(hbox), pktgen_stream_box(), FALSE, TRUE, 0);
 
@@ -1445,7 +1056,7 @@ pktgen_start_gui(void)
 	gtk_box_pack_start(GTK_BOX(vbox),
 	                   pktgen_show_statistic_data(), TRUE, TRUE, 10);
 
-	gtk_container_set_border_width(GTK_CONTAINER(hbox), 10);
+    gtk_container_set_border_width(GTK_CONTAINER(hbox), 10);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
 	gtk_widget_show_all(window);

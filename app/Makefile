@@ -40,10 +40,18 @@ RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-LUA_DIR = lua
-
 # binary name
 APP = pktgen
+
+CFLAGS_commands.o := -Wno-format-nonliteral
+CFLAGS_pktgen-log.o := -Wno-format-nonliteral
+
+CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
+CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
+CFLAGS += -I$(RTE_SRCDIR)/../lib/lua/src
+
+DEP_pktgen := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/liblua.a
+DEP_pktgen += $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/libcommon.a
 
 # all source are stored in SRCS-y
 SRCS-y := \
@@ -54,6 +62,9 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c
 
+MYLIBS := -L$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET) \
+		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
+
 # GUI support is a work in progress
 ifeq ($(GUI),true)
 CFLAGS += -DGUI
@@ -62,24 +73,14 @@ GTK_INCLUDE := $(shell pkg-config --cflags glib-2.0)
 GTK_INCLUDE += $(shell pkg-config --cflags gtk+-2.0)
 
 GTK_LIB = -L/usr/lib64/gtk-2.0/ -lgtk-x11-2.0 -lgdk-x11-2.0 -lpangocairo-1.0 -latk-1.0 -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -lfreetype
-endif
 
-MYLIBS := -L$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src/lib/$(LUA_DIR)/src/$(RTE_TARGET) \
-		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
-
-ifeq ($(GUI),true)
 MYLIBS += -L$(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib -lgui
+DEP_pktgen += $(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib/libgui.a
+DEPDIRS-y += ../gui
 endif
-
-CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
-CFLAGS += -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
 
 LDFLAGS += -g -lpcap $(MYLIBS) $(GTK_LIB)
 
-CFLAGS_commands.o := -Wno-format-nonliteral
-CFLAGS_pktgen-log.o := -Wno-format-nonliteral
-
-DEPDIRS-y += ../lib/common ../lib/$(LUA_DIR)
+DEPDIRS-y += ../lib/common ../lib/lua
 
 include $(RTE_SDK)/mk/rte.extapp.mk

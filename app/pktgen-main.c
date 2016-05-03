@@ -491,6 +491,7 @@ main(int argc, char **argv)
 		                pktgen.hostname,
 		                pktgen.socket_port);
 #ifdef GUI
+printf("%s: Here\n", __func__);
         pktgen_gui_main(argc, argv);
 #endif
 	}

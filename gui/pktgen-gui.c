@@ -94,6 +94,22 @@
 		}                                                           \
 } while ((0))
 
+#define stats_tot_store(p, v) do {                                  \
+		gtk_tree_store_set(treestore_stats[(p)],                    \
+		                  &totToplevel, COL_CHASSIS_PORTS, (v), -1);\
+} while ((0))
+
+#define stats_tot_store_next(p, v) do {                             \
+		gboolean rc;                                                \
+		stats_tot_store(p, v);                                      \
+		rc = gtk_tree_model_iter_next(model_stats[(p)], &totToplevel); \
+		if ((rc == FALSE) && (errno != 11)) {                       \
+			printf("%s: Pid %d - %s Error %s\n",                    \
+			       __func__, (p), # v, strerror(errno));            \
+			continue;                                               \
+		}                                                           \
+} while ((0))
+
 GtkTreeModel *
 fill_chassis_info(void)
 {
@@ -233,13 +249,11 @@ update_ports_static_stat(unsigned int pid)
 			break;
 
 		case 11:
-			strcpy(buf,
-			       inet_mtoa(buf, sizeof(buf), &pkt->eth_dst_addr));
+			strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_dst_addr));
 			break;
 
 		case 12:
-			strcpy(buf,
-			       inet_mtoa(buf, sizeof(buf), &pkt->eth_src_addr));
+			strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_src_addr));
 			break;
 
 		default:
@@ -261,6 +275,7 @@ update_ports_stat(void *arg)
 	port_info_t *info = NULL;
 
 	GtkTreeIter toplevel;
+	GtkTreeIter totToplevel;
 	rxtx_t cnt;
 	eth_stats_t tot_stats = {0};
 
@@ -341,13 +356,13 @@ update_ports_stat(void *arg)
 	}
 
 	gtk_tree_model_get_iter_first(model_stats[pktgen.ending_port],
-	                              &toplevel);
+	                              &totToplevel);
 
-	stats_store_next(pktgen.ending_port, tot_stats.ipackets);
-	stats_store_next(pktgen.ending_port, tot_stats.opackets);
+	stats_tot_store_next(pktgen.ending_port, tot_stats.ipackets);
+	stats_tot_store_next(pktgen.ending_port, tot_stats.opackets);
 
-	stats_store_next(pktgen.ending_port, iBitsTotal(tot_stats) / Million);
-	stats_store_next(pktgen.ending_port, oBitsTotal(tot_stats) / Million);
+	stats_tot_store_next(pktgen.ending_port, iBitsTotal(tot_stats) / Million);
+	stats_tot_store_next(pktgen.ending_port, oBitsTotal(tot_stats) / Million);
 
 	gtk_widget_queue_draw(GTK_WIDGET(window));
 	gtk_widget_show_all(window);
@@ -968,8 +983,10 @@ pktgen_show_statistic_data(void)
 {
 	GtkWidget *frame_horz_stats;
 	GtkWidget *scrolled_window;
+	GtkWidget *scrolled_tot_window;
 	GtkWidget *table;
 	GtkWidget *hbox_stats;
+	GtkWidget *hbox_tot_stats;
 	uint32_t pid;
 	rxtx_t cnt;
 
@@ -981,14 +998,27 @@ pktgen_show_statistic_data(void)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 	                               GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
+
+	scrolled_tot_window = gtk_scrolled_window_new(NULL, NULL);
+	gtk_container_set_border_width(GTK_CONTAINER(scrolled_tot_window), 10);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_tot_window),
+	                               GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+
+
+
 	frame_horz_stats = gtk_frame_new("Statistics");
 	gtk_widget_set_size_request(frame_horz_stats, -1, 400);
 
 	hbox_stats = gtk_hbox_new(FALSE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(hbox_stats), 10);
 
+	hbox_tot_stats = gtk_hbox_new(FALSE, 0);
+
 	gtk_box_pack_start(GTK_BOX(hbox_stats), scrolled_window, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox_stats), scrolled_tot_window, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(frame_horz_stats), hbox_stats);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_tot_window), hbox_tot_stats);
 
 	/* create a table of 1 by 10 squares. */
 	table = gtk_table_new(1, (pktgen.ending_port + 1), FALSE);
@@ -1014,11 +1044,12 @@ pktgen_show_statistic_data(void)
 		                          port_tree_view(pid, "Port", FALSE),
 		                          (pid + 1), (pid + 2), 0, 1);
 	}
+
 	/* Create a column of total statistics on the last column of table */
-	gtk_table_attach_defaults(GTK_TABLE(table),
-	                          port_tree_view(pktgen.ending_port,"Total Rate", FALSE),
-	                          (pktgen.ending_port + 1),
-	                          (pktgen.ending_port + 2), 0, 1);
+	gtk_box_pack_start(GTK_BOX(hbox_tot_stats),
+	                          port_tree_view(pktgen.ending_port,
+	                                         "Total Rate", FALSE), FALSE, TRUE, 0);
+
 	return frame_horz_stats;
 }
 

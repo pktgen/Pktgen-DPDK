@@ -410,7 +410,7 @@ about_dialog(void)
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_dialog), COPYRIGHT_MSG);
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), POWERED_BY_DPDK);
-	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), "http://dpdk.org");
+	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), "http://dpdk.org/browse/apps/pktgen-dpdk");
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(about_dialog), intel_copyright);
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), authors);
 	gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(about_dialog), pixbuf);

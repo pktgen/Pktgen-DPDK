@@ -153,7 +153,7 @@ const gchar *authors[] = {"Created by:\n"
 	                  "GUI Designed by:\n"
 	                  "Abhinandan Gujjar S(abhinandan.gujjar@intel.com)"};
 
-#define GUI_VERSION         " Version 0.2.0 "
+#define GUI_VERSION         " Version 0.3.0 "
 #define COPYRIGHT_MSG \
         "Copyright (c) <2010-2016>, Wind River Systems, Inc. All rights reserved."
 #define POWERED_BY_DPDK     "GUI" GUI_VERSION "\n Powered by Intel® DPDK"

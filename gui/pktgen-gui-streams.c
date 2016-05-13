@@ -105,6 +105,21 @@ const char *pktgen_tcp_fields[] =
 
 extern GtkWidget    *stream_window;
 static GArray       *packet_info = NULL;
+GtkWidget           *stream_l2_vlan;
+GtkWidget           *pktsize_entry;
+GtkWidget           *ip_proto_entry;
+unsigned int 	     size;
+gpointer	     udp_reference;
+GtkWidget 	    *udp_treeview;
+GtkWidget 	    *udp_sw;
+
+gpointer	     usr_def_reference;
+GtkWidget 	    *l4_text_view;
+GtkTextBuffer 	    *l4_buffer;
+
+GtkTextBuffer 	     *buffer;
+
+
 
 void
 fill_proto_field_info(proto_type type, unsigned int pid)
@@ -146,10 +161,26 @@ fill_proto_field_info(proto_type type, unsigned int pid)
 		val.value = g_strdup("IPv4");
 		g_array_append_vals(packet_info, &val, 1);
 
+
+		if ( rte_atomic32_read(&info->port_flags) & SEND_VLAN_ID )
+			g_object_set(G_OBJECT(stream_l2_vlan), "active", TRUE, NULL);
+		else
+			g_object_set(G_OBJECT(stream_l2_vlan), "active", FALSE, NULL);
+
 		sprintf(buff, "%d", pkt->vlanid);
 		val.name = g_strdup(pktgen_ethernet_fields[i++]);
 		val.value = g_strdup(buff);
 		g_array_append_vals(packet_info, &val, 1);
+
+		size = (pkt->pktSize + FCS_SIZE);
+		sprintf(buff, "%d", size);
+       		gtk_entry_set_text (GTK_ENTRY (pktsize_entry), buff);
+
+		sprintf(buff, "%x", pkt->ipProto);
+       		gtk_entry_set_text (GTK_ENTRY (ip_proto_entry), buff);
+       		gtk_entry_set_editable (GTK_ENTRY (ip_proto_entry), FALSE);
+
+
 	} else if (type == TYPE_IPv4) {
 		val.name = g_strdup(pktgen_ipv4_fields[i++]);
 		val.value = g_strdup("IPv4");
@@ -179,7 +210,6 @@ fill_proto_field_info(proto_type type, unsigned int pid)
 		val.value = g_strdup("<auto>");
 		g_array_append_vals(packet_info, &val, 1);
 
-		pkt->ipProto = PG_IPPROTO_UDP;
 		val.name = g_strdup(pktgen_ipv4_fields[i++]);
 		val.value = g_strdup(
 		                (pkt->ipProto ==
@@ -440,8 +470,7 @@ cell_edited_callback(GtkCellRendererText *cell,
 
 			i = gtk_tree_path_get_indices(path)[0];
 
-			switch (gtk_notebook_get_current_page(GTK_NOTEBOOK(
-			                                              notebook))) {
+			switch (gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook))) {
 			case 0:
 				index_offset = 0;
 				break;
@@ -531,8 +560,9 @@ pktgen_fill_stream_info(proto_type type, unsigned int pid)
 	GtkWidget *treeview;
 	GtkWidget *next_button, *apply_button, *quit_button;
 	GtkTreeModel *stream_model;
-
 	GtkWidget *frame;
+	GtkWidget 	 *text_view;
+
 
 	frame = gtk_frame_new(NULL);
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.5, 0.5);
@@ -565,6 +595,32 @@ pktgen_fill_stream_info(proto_type type, unsigned int pid)
 
 	add_proto_values_column(GTK_TREE_VIEW(treeview), stream_model);
 
+
+	/* Create a multiline text widget. */
+	text_view = gtk_text_view_new ();
+	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(text_view),20);
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(text_view),20);
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text_view),GTK_WRAP_WORD_CHAR);
+	gtk_text_view_set_pixels_inside_wrap(GTK_TEXT_VIEW(text_view),0);
+	gtk_widget_set_tooltip_text(GTK_WIDGET(text_view), "[L4 HEADER + PAYLOAD]\nInput only hex values(0123456789ABCDEF)");
+
+	/* Obtaining the buffer associated with the widget. */
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
+	/* Set the default buffer text. */
+
+	if(type == TYPE_UDP)
+	{
+		udp_reference = g_object_ref(treeview);
+		udp_treeview = treeview;
+		udp_sw = sw;
+
+
+		usr_def_reference = g_object_ref(text_view);
+		l4_text_view = text_view;
+		l4_buffer = buffer;
+
+	}
+ 
 	g_object_unref(stream_model);
 
 	gtk_container_add(GTK_CONTAINER(sw), treeview);
@@ -623,13 +679,86 @@ vlan_enable_callback(GtkWidget *widget, gpointer *data)
 	pktgen_set_vlan(info, (uint32_t)active);
 }
 
+void pktsize_enter_callback( GtkWidget *widget, gpointer *data )
+{
+  	const gchar *entry_text;
+	unsigned int *pid = (unsigned int *)data;
+	port_info_t *info = NULL;
+
+	info = &pktgen.info[*pid];
+
+  	entry_text = gtk_entry_get_text (GTK_ENTRY (widget));
+	size = atoi(entry_text);
+
+	if (( (size - FCS_SIZE) < MIN_PKT_SIZE) || ( (size - FCS_SIZE) > MAX_PKT_SIZE))
+	{
+		GtkWidget *dialog;
+		dialog = gtk_message_dialog_new(
+	                GTK_WINDOW(
+                        stream_window),
+	                GTK_DIALOG_DESTROY_WITH_PARENT,
+	                GTK_MESSAGE_INFO,
+	                GTK_BUTTONS_OK,
+	                "Acceptable range is [%d - %d]\nAlphabets/special characters are not allowed", (MIN_PKT_SIZE + FCS_SIZE), (MAX_PKT_SIZE + FCS_SIZE));
+		gtk_window_set_title(GTK_WINDOW(dialog),
+			                     "Pktgen");
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
+
+		return;
+	}
+
+	info->seq_pkt[SINGLE_PKT].pktSize = (size - FCS_SIZE);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_rate(info);
+
+}
+
+void radio_options_callback( GtkRadioButton *rb, gpointer *user_data)
+{
+   unsigned int *pid = (unsigned int *)user_data;
+   port_info_t *info = NULL;
+   pkt_seq_t *pkt = NULL;
+   info = &pktgen.info[*pid];
+   pkt  = &info->seq_pkt[SINGLE_PKT];
+   char buff[10];
+
+   if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( rb ) ) )
+   {
+	if(l4_text_view->parent != GTK_WIDGET (udp_sw))
+	{
+       		gtk_entry_set_editable (GTK_ENTRY (ip_proto_entry), TRUE);
+		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(udp_sw),
+	                               GTK_POLICY_NEVER,
+	                               GTK_POLICY_NEVER);
+		gtk_container_remove(GTK_CONTAINER(udp_sw), udp_treeview);
+		gtk_container_add(GTK_CONTAINER(udp_sw), l4_text_view);
+		gtk_widget_show_all(udp_sw);
+		pkt->ipProto = PG_IPPROTO_USR_DEF; // Set this value to bypass ctor to fill l4 protocols
+	}
+    }
+    else
+    {
+	sprintf(buff, "%d", PG_IPPROTO_UDP);
+       	gtk_entry_set_text (GTK_ENTRY (ip_proto_entry), buff);
+       	gtk_entry_set_editable (GTK_ENTRY (ip_proto_entry), FALSE);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(udp_sw),
+	                               GTK_POLICY_AUTOMATIC,
+	                               GTK_POLICY_AUTOMATIC);
+	gtk_container_remove(GTK_CONTAINER(udp_sw), l4_text_view);
+	gtk_container_add(GTK_CONTAINER(udp_sw), udp_treeview);
+	pkt->ipProto = PG_IPPROTO_UDP;
+    }
+}
+
+
 void
 pktgen_display_stream_editor(GtkWidget *window, unsigned int pid)
 {
 	GtkWidget *stream_l2_vbox, *stream_l3_vbox, *stream_l4_vbox;
-	GtkWidget *stream_l2_vlan;
+	GtkWidget *stream_l2_hbox;
 
-	GtkWidget *label2, *label3, *label4;
+	GtkWidget *label1, *label2, *label3, *label4, *label5, *label6;
 	char window_name[50];
 
 	sprintf(window_name, "Edit streams for port %d", pid);
@@ -642,9 +771,12 @@ pktgen_display_stream_editor(GtkWidget *window, unsigned int pid)
 	                 G_CALLBACK(gtk_main_quit), NULL);
 
 	notebook = gtk_notebook_new();
+	label1 = gtk_label_new("Packet Size");
 	label2 = gtk_label_new("Ethernet");
 	label3 = gtk_label_new("IPv4");
-	label4 = gtk_label_new("UDP");
+	label4 = gtk_label_new("UDP / User defined");
+	label5 = gtk_label_new("L4 Protocol       ");
+	label6 = gtk_label_new("IPv4 Protocol Value");
 
 	/* create array for store protocol info */
 	packet_info =
@@ -652,28 +784,67 @@ pktgen_display_stream_editor(GtkWidget *window, unsigned int pid)
 	                          (1 + 3 + 11 + 4));
 
 	stream_l2_vbox = gtk_vbox_new(FALSE, 0);
+
+	stream_l2_hbox = gtk_hbox_new(FALSE, 0);
+        gtk_container_set_border_width(GTK_CONTAINER(stream_l2_hbox), 10);
 	stream_l2_vlan = gtk_check_button_new_with_label("VLAN");
 
 	gtk_signal_connect(GTK_OBJECT(stream_l2_vlan), "toggled",
 	                   GTK_SIGNAL_FUNC(
 	                           vlan_enable_callback), (gpointer) & pid);
 
-	gtk_box_pack_start(GTK_BOX(
-	                           stream_l2_vbox), stream_l2_vlan, FALSE,
-	                   FALSE, 0);
+       pktsize_entry = gtk_entry_new ();
+       gtk_entry_set_max_length (GTK_ENTRY (pktsize_entry), 4);
+       gtk_entry_set_width_chars (GTK_ENTRY (pktsize_entry), 4);
+
+       ip_proto_entry = gtk_entry_new ();
+       gtk_entry_set_max_length (GTK_ENTRY (ip_proto_entry), 2);
+       gtk_entry_set_width_chars (GTK_ENTRY (ip_proto_entry), 4);
+ 
+
+   /* Radio options to choose UDP / User define L4 protocol & payload */
+
+   GtkWidget *radio_button_udp= gtk_radio_button_new_with_label( NULL, "UDP   " );
+   GtkWidget *radio_button_usrdef = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio_button_udp ), "User Defined" );
+
+   GtkWidget *hbox1 = gtk_hbox_new(FALSE, 0 );
+
+
+   gtk_box_pack_start( GTK_BOX(hbox1), label5, TRUE, TRUE, 0);
+   gtk_box_pack_start( GTK_BOX(hbox1), radio_button_udp, FALSE, FALSE, 0);
+   gtk_box_pack_start( GTK_BOX(hbox1), radio_button_usrdef, FALSE, FALSE, 20);
+
+   g_signal_connect( G_OBJECT( radio_button_usrdef ),
+                     "clicked",
+                     G_CALLBACK( radio_options_callback ),
+                     ( gpointer )&pid );
+
+
+   GtkWidget *hbox2 = gtk_hbox_new(FALSE, 0 );
+   gtk_box_pack_start( GTK_BOX(hbox2), gtk_label_new(NULL), TRUE, TRUE, 0); /* dummy for alignment */
+   gtk_box_pack_start( GTK_BOX(hbox2), label6, FALSE, FALSE, 0);
+   gtk_box_pack_start( GTK_BOX(hbox2), ip_proto_entry, FALSE, FALSE, 20);
+
+	gtk_box_pack_start(GTK_BOX(stream_l2_vbox), stream_l2_hbox, FALSE, FALSE, 0);
+
+	gtk_box_pack_start(GTK_BOX(stream_l2_hbox), stream_l2_vlan, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(stream_l2_hbox), label1, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(stream_l2_hbox), pktsize_entry, FALSE, FALSE, 10);
+
+	gtk_box_pack_start(GTK_BOX(stream_l2_vbox), hbox1, FALSE, FALSE, 0);
+
+	gtk_box_pack_start(GTK_BOX(stream_l2_vbox), hbox2, FALSE, FALSE, 0);
+
 	gtk_box_pack_start(GTK_BOX(stream_l2_vbox),
-	                   pktgen_fill_stream_info(TYPE_ETH,
-	                                           pid), TRUE, TRUE, 0);
+	                   pktgen_fill_stream_info(TYPE_ETH, pid), TRUE, TRUE, 0);
 
 	stream_l3_vbox = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(stream_l3_vbox),
-	                   pktgen_fill_stream_info(TYPE_IPv4,
-	                                           pid), TRUE, TRUE, 0);
+	                   pktgen_fill_stream_info(TYPE_IPv4, pid), TRUE, TRUE, 0);
 
 	stream_l4_vbox = gtk_vbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(stream_l4_vbox),
-	                   pktgen_fill_stream_info(TYPE_UDP,
-	                                           pid), TRUE, TRUE, 0);
+	                   pktgen_fill_stream_info(TYPE_UDP, pid), TRUE, TRUE, 0);
 
 	/* Append to pages to the notebook container. */
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), stream_l2_vbox, label2);
@@ -760,15 +931,55 @@ ascii_to_mac(const char *txt, unsigned int *addr)
 	return 0;
 }
 
+int
+ascii_to_number(const char *txt, unsigned int *addr, int len)
+{
+	int i;
+
+	for (i = 0; i < len; i++) {
+		int a, b;
+		a = hex_to_number(*txt++);
+		if (a < 0)
+			return -1;
+		b = hex_to_number(*txt++);
+		if (b < 0)
+			return -1;
+		*addr++ = (a << 4) | b;
+	}
+	return 0;
+}
+
+
+
 void
 pktgen_set_stream_info(unsigned int pid)
 {
+  	const gchar *entry_text, *ip_proto_str;
 	port_info_t *info = NULL;
 	pkt_seq_t *pkt = NULL;
+	uint8_t *usr_def = NULL;
+	unsigned int l4_and_payload[MAX_PKT_SIZE - FCS_SIZE];
+	gchar usr_def_str[MAX_PKT_SIZE - FCS_SIZE];
 
 	info = &pktgen.info[pid];
 	pkt  = &info->seq_pkt[SINGLE_PKT];
-	uint i = 0;
+	uint i = 0, ip_proto_value[2] = {0};
+
+	GtkTextIter start;
+	GtkTextIter end;
+
+	gtk_text_buffer_get_start_iter (buffer, &start);
+	gtk_text_buffer_get_end_iter (buffer, &end);
+
+	strcpy(usr_def_str, gtk_text_buffer_get_text(buffer, &start, &end, FALSE));
+
+
+  	entry_text = gtk_entry_get_text (GTK_ENTRY (pktsize_entry));
+	size = atoi(entry_text);
+	pkt->pktSize = (size - FCS_SIZE);
+
+  	ip_proto_str = gtk_entry_get_text (GTK_ENTRY (ip_proto_entry));
+	ascii_to_number(ip_proto_str, ip_proto_value, 1);
 
 	/* set values */
 	for (i = 0; i < packet_info->len; i++) {
@@ -782,7 +993,7 @@ pktgen_set_stream_info(unsigned int pid)
 			strcpy(str, g_array_index(packet_info,
 			                          protocol,
 			                          i).value);
-			ascii_to_mac(str, mac);
+			ascii_to_number(str, mac, 6);
 
 			for (j = 0; j < 6; j++)
 				pkt->eth_dst_addr.addr_bytes[j] = mac[j];
@@ -792,7 +1003,7 @@ pktgen_set_stream_info(unsigned int pid)
 			strcpy(str, g_array_index(packet_info,
 			                          protocol,
 			                          i).value);
-			ascii_to_mac(str, mac);
+			ascii_to_number(str, mac, 6);
 
 			for (j = 0; j < 6; j++)
 				pkt->eth_src_addr.addr_bytes[j] = mac[j];
@@ -837,5 +1048,19 @@ pktgen_set_stream_info(unsigned int pid)
 		}
 	}
 
+	info->fill_pattern_type = NO_FILL_PATTERN;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	// Fill in the pattern for data space.
+	usr_def = (uint8_t *)&pkt->hdr;
+
+	ascii_to_number(usr_def_str, l4_and_payload, strlen(usr_def_str));
+        for(i = 0; i < strlen(usr_def_str)/2; i++)
+	{
+		//g_print("%x", l4_and_payload[i]);
+		usr_def[i + sizeof(struct ether_hdr) + sizeof(ipHdr_t)] = l4_and_payload[i];
+	}
+
+	usr_def[sizeof(struct ether_hdr) + 9] = ip_proto_value[0]; //Overwrite the IPv4 protocol field
+    pkt->ipProto = ip_proto_value[0];
+
 }

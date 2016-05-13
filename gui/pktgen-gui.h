@@ -242,6 +242,7 @@ void fill_proto_field_info(proto_type type, unsigned int pid);
 int hex_to_number(char c);
 int ascii_to_mac(const char *txt, unsigned int *addr);
 int validate_ip_address(char *st);
+int ascii_to_number(const char *txt, unsigned int *addr, int len);
 
 /* Callback functions */
 void console_callback(GtkWidget *widget, GtkWidget *entry);
@@ -258,6 +259,8 @@ void traffic_stream_callback(GtkTreeModel  * model,
                              GtkTreeIter   * iter,
                              gpointer userdata);
 
+void pktsize_enter_callback( GtkWidget *widget, gpointer *data );
+void radio_options_callback( GtkRadioButton *b,  gpointer *user_data );
 void traffic_apply_callback(GtkWidget *w, gpointer data);
 void digits_scale_callback(GtkAdjustment *adj);
 void traffic_start_callback(GtkWidget *w, gpointer data);

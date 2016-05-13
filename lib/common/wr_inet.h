@@ -186,6 +186,7 @@ typedef struct ipv6Hdr_s {
 #define PG_IPPROTO_IPV6_NONXT   59
 #define PG_IPPROTO_IPV6_OPTS    60
 #define PG_IPPROTO_RAW          IPPROTO_RAW
+#define PG_IPPROTO_USR_DEF	255
 #define PG_IPPROTO_MAX          256
 
 #define PG_IPPROTO_L4_GTPU_PORT 2152

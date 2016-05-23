@@ -662,6 +662,9 @@ pktgen_prototype(lua_State *L) {
 	foreach_port(portlist.map,
 	             pktgen_set_proto(info, type[0]) );
 
+	foreach_port(portlist.map,
+	             pktgen_set_proto_range(info, type[0]) );
+
 	return 0;
 }
 

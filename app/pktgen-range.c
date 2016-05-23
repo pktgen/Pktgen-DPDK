@@ -150,7 +150,15 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 				        range->dst_ip;
 
 			if (unlikely(range->vlan_id_inc != 0)) {
-				uint32_t p = pkt->vlanid;
+				/* Since VLAN is set ot MIN_VLAN_ID, check this and skip first increment
+				   to maintina the range sequence in sync with other range fields */
+				uint32_t p;
+				static uint8_t min_vlan_set = 0;
+				if ((pkt->vlanid == MIN_VLAN_ID) && !min_vlan_set) {
+					p = 0;
+					min_vlan_set = 1;
+				} else
+					p = pkt->vlanid;
 				p += range->vlan_id_inc;
 				if (p < range->vlan_id_min)
 					p = range->vlan_id_max;

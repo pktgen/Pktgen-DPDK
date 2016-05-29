@@ -18,7 +18,7 @@ fi
 echo "Using directory: "$sdk"/"$target
 
 function nr_hugepages_fn {
-    echo /sys/devices/system/node/node${1}/hugepages/hugepages-2048kB/nr_hugepages
+    sudo echo /sys/devices/system/node/node${1}/hugepages/hugepages-2048kB/nr_hugepages
 }
 
 function num_cpu_sockets {
@@ -27,10 +27,10 @@ function num_cpu_sockets {
 		sockets=$(( $sockets + 1 ))
     done
     sudo echo $sockets
-	if [ $sockets -eq 0 ]; then
-		echo "Huge TLB support not found make sure you are using a kernel >= 2.6.34" >&2
-		exit 1
-	fi
+    if [ $sockets -eq 0 ]; then
+	echo "Huge TLB support not found make sure you are using a kernel >= 2.6.34" >&2
+	exit 1
+    fi
 }
 
 sudo rm -fr /mnt/huge/*
@@ -45,7 +45,7 @@ grep -i huge /proc/meminfo
 sudo modprobe uio
 echo "trying to remove old igb_uio module and may get an error message, ignore it"
 sudo rmmod igb_uio
-insmod $sdk/$target/kmod/igb_uio.ko
+sudo insmod $sdk/$target/kmod/igb_uio.ko
 echo "trying to remove old rte_kni module and may get an error message, ignore it"
 sudo rmmod rte_kni
 sudo insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"

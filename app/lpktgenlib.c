@@ -2640,12 +2640,10 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum) {
 	} else {
 		setf_string(L, "ip_dst_addr",
 		            inet_ntop6(buff, sizeof(buff),
-		                       p->ip_dst_addr.addr.ipv6.__in6_u.
-		                       __u6_addr8));
+		                       p->ip_dst_addr.addr.ipv6.s6_addr));
 		setf_string(L, "ip_src_addr",
 		            inet_ntop6(buff, sizeof(buff),
-		                       p->ip_dst_addr.addr.ipv6.__in6_u.
-		                       __u6_addr8));
+		                       p->ip_dst_addr.addr.ipv6.s6_addr));
 	}
 	setf_integer(L, "dport", p->dport);
 	setf_integer(L, "sport", p->sport);

@@ -2526,11 +2526,11 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 		pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(
 		                ip_daddr->addr.ipv4.s_addr);
 	} else {
-		memcpy(&pkt->ip_src_addr.addr.ipv6.__in6_u.__u6_addr8,
-		       ip_saddr->addr.ipv6.__in6_u.__u6_addr8,
+		memcpy(&pkt->ip_src_addr.addr.ipv6.s6_addr,
+		       ip_saddr->addr.ipv6.s6_addr,
 		       sizeof(struct in6_addr));
-		memcpy(&pkt->ip_dst_addr.addr.ipv6.__in6_u.__u6_addr8,
-		       ip_daddr->addr.ipv6.__in6_u.__u6_addr8,
+		memcpy(&pkt->ip_dst_addr.addr.ipv6.s6_addr,
+		       ip_daddr->addr.ipv6.s6_addr,
 		       sizeof(struct in6_addr));
 	}
 	pkt->dport          = dport;

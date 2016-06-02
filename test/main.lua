@@ -25,6 +25,8 @@ pktgen.set("all", "dport", 0x9988);
 pktgen.set("all", "prime", 3);
 pktgen.set("all", "seqCnt", 3);
 
+pktgen.rnd("all", 1, 20, "XX111000.. ..xx11"
+
 pktgen.vlanid("all", 55);
 
 pktgen.screen("on");

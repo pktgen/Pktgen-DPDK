@@ -80,8 +80,22 @@
 #define BITFIELD_T              uint32_t
 #define MAX_BITFIELD_SIZE       (sizeof(BITFIELD_T) << 3)
 
-struct rnd_bits_s;
 struct port_info_s;
+
+/* Random bitfield specification */
+typedef struct bf_spec_s {
+        uint8_t offset; /**< Offset (in bytes) of where to apply the bitmask */
+
+        BITFIELD_T andMask;     /**< Mask to bitwise AND value with */
+        BITFIELD_T orMask;      /**< Mask to bitwise OR value with */
+        BITFIELD_T rndMask;     /**< Which bits will get random value */
+} bf_spec_t;
+
+typedef struct rnd_bits_s {
+        uint32_t active_specs;  /**< Boolean vector identifying active specs */
+
+        bf_spec_t specs[MAX_RND_BITFIELDS];     /**< Bitmask specifications */
+} rnd_bits_t;
 
 /* Data structure initialization */
 extern void pktgen_rnd_bits_init(struct rnd_bits_s **rnd_bits);

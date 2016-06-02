@@ -1529,8 +1529,7 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		pktgen_page_random_bitfields(
 		        pktgen.flags & PRINT_LABELS_FLAG,
 		        pktgen.portNum,
-		        pktgen.info[pktgen.portNum].
-		        rnd_bitfields);
+		        pktgen.info[pktgen.portNum].rnd_bitfields);
 
 	else if (pktgen.flags & LOG_PAGE_FLAG)
 		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);

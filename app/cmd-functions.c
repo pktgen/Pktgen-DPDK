@@ -109,6 +109,7 @@
 #include "pktgen.h"
 
 #include "wr_copyright_info.h"
+#include "cmdline_parse_args.h"
 #include "pktgen-cmds.h"
 #include "pktgen-main.h"
 #include "lpktgenlib.h"
@@ -188,11 +189,15 @@ const char *help_info[] = {
 	"                                     has the netmask value eg 1.2.3.4/24",
 	"save <path-to-file>                - Save a configuration file using the filename",
 	"load <path-to-file>                - Load a command/script file from the given path",
+        "script <filename>                  - Execute the Lua script code in file (www.lua.org).",
+        "!lua 'lua string'                  - Execute the Lua code in the string needs quotes",
 	"ppp [1-6]                          - Set the number of ports displayed per page",
 	"icmp.echo <portlist> <state>       - Enable/disable ICMP echo responses per port",
 	"send arp req|grat <portlist>       - Send a ARP request or gratuitous ARP on a set of ports",
 	"set mac <portlist> etheraddr       - Set MAC addresses 00:11:22:33:44:55",
 	"                                     You can use 0011:2233:4455 format as well",
+        "",
+        "<<PageBreak>>",
 	"mac_from_arp <state>               - Set the option to get MAC from ARP request",
 	"proto udp|tcp|icmp <portlist>      - Set the packet protocol to UDP or TCP or ICMP per port",
 	"type ipv4|ipv6|vlan <portlist>     - Set the packet type to IPv4 or IPv6 or VLAN",
@@ -216,7 +221,6 @@ const char *help_info[] = {
 	"pcap.show                          - Show the PCAP information",
 	"pcap.index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file",
 	"pcap.filter <portlist> <string>    - PCAP filter string to filter packets on receive",
-	"script <filename>                  - Execute the Lua script code in file (www.lua.org).",
 	"ping4 <portlist>                   - Send a IPv4 ICMP echo request on the given portlist",
 #ifdef INCLUDE_PING6
 	"ping6 <portlist>                   - Send a IPv6 ICMP echo request on the given portlist",
@@ -393,7 +397,7 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 
 	wr_scrn_pos(0, 0);
 	cmdline_printf(cl, "%s%s\n", help_info[1], wr_copyright_msg());
-	wr_scrn_pos(3, 0);
+	wr_scrn_pos(4, 0);
 	for (i = 2; help_info[i] != NULL; i++) {
 		if (strcmp(help_info[i], "<<PageBreak>>") == 0) {
 			if (cmdline_pause(cl,
@@ -405,7 +409,7 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 			               "%s%s\n",
 			               help_info[1],
 			               wr_copyright_msg());
-			wr_scrn_pos(3, 0);
+			wr_scrn_pos(4, 0);
 			continue;
 		}
 		cmdline_printf(cl, "%s\n", help_info[i]);
@@ -721,6 +725,58 @@ cmdline_parse_inst_t cmd_script = {
 		(void *)&cmd_script_filename,
 		NULL,
 	},
+};
+
+/**********************************************************/
+
+struct cmd_exec_lua_result {
+        cmdline_fixed_string_t lua;
+        cmdline_args_t args;
+};
+
+/**************************************************************************//**
+ *
+ * cmd_exec_lua_parsed - Command to execute lua code on command line.
+ *
+ * DESCRIPTION
+ * Execute a string of lua code
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static void
+cmd_exec_lua_parsed(void *parsed_result,
+                  struct cmdline *cl __rte_unused,
+                  void *data __rte_unused)
+{
+        struct cmd_exec_lua_result *res = parsed_result;
+        lua_State *L = pktgen.L;
+
+        if (L == NULL) {
+                pktgen_log_error("Lua is not initialized!");
+                return;
+        }
+
+        if (luaL_dostring(L, res->args.cmdline) != 0)
+                pktgen_log_error("%s", lua_tostring(L, -1));
+}
+
+cmdline_parse_token_string_t cmd_exec_lua_cmds =
+        TOKEN_STRING_INITIALIZER(struct cmd_exec_lua_result, lua, "!lua");
+cmdline_parse_token_args_t cmd_exec_lua_args =
+        TOKEN_ARGS_INITIALIZER(struct cmd_exec_lua_result, args);
+
+cmdline_parse_inst_t cmd_exec_lua = {
+        .f = cmd_exec_lua_parsed,
+        .data = NULL,
+        .help_str = "!lua 'string'",
+        .tokens = {
+                (void *)&cmd_exec_lua_cmds,
+                (void *)&cmd_exec_lua_args,
+                NULL,
+        },
 };
 
 /**********************************************************/
@@ -1085,7 +1141,7 @@ cmd_rnd_parsed(void *parsed_result,
 		     (mask_idx < 32) && ((curr_bit = res->mask[i]) != '\0');
 		     ++i)
 			if ((curr_bit == '0') || (curr_bit == '1') ||
-			    (curr_bit == '.') || (curr_bit == 'X'))
+			    (curr_bit == '.') || (curr_bit == 'X') || (curr_bit == 'x'))
 				mask[mask_idx++] = curr_bit;
 
 	foreach_port(res->portlist.map,
@@ -4568,6 +4624,7 @@ cmdline_parse_ctx_t main_ctx[] = {
 	(cmdline_parse_inst_t *)&cmd_save,
 	(cmdline_parse_inst_t *)&cmd_screen,
 	(cmdline_parse_inst_t *)&cmd_script,
+        (cmdline_parse_inst_t *)&cmd_exec_lua,
 	(cmdline_parse_inst_t *)&cmd_send_arp,
 	(cmdline_parse_inst_t *)&cmd_seq,
 	(cmdline_parse_inst_t *)&cmd_set,

@@ -40,10 +40,10 @@ CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
 CFLAGS_wr_scrn.o := -Wno-format-nonliteral
 
 # all source are stored in SRCS-y
-SRCS-y := wr_copyright_info.c wr_port_config.c wr_core_info.c \
+SRCS-y := wr_copyright_info.c wr_port_config.c wr_core_info.c cmdline_parse_args.c \
 	wr_lscpu.c wr_utils.c wr_coremap.c wr_pcap.c wr_cksum.c wr_l2p.c wr_scrn.c
 
-SYMLINK-y-include := wr_cksum.h wr_copyright_info.h wr_core_info.h wr_coremap.h \
+SYMLINK-y-include := wr_cksum.h wr_copyright_info.h wr_core_info.h wr_coremap.h cmdline_parse_args.h \
 	wr_cycles.h wr_inet.h wr_l2p.h wr_lscpu.h wr_mbuf.h wr_pcap.h wr_port_config.h \
 	wr_scrn.h wr_utils.h
 

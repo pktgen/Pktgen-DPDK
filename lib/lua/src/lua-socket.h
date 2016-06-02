@@ -67,7 +67,7 @@
 
 #ifndef _LUA_SOCKET_H_
 #define _LUA_SOCKET_H_
-
+#include <pthread.h>
 #include "lua.h"
 
 

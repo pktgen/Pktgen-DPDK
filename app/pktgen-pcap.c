@@ -265,7 +265,11 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	char buffer[2048];
 	pcap_info_t *pcap = (pcap_info_t *)opaque_arg;
 
+#ifdef RTE_ASSERT
 	RTE_ASSERT(mp->elt_size >= sizeof(struct rte_mbuf));
+#else
+	RTE_VERIFY(mp->elt_size >= sizeof(struct rte_mbuf));
+#endif
 
 	memset(m, 0, mp->elt_size);
 

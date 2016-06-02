@@ -2810,6 +2810,52 @@ pktgen_recvPkt(lua_State *L) {
 
 /**************************************************************************//**
  *
+ * pktgen_rnd - Setup random bit patterns
+ *
+ * DESCRIPTION
+ * Setup the random bit pattern support.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_rnd(lua_State *L) {
+        cmdline_portlist_t portlist;
+        char mask[33] = { 0 };
+        const char * msk;
+        int i, mask_idx = 0;
+        char curr_bit;
+
+        switch (lua_gettop(L) ) {
+        default: return luaL_error(L, "rnd, wrong number of arguments");
+        case 4:
+                break;
+        }
+        parse_portlist(luaL_checkstring(L, 1), &portlist);
+        if (portlist.map == 0)
+                return 0;
+
+        msk = luaL_checkstring(L, 4);
+        if (strcmp(msk, "off"))
+                /* Filter invalid characters from provided mask. This way the user can
+                 * more easily enter long bitmasks, using for example '_' as a separator
+                 * every 8 bits. */
+                for (i = 0; (mask_idx < 32) && ((curr_bit = msk[i]) != '\0'); i++)
+                        if ((curr_bit == '0') || (curr_bit == '1') ||
+                            (curr_bit == '.') || (curr_bit == 'X'))
+                                mask[mask_idx++] = curr_bit;
+
+        foreach_port(portlist.map,
+             pktgen_set_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+                  luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), mask) ? ENABLE_STATE : DISABLE_STATE));
+
+        return 0;
+}
+
+/**************************************************************************//**
+ *
  * pktgen_run - Run a Lua or command script on the local disk or in a string.
  *
  * DESCRIPTION
@@ -2882,6 +2928,7 @@ static const char *lua_help_info[] = {
 	"qinq           - Enable or disable Q-in-Q header\n",
 	"gre            - Enable or disable GRE with IPv4 payload\n",
 	"gre_eth        - Enable or disable GRE with Ethernet payload\n",
+        "rnd            - Enable or disable random bit patterns for a given portlist\n",
 	"\n",
 	"Range commands\n",
 	"dst_mac        - Set the destination MAC address for a port\n",
@@ -3082,6 +3129,8 @@ static const luaL_Reg pktgenlib[] = {
 	{"userPattern",   pktgen_user_pattern},	/* Set the user pattern string */
 	{"latency",       pktgen_latency},	/* Enable or disable latency testing */
 	{"gtpu_teid",     pktgen_gtpu_teid},	/* set GTP-U TEID. */
+
+        {"rnd",           pktgen_rnd},          /* Set up the rnd function on a portlist */
 
 	{NULL, NULL}
 };

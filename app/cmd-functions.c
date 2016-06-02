@@ -1089,14 +1089,8 @@ cmd_rnd_parsed(void *parsed_result,
 				mask[mask_idx++] = curr_bit;
 
 	foreach_port(res->portlist.map,
-	             pktgen_set_random(info,
-	                               pktgen_set_random_bitfield(info->
-	                                                          rnd_bitfields,
-	                                                          res->idx,
-	                                                          res->off,
-	                                                          mask) ?
-	                               ENABLE_STATE : DISABLE_STATE)
-	             );
+             pktgen_set_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+                  res->idx, res->off, mask) ? ENABLE_STATE : DISABLE_STATE));
 
 	pktgen_update_display();
 }

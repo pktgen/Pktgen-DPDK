@@ -6,6 +6,10 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.02  - Fix up the IPv6 address macros for musl libc support
+             Fix the missing pthread.h include in lua socket header.
+             Add the rnd lua support APIs
+             Fix the checksum issue with rnd changes.
  - 3.0.01  - Fixed the Range sequence and VLAN problem.
  - 3.0.00  - Fixed code to ifdef the imcasts counters that were deprecated.
  - 2.9.18  - Fix the range command to set IP proto value and be able to save that value.

@@ -295,13 +295,7 @@ pktgen_rnd_bits_apply(port_info_t *info,
 			if (likely(active_specs & 1) ) {
 				/* Get pointer to byte <offset> in mbuf data as uint32_t*, so */
 				/* the masks can be applied. */
-				pkt_data =
-				        (uint32_t *)(&rte_pktmbuf_mtod(pkts[
-				                                               mbuf_cnt
-				                                       ],
-				                                       uint8_t
-				                                       *)
-				                     [bf_spec->offset]);
+				pkt_data = (uint32_t *)(&rte_pktmbuf_mtod(pkts[mbuf_cnt],uint8_t *)[bf_spec->offset]);
 
 				*pkt_data &= bf_spec->andMask;
 				*pkt_data |= bf_spec->orMask;
@@ -309,8 +303,7 @@ pktgen_rnd_bits_apply(port_info_t *info,
 				if (bf_spec->rndMask) {
 #ifdef TESTING
 					/* Allow PRNG to be set when testing */
-					rnd_value  =
-					        _rnd_func ? _rnd_func() :
+					rnd_value  = _rnd_func ? _rnd_func() :
 					        pktgen_default_rnd_func();
 #else
 					/* ... but allow inlining for production build */

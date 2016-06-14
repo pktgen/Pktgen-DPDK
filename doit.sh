@@ -42,21 +42,48 @@ cmd=./app/app/${target}/app/pktgen
 #ens9f0    Link encap:Ethernet  HWaddr 68:05:ca:28:49:a0  
 #ens9f1    Link encap:Ethernet  HWaddr 68:05:ca:28:49:a1  
 
+#============================================================
+#Core and Socket Information (as reported by '/proc/cpuinfo')
+#============================================================
+#
+#cores =  [0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 19, 20, 24, 25, 26, 27]
+#sockets =  [0, 1]
+#
+#        Socket 0        Socket 1        
+#        --------        --------        
+#Core 0  [0, 36]         [18, 54]        
+#Core 1  [1, 37]         [19, 55]        
+#Core 2  [2, 38]         [20, 56]        
+#Core 3  [3, 39]         [21, 57]        
+#Core 4  [4, 40]         [22, 58]        
+#Core 8  [5, 41]         [23, 59]        
+#Core 9  [6, 42]         [24, 60]        
+#Core 10 [7, 43]         [25, 61]        
+#Core 11 [8, 44]         [26, 62]        
+#Core 16 [9, 45]         [27, 63]        
+#Core 17 [10, 46]        [28, 64]        
+#Core 18 [11, 47]        [29, 65]        
+#Core 19 [12, 48]        [30, 66]        
+#Core 20 [13, 49]        [31, 67]        
+#Core 24 [14, 50]        [32, 68]        
+#Core 25 [15, 51]        [33, 69]        
+#Core 26 [16, 52]        [34, 70]        
+#Core 27 [17, 53]        [35, 71]        
+#
 
-dpdk_opts="-l 13-17 -n 3 --proc-type auto --log-level 7 --socket-mem 256,256 --file-prefix pg"
-#dpdk_opts="-l 18-26 -n 3 --proc-type auto --log-level 7 --socket-mem 256,256 --file-prefix pg"
-pktgen_opts="-G -T -P"
-#port_map="-m [19:20].0 -m [21:22].1 -m [23:24].2 -m [25:26].3"
-port_map="-m [14:15].0 -m [16:17].1"
-#port_map="-m [2-4].0 -m [5-7].1"
+
+dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
+pktgen_opts="-T -P"
+port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
+bl_common="-b 09:00.0 -b 09:00.1"
+black_list="${bl_common} -b 87:00.0 -b 87:00.1 -b 89:00.0 -b 89:00.1"
 load_file="-f themes/black-yellow.theme"
-#load_file="-f themes/white-black.theme"
-#black_list="-b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1"
-black_list="-b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -b 87:00.0 -b 87:00.1 -b 89:00.0 -b 89:00.1"
 
 if [ $name == "supermicro" ]; then
 	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
-	sudo -E ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+
+	# Restore the screen and keyboard to a sane state
 	stty sane
 fi
 

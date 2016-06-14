@@ -99,7 +99,7 @@ typedef struct pkt_seq_s {
 	uint16_t pktSize;	/**< Size of packet in bytes not counting FCS */
 	uint16_t tlen;		/**< Total length of packet data */
 	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
-
+	uint8_t enabled;	/**< Enable or disable this sequence through GUI */
 	pkt_hdr_t hdr;	/**< Packet header data */
 	/* 2048 - sizeof(pkt_hdr_t) */
 	uint8_t pad[DEFAULT_BUFF_SIZE - sizeof(pkt_hdr_t)] __rte_cache_aligned;

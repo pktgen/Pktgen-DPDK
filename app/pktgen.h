@@ -168,16 +168,14 @@
 #define Mega                    (uint64_t)(1024ULL * 1024ULL)
 
 #define iBitsTotal(_x) \
-        (((_x.ipackets * \
-           (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.ibytes) << 3)
+	(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.ibytes) << 3)
 #define oBitsTotal(_x) \
-        (((_x.opackets * \
-           (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.obytes) << 3)
+	(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.obytes) << 3)
 
 #define _do(_exp)       do { _exp; } while ((0))
 
 #define forall_ports(_action)                           \
-        do {                                                \
+	do {                                                \
 		uint32_t pid;                                   \
 		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
 			port_info_t   *info;                        \
@@ -189,7 +187,7 @@
 	} while ((0))
 
 #define foreach_port(_portlist, _action)                    \
-        do {                                                    \
+	do {                                                    \
 		uint32_t    *_pl = (uint32_t *)&_portlist;          \
 		uint32_t pid, idx, bit;                             \
 		for (pid = 0; pid < pktgen.nb_ports; pid++) {       \
@@ -239,7 +237,7 @@ enum {
 	LINK_STATE_ROWS         = 4,
 	PKT_SIZE_ROWS           = 9,
 	PKT_TOTALS_ROWS         = 7,
-	IP_ADDR_ROWS            = 10,
+	IP_ADDR_ROWS            = 12,
 
 	PORT_STATE_ROW          = 2,
 	LINK_STATE_ROW          = (PORT_STATE_ROW + PORT_STATE_ROWS),
@@ -308,7 +306,7 @@ typedef struct pktgen_s {
 	char *hostname;		/**< GUI hostname */
 	wr_scrn_t *scrn;	/**< Screen structure pointer */
 
-	int32_t socket_port;		/**< GUI port number */
+	int32_t socket_port;	/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */
 	uint32_t flags;			/**< Flag values */
 	uint16_t ident;			/**< IPv4 ident value */
@@ -343,18 +341,19 @@ typedef struct pktgen_s {
 	lscpu_t *lscpu;
 	char *uname;
 	eth_stats_t cumm_rate_totals;	/**< port rates total values */
-	uint64_t max_total_ipackets;	/**< Total Max seen input packet rate */
-	uint64_t max_total_opackets;	/**< Total Max seen output packet rate */
+    uint64_t    max_total_ipackets; /**< Total Max seen input packet rate */
+    uint64_t    max_total_opackets; /**< Total Max seen output packet rate */
 
 	pthread_t thread;	/**< Thread structure for Lua server */
 
 	uint64_t counter;	/**< A debug counter */
 	uint64_t mem_used;	/**< Display memory used counters per ports */
 	uint64_t total_mem_used;/**< Display memory used for all ports */
-	int32_t argc;	/**< Number of arguments */
-	char *argv[64];	/**< Argument list */
+	int32_t argc;		/**< Number of arguments */
+	char *argv[64];		/**< Argument list */
 
 	capture_t capture[RTE_MAX_NUMA_NODES];	/**< Packet capture, 1 struct per socket */
+	uint8_t is_gui_running;
 } pktgen_t;
 
 enum {						/* Queue flags */
@@ -385,11 +384,11 @@ enum {						/* Pktgen flags bits */
 	LOG_PAGE_FLAG           = (1 << 22)	/**< Display the message log page */
 };
 
-#define PAGE_MASK_BITS      (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
-                             RANGE_PAGE_FLAG | \
-                             PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
-                             RND_BITFIELD_PAGE_FLAG | \
-                             LOG_PAGE_FLAG)
+#define PAGE_MASK_BITS  (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
+	                     RANGE_PAGE_FLAG | \
+	                     PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
+	                     RND_BITFIELD_PAGE_FLAG | \
+	                     LOG_PAGE_FLAG)
 
 struct cmdline_etheraddr {
 	uint8_t mac[6];

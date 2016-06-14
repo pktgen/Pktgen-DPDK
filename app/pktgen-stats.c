@@ -86,6 +86,7 @@ static void
 pktgen_print_static_data(void)
 {
 	port_info_t *info;
+	struct rte_eth_dev_info dev;
 	uint32_t pid, col, row, sp, ip_row;
 	pkt_seq_t *pkt;
 	char buff[32];
@@ -149,6 +150,7 @@ pktgen_print_static_data(void)
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src  IP Address");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src MAC Address");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VendID/PCI Addr");
 
 	/* Get the last location to use for the window starting row. */
 	pktgen.last_row = ++row;
@@ -222,6 +224,15 @@ pktgen_print_static_data(void)
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff),
 		                         &pkt->eth_src_addr));
+		rte_eth_dev_info_get(pid, &dev);
+		snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+			dev.pci_dev->id.vendor_id,
+			dev.pci_dev->id.device_id,
+			dev.pci_dev->addr.bus,
+			dev.pci_dev->addr.devid,
+			dev.pci_dev->addr.function);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
 		display_cnt++;
 	}
 

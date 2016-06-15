@@ -234,11 +234,12 @@ pktgen_save(char *path)
 		        (info->fill_pattern_type == NO_FILL_PATTERN) ? "none" :
 		        (info->fill_pattern_type ==
 		         ZERO_FILL_PATTERN) ? "zero" : "user");
-		if (strlen(info->user_pattern) )
-			fprintf(fd,
-			        "user.pattern %d %s\n",
-			        i,
-			        info->user_pattern);
+		if ((info->fill_pattern_type == USER_FILL_PATTERN) && strlen(info->user_pattern)) {
+			char buff[32];
+			memset(buff, 0, sizeof(buff));
+			strncpy(buff, info->user_pattern, sizeof(info->user_pattern));
+			fprintf(fd, "user.pattern %d %s\n", i, buff);
+		}
 		fprintf(fd, "\n");
 
 		fprintf(fd,

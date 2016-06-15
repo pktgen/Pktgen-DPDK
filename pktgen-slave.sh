@@ -66,9 +66,9 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]
 #
 
-dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
+dpdk_opts="-l 18-26 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
 pktgen_opts="-T -P"
-port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
+port_map="-m [19:20].0 -m [21:22].1 -m [23:24].2 -m [25:26].3"
 bl_common="-b 09:00.0 -b 09:00.1"
 black_list="${bl_common} -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1"
 load_file="-f themes/black-yellow.theme"

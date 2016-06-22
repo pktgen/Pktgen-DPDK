@@ -54,7 +54,7 @@ load_file="-f themes/black-yellow.theme"
 #black_list="-b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1"
 black_list="-b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -b 87:00.0 -b 87:00.1 -b 89:00.0 -b 89:00.1"
 
-if [ $name == "supermicro" ]; then
+if [ $name == "supermicro" -o $name == "rkwiles-VirtualBox" ]; then
 	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 	sudo -E ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 	stty sane

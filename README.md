@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.03  - Fix up building shared library for ptkgen
  - 3.0.02  - Fix up the IPv6 address macros for musl libc support
              Fix the missing pthread.h include in lua socket header.
              Add the rnd lua support APIs

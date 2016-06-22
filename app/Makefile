@@ -50,8 +50,8 @@ CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 CFLAGS += -I$(RTE_SRCDIR)/../lib/lua/src
 
-DEP_pktgen := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/liblua.a
-DEP_pktgen += $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/libcommon.a
+LDLIBS += -L$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib -llua
+LDLIBS += -L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib -lcommon
 
 # all source are stored in SRCS-y
 SRCS-y := \
@@ -62,24 +62,22 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c
 
-MYLIBS := -L$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET) \
-		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
-
 # GUI support is a work in progress
 ifeq ($(GUI),true)
 CFLAGS += -DGUI
 
-GTK_INCLUDE := $(shell pkg-config --cflags glib-2.0)
-GTK_INCLUDE += $(shell pkg-config --cflags gtk+-2.0)
+CFLAGS += $(shell pkg-config --cflags glib-2.0)
+CFLAGS += $(shell pkg-config --cflags gtk+-2.0)
+LDLIBS += $(shell pkg-config --libs glib-2.0)
+LDLIBS += $(shell pkg-config --libs gtk+-2.0)
+LDLIBS += -L$(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib -lgui
 
-GTK_LIB = -L/usr/lib64/gtk-2.0/ -lgtk-x11-2.0 -lgdk-x11-2.0 -lpangocairo-1.0 -latk-1.0 -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -lfreetype
-
-MYLIBS += -L$(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib -lgui
-DEP_pktgen += $(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib/libgui.a
 DEPDIRS-y += ../gui
 endif
 
-LDFLAGS += -g -lpcap $(MYLIBS) $(GTK_LIB)
+LDLIBS += -rpath=$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib
+LDLIBS += -rpath=$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib
+LDLIBS += -lpcap -lm
 
 DEPDIRS-y += ../lib/common ../lib/lua
 

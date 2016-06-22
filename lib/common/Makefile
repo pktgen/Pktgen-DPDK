@@ -34,6 +34,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
 LIB = libcommon.a
+LIBABIVER := 1
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
 

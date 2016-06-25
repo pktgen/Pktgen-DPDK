@@ -102,8 +102,8 @@ typedef struct port_sizes_s {
 } port_sizes_t;
 
 struct mbuf_table {
-	unsigned len;
-	struct rte_mbuf *m_table[DEFAULT_PKT_BURST + 1];
+	uint16_t len;
+	struct rte_mbuf *m_table[DEFAULT_PKT_BURST];
 };
 
 enum {						/* Per port flag bits */
@@ -189,7 +189,6 @@ typedef enum {
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
 typedef struct port_info_s {
-	tx_func_t send_burst;	/**< Function pointer to use for sending */
 	uint16_t pid;		/**< Port ID value */
 	uint16_t tx_burst;	/**< Number of TX burst packets */
 	uint8_t pad0;

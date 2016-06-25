@@ -52,8 +52,7 @@ sudo insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
 if [ $name == "supermicro" ]; then
-	sudo -E $sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
-	#sudo -E $sdk/tools/dpdk_nic_bind.py -b igb_uio 87:00.0 87:00.1 89:00.0 89:00.1
+	sudo -E $sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 83:00.0 83:00.1 85:00.0 85:00.1
 fi
 $sdk/tools/dpdk_nic_bind.py --status
 

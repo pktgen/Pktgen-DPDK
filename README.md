@@ -6,6 +6,9 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.04  - Display reported the wrong rate in Mbits because the counters were not
+             including the FCS bytes in the value as it was before.
+             Minor cleanup of the code for formating.
  - 3.0.03  - General clean up of scripts
              Add support for share library builds
              Clean up formating

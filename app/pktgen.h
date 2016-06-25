@@ -158,49 +158,48 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.0.03"
+#define PKTGEN_VERSION          "3.0.04"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
 #define MAX_MATRIX_ENTRIES      128
 #define MAX_STRING              256
-#define Million                 (uint64_t)(1000ULL * 1000ULL)
-#define Mega                    (uint64_t)(1024ULL * 1024ULL)
+#define Million                 (uint64_t)(1000000ULL)
 
 #define iBitsTotal(_x) \
-	(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.ibytes) << 3)
+	(uint64_t)(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + FCS_SIZE)) + _x.ibytes) * 8)
 #define oBitsTotal(_x) \
-	(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.obytes) << 3)
+	(uint64_t)(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + FCS_SIZE)) + _x.obytes) * 8)
 
 #define _do(_exp)       do { _exp; } while ((0))
 
-#define forall_ports(_action)                           \
-	do {                                                \
+#define forall_ports(_action)                                   \
+	do {                                                    \
 		uint32_t pid;                                   \
 		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
-			port_info_t   *info;                        \
-			info = &pktgen.info[pid];                   \
-			if (info->seq_pkt == NULL)                  \
-				continue;                               \
-			_action;                                    \
+			port_info_t   *info;                    \
+			info = &pktgen.info[pid];               \
+			if (info->seq_pkt == NULL)              \
+				continue;                       \
+			_action;                                \
 		}                                               \
 	} while ((0))
 
-#define foreach_port(_portlist, _action)                    \
-	do {                                                    \
-		uint32_t    *_pl = (uint32_t *)&_portlist;          \
-		uint32_t pid, idx, bit;                             \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {       \
+#define foreach_port(_portlist, _action)                                \
+	do {                                                            \
+		uint32_t    *_pl = (uint32_t *)&_portlist;              \
+		uint32_t pid, idx, bit;                                 \
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {           \
 			port_info_t   *info;                            \
 			idx = (pid / (sizeof(uint32_t) * 8));           \
 			bit = (pid - (idx * (sizeof(uint32_t) * 8)));   \
 			if ( (_pl[idx] & (1 << bit)) == 0)              \
-				continue;                                   \
+				continue;                               \
 			info = &pktgen.info[pid];                       \
 			if (info->seq_pkt == NULL)                      \
-				continue;                                   \
+				continue;                               \
 			_action;                                        \
-		}                                                   \
+		}                                                       \
 	} while ((0))
 
 /**
@@ -275,9 +274,9 @@ enum {
 	EXTRA_TX_PKT            = (RANGE_PKT + 1),			/* 19 */
 	NUM_TOTAL_PKTS          = (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
 
-	INTER_FRAME_GAP         = 12,
-	PKT_PREAMBLE_SIZE       = 8,
-	FCS_SIZE                = 4,
+	INTER_FRAME_GAP         = 12,	/**< in bytes */
+	PKT_PREAMBLE_SIZE       = 8,	/**< in bytes */
+	FCS_SIZE                = 4,	/**< in bytes */
 	MIN_PKT_SIZE            = (ETHER_MIN_LEN - FCS_SIZE),
 	MAX_PKT_SIZE            = (ETHER_MAX_LEN - FCS_SIZE),
 
@@ -409,6 +408,7 @@ extern pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
 extern pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
 extern int pktgen_launch_one_lcore(void *arg);
+extern uint64_t pktgen_wire_size(port_info_t *info);
 
 extern void rte_timer_setup(void);
 

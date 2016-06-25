@@ -87,8 +87,7 @@ enum {
 	DEFAULT_BUFF_SIZE       = 2048,
 	DEFAULT_PRIV_SIZE       = 0,
 	MBUF_SIZE               =
-	        (DEFAULT_BUFF_SIZE - sizeof(struct rte_mbuf) -
-	         DEFAULT_PRIV_SIZE),
+	        (DEFAULT_BUFF_SIZE - sizeof(struct rte_mbuf) - DEFAULT_PRIV_SIZE),
 
 	NUM_Q                   = 8,	/**< Number of cores per port. */
 };

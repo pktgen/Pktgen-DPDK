@@ -23,19 +23,18 @@ fi
 
 cmd=./app/app/${target}/app/pktgen
 
-
 #rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
-#06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-#09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-#83:00.1 Ethernet controller: Intel Corporation DH8900CC Null Device (rev 21)
-#87:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#87:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+# 09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+# 83:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 83:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 85:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 85:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+# 
 
 #============================================================
 #Core and Socket Information (as reported by '/proc/cpuinfo')
@@ -66,8 +65,9 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]
 #
 
-dpdk_opts="-l 18-26 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
+dpdk_opts="-l 18-26 -n 4 --proc-type auto --log-level 0 --socket-mem 512,512 --file-prefix pg"
 pktgen_opts="-T -P"
+pktgen_opts="-T"
 port_map="-m [19:20].0 -m [21:22].1 -m [23:24].2 -m [25:26].3"
 bl_common="-b 09:00.0 -b 09:00.1"
 black_list="${bl_common} -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1"

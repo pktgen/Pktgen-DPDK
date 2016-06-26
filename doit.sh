@@ -71,7 +71,7 @@ pktgen_opts="-T -P"
 port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
 #port_map="-m [9-12:13-16].0"
 bl_common="-b 09:00.0 -b 09:00.1"
-black_list="${bl_common} -b 83:00.0 -b 83:00.1 -b 85:00.0 -b 85:00.1"
+black_list="${bl_common} -b 08:00.0 -b 08:00.1 -b 85:00.0 -b 85:00.1"
 load_file="-f themes/black-yellow.theme"
 
 if [ $name == "supermicro" ]; then

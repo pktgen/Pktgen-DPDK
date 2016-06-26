@@ -65,7 +65,7 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]
 #
 
-dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
+dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 512,512 --file-prefix pg1"
 pktgen_opts="-T -P"
 port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
 bl_common="-b 09:00.0 -b 09:00.1"

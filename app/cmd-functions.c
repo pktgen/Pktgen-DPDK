@@ -954,17 +954,12 @@ cmd_set_latency_parsed(void *parsed_result,
                        struct cmdline *cl __rte_unused,
                        void *data __rte_unused)
 {
-#ifdef LATER
 	struct cmd_set_latency_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
 	             pktgen_latency_enable_disable(info, res->state) );
 
 	pktgen_update_display();
-#else
-	(void)parsed_result;
-	printf("Latency is not working yet\n");
-#endif
 }
 
 cmdline_parse_token_string_t cmd_set_latency =

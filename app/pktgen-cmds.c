@@ -1836,6 +1836,9 @@ pktgen_clear_stats(port_info_t *info)
 	info->stats.vlan_pkts       = 0;
 	info->stats.unknown_pkts    = 0;
 	info->stats.tx_failed       = 0;
+	info->min_latency           = 0;
+	info->max_latency           = 0;
+	info->avg_latency           = 0;
 
 	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 

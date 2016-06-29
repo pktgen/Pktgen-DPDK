@@ -256,33 +256,56 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 	return pkt;
 }
 
+static __inline__ latency_t *
+pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
+{
+	latency_t *latency;
+	char *p;
+
+	p = rte_pktmbuf_mtod(m, char *);
+
+	p += sizeof(struct ether_hdr);
+
+	p += (info->seq_pkt[SINGLE_PKT].ethType == ETHER_TYPE_IPv4) ?
+		sizeof(struct ipv4_hdr) : sizeof(struct ipv6_hdr);
+
+	p += (info->seq_pkt[SINGLE_PKT].ipProto == IPPROTO_UDP) ?
+		sizeof(struct udp_hdr) : sizeof(struct tcp_hdr);
+
+	/* Force pointer to be aligned correctly */
+	p = RTE_PTR_ALIGN_CEIL(p, sizeof(latency_t));
+
+	latency = (latency_t *)p;
+
+	return latency;
+}
+
 static inline void
 pktgen_latency_apply(port_info_t *info __rte_unused,
-                     struct rte_mbuf **mbufs,
-                     int cnt)
+                     struct rte_mbuf **mbufs, int cnt)
 {
-	char *pkt;
+	latency_t *latency;
 	int i;
 
 	for (i = 0; i < cnt; i++) {
-		pkt = rte_pktmbuf_mtod(mbufs[i], char *);
-		pkt += sizeof(struct ether_hdr) + sizeof(struct ipv4_hdr);
-		clock_gettime(CLOCK_MONOTONIC_RAW, (struct timespec *)pkt);
+		latency = pktgen_latency_pointer(info, mbufs[i]);
+
+		latency->timestamp	= rte_rdtsc_precise();
+		latency->magic		= LATENCY_MAGIC;
 	}
 }
 
 static inline void
-pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **pkts, int nb_pkts)
+pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 {
 	int i;
 
-	for (i = 0; i < nb_pkts; i++)
-		if (write(info->tx_tapfd, rte_pktmbuf_mtod(pkts[i], char *),
-		          pkts[i]->pkt_len) < 0) {
-			pktgen_log_error("Write failed for tx_tap%d",
-			                 info->pid);
+	for (i = 0; i < cnt; i++) {
+		if (write(info->tx_tapfd, rte_pktmbuf_mtod(mbufs[i], char *), mbufs[i]->pkt_len) < 0) {
+			pktgen_log_error("Write failed for tx_tap%d", info->pid);
 			break;
 		}
+	}
 }
 
 /**************************************************************************//**
@@ -419,6 +442,35 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 		_send_burst_latency(info, qid);
 	else
 		_send_burst_fast(info, qid);
+}
+
+static __inline__ void
+pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
+{
+	uint32_t flags;
+
+	flags = rte_atomic32_read(&info->port_flags);
+
+	if (flags & SEND_LATENCY_PKTS) {
+		int i;
+		latency_t *latency;
+
+		for(i = 0; i < nb_pkts; i++) {
+			latency = pktgen_latency_pointer(info, pkts[i]);
+
+			if (latency->magic == LATENCY_MAGIC) {
+				info->avg_latency += (rte_rdtsc_precise() - latency->timestamp);
+				if ( info->avg_latency > info->max_latency )
+					info->max_latency = info->avg_latency;
+				if (info->min_latency == 0)
+					info->min_latency = info->avg_latency;
+				else if (info->avg_latency < info->min_latency)
+					info->min_latency = info->avg_latency;
+			} else
+				info->magic_errors++;
+		}
+		info->latency_nb_pkts += nb_pkts;
+	}
 }
 
 /**************************************************************************//**
@@ -1219,6 +1271,8 @@ pktgen_main_receive(port_info_t *info,
 		return;
 
 	info->q[qid].rx_cnt += nb_rx;
+
+	pktgen_recv_latency(info, pkts_burst, nb_rx);
 
 	/* packets are not freed in the next call. */
 	pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid);

@@ -126,6 +126,7 @@ pktgen_print_static_data(void)
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency usec");
 	if (pktgen.flags & TX_DEBUG_FLAG) {
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
@@ -152,6 +153,7 @@ pktgen_print_static_data(void)
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src MAC Address");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VendID/PCI Addr");
+	row++;
 
 	/* Get the last location to use for the window starting row. */
 	pktgen.last_row = ++row;
@@ -281,6 +283,7 @@ pktgen_page_stats(void)
 	unsigned sp;
 	char buff[32];
 	int display_cnt;
+	uint64_t avg_lat, ticks;
 
 	if (pktgen.flags & PRINT_LABELS_FLAG)
 		pktgen_print_static_data();
@@ -378,6 +381,16 @@ pktgen_page_stats(void)
 		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->port_stats) / Million);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu", info->stats.arp_pkts, info->stats.echo_pkts);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		ticks = rte_get_timer_hz()/1000000;
+		avg_lat = 0;
+		if (info->latency_nb_pkts) {
+			avg_lat = (info->avg_latency/info->latency_nb_pkts)/ticks;
+			info->latency_nb_pkts = 0;
+			info->avg_latency     = 0;
+		}
+		snprintf(buff, sizeof(buff), "%lu", avg_lat);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		if (pktgen.flags & TX_DEBUG_FLAG) {

@@ -124,6 +124,8 @@
 #include <rte_mempool.h>
 #include <rte_mbuf.h>
 #include <rte_ip.h>
+#include <rte_udp.h>
+#include <rte_tcp.h>
 
 #include <cmdline_rdline.h>
 #include <cmdline_parse.h>
@@ -227,9 +229,9 @@ enum {
 	MAX_SCRN_ROWS           = 44,
 	MAX_SCRN_COLS           = 132,
 
-	COLUMN_WIDTH_0          = 18,
+	COLUMN_WIDTH_0          = 20,
 	COLUMN_WIDTH_1          = 20,
-	COLUMN_WIDTH_3          = 24,
+	COLUMN_WIDTH_3          = 22,
 
 	/* Row locations for start of data */
 	PORT_STATE_ROWS         = 1,
@@ -393,6 +395,14 @@ struct cmdline_etheraddr {
 	uint8_t mac[6];
 };
 typedef struct cmdline_etheraddr cmdline_etheraddr_t;
+
+typedef struct {
+	uint64_t timestamp;
+	uint16_t magic;
+} latency_t;
+
+//#define LATENCY_MAGIC	(('L' << 24) + ('a' << 16) + ('t' << 8) + 'e')
+#define LATENCY_MAGIC	(('L' << 8) + 'y')
 
 extern pktgen_t pktgen;
 

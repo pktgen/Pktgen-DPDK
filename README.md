@@ -6,6 +6,12 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.05  - New Latency/Jitter page 'page latency'
+             Need to adjust the packet size to 96 to allow for latency timestamp.
+             type: page latency
+                   latency 0 on
+                   set 0 size 96
+                   start 0
  - 3.0.04  - Display reported the wrong rate in Mbits because the counters were not
              including the FCS bytes in the value as it was before.
              Minor cleanup of the code for formating.

@@ -223,6 +223,9 @@ typedef struct port_info_s {
 	uint64_t min_latency;	/**< RX Latency sequence */
 	uint32_t magic_errors;
 	uint32_t latency_nb_pkts;
+	uint64_t jitter_threshold;
+	uint64_t jitter_threshold_clks;
+	uint64_t jitter_count;
 
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */

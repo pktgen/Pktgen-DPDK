@@ -157,6 +157,7 @@
 #include "pktgen-port-cfg.h"
 #include "pktgen-capture.h"
 #include "pktgen-log.h"
+#include "pktgen-latency.h"
 
 #include "pktgen-seq.h"
 
@@ -382,27 +383,20 @@ enum {						/* Pktgen flags bits */
 	PCAP_PAGE_FLAG          = (1 << 19),	/**< Display the PCAP page */
 	CPU_PAGE_FLAG           = (1 << 20),	/**< Display the PCAP page */
 	RND_BITFIELD_PAGE_FLAG  = (1 << 21),	/**< Display the random bitfield page */
-	LOG_PAGE_FLAG           = (1 << 22)	/**< Display the message log page */
+	LOG_PAGE_FLAG           = (1 << 22),	/**< Display the message log page */
+	LATENCY_PAGE_FLAG       = (1 << 23)	/**< Display latency page */
 };
 
 #define PAGE_MASK_BITS  (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
 	                     RANGE_PAGE_FLAG | \
 	                     PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
 	                     RND_BITFIELD_PAGE_FLAG | \
-	                     LOG_PAGE_FLAG)
+	                     LOG_PAGE_FLAG | LATENCY_PAGE_FLAG)
 
 struct cmdline_etheraddr {
 	uint8_t mac[6];
 };
 typedef struct cmdline_etheraddr cmdline_etheraddr_t;
-
-typedef struct {
-	uint64_t timestamp;
-	uint16_t magic;
-} latency_t;
-
-//#define LATENCY_MAGIC	(('L' << 24) + ('a' << 16) + ('t' << 8) + 'e')
-#define LATENCY_MAGIC	(('L' << 8) + 'y')
 
 extern pktgen_t pktgen;
 

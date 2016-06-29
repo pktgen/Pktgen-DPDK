@@ -222,5 +222,6 @@ extern void pktgen_set_pkt_type_range(port_info_t *info, const char *type);
 extern void pktgen_set_pattern_type(port_info_t *info, char *str);
 extern void pktgen_user_pattern_set(port_info_t *info, char *str);
 extern void pktgen_latency_enable_disable(port_info_t *info, char *str);
+extern void pktgen_set_jitter(port_info_t *info, char *str);
 
 #endif /* _PKTGEN_CMDS_H_ */

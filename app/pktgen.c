@@ -273,7 +273,7 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
 		sizeof(struct udp_hdr) : sizeof(struct tcp_hdr);
 
 	/* Force pointer to be aligned correctly */
-	p = RTE_PTR_ALIGN_CEIL(p, sizeof(latency_t));
+	p = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
 
 	latency = (latency_t *)p;
 
@@ -448,6 +448,7 @@ static __inline__ void
 pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
 	uint32_t flags;
+	uint64_t lat;
 
 	flags = rte_atomic32_read(&info->port_flags);
 
@@ -459,13 +460,10 @@ pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 			latency = pktgen_latency_pointer(info, pkts[i]);
 
 			if (latency->magic == LATENCY_MAGIC) {
-				info->avg_latency += (rte_rdtsc_precise() - latency->timestamp);
-				if ( info->avg_latency > info->max_latency )
-					info->max_latency = info->avg_latency;
-				if (info->min_latency == 0)
-					info->min_latency = info->avg_latency;
-				else if (info->avg_latency < info->min_latency)
-					info->min_latency = info->avg_latency;
+				lat = (rte_rdtsc_precise() - latency->timestamp);
+				info->avg_latency += lat;
+				if (lat > info->jitter_threshold_clks)
+					info->jitter_count++;
 			} else
 				info->magic_errors++;
 		}
@@ -1559,10 +1557,10 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
 		                             pktgen.portNum,
 		                             pktgen.info[pktgen.portNum].rnd_bitfields);
-
-
 	else if (pktgen.flags & LOG_PAGE_FLAG)
 		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
+	else if (pktgen.flags & LATENCY_PAGE_FLAG)
+		pktgen_page_latency();
 	else
 		pktgen_page_stats();
 

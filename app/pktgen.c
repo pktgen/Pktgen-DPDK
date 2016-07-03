@@ -486,11 +486,16 @@ pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 static __inline__ void
 pktgen_tx_flush(port_info_t *info, uint16_t qid)
 {
+//	struct rte_eth_dev *dev;
+//	char name[32];
+
 	/* Flush any queued pkts to the driver. */
 	pktgen_send_burst(info, qid);
 
 	rte_delay_ms(2);
-/*	rte_eth_dev_tx_queue_flush(info->pid, qid); */
+
+//	snprintf(name, sizeof(name), "eth%d", info->pid);
+//	dev = rte_eth_dev_allocated(name);
 
 	pktgen_clr_q_flags(info, qid, DO_TX_FLUSH);
 }

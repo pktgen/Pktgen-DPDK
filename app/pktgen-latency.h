@@ -45,7 +45,7 @@ typedef struct {
 } latency_t;
 
 #define LATENCY_MAGIC	(('L' << 8) + 'y')
-#define DEFAULT_JITTER_THRESHOLD	(100)	/**< usec */
+#define DEFAULT_JITTER_THRESHOLD	(50)	/**< usec */
 
 extern void pktgen_page_latency(void);
 

@@ -93,12 +93,13 @@
 
 enum { RX_IDX = 0, TX_IDX = 1, RXTX_CNT = 2 };
 
+/* Make sure to force sizes to multiples of 8 */
 typedef struct ls_s {
-	uint8_t ls[RTE_MAX_LCORE / 8];
+	uint8_t ls[(RTE_MAX_LCORE+7) / 8];
 } ls_t;
 
 typedef struct ps_s {
-	uint8_t ps[RTE_MAX_ETHPORTS / 8];
+	uint8_t ps[(RTE_MAX_ETHPORTS+7) / 8];
 } ps_t;
 
 typedef struct lcore_port_s {

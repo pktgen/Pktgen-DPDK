@@ -7,9 +7,7 @@ name=`uname -n`
 
 # Use 'sudo -E ./setup.sh' to include environment variables
 
-if [ -z ${RTE_SDK} ] ; then
-    echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
-	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
+if [ -z ${RTE_SDK} ] ; then echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'" export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
 	export RTE_TARGET=x86_64-native-linuxapp-clang
 fi
 sdk=${RTE_SDK}
@@ -65,16 +63,15 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-
-dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
-pktgen_opts="-T -P"
-port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
-#port_map="-m [9-12:13-16].0"
-bl_common="-b 09:00.0 -b 09:00.1"
-black_list="${bl_common} -b 08:00.0 -b 08:00.1 -b 85:00.0 -b 85:00.1"
-load_file="-f themes/black-yellow.theme"
-
 if [ $name == "supermicro" ]; then
+	dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 256,256 --file-prefix pg"
+	pktgen_opts="-T -P"
+	port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
+	#port_map="-m [9-12:13-16].0"
+	bl_common="-b 09:00.0 -b 09:00.1"
+	black_list="${bl_common} -b 08:00.0 -b 08:00.1 -b 85:00.0 -b 85:00.1"
+	load_file="-f themes/black-yellow.theme"
+
 	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 
@@ -82,3 +79,18 @@ if [ $name == "supermicro" ]; then
 	stty sane
 fi
 
+if [ $name == "rkwiles-VirtualBox" ]; then
+	dpdk_opts="-l 1-3 -n 4 --proc-type auto --log-level 7 --socket-mem 256 --file-prefix pg"
+	dpdk_opts=${dpdk_opts}" --vdev=eth_ring0 --vdev=eth_ring1"
+	pktgen_opts="-T -P"
+	port_map="-m 2.0 -m 3.1"
+	bl_common="-b 00:03.0"
+	black_list="${bl_common}"
+	load_file="-f themes/black-yellow.theme"
+
+	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+
+	# Restore the screen and keyboard to a sane state
+	stty sane
+fi

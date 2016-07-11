@@ -486,16 +486,10 @@ pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 static __inline__ void
 pktgen_tx_flush(port_info_t *info, uint16_t qid)
 {
-//	struct rte_eth_dev *dev;
-//	char name[32];
-
 	/* Flush any queued pkts to the driver. */
 	pktgen_send_burst(info, qid);
 
 	rte_delay_ms(2);
-
-//	snprintf(name, sizeof(name), "eth%d", info->pid);
-//	dev = rte_eth_dev_allocated(name);
 
 	pktgen_clr_q_flags(info, qid, DO_TX_FLUSH);
 }
@@ -1027,6 +1021,97 @@ pktgen_send_special(port_info_t *info, uint32_t flags)
 	pktgen_clr_port_flags(info, SEND_ARP_PING_REQUESTS);
 }
 
+#if RTE_VERSION > RTE_VERSION_NUM(16, 4, 0, 0)
+typedef struct {
+	port_info_t *info;
+	uint16_t qid;
+} pkt_data_t;
+
+static void
+pktgen_setup_cb(struct rte_mempool *mp,
+		void *opaque, void *obj, unsigned obj_idx __rte_unused)
+{
+	pkt_data_t *data = (pkt_data_t *)opaque;
+	port_info_t *info;
+	struct rte_mbuf *m;
+	pkt_seq_t *pkt, *seq_pkt;
+	uint16_t seqIdx, qid;
+
+	info = data->info;
+	qid = data->qid;
+
+	m = (struct rte_mbuf *)obj;
+
+	seq_pkt = info->seq_pkt;
+	seqIdx = info->seqIdx;
+
+	if (mp == info->q[qid].tx_mp) {
+		pkt = &info->seq_pkt[SINGLE_PKT];
+		pktgen_packet_ctor(info, SINGLE_PKT, -1);
+
+		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+				(uint8_t *)&pkt->hdr,
+				MAX_PKT_SIZE);
+
+		m->pkt_len  = pkt->pktSize;
+		m->data_len = pkt->pktSize;
+	} else if (mp == info->q[qid].range_mp) {
+		pkt = &info->seq_pkt[RANGE_PKT];
+		pktgen_range_ctor(&info->range, pkt);
+		pktgen_packet_ctor(info, RANGE_PKT, -1);
+
+		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+				(uint8_t *)&pkt->hdr,
+				MAX_PKT_SIZE);
+
+		m->pkt_len  = pkt->pktSize;
+		m->data_len = pkt->pktSize;
+	} else if (mp == info->q[qid].seq_mp) {
+		pkt = &info->seq_pkt[info->seqIdx];
+
+		if(pktgen.is_gui_running == 1) {
+			while(seqIdx < info->seqCnt) {
+				pkt = &info->seq_pkt[seqIdx];
+
+				/* Check the sequence and start from the beginning */
+				if (++seqIdx >= info->seqCnt)
+					seqIdx = 0;
+
+				if(pkt->enabled == 1) {
+					/* Call ctor for those sequence which are enabled in the GUI */
+					pktgen_packet_ctor(info, seqIdx, -1);
+
+					rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+							(uint8_t *)&pkt->hdr,
+							MAX_PKT_SIZE);
+					m->pkt_len  = pkt->pktSize;
+					m->data_len = pkt->pktSize;
+					info->seqIdx = seqIdx;
+					pkt = &seq_pkt[seqIdx];
+					break;
+				}
+			}
+		} else {
+			pkt = &info->seq_pkt[seqIdx];
+			pktgen_packet_ctor(info, seqIdx, -1);
+
+			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+					(uint8_t *)&pkt->hdr,
+					MAX_PKT_SIZE);
+
+			m->pkt_len  = pkt->pktSize;
+			m->data_len = pkt->pktSize;
+
+			info->seqIdx = seqIdx;
+			pkt = &seq_pkt[seqIdx];
+
+			/* move to the next packet in the sequence. */
+			if (unlikely(++seqIdx >= info->seqCnt))
+				seqIdx = 0;
+		}
+	}
+}
+
 /**************************************************************************//**
  *
  * pktgen_setup_packets - Setup the default packets to be sent.
@@ -1039,6 +1124,26 @@ pktgen_send_special(port_info_t *info, uint32_t flags)
  * SEE ALSO:
  */
 
+static __inline__ void
+pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
+{
+	pkt_data_t pkt_data;
+
+	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
+
+	if (mp == info->q[qid].pcap_mp)
+		return;
+
+	rte_spinlock_lock(&info->port_lock);
+
+	pkt_data.info = info;
+	pkt_data.qid = qid;
+
+	rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
+
+	rte_spinlock_unlock(&info->port_lock);
+}
+#else
 static __inline__ void
 pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 {
@@ -1144,6 +1249,7 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 	if (mm != NULL)
 		rte_pktmbuf_free(mm);
 }
+#endif
 
 /**************************************************************************//**
  *

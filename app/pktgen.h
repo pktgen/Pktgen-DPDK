@@ -161,7 +161,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.0.05"
+#define PKTGEN_VERSION          "3.0.06"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 

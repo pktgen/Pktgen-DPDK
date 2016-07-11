@@ -211,12 +211,16 @@ pktgen_print_static_data(void)
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		rte_eth_dev_info_get(pid, &dev);
-		snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
-			dev.pci_dev->id.vendor_id,
-			dev.pci_dev->id.device_id,
-			dev.pci_dev->addr.bus,
-			dev.pci_dev->addr.devid,
-			dev.pci_dev->addr.function);
+		if ( dev.pci_dev )
+			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+				dev.pci_dev->id.vendor_id,
+				dev.pci_dev->id.device_id,
+				dev.pci_dev->addr.bus,
+				dev.pci_dev->addr.devid,
+				dev.pci_dev->addr.function);
+		else
+			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+				0, 0, 0, 0, 0);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;

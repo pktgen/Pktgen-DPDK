@@ -6,6 +6,18 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.06  - Fix PCI null pointer when using virtual devices.
+             Removed the C11 constructs to compile on C99 compilers.
+             Fix the bug of old packets after changes for new run.
+             The problem is DPDK holds on to the mbufs in the TX done queue
+             and those can not be changed. With 16.07 we can find all of the mbufs
+             and changed them to correct format/sizes.
+ - 3.0.05  - New Latency/Jitter page 'page latency'
+             Need to adjust the packet size to 96 to allow for latency timestamp.
+             type: page latency
+                   latency 0 on
+                   set 0 size 96
+                   start 0
  - 3.0.04  - Display reported the wrong rate in Mbits because the counters were not
              including the FCS bytes in the value as it was before.
              Minor cleanup of the code for formating.

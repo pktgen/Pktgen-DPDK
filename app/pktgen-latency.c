@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2016>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,38 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/* Created 2010 by Keith Wiles @ intel.com */
+/* Created 2016 by Keith Wiles @ intel.com */
 
 #include "pktgen-cmds.h"
 #include "pktgen-display.h"
@@ -110,35 +79,12 @@ pktgen_print_static_data(void)
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Max/Tx");
 	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Broadcast");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Multicast");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  64 Bytes");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  65-127");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  128-255");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  256-511");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  512-1023");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  1024-1518");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Runts/Jumbos");
-
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Errors Rx/Tx");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx Pkts");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx Pkts");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs");
-	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
-
-	if (pktgen.flags & TX_DEBUG_FLAG) {
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
-
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Missed Rx");
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad CRC Rx");
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad Len Rx");
-#endif
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "mcasts Rx");
-		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "No Mbuf Rx");
-	}
+	row++;
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency usec");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter Threshold");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter count");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx pkts");
+	wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");
 
 	/* Labels for static fields */
 	pktgen_display_set_color("stats.stat.label");
@@ -211,16 +157,12 @@ pktgen_print_static_data(void)
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		rte_eth_dev_info_get(pid, &dev);
-		if ( dev.pci_dev )
-			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
-				dev.pci_dev->id.vendor_id,
-				dev.pci_dev->id.device_id,
-				dev.pci_dev->addr.bus,
-				dev.pci_dev->addr.devid,
-				dev.pci_dev->addr.function);
-		else
-			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
-				0, 0, 0, 0, 0);
+		snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+			dev.pci_dev->id.vendor_id,
+			dev.pci_dev->id.device_id,
+			dev.pci_dev->addr.bus,
+			dev.pci_dev->addr.devid,
+			dev.pci_dev->addr.function);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;
@@ -238,41 +180,10 @@ pktgen_print_static_data(void)
 
 /**************************************************************************//**
  *
- * pktgen_get_link_status - Get the port link status.
+ * pktgen_page_latency - Display the latency on the screen for all ports.
  *
  * DESCRIPTION
- * Try to get the link status of a port. The <wait> flag if set tells the
- * routine to try and wait for the link status for 3 seconds. If the <wait> flag
- * is zero the try three times to get a link status if the link is not up.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-void
-pktgen_get_link_status(port_info_t *info, int pid, int wait) {
-	int i;
-
-	/* get link status */
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
-		memset(&info->link, 0, sizeof(info->link));
-		rte_eth_link_get_nowait(pid, &info->link);
-		if (info->link.link_status)
-			return;
-		if (wait)
-			rte_delay_ms(250);
-	}
-	/* Setup a few default values to prevent problems later. */
-	info->link.link_speed   = 10000;
-	info->link.link_duplex  = ETH_LINK_FULL_DUPLEX;
-}
-
-/**************************************************************************//**
- *
- * pktgen_page_stats - Display the statistics on the screen for all ports.
- *
- * DESCRIPTION
- * Display the port statistics on the screen for all ports.
+ * Display the port latency on the screen for all ports.
  *
  * RETURNS: N/A
  *
@@ -280,13 +191,14 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait) {
  */
 
 void
-pktgen_page_stats(void)
+pktgen_page_latency(void)
 {
 	port_info_t *info;
 	unsigned int pid, col, row;
 	unsigned sp;
 	char buff[32];
 	int display_cnt;
+	uint64_t avg_lat, ticks;
 
 	if (pktgen.flags & PRINT_LABELS_FLAG)
 		pktgen_print_static_data();
@@ -357,58 +269,41 @@ pktgen_page_stats(void)
 #endif
 		pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
-		/* Packets Sizes */
-		row = PKT_SIZE_ROW;
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.broadcast);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.multicast);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._64);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._65_127);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._128_255);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._256_511);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._512_1023);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._1024_1518);
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->sizes.runt, info->sizes.jumbo);
-		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-		/* Rx/Tx Errors */
-		row = PKT_TOTALS_ROW;
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->port_stats.ierrors, info->port_stats.oerrors);
-		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-		/* Total Rx/Tx */
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->port_stats.ipackets);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->port_stats.opackets);
-
-		/* Total Rx/Tx mbits */
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->port_stats) / Million);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->port_stats) / Million);
-
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->stats.arp_pkts, info->stats.echo_pkts);
-		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-		if (pktgen.flags & TX_DEBUG_FLAG) {
-			snprintf(buff, sizeof(buff), "%lu", info->stats.tx_failed);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-			snprintf(buff, sizeof(buff), "%lu/%lu", info->tx_pps, info->tx_cycles);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-			snprintf(buff, sizeof(buff), "%lu", info->stats.imissed);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadcrc);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadlen);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-			snprintf(buff, sizeof(buff), "%lu", info->stats.imcasts);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#else
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
-#endif
-			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
-			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		row++;
+		ticks = rte_get_timer_hz()/1000000;
+		avg_lat = 0;
+		if (info->latency_nb_pkts) {
+			avg_lat = (info->avg_latency/info->latency_nb_pkts)/ticks;
+			if ( avg_lat > info->max_latency )
+				info->max_latency = avg_lat;
+			if (info->min_latency == 0)
+				info->min_latency = avg_lat;
+			else if (avg_lat < info->min_latency)
+				info->min_latency = avg_lat;
+			info->latency_nb_pkts = 0;
+			info->avg_latency     = 0;
 		}
+		snprintf(buff, sizeof(buff), "%lu", avg_lat);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%lu", info->jitter_threshold);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%lu", info->jitter_count);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%lu", info->port_stats.ipackets);
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		avg_lat = 0;
+		if (info->port_stats.ipackets)
+			snprintf(buff, sizeof(buff), "%lu",
+				 (info->jitter_count * 100)/info->port_stats.ipackets);
+		else
+			snprintf(buff, sizeof(buff), "%lu", avg_lat);
+
+		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
 		display_cnt++;
 	}
 
@@ -428,102 +323,4 @@ pktgen_page_stats(void)
 	         oBitsTotal(pktgen.cumm_rate_totals) / Million);
 	wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	wr_scrn_eol();
-}
-
-/**************************************************************************//**
- *
- * pktgen_process_stats - Process statistics for all ports on timer1
- *
- * DESCRIPTION
- * When timer1 callback happens then process all of the port statistics.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
-{
-	unsigned int pid;
-	struct rte_eth_stats stats;
-	port_info_t *info;
-	static unsigned int counter = 0;
-
-	counter++;
-	if (pktgen.flags & BLINK_PORTS_FLAG)
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {
-			if ( (pktgen.blinklist & (1ULL << pid)) == 0)
-				continue;
-
-			if (counter & 1)
-				rte_eth_led_on(pid);
-			else
-				rte_eth_led_off(pid);
-		}
-
-	for (pid = 0; pid < pktgen.nb_ports; pid++) {
-		if (wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
-			continue;
-
-		info = &pktgen.info[pid];
-
-		memset(&stats, 0, sizeof(stats));
-		rte_eth_stats_get(pid, &stats);
-
-		/* Normalize counts to the initial state, used for clearing statistics */
-		stats.ipackets  -= info->init_stats.ipackets;
-		stats.opackets  -= info->init_stats.opackets;
-		stats.ibytes    -= info->init_stats.ibytes;
-		stats.obytes    -= info->init_stats.obytes;
-		stats.ierrors   -= info->init_stats.ierrors;
-		stats.oerrors   -= info->init_stats.oerrors;
-
-		stats.imissed += info->init_stats.imissed;
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		stats.ibadcrc += info->init_stats.ibadcrc;
-		stats.ibadlen += info->init_stats.ibadlen;
-#endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		stats.imcasts += info->init_stats.imcasts;
-#endif
-		stats.rx_nombuf += info->init_stats.rx_nombuf;
-
-		info->rate_stats.ipackets   = stats.ipackets -
-		        info->port_stats.ipackets;
-		info->rate_stats.opackets   = stats.opackets -
-		        info->port_stats.opackets;
-		info->rate_stats.ibytes     = stats.ibytes -
-		        info->port_stats.ibytes;
-		info->rate_stats.obytes     = stats.obytes -
-		        info->port_stats.obytes;
-		info->rate_stats.ierrors    = stats.ierrors -
-		        info->port_stats.ierrors;
-		info->rate_stats.oerrors    = stats.oerrors -
-		        info->port_stats.oerrors;
-
-		if (info->rate_stats.ipackets > info->max_ipackets)
-			info->max_ipackets = info->rate_stats.ipackets;
-		if (info->rate_stats.opackets > info->max_opackets)
-			info->max_opackets = info->rate_stats.opackets;
-
-		info->rate_stats.imissed += stats.imissed -
-		        info->init_stats.imissed;
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		info->rate_stats.ibadcrc += stats.ibadcrc -
-		        info->init_stats.ibadcrc;
-		info->rate_stats.ibadlen += stats.ibadlen -
-		        info->init_stats.ibadlen;
-#endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		info->rate_stats.imcasts += stats.imcasts -
-		        info->init_stats.imcasts;
-#endif
-		info->rate_stats.rx_nombuf += stats.rx_nombuf -
-		        info->init_stats.rx_nombuf;
-
-		/* Use structure move to copy the data. */
-		*(struct rte_eth_stats *)&info->port_stats =
-		        *(struct rte_eth_stats *)&stats;
-	}
 }

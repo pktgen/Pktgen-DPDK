@@ -286,6 +286,7 @@ pktgen_config_ports(void)
 	char buff[RTE_MEMZONE_NAMESIZE];
 	int32_t ret, cache_size;
 	char output_buff[256] = { 0 };
+	uint64_t ticks;
 
 	/* Find out the total number of ports in the system. */
 	/* We have already blacklisted the ones we needed to in main routine. */
@@ -370,6 +371,9 @@ pktgen_config_ports(void)
 		info->seqIdx    = 0;
 		info->seqCnt    = 0;
 
+		info->jitter_threshold = DEFAULT_JITTER_THRESHOLD;
+		ticks = rte_get_timer_hz()/1000000;
+		info->jitter_threshold_clks = info->jitter_threshold * ticks;
 		info->nb_mbufs  = MAX_MBUFS_PER_PORT;
 		cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE) ?
 		        RTE_MEMPOOL_CACHE_MAX_SIZE : info->nb_mbufs;

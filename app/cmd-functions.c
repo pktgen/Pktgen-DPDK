@@ -184,6 +184,7 @@ const char *help_info[] = {
 	"        user                       - User supplied string of max 16 bytes",
 	"user.pattern \"string\"              - A 16 byte string, must set 'pattern user' command",
 	"latency <portlist> <state>         - Enable Latency testing",
+	"jitter <portlist> <usec>           = Set the jitter threshold in usec",
 	"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
@@ -225,7 +226,7 @@ const char *help_info[] = {
 #ifdef INCLUDE_PING6
 	"ping6 <portlist>                   - Send a IPv6 ICMP echo request on the given portlist",
 #endif
-	"page [0-7]|main|range|config|seq|pcap|next|cpu|rnd- Show the port pages or configuration or sequence page",
+	"page [0-7]|main|range|config|seq|pcap|next|cpu|rnd|log|latency - Show the port pages or configuration or sequence page",
 	"     [0-7]                         - Page of different ports",
 	"     main                          - Display page zero",
 	"     range                         - Display the range packet page",
@@ -238,6 +239,7 @@ const char *help_info[] = {
 	"     rnd                           - Display the random bitfields to packets for a given port",
 	"                                     Note: use the 'port <number>' to display a new port sequence",
 	"     log                           - Display the log messages page",
+	"     latency                       - Display the latency page",
 	"port <number>                      - Sets the sequence of packets to display for a given port",
 	"process <portlist> <state>         - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
 	"garp <portlist> <state>            - Enable or Disable GARP packet processing and update MAC address",
@@ -954,17 +956,12 @@ cmd_set_latency_parsed(void *parsed_result,
                        struct cmdline *cl __rte_unused,
                        void *data __rte_unused)
 {
-#ifdef LATER
 	struct cmd_set_latency_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
 	             pktgen_latency_enable_disable(info, res->state) );
 
 	pktgen_update_display();
-#else
-	(void)parsed_result;
-	printf("Latency is not working yet\n");
-#endif
 }
 
 cmdline_parse_token_string_t cmd_set_latency =
@@ -986,6 +983,61 @@ cmdline_parse_inst_t cmd_latency = {
 		(void *)&cmd_set_latency,
 		(void *)&cmd_set_latency_portlist,
 		(void *)&cmd_set_latency_state,
+		NULL,
+	},
+};
+
+/**********************************************************/
+
+struct cmd_set_jitter_result {
+	cmdline_fixed_string_t jitter;
+	cmdline_portlist_t portlist;
+	cmdline_fixed_string_t usec;
+};
+
+/**************************************************************************//**
+ *
+ * cmd_set_jitter_parsed - Set the jitter threshold testing.
+ *
+ * DESCRIPTION
+ * Set the jitter threshold testing.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static void
+cmd_set_jitter_parsed(void *parsed_result,
+                       struct cmdline *cl __rte_unused,
+                       void *data __rte_unused)
+{
+	struct cmd_set_jitter_result *res = parsed_result;
+
+	foreach_port(res->portlist.map,
+	             pktgen_set_jitter(info, res->usec) );
+
+	pktgen_update_display();
+}
+
+cmdline_parse_token_string_t cmd_set_jitter =
+        TOKEN_STRING_INITIALIZER(struct cmd_set_jitter_result,
+                                 jitter,
+                                 "jitter");
+cmdline_parse_token_portlist_t cmd_set_jitter_portlist =
+        TOKEN_PORTLIST_INITIALIZER(struct cmd_set_jitter_result, portlist);
+cmdline_parse_token_string_t cmd_set_jitter_usec =
+        TOKEN_STRING_INITIALIZER(struct cmd_set_jitter_result,
+                                 usec, NULL);
+
+cmdline_parse_inst_t cmd_jitter = {
+	.f = cmd_set_jitter_parsed,
+	.data = NULL,
+	.help_str = "jitter <portlist> <usec>",
+	.tokens = {
+		(void *)&cmd_set_jitter,
+		(void *)&cmd_set_jitter_portlist,
+		(void *)&cmd_set_jitter_usec,
 		NULL,
 	},
 };
@@ -2833,13 +2885,13 @@ cmdline_parse_token_string_t cmd_set_pageType =
         TOKEN_STRING_INITIALIZER(
                 struct cmd_page_result,
                 pageType,
-                "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log");
+                "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log#latency");
 
 cmdline_parse_inst_t cmd_page = {
 	.f = cmd_set_page_parsed,
 	.data = NULL,
 	.help_str =
-	        "page [0-7]|main|range|config|sequence|seq|pcap|next|cpu|rnd|log",
+	        "page [0-7]|main|range|config|sequence|seq|pcap|next|cpu|rnd|log|latency",
 	.tokens = {
 		(void *)&cmd_set_page,
 		(void *)&cmd_set_pageType,
@@ -4668,6 +4720,7 @@ cmdline_parse_ctx_t main_ctx[] = {
 	(cmdline_parse_inst_t *)&cmd_pattern,
 	(cmdline_parse_inst_t *)&cmd_set_user_pattern,
 	(cmdline_parse_inst_t *)&cmd_latency,
+	(cmdline_parse_inst_t *)&cmd_jitter,
 	NULL,
 };
 

@@ -1836,6 +1836,10 @@ pktgen_clear_stats(port_info_t *info)
 	info->stats.vlan_pkts       = 0;
 	info->stats.unknown_pkts    = 0;
 	info->stats.tx_failed       = 0;
+	info->min_latency           = 0;
+	info->max_latency           = 0;
+	info->avg_latency           = 0;
+	info->jitter_count          = 0;
 
 	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 
@@ -2369,6 +2373,29 @@ pktgen_latency_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
+ * pktgen_set_jitter - Set the jitter threshold.
+ *
+ * DESCRIPTION
+ * Set the jitter threshold.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_set_jitter(port_info_t *info, char *str)
+{
+	uint64_t ticks;
+
+	info->jitter_threshold = atoi(str);
+	info->jitter_count = 0;
+	ticks = rte_get_timer_hz()/1000000;
+	info->jitter_threshold_clks = info->jitter_threshold * ticks;
+}
+
+/**************************************************************************//**
+ *
  * pktgen_set_pattern_type - Set the pattern type per port.
  *
  * DESCRIPTION
@@ -2763,9 +2790,12 @@ pktgen_set_page(char *str)
 	} else if (str[0] == 'r') {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= RND_BITFIELD_PAGE_FLAG;
-	} else if (str[0] == 'l') {
+	} else if ((str[0] == 'l') && (str[1] == 'o')) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= LOG_PAGE_FLAG;
+	} else if ((str[0] == 'l') && (str[1] == 'a')) {
+		pktgen.flags &= ~PAGE_MASK_BITS;
+		pktgen.flags |= LATENCY_PAGE_FLAG;
 	} else {
 		uint16_t start_port;
 		if (str[0] == 'm')

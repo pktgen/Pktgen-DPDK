@@ -31,8 +31,7 @@ xor_next(void) {
 
 	xor_seed[ 0 ] = s0;
 	s1 ^= s1 << 23;			/* a */
-	return ( xor_seed[ 1 ] = ( s1 ^ s0 ^ ( s1 >> 17 ) ^ ( s0 >> 26 ) ) ) +
-	       s0;		/* b, c */
+	return (xor_seed[1] = (s1 ^ s0 ^ (s1 >> 17) ^ (s0 >> 26))) + s0; /* b, c */
 }
 
 #endif  /* _XORSHIFT128PLUS_H_ */

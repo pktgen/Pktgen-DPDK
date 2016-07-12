@@ -218,6 +218,14 @@ typedef struct port_info_s {
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
 	uint16_t pad1;
+	uint64_t max_latency;	/**< TX Latency sequence */
+	uint64_t avg_latency;	/**< Latency delta in clock ticks */
+	uint64_t min_latency;	/**< RX Latency sequence */
+	uint32_t magic_errors;
+	uint32_t latency_nb_pkts;
+	uint64_t jitter_threshold;
+	uint64_t jitter_threshold_clks;
+	uint64_t jitter_count;
 
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */

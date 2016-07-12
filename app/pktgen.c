@@ -256,33 +256,56 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 	return pkt;
 }
 
+static __inline__ latency_t *
+pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
+{
+	latency_t *latency;
+	char *p;
+
+	p = rte_pktmbuf_mtod(m, char *);
+
+	p += sizeof(struct ether_hdr);
+
+	p += (info->seq_pkt[SINGLE_PKT].ethType == ETHER_TYPE_IPv4) ?
+		sizeof(struct ipv4_hdr) : sizeof(struct ipv6_hdr);
+
+	p += (info->seq_pkt[SINGLE_PKT].ipProto == IPPROTO_UDP) ?
+		sizeof(struct udp_hdr) : sizeof(struct tcp_hdr);
+
+	/* Force pointer to be aligned correctly */
+	p = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
+
+	latency = (latency_t *)p;
+
+	return latency;
+}
+
 static inline void
 pktgen_latency_apply(port_info_t *info __rte_unused,
-                     struct rte_mbuf **mbufs,
-                     int cnt)
+                     struct rte_mbuf **mbufs, int cnt)
 {
-	char *pkt;
+	latency_t *latency;
 	int i;
 
 	for (i = 0; i < cnt; i++) {
-		pkt = rte_pktmbuf_mtod(mbufs[i], char *);
-		pkt += sizeof(struct ether_hdr) + sizeof(struct ipv4_hdr);
-		clock_gettime(CLOCK_MONOTONIC_RAW, (struct timespec *)pkt);
+		latency = pktgen_latency_pointer(info, mbufs[i]);
+
+		latency->timestamp	= rte_rdtsc_precise();
+		latency->magic		= LATENCY_MAGIC;
 	}
 }
 
 static inline void
-pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **pkts, int nb_pkts)
+pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 {
 	int i;
 
-	for (i = 0; i < nb_pkts; i++)
-		if (write(info->tx_tapfd, rte_pktmbuf_mtod(pkts[i], char *),
-		          pkts[i]->pkt_len) < 0) {
-			pktgen_log_error("Write failed for tx_tap%d",
-			                 info->pid);
+	for (i = 0; i < cnt; i++) {
+		if (write(info->tx_tapfd, rte_pktmbuf_mtod(mbufs[i], char *), mbufs[i]->pkt_len) < 0) {
+			pktgen_log_error("Write failed for tx_tap%d", info->pid);
 			break;
 		}
+	}
 }
 
 /**************************************************************************//**
@@ -421,6 +444,33 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 		_send_burst_fast(info, qid);
 }
 
+static __inline__ void
+pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
+{
+	uint32_t flags;
+	uint64_t lat;
+
+	flags = rte_atomic32_read(&info->port_flags);
+
+	if (flags & SEND_LATENCY_PKTS) {
+		int i;
+		latency_t *latency;
+
+		for(i = 0; i < nb_pkts; i++) {
+			latency = pktgen_latency_pointer(info, pkts[i]);
+
+			if (latency->magic == LATENCY_MAGIC) {
+				lat = (rte_rdtsc_precise() - latency->timestamp);
+				info->avg_latency += lat;
+				if (lat > info->jitter_threshold_clks)
+					info->jitter_count++;
+			} else
+				info->magic_errors++;
+		}
+		info->latency_nb_pkts += nb_pkts;
+	}
+}
+
 /**************************************************************************//**
  *
  * pktgen_tx_flush - Flush Tx buffers from ring.
@@ -440,7 +490,6 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 	pktgen_send_burst(info, qid);
 
 	rte_delay_ms(2);
-/*	rte_eth_dev_tx_queue_flush(info->pid, qid); */
 
 	pktgen_clr_q_flags(info, qid, DO_TX_FLUSH);
 }
@@ -972,6 +1021,97 @@ pktgen_send_special(port_info_t *info, uint32_t flags)
 	pktgen_clr_port_flags(info, SEND_ARP_PING_REQUESTS);
 }
 
+#if RTE_VERSION > RTE_VERSION_NUM(16, 4, 0, 0)
+typedef struct {
+	port_info_t *info;
+	uint16_t qid;
+} pkt_data_t;
+
+static void
+pktgen_setup_cb(struct rte_mempool *mp,
+		void *opaque, void *obj, unsigned obj_idx __rte_unused)
+{
+	pkt_data_t *data = (pkt_data_t *)opaque;
+	port_info_t *info;
+	struct rte_mbuf *m;
+	pkt_seq_t *pkt, *seq_pkt;
+	uint16_t seqIdx, qid;
+
+	info = data->info;
+	qid = data->qid;
+
+	m = (struct rte_mbuf *)obj;
+
+	seq_pkt = info->seq_pkt;
+	seqIdx = info->seqIdx;
+
+	if (mp == info->q[qid].tx_mp) {
+		pkt = &info->seq_pkt[SINGLE_PKT];
+		pktgen_packet_ctor(info, SINGLE_PKT, -1);
+
+		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+				(uint8_t *)&pkt->hdr,
+				MAX_PKT_SIZE);
+
+		m->pkt_len  = pkt->pktSize;
+		m->data_len = pkt->pktSize;
+	} else if (mp == info->q[qid].range_mp) {
+		pkt = &info->seq_pkt[RANGE_PKT];
+		pktgen_range_ctor(&info->range, pkt);
+		pktgen_packet_ctor(info, RANGE_PKT, -1);
+
+		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+				(uint8_t *)&pkt->hdr,
+				MAX_PKT_SIZE);
+
+		m->pkt_len  = pkt->pktSize;
+		m->data_len = pkt->pktSize;
+	} else if (mp == info->q[qid].seq_mp) {
+		pkt = &info->seq_pkt[info->seqIdx];
+
+		if(pktgen.is_gui_running == 1) {
+			while(seqIdx < info->seqCnt) {
+				pkt = &info->seq_pkt[seqIdx];
+
+				/* Check the sequence and start from the beginning */
+				if (++seqIdx >= info->seqCnt)
+					seqIdx = 0;
+
+				if(pkt->enabled == 1) {
+					/* Call ctor for those sequence which are enabled in the GUI */
+					pktgen_packet_ctor(info, seqIdx, -1);
+
+					rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+							(uint8_t *)&pkt->hdr,
+							MAX_PKT_SIZE);
+					m->pkt_len  = pkt->pktSize;
+					m->data_len = pkt->pktSize;
+					info->seqIdx = seqIdx;
+					pkt = &seq_pkt[seqIdx];
+					break;
+				}
+			}
+		} else {
+			pkt = &info->seq_pkt[seqIdx];
+			pktgen_packet_ctor(info, seqIdx, -1);
+
+			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+					(uint8_t *)&pkt->hdr,
+					MAX_PKT_SIZE);
+
+			m->pkt_len  = pkt->pktSize;
+			m->data_len = pkt->pktSize;
+
+			info->seqIdx = seqIdx;
+			pkt = &seq_pkt[seqIdx];
+
+			/* move to the next packet in the sequence. */
+			if (unlikely(++seqIdx >= info->seqCnt))
+				seqIdx = 0;
+		}
+	}
+}
+
 /**************************************************************************//**
  *
  * pktgen_setup_packets - Setup the default packets to be sent.
@@ -984,6 +1124,26 @@ pktgen_send_special(port_info_t *info, uint32_t flags)
  * SEE ALSO:
  */
 
+static __inline__ void
+pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
+{
+	pkt_data_t pkt_data;
+
+	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
+
+	if (mp == info->q[qid].pcap_mp)
+		return;
+
+	rte_spinlock_lock(&info->port_lock);
+
+	pkt_data.info = info;
+	pkt_data.qid = qid;
+
+	rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
+
+	rte_spinlock_unlock(&info->port_lock);
+}
+#else
 static __inline__ void
 pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 {
@@ -1089,6 +1249,7 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 	if (mm != NULL)
 		rte_pktmbuf_free(mm);
 }
+#endif
 
 /**************************************************************************//**
  *
@@ -1219,6 +1380,8 @@ pktgen_main_receive(port_info_t *info,
 		return;
 
 	info->q[qid].rx_cnt += nb_rx;
+
+	pktgen_recv_latency(info, pkts_burst, nb_rx);
 
 	/* packets are not freed in the next call. */
 	pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid);
@@ -1505,10 +1668,10 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
 		                             pktgen.portNum,
 		                             pktgen.info[pktgen.portNum].rnd_bitfields);
-
-
 	else if (pktgen.flags & LOG_PAGE_FLAG)
 		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
+	else if (pktgen.flags & LATENCY_PAGE_FLAG)
+		pktgen_page_latency();
 	else
 		pktgen_page_stats();
 

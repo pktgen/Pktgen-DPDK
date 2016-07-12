@@ -43,8 +43,9 @@ static inline void
 __pktmbuf_alloc_noreset(struct rte_mbuf **m_list, unsigned int cnt)
 {
 	struct rte_mbuf *m;
+	unsigned int i;
 
-	for(unsigned int i = 0; i < cnt; i++) {
+	for(i = 0; i < cnt; i++) {
 		m = *m_list++;
 
 		m->next = NULL;

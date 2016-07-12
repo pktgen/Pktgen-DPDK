@@ -6,7 +6,7 @@
 #
 # 1) Redistributions of source code must retain the above copyright notice,
 # this list of conditions and the following disclaimer.
-# 
+#
 # 2) Redistributions in binary form must reproduce the above copyright notice,
 # this list of conditions and the following disclaimer in the documentation and/or
 # other materials provided with the distribution.
@@ -50,8 +50,9 @@ CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 CFLAGS += -I$(RTE_SRCDIR)/../lib/lua/src
 
-LDLIBS += -L$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib -llua
-LDLIBS += -L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib -lcommon
+LUA_LIB    := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib
+COMMON_LIB := $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib
+GUI_LIB    := $(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib
 
 # all source are stored in SRCS-y
 SRCS-y := \
@@ -62,22 +63,33 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c
 
-# GUI support is a work in progress
-ifeq ($(GUI),true)
-CFLAGS += -DGUI
+MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB)
+MYLIBS := -llua -lcommon
 
-CFLAGS += $(shell pkg-config --cflags glib-2.0)
-CFLAGS += $(shell pkg-config --cflags gtk+-2.0)
-LDLIBS += $(shell pkg-config --libs glib-2.0)
-LDLIBS += $(shell pkg-config --libs gtk+-2.0)
-LDLIBS += -L$(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib -lgui
-
-DEPDIRS-y += ../gui
+ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
+	MYLIBS += -lrte_pmd_ixgbe
+	RPATHS += -rpath=$(LUA_LIB) -rpath=$(COMMON_LIB)
 endif
 
-LDLIBS += -rpath=$(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib
-LDLIBS += -rpath=$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib
-LDLIBS += -lpcap -lm
+# GUI support is a work in progress
+ifeq ($(GUI),true)
+	CFLAGS += -DGUI
+
+	GTK_LIB = -L/usr/lib64/gtk-2.0/ \
+		$(shell pkg-config --libs glib-2.0) \
+		$(shell pkg-config --libs gtk+-2.0)
+
+	MYLIB_PATH += -L$(GUI_LIB)
+	MYLIBS += -lgui
+
+	ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
+		RPATHS += -rpath=$(GUI_LIB)
+	endif
+
+	DEPDIRS-y += ../gui
+endif
+
+LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) $(GTK_LIB) -lm
 
 DEPDIRS-y += ../lib/common ../lib/lua
 

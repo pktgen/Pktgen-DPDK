@@ -30,40 +30,8 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * Copyright (c) <2016>, Intel. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/* Created 2016 by Abhinandan Gujjar S (abhinandan.gujjar@intel.com) */
+ * Created 2016 by Abhinandan Gujjar S (abhinandan.gujjar@intel.com) */
 
 #include "pktgen-gui.h"
 #include "pktgen-gui-cfg.h"
@@ -110,6 +78,20 @@
 		}                                                           \
 } while ((0))
 
+
+/**************************************************************************//**
+ *
+ * fill_chassis_info - A routine to fill chassis info
+ *
+ * DESCRIPTION
+ * Creates and fills GTK tree store with chassis information
+ *
+ * RETURNS: GTK Tree model
+ *
+ * SEE ALSO:
+ */
+
+
 GtkTreeModel *
 fill_chassis_info(void)
 {
@@ -141,6 +123,20 @@ fill_chassis_info(void)
 	return GTK_TREE_MODEL(treestore_chassis);
 }
 
+
+/**************************************************************************//**
+ *
+ * fill_port_info - A routine to fill port info
+ *
+ * DESCRIPTION
+ * Creates and fills GTK tree store with port information for stats
+ *
+ * RETURNS: GTK Tree model
+ *
+ * SEE ALSO:
+ */
+
+
 GtkTreeModel *
 fill_port_info(unsigned int pid, gboolean is_static)
 {
@@ -170,8 +166,21 @@ fill_port_info(unsigned int pid, gboolean is_static)
 	}
 }
 
+/**************************************************************************//**
+ *
+ * update_port_static_info - A routine to update static port info
+ *
+ * DESCRIPTION
+ * Updates GTK tree store with static port information
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+
 void
-update_ports_static_stat(unsigned int pid)
+update_port_static_info(unsigned int pid)
 {
 	uint8_t i = 0;
 	GtkTreeIter toplevel;
@@ -267,8 +276,21 @@ update_ports_static_stat(unsigned int pid)
 	}
 }
 
+/**************************************************************************//**
+ *
+ * update_port_statistics - A routine to update port statistics
+ *
+ * DESCRIPTION
+ * Updates GTK tree store with port statistics
+ *
+ * RETURNS: TRUE/FALSE
+ *
+ * SEE ALSO:
+ */
+
+
 int
-update_ports_stat(void *arg)
+update_port_statistics(void *arg)
 {
 	GtkWidget *window = (GtkWidget *)arg;
 	unsigned int pid = 0;
@@ -279,7 +301,7 @@ update_ports_stat(void *arg)
 	rxtx_t cnt;
 	eth_stats_t tot_stats = {0};
 
-	if (gui_created == FALSE)
+	if (pktgen.is_gui_running == FALSE)
 		return TRUE;
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
@@ -342,17 +364,6 @@ update_ports_stat(void *arg)
 		/* ARP & ICMP Pkts */
 		stats_store_next(pid, info->stats.arp_pkts);
 		stats_store_next(pid, info->stats.echo_pkts);
-
-		prev_stats_val[pid].__broadcast = info->sizes.broadcast;
-		prev_stats_val[pid].__multicast = info->sizes.multicast;
-		prev_stats_val[pid].__64        = info->sizes._64;
-		prev_stats_val[pid].__65_127    = info->sizes._65_127;
-		prev_stats_val[pid].__128_255   = info->sizes._128_255;
-		prev_stats_val[pid].__256_511   = info->sizes._256_511;
-		prev_stats_val[pid].__512_1023  = info->sizes._512_1023;
-		prev_stats_val[pid].__1024_1518 = info->sizes._1024_1518;
-		prev_stats_val[pid].__ierrors   = info->port_stats.ierrors;
-		prev_stats_val[pid].__oerrors   = info->port_stats.oerrors;
 	}
 
 	gtk_tree_model_get_iter_first(model_stats[pktgen.ending_port],
@@ -369,6 +380,20 @@ update_ports_stat(void *arg)
 
 	return TRUE;
 }
+
+
+/**************************************************************************//**
+ *
+ * start_stop_traffic - A routine to start/stop port traffic
+ *
+ * DESCRIPTION
+ * Finds the selected ports and start/stops traffic for only those ports
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
 
 void
 start_stop_traffic(GtkTreeModel  *model,
@@ -399,8 +424,22 @@ start_stop_traffic(GtkTreeModel  *model,
 	}
 }
 
+
+/**************************************************************************//**
+ *
+ * about_dialog_callback - A callback show about dialog
+ *
+ * DESCRIPTION
+ * Displays information about pktgen
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+
 void
-about_dialog(void)
+about_dialog_callback(void)
 {
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file("gui/icons/logo.png", NULL);
 
@@ -410,7 +449,8 @@ about_dialog(void)
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_dialog), COPYRIGHT_MSG);
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), POWERED_BY_DPDK);
-	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog), "http://dpdk.org/browse/apps/pktgen-dpdk");
+	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(about_dialog),
+	                             "http://dpdk.org/browse/apps/pktgen-dpdk");
 	gtk_about_dialog_set_license(GTK_ABOUT_DIALOG(about_dialog), intel_copyright);
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(about_dialog), authors);
 	gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(about_dialog), pixbuf);
@@ -428,10 +468,90 @@ about_dialog(void)
 	                 G_CALLBACK(gtk_widget_destroyed), &about_dialog);
 }
 
+/**************************************************************************//**
+ *
+ * show_stream - A routine to show traffic streams for individual ports
+ *
+ * DESCRIPTION
+ * Displays treeview with traffic streams (seq) fill with default values
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
 void
-traffic_start_callback(GtkWidget __attribute__(
-                               (unused)) *w, gpointer __attribute__(
-                               (unused)) data)
+show_stream(void)
+{
+	uint no_rows;
+	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
+	                GTK_TREE_VIEW(chassis_view));
+
+	no_rows = gtk_tree_selection_count_selected_rows(selection);
+
+	if (no_rows == 1)
+		gtk_tree_selection_selected_foreach(
+		        selection,
+		        show_stream_callback,
+		        (gpointer)
+		        stream_window);
+
+}
+
+/**************************************************************************//**
+ *
+ * show_stream_callback - A callback to for show stream function
+ *
+ * DESCRIPTION
+ * Adds, removes if already exsting for earlier port, a treeview for a port
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+
+void
+show_stream_callback(GtkTreeModel  *model,
+                     GtkTreePath __attribute__((unused)) *path,
+                     GtkTreeIter   *iter,
+                     gpointer __attribute__((unused)) userdata)
+{
+	gchar *name;
+	unsigned int pid;
+
+	gtk_tree_model_get(model, iter, COL_CHASSIS_PORTS, &name, -1);
+
+	if (0 != g_strcmp0(name, "[127.0.0.1]")) {
+		int offset = strlen(name);
+		pid = atoi((name + offset) - 1);
+		GList*children =
+		        gtk_container_get_children(GTK_CONTAINER(scroller));
+		/* It has only one child no need to traverse */
+		if (children != NULL)
+			gtk_container_remove(GTK_CONTAINER(scroller),
+			                     GTK_WIDGET(children->data));
+
+		gtk_container_add(GTK_CONTAINER(scroller),
+		                  GTK_WIDGET(stream_view[pid]));
+		gtk_widget_show_all(GTK_WIDGET(scroller));
+	}
+}
+
+/**************************************************************************//**
+ *
+ * start_taffic_callback - A callback to start traffic
+ *
+ * DESCRIPTION
+ * Starts sending traffic for selected ports
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+start_taffic_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute__((unused)) data)
 {
 	guint flag = 1;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
@@ -442,10 +562,20 @@ traffic_start_callback(GtkWidget __attribute__(
 	                                    (gpointer) & flag);
 }
 
+/**************************************************************************//**
+ *
+ * stop_traffic_callback - A callback to stop traffic
+ *
+ * DESCRIPTION
+ * Stops sending traffic for selected ports
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
 void
-traffic_stop_callback(GtkWidget __attribute__(
-                              (unused)) *w, gpointer __attribute__(
-                              (unused)) data)
+stop_traffic_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute__((unused)) data)
 {
 	guint flag = 2;
 	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
@@ -455,6 +585,18 @@ traffic_stop_callback(GtkWidget __attribute__(
 	                                    start_stop_traffic,
 	                                    (gpointer) & flag);
 }
+
+/**************************************************************************//**
+ *
+ * start_stop_capture - A routine to start/stop capturing traffic
+ *
+ * DESCRIPTION
+ * Start/Stops capturing traffic for selected ports
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 start_stop_capture(GtkTreeModel  *model,
@@ -480,41 +622,65 @@ start_stop_capture(GtkTreeModel  *model,
 	}
 }
 
+/**************************************************************************//**
+ *
+ * start_capture_callback - A callback to start capturing traffic
+ *
+ * DESCRIPTION
+ * Starts capturing traffic for selected ports
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+
 void
-capture_start_callback(GtkWidget __attribute__(
-                               (unused)) *w, gpointer __attribute__(
-                               (unused)) data)
+start_capture_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute__((unused)) data)
 {
 	guint flag = 1;
-	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(chassis_view));
+	GtkTreeSelection  *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    start_stop_capture,
 	                                    (gpointer) & flag);
 }
 
+/**************************************************************************//**
+ *
+ * stop_capture_callback - A callback to stop capturing traffic
+ *
+ * DESCRIPTION
+ * Stops capturing traffic for selected ports
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
 void
-capture_stop_callback(GtkWidget __attribute__(
-                              (unused)) *w, gpointer __attribute__(
-                              (unused)) data)
+stop_capture_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute__((unused)) data)
 {
 	guint flag = 2;
-	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(chassis_view));
+	GtkTreeSelection  *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(chassis_view));
 
 	gtk_tree_selection_selected_foreach(selection,
 	                                    start_stop_capture,
 	                                    (gpointer) & flag);
 }
 
-void
-about_callback(GtkWidget __attribute__(
-                       (unused)) *w, gpointer __attribute__(
-                       (unused)) data)
-{
-	about_dialog();
-}
+
+/**************************************************************************//**
+ *
+ * chassis_tree_view - A routine to create a treeview for chassis
+ *
+ * DESCRIPTION
+ * Create a treeview for chassis
+ *
+ * RETURNS: chassis tree view
+ *
+ * SEE ALSO:
+ */
 
 GtkWidget *
 chassis_tree_view(void)
@@ -556,8 +722,25 @@ chassis_tree_view(void)
 	chassis_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(chassis_view));
 	gtk_tree_selection_set_mode(chassis_selection, GTK_SELECTION_MULTIPLE);
 
+	g_signal_connect(chassis_view,
+	                 "row-activated",
+	                 (GCallback)show_stream,
+	                 NULL);
+
 	return chassis_view;
 }
+
+/**************************************************************************//**
+ *
+ * port_tree_view - A routine to create a treeview for port statistics 
+ *
+ * DESCRIPTION
+ * Create a treeview for statistics
+ *
+ * RETURNS: port tree view
+ *
+ * SEE ALSO:
+ */
 
 GtkWidget *
 port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
@@ -626,13 +809,29 @@ port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
 	}
 }
 
-/* Create a Button Box with the specified parameters */
+
+/**************************************************************************//**
+ *
+ * button_box - A routine to create a button box 
+ *
+ * DESCRIPTION
+ * Create a Button Box with the specified parameters
+ *
+ * RETURNS: port tree view
+ *
+ * SEE ALSO:
+ */
+
 static GtkWidget *
-button_box(GtkWidget __attribute__(
-                   (unused))  *view, const char *title, gint layout)
+button_box(GtkWidget __attribute__((unused))  *view, const char *title, gint layout)
 {
 	GtkWidget *frame;
 	GtkWidget *bbox;
+	GtkWidget *traffic_start_button;
+	GtkWidget *traffic_stop_button;
+	GtkWidget *capture_start_button;
+	GtkWidget *capture_stop_button;
+	GtkWidget *about_button;
 
 	GtkWidget *buttonImageStr, *buttonImageStp, *buttonImageCapStr,
 	*buttonImageCapStp, *buttonImageAbt;
@@ -660,7 +859,7 @@ button_box(GtkWidget __attribute__(
 	gtk_container_add(GTK_CONTAINER(bbox), traffic_start_button);
 
 	g_signal_connect(GTK_OBJECT(traffic_start_button), "clicked",
-	                 GTK_SIGNAL_FUNC(traffic_start_callback), NULL);
+	                 GTK_SIGNAL_FUNC(start_taffic_callback), NULL);
 
 	traffic_stop_button = gtk_button_new();
 	gtk_widget_set_tooltip_text(GTK_WIDGET(traffic_stop_button),"Stop Traffic");
@@ -676,7 +875,7 @@ button_box(GtkWidget __attribute__(
 	gtk_container_add(GTK_CONTAINER(bbox), traffic_stop_button);
 
 	g_signal_connect(GTK_OBJECT(traffic_stop_button), "clicked",
-	                 GTK_SIGNAL_FUNC(traffic_stop_callback), NULL);
+	                 GTK_SIGNAL_FUNC(stop_traffic_callback), NULL);
 
 	capture_start_button = gtk_button_new();
 	gtk_widget_set_tooltip_text(GTK_WIDGET(capture_start_button), "Start Capture");
@@ -695,7 +894,7 @@ button_box(GtkWidget __attribute__(
 	gtk_container_add(GTK_CONTAINER(bbox), capture_start_button);
 
 	g_signal_connect(GTK_OBJECT(capture_start_button), "clicked",
-	                 GTK_SIGNAL_FUNC(capture_start_callback), NULL);
+	                 GTK_SIGNAL_FUNC(start_capture_callback), NULL);
 
 	capture_stop_button = gtk_button_new();
 	gtk_widget_set_tooltip_text(GTK_WIDGET(capture_stop_button),
@@ -714,7 +913,7 @@ button_box(GtkWidget __attribute__(
 	gtk_container_add(GTK_CONTAINER(bbox), capture_stop_button);
 
 	g_signal_connect(GTK_OBJECT(capture_stop_button), "clicked",
-	                 GTK_SIGNAL_FUNC(capture_stop_callback), NULL);
+	                 GTK_SIGNAL_FUNC(stop_capture_callback), NULL);
 
 	about_button = gtk_button_new();
 	gtk_widget_set_tooltip_text(GTK_WIDGET(about_button), "About");
@@ -729,13 +928,25 @@ button_box(GtkWidget __attribute__(
 	gtk_container_add(GTK_CONTAINER(bbox), about_button);
 
 	g_signal_connect(GTK_OBJECT(about_button), "clicked",
-	                 GTK_SIGNAL_FUNC(about_callback), NULL);
+	                 GTK_SIGNAL_FUNC(about_dialog_callback), NULL);
 
 	/* Set the appearance of the Button Box */
 	gtk_button_box_set_layout(GTK_BUTTON_BOX(bbox), layout);
 
 	return frame;
 }
+
+/**************************************************************************//**
+ *
+ * console_callback - A callback for commands provided on console box
+ *
+ * DESCRIPTION
+ * Accepts pktgen commands from GTK entry, executes it and adds it to multi text
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 console_callback(GtkWidget *widget, GtkWidget *entry)
@@ -769,6 +980,19 @@ console_callback(GtkWidget *widget, GtkWidget *entry)
 	gtk_entry_set_text(GTK_ENTRY(widget), "");
 }
 
+/**************************************************************************//**
+ *
+ * create_chassis - A routine for creating chassis frame to hold treeview
+ *
+ * DESCRIPTION
+ * Create frame and holds the chassis tree view
+ *
+ * RETURNS: GTK widget
+ *
+ * SEE ALSO:
+ */
+
+
 GtkWidget *
 create_chassis(void)
 {
@@ -785,8 +1009,21 @@ create_chassis(void)
 	return frame;
 }
 
+/**************************************************************************//**
+ *
+ * console_box - A routine for creating console box
+ *
+ * DESCRIPTION
+ * Creates a scollable console box
+ *
+ * RETURNS: GTK widget
+ *
+ * SEE ALSO:
+ */
+
+
 GtkWidget *
-pktgen_console_box(const char *title)
+console_box(const char *title)
 {
 	GtkWidget*textArea = gtk_text_view_new();
 	GtkWidget*scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
@@ -821,8 +1058,21 @@ pktgen_console_box(const char *title)
 	return frame;
 }
 
+/**************************************************************************//**
+ *
+ * stats_header_fill - A routine to create tree store
+ *
+ * DESCRIPTION
+ * Creates a tree store for static info and port stats
+ *
+ * RETURNS: GTK tree model 
+ *
+ * SEE ALSO:
+ */
+
+
 GtkTreeModel *
-pktgen_stats_header_fill(gboolean is_static)
+stats_header_fill(gboolean is_static)
 {
 	GtkTreeStore  *stats_label_treestore;
 	GtkTreeIter toplevel;
@@ -851,8 +1101,21 @@ pktgen_stats_header_fill(gboolean is_static)
 	return GTK_TREE_MODEL(stats_label_treestore);
 }
 
+/**************************************************************************//**
+ *
+ * create_stats_treeview - A routine to create tree view for statistics
+ *
+ * DESCRIPTION
+ * Creates a tree view for port statistics / static configuration
+ *
+ * RETURNS: GTK tree model 
+ *
+ * SEE ALSO:
+ */
+
+
 GtkWidget *
-pktgen_stats_header_tree_view(gboolean is_static)
+create_stats_treeview(gboolean is_static)
 {
 	GtkTreeViewColumn   *stats_label_col;
 	GtkCellRenderer     *stats_label_renderer;
@@ -908,7 +1171,7 @@ pktgen_stats_header_tree_view(gboolean is_static)
 	gtk_tree_view_set_grid_lines(GTK_TREE_VIEW(stats_label_view),
 	                             GTK_TREE_VIEW_GRID_LINES_BOTH);
 
-	stats_label_model = pktgen_stats_header_fill(is_static);
+	stats_label_model = stats_header_fill(is_static);
 
 	gtk_tree_view_set_model(GTK_TREE_VIEW(stats_label_view),
 	                        stats_label_model);
@@ -921,8 +1184,20 @@ pktgen_stats_header_tree_view(gboolean is_static)
 	return stats_label_view;
 }
 
+/**************************************************************************//**
+ *
+ * show_static_conf - A routine to create box for static configuration
+ *
+ * DESCRIPTION
+ * Creates a box for displaying static configuration
+ *
+ * RETURNS: GTK widget 
+ *
+ * SEE ALSO:
+ */
+
 GtkWidget *
-pktgen_show_static_conf(void)
+show_static_conf(void)
 {
 	GtkWidget *hbox_stats;
 	GtkWidget *frame_horz_conf;
@@ -955,13 +1230,12 @@ pktgen_show_static_conf(void)
 	gtk_table_set_row_spacings(GTK_TABLE(table), 5);
 	gtk_table_set_col_spacings(GTK_TABLE(table), 5);
 
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(
-	                                              scrolled_window), table);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), table);
 	gtk_widget_show(table);
 
 	/* Create a column of statistics label on the first column of table */
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	                          pktgen_stats_header_tree_view(TRUE), 0, 1, 0, 1);
+	                          create_stats_treeview(TRUE), 0, 1, 0, 1);
 
 	/* Create columns of statistics for selected ports on the table */
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
@@ -972,14 +1246,27 @@ pktgen_show_static_conf(void)
 		gtk_table_attach_defaults(GTK_TABLE(table),
 		                          port_tree_view(pid, "Port", TRUE),
 		                          (pid + 1), (pid + 2), 0, 1);
-		update_ports_static_stat(pid);
+		update_port_static_info(pid);
 	}
 
 	return frame_horz_conf;
 }
 
+/**************************************************************************//**
+ *
+ * show_statistics - A routine to create box for statistics
+ *
+ * DESCRIPTION
+ * Creates a box for displaying statistics
+ *
+ * RETURNS: GTK widget 
+ *
+ * SEE ALSO:
+ */
+
+
 GtkWidget *
-pktgen_show_statistic_data(void)
+show_statistics(void)
 {
 	GtkWidget *frame_horz_stats;
 	GtkWidget *scrolled_window;
@@ -998,14 +1285,10 @@ pktgen_show_statistic_data(void)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 	                               GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
-
 	scrolled_tot_window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_container_set_border_width(GTK_CONTAINER(scrolled_tot_window), 10);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_tot_window),
 	                               GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-
-
-
 
 	frame_horz_stats = gtk_frame_new("Statistics");
 	gtk_widget_set_size_request(frame_horz_stats, -1, 400);
@@ -1014,9 +1297,9 @@ pktgen_show_statistic_data(void)
 	gtk_container_set_border_width(GTK_CONTAINER(hbox_stats), 10);
 
 	hbox_tot_stats = gtk_hbox_new(FALSE, 0);
-
+    gtk_box_set_homogeneous(GTK_BOX(hbox_stats), FALSE);
 	gtk_box_pack_start(GTK_BOX(hbox_stats), scrolled_window, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox_stats), scrolled_tot_window, FALSE, FALSE, 0);
+	gtk_box_pack_end(GTK_BOX(hbox_stats), scrolled_tot_window, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(frame_horz_stats), hbox_stats);
 	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_tot_window), hbox_tot_stats);
 
@@ -1032,7 +1315,7 @@ pktgen_show_statistic_data(void)
 
 	/* Create a column of statistics label on the first column of table */
 	gtk_table_attach_defaults(GTK_TABLE(table),
-	                          pktgen_stats_header_tree_view(FALSE), 0, 1, 0, 1);
+	                          create_stats_treeview(FALSE), 0, 1, 0, 1);
 
 	/* Create columns of statistics for selected ports on the table */
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
@@ -1046,33 +1329,58 @@ pktgen_show_statistic_data(void)
 	}
 
 	/* Create a column of total statistics on the last column of table */
-	gtk_box_pack_start(GTK_BOX(hbox_tot_stats),
-	                          port_tree_view(pktgen.ending_port,
-	                                         "Total Rate", FALSE), FALSE, TRUE, 0);
+	gtk_box_pack_end(GTK_BOX(hbox_tot_stats),
+	                   port_tree_view(pktgen.ending_port,
+	                                  "Total Rate", FALSE), TRUE, FALSE, 0);
 
 	return frame_horz_stats;
 }
 
+/**************************************************************************//**
+ *
+ * close_gui - A routine to close the GUI
+ *
+ * DESCRIPTION
+ * Calls GTK main quits and destroy the GUI
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
 void
-pktgen_gui_close(void)
+close_gui(void)
 {
-	gui_created = FALSE;
+	pktgen.is_gui_running = FALSE;
 	gtk_main_quit();
 }
 
+/**************************************************************************//**
+ *
+ * start_gui - A routine to create GUI window
+ *
+ * DESCRIPTION
+ * Draws GUI on the screens and starts a timer for polling port statistics
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
 void
-pktgen_start_gui(void)
+start_gui(void)
 {
 	GtkWidget *window;
 	GtkWidget *vbox;
 	GtkWidget *hbox;
 	GtkWidget *frame;
+	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file("gui/icons/logo.png", NULL);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	g_signal_connect(window, "destroy", G_CALLBACK(pktgen_gui_close), NULL);
+	g_signal_connect(window, "destroy", G_CALLBACK(close_gui), NULL);
 
 	gtk_window_set_title(GTK_WINDOW(window), PKTGEN_GUI_APP_NAME);
-
+	gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
 	gtk_window_set_default_size(GTK_WINDOW(window), 700, 500);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
@@ -1092,29 +1400,38 @@ pktgen_start_gui(void)
 	                   button_box(chassis_view, "Traffic", GTK_BUTTONBOX_CENTER),
 	                   FALSE, FALSE, 5);
 
-	gtk_box_pack_start(GTK_BOX(hbox), pktgen_stream_box(), FALSE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), stream_box(), FALSE, TRUE, 0);
 
-	gtk_box_pack_start(GTK_BOX(hbox),
-	                   pktgen_console_box("Console"), TRUE, TRUE, 5);
+	gtk_box_pack_start(GTK_BOX(hbox), console_box("Console"), TRUE, TRUE, 5);
 
-	gtk_box_pack_start(GTK_BOX(vbox),
-	                   pktgen_show_static_conf(), TRUE, TRUE, 10);
+	gtk_box_pack_start(GTK_BOX(vbox), show_static_conf(), TRUE, TRUE, 10);
 
-	gtk_box_pack_start(GTK_BOX(vbox),
-	                   pktgen_show_statistic_data(), TRUE, TRUE, 10);
+	gtk_box_pack_start(GTK_BOX(vbox), show_statistics(), TRUE, TRUE, 10);
 
 	gtk_container_set_border_width(GTK_CONTAINER(hbox), 10);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
 	gtk_widget_show_all(window);
 
-	gui_created = TRUE;
+	pktgen.is_gui_running = TRUE;
 
-	g_timeout_add_seconds(3, (GSourceFunc)update_ports_stat, window);
+	g_timeout_add_seconds(3, (GSourceFunc)update_port_statistics, window);
 
 	/* Enter the event loop */
 	gtk_main();
 }
+
+/**************************************************************************//**
+ *
+ * pktgen_gui_main - A routine to start GUI
+ *
+ * DESCRIPTION
+ * Starts GUI on a thread
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
 pktgen_gui_main(int argc, char *argv[])
@@ -1127,7 +1444,7 @@ pktgen_gui_main(int argc, char *argv[])
 
 	/* create a second thread which executes inc_x(&x) */
 	rc = pthread_create(&inc_x_thread, NULL,
-	                    (void *)&pktgen_start_gui, NULL);
+	                    (void *)&start_gui, NULL);
 	if (rc) {
 		printf("Error creating GUI thread\n");
 		return;

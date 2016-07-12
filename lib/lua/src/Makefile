@@ -36,6 +36,9 @@ include $(RTE_SDK)/mk/rte.vars.mk
 LIB = liblua.a
 LIBABIVER := 1
 
+EXPORT_MAP := lua_version.map
+LIBABIVER := 1
+
 # To overcome problems with FD6 more strict warnings gcc flags,
 # the following ones were removed:
 #  -Wstrict-prototypes

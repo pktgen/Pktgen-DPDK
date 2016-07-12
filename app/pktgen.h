@@ -158,51 +158,48 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.0.03"
+#define PKTGEN_VERSION          "3.0.04"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
 #define MAX_MATRIX_ENTRIES      128
 #define MAX_STRING              256
-#define Million                 (uint64_t)(1000ULL * 1000ULL)
-#define Mega                    (uint64_t)(1024ULL * 1024ULL)
+#define Million                 (uint64_t)(1000000ULL)
 
 #define iBitsTotal(_x) \
-        (((_x.ipackets * \
-           (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.ibytes) << 3)
+	(uint64_t)(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + FCS_SIZE)) + _x.ibytes) * 8)
 #define oBitsTotal(_x) \
-        (((_x.opackets * \
-           (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.obytes) << 3)
+	(uint64_t)(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + FCS_SIZE)) + _x.obytes) * 8)
 
 #define _do(_exp)       do { _exp; } while ((0))
 
-#define forall_ports(_action)                           \
-        do {                                                \
+#define forall_ports(_action)                                   \
+	do {                                                    \
 		uint32_t pid;                                   \
 		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
-			port_info_t   *info;                        \
-			info = &pktgen.info[pid];                   \
-			if (info->seq_pkt == NULL)                  \
-				continue;                               \
-			_action;                                    \
+			port_info_t   *info;                    \
+			info = &pktgen.info[pid];               \
+			if (info->seq_pkt == NULL)              \
+				continue;                       \
+			_action;                                \
 		}                                               \
 	} while ((0))
 
-#define foreach_port(_portlist, _action)                    \
-        do {                                                    \
-		uint32_t    *_pl = (uint32_t *)&_portlist;          \
-		uint32_t pid, idx, bit;                             \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {       \
+#define foreach_port(_portlist, _action)                                \
+	do {                                                            \
+		uint32_t    *_pl = (uint32_t *)&_portlist;              \
+		uint32_t pid, idx, bit;                                 \
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {           \
 			port_info_t   *info;                            \
 			idx = (pid / (sizeof(uint32_t) * 8));           \
 			bit = (pid - (idx * (sizeof(uint32_t) * 8)));   \
 			if ( (_pl[idx] & (1 << bit)) == 0)              \
-				continue;                                   \
+				continue;                               \
 			info = &pktgen.info[pid];                       \
 			if (info->seq_pkt == NULL)                      \
-				continue;                                   \
+				continue;                               \
 			_action;                                        \
-		}                                                   \
+		}                                                       \
 	} while ((0))
 
 /**
@@ -239,7 +236,7 @@ enum {
 	LINK_STATE_ROWS         = 4,
 	PKT_SIZE_ROWS           = 9,
 	PKT_TOTALS_ROWS         = 7,
-	IP_ADDR_ROWS            = 10,
+	IP_ADDR_ROWS            = 12,
 
 	PORT_STATE_ROW          = 2,
 	LINK_STATE_ROW          = (PORT_STATE_ROW + PORT_STATE_ROWS),
@@ -277,9 +274,9 @@ enum {
 	EXTRA_TX_PKT            = (RANGE_PKT + 1),			/* 19 */
 	NUM_TOTAL_PKTS          = (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
 
-	INTER_FRAME_GAP         = 12,
-	PKT_PREAMBLE_SIZE       = 8,
-	FCS_SIZE                = 4,
+	INTER_FRAME_GAP         = 12,	/**< in bytes */
+	PKT_PREAMBLE_SIZE       = 8,	/**< in bytes */
+	FCS_SIZE                = 4,	/**< in bytes */
 	MIN_PKT_SIZE            = (ETHER_MIN_LEN - FCS_SIZE),
 	MAX_PKT_SIZE            = (ETHER_MAX_LEN - FCS_SIZE),
 
@@ -308,7 +305,7 @@ typedef struct pktgen_s {
 	char *hostname;		/**< GUI hostname */
 	wr_scrn_t *scrn;	/**< Screen structure pointer */
 
-	int32_t socket_port;		/**< GUI port number */
+	int32_t socket_port;	/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */
 	uint32_t flags;			/**< Flag values */
 	uint16_t ident;			/**< IPv4 ident value */
@@ -343,18 +340,19 @@ typedef struct pktgen_s {
 	lscpu_t *lscpu;
 	char *uname;
 	eth_stats_t cumm_rate_totals;	/**< port rates total values */
-	uint64_t max_total_ipackets;	/**< Total Max seen input packet rate */
-	uint64_t max_total_opackets;	/**< Total Max seen output packet rate */
+    uint64_t    max_total_ipackets; /**< Total Max seen input packet rate */
+    uint64_t    max_total_opackets; /**< Total Max seen output packet rate */
 
 	pthread_t thread;	/**< Thread structure for Lua server */
 
 	uint64_t counter;	/**< A debug counter */
 	uint64_t mem_used;	/**< Display memory used counters per ports */
 	uint64_t total_mem_used;/**< Display memory used for all ports */
-	int32_t argc;	/**< Number of arguments */
-	char *argv[64];	/**< Argument list */
+	int32_t argc;		/**< Number of arguments */
+	char *argv[64];		/**< Argument list */
 
 	capture_t capture[RTE_MAX_NUMA_NODES];	/**< Packet capture, 1 struct per socket */
+	uint8_t is_gui_running;
 } pktgen_t;
 
 enum {						/* Queue flags */
@@ -385,11 +383,11 @@ enum {						/* Pktgen flags bits */
 	LOG_PAGE_FLAG           = (1 << 22)	/**< Display the message log page */
 };
 
-#define PAGE_MASK_BITS      (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
-                             RANGE_PAGE_FLAG | \
-                             PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
-                             RND_BITFIELD_PAGE_FLAG | \
-                             LOG_PAGE_FLAG)
+#define PAGE_MASK_BITS  (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
+	                     RANGE_PAGE_FLAG | \
+	                     PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
+	                     RND_BITFIELD_PAGE_FLAG | \
+	                     LOG_PAGE_FLAG)
 
 struct cmdline_etheraddr {
 	uint8_t mac[6];
@@ -410,6 +408,7 @@ extern pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
 extern pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
 extern int pktgen_launch_one_lcore(void *arg);
+extern uint64_t pktgen_wire_size(port_info_t *info);
 
 extern void rte_timer_setup(void);
 

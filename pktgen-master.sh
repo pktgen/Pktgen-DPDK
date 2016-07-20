@@ -23,18 +23,19 @@ fi
 
 cmd=./app/app/${target}/app/pktgen
 
-#rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
-# 06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-# 09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-# 83:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 83:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 85:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 85:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-# 
+# 04:00.0 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 04:00.1 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 04:00.2 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 04:00.3 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 05:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+# 05:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+# 81:00.0 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 81:00.1 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 81:00.2 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 81:00.3 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
+# 82:00.0 Ethernet controller: Intel Corporation Ethernet Controller XL710 for 40GbE QSFP+ (rev 02)
+# 83:00.0 Ethernet controller: Intel Corporation Ethernet Controller XL710 for 40GbE QSFP+ (rev 02)
+
 
 #============================================================
 #Core and Socket Information (as reported by '/proc/cpuinfo')
@@ -68,8 +69,8 @@ cmd=./app/app/${target}/app/pktgen
 dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 0 --socket-mem 512,512 --file-prefix pg1"
 pktgen_opts="-T -P"
 port_map="-m [9:10].0 -m [11:12].1 -m [13:14].2 -m [15:16].3"
-bl_common="-b 09:00.0 -b 09:00.1"
-black_list="${bl_common} -b 83:00.0 -b 83:00.1 -b 85:00.0 -b 85:00.1"
+bl_common="-b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0"
+black_list="${bl_common} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
 load_file="-f themes/black-yellow.theme"
 
 if [ $name == "supermicro" ]; then

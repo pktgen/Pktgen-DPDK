@@ -517,9 +517,6 @@ pktgen_exit_cleanup(uint8_t lid)
 		if ( (info = (port_info_t *)wr_get_port_private(pktgen.l2p, pid)) != NULL) {
 			qid = wr_get_txque(pktgen.l2p, lid, pid);
 			pktgen_tx_flush(info, qid);
-            rte_delay_ms(100);
-            rte_eth_dev_stop(pid);
-            rte_eth_dev_close(pid);
 		}
 	}
 }

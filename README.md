@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.07  - Fixed crash on exit when using more then one core per port.
  - 3.0.06  - Fix PCI null pointer when using virtual devices.
              Removed the C11 constructs to compile on C99 compilers.
              Fix the bug of old packets after changes for new run.

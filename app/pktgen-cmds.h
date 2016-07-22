@@ -72,18 +72,6 @@
 
 #include "pktgen.h"
 
-/* onOff values */
-enum { DISABLE_STATE = 0, ENABLE_STATE = 1 };
-
-static __inline__ uint32_t
-parseState(const char *state) {
-	return ( !strcasecmp(state,
-	                     "on") ||
-	         !strcasecmp(state,
-	                     "enable") || !strcasecmp(state, "start") ) ?
-	       ENABLE_STATE : DISABLE_STATE;
-}
-
 extern int pktgen_port_transmitting(int port);
 extern char *pktgen_link_state(int port, char *buff, int len);
 extern char *pktgen_transmit_count(int port, char *buff, int len);
@@ -114,6 +102,7 @@ extern int pktgen_save(char *path);
 extern void pktgen_pcap_enable_disable(port_info_t *info, char *str);
 extern void pktgen_blink_enable_disable(port_info_t *info, char *str);
 extern void pktgen_process_enable_disable(port_info_t *info, char *str);
+extern void pktgen_capture_enable_disable(port_info_t *info, char *str);
 extern void pktgen_pcap_filter(port_info_t *info, char *str);
 extern void pktgen_set_pkt_type(port_info_t *info, const char *type);
 extern void pktgen_clear_stats(port_info_t *info);
@@ -222,6 +211,6 @@ extern void pktgen_set_pkt_type_range(port_info_t *info, const char *type);
 extern void pktgen_set_pattern_type(port_info_t *info, char *str);
 extern void pktgen_user_pattern_set(port_info_t *info, char *str);
 extern void pktgen_latency_enable_disable(port_info_t *info, char *str);
-extern void pktgen_set_jitter(port_info_t *info, char *str);
+extern void pktgen_set_jitter(port_info_t *info, uint64_t threshold);
 
 #endif /* _PKTGEN_CMDS_H_ */

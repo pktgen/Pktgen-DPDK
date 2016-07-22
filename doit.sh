@@ -65,9 +65,9 @@ cmd=./app/app/${target}/app/pktgen
 #
 
 if [ $name == "supermicro" ]; then
-	dpdk_opts="-l 8-16 -n 4 --proc-type auto --log-level 8 --socket-mem 256,256 --file-prefix pg"
+	dpdk_opts="-l 1-17 -n 4 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
 	pktgen_opts="-T -P"
-	port_map="-m [9-10:11-12].0 -m [13-14:15-16].1"
+	port_map="-m [2-5:6-9].0 -m [10-13:14-17].1"
 	#port_map="-m [9-12:13-16].0"
 	bl_common="-b 05:00.0 -b 05:00.1"
 	black_list="${bl_common} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"

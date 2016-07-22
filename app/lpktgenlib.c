@@ -423,10 +423,9 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	getf_etheraddr(L, "eth_dst_addr", &daddr);
 	getf_etheraddr(L, "eth_src_addr", &saddr);
 	getf_ipaddr(L, "ip_dst_addr", &ip_daddr, CMDLINE_IPADDR_V4);
-	getf_ipaddr(L,
-	            "ip_src_addr",
-	            &ip_saddr,
+	getf_ipaddr(L, "ip_src_addr", &ip_saddr,
 	            CMDLINE_IPADDR_NETWORK | CMDLINE_IPADDR_V4);
+
 	sport       = getf_integer(L, "sport");
 	dport       = getf_integer(L, "dport");
 	ipProto     = getf_string(L, "ipProto");
@@ -435,9 +434,9 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	pktSize     = getf_integer(L, "pktSize");
 
 	lua_getfield(L, 3, "gtpu_teid");
-	if (lua_isinteger(L, -1) )
+	if (lua_isinteger(L, -1)) {
 		gtpu_teid   = luaL_checkinteger(L, -1);
-	else
+	} else
 		gtpu_teid   = 0;
 	lua_pop(L, 1);
 
@@ -661,9 +660,6 @@ pktgen_prototype(lua_State *L) {
 
 	foreach_port(portlist.map,
 	             pktgen_set_proto(info, type[0]) );
-
-	foreach_port(portlist.map,
-	             pktgen_set_proto_range(info, type[0]) );
 
 	return 0;
 }
@@ -1325,15 +1321,15 @@ pktgen_dst_mac(lua_State *L) {
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "dst_mac, wrong number of arguments");
-	case 2:
+	case 3:
 		break;
 	}
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac,
+	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 3), &mac,
 	                        sizeof(mac));
 
 	foreach_port(portlist.map,
-	             pktgen_set_dest_mac(info, "start", &mac) );
+	             pktgen_set_dest_mac(info, luaL_checkstring(L, 2), &mac) );
 
 	pktgen_update_display();
 	return 0;
@@ -1358,15 +1354,15 @@ pktgen_src_mac(lua_State *L) {
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "src_mac, wrong number of arguments");
-	case 2:
+	case 3:
 		break;
 	}
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
-	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 2), &mac,
+	cmdline_parse_etheraddr(NULL, luaL_checkstring(L, 3), &mac,
 	                        sizeof(mac));
 
 	foreach_port(portlist.map,
-	             pktgen_set_src_mac(info, "start", &mac) );
+	             pktgen_set_src_mac(info, luaL_checkstring(L, 2), &mac) );
 
 	pktgen_update_display();
 	return 0;
@@ -1954,8 +1950,7 @@ pktgen_range(lua_State *L) {
 
 	foreach_port(portlist.map,
 	             pktgen_range_enable_disable(info,
-	                                         (char *)luaL_checkstring(L,
-	                                                                  2)) );
+						(char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -1975,7 +1970,6 @@ pktgen_range(lua_State *L) {
 
 static int
 pktgen_latency(lua_State *L) {
-#ifdef LATER
 	cmdline_portlist_t portlist;
 
 	switch (lua_gettop(L) ) {
@@ -1987,14 +1981,41 @@ pktgen_latency(lua_State *L) {
 
 	foreach_port(portlist.map,
 	             pktgen_latency_enable_disable(info,
-	                                           (char *)luaL_checkstring(L,
-	                                                                    2)) );
+					(char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
-#else
-	return luaL_error(L, "latency is not working yet");
-#endif
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_jitter - Set Jitter threshold
+ *
+ * DESCRIPTION
+ * Set Jitter threshold in micro-seconds
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_jitter(lua_State *L) {
+	cmdline_portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "jitter, wrong number of arguments");
+	case 2:
+		break;
+	}
+	parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist.map,
+	             pktgen_set_jitter(info,
+					luaL_checkinteger(L, 2)) );
+
+	pktgen_update_display();
+	return 0;
 }
 
 /**************************************************************************//**
@@ -2131,8 +2152,98 @@ pktgen_process(lua_State *L) {
 
 	foreach_port(portlist.map,
 	             pktgen_process_enable_disable(info,
-	                                           (char *)luaL_checkstring(L,
-	                                                                    2)) );
+	                                           (char *)luaL_checkstring(L, 2)) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_capture - Enable or Disable capture packet processing.
+ *
+ * DESCRIPTION
+ * Enable or disable capture packet processing.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_capture(lua_State *L) {
+	cmdline_portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "capture, wrong number of arguments");
+	case 2:
+		break;
+	}
+	parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist.map,
+	             pktgen_capture_enable_disable(info,
+	                                           (char *)luaL_checkstring(L, 2)) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_rxtap - Enable or Disable rxtap packet processing.
+ *
+ * DESCRIPTION
+ * Enable or disable rxtap packet processing.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_rxtap(lua_State *L) {
+	cmdline_portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "rxtap, wrong number of arguments");
+	case 2:
+		break;
+	}
+	parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist.map,
+	             pktgen_set_rx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_txtap - Enable or Disable txtap packet processing.
+ *
+ * DESCRIPTION
+ * Enable or disable txtap packet processing.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_txtap(lua_State *L) {
+	cmdline_portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "txtap, wrong number of arguments");
+	case 2:
+		break;
+	}
+	parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist.map,
+	             pktgen_set_tx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2413,6 +2524,7 @@ static void
 pkt_stats(lua_State *L, port_info_t *info)
 {
 	pkt_stats_t stats;
+	uint32_t flags = rte_atomic32_read(&info->port_flags);
 
 	pktgen_pkt_stats(info->pid, &stats);
 
@@ -2427,6 +2539,13 @@ pkt_stats(lua_State *L, port_info_t *info)
 	setf_integer(L, "dropped_pkts", stats.dropped_pkts);
 	setf_integer(L, "unknown_pkts", stats.unknown_pkts);
 	setf_integer(L, "tx_failed", stats.tx_failed);
+
+	if (flags & SEND_LATENCY_PKTS) {
+		setf_integer(L, "avg_latency", info->avg_latency);
+		setf_integer(L, "max_latency", info->max_latency);
+		setf_integer(L, "min_latency", info->min_latency);
+		setf_integer(L, "jitter_count", info->jitter_count);
+	}
 
 	/* Now set the table as an array with pid as the index. */
 	lua_rawset(L, -3);
@@ -3023,10 +3142,13 @@ static const char *lua_help_info[] = {
 	"gre_key        - Set the GRE key\n",
 	"pkt_size       - the packet size for a range port\n",
 	"range          - Enable or disable sending range data on a port.\n",
+	"rxtap          - Enable or disable RX Tap packet processing on a port\n",
+	"txtap          - Enable or disable TX Tap packet processing on a port\n",
 	"\n",
 	"page           - Select a page to display, seq, range, pcap and a number from 0-N\n",
 	"port           - select a different port number used for sequence and range pages.\n",
 	"process        - Enable or disable input packet processing on a port\n",
+	"capture        - Enable or disable capture packet processing on a port\n",
 	"garp           - Enable or disable GARP packet processing on a port\n",
 	"blink          - Blink an led on a port\n",
 	"help           - Return the help text\n",
@@ -3170,7 +3292,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"src_mac",       pktgen_src_mac},	/* Set the src MAC address for a port */
 	{"src_ip",        pktgen_src_ip},	/* Set the source IP address and netmask value */
 	{"dst_ip",        pktgen_dst_ip},	/* Set the destination IP address */
-	{"range_proto",   pktgen_ip_proto},	/* Set the IP Protocol type */
+	{"ip_proto",      pktgen_ip_proto},	/* Set the IP Protocol type */
 	{"src_port",      pktgen_src_port},	/* Set the IP source port number */
 	{"dst_port",      pktgen_dst_port},	/* Set the IP destination port number */
 	{"vlan_id",       pktgen_vlan_id},	/* Set the vlan id value */
@@ -3184,6 +3306,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"page",          pktgen_page},			/* Select a page to display, seq, range, pcap and a number from 0-N */
 	{"port",          pktgen_port},			/* select a different port number used for sequence and range pages. */
 	{"process",       pktgen_process},		/* Enable or disable input packet processing on a port */
+	{"capture",       pktgen_capture},		/* Enable or disable capture on a port */
 	{"garp",          pktgen_garp},			/* Enable or disable GARP packet processing on a port */
 	{"blink",         pktgen_blink},		/* Blink an led on a port */
 	{"help",          pktgen_help},			/* Return the help text */
@@ -3208,10 +3331,14 @@ static const luaL_Reg pktgenlib[] = {
 	{"pattern",       pktgen_pattern},	/* Set pattern type */
 	{"userPattern",   pktgen_user_pattern},	/* Set the user pattern string */
 	{"latency",       pktgen_latency},	/* Enable or disable latency testing */
+	{"jitter",        pktgen_jitter},	/* Set the jitter threshold */
 	{"gtpu_teid",     pktgen_gtpu_teid},	/* set GTP-U TEID. */
 
-        {"rnd",           pktgen_rnd},          /* Set up the rnd function on a portlist */
-        {"rnd_list",      pktgen_rnd_list},     /* Return a table of rnd bit patterns per port */
+	{"rnd",           pktgen_rnd},          /* Set up the rnd function on a portlist */
+	{"rnd_list",      pktgen_rnd_list},     /* Return a table of rnd bit patterns per port */
+
+	{"rxtap",         pktgen_rxtap},	/* enable or disable rxtap */
+	{"txtap",         pktgen_txtap},	/* enable or disable rxtap */
 
 	{NULL, NULL}
 };

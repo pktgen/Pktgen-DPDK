@@ -177,6 +177,7 @@ const char *help_info[] = {
 	"                 seqCnt            - Set the number of packet in the sequence to send",
 	"                 dump              - Dump the next <value> received packets to the screen",
 	"                 vlanid            - Set the VLAN ID value for the portlist",
+	"                 random            - Enable or disable random mode\n",
 	"pattern <type>                     - Fill Pattern type",
 	"        abc                        - Default pattern of abc string",
 	"        none                       - No fill pattern, maybe random data",
@@ -184,7 +185,7 @@ const char *help_info[] = {
 	"        user                       - User supplied string of max 16 bytes",
 	"user.pattern \"string\"              - A 16 byte string, must set 'pattern user' command",
 	"latency <portlist> <state>         - Enable Latency testing",
-	"jitter <portlist> <usec>           = Set the jitter threshold in usec",
+	"jitter <portlist> <usec>           - Set the jitter threshold in micro-seconds",
 	"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
@@ -1015,7 +1016,7 @@ cmd_set_jitter_parsed(void *parsed_result,
 	struct cmd_set_jitter_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-	             pktgen_set_jitter(info, res->usec) );
+	             pktgen_set_jitter(info, strtoull(res->usec, NULL, 0)) );
 
 	pktgen_update_display();
 }

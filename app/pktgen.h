@@ -161,7 +161,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.0.07"
+#define PKTGEN_VERSION          "3.0.08"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -454,6 +454,18 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 		val = rte_atomic32_read(&info->q[q].flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
 	                           val, (val & ~flags)) == 0);
+}
+
+/* onOff values */
+enum { DISABLE_STATE = 0, ENABLE_STATE = 1 };
+
+static __inline__ uint32_t
+parseState(const char *state) {
+	return ( !strcasecmp(state,
+	                     "on") ||
+	         !strcasecmp(state,
+	                     "enable") || !strcasecmp(state, "start") ) ?
+	       ENABLE_STATE : DISABLE_STATE;
 }
 
 /**

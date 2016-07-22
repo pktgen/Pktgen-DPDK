@@ -159,7 +159,7 @@ pktgen_set_random_bitfield(rnd_bits_t *rnd_bits,
 		case '0': mask0   += 1; break;
 		case '1': mask1   += 1; break;
 		case '.': /* ignore bit */ break;
-                case 'x':
+		case 'x':
 		case 'X': maskRnd += 1; break;
 		default: /* print error: "Unknown char in bitfield spec" */
 			goto

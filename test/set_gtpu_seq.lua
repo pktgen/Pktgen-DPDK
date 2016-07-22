@@ -1,6 +1,7 @@
 -- Lua uses '--' as comment to end of line read the
 -- manual for more comment options.
-local seq_table = {            -- entries can be in any order
+local seq_table = {}
+seq_table[0] = {            -- entries can be in any order
     ["eth_dst_addr"] = "0011:4455:6677",
     ["eth_src_addr"] = "0033:1234:5678",
     ["ip_dst_addr"] = "10.11.0.1",
@@ -13,8 +14,9 @@ local seq_table = {            -- entries can be in any order
     ["pktSize"] = 128,     -- 64 - 1518
     ["gtpu_teid"] = 1000   -- GTPu TEID (Set dport=2152)
   };
+seq_table.n = 1;
 -- seqTable( seq#, portlist, table );
-pktgen.seqTable(0, "all", seq_table );
+pktgen.seqTable(0, "all", seq_table[0] );
 pktgen.set("all", "seqCnt", 1);
 pktgen.page("seq");
 

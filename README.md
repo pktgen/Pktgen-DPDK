@@ -6,6 +6,9 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.08  - Add Lua support for rnd and latency commands.
+             Now if latency is enable on a port then getting the stats will get
+             the latency values via lua table.
  - 3.0.07  - Fixed crash on exit when using more then one core per port.
  - 3.0.06  - Fix PCI null pointer when using virtual devices.
              Removed the C11 constructs to compile on C99 compilers.

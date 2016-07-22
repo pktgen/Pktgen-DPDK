@@ -75,6 +75,31 @@
 
 static char hash_line[] = "#######################################################################";
 
+static char *
+convert_bitfield(bf_spec_t * bf)
+{
+	uint32_t mask;
+	char * p;
+	uint32_t i;
+	static char rnd_bitmask[33];
+
+	memset(rnd_bitmask, 0, sizeof(rnd_bitmask));
+	memset(rnd_bitmask, '.', sizeof(rnd_bitmask) - 1);
+
+	p = rnd_bitmask;
+	for(i = 0; i < MAX_BITFIELD_SIZE; i++) {
+		mask = (uint32_t)(1 << (MAX_BITFIELD_SIZE - i - 1));
+
+		/* Need to check rndMask before andMask: for random bits, the
+		 * andMask is also 0. */
+		p[i] =
+			((ntohl(bf->rndMask) & mask) != 0) ? 'X' :
+			((ntohl(bf->andMask) & mask) == 0) ? '0' :
+			((ntohl(bf->orMask)  & mask) != 0) ? '1' : '.';
+	}
+
+	return rnd_bitmask;
+}
 /**************************************************************************//**
  *
  * pktgen_save - Save a configuration as a startup script
@@ -222,9 +247,7 @@ pktgen_script_save(char *path)
 		}
 		fprintf(fd, "\n");
 
-		fprintf(fd, "latency %d %s\n", i,
-		        (flags & SEND_LATENCY_PKTS) ? "enable" : "disable");
-
+		fprintf(fd, "jitter %d %lu\n",i , info->jitter_threshold);
 		fprintf(fd, "mpls %d %sable\n", i,
 		        (flags & SEND_MPLS_LABEL) ? "en" : "dis");
 		sprintf(buff, "%x", pkt->mpls_entry);
@@ -248,8 +271,6 @@ pktgen_script_save(char *path)
 		        (flags & SEND_PCAP_PKTS) ? "en" : "dis");
 		fprintf(fd, "range %d %sable\n", i,
 		        (flags & SEND_RANGE_PKTS) ? "en" : "dis");
-		fprintf(fd, "rnd %d %sable\n", i,
-		        (flags & SEND_RANDOM_PKTS) ? "en" : "dis");
 		fprintf(fd, "latency %d %sable\n", i,
 		        (flags & SEND_LATENCY_PKTS) ? "en" : "dis");
 		fprintf(fd, "process %d %sable\n", i,
@@ -372,7 +393,7 @@ pktgen_script_save(char *path)
 			                   htonl(pkt->ip_src_addr.addr.ipv4.
 			                         s_addr),
 			                   pkt->ip_mask));
-			fprintf(fd, "%d %d %s %s %d %d\n",
+			fprintf(fd, "%d %d %s %s %d %d %d\n",
 			        pkt->sport,
 			        pkt->dport,
 			        (pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
@@ -383,7 +404,8 @@ pktgen_script_save(char *path)
 			        (pkt->ipProto ==
 			         PG_IPPROTO_ICMP) ? "icmp" : "udp",
 			        pkt->vlanid,
-			        pkt->pktSize + FCS_SIZE);
+			        pkt->pktSize + FCS_SIZE,
+					pkt->gtpu_teid);
 		}
 
 		if (pktgen.info[i].pcap) {
@@ -392,6 +414,19 @@ pktgen_script_save(char *path)
 			        pktgen.info[i].pcap->pkt_count);
 			fprintf(fd, "#    Filename    : %s\n",
 			        pktgen.info[i].pcap->filename);
+		}
+		fprintf(fd, "\n");
+	}
+	if (info->rnd_bitfields->active_specs) {
+		uint32_t active = info->rnd_bitfields->active_specs;
+		bf_spec_t *bf;
+		fprintf(fd, "\n-- Rnd bitfeilds\n");
+		for(j = 0; j < MAX_RND_BITFIELDS; j++) {
+			if ((active & (1 << j)) == 0)
+				continue;
+			bf = &info->rnd_bitfields->specs[j];
+			fprintf(fd, "rnd %d %d %d %s\n",
+					i, j, bf->offset, convert_bitfield(bf));
 		}
 		fprintf(fd, "\n");
 	}
@@ -549,9 +584,8 @@ pktgen_lua_save(char *path)
 		}
 		fprintf(fd, "\n");
 
-		fprintf(fd, "pktgen.latency('%d', '%s');\n", i,
-		        (flags & SEND_LATENCY_PKTS) ? "enable" : "disable");
-
+		fflush(fd);
+		fprintf(fd, "pktgen.jitter('%d', %lu);\n", i, info->jitter_threshold);
 		fprintf(fd, "pktgen.mpls('%d', '%sable');\n", i,
 		        (flags & SEND_MPLS_LABEL) ? "en" : "dis");
 		sprintf(buff, "%x", pkt->mpls_entry);
@@ -562,7 +596,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.qinqids('%d', %d, %d);\n", i,
 		        pkt->qinq_outerid, pkt->qinq_innerid);
 
-		fprintf(fd, "pktgen.gre('%d', '%sable')p\n", i,
+		fprintf(fd, "pktgen.gre('%d', '%sable');\n", i,
 		        (flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis");
 		fprintf(fd, "pktgen.gre_eth('%d', '%sable');\n", i,
 		        (flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis");
@@ -575,8 +609,6 @@ pktgen_lua_save(char *path)
 		        (flags & SEND_PCAP_PKTS) ? "en" : "dis");
 		fprintf(fd, "pktgen.range('%d', '%sable');\n", i,
 		        (flags & SEND_RANGE_PKTS) ? "en" : "dis");
-		fprintf(fd, "pktgen.rnd('%d', '%sable');\n", i,
-		        (flags & SEND_RANDOM_PKTS) ? "en" : "dis");
 		fprintf(fd, "pktgen.latency('%d', '%sable');\n", i,
 		        (flags & SEND_LATENCY_PKTS) ? "en" : "dis");
 		fprintf(fd, "pktgen.process('%d', '%sable');\n", i,
@@ -589,7 +621,7 @@ pktgen_lua_save(char *path)
 		        (flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis");
 		fprintf(fd, "pktgen.vlan('%d', '%sable');\n\n", i,
 		        (flags & SEND_VLAN_ID) ? "en" : "dis");
-
+		fflush(fd);
 		fprintf(fd, "--\n-- Range packet information:\n");
 		fprintf(fd, "pktgen.src_mac('%d', 'start', '%s');\n", i,
 		        inet_mtoa(buff, sizeof(buff),
@@ -641,7 +673,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.dst_ip('%d', 'max', '%s');\n", i,
 		        inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_max),
 		                   0xFFFFFFFF));
-		fprintf(fd, "pkten.dst_ip('%d', 'inc', '%s');\n", i,
+		fprintf(fd, "pktgen.dst_ip('%d', 'inc', '%s');\n", i,
 		        inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_inc),
 		                   0xFFFFFFFF));
 
@@ -678,41 +710,81 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.pkt_size('%d', 'inc', %d);\n\n", i, range->pkt_size_inc);
 
 		fprintf(fd, "--\n-- Set up the sequence data for the port.\n");
-		fprintf(fd, "pktgen.set('%d', 'seqCnt', %d);\n", info->pid, info->seqCnt);
-		for (j = 0; j < info->seqCnt; j++) {
-			pkt = &info->seq_pkt[j];
-			fprintf(fd, "pkten.seq(%d, '%d', '%s' ", j, i,
-			        inet_mtoa(buff,
-			                  sizeof(buff),
-			                  &pkt->eth_dst_addr));
-			fprintf(fd, "'%s', ",
-			        inet_mtoa(buff,
-			                  sizeof(buff),
-			                  &pkt->eth_src_addr));
-			fprintf(fd, "'%s', ",
-			        inet_ntop4(buff, sizeof(buff),
-			                   htonl(pkt->ip_dst_addr.addr.ipv4.
-			                         s_addr),
-			                   0xFFFFFFFF));
-			fprintf(fd, "'%s', ",
-			        inet_ntop4(buff, sizeof(buff),
-			                   htonl(pkt->ip_src_addr.addr.ipv4.
-			                         s_addr),
-			                   pkt->ip_mask));
-			fprintf(fd, "%d, %d, '%s', '%s', %d, %d);\n",
-			        pkt->sport,
-			        pkt->dport,
-			        (pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
-			        (pkt->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
-			        (pkt->ethType ==
-			         ETHER_TYPE_VLAN) ? "vlan" : "Other",
-			        (pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
-			        (pkt->ipProto ==
-			         PG_IPPROTO_ICMP) ? "icmp" : "udp",
-			        pkt->vlanid,
-			        pkt->pktSize + FCS_SIZE);
+		fprintf(fd, "pktgen.set('%d', 'seqCnt', %d);\n\n", info->pid, info->seqCnt);
+		fflush(fd);
+		if (info->seqCnt) {
+			fprintf(fd, "-- (seqnum, port, dst_mac, src_mac, ip_dst, ip_src, sport, dport, ethType, proto, vlanid, pktSize, gtpu_teid)\n");
+			for (j = 0; j < info->seqCnt; j++) {
+				pkt = &info->seq_pkt[j];
+				fprintf(fd, "-- pktgen.seq(%d, '%d', '%s' ", j, i,
+						inet_mtoa(buff,
+								sizeof(buff),
+								&pkt->eth_dst_addr));
+				fprintf(fd, "'%s', ",
+						inet_mtoa(buff,
+								sizeof(buff),
+								&pkt->eth_src_addr));
+				fprintf(fd, "'%s', ",
+						inet_ntop4(buff, sizeof(buff),
+								htonl(pkt->ip_dst_addr.addr.ipv4.
+										s_addr),
+								0xFFFFFFFF));
+				fprintf(fd, "'%s', ",
+						inet_ntop4(buff, sizeof(buff),
+								htonl(pkt->ip_src_addr.addr.ipv4.
+										s_addr),
+								pkt->ip_mask));
+				fprintf(fd, "%d, %d, '%s', '%s', %d, %d, %d);\n",
+						pkt->sport,
+						pkt->dport,
+						(pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
+						(pkt->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
+						(pkt->ethType ==
+						ETHER_TYPE_VLAN) ? "vlan" : "Other",
+						(pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
+						(pkt->ipProto ==
+						PG_IPPROTO_ICMP) ? "icmp" : "udp",
+						pkt->vlanid,
+						pkt->pktSize + FCS_SIZE,
+						pkt->gtpu_teid);
+			}
+			fflush(fd);
+			fprintf(fd, "local seq_table = {}\n");
+			for (j = 0; j < info->seqCnt; j++) {
+				pkt = &info->seq_pkt[j];
+				fprintf(fd, "seq_table[%d] = {\n", j);
+				fprintf(fd, "  ['eth_dst_addr'] = '%s',\n",
+						inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
+				fprintf(fd, "  ['eth_src_addr'] = '%s',\n",
+						inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
+				fprintf(fd, "  ['ip_dst_addr'] = '%s',\n",
+						inet_ntop4(buff, sizeof(buff),
+								   htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+								   0xFFFFFFFF));
+				fprintf(fd, "  ['ip_src_addr'] = '%s',\n",
+						inet_ntop4(buff, sizeof(buff),
+								   htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
+								   0xFFFFFFFF));
+				fprintf(fd, "  ['sport'] = %d,\n", pkt->sport);
+				fprintf(fd, "  ['dport'] = %d,\n", pkt->dport);
+				fprintf(fd, "  ['ethType'] = '%s',\n",
+						(pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
+						(pkt->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
+						(pkt->ethType == ETHER_TYPE_VLAN) ? "vlan" : "Other");
+				fprintf(fd, "  ['ipProto'] = '%s',\n",
+						(pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
+						(pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp");
+				fprintf(fd, "  ['vlanid'] = %d,\n", pkt->vlanid);
+				fprintf(fd, "  ['pktSize'] = %d,\n", pkt->pktSize);
+				fprintf(fd, "  ['gtpu_teid'] = %d\n", pkt->gtpu_teid);
+				fprintf(fd, "}\n");
+			}
+			fflush(fd);
+			for (j = 0; j < info->seqCnt; j++) {
+				fprintf(fd, "pktgen.seqTable(%d, '%d', seq_table[%d]);\n", j, i, j);
+			}
 		}
-
+		fflush(fd);
 		if (pktgen.info[i].pcap) {
 			fprintf(fd, "--\n-- PCAP port %d\n", i);
 			fprintf(fd, "--    Packet count: %d\n",
@@ -721,8 +793,23 @@ pktgen_lua_save(char *path)
 			        pktgen.info[i].pcap->filename);
 		}
 		fprintf(fd, "\n");
+		fflush(fd);
+		if (info->rnd_bitfields->active_specs) {
+			uint32_t active = info->rnd_bitfields->active_specs;
+			bf_spec_t *bf;
+			fprintf(fd, "\n-- Rnd bitfeilds\n"); fflush(fd);
+			for(j = 0; j < MAX_RND_BITFIELDS; j++) {
+				if ((active & (1 << j)) == 0)
+					continue;
+				bf = &info->rnd_bitfields->specs[j];
+				fprintf(fd, "pktgen.rnd('%d', %d, %d, '%s');\n",
+						i, j, bf->offset, convert_bitfield(bf));
+			}
+			fprintf(fd, "\n");
+		}
 	}
 	fprintf(fd, "-- ################################ Done #################################\n");
+	fflush(fd);
 
 	fclose(fd);
 	return 0;
@@ -1534,6 +1621,24 @@ pktgen_process_enable_disable(port_info_t *info, char *str)
 		pktgen_set_port_flags(info, PROCESS_INPUT_PKTS);
 	else
 		pktgen_clr_port_flags(info, PROCESS_INPUT_PKTS);
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_capture_enable_disable - Enable or disable capture packet processing.
+ *
+ * DESCRIPTION
+ * Enable or disable capture packet processing of ICMP, ARP, ...
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_capture_enable_disable(port_info_t *info, char *str)
+{
+	pktgen_set_capture(info, parseState(str));
 }
 
 /**************************************************************************//**
@@ -2384,11 +2489,11 @@ pktgen_latency_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_set_jitter(port_info_t *info, char *str)
+pktgen_set_jitter(port_info_t *info, uint64_t threshold)
 {
 	uint64_t ticks;
 
-	info->jitter_threshold = atoi(str);
+	info->jitter_threshold = threshold;
 	info->jitter_count = 0;
 	ticks = rte_get_timer_hz()/1000000;
 	info->jitter_threshold_clks = info->jitter_threshold * ticks;

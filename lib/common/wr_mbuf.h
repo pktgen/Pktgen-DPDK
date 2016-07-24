@@ -40,36 +40,70 @@ extern "C" {
 #endif
 
 static inline void
-__pktmbuf_alloc_noreset(struct rte_mbuf **m_list, unsigned int cnt)
+pktmbuf_reset(struct rte_mbuf *m)
 {
-	struct rte_mbuf *m;
-	unsigned int i;
+	m->next = NULL;
+	m->nb_segs = 1;
+	m->port = 0xff;
 
-	for(i = 0; i < cnt; i++) {
-		m = *m_list++;
-
-		m->next = NULL;
-		m->nb_segs = 1;
-		m->port = 0xff;
-
-		m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
-			RTE_PKTMBUF_HEADROOM : m->buf_len;
-		rte_mbuf_refcnt_set(m, 1);
-	}
+	m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
+		RTE_PKTMBUF_HEADROOM : m->buf_len;
 }
 
+/**
+ * Allocate a bulk of mbufs, initialize refcnt and reset the fields to default
+ * values.
+ *
+ *  @param pool
+ *    The mempool from which mbufs are allocated.
+ *  @param mbufs
+ *    Array of pointers to mbufs
+ *  @param count
+ *    Array size
+ *  @return
+ *   - 0: Success
+ */
 static inline int
-wr_pktmbuf_alloc_bulk_noreset(struct rte_mempool *mp,
-                              struct rte_mbuf *m_list[], unsigned int cnt)
+wr_pktmbuf_alloc_bulk(struct rte_mempool *pool,
+	 struct rte_mbuf **mbufs, unsigned count)
 {
-	int ret;
+	unsigned idx = 0;
+	int rc;
 
-	ret = rte_mempool_get_bulk(mp, (void **)m_list, cnt);
-	if (ret == 0) {
-		__pktmbuf_alloc_noreset(m_list, cnt);
-		ret = cnt;
+	rc = rte_mempool_get_bulk(pool, (void **)mbufs, count);
+	if (unlikely(rc))
+		return rc;
+
+	/* To understand duff's device on loop unwinding optimization, see
+	 * https://en.wikipedia.org/wiki/Duff's_device.
+	 * Here while() loop is used rather than do() while{} to avoid extra
+	 * check if count is zero.
+	 */
+	switch (count % 4) {
+	case 0:
+		while (idx != count) {
+			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+			rte_mbuf_refcnt_set(mbufs[idx], 1);
+			pktmbuf_reset(mbufs[idx]);
+			idx++;
+	case 3:
+			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+			rte_mbuf_refcnt_set(mbufs[idx], 1);
+			pktmbuf_reset(mbufs[idx]);
+			idx++;
+	case 2:
+			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+			rte_mbuf_refcnt_set(mbufs[idx], 1);
+			pktmbuf_reset(mbufs[idx]);
+			idx++;
+	case 1:
+			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+			rte_mbuf_refcnt_set(mbufs[idx], 1);
+			pktmbuf_reset(mbufs[idx]);
+			idx++;
+		}
 	}
-	return ret;
+	return 0;
 }
 
 #ifdef __cplusplus

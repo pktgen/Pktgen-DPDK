@@ -308,6 +308,23 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 	}
 }
 
+static void
+inspect_mbufs(const char * msg, struct rte_mbuf **mbufs, int nb_pkts)
+{
+	int i;
+	struct rte_mbuf *mbuf;
+	struct ether_hdr *eth;
+
+	for(i = 0; i < nb_pkts; i++) {
+		mbuf = mbufs[i];
+		eth = rte_pktmbuf_mtod(mbuf, struct ether_hdr *);
+		if (eth->ether_type == 0) {
+			printf("** %s **\n", msg);
+			rte_pktmbuf_dump(stdout, mbuf, 32);
+		}
+	}
+}
+
 /**************************************************************************//**
  *
  * _send_burst_fast - Send a burst of packet as fast as possible.
@@ -342,6 +359,7 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 			cnt -= ret;
 		}
 	} else {
+inspect_mbufs("** 1 **", pkts, cnt);
 		while(cnt > 0) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -1264,17 +1282,17 @@ static __inline__ void
 pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 {
 	uint32_t flags;
-	int len = 0;
+	int rc = 0;
 
 	flags = rte_atomic32_read(&info->port_flags);
 
 	if (flags & SEND_FOREVER) {
-		len = wr_pktmbuf_alloc_bulk_noreset(mp,
-		                                    info->q[qid].tx_mbufs.m_table,
-		                                    info->tx_burst);
-		if (len > 0) {
-			info->q[qid].tx_mbufs.len = len;
-			info->q[qid].tx_cnt += len;
+		rc = wr_pktmbuf_alloc_bulk(mp,
+		                           info->q[qid].tx_mbufs.m_table,
+		                           info->tx_burst);
+		if (rc == 0) {
+			info->q[qid].tx_mbufs.len = info->tx_burst;
+			info->q[qid].tx_cnt += info->tx_burst;
 
 			pktgen_send_burst(info, qid);
 		}
@@ -1283,11 +1301,11 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count, info->tx_burst);
 		if (txCnt > 0) {
-			len = wr_pktmbuf_alloc_bulk_noreset(mp,
-			                                    info->q[qid].tx_mbufs.m_table,
-			                                    txCnt);
-			if (len > 0) {
-				info->q[qid].tx_mbufs.len = len;
+			rc = wr_pktmbuf_alloc_bulk(mp,
+			                           info->q[qid].tx_mbufs.m_table,
+			                           txCnt);
+			if (rc == 0) {
+				info->q[qid].tx_mbufs.len = txCnt;
 				pktgen_send_burst(info, qid);
 			}
 		} else

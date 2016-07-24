@@ -272,7 +272,7 @@ pktgen_parse_args(int argc, char **argv)
 			break;
 
 		case 'f':	/* Command file or Lua script. */
-			pktgen.cmd_filename = strdup(optarg);
+			pktgen.cmd_files.filename[pktgen.cmd_files.idx++] = strdup(optarg);
 			break;
 
 		case 'l':	/* Log file */

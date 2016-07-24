@@ -299,14 +299,20 @@ typedef union {
 } ethaddr_t;
 
 #define MAX_PORT_DESC_SIZE  132
+#define MAX_CMD_FILES	    16
+
+typedef struct {
+	char	*filename[MAX_CMD_FILES];
+	uint8_t	idx;
+} cmd_files_t;
 
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
-	char *cmd_filename;	/**< Command file path and name */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
 	wr_scrn_t *scrn;	/**< Screen structure pointer */
+	cmd_files_t cmd_files; /**< Command file path and name */
 
 	int32_t socket_port;	/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */

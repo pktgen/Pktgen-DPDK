@@ -259,7 +259,11 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
                       unsigned i)
 {
 	struct rte_mbuf *m = _m;
+#if RTE_VERSION < RTE_VERSION_NUM(16, 7, 0, 0)
 	uint32_t buf_len = mp->elt_size - sizeof(struct rte_mbuf);
+#else
+	uint32_t buf_len, mbuf_size, priv_size;
+#endif
 	pcaprec_hdr_t hdr;
 	ssize_t len = -1;
 	char buffer[2048];
@@ -271,12 +275,26 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	RTE_VERIFY(mp->elt_size >= sizeof(struct rte_mbuf));
 #endif
 
+#if RTE_VERSION < RTE_VERSION_NUM(16, 7, 0, 0)
+#else
+	priv_size = rte_pktmbuf_priv_size(mp);
+	mbuf_size = sizeof(struct rte_mbuf) + priv_size;
+	buf_len = rte_pktmbuf_data_room_size(mp);
+#endif
 	memset(m, 0, mp->elt_size);
 
+#if RTE_VERSION < RTE_VERSION_NUM(16, 7, 0, 0)
 	/* start of buffer is just after mbuf structure */
 	m->buf_addr     = (char *)m + sizeof(struct rte_mbuf);
 	m->buf_physaddr = rte_mempool_virt2phy(mp, m->buf_addr);
 	m->buf_len      = (uint16_t)buf_len;
+#else
+	/* start of buffer is after mbuf structure and priv data */
+	m->priv_size = priv_size;
+	m->buf_addr = (char *)m + mbuf_size;
+	m->buf_physaddr = rte_mempool_virt2phy(mp, m) + mbuf_size;
+	m->buf_len = (uint16_t)buf_len;
+#endif
 
 	/* keep some headroom between start of buffer and data */
 	m->data_off = RTE_MIN(RTE_PKTMBUF_HEADROOM, m->buf_len);

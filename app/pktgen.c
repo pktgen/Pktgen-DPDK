@@ -1036,7 +1036,7 @@ pktgen_send_special(port_info_t *info, uint32_t flags)
 	pktgen_clr_port_flags(info, SEND_ARP_PING_REQUESTS);
 }
 
-#if RTE_VERSION > RTE_VERSION_NUM(16, 4, 0, 0)
+#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 typedef struct {
 	port_info_t *info;
 	uint16_t qid;

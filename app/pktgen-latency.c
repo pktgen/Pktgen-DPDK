@@ -292,13 +292,13 @@ pktgen_page_latency(void)
 		snprintf(buff, sizeof(buff), "%lu", info->jitter_count);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu", info->port_stats.ipackets);
+		snprintf(buff, sizeof(buff), "%lu", info->prev_stats.ipackets);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		avg_lat = 0;
-		if (info->port_stats.ipackets)
+		if (info->prev_stats.ipackets)
 			snprintf(buff, sizeof(buff), "%lu",
-				 (info->jitter_count * 100)/info->port_stats.ipackets);
+				 (info->jitter_count * 100)/info->prev_stats.ipackets);
 		else
 			snprintf(buff, sizeof(buff), "%lu", avg_lat);
 

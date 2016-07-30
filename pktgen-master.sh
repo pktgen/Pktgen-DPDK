@@ -73,7 +73,7 @@ bl_common="-b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0"
 black_list="${bl_common} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
 load_file="-f themes/black-yellow.theme"
 
-if [ $name == "supermicro" ]; then
+if [ $name == "rkwiles-DESK1.intel.com" ]; then
         echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
         sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 

@@ -284,6 +284,7 @@ pktgen_page_stats(void)
 {
 	port_info_t *info;
 	unsigned int pid, col, row;
+	struct rte_eth_stats *rate, *cumm, *prev;
 	unsigned sp;
 	char buff[32];
 	int display_cnt;
@@ -291,7 +292,8 @@ pktgen_page_stats(void)
 	if (pktgen.flags & PRINT_LABELS_FLAG)
 		pktgen_print_static_data();
 
-	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
+	cumm = &pktgen.cumm_rate_totals;
+	memset(cumm, 0, sizeof(eth_stats_t));
 
 	sp = pktgen.starting_port;
 	display_cnt = 0;
@@ -322,12 +324,15 @@ pktgen_page_stats(void)
 		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
 
+		rate = &info->rate_stats;
+		prev = &info->prev_stats;
+
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_ipackets, info->rate_stats.ipackets);
+		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_ipackets, rate->ipackets);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_opackets, info->rate_stats.opackets);
+		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_opackets, rate->opackets);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu",
@@ -335,27 +340,27 @@ pktgen_page_stats(void)
 		         oBitsTotal(info->rate_stats) / Million);
 		wr_scrn_printf(row++,  col, "%*s", COLUMN_WIDTH_1, buff);
 
-		pktgen.cumm_rate_totals.ipackets += info->rate_stats.ipackets;
-		pktgen.cumm_rate_totals.opackets += info->rate_stats.opackets;
-		pktgen.cumm_rate_totals.ibytes += info->rate_stats.ibytes;
-		pktgen.cumm_rate_totals.obytes += info->rate_stats.obytes;
-		pktgen.cumm_rate_totals.ierrors += info->rate_stats.ierrors;
-		pktgen.cumm_rate_totals.oerrors += info->rate_stats.oerrors;
+		cumm->ipackets += rate->ipackets;
+		cumm->opackets += rate->opackets;
+		cumm->ibytes += rate->ibytes;
+		cumm->obytes += rate->obytes;
+		cumm->ierrors += rate->ierrors;
+		cumm->oerrors += rate->oerrors;
 
-		if (pktgen.cumm_rate_totals.ipackets > pktgen.max_total_ipackets)
-			pktgen.max_total_ipackets = pktgen.cumm_rate_totals.ipackets;
-		if (pktgen.cumm_rate_totals.opackets > pktgen.max_total_opackets)
-			pktgen.max_total_opackets = pktgen.cumm_rate_totals.opackets;
+		if (cumm->ipackets > pktgen.max_total_ipackets)
+			pktgen.max_total_ipackets = cumm->ipackets;
+		if (cumm->opackets > pktgen.max_total_opackets)
+			pktgen.max_total_opackets = cumm->opackets;
 
-		pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
+		cumm->imissed += rate->imissed;
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		pktgen.cumm_rate_totals.ibadcrc += info->rate_stats.ibadcrc;
-		pktgen.cumm_rate_totals.ibadlen += info->rate_stats.ibadlen;
+		cumm->ibadcrc += rate->ibadcrc;
+		cumm->ibadlen += rate->ibadlen;
 #endif
 #if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		pktgen.cumm_rate_totals.imcasts += info->rate_stats.imcasts;
+		cumm->imcasts += rate->imcasts;
 #endif
-		pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
+		cumm->rx_nombuf += rate->rx_nombuf;
 
 		/* Packets Sizes */
 		row = PKT_SIZE_ROW;
@@ -372,16 +377,16 @@ pktgen_page_stats(void)
 
 		/* Rx/Tx Errors */
 		row = PKT_TOTALS_ROW;
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->port_stats.ierrors, info->port_stats.oerrors);
+		snprintf(buff, sizeof(buff), "%lu/%lu", prev->ierrors, prev->oerrors);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		/* Total Rx/Tx */
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->port_stats.ipackets);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->port_stats.opackets);
+		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, prev->ipackets);
+		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, prev->opackets);
 
 		/* Total Rx/Tx mbits */
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->port_stats) / Million);
-		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->port_stats) / Million);
+		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->prev_stats) / Million);
+		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->prev_stats) / Million);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu", info->stats.arp_pkts, info->stats.echo_pkts);
 		wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -416,11 +421,11 @@ pktgen_page_stats(void)
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	row = LINK_STATE_ROW + 1;
 	snprintf(buff, sizeof(buff), "%lu/%lu",
-	         pktgen.max_total_ipackets, pktgen.cumm_rate_totals.ipackets);
+	         pktgen.max_total_ipackets, cumm->ipackets);
 	wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	wr_scrn_eol();
 	snprintf(buff, sizeof(buff), "%lu/%lu",
-	         pktgen.max_total_opackets, pktgen.cumm_rate_totals.opackets);
+	         pktgen.max_total_opackets, cumm->opackets);
 	wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	wr_scrn_eol();
 	snprintf(buff, sizeof(buff), "%lu/%lu",
@@ -446,7 +451,7 @@ void
 pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
 	unsigned int pid;
-	struct rte_eth_stats stats;
+	struct rte_eth_stats stats, *rate, *init, *prev;
 	port_info_t *info;
 	static unsigned int counter = 0;
 
@@ -471,59 +476,51 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		memset(&stats, 0, sizeof(stats));
 		rte_eth_stats_get(pid, &stats);
 
+		init = &info->init_stats;
+		rate = &info->rate_stats;
+		prev = &info->prev_stats;
+
 		/* Normalize counts to the initial state, used for clearing statistics */
-		stats.ipackets  -= info->init_stats.ipackets;
-		stats.opackets  -= info->init_stats.opackets;
-		stats.ibytes    -= info->init_stats.ibytes;
-		stats.obytes    -= info->init_stats.obytes;
-		stats.ierrors   -= info->init_stats.ierrors;
-		stats.oerrors   -= info->init_stats.oerrors;
+		stats.ipackets  -= init->ipackets;
+		stats.opackets  -= init->opackets;
+		stats.ibytes    -= init->ibytes;
+		stats.obytes    -= init->obytes;
+		stats.ierrors   -= init->ierrors;
+		stats.oerrors   -= init->oerrors;
+		stats.imissed   -= init->imissed;
+		stats.rx_nombuf -= init->rx_nombuf;
 
-		stats.imissed += info->init_stats.imissed;
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		stats.ibadcrc += info->init_stats.ibadcrc;
-		stats.ibadlen += info->init_stats.ibadlen;
+		stats.ibadcrc   -= init->ibadcrc;
+		stats.ibadlen   -= init->ibadlen;
 #endif
 #if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		stats.imcasts += info->init_stats.imcasts;
+		stats.imcasts   -= init->imcasts;
 #endif
-		stats.rx_nombuf += info->init_stats.rx_nombuf;
 
-		info->rate_stats.ipackets   = stats.ipackets -
-		        info->port_stats.ipackets;
-		info->rate_stats.opackets   = stats.opackets -
-		        info->port_stats.opackets;
-		info->rate_stats.ibytes     = stats.ibytes -
-		        info->port_stats.ibytes;
-		info->rate_stats.obytes     = stats.obytes -
-		        info->port_stats.obytes;
-		info->rate_stats.ierrors    = stats.ierrors -
-		        info->port_stats.ierrors;
-		info->rate_stats.oerrors    = stats.oerrors -
-		        info->port_stats.oerrors;
+		rate->ipackets   = stats.ipackets - prev->ipackets;
+		rate->opackets   = stats.opackets - prev->opackets;
+		rate->ibytes     = stats.ibytes - prev->ibytes;
+		rate->obytes     = stats.obytes - prev->obytes;
+		rate->ierrors    = stats.ierrors - prev->ierrors;
+		rate->oerrors    = stats.oerrors - prev->oerrors;
+		rate->imissed    = stats.imissed - prev->imissed;
+		rate->rx_nombuf  = stats.rx_nombuf - prev->rx_nombuf;
 
-		if (info->rate_stats.ipackets > info->max_ipackets)
-			info->max_ipackets = info->rate_stats.ipackets;
-		if (info->rate_stats.opackets > info->max_opackets)
-			info->max_opackets = info->rate_stats.opackets;
-
-		info->rate_stats.imissed += stats.imissed -
-		        info->init_stats.imissed;
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		info->rate_stats.ibadcrc += stats.ibadcrc -
-		        info->init_stats.ibadcrc;
-		info->rate_stats.ibadlen += stats.ibadlen -
-		        info->init_stats.ibadlen;
+		rate->ibadcrc    = stats.ibadcrc - prev->ibadcrc;
+		rate->ibadlen    = stats.ibadlen - prev->ibadlen;
 #endif
 #if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		info->rate_stats.imcasts += stats.imcasts -
-		        info->init_stats.imcasts;
+		rate->imcasts    = stats.imcasts - prev->imcasts;
 #endif
-		info->rate_stats.rx_nombuf += stats.rx_nombuf -
-		        info->init_stats.rx_nombuf;
+
+		if (rate->ipackets > info->max_ipackets)
+			info->max_ipackets = rate->ipackets;
+		if (rate->opackets > info->max_opackets)
+			info->max_opackets = rate->opackets;
 
 		/* Use structure move to copy the data. */
-		*(struct rte_eth_stats *)&info->port_stats =
-		        *(struct rte_eth_stats *)&stats;
+		*prev = *(struct rte_eth_stats *)&stats;
 	}
 }

@@ -64,7 +64,7 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-if [ $name == "supermicro" ]; then
+if [ $name == "rkwiles-DESK1.intel.com" ]; then
 	dpdk_opts="-l 1-17 -n 4 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
 	pktgen_opts="-T -P"
 	port_map="-m [2-5:6-9].0 -m [10-13:14-17].1"

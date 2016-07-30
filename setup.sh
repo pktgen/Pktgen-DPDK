@@ -51,10 +51,10 @@ sudo rmmod rte_kni
 sudo insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
-if [ $name == "supermicro" ]; then
-	sudo -E $sdk/tools/dpdk_nic_bind.py -b igb_uio 04:00.0 04:00.1 04:00.2 04:00.3 81:00.0 81:00.1 81:00.2 81:00.3 82:00.0 83:00.0
+if [ $name == "rkwiles-DESK1.intel.com" ]; then
+	sudo -E $sdk/tools/dpdk-devbind.py -b igb_uio 04:00.0 04:00.1 04:00.2 04:00.3 81:00.0 81:00.1 81:00.2 81:00.3 82:00.0 83:00.0
 fi
-$sdk/tools/dpdk_nic_bind.py --status
+$sdk/tools/dpdk-devbind.py --status
 
 echo ""
 echo "Command 'lspci | grep Ether' output for reference"

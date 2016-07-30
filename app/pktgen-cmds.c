@@ -969,7 +969,7 @@ pktgen_port_stats(int port, const char *name, eth_stats_t *pstats)
 	port_info_t *info = &pktgen.info[port];
 
 	if (strcmp(name, "port") == 0)
-		*pstats = info->port_stats;
+		*pstats = info->prev_stats;
 	else if (strcmp(name, "rate") == 0)
 		*pstats = info->rate_stats;
 
@@ -1925,7 +1925,7 @@ void
 pktgen_clear_stats(port_info_t *info)
 {
 	memset(&info->sizes, 0, sizeof(port_sizes_t));
-	memset(&info->port_stats, 0, sizeof(eth_stats_t));
+	memset(&info->prev_stats, 0, sizeof(eth_stats_t));
 	memset(&info->rate_stats, 0, sizeof(eth_stats_t));
 
 	rte_eth_stats_get(info->pid, &info->init_stats);

@@ -350,16 +350,16 @@ update_port_statistics(void *arg)
 		stats_store_next(pid, info->sizes.jumbo);
 
 		/* Rx/Tx Errors */
-		stats_store_next(pid, info->port_stats.ierrors);
-		stats_store_next(pid, info->port_stats.oerrors);
+		stats_store_next(pid, info->prev_stats.ierrors);
+		stats_store_next(pid, info->prev_stats.oerrors);
 
 		/* Total Rx/Tx  packets */
-		stats_store_next(pid, info->port_stats.ipackets);
-		stats_store_next(pid, info->port_stats.opackets);
+		stats_store_next(pid, info->prev_stats.ipackets);
+		stats_store_next(pid, info->prev_stats.opackets);
 
 		/* Total Rx/Tx mbits */
-		stats_store_next(pid, iBitsTotal(info->port_stats) / Million);
-		stats_store_next(pid, oBitsTotal(info->port_stats) / Million);
+		stats_store_next(pid, iBitsTotal(info->prev_stats) / Million);
+		stats_store_next(pid, oBitsTotal(info->prev_stats) / Million);
 
 		/* ARP & ICMP Pkts */
 		stats_store_next(pid, info->stats.arp_pkts);
@@ -732,7 +732,7 @@ chassis_tree_view(void)
 
 /**************************************************************************//**
  *
- * port_tree_view - A routine to create a treeview for port statistics 
+ * port_tree_view - A routine to create a treeview for port statistics
  *
  * DESCRIPTION
  * Create a treeview for statistics
@@ -812,7 +812,7 @@ port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
 
 /**************************************************************************//**
  *
- * button_box - A routine to create a button box 
+ * button_box - A routine to create a button box
  *
  * DESCRIPTION
  * Create a Button Box with the specified parameters
@@ -1065,7 +1065,7 @@ console_box(const char *title)
  * DESCRIPTION
  * Creates a tree store for static info and port stats
  *
- * RETURNS: GTK tree model 
+ * RETURNS: GTK tree model
  *
  * SEE ALSO:
  */
@@ -1108,7 +1108,7 @@ stats_header_fill(gboolean is_static)
  * DESCRIPTION
  * Creates a tree view for port statistics / static configuration
  *
- * RETURNS: GTK tree model 
+ * RETURNS: GTK tree model
  *
  * SEE ALSO:
  */
@@ -1191,7 +1191,7 @@ create_stats_treeview(gboolean is_static)
  * DESCRIPTION
  * Creates a box for displaying static configuration
  *
- * RETURNS: GTK widget 
+ * RETURNS: GTK widget
  *
  * SEE ALSO:
  */
@@ -1259,7 +1259,7 @@ show_static_conf(void)
  * DESCRIPTION
  * Creates a box for displaying statistics
  *
- * RETURNS: GTK widget 
+ * RETURNS: GTK widget
  *
  * SEE ALSO:
  */

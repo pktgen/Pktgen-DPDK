@@ -214,6 +214,7 @@ const char *help_info[] = {
 	"mpls_entry <portlist> <entry>      - Set the MPLS entry for the portlist (must be specified in hex)",
 	"qinq <portlist> <state>            - Enable/disable sending Q-in-Q header in packets",
 	"qinqids <portlist> <id1> <id2>     - Set the Q-in-Q ID's for the portlist",
+	"pdump <portlist>                   - Hex dump the first packet to be sent, single packet mode only",
 	"",
 	"<<PageBreak>>",
 	"gre <portlist> <state>             - Enable/disable GRE with IPv4 payload",
@@ -780,6 +781,53 @@ cmdline_parse_inst_t cmd_exec_lua = {
                 (void *)&cmd_exec_lua_args,
                 NULL,
         },
+};
+
+/**********************************************************/
+
+struct cmd_pdump_result {
+	cmdline_fixed_string_t pdump;
+	cmdline_portlist_t portlist;
+};
+
+/**************************************************************************//**
+ *
+ * cmd_pdump_parsed - Hex dump of the first packet.
+ *
+ * DESCRIPTION
+ * dump out the first packet in hex.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static void
+cmd_pdump_parsed(void *parsed_result,
+                 struct cmdline *cl __rte_unused,
+                 void *data __rte_unused)
+{
+	struct cmd_pdump_result *res = parsed_result;
+
+	foreach_port(res->portlist.map,
+	             pktgen_pdump(info) );
+	pktgen_update_display();
+}
+
+cmdline_parse_token_string_t cmd_set_pdump =
+        TOKEN_STRING_INITIALIZER(struct cmd_pdump_result, pdump, "pdump");
+cmdline_parse_token_portlist_t cmd_pdump_portlist =
+        TOKEN_PORTLIST_INITIALIZER(struct cmd_pdump_result, portlist);
+
+cmdline_parse_inst_t cmd_pdump = {
+	.f = cmd_pdump_parsed,
+	.data = NULL,
+	.help_str = "pdump <portlist>",
+	.tokens = {
+		(void *)&cmd_set_pdump,
+		(void *)&cmd_pdump_portlist,
+		NULL,
+	},
 };
 
 /**********************************************************/
@@ -4722,6 +4770,7 @@ cmdline_parse_ctx_t main_ctx[] = {
 	(cmdline_parse_inst_t *)&cmd_set_user_pattern,
 	(cmdline_parse_inst_t *)&cmd_latency,
 	(cmdline_parse_inst_t *)&cmd_jitter,
+	(cmdline_parse_inst_t *)&cmd_pdump,
 	NULL,
 };
 

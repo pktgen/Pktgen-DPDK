@@ -161,7 +161,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.0.09"
+#define PKTGEN_VERSION          "3.0.10"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -274,7 +274,8 @@ enum {
 	SINGLE_PKT              = (FIRST_SEQ_PKT + NUM_SEQ_PKTS),	/* 16 */
 	PING_PKT                = (SINGLE_PKT + 1),			/* 17 */
 	RANGE_PKT               = (PING_PKT + 1),			/* 18 */
-	EXTRA_TX_PKT            = (RANGE_PKT + 1),			/* 19 */
+	DUMP_PKT                = (RANGE_PKT + 1),			/* 19 */
+	EXTRA_TX_PKT            = (DUMP_PKT + 1),			/* 20 */
 	NUM_TOTAL_PKTS          = (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
 
 	INTER_FRAME_GAP         = 12,	/**< in bytes */

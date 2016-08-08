@@ -6,6 +6,8 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.10  - Added the 'pdump <portlist>' command to hex dump the first packet to be
+             send on the given ports. Only the single packet mode is supported.
  - 3.0.09  - Add Fix for PCAP corruption.
  - 3.0.08  - Add Lua support for rnd and latency commands.
              Now if latency is enable on a port then getting the stats will get

@@ -2077,6 +2077,43 @@ pktgen_ping4(port_info_t *info)
 	pktgen_set_port_flags(info, SEND_PING4_REQUEST);
 }
 
+/**************************************************************************//**
+ *
+ * pktgen_pdump - Dump hex output of first packet
+ *
+ * DESCRIPTION
+ * Hex dump the first packets on a given port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_pdump(port_info_t *info)
+{
+        pkt_seq_t         *ppkt = &info->seq_pkt[DUMP_PKT];
+        pkt_seq_t         *spkt = &info->seq_pkt[SINGLE_PKT];
+        struct rte_mbuf   *m;
+        uint8_t qid = 0;
+
+        m   = rte_pktmbuf_alloc(info->q[qid].special_mp);
+        if (unlikely(m == NULL) ) {
+                pktgen_log_warning("No packet buffers found");
+                return;
+        }
+        *ppkt = *spkt;  /* Copy the sequence setup to the ping setup. */
+        pktgen_packet_ctor(info, DUMP_PKT, -1);
+        rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+                   (uint8_t *)&ppkt->hdr, ppkt->pktSize);
+
+        m->pkt_len  = ppkt->pktSize;
+        m->data_len = ppkt->pktSize;
+
+	rte_pktmbuf_dump(stdout, m, m->pkt_len);
+	rte_pktmbuf_free(m);
+}
+
 #ifdef INCLUDE_PING6
 /**************************************************************************//**
  *

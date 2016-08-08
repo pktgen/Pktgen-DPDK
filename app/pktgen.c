@@ -514,10 +514,10 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 
 /**************************************************************************//**
  *
- * pktgen_exit_cleanup - Clean up the hyperscan data and other items
+ * pktgen_exit_cleanup - Clean up the data and other items
  *
  * DESCRIPTION
- * Clean up the hyperscan data.
+ * Clean up the data.
  *
  * RETURNS: N/A
  *

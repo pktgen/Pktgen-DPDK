@@ -82,22 +82,38 @@ wr_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 	switch (count % 4) {
 	case 0:
 		while (idx != count) {
+#ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#else
+			RTE_VERIFY(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#endif
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
 	case 3:
+#ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#else
+			RTE_VERIFY(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#endif
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
 	case 2:
+#ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#else
+			RTE_VERIFY(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#endif
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
 	case 1:
+#ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#else
+			RTE_VERIFY(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
+#endif
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;

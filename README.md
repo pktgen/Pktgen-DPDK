@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.11  - Fix compile problem with 16.04
  - 3.0.10  - Added the 'pdump <portlist>' command to hex dump the first packet to be
              send on the given ports. Only the single packet mode is supported.
  - 3.0.09  - Add Fix for PCAP corruption.

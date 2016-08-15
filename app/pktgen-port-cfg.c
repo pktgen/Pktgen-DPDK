@@ -152,20 +152,11 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	           sizeof(struct rte_mempool))) + 1023) / 1024,
 	        RTE_PKTMBUF_HEADROOM,
 	        RTE_MBUF_DEFAULT_BUF_SIZE);
-	pktgen.mem_used +=
-	        ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
-	          sizeof(struct rte_mempool)));
-	pktgen.total_mem_used +=
-	        ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
-	          sizeof(struct rte_mempool)));
+	pktgen.mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
+	pktgen.total_mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
 
 	/* create the mbuf pool */
-	mp = rte_pktmbuf_pool_create(name,
-	                             nb_mbufs,
-	                             cache_size,
-	                             DEFAULT_PRIV_SIZE,
-	                             MBUF_SIZE,
-	                             socket_id);
+	mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE, MBUF_SIZE, socket_id);
 	if (mp == NULL)
 		pktgen_log_panic(
 		        "Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, socket_id %d: %s",
@@ -334,38 +325,30 @@ pktgen_config_ports(void)
 
 	for (pid = 0; pid < pktgen.nb_ports; pid++) {
 		/* Skip if we do not have any lcores attached to a port. */
-		if ( (rt.rxtx =
-		              wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0)
+		if ( (rt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0)
 			continue;
 
 		pktgen.port_cnt++;
-		snprintf(output_buff,
-		         sizeof(output_buff),
+		snprintf(output_buff, sizeof(output_buff),
 		         "Initialize Port %d -- TxQ %d, RxQ %d",
-		         pid,
-		         rt.tx,
-		         rt.rx);
+		         pid, rt.tx, rt.rx);
 
 		info = wr_get_port_private(pktgen.l2p, pid);
 
 		info->fill_pattern_type  = ABC_FILL_PATTERN;
-		strncpy(info->user_pattern,
-		        "0123456789abcdef",
-		        USER_PATTERN_SIZE);
+		strncpy(info->user_pattern, "0123456789abcdef", USER_PATTERN_SIZE);
 
 		rte_spinlock_init(&info->port_lock);
 
 		/* Create the pkt header structures for transmitting sequence of packets. */
 		snprintf(buff, sizeof(buff), "seq_hdr_%d", pid);
-		info->seq_pkt =
-		        (pkt_seq_t *)rte_zmalloc_socket(buff,
+		info->seq_pkt = (pkt_seq_t *)rte_zmalloc_socket(buff,
 		                                        (sizeof(pkt_seq_t) *
 		                                         NUM_TOTAL_PKTS),
 		                                        RTE_CACHE_LINE_SIZE,
 		                                        rte_socket_id());
 		if (info->seq_pkt == NULL)
-			pktgen_log_panic(
-			        "Unable to allocate %d pkt_seq_t headers",
+			pktgen_log_panic("Unable to allocate %d pkt_seq_t headers",
 			        NUM_TOTAL_PKTS);
 
 		info->seqIdx    = 0;
@@ -380,16 +363,10 @@ pktgen_config_ports(void)
 
 		pktgen_port_conf_setup(pid, &rt, &default_port_conf);
 
-		if ( (ret =
-		              rte_eth_dev_configure(pid, rt.rx, rt.tx,
-		                                    &info->port_conf)) < 0)
+		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &info->port_conf)) < 0)
 			pktgen_log_panic(
 			        "Cannot configure device: port=%d, Num queues %d,%d (%d)%s",
-			        pid,
-			        rt.rx,
-			        rt.tx,
-			        errno,
-			        rte_strerror(-ret));
+			        pid, rt.rx, rt.tx, errno, rte_strerror(-ret));
 
 		pkt = &info->seq_pkt[SINGLE_PKT];
 
@@ -406,129 +383,70 @@ pktgen_config_ports(void)
 
 		/* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
 		for (i = 0; i < NUM_SEQ_PKTS; i++)
-			ethAddrCopy(&info->seq_pkt[i].eth_src_addr,
-			            &pkt->eth_src_addr);
+			ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
 
 		pktgen.mem_used = 0;
 
 		for (q = 0; q < rt.rx; q++) {
 			/* grab the socket id value based on the lcore being used. */
-			sid     =
-			        rte_lcore_to_socket_id(wr_get_port_lid(pktgen.
-			                                               l2p, pid,
-			                                               q));
+			sid = rte_lcore_to_socket_id(wr_get_port_lid(pktgen.l2p, pid, q));
 
 			/* Create and initialize the default Receive buffers. */
-			info->q[q].rx_mp = pktgen_mbuf_pool_create(
-			                "Default RX",
-			                pid,
-			                q,
-			                info->
-			                nb_mbufs,
-			                sid,
-			                cache_size);
+			info->q[q].rx_mp = pktgen_mbuf_pool_create( "Default RX", pid, q,
+			                info->nb_mbufs, sid, cache_size);
 			if (info->q[q].rx_mp == NULL)
-				pktgen_log_panic(
-				        "Cannot init port %d for Default RX mbufs",
-				        pid);
+				pktgen_log_panic("Cannot init port %d for Default RX mbufs", pid);
 
-			ret = rte_eth_rx_queue_setup(
-			                pid,
-			                q,
-			                pktgen.nb_rxd,
-			                sid,
-			                &info->rx_conf,
-			                pktgen.info[pid].q[q].
-			                rx_mp);
+			ret = rte_eth_rx_queue_setup( pid, q, pktgen.nb_rxd, sid,
+			                &info->rx_conf, pktgen.info[pid].q[q].rx_mp);
 			if (ret < 0)
-				pktgen_log_panic(
-				        "rte_eth_rx_queue_setup: err=%d, port=%d, %s",
-				        ret,
-				        pid,
-				        rte_strerror(-ret));
+				pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s",
+				        ret, pid, rte_strerror(-ret));
+			lid = wr_get_port_lid(pktgen.l2p, pid, q);
+			pktgen_log_info("      Set RX queue stats mapping pid %d, q %d, lcore %d\n", pid, q, lid);
+			rte_eth_dev_set_rx_queue_stats_mapping(pid, q, lid);
 		}
 		pktgen_log_info("");
 
 		for (q = 0; q < rt.tx; q++) {
 			/* grab the socket id value based on the lcore being used. */
-			sid     =
-			        rte_lcore_to_socket_id(wr_get_port_lid(pktgen.
-			                                               l2p, pid,
-			                                               q));
+			sid = rte_lcore_to_socket_id(wr_get_port_lid(pktgen.  l2p, pid, q));
 
 			/* Create and initialize the default Transmit buffers. */
-			info->q[q].tx_mp = pktgen_mbuf_pool_create(
-			                "Default TX",
-			                pid,
-			                q,
-			                MAX_MBUFS_PER_PORT,
-			                sid,
-			                cache_size);
+			info->q[q].tx_mp = pktgen_mbuf_pool_create( "Default TX", pid, q,
+			                MAX_MBUFS_PER_PORT, sid, cache_size);
 			if (info->q[q].tx_mp == NULL)
-				pktgen_log_panic(
-				        "Cannot init port %d for Default TX mbufs",
-				        pid);
+				pktgen_log_panic("Cannot init port %d for Default TX mbufs", pid);
 
 			/* Create and initialize the range Transmit buffers. */
-			info->q[q].range_mp = pktgen_mbuf_pool_create(
-			                "Range TX",
-			                pid,
-			                q,
-			                MAX_MBUFS_PER_PORT,
-			                sid,
-			                0);
+			info->q[q].range_mp = pktgen_mbuf_pool_create( "Range TX", pid, q,
+			                MAX_MBUFS_PER_PORT, sid, 0);
 			if (info->q[q].range_mp == NULL)
-				pktgen_log_panic(
-				        "Cannot init port %d for Range TX mbufs",
-				        pid);
+				pktgen_log_panic("Cannot init port %d for Range TX mbufs", pid);
 
 			/* Create and initialize the sequence Transmit buffers. */
-			info->q[q].seq_mp = pktgen_mbuf_pool_create(
-			                "Sequence TX",
-			                pid,
-			                q,
-			                MAX_MBUFS_PER_PORT,
-			                sid,
-			                cache_size);
+			info->q[q].seq_mp = pktgen_mbuf_pool_create("Sequence TX", pid, q,
+			                MAX_MBUFS_PER_PORT, sid, cache_size);
 			if (info->q[q].seq_mp == NULL)
-				pktgen_log_panic(
-				        "Cannot init port %d for Sequence TX mbufs",
-				        pid);
+				pktgen_log_panic("Cannot init port %d for Sequence TX mbufs", pid);
 
 			/* Used for sending special packets like ARP requests */
-			info->q[q].special_mp = pktgen_mbuf_pool_create(
-			                "Special TX",
-			                pid,
-			                q,
-			                MAX_SPECIAL_MBUFS,
-			                sid,
-			                0);
+			info->q[q].special_mp = pktgen_mbuf_pool_create( "Special TX", pid, q,
+			                MAX_SPECIAL_MBUFS, sid, 0);
 			if (info->q[q].special_mp == NULL)
-				pktgen_log_panic(
-				        "Cannot init port %d for Special TX mbufs",
-				        pid);
+				pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
 
 			/* Setup the PCAP file for each port */
 			if (pktgen.info[pid].pcap != NULL)
-				if (pktgen_pcap_parse(pktgen.info[pid].pcap,
-				                      info, q) == -1)
-					pktgen_log_panic(
-					        "Cannot load PCAP file for port %d",
-					        pid);
+				if (pktgen_pcap_parse(pktgen.info[pid].pcap, info, q) == -1)
+					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 			/* Find out the link speed to program the WTHRESH value correctly. */
 			pktgen_get_link_status(info, pid, 0);
 
-			ret = rte_eth_tx_queue_setup(pid,
-			                             q,
-			                             pktgen.nb_txd,
-			                             sid,
-			                             &info->tx_conf);
+			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &info->tx_conf);
 			if (ret < 0)
-				pktgen_log_panic(
-				        "rte_eth_tx_queue_setup: err=%d, port=%d, %s",
-				        ret,
-				        pid,
-				        rte_strerror(-ret));
+				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s",
+						ret, pid, rte_strerror(-ret));
 			pktgen_log_info("");
 		}
 		pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ",
@@ -547,25 +465,18 @@ pktgen_config_ports(void)
 		/* Start device */
 		if ( (ret = rte_eth_dev_start(pid)) < 0)
 			pktgen_log_panic("rte_eth_dev_start: port=%d, %s",
-			                 pid,
-			                 rte_strerror(-ret));
+			                 pid, rte_strerror(-ret));
 
 		pktgen_get_link_status(info, pid, 1);
 
 		if (info->link.link_status)
-			snprintf(output_buff,
-			         sizeof(output_buff),
+			snprintf(output_buff, sizeof(output_buff),
 			         "Port %2d: Link Up - speed %u Mbps - %s",
-			         pid,
-			         (uint32_t)info->link.link_speed,
-			         (info->link.link_duplex ==
-			          ETH_LINK_FULL_DUPLEX) ?
-			         ("full-duplex") : ("half-duplex"));
+			         pid, (uint32_t)info->link.link_speed,
+				(info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ?
+					("full-duplex") : ("half-duplex"));
 		else
-			snprintf(output_buff,
-			         sizeof(output_buff),
-			         "Port %2d: Link Down",
-			         pid);
+			snprintf(output_buff, sizeof(output_buff), "Port %2d: Link Down", pid);
 
 		/* If enabled, put device in promiscuous mode. */
 		if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
@@ -591,9 +502,6 @@ pktgen_config_ports(void)
 	pktgen_log_info("");
 
 	/* Setup the packet capture per port if needed. */
-	for (sid =
-	             0;
-	     sid < wr_coremap_cnt(pktgen.core_info, pktgen.core_cnt, 0);
-	     sid++)
+	for (sid = 0; sid < wr_coremap_cnt(pktgen.core_info, pktgen.core_cnt, 0); sid++)
 		pktgen_packet_capture_init(&pktgen.capture[sid], sid);
 }

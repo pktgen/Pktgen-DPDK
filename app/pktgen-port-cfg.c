@@ -342,14 +342,15 @@ pktgen_config_ports(void)
 
 		/* Create the pkt header structures for transmitting sequence of packets. */
 		snprintf(buff, sizeof(buff), "seq_hdr_%d", pid);
-		info->seq_pkt = (pkt_seq_t *)rte_zmalloc_socket(buff,
-		                                        (sizeof(pkt_seq_t) *
-		                                         NUM_TOTAL_PKTS),
-		                                        RTE_CACHE_LINE_SIZE,
-		                                        rte_socket_id());
+		info->seq_pkt = rte_zmalloc_socket(buff,
+                                (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
+                                RTE_CACHE_LINE_SIZE, rte_socket_id());
 		if (info->seq_pkt == NULL)
 			pktgen_log_panic("Unable to allocate %d pkt_seq_t headers",
 			        NUM_TOTAL_PKTS);
+
+        for(i = 0; i < NUM_TOTAL_PKTS; i++)
+            info->seq_pkt[i].seq_enabled = 1;
 
 		info->seqIdx    = 0;
 		info->seqCnt    = 0;

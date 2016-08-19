@@ -88,59 +88,51 @@ typedef uint8_t rgb_t;
 
 /** The following inline routines to output ANSI escape codes */
 static __inline__ void
-wr_scrn_pos(int r, int c)    wr_scrn_puts("\033[%d;%dH", r, c)		/** position cursor to row and column */
+wr_scrn_pos(int r, int c)    wr_scrn_puts("\033[%d;%dH", r, c)	/**< position cursor to row and column */
 static __inline__ void
-wr_scrn_top(void)            wr_scrn_puts("\033H")	/** Move cursor to the top left of the
-							 * screen */
+wr_scrn_top(void)            wr_scrn_puts("\033H")	/**< Move cursor to the top left of the screen */
 static __inline__ void
-wr_scrn_home(void)           wr_scrn_puts("\033H")	/** Move cursor to the Home position */
+wr_scrn_home(void)           wr_scrn_puts("\033H")	/**< Move cursor to the Home position */
 static __inline__ void
-wr_scrn_coff(void)           wr_scrn_puts("\033[?25l")		/** Turn cursor off */
+wr_scrn_coff(void)           wr_scrn_puts("\033[?25l")	/**< Turn cursor off */
 static __inline__ void
-wr_scrn_con(void)            wr_scrn_puts("\033[?25h")		/** Turn cursor on */
+wr_scrn_con(void)            wr_scrn_puts("\033[?25h")	/**< Turn cursor on */
 static __inline__ void
-wr_scrn_turn_on(void)        wr_scrn_puts("\033[?25h")		/** Hide cursor */
+wr_scrn_turn_on(void)        wr_scrn_puts("\033[?25h")	/**< Hide cursor */
 static __inline__ void
-wr_scrn_turn_off(void)       wr_scrn_puts("\033[?25l")		/** Display cursor */
+wr_scrn_turn_off(void)       wr_scrn_puts("\033[?25l")	/**< Display cursor */
 static __inline__ void
-wr_scrn_save(void)           wr_scrn_puts("\0337")	/** Save current cursor position */
+wr_scrn_save(void)           wr_scrn_puts("\0337")	/**< Save current cursor position */
 static __inline__ void
-wr_scrn_restore(void)        wr_scrn_puts("\0338")	/** Restore the saved cursor position */
+wr_scrn_restore(void)        wr_scrn_puts("\0338")	/**< Restore the saved cursor position */
 static __inline__ void
-wr_scrn_eol(void)            wr_scrn_puts("\033[K")	/** Clear from cursor to end of line */
+wr_scrn_eol(void)            wr_scrn_puts("\033[K")	/**< Clear from cursor to end of line */
 static __inline__ void
-wr_scrn_cbl(void)            wr_scrn_puts("\033[1K")		/** Clear from cursor to begining of line */
+wr_scrn_cbl(void)            wr_scrn_puts("\033[1K")	/**< Clear from cursor to begining of line */
 static __inline__ void
-wr_scrn_cel(void)            wr_scrn_puts("\033[2K")		/** Clear entire line */
+wr_scrn_cel(void)            wr_scrn_puts("\033[2K")	/**< Clear entire line */
 static __inline__ void
-wr_scrn_clw(void)            wr_scrn_puts("\033[J")	/** Clear from cursor to end of screen */
+wr_scrn_clw(void)            wr_scrn_puts("\033[J")	    /**< Clear from cursor to end of screen */
 static __inline__ void
-wr_scrn_clb(void)            wr_scrn_puts("\033[1J")		/** Clear from cursor to begining of screen
-								 */
+wr_scrn_clb(void)            wr_scrn_puts("\033[1J")	/**< Clear from cursor to begining of screen */
 static __inline__ void
-wr_scrn_cls(void)            wr_scrn_puts("\033[2J")		/** Clear the screen, more cursor to home */
+wr_scrn_cls(void)            wr_scrn_puts("\033[2J")	/**< Clear the screen, more cursor to home */
 static __inline__ void
-wr_scrn_reverse(void)        wr_scrn_puts("\033[7m")		/** Start reverse video */
+wr_scrn_reverse(void)        wr_scrn_puts("\033[7m")	/**< Start reverse video */
 static __inline__ void
-wr_scrn_normal(void)     wr_scrn_puts("\033[0m")	/** Stop attribute like reverse and
-							 * underscore */
+wr_scrn_normal(void)     wr_scrn_puts("\033[0m")	/**< Stop attribute like reverse and underscore */
 static __inline__ void
-wr_scrn_scroll(int r)        wr_scrn_puts("\033[%d;r", r)	/** Scroll whole screen up r number of lines
-								 */
+wr_scrn_scroll(int r)        wr_scrn_puts("\033[%d;r", r)	/**< Scroll whole screen up r number of lines */
 static __inline__ void
-wr_scrn_scroll_up(int r) wr_scrn_puts("\033[%dS", r)		/** Scroll whole screen up r number of lines
-								 */
+wr_scrn_scroll_up(int r) wr_scrn_puts("\033[%dS", r)		/**< Scroll whole screen up r number of lines */
 static __inline__ void
-wr_scrn_scroll_down(int r)   wr_scrn_puts("\033[%dT", r)	/** Scroll whole screen down r number of
-								 * lines */
+wr_scrn_scroll_down(int r)   wr_scrn_puts("\033[%dT", r)	/**< Scroll whole screen down r number of lines */
 static __inline__ void
-wr_scrn_nlines(int r)        wr_scrn_puts("\033[%dE", r)	/** Move down nlines plus move to column 1
-								 */
+wr_scrn_nlines(int r)        wr_scrn_puts("\033[%dE", r)	/**< Move down nlines plus move to column 1 */
 static __inline__ void
-wr_scrn_setw(int t)          wr_scrn_puts("\033[%d;r", t)	/** Set window size, from to end of screen
-								 */
+wr_scrn_setw(int t)          wr_scrn_puts("\033[%d;r", t)	/**< Set window size, from to end of screen */
 static __inline__ void
-wr_scrn_cpos(void)           wr_scrn_puts("\0336n")	/** Cursor postion report */
+wr_scrn_cpos(void)           wr_scrn_puts("\0336n")	/**< Cursor postion report */
 
 /** Return the version string */
 static __inline__ const char *wr_scrn_version(void) {

@@ -1036,95 +1036,89 @@ pktgen_send_special(port_info_t *info, uint32_t flags)
 	pktgen_clr_port_flags(info, SEND_ARP_PING_REQUESTS);
 }
 
-#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 typedef struct {
 	port_info_t *info;
 	uint16_t qid;
 } pkt_data_t;
 
-static void
+static __inline__ void
 pktgen_setup_cb(struct rte_mempool *mp,
-		void *opaque, void *obj, unsigned obj_idx __rte_unused)
+        void *opaque, void *obj, unsigned obj_idx __rte_unused)
 {
-	pkt_data_t *data = (pkt_data_t *)opaque;
-	port_info_t *info;
-	struct rte_mbuf *m;
-	pkt_seq_t *pkt, *seq_pkt;
-	uint16_t seqIdx, qid;
+    pkt_data_t *data = (pkt_data_t *)opaque;
+	struct rte_mbuf *m = (struct rte_mbuf *)obj;
+    port_info_t *info;
+	pkt_seq_t *pkt;
+    uint16_t qid;
 
-	info = data->info;
-	qid = data->qid;
+    info = data->info;
+    qid = data->qid;
 
-	m = (struct rte_mbuf *)obj;
-
-	seq_pkt = info->seq_pkt;
-	seqIdx = info->seqIdx;
-
-	if (mp == info->q[qid].tx_mp) {
+	if (mp == info->q[qid].tx_mp)
 		pkt = &info->seq_pkt[SINGLE_PKT];
-		pktgen_packet_ctor(info, SINGLE_PKT, -1);
-
-		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-				(uint8_t *)&pkt->hdr,
-				MAX_PKT_SIZE);
-
-		m->pkt_len  = pkt->pktSize;
-		m->data_len = pkt->pktSize;
-	} else if (mp == info->q[qid].range_mp) {
+	else if (mp == info->q[qid].range_mp)
 		pkt = &info->seq_pkt[RANGE_PKT];
-		pktgen_range_ctor(&info->range, pkt);
-		pktgen_packet_ctor(info, RANGE_PKT, -1);
-
-		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-				(uint8_t *)&pkt->hdr,
-				MAX_PKT_SIZE);
-
-		m->pkt_len  = pkt->pktSize;
-		m->data_len = pkt->pktSize;
-	} else if (mp == info->q[qid].seq_mp) {
+	else if (mp == info->q[qid].seq_mp)
 		pkt = &info->seq_pkt[info->seqIdx];
+    else
+        pkt = NULL;
 
-		if(pktgen.is_gui_running == 1) {
-			while(seqIdx < info->seqCnt) {
-				pkt = &info->seq_pkt[seqIdx];
+	/* allocate each mbuf and put them on a list to be freed. */
+    if (mp == info->q[qid].tx_mp) {
+        pktgen_packet_ctor(info, SINGLE_PKT, -1);
 
-				/* Check the sequence and start from the beginning */
-				if (++seqIdx >= info->seqCnt)
-					seqIdx = 0;
+        rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+                   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
-				if(pkt->enabled == 1) {
-					/* Call ctor for those sequence which are enabled in the GUI */
-					pktgen_packet_ctor(info, seqIdx, -1);
+        m->pkt_len  = pkt->pktSize;
+        m->data_len = pkt->pktSize;
+    } else if (mp == info->q[qid].range_mp) {
+        pktgen_range_ctor(&info->range, pkt);
+        pktgen_packet_ctor(info, RANGE_PKT, -1);
 
-					rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-							(uint8_t *)&pkt->hdr,
-							MAX_PKT_SIZE);
-					m->pkt_len  = pkt->pktSize;
-					m->data_len = pkt->pktSize;
-					info->seqIdx = seqIdx;
-					pkt = &seq_pkt[seqIdx];
-					break;
-				}
-			}
-		} else {
-			pkt = &info->seq_pkt[seqIdx];
-			pktgen_packet_ctor(info, seqIdx, -1);
+        rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+                   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-					(uint8_t *)&pkt->hdr,
-					MAX_PKT_SIZE);
+        m->pkt_len  = pkt->pktSize;
+        m->data_len = pkt->pktSize;
+    } else if (mp == info->q[qid].seq_mp) {
+        if (pktgen.is_gui_running) {
+            while(info->seqIdx < info->seqCnt) {
+                pkt = &info->seq_pkt[info->seqIdx];
 
-			m->pkt_len  = pkt->pktSize;
-			m->data_len = pkt->pktSize;
+                /* Check the sequence and start from the beginning */
+                if (++info->seqIdx >= info->seqCnt)
+                    info->seqIdx = 0;
 
-			info->seqIdx = seqIdx;
-			pkt = &seq_pkt[seqIdx];
+                if (pkt->seq_enabled) {
+                    /* Call ctor for those sequence which are enabled in the GUI */
+                    pktgen_packet_ctor(info, info->seqIdx, -1);
 
-			/* move to the next packet in the sequence. */
-			if (unlikely(++seqIdx >= info->seqCnt))
-				seqIdx = 0;
-		}
-	}
+                    rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+                               (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+                    m->pkt_len  = pkt->pktSize;
+                    m->data_len = pkt->pktSize;
+                    pkt = &info->seq_pkt[info->seqIdx];
+                    break;
+                }
+            }
+        } else {
+            pkt = &info->seq_pkt[info->seqIdx];
+            pktgen_packet_ctor(info, info->seqIdx, -1);
+
+            rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+                       (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+
+            m->pkt_len  = pkt->pktSize;
+            m->data_len = pkt->pktSize;
+
+            pkt = &info->seq_pkt[info->seqIdx];
+
+            /* move to the next packet in the sequence. */
+            if (unlikely(++info->seqIdx >= info->seqCnt))
+                info->seqIdx = 0;
+        }
+    }
 }
 
 /**************************************************************************//**
@@ -1142,129 +1136,43 @@ pktgen_setup_cb(struct rte_mempool *mp,
 static __inline__ void
 pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 {
-	pkt_data_t pkt_data;
+    pkt_data_t pkt_data;
 
-	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
+    pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
 
-	if (mp == info->q[qid].pcap_mp)
-		return;
+    if (mp == info->q[qid].pcap_mp)
+        return;
 
-	rte_spinlock_lock(&info->port_lock);
+    rte_spinlock_lock(&info->port_lock);
 
-	pkt_data.info = info;
-	pkt_data.qid = qid;
+    pkt_data.info = info;
+    pkt_data.qid = qid;
 
-	rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
-
-	rte_spinlock_unlock(&info->port_lock);
-}
+#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
+    rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
 #else
-static __inline__ void
-pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
-{
-	struct rte_mbuf *m, *mm;
-	pkt_seq_t *pkt, *seq_pkt = NULL;
-	uint16_t seqIdx;
+    {
+    struct rte_mbuf *m, *mm;
 
-	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
+    mm  = NULL;
 
-	if (mp == info->q[qid].pcap_mp)
-		return;
+    /* allocate each mbuf and put them on a list to be freed. */
+    for (;; ) {
+        if ((m = rte_pktmbuf_alloc(mp)) == NULL)
+            break;
 
-	rte_spinlock_lock(&info->port_lock);
+        /* Put the allocated mbuf into a list to be freed later */
+        m->next = mm;
+        mm = m;
 
-	seq_pkt = info->seq_pkt;
-	seqIdx = info->seqIdx;
-
-	mm  = NULL;
-	pkt = NULL;
-
-	if (mp == info->q[qid].tx_mp)
-		pkt = &seq_pkt[SINGLE_PKT];
-	else if (mp == info->q[qid].range_mp)
-		pkt = &seq_pkt[RANGE_PKT];
-	else if (mp == info->q[qid].seq_mp)
-		pkt = &seq_pkt[info->seqIdx];
-
-	/* allocate each mbuf and put them on a list to be freed. */
-	for (;; ) {
-
-		m = rte_pktmbuf_alloc(mp);
-		if (m == NULL)
-			break;
-
-		/* Put the allocated mbuf into a list to be freed later */
-		m->next = mm;
-		mm = m;
-
-		if (mp == info->q[qid].tx_mp) {
-			pktgen_packet_ctor(info, SINGLE_PKT, -1);
-
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-			           (uint8_t *)&pkt->hdr,
-			           MAX_PKT_SIZE);
-
-			m->pkt_len  = pkt->pktSize;
-			m->data_len = pkt->pktSize;
-		} else if (mp == info->q[qid].range_mp) {
-			pktgen_range_ctor(&info->range, pkt);
-			pktgen_packet_ctor(info, RANGE_PKT, -1);
-
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-			           (uint8_t *)&pkt->hdr,
-			           MAX_PKT_SIZE);
-
-			m->pkt_len  = pkt->pktSize;
-			m->data_len = pkt->pktSize;
-		} else if (mp == info->q[qid].seq_mp) {
-			if(pktgen.is_gui_running == 1) {
-				while(seqIdx < info->seqCnt) {
-					pkt = &info->seq_pkt[seqIdx];
-
-					/* Check the sequence and start from the beginning */
-					if (++seqIdx >= info->seqCnt)
-						seqIdx = 0;
-
-					if(pkt->enabled == 1) {
-						/* Call ctor for those sequence which are enabled in the GUI */
-						pktgen_packet_ctor(info, seqIdx, -1);
-
-						rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-				           			(uint8_t *)&pkt->hdr,
-			        				MAX_PKT_SIZE);
-						m->pkt_len  = pkt->pktSize;
-						m->data_len = pkt->pktSize;
-						info->seqIdx = seqIdx;
-						pkt = &seq_pkt[seqIdx];
-						break;
-					}
-				}
-			} else {
-				pkt = &info->seq_pkt[seqIdx];
-				pktgen_packet_ctor(info, seqIdx, -1);
-
-				rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-			        		(uint8_t *)&pkt->hdr,
-						MAX_PKT_SIZE);
-
-				m->pkt_len  = pkt->pktSize;
-				m->data_len = pkt->pktSize;
-
-				info->seqIdx = seqIdx;
-				pkt = &seq_pkt[seqIdx];
-
-				/* move to the next packet in the sequence. */
-				if (unlikely(++seqIdx >= info->seqCnt))
-					seqIdx = 0;
-			}
-		}
-	}
-	rte_spinlock_unlock(&info->port_lock);
-
-	if (mm != NULL)
-		rte_pktmbuf_free(mm);
-}
+        pktgen_setup_cb(mp, &pkt_data, m, 0);
+    }
+    if (mm != NULL)
+        rte_pktmbuf_free(mm);
+    }
 #endif
+    rte_spinlock_unlock(&info->port_lock);
+}
 
 /**************************************************************************//**
  *

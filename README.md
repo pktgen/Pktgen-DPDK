@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.14  - Fix crash in saving configuration and random is not setup.
  - 3.0.13  - Fix seq only sending the first sequence packet and some cleanup.
  - 3.0.12  - Map port/queue pair stats to the correct lcore.
  - 3.0.11  - Fix compile problem with 16.04

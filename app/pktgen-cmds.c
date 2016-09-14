@@ -417,7 +417,7 @@ pktgen_script_save(char *path)
 		}
 		fprintf(fd, "\n");
 	}
-	if (info->rnd_bitfields->active_specs) {
+	if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
 		uint32_t active = info->rnd_bitfields->active_specs;
 		bf_spec_t *bf;
 		fprintf(fd, "\n-- Rnd bitfeilds\n");
@@ -794,7 +794,7 @@ pktgen_lua_save(char *path)
 		}
 		fprintf(fd, "\n");
 		fflush(fd);
-		if (info->rnd_bitfields->active_specs) {
+		if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
 			uint32_t active = info->rnd_bitfields->active_specs;
 			bf_spec_t *bf;
 			fprintf(fd, "\n-- Rnd bitfeilds\n"); fflush(fd);

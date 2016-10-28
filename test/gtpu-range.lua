@@ -43,8 +43,8 @@ pktgen.cls();
 pktgen.pause("Do range commands\n", 1000);
 pktgen.page("range");
 
-pktgen.dst_mac("all", "0000:0100:0600");
-pktgen.src_mac("all", "0000:0100:0700");
+pktgen.dst_mac("all", "start", "0000:0100:0600");
+pktgen.src_mac("all", "start", "0000:0100:0700");
 
 pktgen.delay(1000);
 pktgen.dst_ip("all", "start", "10.10.10.1");

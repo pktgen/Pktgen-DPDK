@@ -114,6 +114,24 @@ setf_integer(lua_State *L, const char *name, lua_Integer value) {
 
 /**************************************************************************//**
  *
+ * setf_integer - Helper routine to set Lua variables.
+ *
+ * DESCRIPTION
+ * Helper routine to a set Lua variables.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static __inline__ void
+setf_function(lua_State *L, const char *name, lua_CFunction fn) {
+    lua_pushcclosure(L, fn, 0);
+    lua_setfield(L, -2, name);
+}
+
+/**************************************************************************//**
+ *
  * setf_string - Helper routine to set Lua variables.
  *
  * DESCRIPTION
@@ -3237,6 +3255,23 @@ pktgen_lua_help(lua_State *L) {
 	return 1;
 }
 
+static const luaL_Reg pktgenlib_range[] = {
+        /* Range commands */
+    {"dst_mac",       pktgen_dst_mac},  /* Set the destination MAC address for a port */
+    {"src_mac",       pktgen_src_mac},  /* Set the src MAC address for a port */
+    {"src_ip",        pktgen_src_ip},   /* Set the source IP address and netmask value */
+    {"dst_ip",        pktgen_dst_ip},   /* Set the destination IP address */
+    {"ip_proto",      pktgen_ip_proto}, /* Set the IP Protocol type */
+    {"src_port",      pktgen_src_port}, /* Set the IP source port number */
+    {"dst_port",      pktgen_dst_port}, /* Set the IP destination port number */
+    {"vlan_id",       pktgen_vlan_id},  /* Set the vlan id value */
+    {"mpls_entry",    pktgen_mpls_entry},   /* Set the MPLS entry value */
+    {"qinqids",       pktgen_qinqids},  /* Set the Q-in-Q ID values */
+    {"gre_key",       pktgen_gre_key},  /* Set the GRE key */
+    {"pkt_size",      pktgen_pkt_size}, /* the packet size for a range port */
+    {NULL, NULL}
+};
+
 static const luaL_Reg pktgenlib[] = {
 	{"set",           pktgen_set},	/* Set a number of options */
 
@@ -3300,9 +3335,9 @@ static const luaL_Reg pktgenlib[] = {
 	{"qinqids",       pktgen_qinqids},	/* Set the Q-in-Q ID values */
 	{"gre_key",       pktgen_gre_key},	/* Set the GRE key */
 	{"pkt_size",      pktgen_pkt_size},	/* the packet size for a range port */
-	{"range",         pktgen_range},	/* Enable or disable sending range data on a port. */
+	{"set_range",     pktgen_range},	/* Enable or disable sending range data on a port. */
 
-	{"ports_per_page", pktgen_ports_per_page},	/* Set the number of ports per page */
+	{"ports_per_page",pktgen_ports_per_page},	/* Set the number of ports per page */
 	{"page",          pktgen_page},			/* Select a page to display, seq, range, pcap and a number from 0-N */
 	{"port",          pktgen_port},			/* select a different port number used for sequence and range pages. */
 	{"process",       pktgen_process},		/* Enable or disable input packet processing on a port */
@@ -3359,6 +3394,7 @@ static const luaL_Reg pktgenlib[] = {
 
 LUALIB_API int
 luaopen_pktgen(lua_State *L) {
+
 	luaL_newlib(L, pktgenlib);
 
 	lua_pushstring(L, "info");	/* Push the table index name */
@@ -3371,9 +3407,7 @@ luaopen_pktgen(lua_State *L) {
 
 	setf_string(L, "Pktgen_Version", (char *)PKTGEN_VERSION);
 	setf_string(L, "Pktgen_Copyright", (char *)wr_copyright_msg());
-	setf_string(L,
-	            "Pktgen_Authors",
-	            (char *)"Keith Wiles @ Wind River Systems");
+	setf_string(L, "Pktgen_Authors", (char *)"Keith Wiles @ Intel Corp");
 	setf_string(L, "DPDK_Version", (char *)rte_version());
 	setf_string(L, "DPDK_Copyright", (char *)wr_powered_by());
 
@@ -3399,8 +3433,15 @@ luaopen_pktgen(lua_State *L) {
 	setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT);
 	setf_integer(L, "maxPrimeCount", MAX_PRIME_COUNT);
 
-	/* Now set the table for the info values. */
-	lua_rawset(L, -3);
+    /* Now set the table for the info values. */
+    lua_rawset(L, -3);
+
+    lua_pushstring(L, "range");  /* Push the table index name */
+    lua_newtable(L);        /* Create the structure table for information */
+
+    luaL_setfuncs(L, pktgenlib_range, 0);
+
+    lua_rawset(L, -3);
 
 	return 1;
 }

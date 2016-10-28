@@ -191,6 +191,7 @@ rxtx_port_config(uint32_t pid)
 
 	if (rc->rx_free_thresh != RTE_PMD_PARAM_UNSET)
 		info->rx_conf.rx_free_thresh = rc->rx_free_thresh;
+info->rx_conf.rx_free_thresh = 32;
 
 	if (rc->rx_drop_en != RTE_PMD_PARAM_UNSET)
 		info->rx_conf.rx_drop_en = rc->rx_drop_en;

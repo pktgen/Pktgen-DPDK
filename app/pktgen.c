@@ -308,23 +308,6 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 	}
 }
 
-static void
-inspect_mbufs(const char * msg, struct rte_mbuf **mbufs, int nb_pkts)
-{
-	int i;
-	struct rte_mbuf *mbuf;
-	struct ether_hdr *eth;
-
-	for(i = 0; i < nb_pkts; i++) {
-		mbuf = mbufs[i];
-		eth = rte_pktmbuf_mtod(mbuf, struct ether_hdr *);
-		if (eth->ether_type == 0) {
-			printf("** %s **\n", msg);
-			rte_pktmbuf_dump(stdout, mbuf, 32);
-		}
-	}
-}
-
 /**************************************************************************//**
  *
  * _send_burst_fast - Send a burst of packet as fast as possible.
@@ -359,7 +342,6 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 			cnt -= ret;
 		}
 	} else {
-inspect_mbufs("** 1 **", pkts, cnt);
 		while(cnt > 0) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -1408,6 +1390,9 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
+		} else if (curr_tsc >= (tx_next_cycle /8)) {
+			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
+				rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
 		}
 	}
 
@@ -1445,6 +1430,7 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	wr_start_lcore(pktgen.l2p, lid);
 
+	idx = 0;
 	while(wr_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_rdtsc();
 
@@ -1454,6 +1440,9 @@ pktgen_main_tx_loop(uint8_t lid)
 
 			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
+		} else if (curr_tsc >= (tx_next_cycle /8)) {
+			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
+				rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
 		}
 	}
 

@@ -6,6 +6,12 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.15  - Update Lua to 5.3.3 version
+             Change lua pktgen.range() to pktgen.set_range() plus added
+             the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
+             Still support the old commands for now.
+             Now polls the RX and TX queues to support eth_bond interfaces using
+             mode 4 or LACP.
  - 3.0.14  - Fix crash in saving configuration and random is not setup.
  - 3.0.13  - Fix seq only sending the first sequence packet and some cleanup.
  - 3.0.12  - Map port/queue pair stats to the correct lcore.

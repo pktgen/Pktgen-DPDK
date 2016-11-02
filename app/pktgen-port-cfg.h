@@ -314,13 +314,13 @@ pktgen_dump_rx_conf(FILE *f, struct rte_eth_rxconf *rx){
 	fprintf(f, "** RX Conf **\n");
 	fprintf(
 	        f,
-	        "   pthreash       :%4d hthresh          :%4d wthresh        :%6d\n",
+	        "   pthresh        :%4d, hthresh          :%4d, wthresh        :%6d\n",
 	        rx->rx_thresh.pthresh,
 	        rx->rx_thresh.hthresh,
 	        rx->rx_thresh.wthresh);
 	fprintf(
 	        f,
-	        "   Free Thresh    :%4d Drop Enable      :%4d Deferred Start :%6d\n",
+	        "   Free Thresh    :%4d, Drop Enable      :%4d, Deferred Start :%6d\n",
 	        rx->rx_free_thresh,
 	        rx->rx_drop_en,
 	        rx->rx_deferred_start);
@@ -331,13 +331,13 @@ pktgen_dump_tx_conf(FILE *f, struct rte_eth_txconf *tx){
 	fprintf(f, "** TX Conf **\n");
 	fprintf(
 	        f,
-	        "   pthreash       :%4d hthresh          :%4d wthresh        :%6d\n",
+	        "   pthresh        :%4d, hthresh          :%4d, wthresh        :%6d\n",
 	        tx->tx_thresh.pthresh,
 	        tx->tx_thresh.hthresh,
 	        tx->tx_thresh.wthresh);
 	fprintf(
 	        f,
-	        "   Free Thresh    :%4d RS Thresh        :%4d Deferred Start :%6d TXQ Flags:%08x\n",
+	        "   Free Thresh    :%4d, RS Thresh        :%4d, Deferred Start :%6d, TXQ Flags:%08x\n",
 	        tx->tx_free_thresh,
 	        tx->tx_rs_thresh,
 	        tx->tx_deferred_start,
@@ -345,25 +345,29 @@ pktgen_dump_tx_conf(FILE *f, struct rte_eth_txconf *tx){
 }
 
 static inline void
-pktgen_dump_dev_info(FILE *f, struct rte_eth_dev_info *di) {
-	fprintf(f, "\n** Dev Info (%s:%d) **\n", di->driver_name, di->if_index);
+pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint32_t pid) {
+	fprintf(f, "\n** %s (%s, if_index:%d) **\n",
+            (msg)? msg : "Device Info", rte_eth_devices[pid].data->name, di->if_index);
 	fprintf(
 	        f,
-	        "   max_vfs        :%4d min_rx_bufsize    :%4d max_rx_pktlen :%6d max_rx_queues         :%4d max_tx_queues:%4d\n",
+	        "   max_vfs        :%4d, min_rx_bufsize    :%4d, max_rx_pktlen :%6d\n",
 	        di->pci_dev ? di->pci_dev->max_vfs : 0,
 	        di->min_rx_bufsize,
-	        di->max_rx_pktlen,
-	        di->max_rx_queues,
-	        di->max_tx_queues);
+	        di->max_rx_pktlen);
+    fprintf(
+            f,
+            "   max_rx_queues  :%4d, max_tx_queues     :%4d\n",
+            di->max_rx_queues,
+            di->max_tx_queues);
 	fprintf(
 	        f,
-	        "   max_mac_addrs  :%4d max_hash_mac_addrs:%4d max_vmdq_pools:%6d\n",
+	        "   max_mac_addrs  :%4d, max_hash_mac_addrs:%4d, max_vmdq_pools:%6d\n",
 	        di->max_mac_addrs,
 	        di->max_hash_mac_addrs,
 	        di->max_vmdq_pools);
 	fprintf(
 	        f,
-	        "   rx_offload_capa:%4d tx_offload_capa   :%4d reta_size     :%6d flow_type_rss_offloads:%016lx\n",
+	        "   rx_offload_capa:%4d, tx_offload_capa   :%4d, reta_size     :%6d, flow_type_rss_offloads:%016lx\n",
 	        di->rx_offload_capa,
 	        di->tx_offload_capa,
 	        di->reta_size,
@@ -375,7 +379,7 @@ pktgen_dump_dev_info(FILE *f, struct rte_eth_dev_info *di) {
 	        );
 	fprintf(
 	        f,
-	        "   vmdq_queue_base:%4d vmdq_queue_num    :%4d vmdq_pool_base:%6d\n",
+	        "   vmdq_queue_base:%4d, vmdq_queue_num    :%4d, vmdq_pool_base:%6d\n",
 	        di->vmdq_queue_base,
 	        di->vmdq_queue_num,
 	        di->vmdq_pool_base);

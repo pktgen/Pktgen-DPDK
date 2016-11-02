@@ -2877,6 +2877,8 @@ pktgen_send_arp_requests(port_info_t *info, uint32_t type)
 		pktgen_set_port_flags(info, SEND_ARP_REQUEST);
 }
 
+#define _cp(s)      (strcmp(str, s) == 0)
+
 /**************************************************************************//**
  *
  * pktgen_set_page - Set the page type to display
@@ -2892,17 +2894,19 @@ pktgen_send_arp_requests(port_info_t *info, uint32_t type)
 void
 pktgen_set_page(char *str)
 {
-	uint16_t page;
+	uint16_t page = 0;
 
 	if (str == NULL)
 		return;
 
-	page = atoi(str);
-	if (page > pktgen.nb_ports)
-		return;
+    if ((str[0] >= '0') && (str[0] <= '9')) {
+        page = atoi(str);
+        if (page > pktgen.nb_ports)
+            return;
+    }
 
 	/* Switch to the correct page */
-	if (str[0] == 'n') {
+	if (_cp("next")) {
 		pcap_info_t *pcap = pktgen.info[pktgen.portNum].pcap;
 
 		if (pcap) {
@@ -2912,35 +2916,38 @@ pktgen_set_page(char *str)
 				pcap->pkt_idx = 0;
 		}
 		pktgen.flags |= PRINT_LABELS_FLAG;
-	} else if ( (str[0] == 'c') && (str[1] == 'p') ) {
+	} else if (_cp("cpu")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= CPU_PAGE_FLAG;
-	} else if (str[0] == 'p') {
+	} else if (_cp("page")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= PCAP_PAGE_FLAG;
 		if (pktgen.info[pktgen.portNum].pcap)
 			pktgen.info[pktgen.portNum].pcap->pkt_idx = 0;
-	} else if ( ( str[0] == 'r' ) && (str[1] == 'a') ) {
+	} else if (_cp("range")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= RANGE_PAGE_FLAG;
-	} else if (str[0] == 'c') {
+	} else if (_cp("config")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= CONFIG_PAGE_FLAG;
-	} else if (str[0] == 's') {
+    } else if (_cp("stats")) {
+        pktgen.flags &= ~PAGE_MASK_BITS;
+        pktgen.flags |= STATS_PAGE_FLAG;
+	} else if (_cp("sequence") || _cp("seq")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= SEQUENCE_PAGE_FLAG;
-	} else if (str[0] == 'r') {
+	} else if (_cp("random") || _cp("rnd")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= RND_BITFIELD_PAGE_FLAG;
-	} else if ((str[0] == 'l') && (str[1] == 'o')) {
+	} else if (_cp("log")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= LOG_PAGE_FLAG;
-	} else if ((str[0] == 'l') && (str[1] == 'a')) {
+	} else if (_cp("latency") || _cp("lat")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= LATENCY_PAGE_FLAG;
 	} else {
 		uint16_t start_port;
-		if (str[0] == 'm')
+		if (_cp("main"))
 			page = 0;
 		start_port = (page * pktgen.nb_ports_per_page);
 		if ( (pktgen.starting_port != start_port) &&

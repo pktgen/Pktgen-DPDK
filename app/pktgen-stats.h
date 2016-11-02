@@ -94,5 +94,6 @@ extern void pktgen_get_link_status(struct port_info_s *info, int pid, int wait);
 extern void pktgen_process_stats(struct rte_timer *tim, void *arg);
 
 extern void pktgen_page_stats(void);
+extern void pktgen_page_phys_stats(void);
 
 #endif  /* _PKTGEN_STATS_H_ */

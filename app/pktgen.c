@@ -1584,6 +1584,8 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
 	else if (pktgen.flags & LATENCY_PAGE_FLAG)
 		pktgen_page_latency();
+        else if (pktgen.flags & STATS_PAGE_FLAG)
+                pktgen_page_phys_stats();
 	else
 		pktgen_page_stats();
 

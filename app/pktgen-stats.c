@@ -524,3 +524,97 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		*prev = *(struct rte_eth_stats *)&stats;
 	}
 }
+
+/***************************************************************************/
+
+void
+pktgen_page_phys_stats(void)
+{
+    unsigned int pid, col, row;
+    struct rte_eth_stats stats, *s;
+    struct ether_addr ethaddr;
+    char buff[32], mac_buf[32];
+
+    s = &stats;
+    memset(s, 0, sizeof(struct rte_eth_stats));
+
+    pktgen_display_set_color("top.page");
+    display_topline("<Real Port Stats Page>");
+
+    row = 3;
+    col = 1;
+    pktgen_display_set_color("stats.port.label");
+    wr_scrn_printf(row++, col, "Port Name");
+    pktgen_display_set_color("stats.stat.label");
+    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+        snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
+        wr_scrn_printf(row++, col, "%-*s", COLUMN_WIDTH_0 - 4, buff);
+    }
+
+    row = 4;
+    /* Display the colon after the row label. */
+    pktgen_display_set_color("stats.colon");
+    for (pid = 0; pid < rte_eth_dev_count(); pid++)
+        wr_scrn_printf(row++, COLUMN_WIDTH_0 - 5, ":");
+
+    display_dashline(++row);
+
+    row = 3;
+    col = COLUMN_WIDTH_0 - 4;
+    pktgen_display_set_color("stats.port.label");
+    wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+
+        rte_eth_stats_get(pid, &stats);
+
+        snprintf(buff, sizeof(buff), "%lu/%lu", s->ipackets, s->opackets);
+
+        /* Total Rx/Tx */
+        wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    row = 3;
+    col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 4;
+    pktgen_display_set_color("stats.port.label");
+    wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+
+        rte_eth_stats_get(pid, &stats);
+
+        snprintf(buff, sizeof(buff), "%lu/%lu", s->ierrors, s->imissed);
+
+        wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    row = 3;
+    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 4;
+    pktgen_display_set_color("stats.port.label");
+    wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Bad CRC/Len");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+
+        rte_eth_stats_get(pid, &stats);
+
+        snprintf(buff, sizeof(buff), "%lu/%lu", s->ibadcrc, s->ibadlen);
+
+        wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    row = 3;
+    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 4;
+    pktgen_display_set_color("stats.port.label");
+    wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+
+        rte_eth_macaddr_get(pid, &ethaddr);
+
+        ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+        snprintf(buff, sizeof(buff), "%s", mac_buf);
+        wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    wr_scrn_eol();
+}

@@ -82,6 +82,7 @@ enum {
 	TX_WTHRESH_1GB          = 16,	/**< Default value for 1GB ports */
 };
 
+static uint8_t	hw_strip_crc = 0;
 const struct rte_eth_conf default_port_conf = {
 	.rxmode = {
 		.split_hdr_size = 0,
@@ -121,6 +122,12 @@ const ring_conf_t default_ring_conf = {
 	.txq_flags = RTE_PMD_PARAM_UNSET,
 	.rss_hf = ETH_RSS_IP
 };
+
+void
+pktgen_set_hw_strip_crc(uint8_t val)
+{
+	hw_strip_crc = val;
+}
 
 /**************************************************************************//**
  *
@@ -172,7 +179,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 }
 
 static void
-pktgen_port_conf_setup(uint32_t pid, rxtx_t *rt __rte_unused, const struct rte_eth_conf *dpc __rte_unused)
+pktgen_port_conf_setup(uint32_t pid, rxtx_t *rt, const struct rte_eth_conf *dpc)
 {
     port_info_t *info = &pktgen.info[pid];
     struct rte_eth_conf *conf = &info->port_conf;
@@ -195,6 +202,7 @@ pktgen_port_conf_setup(uint32_t pid, rxtx_t *rt __rte_unused, const struct rte_e
         conf->rx_adv_conf.rss_conf.rss_key  = NULL;
         conf->rx_adv_conf.rss_conf.rss_hf   = 0;
     }
+    conf->rxmode.hw_strip_crc = hw_strip_crc;
 
     if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
         conf->rxmode.mq_mode = (dev->max_vfs)?

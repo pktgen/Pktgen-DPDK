@@ -6,6 +6,8 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.16  - Add command line option to strip CRC in hardware one RX.
+             Option is '--crc-strip' which strips the CRC on RX for all ports.
  - 3.0.15  - Update Lua to 5.3.3 version
              Change lua pktgen.range() to pktgen.set_range() plus added
              the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
@@ -488,6 +490,7 @@ Usage: ./app/pktgen [EAL options] -- [-h] [-P] [-G] [-f cmd_file] [-l log_file] 
                If -g is used that enable socket support as a server application
   -G           Enable socket support using default server values localhost:0x5606 
   -N           Enable NUMA support
+  --crc-strip  Strip CRC via HW on all RX ports.
   -m <string>  matrix for mapping ports to logical cores
       BNF: (or kind of BNF)
       <matrix-string>   := """ <lcore-port> { "," <lcore-port>} """

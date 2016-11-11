@@ -388,4 +388,7 @@ pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint
 	fprintf(f, "\n");
 }
 
+extern void pktgen_set_hw_strip_crc(uint8_t val);
+
+
 #endif  /* _PKTGEN_PORT_CFG_H_ */

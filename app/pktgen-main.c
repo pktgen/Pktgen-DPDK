@@ -196,6 +196,7 @@ pktgen_usage(const char *prgname)
 	        "  -G           Enable socket support using default server values localhost:0x5606 \n"
 	        "  -N           Enable NUMA support\n"
 	        "  -T           Enable the color output\n"
+		"  --crc-strip  Strip CRC on all ports\n"
 	        "  -m <string>  matrix for mapping ports to logical cores\n"
 	        "      BNF: (or kind of BNF)\n"
 	        "      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
@@ -252,6 +253,7 @@ pktgen_parse_args(int argc, char **argv)
 	int option_index;
 	char *prgname = argv[0], *p;
 	static struct option lgopts[] = {
+		{"crc-strip", 0, 0, 0},
 		{NULL, 0, 0, 0}
 	};
 
@@ -348,7 +350,9 @@ pktgen_parse_args(int argc, char **argv)
 			pktgen_usage(prgname);
 			return -1;
 
-		case 0:	/* Long options */
+		case 0:	/* crc-strip for all ports */
+			pktgen_set_hw_strip_crc(1);
+			break;
 		default:
 			pktgen_usage(prgname);
 			return -1;

@@ -593,6 +593,7 @@ pktgen_page_phys_stats(void)
     pktgen_display_set_color("stats.port.label");
     wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Bad CRC/Len");
     pktgen_display_set_color("stats.stat.values");
+#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
     for (pid = 0; pid < rte_eth_dev_count(); pid++) {
 
         rte_eth_stats_get(pid, &stats);
@@ -601,7 +602,7 @@ pktgen_page_phys_stats(void)
 
         wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     }
-
+#endif
     row = 3;
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 4;
     pktgen_display_set_color("stats.port.label");

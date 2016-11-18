@@ -295,6 +295,39 @@ pktgen_page_stats(void)
 	cumm = &pktgen.cumm_rate_totals;
 	memset(cumm, 0, sizeof(eth_stats_t));
 
+	/* Calculate the total values */
+	for (pid = 0; pid < pktgen.nb_ports; pid++) {
+		if (wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
+			continue;
+
+		info = &pktgen.info[pid];
+
+		rate = &info->rate_stats;
+		prev = &info->prev_stats;
+
+		cumm->ipackets += rate->ipackets;
+		cumm->opackets += rate->opackets;
+		cumm->ibytes += rate->ibytes;
+		cumm->obytes += rate->obytes;
+		cumm->ierrors += rate->ierrors;
+		cumm->oerrors += rate->oerrors;
+
+		if (cumm->ipackets > pktgen.max_total_ipackets)
+			pktgen.max_total_ipackets = cumm->ipackets;
+		if (cumm->opackets > pktgen.max_total_opackets)
+			pktgen.max_total_opackets = cumm->opackets;
+
+		cumm->imissed += rate->imissed;
+#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+		cumm->ibadcrc += rate->ibadcrc;
+		cumm->ibadlen += rate->ibadlen;
+#endif
+#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+		cumm->imcasts += rate->imcasts;
+#endif
+		cumm->rx_nombuf += rate->rx_nombuf;
+	}
+
 	sp = pktgen.starting_port;
 	display_cnt = 0;
 	for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
@@ -339,28 +372,6 @@ pktgen_page_stats(void)
 		         iBitsTotal(info->rate_stats) / Million,
 		         oBitsTotal(info->rate_stats) / Million);
 		wr_scrn_printf(row++,  col, "%*s", COLUMN_WIDTH_1, buff);
-
-		cumm->ipackets += rate->ipackets;
-		cumm->opackets += rate->opackets;
-		cumm->ibytes += rate->ibytes;
-		cumm->obytes += rate->obytes;
-		cumm->ierrors += rate->ierrors;
-		cumm->oerrors += rate->oerrors;
-
-		if (cumm->ipackets > pktgen.max_total_ipackets)
-			pktgen.max_total_ipackets = cumm->ipackets;
-		if (cumm->opackets > pktgen.max_total_opackets)
-			pktgen.max_total_opackets = cumm->opackets;
-
-		cumm->imissed += rate->imissed;
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		cumm->ibadcrc += rate->ibadcrc;
-		cumm->ibadlen += rate->ibadlen;
-#endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		cumm->imcasts += rate->imcasts;
-#endif
-		cumm->rx_nombuf += rate->rx_nombuf;
 
 		/* Packets Sizes */
 		row = PKT_SIZE_ROW;

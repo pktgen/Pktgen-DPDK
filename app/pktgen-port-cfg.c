@@ -96,6 +96,7 @@ const struct rte_eth_conf default_port_conf = {
 	.rx_adv_conf = {
 		.rss_conf = {
 			.rss_key = NULL,
+                        .rss_key_len = 0,
 			.rss_hf = ETH_RSS_IP,
 		},
 	},
@@ -171,88 +172,77 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 }
 
 static void
-rxtx_port_config(uint32_t pid)
+pktgen_port_conf_setup(uint32_t pid, rxtx_t *rt __rte_unused, const struct rte_eth_conf *dpc __rte_unused)
 {
-	port_info_t *info = &pktgen.info[pid];
-	ring_conf_t *rc = &info->ring_conf;
+    port_info_t *info = &pktgen.info[pid];
+    struct rte_eth_conf *conf = &info->port_conf;
+    struct rte_eth_dev_info *dev = &info->dev_info;
+    ring_conf_t *rc = &info->ring_conf;
+    struct rte_eth_rxconf *rx;
+    struct rte_eth_txconf *tx;
 
-	info->rx_conf = info->dev_info.default_rxconf;
-	info->tx_conf = info->dev_info.default_txconf;
+    rte_memcpy(conf, dpc, sizeof(struct rte_eth_conf));
+    rte_memcpy(&info->ring_conf, &default_ring_conf, sizeof(ring_conf_t));
 
-	/* Check if any RX/TX parameters have been passed */
-	if (rc->rx_pthresh != RTE_PMD_PARAM_UNSET)
-		info->rx_conf.rx_thresh.pthresh = rc->rx_pthresh;
+    rte_eth_dev_info_get(pid, dev);
 
-	if (rc->rx_hthresh != RTE_PMD_PARAM_UNSET)
-		info->rx_conf.rx_thresh.hthresh = rc->rx_hthresh;
+    pktgen_dump_dev_info(stdout, "Default Info", dev, pid);
 
-	if (rc->rx_wthresh != RTE_PMD_PARAM_UNSET)
-		info->rx_conf.rx_thresh.wthresh = rc->rx_wthresh;
+    if (rt->rx > 1) {
+        conf->rx_adv_conf.rss_conf.rss_key  = NULL;
+        conf->rx_adv_conf.rss_conf.rss_hf   = ETH_RSS_IP;
+    } else {
+        conf->rx_adv_conf.rss_conf.rss_key  = NULL;
+        conf->rx_adv_conf.rss_conf.rss_hf   = 0;
+    }
 
-	if (rc->rx_free_thresh != RTE_PMD_PARAM_UNSET)
-		info->rx_conf.rx_free_thresh = rc->rx_free_thresh;
+    if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
+        conf->rxmode.mq_mode = (dev->max_vfs)?
+                                    ETH_MQ_RX_VMDQ_RSS : ETH_MQ_RX_RSS;
+    else
+        conf->rxmode.mq_mode = ETH_MQ_RX_NONE;
 
-	if (rc->rx_drop_en != RTE_PMD_PARAM_UNSET)
-		info->rx_conf.rx_drop_en = rc->rx_drop_en;
+    conf->txmode.mq_mode = ETH_MQ_TX_NONE;
 
-	if (rc->tx_pthresh != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.tx_thresh.pthresh = rc->tx_pthresh;
+    rx = &info->rx_conf;
+    tx = &info->tx_conf;
 
-	if (rc->tx_hthresh != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.tx_thresh.hthresh = rc->tx_hthresh;
+    rte_memcpy(rx, &info->dev_info.default_rxconf, sizeof(struct rte_eth_rxconf));
+    rte_memcpy(tx, &info->dev_info.default_txconf, sizeof(struct rte_eth_txconf));
 
-	if (rc->tx_wthresh != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.tx_thresh.wthresh = rc->tx_wthresh;
+    /* Check if any RX/TX parameters have been passed */
+    if (rc->rx_pthresh != RTE_PMD_PARAM_UNSET)
+        rx->rx_thresh.pthresh = rc->rx_pthresh;
 
-	if (rc->tx_rs_thresh != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.tx_rs_thresh = rc->tx_rs_thresh;
+    if (rc->rx_hthresh != RTE_PMD_PARAM_UNSET)
+        rx->rx_thresh.hthresh = rc->rx_hthresh;
 
-	if (rc->tx_free_thresh != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.tx_free_thresh = rc->tx_free_thresh;
+    if (rc->rx_wthresh != RTE_PMD_PARAM_UNSET)
+        rx->rx_thresh.wthresh = rc->rx_wthresh;
 
-	if (rc->txq_flags != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.txq_flags = rc->txq_flags;
-}
+    if (rc->rx_free_thresh != RTE_PMD_PARAM_UNSET)
+        rx->rx_free_thresh = rc->rx_free_thresh;
 
-static void
-pktgen_port_conf_setup(uint32_t pid, rxtx_t *rt, const struct rte_eth_conf *dpc)
-{
-	port_info_t *info = &pktgen.info[pid];
-	struct rte_eth_conf *conf = &info->port_conf;
-	struct rte_eth_dev_info *dev = &info->dev_info;
+    if (rc->rx_drop_en != RTE_PMD_PARAM_UNSET)
+        rx->rx_drop_en = rc->rx_drop_en;
 
-	memcpy(conf, dpc, sizeof(struct rte_eth_conf));
-	memcpy(&info->ring_conf, &default_ring_conf, sizeof(ring_conf_t));
+    if (rc->tx_pthresh != RTE_PMD_PARAM_UNSET)
+        info->tx_conf.tx_thresh.pthresh = rc->tx_pthresh;
 
-	rte_eth_dev_info_get(pid, dev);
+    if (rc->tx_hthresh != RTE_PMD_PARAM_UNSET)
+        tx->tx_thresh.hthresh = rc->tx_hthresh;
 
-	pktgen_dump_dev_info(stdout, dev);
+    if (rc->tx_wthresh != RTE_PMD_PARAM_UNSET)
+        tx->tx_thresh.wthresh = rc->tx_wthresh;
 
-	if (rt->rx > 1) {
-		conf->rx_adv_conf.rss_conf.rss_key  = NULL;
-		conf->rx_adv_conf.rss_conf.rss_hf   = ETH_RSS_IP;
-	} else {
-		conf->rx_adv_conf.rss_conf.rss_key  = NULL;
-		conf->rx_adv_conf.rss_conf.rss_hf   = 0;
-	}
+    if (rc->tx_rs_thresh != RTE_PMD_PARAM_UNSET)
+        tx->tx_rs_thresh = rc->tx_rs_thresh;
 
-	if (dev->max_vfs == 0) {
-		if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
-			conf->rxmode.mq_mode = ETH_MQ_RX_RSS;
-		else
-			conf->rxmode.mq_mode = ETH_MQ_RX_NONE;
-	}
+    if (rc->tx_free_thresh != RTE_PMD_PARAM_UNSET)
+        tx->tx_free_thresh = rc->tx_free_thresh;
 
-	if (dev->max_vfs != 0) {
-		if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
-			conf->rxmode.mq_mode = ETH_MQ_RX_VMDQ_RSS;
-		else
-			conf->rxmode.mq_mode = ETH_MQ_RX_NONE;
-
-		conf->txmode.mq_mode = ETH_MQ_TX_NONE;
-	}
-
-	rxtx_port_config(pid);
+    if (rc->txq_flags != RTE_PMD_PARAM_UNSET)
+        info->tx_conf.txq_flags = rc->txq_flags;
 }
 
 /**************************************************************************//**

@@ -65,21 +65,20 @@ cmd=./app/app/${target}/app/pktgen
 #
 
 if [ $name == "rkwiles-DESK1.intel.com" ]; then
-#	dpdk_opts="-l 1-17 -n 4 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
-	dpdk_opts="-l 1-17 -n 4 --proc-type auto --log-level 8 --socket-mem 1024,1024 --file-prefix pg"
-#	dpdk_opts="${dpdk_opts} --vdev=net_tap --vdev=net_tap"
-	dpdk_opts="${dpdk_opts} --vdev=eth_bond0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
-	dpdk_opts="${dpdk_opts} --vdev=eth_bond1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
-	pktgen_opts="-T -P"
-	pktgen_opts="${pktgen_opts} -m [2-5:6-9].0 -m [10-13:14-17].1"
+	dpdk_opts="-l 1-3 -n 4 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg2"
+	pktgen_opts="-T -P -f cmds.txt"
+	port_map="-m [2:3].0"
+	#port_map="-m [11-14:15-18].0"
+	#port_map="-m [9-12:13-16].0"
 	black_list="-b 05:00.0 -b 05:00.1"
-#	black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
-#	black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
-	black_list="${black_list} -b 82:00.0 -b 83:00.0"
+	black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
+	black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
+	#black_list="${black_list} -b 82:00.0"
+	black_list="${black_list} -b 83:00.0"
 	load_file="-f themes/black-yellow.theme"
 
-	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
-	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
+	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 
 	# Restore the screen and keyboard to a sane state
 	stty sane
@@ -89,12 +88,13 @@ if [ $name == "rkwiles-VirtualBox" ]; then
 	dpdk_opts="-l 1-3 -n 4 --proc-type auto --log-level 7 --socket-mem 256 --file-prefix pg"
 	dpdk_opts=${dpdk_opts}" --vdev=eth_ring0 --vdev=eth_ring1"
 	pktgen_opts="-T -P"
-	pktgen_opts="${pktgen_opts} -m 2.0 -m 3.1"
-	black_list="-b 00:03.0"
+	port_map="-m 2.0 -m 3.1"
+	bl_common="-b 00:03.0"
+	black_list="${bl_common}"
 	load_file="-f themes/black-yellow.theme"
 
-	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
-	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
+	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
+	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${port_map} ${load_file}
 
 	# Restore the screen and keyboard to a sane state
 	stty sane

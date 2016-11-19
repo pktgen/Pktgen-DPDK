@@ -228,7 +228,7 @@ const char *help_info[] = {
 #ifdef INCLUDE_PING6
 	"ping6 <portlist>                   - Send a IPv6 ICMP echo request on the given portlist",
 #endif
-	"page [0-7]|main|range|config|seq|pcap|next|cpu|rnd|log|latency - Show the port pages or configuration or sequence page",
+	"page <pages>                       - Show the port pages or configuration or sequence page",
 	"     [0-7]                         - Page of different ports",
 	"     main                          - Display page zero",
 	"     range                         - Display the range packet page",
@@ -242,6 +242,7 @@ const char *help_info[] = {
 	"                                     Note: use the 'port <number>' to display a new port sequence",
 	"     log                           - Display the log messages page",
 	"     latency                       - Display the latency page",
+        "     stats                         - Display physical ports stats for all ports",
 	"port <number>                      - Sets the sequence of packets to display for a given port",
 	"process <portlist> <state>         - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
 	"garp <portlist> <state>            - Enable or Disable GARP packet processing and update MAC address",
@@ -2934,13 +2935,13 @@ cmdline_parse_token_string_t cmd_set_pageType =
         TOKEN_STRING_INITIALIZER(
                 struct cmd_page_result,
                 pageType,
-                "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log#latency");
+                "0#1#2#3#4#5#6#7#main#range#config#sequence#seq#pcap#next#cpu#rnd#log#latency#stats");
 
 cmdline_parse_inst_t cmd_page = {
 	.f = cmd_set_page_parsed,
 	.data = NULL,
 	.help_str =
-	        "page [0-7]|main|range|config|sequence|seq|pcap|next|cpu|rnd|log|latency",
+	        "page [0-7]|main|range|config|sequence|seq|pcap|next|cpu|rnd|log|latency|stats",
 	.tokens = {
 		(void *)&cmd_set_page,
 		(void *)&cmd_set_pageType,

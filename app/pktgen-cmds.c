@@ -607,7 +607,7 @@ pktgen_lua_save(char *path)
 		        (flags & ICMP_ECHO_ENABLE_FLAG) ? "en" : "dis");
 		fprintf(fd, "pktgen.pcap('%d', '%sable');\n", i,
 		        (flags & SEND_PCAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "pktgen.range('%d', '%sable');\n", i,
+		fprintf(fd, "pktgen.set_range('%d', '%sable');\n", i,
 		        (flags & SEND_RANGE_PKTS) ? "en" : "dis");
 		fprintf(fd, "pktgen.latency('%d', '%sable');\n", i,
 		        (flags & SEND_LATENCY_PKTS) ? "en" : "dis");

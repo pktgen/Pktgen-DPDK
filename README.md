@@ -6,6 +6,8 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.0.17  - Fixed a formating issue on sequence page for port numbers.
+             Save of lua code wrong for pktgen.range() should be pktgen.set_range().
  - 3.0.16  - Add command line option to strip CRC in hardware one RX.
              Option is '--crc-strip' which strips the CRC on RX for all ports.
  - 3.0.15  - Update Lua to 5.3.3 version

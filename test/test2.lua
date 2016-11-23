@@ -1,7 +1,5 @@
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
-pktgen.screen("off");
-
 pktgen.seqTable(pktgen.info.startSeqIdx, "all", {
     ["eth_dst_addr"] = "0011:4455:6677",
     ["eth_src_addr"] = "0011:1234:5678",

@@ -74,6 +74,7 @@
 #include <sys/time.h>
 #include <stdarg.h>
 #include <libgen.h>
+#include <sys/stat.h>
 
 #include "pktgen-display.h"
 #include <rte_rwlock.h>
@@ -191,6 +192,7 @@ pktgen_log_set_file(const char *filename)
 
 	/* Clean up if already logging to a file */
 	if (log_file != NULL) {
+        fchmod(fileno(log_file), 0666);
 		fclose(log_file);
 		log_file = NULL;
 	}

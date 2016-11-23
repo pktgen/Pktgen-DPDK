@@ -67,6 +67,7 @@
 
 #define _GNU_SOURCE
 #include <string.h>
+#include <sys/stat.h>
 
 #include "pktgen-cmds.h"
 
@@ -432,6 +433,7 @@ pktgen_script_save(char *path)
 	}
 	fprintf(fd, "################################ Done #################################\n");
 
+    fchmod(fileno(fd), 0666);
 	fclose(fd);
 	return 0;
 }
@@ -495,20 +497,6 @@ pktgen_lua_save(char *path)
 	fprintf(fd, "--   Promiscuous mode is %s\n\n",
 	        (pktgen.flags & PROMISCUOUS_ON_FLAG) ? "Enabled" : "Disabled");
 
-#if 0
-	fprintf(fd, "-- Port Descriptions (-- = blacklisted port):\n");
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++)
-		if (pktgen.portdesc[i] &&
-		    strlen((char *)pktgen.portdesc[i]) ) {
-			if ( (pktgen.enabled_port_mask & (1 << i)) == 0)
-				strcpy(buff, "--");
-			else
-				strcpy(buff, "++");
-
-			fprintf(fd, "--   %s %s\n", buff, pktgen.portdesc[i]);
-		}
-
-#endif
 	fprintf(fd, "\n--%s\n", hash_line);
 
 	fprintf(fd, "-- Global configuration:\n");
@@ -811,6 +799,7 @@ pktgen_lua_save(char *path)
 	fprintf(fd, "-- ################################ Done #################################\n");
 	fflush(fd);
 
+    fchmod(fileno(fd), 0666);
 	fclose(fd);
 	return 0;
 }

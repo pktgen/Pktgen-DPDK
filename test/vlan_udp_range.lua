@@ -43,10 +43,6 @@ pktgen.vlanid("all", 55);
 pktgen.set_type("all", "ipv4");
 pktgen.set_proto("all", "udp");
 
---pktgen.prime("all");
---pktgen.delay(1000);
-
-pktgen.screen("on");
 pktgen.clear("all");
 pktgen.cls();
 
@@ -108,23 +104,5 @@ printf("Waiting for TX to run\n");
 doWait("0", 10);
 printf("Done\n");
 
---[[
-pktgen.port("0");
-pktgen.process("all", "on");
-pktgen.blink("0", "on");
-pktgen.pause("Pause for a while, then turn off screen\n", 4000);
-pktgen.screen("off");
---]]
-
 printf("Port Count %d\n", pktgen.portCount());
 printf("Total port Count %d\n", pktgen.totalPorts());
-
---[[
-printf("\nDone, Key pressed is (%s)\n", pktgen.continue("\nPress any key: "));
-if ( key == "s" ) then
-	pktgen.set("all", "seqCnt", 0);
-	pktgen.save("foobar.cmd");
-	pktgen.continue("Saved foobar.cmd, press key to load that file: ");
-	pktgen.load("foobar.cmd");
-end
---]]

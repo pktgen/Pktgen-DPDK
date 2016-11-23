@@ -65,6 +65,7 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <sys/stat.h>
 #include "pktgen-display.h"
 #include "pktgen-cmds.h"
 
@@ -434,5 +435,6 @@ pktgen_theme_save(char *filename)
 		        get_name_by_attr(theme_color_map[i].attr));
 	fprintf(f, "cls\n");
 
+    fchmod(fileno(f), 0666);
 	fclose(f);
 }

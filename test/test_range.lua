@@ -2,8 +2,6 @@ package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
 --pktgen.page("range");
 
-pktgen.screen("off");
-
 -- Port 0 3c:fd:fe:9c:5c:d8,  Port 1 3c:fd:fe:9c:5c:b8
 pktgen.range.dst_mac("0", "start", "3c:fd:fe:9c:5c:b8");
 pktgen.range.src_mac("0", "start", "3c:fd:fe:9c:5c:d8");
@@ -67,5 +65,3 @@ pktgen.range.pkt_size("1", "min", 64);
 pktgen.range.pkt_size("1", "max", 256);
 
 pktgen.set_range("all", "on");
-
-pktgen.screen("on");

@@ -36,7 +36,6 @@ pktgen.reset("all");
 -- 'set' commands for a number of per port values
 pktgen+.set("all", "rate", 100);
 
-pktgen.screen("on");
 pktgen.clear("all");
 pktgen.cls();
 

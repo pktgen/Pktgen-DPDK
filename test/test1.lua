@@ -4,7 +4,6 @@ package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 -- Each command somewhat mirrors the pktgen command line versions.
 -- A couple of the arguments have be changed to be more like the others.
 --
-pktgen.screen("off");
 
 seqTable = {
   [1] = {

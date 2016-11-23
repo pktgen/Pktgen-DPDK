@@ -71,7 +71,7 @@
 #include <rte_ether.h>
 #include <cmdline_parse.h>
 #include <cmdline_parse_ipaddr.h>
-#include <wr_inet.h>
+#include <inet.h>
 
 #include "pktgen-constants.h"
 

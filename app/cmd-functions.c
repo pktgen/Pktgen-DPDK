@@ -108,7 +108,7 @@
 
 #include "pktgen.h"
 
-#include "wr_copyright_info.h"
+#include "copyright_info.h"
 #include "cmdline_parse_args.h"
 #include "pktgen-cmds.h"
 #include "pktgen-main.h"
@@ -366,7 +366,7 @@ cmdline_pause(struct cmdline *cl, const char *msg)
 	if (n < 0)
 		return 1;
 	cmdline_printf(cl, "\r");
-	wr_scrn_eol();
+	scrn_eol();
 	return (c == 0x1b) ? 1 : 0;
 }
 
@@ -393,28 +393,28 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 {
 	int i, paused;
 
-	paused = wr_scrn_is_paused();
+	paused = scrn_is_paused();
 
 	if (!paused)
-		wr_scrn_pause();
-	wr_scrn_setw(1);
-	wr_scrn_cls();
+		scrn_pause();
+	scrn_setw(1);
+	scrn_cls();
 
-	wr_scrn_pos(0, 0);
-	cmdline_printf(cl, "%s%s\n", help_info[1], wr_copyright_msg());
-	wr_scrn_pos(4, 0);
+	scrn_pos(0, 0);
+	cmdline_printf(cl, "%s%s\n", help_info[1], copyright_msg());
+	scrn_pos(4, 0);
 	for (i = 2; help_info[i] != NULL; i++) {
 		if (strcmp(help_info[i], "<<PageBreak>>") == 0) {
 			if (cmdline_pause(cl,
 			                  "   <More Help: Press Return to Continue or ESC>") )
 				goto leave;
-			wr_scrn_cls();
-			wr_scrn_pos(0, 0);
+			scrn_cls();
+			scrn_pos(0, 0);
 			cmdline_printf(cl,
 			               "%s%s\n",
 			               help_info[1],
-			               wr_copyright_msg());
-			wr_scrn_pos(4, 0);
+			               copyright_msg());
+			scrn_pos(4, 0);
 			continue;
 		}
 		cmdline_printf(cl, "%s\n", help_info[i]);
@@ -423,8 +423,8 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 	cmdline_pause(cl, "   <Press Return to Continue or ESC>");
 leave:
 	if (!paused) {
-		wr_scrn_setw(pktgen.last_row + 1);
-		wr_scrn_resume();
+		scrn_setw(pktgen.last_row + 1);
+		scrn_resume();
 		pktgen_redisplay(1);
 	}
 }
@@ -2170,7 +2170,7 @@ cmd_pcap_show_parsed(void *parsed_result __rte_unused,
                      void *data __rte_unused)
 {
 	if (pktgen.info[pktgen.portNum].pcap)
-		wr_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum,
+		_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum,
 		             1);
 	else
 		pktgen_log_error(" ** PCAP file is not loaded on port %d",
@@ -2880,7 +2880,7 @@ cmd_set_load_parsed(void *parsed_result,
 
 	if (pktgen_load_cmds(res->path) )
 		cmdline_printf(cl, "load command failed for %s\n", res->path);
-	if (!wr_scrn_is_paused() )
+	if (!scrn_is_paused() )
 		pktgen_redisplay(0);
 }
 
@@ -4043,7 +4043,7 @@ cmd_delay_parsed(void *parsed_result,
 {
 	struct cmd_delay_result *res = parsed_result;
 
-	wr_delay_ms(res->value);
+	_delay_ms(res->value);
 }
 
 cmdline_parse_token_string_t cmd_set_delay =
@@ -4088,7 +4088,7 @@ cmd_sleep_parsed(void *parsed_result,
 {
 	struct cmd_sleep_result *res = parsed_result;
 
-	wr_sleep(res->value);
+	_sleep(res->value);
 }
 
 cmdline_parse_token_string_t cmd_set_sleep =

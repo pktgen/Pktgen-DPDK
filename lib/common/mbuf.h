@@ -32,8 +32,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _WR_MBUF_H_
-#define _WR_MBUF_H_
+#ifndef _MBUF_H_
+#define _MBUF_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,7 +64,7 @@ pktmbuf_reset(struct rte_mbuf *m)
  *   - 0: Success
  */
 static inline int
-wr_pktmbuf_alloc_bulk(struct rte_mempool *pool,
+pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 	 struct rte_mbuf **mbufs, unsigned count)
 {
 	unsigned idx = 0;
@@ -126,4 +126,4 @@ wr_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 }
 #endif
 
-#endif /* _WR_MBUF_H_ */
+#endif /* _MBUF_H_ */

@@ -1,6 +1,6 @@
 /*
  * SOURCE: pktgen-cmds.c
- * STUB: pktgen.h pktgen-range.h pktgen-seq.h rte_eal.h wr_copyright_info.h
+ * STUB: pktgen.h pktgen-range.h pktgen-seq.h rte_eal.h copyright_info.h
  * STUB: rte_mempool.h rte_malloc.h cmdline.h pktgen-log.h pktgen-display.h
  *
  * SYSLIBS: pcap
@@ -8,8 +8,8 @@
 
 #include "pktgen.h"
 
-#include <wr_scrn.h>
-wr_scrn_t *scrn;
+#include <scrn.h>
+scrn_t *scrn;
 
 pktgen_t pktgen;
 

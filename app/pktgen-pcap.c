@@ -96,7 +96,7 @@ pktgen_print_pcap(uint16_t pid)
 	char pkt_buff[2048];
 
 	display_topline("<PCAP Page>");
-	wr_scrn_printf(1, 3, "Port %d of %d", pid, pktgen.nb_ports);
+	scrn_printf(1, 3, "Port %d of %d", pid, pktgen.nb_ports);
 
 	info = &pktgen.info[pid];
 	pcap = info->pcap;
@@ -104,17 +104,17 @@ pktgen_print_pcap(uint16_t pid)
 	row = PORT_STATE_ROW;
 	col = 1;
 	if (pcap == NULL) {
-		wr_scrn_center(10,
+		scrn_center(10,
 		               pktgen.scrn->ncols,
 		               "** Port does not have a PCAP file assigned **");
 		row = 28;
 		goto leave;
 	}
 
-	wr_scrn_eol_pos(row, col);
-	wr_scrn_printf(row++, col, "Port: %d, PCAP Count: %d of %d",
+	scrn_eol_pos(row, col);
+	scrn_printf(row++, col, "Port: %d, PCAP Count: %d of %d",
 	               pid, pcap->pkt_idx, pcap->pkt_count);
-	wr_scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s",
+	scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s",
 	               5, "Seq",
 	               COLUMN_WIDTH_0, "Dst MAC",
 	               COLUMN_WIDTH_0, "Src MAC",
@@ -128,13 +128,13 @@ pktgen_print_pcap(uint16_t pid)
 	if (max_pkts > pcap->pkt_count)
 		max_pkts = pcap->pkt_count;
 
-	wr_pcap_skip(pcap, pcap->pkt_idx);
+	_pcap_skip(pcap, pcap->pkt_idx);
 
 	for (i = pcap->pkt_idx; i < max_pkts; i++) {
 		col = 1;
 		skip = 0;
 
-		len = wr_pcap_read(pcap, &pcap_hdr, pkt_buff, sizeof(pkt_buff));
+		len = _pcap_read(pcap, &pcap_hdr, pkt_buff, sizeof(pkt_buff));
 		if (len == 0)
 			break;
 
@@ -153,14 +153,14 @@ pktgen_print_pcap(uint16_t pid)
 
 		hdr = (pkt_hdr_t *)&pkt_buff[0];
 
-		wr_scrn_eol_pos(row, col);
+		scrn_eol_pos(row, col);
 
-		wr_scrn_printf(row, col, "%5d:", i);
+		scrn_printf(row, col, "%5d:", i);
 		col += 7;
-		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
+		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &hdr->eth.d_addr));
 		col += COLUMN_WIDTH_1;
-		wr_scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
+		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &hdr->eth.s_addr));
 		col += COLUMN_WIDTH_1;
 
@@ -174,7 +174,7 @@ pktgen_print_pcap(uint16_t pid)
 		}
 
 		if (type == ETHER_TYPE_IPv4) {
-			wr_scrn_printf(row,
+			scrn_printf(row,
 			               col,
 			               "%*s",
 			               COLUMN_WIDTH_1,
@@ -182,7 +182,7 @@ pktgen_print_pcap(uint16_t pid)
 			                          hdr->u.ipv4.dst,
 			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1;
-			wr_scrn_printf(row,
+			scrn_printf(row,
 			               col,
 			               "%*s",
 			               COLUMN_WIDTH_1 + 2,
@@ -194,7 +194,7 @@ pktgen_print_pcap(uint16_t pid)
 			snprintf(buff, sizeof(buff), "%d/%d",
 			         ntohs(hdr->u.uip.udp.sport),
 			         ntohs(hdr->u.uip.udp.dport));
-			wr_scrn_printf(row, col, "%*s", 12, buff);
+			scrn_printf(row, col, "%*s", 12, buff);
 			col += 12;
 		} else {
 			skip++;
@@ -206,14 +206,14 @@ pktgen_print_pcap(uint16_t pid)
 		         (type == PG_IPPROTO_TCP) ? "TCP" :
 		         (proto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
 		         (vlan & 0xFFF));
-		wr_scrn_printf(row, col, "%*s", 15, buff);
+		scrn_printf(row, col, "%*s", 15, buff);
 		col += 15;
-		wr_scrn_printf(row, col, "%5d", len);
+		scrn_printf(row, col, "%5d", len);
 
 		if (skip && (type < ETHER_TYPE_IPv4) )
-			wr_scrn_printf(row, col + 7, "<<< Skip %04x", type);
+			scrn_printf(row, col + 7, "<<< Skip %04x", type);
 		else if (skip && (type != ETHER_TYPE_IPv4) )
-			wr_scrn_printf(row, col + 7, " EthType %04x", type);
+			scrn_printf(row, col + 7, " EthType %04x", type);
 		row++;
 	}
 leave:
@@ -311,9 +311,9 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 			i++;
 		}
 
-		if (unlikely(wr_pcap_read(pcap, &hdr, buffer,
+		if (unlikely(_pcap_read(pcap, &hdr, buffer,
 		                          sizeof(buffer)) <= 0) ) {
-			wr_pcap_rewind(pcap);
+			_pcap_rewind(pcap);
 			continue;
 		}
 
@@ -357,15 +357,15 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 	if ( (pcap == NULL) || (info == NULL) )
 		return -1;
 
-	wr_pcap_rewind(pcap);
+	_pcap_rewind(pcap);
 
 	snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP TX", info->pid, qid);
 	rte_printf_status("    Process: %-*s ", 18, name);
 
 	pkt_sizes = elt_count = i = 0;
 
-	/* The wr_pcap_open left the file pointer to the first packet. */
-	while (wr_pcap_read(pcap, &hdr, buffer, sizeof(buffer)) > 0) {
+	/* The pcap_open left the file pointer to the first packet. */
+	while (_pcap_read(pcap, &hdr, buffer, sizeof(buffer)) > 0) {
 		/* Skip any jumbo packets or packets that are too small */
 		len = hdr.incl_len;
 
@@ -389,7 +389,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		info->pcap->pkt_count   = elt_count;
 		info->pcap->pkt_idx     = 0;
 
-		wr_pcap_rewind(pcap);
+		_pcap_rewind(pcap);
 
 		/* Round up the count and size to allow for TX ring size. */
 		if (elt_count < MAX_MBUFS_PER_PORT)
@@ -402,8 +402,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		                elt_count,
 		                MBUF_SIZE,
 		                0,
-		                sizeof(struct
-		                       rte_pktmbuf_pool_private),
+		                sizeof(struct rte_pktmbuf_pool_private),
 		                rte_pktmbuf_pool_init,
 		                NULL,
 		                pktgen_pcap_mbuf_ctor,

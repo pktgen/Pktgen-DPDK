@@ -2,7 +2,7 @@
  * SOURCE: pktgen-ipv4.c
  * STUB: pktgen.h pktgen-log.h
  *
- * LIBS: libwr_common libwr_scrn
+ * LIBS: libpg_common libpg_scrn
  */
 
 #include "pktgen.h"

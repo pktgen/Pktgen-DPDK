@@ -68,7 +68,7 @@
 #ifndef _PKTGEN_PCAP_H_
 #define _PKTGEN_PCAP_H_
 
-#include <wr_pcap.h>
+#include <_pcap.h>
 
 struct port_info_s;
 

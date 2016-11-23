@@ -84,15 +84,15 @@
 #include <rte_devargs.h>
 #include <rte_debug.h>
 
-#include "wr_scrn.h"
-#include "wr_port_config.h"
-#include "wr_core_info.h"
+#include "scrn.h"
+#include "port_config.h"
+#include "core_info.h"
 
 #define PORT_STRING_SIZE    256
 
 /**************************************************************************//**
  *
- * wr_get_portdesc - Parse the lspci command output to find ports.
+ * get_portdesc - Parse the lspci command output to find ports.
  *
  * DESCRIPTION
  * Parse the lspci command output to find valid ports to use.
@@ -103,7 +103,7 @@
  */
 
 uint32_t
-wr_get_portdesc(struct rte_pci_addr *pciAddr,
+get_portdesc(struct rte_pci_addr *pciAddr,
                 uint8_t **portdesc,
                 uint32_t num,
                 int verbose)
@@ -160,7 +160,7 @@ wr_get_portdesc(struct rte_pci_addr *pciAddr,
 
 /**************************************************************************//**
  *
- * wr_free_portdesc - Free the allocated memory for port descriptions.
+ * free_portdesc - Free the allocated memory for port descriptions.
  *
  * DESCRIPTION
  * Free the allocated memory for the port descriptions
@@ -171,7 +171,7 @@ wr_get_portdesc(struct rte_pci_addr *pciAddr,
  */
 
 void
-wr_free_portdesc(uint8_t **portdesc, uint32_t num)
+free_portdesc(uint8_t **portdesc, uint32_t num)
 {
 	uint32_t i;
 
@@ -184,7 +184,7 @@ wr_free_portdesc(uint8_t **portdesc, uint32_t num)
 
 /**************************************************************************//**
  *
- * wr_create_blacklist - Create a port blacklist.
+ * create_blacklist - Create a port blacklist.
  *
  * DESCRIPTION
  * Create a port blacklist from the port and port descriptions.
@@ -195,7 +195,7 @@ wr_free_portdesc(uint8_t **portdesc, uint32_t num)
  */
 
 uint32_t
-wr_create_blacklist(uint64_t portmask,
+create_blacklist(uint64_t portmask,
                     struct rte_pci_addr *portlist,
                     uint32_t port_cnt,
                     uint8_t *desc[]) {

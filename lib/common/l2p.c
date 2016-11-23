@@ -84,10 +84,10 @@
 #include <rte_debug.h>
 #include <rte_memory.h>
 
-#include "wr_scrn.h"
-#include "wr_l2p.h"
-#include "wr_core_info.h"
-#include "wr_utils.h"
+#include "scrn.h"
+#include "l2p.h"
+#include "core_info.h"
+#include "utils.h"
 
 #define countof(t)      (sizeof(t) / sizeof(t[0]))
 
@@ -123,7 +123,7 @@ _bset(uint8_t *p, uint8_t idx) {
 
 /**************************************************************************//**
  *
- * wr_parse_portmask - Parse the portmask from the command line.
+ * pg_parse_portmask - Parse the portmask from the command line.
  *
  * DESCRIPTION
  * Parse the portmask string from the command line.
@@ -134,14 +134,14 @@ _bset(uint8_t *p, uint8_t idx) {
  */
 
 uint32_t
-wr_parse_portmask(const char *portmask)
+pg_parse_portmask(const char *portmask)
 {
 	return strtoul(portmask, NULL, 0);
 }
 
 /**************************************************************************//**
  *
- * wr_parse_rt_list - Parse the Rx/Tx list string.
+ * pg_parse_rt_list - Parse the Rx/Tx list string.
  *
  * DESCRIPTION
  * Parse the Rx/Tx list string and update the bitmaps.
@@ -152,7 +152,7 @@ wr_parse_portmask(const char *portmask)
  */
 
 static int32_t
-wr_parse_rt_list(char *list, uint8_t *map)
+pg_parse_rt_list(char *list, uint8_t *map)
 {
 	char      *p;
 	int32_t k, i;
@@ -161,12 +161,12 @@ wr_parse_rt_list(char *list, uint8_t *map)
 	if (list == NULL)
 		return 1;
 
-	p = wr_strtrimset(list, "[]{}");/* trim the two character sets from the front/end of string. */
+	p = pg_strtrimset(list, "[]{}");/* trim the two character sets from the front/end of string. */
 	if ( (p == NULL) || (*p == '\0') )
 		return 1;
 
 	/* Split up the string by '/' for each list or range set */
-	k = wr_strparse(p, "/", arr, countof(arr));
+	k = pg_strparse(p, "/", arr, countof(arr));
 	if (k == 0)
 		return 1;
 
@@ -188,7 +188,7 @@ wr_parse_rt_list(char *list, uint8_t *map)
 
 /**************************************************************************//**
  *
- * wr_parse_lcore_list - Parse the lcore list string.
+ * pg_parse_lcore_list - Parse the lcore list string.
  *
  * DESCRIPTION
  * Parse the lcore list strings.
@@ -199,27 +199,27 @@ wr_parse_rt_list(char *list, uint8_t *map)
  */
 
 static int32_t
-wr_parse_lcore_list(char *list, ls_t *ls)
+pg_parse_lcore_list(char *list, ls_t *ls)
 {
 	char      *arr[3];
 	int32_t k;
 
 	/* Split up the string based on the ':' for Rx:Tx pairs */
-	k = wr_strparse(list, ":", arr, countof(arr) );
+	k = pg_strparse(list, ":", arr, countof(arr) );
 	if ( (k == 0) || (k == 3) ) {
 		fprintf(stderr, "*** Invalid string (%s)\n", list);
 		return 1;
 	}
 
 	if (k == 1) {							/* Must be a lcore/port number only */
-		wr_parse_rt_list(arr[0], ls[RX_IDX].ls);		/* Parse the list with no ':' character */
+		pg_parse_rt_list(arr[0], ls[RX_IDX].ls);		/* Parse the list with no ':' character */
 		memcpy(ls[TX_IDX].ls, ls[RX_IDX].ls, sizeof(ls_t));	/* Update the tx bitmap too. */
 	} else {							/* k == 2 */						/*
 									 * Must be a <rx-list>:<tx-list> pair */
-		if (wr_parse_rt_list(arr[0], ls[RX_IDX].ls) )		/* parse <rx-list> */
+		if (pg_parse_rt_list(arr[0], ls[RX_IDX].ls) )		/* parse <rx-list> */
 			return 1;
 
-		if (wr_parse_rt_list(arr[1], ls[TX_IDX].ls) )	/* parse <tx-list> */
+		if (pg_parse_rt_list(arr[1], ls[TX_IDX].ls) )	/* parse <tx-list> */
 			return 1;
 	}
 	return 0;
@@ -227,7 +227,7 @@ wr_parse_lcore_list(char *list, ls_t *ls)
 
 /**************************************************************************//**
  *
- * wr_parse_port_list - Parse the port list string.
+ * pg_parse_port_list - Parse the port list string.
  *
  * DESCRIPTION
  * Parse the port list strings.
@@ -238,34 +238,34 @@ wr_parse_lcore_list(char *list, ls_t *ls)
  */
 
 static int32_t
-wr_parse_port_list(char *list, ps_t *ps)
+pg_parse_port_list(char *list, ps_t *ps)
 {
 	char      *arr[3];
 	int32_t k;
 
 	/* Split up the string based on the ':' for Rx:Tx pairs */
-	k = wr_strparse(list, ":", arr, countof(arr) );
+	k = pg_strparse(list, ":", arr, countof(arr) );
 	if ( (k == 0) || (k == 3) ) {
 		fprintf(stderr, "*** Invalid string (%s)\n", list);
 		return 1;
 	}
 
 	if (k == 1) {							/* Must be a lcore/port number only */
-		wr_parse_rt_list(arr[0], ps[RX_IDX].ps);		/* Parse the list with no ':' character */
+		pg_parse_rt_list(arr[0], ps[RX_IDX].ps);		/* Parse the list with no ':' character */
 		memcpy(ps[TX_IDX].ps, ps[RX_IDX].ps, sizeof(ps_t));	/* Update the tx bitmap too. */
 	} else {							/* k == 2 */						/*
 									 * Must be a <rx-list>:<tx-list> pair */
-		if (wr_parse_rt_list(arr[0], ps[RX_IDX].ps) )		/* parse <rx-list> */
+		if (pg_parse_rt_list(arr[0], ps[RX_IDX].ps) )		/* parse <rx-list> */
 			return 1;
 
-		if (wr_parse_rt_list(arr[1], ps[TX_IDX].ps) )	/* parse <tx-list> */
+		if (pg_parse_rt_list(arr[1], ps[TX_IDX].ps) )	/* parse <tx-list> */
 			return 1;
 	}
 	return 0;
 }
 
 static inline void
-wr_dump_lcore_map(const char *t, uint8_t *m) {
+pg_dump_lcore_map(const char *t, uint8_t *m) {
 	int i;
 
 	fprintf(stderr, "%s( ", t);
@@ -277,7 +277,7 @@ wr_dump_lcore_map(const char *t, uint8_t *m) {
 }
 
 static inline void
-wr_dump_port_map(const char *t, uint8_t *m) {
+pg_dump_port_map(const char *t, uint8_t *m) {
 	int i;
 
 	fprintf(stderr, "%s( ", t);
@@ -290,7 +290,7 @@ wr_dump_port_map(const char *t, uint8_t *m) {
 
 /**************************************************************************//**
  *
- * wr_parse_matrix - Parse the command line argument for port configuration
+ * pg_parse_matrix - Parse the command line argument for port configuration
  *
  * DESCRIPTION
  * Parse the command line argument for port configuration.
@@ -333,7 +333,7 @@ wr_dump_port_map(const char *t, uint8_t *m) {
  */
 
 int
-wr_parse_matrix(l2p_t *l2p, char *str)
+pg_parse_matrix(l2p_t *l2p, char *str)
 {
 	char      *lcore_port[MAX_MATRIX_ENTRIES];
 	char buff[256];
@@ -342,10 +342,10 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 	lp_t lp;
 	rxtx_t cnt, n;
 
-	wr_strccpy(buff, str, " \r\n\t\"");
+	pg_strccpy(buff, str, " \r\n\t\"");
 
 	/* Split up the string into <lcore-port>, ... */
-	k = wr_strparse(buff, ",", lcore_port, countof(lcore_port));
+	k = pg_strparse(buff, ",", lcore_port, countof(lcore_port));
 	if (k <= 0) {
 		fprintf(stderr, "%s: could not parse (%s) string\n",
 		        __FUNCTION__, buff);
@@ -360,7 +360,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 		strncpy(str, lcore_port[i], sizeof(str));
 
 		/* Parse the string into <lcore-list> and <port-list> */
-		m = wr_strparse(lcore_port[i], ".", arr, 3);
+		m = pg_strparse(lcore_port[i], ".", arr, 3);
 		if (m != 2) {
 			fprintf(stderr,
 			        "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
@@ -371,7 +371,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 
 		memset(&lp, '\0', sizeof(lp));
 
-		if (wr_parse_lcore_list(arr[0], lp.lcores) ) {
+		if (pg_parse_lcore_list(arr[0], lp.lcores) ) {
 			fprintf(stderr,
 			        "%s: could not parse <lcore-list> (%s) string\n",
 			        __FUNCTION__,
@@ -379,7 +379,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 			return 0;
 		}
 
-		if (wr_parse_port_list(arr[1], lp.ports) ) {
+		if (pg_parse_port_list(arr[1], lp.ports) ) {
 			fprintf(stderr,
 			        "%s: could not parse <port-list> (%s) string\n",
 			        __FUNCTION__,
@@ -389,11 +389,11 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 
 		/* Handle the lcore and port list maps */
 		fprintf(stderr, "%-16s lcores: ", str);
-		wr_dump_lcore_map("RX", lp.lcores[RX_IDX].ls);
-		wr_dump_lcore_map("TX", lp.lcores[TX_IDX].ls);
+		pg_dump_lcore_map("RX", lp.lcores[RX_IDX].ls);
+		pg_dump_lcore_map("TX", lp.lcores[TX_IDX].ls);
 		fprintf(stderr, " ports: ");
-		wr_dump_port_map("RX", lp.ports[RX_IDX].ps);
-		wr_dump_port_map("TX", lp.ports[TX_IDX].ps);
+		pg_dump_port_map("RX", lp.ports[RX_IDX].ps);
+		pg_dump_port_map("TX", lp.ports[TX_IDX].ps);
 		fprintf(stderr, "\n");
 
 		for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
@@ -413,7 +413,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 					pid_type |= TX_TYPE;
 				if (pid_type == 0)
 					continue;
-				wr_l2p_connect(l2p, pid, lid, lid_type);
+				l2p_connect(l2p, pid, lid, lid_type);
 			}
 		}
 	}
@@ -421,7 +421,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
 		n.rxtx = 0;
 		for (lid = 0; lid < RTE_MAX_LCORE; lid++)
-			if ( (cnt.rxtx = wr_get_map(l2p, pid, lid)) > 0) {
+			if ( (cnt.rxtx = get_map(l2p, pid, lid)) > 0) {
 				if (cnt.tx > 0)
 					n.tx++;
 				if (cnt.rx > 0)
@@ -432,7 +432,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
 		n.rxtx = 0;
 		for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++)
-			if ( (cnt.rxtx = wr_get_map(l2p, pid, lid)) > 0) {
+			if ( (cnt.rxtx = get_map(l2p, pid, lid)) > 0) {
 				if (cnt.tx > 0)
 					n.tx++;
 				if (cnt.rx > 0)
@@ -446,7 +446,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
 
 /**************************************************************************//**
  *
- * wr_port_matrix_dump - Dump out the matrix for all ports
+ * pg_port_matrix_dump - Dump out the matrix for all ports
  *
  * DESCRIPTION
  * Display the matrix of ports and mappings for all ports.
@@ -457,7 +457,7 @@ wr_parse_matrix(l2p_t *l2p, char *str)
  */
 
 void
-wr_port_matrix_dump(l2p_t *l2p)
+pg_port_matrix_dump(l2p_t *l2p)
 {
 	uint32_t pid, lid;
 	uint8_t first, last;
@@ -466,7 +466,7 @@ wr_port_matrix_dump(l2p_t *l2p)
 	first = last = 0;
 
 	printf("\n=== port to lcore mapping table (# lcores %d) ===\n",
-	       wr_lcore_mask(&first, &last));
+	       lcore_mask(&first, &last));
 
 	printf("   lcore: ");
 	for (lid = first; lid <= last; lid++)
@@ -474,24 +474,24 @@ wr_port_matrix_dump(l2p_t *l2p)
 	printf("\n");
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = wr_get_map(l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(l2p, pid, RTE_MAX_LCORE);
 		if (cnt.rxtx == 0)
 			continue;
 		printf("port  %2d:", pid);
 		for (lid = first; lid <= last; lid++) {
-			cnt.rxtx = wr_get_map(l2p, pid, lid);
+			cnt.rxtx = get_map(l2p, pid, lid);
 			if (lid == rte_get_master_lcore() )
 				printf(" %s:%s", " D", " T");
 			else
 				printf(" %2d:%2d", cnt.rx, cnt.tx);
 		}
-		cnt.rxtx = wr_get_map(l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(l2p, pid, RTE_MAX_LCORE);
 		printf(" = %2d:%2d\n", cnt.rx, cnt.tx);
 	}
 
 	printf("Total   :");
 	for (lid = first; lid <= last; lid++) {
-		cnt.rxtx = wr_get_map(l2p, RTE_MAX_ETHPORTS, lid);
+		cnt.rxtx = get_map(l2p, RTE_MAX_ETHPORTS, lid);
 		printf(" %2d:%2d", cnt.rx, cnt.tx);
 	}
 

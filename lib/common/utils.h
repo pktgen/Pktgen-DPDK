@@ -65,36 +65,55 @@
  */
 /* Created 2014 by Keith Wiles @ intel.com */
 
-#ifndef __INC_LSCPU_H
-#define __INC_LSCPU_H
+#ifndef _UTILS_H_
+#define _UTILS_H_
 
-typedef struct action_s {
-	const char  *str;
-	void (*func)(struct action_s *action, char *line);
-	int arg;
-	int flags;
-} action_t;
+/**************************************************************************//**
+ * The function is a wrapper around strdup() and will free the previous string
+ * if the pointer is present.
+ */
 
-#define ONLY_ONCE_FLAG  0x0001
+static __inline__ char *
+pg_strdupf(char *str, char *new) {
+	if (str) free(str);
+	return (new == NULL) ? NULL : strdup(new);
+}
 
-#define MAX_LINE_SIZE   1024
+/**************************************************************************//**
+ * Trim a set of characters like "[]" or "{}" from the start and end of string.
+ * The <set> string is a set of two character values to be removed from the string.
+ * The <set> string must be an even number of characters long as each set is
+ * two characters and can be any characters you want to call a set.
+ */
 
-typedef struct {
-	int num_cpus;
-	int threads_per_core;
-	int cores_per_socket;
-	int numa_nodes;
-	char      *cpu_mhz;
-	char      *model_name;
-	char      *cpu_flags;
-	char      *cache_size;
-	/* char	  * dummy; */
-	short numa_cpus[RTE_MAX_NUMA_NODES][RTE_MAX_LCORE];
-} lscpu_t;
+static __inline__ char *
+pg_strtrimset(char *str, const char *set)
+{
+	int len;
 
-#define LSCPU_PATH      "/usr/bin/lscpu"
-#define CPU_PROC_PATH   "cat /proc/cpuinfo"
+	len = strlen(set);
+	if ( (len == 0) || (len & 1) )
+		return NULL;
 
-extern lscpu_t *wr_lscpu_info(const char *lscpu_path, const char *proc_path);
+	for (; set && (set[0] != '\0'); set += 2) {
+		if (*str != *set)
+			continue;
 
-#endif
+		if (*str == *set++)
+			str++;
+
+		len = strlen(str);
+		if (len && (str[len - 1] == *set) )
+			str[len - 1] = '\0';
+	}
+	return str;
+}
+
+extern uint32_t pg_strparse(char *s,
+                            const char *delim,
+                            char **entries,
+                            uint32_t max_entries);
+extern char *pg_strtrim(char *line);
+extern char *pg_strccpy(char *t, char *f, const char *str);
+
+#endif /* _UTILS_H_ */

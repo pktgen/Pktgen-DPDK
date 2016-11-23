@@ -70,8 +70,8 @@ struct lcore_config lcore_config[RTE_MAX_LCORE];
 
 #ifdef STUB_RTE_SCRN_H
 
-#include <wr_scrn.h>
-wr_scrn_t *scrn;
+#include <scrn.h>
+scrn_t *scrn;
 
 #endif
 

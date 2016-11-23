@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2010-2016>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,22 +137,22 @@
 #include <cmdline_parse_portlist.h>
 #include <cmdline.h>
 
-#include <wr_scrn.h>
+#include <scrn.h>
 
-#include <wr_copyright_info.h>
-#include <wr_l2p.h>
-#include <wr_port_config.h>
-#include <wr_core_info.h>
+#include <copyright_info.h>
+#include <l2p.h>
+#include <port_config.h>
+#include <core_info.h>
 
-#include <wr_pcap.h>
-#include <wr_inet.h>
-#include <wr_cksum.h>
+#include <_pcap.h>
+#include <inet.h>
+#include <cksum.h>
 
-#include <wr_cycles.h>
-#include <wr_mbuf.h>
-#include <wr_coremap.h>
-#include <wr_lscpu.h>
-#include <wr_utils.h>
+#include <cycles.h>
+#include <mbuf.h>
+#include <coremap.h>
+#include <lscpu.h>
+#include <utils.h>
 
 #include "pktgen-port-cfg.h"
 #include "pktgen-capture.h"
@@ -161,7 +161,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.0.17"
+#define PKTGEN_VERSION          "3.1.0"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -312,7 +312,7 @@ typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
-	wr_scrn_t *scrn;	/**< Screen structure pointer */
+	scrn_t *scrn;	/**< Screen structure pointer */
 	cmd_files_t cmd_files; /**< Command file path and name */
 
 	int32_t socket_port;	/**< GUI port number */
@@ -392,8 +392,15 @@ enum {						/* Pktgen flags bits */
 	RND_BITFIELD_PAGE_FLAG  = (1 << 21),	/**< Display the random bitfield page */
 	LOG_PAGE_FLAG           = (1 << 22),	/**< Display the message log page */
 	LATENCY_PAGE_FLAG       = (1 << 23),    /**< Display latency page */
-	STATS_PAGE_FLAG         = (1 << 24)     /**< Display the physical port stats */
+	STATS_PAGE_FLAG         = (1 << 24),    /**< Display the physical port stats */
+
+	UPDATE_DISPLAY_FLAG     = (1 << 31)
 };
+
+#define UPDATE_DISPLAY_RATE             2   /* two seconds */
+#define UPDATE_DISPLAY_TICK_INTERVAL    8
+#define UPDATE_DISPLAY_TICK_RATE        \
+            ((pktgen.hz * UPDATE_DISPLAY_RATE)/UPDATE_DISPLAY_TICK_INTERVAL)
 
 #define PAGE_MASK_BITS  (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
 	                     RANGE_PAGE_FLAG | \

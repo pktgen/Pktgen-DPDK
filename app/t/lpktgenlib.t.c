@@ -2,9 +2,9 @@
  * SOURCE: lpktgenlib.c
  * STUB: pktgen-cmds.h commands.h rte_cycles.h cmdline_parse_etheraddr.h
  * STUB: cmdline_parse_ipaddr.h cmdline_parse_portlist.h rte_timer.h
- * STUB: wr_copyright_info.h
+ * STUB: copyright_info.h
  *
- * LIBS: libwr_lua
+ * LIBS: libpg_lua
  * SYSLIBS: m dl pthread
  */
 

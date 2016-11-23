@@ -63,37 +63,38 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* Created 2013 by Keith Wiles @ intel.com */
+/* Created 2014 by Keith Wiles @ intel.com */
 
-#ifndef _WR_CORE_INFO_H
-#define _WR_CORE_INFO_H
+#ifndef __LSCPU_H
+#define __LSCPU_H
 
-/**************************************************************************//**
- *
- * Return the first and last lcore index values into the char pointers args.
- *
- * \returns number of lcores enabled.
- */
-static __inline__ uint32_t
-wr_lcore_mask(uint8_t *first, uint8_t *last) {
-	int32_t cnt, lid;
+typedef struct action_s {
+	const char  *str;
+	void (*func)(struct action_s *action, char *line);
+	int arg;
+	int flags;
+} action_t;
 
-	lid  = rte_get_master_lcore();
-	if (first)
-		*first  = lid;
+#define ONLY_ONCE_FLAG  0x0001
 
-	/* Count the number of lcores being used. */
-	for (cnt = 0; lid < RTE_MAX_LCORE; lid++) {
-		if (!rte_lcore_is_enabled(lid) )
-			continue;
-		cnt++;
-		if (last)
-			*last = lid;
-	}
+#define MAX_LINE_SIZE   1024
 
-	return cnt;
-}
+typedef struct {
+	int num_cpus;
+	int threads_per_core;
+	int cores_per_socket;
+	int numa_nodes;
+	char      *cpu_mhz;
+	char      *model_name;
+	char      *cpu_flags;
+	char      *cache_size;
+	/* char	  * dummy; */
+	short numa_cpus[RTE_MAX_NUMA_NODES][RTE_MAX_LCORE];
+} lscpu_t;
 
-extern uint32_t wr_sct_convert(char *sct[]);
+#define LSCPU_PATH      "/usr/bin/lscpu"
+#define CPU_PROC_PATH   "cat /proc/cpuinfo"
 
-#endif /* _WR_CORE_INFO_H */
+extern lscpu_t *lscpu_info(const char *lscpu_path, const char *proc_path);
+
+#endif

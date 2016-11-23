@@ -29,21 +29,89 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#ifndef __WR_CKSUM_H
-#define __WR_CKSUM_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdarg.h>
 
-extern uint16_t     cksum(void *pBuf, int32_t size, uint32_t cksum);
-extern uint32_t     cksumUpdate(void *pBuf, int32_t size, uint32_t cksum);
-extern uint16_t     cksumDone(uint32_t cksum);
-extern uint32_t     pseudoChecksum(uint32_t src, uint32_t dst,
-                                   uint16_t proto, uint16_t len,
-                                   uint32_t cksum);
-extern uint32_t     pseudoIPv6Checksum(uint16_t *src,
-                                       uint16_t *dst,
-                                       uint8_t next_hdr,
-                                       uint32_t total_len,
-                                       uint32_t sum);
+#include <rte_config.h>
+#include <rte_atomic.h>
+#include <rte_malloc.h>
 
-#endif /* __WR_CKSUM_H */
+#include "scrn.h"
+
+scrn_t   *__scrn;		/**< Global screen structure pointer, their can be only one */
+
+void
+scrn_center(int16_t r, int16_t ncols, const char *fmt, ...)
+{
+	va_list vaList;
+	char str[512];
+
+	if (ncols == -1)
+		ncols = __scrn->ncols;
+	va_start(vaList, fmt);
+	vsnprintf(str, sizeof(str), fmt, vaList);
+	va_end(vaList);
+	scrn_pos(r, scrn_center_col(ncols, str));
+	printf("%s", str);
+	fflush(stdout);
+}
+
+void
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
+{
+	va_list vaList;
+
+	if ( (r != 0) && (c != 0) )
+		scrn_pos(r, c);
+	va_start(vaList, fmt);
+	vprintf(fmt, vaList);
+	va_end(vaList);
+	fflush(stdout);
+}
+
+void
+scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...)
+{
+	va_list vaList;
+
+	if ( (r != 0) && (c != 0) )
+		scrn_pos(r, c);
+	va_start(vaList, fmt);
+	vfprintf(f, fmt, vaList);
+	va_end(vaList);
+	fflush(f);
+}
+
+scrn_t *
+scrn_init(int16_t nrows, int16_t ncols, int theme)
+{
+	scrn_t *scrn;
+
+	if (__scrn != NULL) {
+		free(__scrn);
+		__scrn = NULL;
+	}
+
+	scrn = malloc(sizeof(scrn_t));
+	if (scrn) {
+		rte_atomic32_set(&scrn->pause, SCRN_PAUSED);
+
+		scrn->nrows     = nrows;
+		scrn->ncols     = ncols;
+		scrn->theme     = theme;
+		scrn_color(DEFAULT_FG, DEFAULT_BG, OFF);
+
+		scrn_erase(nrows);
+	}
+
+	/* Save the global scrn_t pointer */
+	__scrn = scrn;
+
+	return scrn;
+}

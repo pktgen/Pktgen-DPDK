@@ -68,7 +68,7 @@
 #ifndef _PKTGEN_GTPU_H_
 #define _PKTGEN_GTPU_H_
 
-#include <wr_inet.h>
+#include <inet.h>
 
 #include "pktgen-seq.h"
 

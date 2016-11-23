@@ -98,7 +98,7 @@ extern int pktgen_gui_main(int argc, char *argv[]);
 void
 pktgen_l2p_dump(void)
 {
-	wr_raw_dump_l2p(pktgen.l2p);
+	pg_raw_dump_l2p(pktgen.l2p);
 }
 
 #include <poll.h>
@@ -282,7 +282,7 @@ pktgen_parse_args(int argc, char **argv)
 			break;
 
 		case 'm':	/* Matrix for port mapping. */
-			if (wr_parse_matrix(pktgen.l2p, optarg) == -1) {
+			if (pg_parse_matrix(pktgen.l2p, optarg) == -1) {
 				pktgen_log_error("invalid matrix string (%s)",
 				                 optarg);
 				pktgen_usage(prgname);
@@ -295,7 +295,7 @@ pktgen_parse_args(int argc, char **argv)
 			p = strchr(optarg, ':');
 			if ( (p == NULL) ||
 			     (pktgen.info[port].pcap =
-			              wr_pcap_open(++p, port)) == NULL) {
+			              _pcap_open(++p, port)) == NULL) {
 				pktgen_log_error(
 				        "Invalid PCAP filename (%s) must include port number as P:filename",
 				        optarg);
@@ -385,10 +385,10 @@ main(int argc, char **argv)
 	uint32_t i;
 	int32_t ret;
 
-	wr_scrn_setw(1);	/* Reset the window size, from possible crash run. */
-	wr_scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
+	scrn_setw(1);	/* Reset the window size, from possible crash run. */
+	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
-	printf("\n%s %s\n", wr_copyright_msg(), wr_powered_by());
+	printf("\n%s %s\n", copyright_msg(), powered_by());
 	fflush(stdout);
 
 	/* call before the rte_eal_init() */
@@ -402,10 +402,10 @@ main(int argc, char **argv)
 	pktgen.nb_txd           = DEFAULT_TX_DESC;
 	pktgen.nb_ports_per_page = DEFAULT_PORTS_PER_PAGE;
 
-	if ( (pktgen.l2p = wr_l2p_create()) == NULL)
+	if ( (pktgen.l2p = l2p_create()) == NULL)
 		pktgen_log_panic("Unable to create l2p");
 
-	pktgen.portdesc_cnt = wr_get_portdesc(pktgen.portlist,
+	pktgen.portdesc_cnt = get_portdesc(pktgen.portlist,
 	                                      pktgen.portdesc,
 	                                      RTE_MAX_ETHPORTS,
 	                                      0);
@@ -433,7 +433,7 @@ main(int argc, char **argv)
 
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 
-	wr_print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
+	print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
 	lua_newlib_add(_lua_openlib);
 
@@ -472,23 +472,22 @@ main(int argc, char **argv)
 	/* Disable printing log messages of level info and below to screen, */
 	/* erase the screen and start updating the screen again. */
 	pktgen_log_set_screen_level(LOG_LEVEL_WARNING);
-	wr_scrn_erase(pktgen.scrn->nrows);
+	scrn_erase(pktgen.scrn->nrows);
 
-	wr_logo(3, 16, PKTGEN_APP_NAME);
-	wr_splash_screen(3, 16, PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
+	splash_screen(3, 16, PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
-	wr_scrn_resume();
+	scrn_resume();
 
 	pktgen_redisplay(1);
 
 	rte_timer_setup();
 
 	if (pktgen.flags & ENABLE_GUI_FLAG) {
-		if (!wr_scrn_is_paused() ) {
-			wr_scrn_pause();
-			wr_scrn_cls();
-			wr_scrn_setw(1);
-			wr_scrn_pos(pktgen.scrn->nrows, 1);
+		if (!scrn_is_paused() ) {
+			scrn_pause();
+			scrn_cls();
+			scrn_setw(1);
+			scrn_pos(pktgen.scrn->nrows, 1);
 		}
 
 		lua_init_socket(pktgen.L,
@@ -506,10 +505,10 @@ main(int argc, char **argv)
 	execute_lua_close(pktgen.L);
 	pktgen_stop_running();
 
-	wr_scrn_pause();
+	scrn_pause();
 
-	wr_scrn_setw(1);
-	wr_scrn_printf(100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
+	scrn_setw(1);
+	scrn_printf(100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
 
 	/* Wait for all of the cores to stop running and exit. */
 	rte_eal_mp_wait_lcore();
@@ -541,5 +540,5 @@ pktgen_stop_running(void)
 	uint8_t lid;
 
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++)
-		wr_stop_lcore(pktgen.l2p, lid);
+		pg_stop_lcore(pktgen.l2p, lid);
 }

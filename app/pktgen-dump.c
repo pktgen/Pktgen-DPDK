@@ -167,15 +167,12 @@ pktgen_print_packet_dump(void)
 	char buff[4096];
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		if (wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
+		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
 		info = &pktgen.info[pid];
 		for (; info->dump_head < info->dump_tail; ++info->dump_head) {
-			pdata =
-			        (unsigned char *)info->dump_list[info->
-			                                         dump_head
-			        ].data;
+			pdata = (unsigned char *)info->dump_list[info->dump_head].data;
 			plen = info->dump_list[info->dump_head].len;
 
 			snprintf(buff, sizeof(buff),

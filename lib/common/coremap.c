@@ -54,7 +54,7 @@
 #include <getopt.h>
 #include <stdint.h>
 
-#include "wr_coremap.h"
+#include "coremap.h"
 
 static char *model_name;
 
@@ -368,7 +368,7 @@ count_cores(lcore_t *lcores)
 }
 
 int
-wr_coremap(const char *arg,
+coremap(const char *arg,
            lc_info_t *get_lcores,
            int max_cnt,
            const char *proc_cpuinfo)
@@ -468,7 +468,7 @@ _get_lcore_id(const lc_info_t *lc)
  * returned by the function 'get'
  */
 unsigned
-wr_coremap_cnt(const lc_info_t *lc, unsigned max_cnt, unsigned t)
+coremap_cnt(const lc_info_t *lc, unsigned max_cnt, unsigned t)
 {
 	_getter_fn get;
 	_getter_fn _type[] =

@@ -1,11 +1,11 @@
 /*
  * SOURCE: pktgen-seq.c
- * STUB: wr_copyright_info.h pktgen-display.h
+ * STUB: copyright_info.h pktgen-display.h
  */
 
-/* wr_scrn.h function stub */
+/* scrn.h function stub */
 void
-wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
 
 #include "pktgen.h"
 

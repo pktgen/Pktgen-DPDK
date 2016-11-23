@@ -141,7 +141,7 @@ pktgen_set_capture(port_info_t *info, uint32_t onOff)
 		if (rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS)
 			return;
 
-		if (wr_get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
+		if (get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
 			pktgen_log_warning(
 			        "Port %d has no RX queue: capture is not possible",
 			        info->pid);
@@ -151,12 +151,12 @@ pktgen_set_capture(port_info_t *info, uint32_t onOff)
 		/* Find an lcore that can capture packets for the requested port */
 		uint8_t lid_idx, lid, rxid;
 		for (lid_idx = 0;
-		     lid_idx < wr_get_port_nb_lids(pktgen.l2p, info->pid);
+		     lid_idx < get_port_nb_lids(pktgen.l2p, info->pid);
 		     ++lid_idx) {
-			lid = wr_get_port_lid(pktgen.l2p, info->pid, lid_idx);
+			lid = get_port_lid(pktgen.l2p, info->pid, lid_idx);
 			for (rxid = 0;
-			     rxid < wr_get_lcore_rxcnt(pktgen.l2p, lid); ++rxid)
-				if (wr_get_rx_pid(pktgen.l2p, lid,
+			     rxid < get_lcore_rxcnt(pktgen.l2p, lid); ++rxid)
+				if (get_rx_pid(pktgen.l2p, lid,
 				                  rxid) == info->pid)
 					goto found_rx_lid;
 		}
@@ -225,7 +225,7 @@ found_rx_lid:
 
 		/* This should never happen: capture cannot have been enabled when */
 		/* this condition is true. */
-		if (wr_get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
+		if (get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
 			pktgen_log_warning(
 			        "Port %d has no RX queue: capture is not possible",
 			        info->pid);

@@ -1,18 +1,18 @@
 /*
  * SOURCE: pktgen-pcap.c
- * STUB: pktgen.h rte_lcore.h wr_copyright_info.h wr_pcap.h
+ * STUB: pktgen.h rte_lcore.h copyright_info.h pcap.h
  * STUB: rte_mbuf.h rte_mempool.h rte_debug.h pktgen-display.h pktgen-log.h
  */
 
 #include "pktgen.h"
 
-/* wr_scrn.h function stub */
+/* scrn.h function stub */
 void
-wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
 void
-wr_scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...) {         }
+scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...) {         }
 void
-wr_scrn_center(int16_t r, const char *fmt, ...) {         }
+scrn_center(int16_t r, const char *fmt, ...) {         }
 
 pktgen_t pktgen;
 

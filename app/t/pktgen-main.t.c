@@ -1,16 +1,16 @@
 /*
  * SOURCE: pktgen-main.c
  * STUB: pktgen.h rte_cycles.h rte_debug.h rte_eal.h rte_timer.h cmdline.h
- * STUB: wr_l2p.h wr_pcap.h pktgen-display.h wr_copyright_info.h
- * STUB: wr_port_config.h rte_pci.h lua-socket.h pktgen-port-cfg.h
+ * STUB: l2p.h pcap.h pktgen-display.h copyright_info.h
+ * STUB: port_config.h rte_pci.h lua-socket.h pktgen-port-cfg.h
  * STUB: rte_launch.h pktgen-cmds.h commands.h pktgen-log.h
  */
 
-#include <wr_scrn.h>
-wr_scrn_t *scrn = NULL;
-/* wr_scrn.h function stub */
+#include <scrn.h>
+scrn_t *scrn = NULL;
+/* scrn.h function stub */
 void
-wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
 
 #include "pktgen.h"
 

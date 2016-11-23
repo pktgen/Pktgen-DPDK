@@ -134,7 +134,7 @@ pktgen_script_save(char *path)
 			lcore |= (1 << i);
 
 	fprintf(fd, "#\n# Pktgen - %s\n", pktgen_version());
-	fprintf(fd, "# %s, %s\n\n", wr_copyright_msg(), wr_powered_by());
+	fprintf(fd, "# %s, %s\n\n", copyright_msg(), powered_by());
 
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
 	fprintf(fd, "# Command line arguments: (DPDK args are defaults)\n");
@@ -470,7 +470,7 @@ pktgen_lua_save(char *path)
 			lcore |= (1 << i);
 
 	fprintf(fd, "--\n-- Pktgen - %s\n", pktgen_version());
-	fprintf(fd, "-- %s, %s\n\n", wr_copyright_msg(), wr_powered_by());
+	fprintf(fd, "-- %s, %s\n\n", copyright_msg(), powered_by());
 
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
 	fprintf(fd, "-- Command line arguments: (DPDK args are defaults)\n");
@@ -1032,16 +1032,16 @@ pktgen_flags_string(port_info_t *info)
 void
 pktgen_redisplay(int cls_flag)
 {
-	if (wr_scrn_is_paused() )
+	if (scrn_is_paused() )
 		return;
 
-	wr_scrn_pause();
+	scrn_pause();
 	if (cls_flag) {
-		wr_scrn_cls();
-		wr_scrn_pos(100, 1);
+		scrn_cls();
+		scrn_pos(100, 1);
 	}
 	pktgen.flags |= PRINT_LABELS_FLAG;
-	wr_scrn_resume();
+	scrn_resume();
 
 	pktgen_page_display(NULL, NULL);
 }
@@ -1061,7 +1061,7 @@ pktgen_redisplay(int cls_flag)
 void
 pktgen_update_display(void)
 {
-	pktgen_redisplay(0);
+    pktgen.flags |= UPDATE_DISPLAY_FLAG;
 }
 
 /**************************************************************************//**
@@ -1111,17 +1111,17 @@ pktgen_screen(const char *onOff)
 	pktgen_display_get_geometry(&rows, NULL);
 
 	if (parseState(onOff) == DISABLE_STATE) {
-		if (!wr_scrn_is_paused() ) {
-			wr_scrn_pause();
-			wr_scrn_cls();
-			wr_scrn_setw(1);
-			wr_scrn_pos(100, 1);
+		if (!scrn_is_paused() ) {
+			scrn_pause();
+			scrn_cls();
+			scrn_setw(1);
+			scrn_pos(100, 1);
 		}
 	} else {
-		wr_scrn_cls();
-		wr_scrn_pos(100, 1);
-		wr_scrn_setw(pktgen.last_row + 1);
-		wr_scrn_resume();
+		scrn_cls();
+		scrn_pos(100, 1);
+		scrn_setw(pktgen.last_row + 1);
+		scrn_resume();
 		pktgen_redisplay(1);
 	}
 }
@@ -1372,14 +1372,14 @@ pktgen_mempool_dump(port_info_t *info, char *name)
 	if (info->q[0].tx_mp == NULL)
 		return;
 
-	for (q = 0; q < wr_get_port_rxcnt(pktgen.l2p, info->pid); q++)
+	for (q = 0; q < get_port_rxcnt(pktgen.l2p, info->pid); q++)
 		if (all || !strcmp(name, "rx") )
 			rte_mempool_dump(stdout, info->q[q].rx_mp);
-	for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++) {
+	for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++) {
 		if (all ||
 		    (!strcmp(name,
 		             "tx") &&
-		     (q < wr_get_port_txcnt(pktgen.l2p, info->pid))) )
+		     (q < get_port_txcnt(pktgen.l2p, info->pid))) )
 			__mempool_dump(stdout, info->q[q].tx_mp);
 		if (all || !strcmp(name, "range") )
 			__mempool_dump(stdout, info->q[q].range_mp);
@@ -1410,7 +1410,7 @@ pktgen_start_transmitting(port_info_t *info)
 	uint8_t q;
 
 	if (!(rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) ) {
-		for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
+		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 
 		rte_atomic64_set(&info->current_tx_count,
@@ -1442,7 +1442,7 @@ pktgen_stop_transmitting(port_info_t *info)
 
 	if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
 		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
-		for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
+		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, DO_TX_FLUSH);
 	}
 }
@@ -1465,12 +1465,12 @@ pktgen_prime_ports(port_info_t *info)
 {
 	uint8_t q;
 
-	for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
+	for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 		pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 	rte_atomic64_set(&info->current_tx_count, info->prime_cnt);
 	pktgen_set_port_flags(info, SENDING_PACKETS);
 	rte_delay_ms(300);
-	for (q = 0; q < wr_get_port_txcnt(pktgen.l2p, info->pid); q++)
+	for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 		pktgen_set_q_flags(info, q, DO_TX_FLUSH);
 }
 
@@ -1966,9 +1966,9 @@ pktgen_clear_stats(port_info_t *info)
 void
 pktgen_cls(void)
 {
-	if (wr_scrn_is_paused() ) {
-		wr_scrn_cls();
-		wr_scrn_pos(100, 1);
+	if (scrn_is_paused() ) {
+		scrn_cls();
+		scrn_pos(100, 1);
 	} else	/* Update the display quickly. */
 		pktgen_redisplay(1);
 }
@@ -2155,10 +2155,12 @@ void
 pktgen_reset(port_info_t *info)
 {
 	uint32_t s;
+    char off[8];
 
 	if (info == NULL)
 		info = &pktgen.info[0];
 
+    strcpy(off, "off");
 	pktgen_stop_transmitting(info);
 
 	pktgen.flags &= ~MAC_FROM_ARP_FLAG;
@@ -2172,6 +2174,11 @@ pktgen_reset(port_info_t *info)
 
 		pktgen_range_setup(info);
 		pktgen_clear_stats(info);
+
+        pktgen_range_enable_disable(info, off);
+        memset(info->rnd_bitfields, 0, sizeof(struct rnd_bits_s));
+        pktgen_rnd_bits_init(&info->rnd_bitfields);
+        pktgen_set_port_seqCnt(info, 0);
 	}
 
 	pktgen.flags &= ~PRINT_LABELS_FLAG;

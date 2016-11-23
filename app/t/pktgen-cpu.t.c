@@ -1,18 +1,18 @@
 /*
  * SOURCE: pktgen-cpu.c
- * STUB: wr_copyright_info.h wr_coremap.h wr_lscpu.h wr_l2p.h
+ * STUB: copyright_info.h coremap.h lscpu.h l2p.h
  * STUB: pktgen-display.h pktgen-log.h
  *
- * xLIBS: libwr_common libwr_scrn librte_eal librte_mempool librte_malloc
+ * xLIBS: libpg_common libpg_scrn librte_eal librte_mempool librte_malloc
  * xLIBS: librte_pmd_ring librte_ring libethdev
  * xSYSLIBS: pthread
  */
 
 #include "pktgen.h"
 
-/* wr_scrn.h function stub */
+/* scrn.h function stub */
 void
-wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
 
 pktgen_t pktgen;
 

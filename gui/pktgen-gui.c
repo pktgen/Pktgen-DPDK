@@ -109,7 +109,7 @@ fill_chassis_info(void)
 	chassis_store(toplevel, "[127.0.0.1]");
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
 		if (cnt.rxtx == 0)
 			continue;
 
@@ -305,7 +305,7 @@ update_port_statistics(void *arg)
 		return TRUE;
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
 		if (cnt.rxtx == 0)
 			continue;
 
@@ -1239,7 +1239,7 @@ show_static_conf(void)
 
 	/* Create columns of statistics for selected ports on the table */
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
 		if (cnt.rxtx == 0)
 			continue;
 
@@ -1319,7 +1319,7 @@ show_statistics(void)
 
 	/* Create columns of statistics for selected ports on the table */
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
 		if (cnt.rxtx == 0)
 			continue;
 

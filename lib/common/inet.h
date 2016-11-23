@@ -65,8 +65,8 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#ifndef __WR_INET_H
-#define __WR_INET_H
+#ifndef __INET_H
+#define __INET_H
 
 #define IPv4_VERSION    4
 #define IPv6_VERSION    6
@@ -778,4 +778,4 @@ inet_h64tom(uint64_t value, struct ether_addr *eaddr) {
 	return eaddr;
 }
 
-#endif /* __WR_INET_H */
+#endif /* __INET_H */

@@ -15,9 +15,9 @@
 /* pktgen global variable stub */
 pktgen_t pktgen;
 
-/* wr_scrn.h function stub */
+/* scrn.h function stub */
 void
-wr_scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...) {         }
+scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...) {         }
 
 /* Mock data structures */
 capture_t _c;

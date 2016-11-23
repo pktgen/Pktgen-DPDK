@@ -93,14 +93,14 @@
 #include <rte_byteorder.h>
 #include <rte_errno.h>
 
-#include "wr_copyright_info.h"
-#include "wr_port_config.h"
+#include "copyright_info.h"
+#include "port_config.h"
 
-#include "wr_scrn.h"
-#include "wr_inet.h"
-#include "wr_cycles.h"
-#include "wr_mbuf.h"
-#include "wr_cksum.h"
+#include "scrn.h"
+#include "inet.h"
+#include "cycles.h"
+#include "mbuf.h"
+#include "cksum.h"
 
 /**************************************************************************//**
  * cksum - Compute a 16 bit ones complement checksum value.

@@ -69,9 +69,9 @@
 #define _PKTGEN_DISPLAY_H_
 
 /* TODO create pktgen_display_*() abstractions and remove this #include */
-#include <wr_scrn.h>
+#include <scrn.h>
 
-#include <wr_copyright_info.h>
+#include <copyright_info.h>
 
 #include "pktgen.h"
 

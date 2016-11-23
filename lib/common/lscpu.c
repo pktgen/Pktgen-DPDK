@@ -40,8 +40,8 @@
 #include <getopt.h>
 #include <stdint.h>
 
-#include "wr_utils.h"
-#include "wr_lscpu.h"
+#include "utils.h"
+#include "lscpu.h"
 
 static lscpu_t  *lscpu;
 
@@ -69,7 +69,7 @@ static __inline__ void
 cpu_mhz(action_t *act, char *line)
 {
 	if ( (act->flags & ONLY_ONCE_FLAG) == 0) {
-		lscpu->cpu_mhz = wr_strdupf(lscpu->cpu_mhz, line);
+		lscpu->cpu_mhz = pg_strdupf(lscpu->cpu_mhz, line);
 		act->flags |= ONLY_ONCE_FLAG;
 	}
 }
@@ -83,7 +83,7 @@ numa_nodeX_cpus(action_t *act, char *line)
 
 	memset(arr, 0, sizeof(arr));
 
-	n = wr_strparse(line, ",", arr, (sizeof(arr) / sizeof(char *)));
+	n = pg_strparse(line, ",", arr, (sizeof(arr) / sizeof(char *)));
 	if (n > 0)
 		for (i = 0; i < n; i++) {
 			if (arr[i] == NULL)
@@ -103,7 +103,7 @@ static __inline__ void
 cache_size(action_t *act, char *line)
 {
 	if ( (act->flags & ONLY_ONCE_FLAG) == 0) {
-		lscpu->cache_size = wr_strdupf(lscpu->cache_size, line);
+		lscpu->cache_size = pg_strdupf(lscpu->cache_size, line);
 		act->flags |= ONLY_ONCE_FLAG;
 	}
 }
@@ -112,7 +112,7 @@ static __inline__ void
 model_name(action_t *act, char *line)
 {
 	if ( (act->flags & ONLY_ONCE_FLAG) == 0) {
-		lscpu->model_name = wr_strdupf(lscpu->model_name, line);
+		lscpu->model_name = pg_strdupf(lscpu->model_name, line);
 		act->flags |= ONLY_ONCE_FLAG;
 	}
 }
@@ -121,7 +121,7 @@ static __inline__ void
 cpu_flags(action_t *act, char *line)
 {
 	if ( (act->flags & ONLY_ONCE_FLAG) == 0) {
-		lscpu->cpu_flags = wr_strdupf(lscpu->cpu_flags, line);
+		lscpu->cpu_flags = pg_strdupf(lscpu->cpu_flags, line);
 		act->flags |= ONLY_ONCE_FLAG;
 	}
 }
@@ -188,7 +188,7 @@ lscpu_info_get(const char *lscpu_path)
 		if (act->str) {
 			p = strchr(line, ':');
 			if (p) p++;
-			act->func(act, wr_strtrim(p));
+			act->func(act, pg_strtrim(p));
 		}
 	}
 
@@ -216,7 +216,7 @@ cpu_proc_info(const char *proc_path)
 		if (act->str) {
 			p = strchr(line, ':');
 			if (p) p++;
-			act->func(act, wr_strtrim(p));
+			act->func(act, pg_strtrim(p));
 		}
 	}
 
@@ -225,7 +225,7 @@ cpu_proc_info(const char *proc_path)
 }
 
 lscpu_t *
-wr_lscpu_info(const char *lscpu_path, const char *proc_path)
+lscpu_info(const char *lscpu_path, const char *proc_path)
 {
 	if (lscpu == NULL)
 		lscpu = calloc(1, sizeof(lscpu_t));

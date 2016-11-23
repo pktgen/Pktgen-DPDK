@@ -1,7 +1,7 @@
 /*
  * SOURCE: pktgen-tcp.c
  *
- * LIBS: libwr_common
+ * LIBS: libpg_common
  */
 
 /* Test driver */

@@ -80,8 +80,8 @@
 #include <rte_atomic.h>
 #include <rte_cycles.h>
 
-#include "wr_scrn.h"
-#include "wr_copyright_info.h"
+#include "scrn.h"
+#include "copyright_info.h"
 
 #define COPYRIGHT_MSG \
         "Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
@@ -123,7 +123,7 @@ static const char *intel_copyright[] = {
 	"",
 	NULL
 };
-static const char *wr_copyright[] = {
+static const char *_copyright[] = {
 	""
 	"   Redistribution and use in source and binary forms, with or without modification, are",
 	"   permitted provided that the following conditions are met:",
@@ -159,7 +159,7 @@ static const char *wr_copyright[] = {
 
 /**************************************************************************//**
  *
- * wr_print_copyright - Print out the copyright notices.
+ * pg_print_copyright - Print out the copyright notices.
  *
  * DESCRIPTION
  * Output the copyright notices.
@@ -170,7 +170,7 @@ static const char *wr_copyright[] = {
  */
 
 void
-wr_print_copyright(const char *appname, const char *created_by)
+print_copyright(const char *appname, const char *created_by)
 {
 #ifdef COPYRIGHT_OUTPUT_ENABLED
 	int i;
@@ -181,15 +181,15 @@ wr_print_copyright(const char *appname, const char *created_by)
 	rte_printf_status("-----------------------\n");
 
 	rte_printf_status("    %s\n\n", COPYRIGHT_MSG);
-	for (i = 0; wr_copyright[i] != NULL; i++)
-		rte_printf_status("  %s\n", wr_copyright[i]);
+	for (i = 0; pg_copyright[i] != NULL; i++)
+		rte_printf_status("  %s\n", pg_copyright[i]);
 
-	wr_scrn_color(YELLOW, NO_CHANGE, OFF);
+	scrn_color(YELLOW, NO_CHANGE, OFF);
 	rte_printf_status("  %s created by: %s -- >>> %s <<<\n",
 	                  appname,
 	                  created_by,
 	                  POWERED_BY_DPDK);
-	wr_scrn_color(BLUE, NO_CHANGE, OFF);
+	scrn_color(BLUE, NO_CHANGE, OFF);
 	rte_printf_status("-----------------------\n");
 #else
 	printf("   %s\n", COPYRIGHT_MSG);
@@ -201,90 +201,31 @@ wr_print_copyright(const char *appname, const char *created_by)
 }
 
 void
-wr_logo(int row, int col, const char *appname)
-{
-#ifdef INCLUDE_LOGO_OUTPUT
-	int i;
-	static const char *logo[] = {
-		"#     #",
-		"#  #  #     #    #    #  #####",
-		"#  #  #     #    ##   #  #    #",
-		"#  #  #     #    # #  #  #    #",
-		"#  #  #     #    #  # #  #    #",
-		"#  #  #     #    #   ##  #    #",
-		" ## ##      #    #    #  #####",
-		"",
-		"######",
-		"#     #     #    #    #  ######  #####",
-		"#     #     #    #    #  #       #    #",
-		"######      #    #    #  #####   #    #",
-		"#   #       #    #    #  #       #####",
-		"#    #      #     #  #   #       #   #",
-		"#     #     #      ##    ######  #    #",
-		"",
-		" #####",
-		"#     #   #   #   ####    #####  ######  #    #   ####",
-		"#          # #   #          #    #       ##  ##  #",
-		" #####      #     ####      #    #####   # ## #   ####",
-		"      #     #         #     #    #       #    #       #",
-		"#     #     #    #    #     #    #       #    #  #    #",
-		" #####      #     ####      #    ######  #    #   ####",
-		NULL
-	};
-
-	wr_scrn_cls();
-	wr_scrn_color(GREEN, NO_CHANGE, BOLD);
-	for (i = 0, row++; logo[i] != NULL; i++)
-		wr_scrn_printf(row++, 7, "%s", logo[i]);
-
-	wr_scrn_color(MAGENTA, NO_CHANGE, OFF);
-	wr_scrn_printf(++row, col, "%s", COPYRIGHT_MSG);
-	wr_scrn_color(BLUE, NO_CHANGE, BOLD);
-	wr_scrn_printf(++row,
-	               col + 6,
-	               ">>> %s is %s <<<",
-	               appname,
-	               POWERED_BY_DPDK);
-	wr_scrn_color(BLACK, NO_CHANGE, OFF);
-	wr_scrn_pos(++row, 1);
-
-	rte_delay_ms(1500);
-
-	wr_scrn_cls();
-	wr_scrn_pos(100, 1);
-#else
-	(void)row;
-	(void)col;
-	(void)appname;
-#endif
-}
-
-void
-wr_splash_screen(int row, int col, const char *appname, const char *created_by)
+splash_screen(int row, int col, const char *appname, const char *created_by)
 {
 #ifdef ENABLE_COPYRIGHT_OUTPUT
 	int i;
 
 	row = 3;
-	wr_scrn_color(BLUE, NO_CHANGE, OFF);
-	wr_scrn_printf(row++, col, "%s", COPYRIGHT_MSG);
-	wr_scrn_color(GREEN, NO_CHANGE, BOLD);
-	for (i = 0, row++; wr_copyright[i] != NULL; i++)
-		wr_scrn_printf(row++, 7, "%s", wr_copyright[i]);
-	wr_scrn_color(BLUE, NO_CHANGE, BOLD);
-	wr_scrn_printf(row++,
+	scrn_color(BLUE, NO_CHANGE, OFF);
+	scrn_printf(row++, col, "%s", COPYRIGHT_MSG);
+	scrn_color(GREEN, NO_CHANGE, BOLD);
+	for (i = 0, row++; pg_copyright[i] != NULL; i++)
+		scrn_printf(row++, 7, "%s", pg_copyright[i]);
+	scrn_color(BLUE, NO_CHANGE, BOLD);
+	scrn_printf(row++,
 	               col,
 	               "%s created by %s -- >>> %s <<<",
 	               appname,
 	               created_by,
 	               POWERED_BY_DPDK);
-	wr_scrn_color(BLACK, NO_CHANGE, OFF);
-	wr_scrn_pos(++row, 1);
+	scrn_color(BLACK, NO_CHANGE, OFF);
+	scrn_pos(++row, 1);
 
 	rte_delay_ms(1500);
 
-	wr_scrn_cls();
-	wr_scrn_pos(100, 1);
+	scrn_cls();
+	scrn_pos(100, 1);
 #else
 	(void)row;
 	(void)col;
@@ -299,7 +240,7 @@ wr_splash_screen(int row, int col, const char *appname, const char *created_by)
  *     string
  */
 const char *
-wr_copyright_msg(void) {
+copyright_msg(void) {
 	return COPYRIGHT_MSG;
 }
 
@@ -309,7 +250,7 @@ wr_copyright_msg(void) {
  *     string
  */
 const char *
-wr_copyright_msg_short(void) {
+copyright_msg_short(void) {
 	return COPYRIGHT_MSG_SHORT;
 }
 
@@ -319,6 +260,6 @@ wr_copyright_msg_short(void) {
  *     string
  */
 const char *
-wr_powered_by(void) {
+powered_by(void) {
 	return POWERED_BY_DPDK;
 }

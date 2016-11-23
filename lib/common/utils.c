@@ -51,15 +51,15 @@
 #include <getopt.h>
 #include <termios.h>
 
-#include "wr_utils.h"
+#include "utils.h"
 
 #define MAX_PARSE_SIZE      256
 
 /******************************************************************************
- * wr_strtrim  - Remove leading and trailing white space from a string.
+ * pg_strtrim  - Remove leading and trailing white space from a string.
  *
  * SYNOPSIS
- * char * wr_strtrim
+ * char * pg_strtrim
  *     (
  *     char *    str
  *     )
@@ -74,7 +74,7 @@
  * \NOMANUAL
  */
 char *
-wr_strtrim(char *str)
+pg_strtrim(char *str)
 {
 	char      *p;
 	int len;
@@ -102,7 +102,7 @@ wr_strtrim(char *str)
 }
 
 uint32_t
-wr_strparse(char *str, const char *delim, char **entries, uint32_t max_entries)
+pg_strparse(char *str, const char *delim, char **entries, uint32_t max_entries)
 {
 	uint32_t i;
 	char      *saved;
@@ -119,7 +119,7 @@ wr_strparse(char *str, const char *delim, char **entries, uint32_t max_entries)
 		if (entries[i] == NULL)	/* We are done. */
 			break;
 
-		entries[i] = wr_strtrim(entries[i]);
+		entries[i] = pg_strtrim(entries[i]);
 	}
 
 	return i;
@@ -135,7 +135,7 @@ skip_lst(char f, const char *lst)
 }
 
 char *
-wr_strccpy(char *t, char *f, const char *lst)
+pg_strccpy(char *t, char *f, const char *lst)
 {
 	if ( (t == NULL) || (f == NULL) )
 		return NULL;

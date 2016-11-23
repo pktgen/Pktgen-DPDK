@@ -2,18 +2,18 @@
  * SOURCE: commands.c
  * STUB: pktgen-cmds.h pktgen-main.h pktgen-capture.h lpktgenlib.h
  * STUB: pktgen-random.h rte_debug.h rte_cycles.h rte_timer.h cmdline.h
- * STUB: wr_copyright_info.h rte_pci.h wr_pcap.h cmdline_socket.h
+ * STUB: copyright_info.h rte_pci.h pcap.h cmdline_socket.h
  * STUB: cmdline_rdline.h pktgen-log.h pktgen-display.h
  *
- * LIBS: libwr_lua
+ * LIBS: libpg_lua
  * SYSLIBS: m pthread
  */
 
 #include "pktgen.h"
 #include "lpktgenlib.h"
 
-#include <wr_scrn.h>
-wr_scrn_t *scrn = NULL;
+#include <scrn.h>
+scrn_t *scrn = NULL;
 
 pktgen_t pktgen;
 int rte_cycles_vmware_tsc_map = 0;

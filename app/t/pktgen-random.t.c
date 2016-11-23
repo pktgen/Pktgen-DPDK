@@ -1,6 +1,6 @@
 /*
  * SOURCE: pktgen-random.c
- * STUB: rte_malloc.h wr_copyright_info.h pktgen-log.h
+ * STUB: rte_malloc.h copyright_info.h pktgen-log.h
  * STUB: pktgen-display.h
  *
  * LIBS:
@@ -9,11 +9,11 @@
 
 #include <arpa/inet.h>
 
-/* wr_scrn.h function stub */
+/* scrn.h function stub */
 void
-wr_scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
 void
-wr_scrn_center(int16_t r, const char *fmt, ...) {         }
+scrn_center(int16_t r, const char *fmt, ...) {         }
 
 /* Test fixtures */
 BITFIELD_T

@@ -92,7 +92,7 @@ typedef struct {
  *
  */
 static __inline__ void
-wr_raw_dump_l2p(l2p_t *l2p)
+pg_raw_dump_l2p(l2p_t *l2p)
 {
 	uint8_t i, j;
 	lobj_t    *lobj;
@@ -152,7 +152,7 @@ wr_raw_dump_l2p(l2p_t *l2p)
  * RETURNS: Pointer to l2p_t or NULL on error.
  */
 static __inline__ l2p_t *
-wr_l2p_create(void)
+l2p_create(void)
 {
 	l2p_t     *l2p;
 	uint32_t i;
@@ -182,7 +182,7 @@ wr_l2p_create(void)
  *
  */
 static __inline__ uint8_t
-wr_new_rxque(l2p_t *l2p, uint8_t pid)
+pg_new_rxque(l2p_t *l2p, uint8_t pid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -194,7 +194,7 @@ wr_new_rxque(l2p_t *l2p, uint8_t pid)
  *
  */
 static __inline__ uint8_t
-wr_new_txque(l2p_t *l2p, uint8_t pid)
+pg_new_txque(l2p_t *l2p, uint8_t pid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -206,7 +206,7 @@ wr_new_txque(l2p_t *l2p, uint8_t pid)
  *
  */
 static __inline__ void
-wr_inc_rx(l2p_t *l2p, uint8_t pid, uint8_t lid) {
+pg_inc_rx(l2p_t *l2p, uint8_t pid, uint8_t lid) {
 	l2p->map[pid][lid].rx++;
 }
 
@@ -215,7 +215,7 @@ wr_inc_rx(l2p_t *l2p, uint8_t pid, uint8_t lid) {
  *
  */
 static __inline__ void
-wr_inc_tx(l2p_t *l2p, uint8_t pid, uint8_t lid) {
+pg_inc_tx(l2p_t *l2p, uint8_t pid, uint8_t lid) {
 	l2p->map[pid][lid].tx++;
 }
 
@@ -224,7 +224,7 @@ wr_inc_tx(l2p_t *l2p, uint8_t pid, uint8_t lid) {
  *
  */
 static __inline__ uint16_t
-wr_get_map(l2p_t *l2p, uint8_t pid, uint8_t lid)
+get_map(l2p_t *l2p, uint8_t pid, uint8_t lid)
 {
 	return l2p->map[pid][lid].rxtx;
 }
@@ -234,7 +234,7 @@ wr_get_map(l2p_t *l2p, uint8_t pid, uint8_t lid)
  *
  */
 static __inline__ void
-wr_l2p_connect(l2p_t *l2p,  uint8_t pid, uint8_t lid, uint32_t type)
+l2p_connect(l2p_t *l2p,  uint8_t pid, uint8_t lid, uint32_t type)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 	pobj_t    *pobj = &l2p->ports[pid];
@@ -243,16 +243,16 @@ wr_l2p_connect(l2p_t *l2p,  uint8_t pid, uint8_t lid, uint32_t type)
 
 	if (type & RX_TYPE) {
 		lobj->pids.rx[lobj->pids.rx_cnt++]  = pid;
-		lobj->qids.rx[pid]  = wr_new_rxque(l2p, pid);	/* allocate a RX qid */
+		lobj->qids.rx[pid]  = pg_new_rxque(l2p, pid);	/* allocate a RX qid */
 		lobj->qids.rx_cnt++;
-		wr_inc_rx(l2p, pid, lid);
+		pg_inc_rx(l2p, pid, lid);
 	}
 
 	if (type & TX_TYPE) {
 		lobj->pids.tx[lobj->pids.tx_cnt++]  = pid;
-		lobj->qids.tx[pid]  = wr_new_txque(l2p, pid);	/* Allocate a TX qid */
+		lobj->qids.tx[pid]  = pg_new_txque(l2p, pid);	/* Allocate a TX qid */
 		lobj->qids.tx_cnt++;
-		wr_inc_tx(l2p, pid, lid);
+		pg_inc_tx(l2p, pid, lid);
 	}
 	pobj->lids[pobj->nb_lids++] = lid;
 }
@@ -262,7 +262,7 @@ wr_l2p_connect(l2p_t *l2p,  uint8_t pid, uint8_t lid, uint32_t type)
  *
  */
 static __inline__ uint8_t
-wr_get_type(l2p_t *l2p, uint8_t lid)
+get_type(l2p_t *l2p, uint8_t lid)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -274,7 +274,7 @@ wr_get_type(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ uint8_t
-wr_get_lcore_rxcnt(l2p_t *l2p, uint8_t lid)
+get_lcore_rxcnt(l2p_t *l2p, uint8_t lid)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -286,7 +286,7 @@ wr_get_lcore_rxcnt(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ uint8_t
-wr_get_lcore_txcnt(l2p_t *l2p, uint8_t lid)
+get_lcore_txcnt(l2p_t *l2p, uint8_t lid)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -298,7 +298,7 @@ wr_get_lcore_txcnt(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ uint8_t
-wr_get_port_rxcnt(l2p_t *l2p, uint8_t pid)
+get_port_rxcnt(l2p_t *l2p, uint8_t pid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -310,7 +310,7 @@ wr_get_port_rxcnt(l2p_t *l2p, uint8_t pid)
  *
  */
 static __inline__ uint8_t
-wr_get_port_txcnt(l2p_t *l2p, uint8_t pid)
+get_port_txcnt(l2p_t *l2p, uint8_t pid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -322,7 +322,7 @@ wr_get_port_txcnt(l2p_t *l2p, uint8_t pid)
  *
  */
 static __inline__ uint8_t
-wr_get_port_nb_lids(l2p_t *l2p, uint8_t pid)
+get_port_nb_lids(l2p_t *l2p, uint8_t pid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -334,7 +334,7 @@ wr_get_port_nb_lids(l2p_t *l2p, uint8_t pid)
  *
  */
 static __inline__ void
-wr_set_port_private(l2p_t *l2p, uint8_t pid, void *ptr)
+pg_set_port_private(l2p_t *l2p, uint8_t pid, void *ptr)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -346,7 +346,7 @@ wr_set_port_private(l2p_t *l2p, uint8_t pid, void *ptr)
  *
  */
 static __inline__ void *
-wr_get_port_private(l2p_t *l2p, uint8_t pid)
+get_port_private(l2p_t *l2p, uint8_t pid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -358,7 +358,7 @@ wr_get_port_private(l2p_t *l2p, uint8_t pid)
  *
  */
 static __inline__ void
-wr_set_lcore_private(l2p_t *l2p, uint8_t lid, void *ptr)
+pg_set_lcore_private(l2p_t *l2p, uint8_t lid, void *ptr)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -370,7 +370,7 @@ wr_set_lcore_private(l2p_t *l2p, uint8_t lid, void *ptr)
  *
  */
 static __inline__ void *
-wr_get_lcore_private(l2p_t *l2p, uint8_t lid)
+get_lcore_private(l2p_t *l2p, uint8_t lid)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -382,7 +382,7 @@ wr_get_lcore_private(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ uint8_t
-wr_get_rx_pid(l2p_t *l2p, uint8_t lid, uint8_t idx)
+get_rx_pid(l2p_t *l2p, uint8_t lid, uint8_t idx)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -394,7 +394,7 @@ wr_get_rx_pid(l2p_t *l2p, uint8_t lid, uint8_t idx)
  *
  */
 static __inline__ uint8_t
-wr_get_tx_pid(l2p_t *l2p, uint8_t lid, uint8_t idx)
+get_tx_pid(l2p_t *l2p, uint8_t lid, uint8_t idx)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -406,7 +406,7 @@ wr_get_tx_pid(l2p_t *l2p, uint8_t lid, uint8_t idx)
  *
  */
 static __inline__ uint8_t
-wr_get_port_lid(l2p_t *l2p, uint8_t pid, uint8_t qid)
+get_port_lid(l2p_t *l2p, uint8_t pid, uint8_t qid)
 {
 	pobj_t    *pobj = &l2p->ports[pid];
 
@@ -418,7 +418,7 @@ wr_get_port_lid(l2p_t *l2p, uint8_t pid, uint8_t qid)
  *
  */
 static __inline__ uint16_t
-wr_get_rxque(l2p_t *l2p, uint8_t lid, uint8_t pid)
+get_rxque(l2p_t *l2p, uint8_t lid, uint8_t pid)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -430,7 +430,7 @@ wr_get_rxque(l2p_t *l2p, uint8_t lid, uint8_t pid)
  *
  */
 static __inline__ uint16_t
-wr_get_txque(l2p_t *l2p, uint8_t lid, uint8_t pid)
+get_txque(l2p_t *l2p, uint8_t lid, uint8_t pid)
 {
 	lobj_t    *lobj = &l2p->lcores[lid];
 
@@ -442,7 +442,7 @@ wr_get_txque(l2p_t *l2p, uint8_t lid, uint8_t pid)
  *
  */
 static __inline__ void
-wr_stop_lcore(l2p_t *l2p, uint8_t lid)
+pg_stop_lcore(l2p_t *l2p, uint8_t lid)
 {
 	l2p->stop[lid] = 1;
 	rte_mb();
@@ -453,7 +453,7 @@ wr_stop_lcore(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ void
-wr_start_lcore(l2p_t *l2p, uint8_t lid)
+pg_start_lcore(l2p_t *l2p, uint8_t lid)
 {
 	l2p->stop[lid] = 0;
 	rte_mb();
@@ -464,7 +464,7 @@ wr_start_lcore(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ int32_t
-wr_lcore_is_running(l2p_t *l2p, uint8_t lid)
+pg_lcore_is_running(l2p_t *l2p, uint8_t lid)
 {
 	rte_mb();
 	return l2p->stop[lid] == 0;
@@ -477,7 +477,7 @@ wr_lcore_is_running(l2p_t *l2p, uint8_t lid)
  *
  */
 static __inline__ void
-wr_dump_l2p(l2p_t *l2p)
+pg_dump_l2p(l2p_t *l2p)
 {
 	lobj_t        *lobj;
 	pobj_t        *pobj;
@@ -533,8 +533,8 @@ wr_dump_l2p(l2p_t *l2p)
 	printf("\n\n");
 }
 
-extern void wr_port_matrix_dump(l2p_t *l2p);
-extern int wr_parse_matrix(l2p_t *l2p, char *str);
-extern uint32_t wr_parse_portmask(const char *portmask);
+extern void pg_port_matrix_dump(l2p_t *l2p);
+extern int pg_parse_matrix(l2p_t *l2p, char *str);
+extern uint32_t pg_parse_portmask(const char *portmask);
 
 #endif /* __WR_L2P_H */

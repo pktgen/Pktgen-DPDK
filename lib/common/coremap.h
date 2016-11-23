@@ -65,8 +65,8 @@
  */
 /* Created 2014 by Keith Wiles @ intel.com */
 
-#ifndef __INC_COREMAP_H
-#define __INC_COREMAP_H
+#ifndef __COREMAP_H
+#define __COREMAP_H
 
 #include <stdint.h>
 
@@ -82,11 +82,11 @@ typedef union {
 	uint32_t word;
 } lc_info_t;
 
-extern int wr_coremap(const char *opt,
+extern int coremap(const char *opt,
                       lc_info_t *get,
                       int cnt,
                       const char *proc_cpuinfo);
-extern unsigned wr_coremap_cnt(const lc_info_t *lc, unsigned max_cnt,
+extern unsigned coremap_cnt(const lc_info_t *lc, unsigned max_cnt,
                                unsigned t);
 
-#endif
+#endif  /*_COREMAP_H */

@@ -1,6 +1,3 @@
-/*-
- * <COPYRIGHT_TAG>
- */
 /**
  * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
  *
@@ -32,47 +29,37 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/* Created 2013 by Keith Wiles @ intel.com */
 
-#ifndef _WR_CYCLES_H_
-#define _WR_CYCLES_H_
+#ifndef _COPYRIGHT_INFO_H
+#define _COPYRIGHT_INFO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+extern void print_copyright(const char *appname, const char *created_by);
+extern void logo(int row, int col, const char *appname);
+extern void splash_screen(int row,
+                             int col,
+                             const char *appname,
+                             const char *created_by);
 
-static __inline__ void
-wr_delay_us(uint32_t us) {
-	uint64_t start;
-	uint64_t ticks;
-	uint32_t resolution_fs;
+/**
+ * Function returning string for Copyright message."
+ * @return
+ *     string
+ */
+const char *copyright_msg(void);
 
-	resolution_fs =
-	        (uint32_t)((1000ULL * 1000ULL * 1000ULL * 1000ULL * 1000ULL) /
-	                   rte_get_timer_hz());
+/**
+ * Function returning short string for Copyright message."
+ * @return
+ *     string
+ */
+const char *copyright_msg_short(void);
 
-	ticks = (uint64_t)us * 1000ULL * 1000ULL * 1000ULL;
-	ticks /= resolution_fs;
+/**
+ * Function returning string for Copyright message."
+ * @return
+ *     string
+ */
+const char *powered_by(void);
 
-	start = rte_get_timer_cycles();
-
-	while ((rte_get_timer_cycles() - start) < ticks) {
-		rte_timer_manage();
-		rte_pause();
-	}
-}
-
-static __inline__ void
-wr_delay_ms(uint32_t ms) {
-	wr_delay_us(ms * 1000);
-}
-
-static __inline__ void
-wr_sleep(uint32_t secs) {
-	wr_delay_us(secs * (1000 * 1000));
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _WR_CYCLES_H_ */
+#endif /* _COPYRIGHT_INFO_H */

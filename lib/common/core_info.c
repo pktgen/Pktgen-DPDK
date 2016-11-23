@@ -83,11 +83,11 @@
 #include <rte_pci.h>
 #include <rte_debug.h>
 
-#include "wr_scrn.h"
-#include "wr_core_info.h"
-#include "wr_lscpu.h"
-#include "wr_utils.h"
-#include "wr_coremap.h"
+#include "scrn.h"
+#include "core_info.h"
+#include "lscpu.h"
+#include "utils.h"
+#include "coremap.h"
 
 #define COREMASK_STRING_SIZE    256
 
@@ -95,7 +95,7 @@ static lc_info_t core_map[RTE_MAX_LCORE];
 static uint32_t num_cores;
 
 uint32_t
-wr_sct_convert(char *sct[])
+sct_convert(char *sct[])
 {
 	uint32_t lcore = 0xFFFF, i;
 	lc_info_t val, tst;

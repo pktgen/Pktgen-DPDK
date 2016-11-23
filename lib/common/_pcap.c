@@ -117,13 +117,13 @@
 #include <rte_byteorder.h>
 #include <rte_errno.h>
 
-#include "wr_scrn.h"
-#include "wr_pcap.h"
-#include "wr_inet.h"
+#include "scrn.h"
+#include "_pcap.h"
+#include "inet.h"
 
 /**************************************************************************//**
  *
- * wr_pcap_open - Open a PCAP file.
+ * pcap_open - Open a PCAP file.
  *
  * DESCRIPTION
  * Open a PCAP file to be used in sending from a port.
@@ -134,7 +134,7 @@
  */
 
 pcap_info_t *
-wr_pcap_open(char *filename, uint16_t port)
+_pcap_open(char *filename, uint16_t port)
 {
 	pcap_info_t   *pcap = NULL;
 
@@ -190,12 +190,12 @@ wr_pcap_open(char *filename, uint16_t port)
 		pcap->info.version_major    = ntohs(pcap->info.version_major);
 		pcap->info.version_minor    = ntohs(pcap->info.version_minor);
 	}
-	wr_pcap_info(pcap, port, 0);
+	_pcap_info(pcap, port, 0);
 
 	return pcap;
 
 leave:
-	wr_pcap_close(pcap);
+	_pcap_close(pcap);
 	fflush(stdout);
 
 	return NULL;
@@ -203,7 +203,7 @@ leave:
 
 /**************************************************************************//**
  *
- * wr_pcap_info - Display the PCAP information.
+ * pcap_info - Display the PCAP information.
  *
  * DESCRIPTION
  * Dump out the PCAP information.
@@ -214,7 +214,7 @@ leave:
  */
 
 void
-wr_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
+_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 {
 	printf("\nPCAP file for port %d: %s\n", port, pcap->filename);
 	printf("  magic: %08x,", pcap->info.magic_number);
@@ -234,7 +234,7 @@ wr_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 
 /**************************************************************************//**
  *
- * wr_pcap_rewind - Rewind or start over on a PCAP file.
+ * pcap_rewind - Rewind or start over on a PCAP file.
  *
  * DESCRIPTION
  * Rewind or start over on a PCAP file.
@@ -245,7 +245,7 @@ wr_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
  */
 
 void
-wr_pcap_rewind(pcap_info_t *pcap)
+_pcap_rewind(pcap_info_t *pcap)
 {
 	if (pcap == NULL)
 		return;
@@ -259,7 +259,7 @@ wr_pcap_rewind(pcap_info_t *pcap)
 
 /**************************************************************************//**
  *
- * wr_pcap_skip - Rewind and skip to the given packet location.
+ * pcap_skip - Rewind and skip to the given packet location.
  *
  * DESCRIPTION
  * Rewind and skip to the given packet location.
@@ -270,7 +270,7 @@ wr_pcap_rewind(pcap_info_t *pcap)
  */
 
 void
-wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
+_pcap_skip(pcap_info_t *pcap, uint32_t skip)
 {
 	pcaprec_hdr_t hdr, *phdr;
 
@@ -290,7 +290,7 @@ wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
 			break;
 
 		/* Convert the packet header to the correct format. */
-		wr_pcap_convert(pcap, phdr);
+		_pcap_convert(pcap, phdr);
 
 		(void)fseek(pcap->fd, phdr->incl_len, SEEK_CUR);
 	}
@@ -298,7 +298,7 @@ wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
 
 /**************************************************************************//**
  *
- * wr_pcap_close - Close a PCAP file
+ * pcap_close - Close a PCAP file
  *
  * DESCRIPTION
  * Close the PCAP file for sending.
@@ -309,7 +309,7 @@ wr_pcap_skip(pcap_info_t *pcap, uint32_t skip)
  */
 
 void
-wr_pcap_close(pcap_info_t *pcap)
+_pcap_close(pcap_info_t *pcap)
 {
 	if (pcap == NULL)
 		return;
@@ -323,7 +323,7 @@ wr_pcap_close(pcap_info_t *pcap)
 
 /**************************************************************************//**
  *
- * wr_payloadOffset - Determine the packet data offset value.
+ * pg_payloadOffset - Determine the packet data offset value.
  *
  * DESCRIPTION
  * Determine the packet data offset value in bytes.
@@ -334,7 +334,7 @@ wr_pcap_close(pcap_info_t *pcap)
  */
 
 int
-wr_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
+_pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
                  unsigned int *length) {
 	const ipHdr_t *iph =
 	        (const ipHdr_t *)(pkt_data + sizeof(struct ether_hdr));
@@ -372,7 +372,7 @@ wr_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 
 /**************************************************************************//**
  *
- * wr_pcap_read - Read data from the PCAP file and parse it
+ * pcap_read - Read data from the PCAP file and parse it
  *
  * DESCRIPTION
  * Parse the data from the PCAP file.
@@ -383,7 +383,7 @@ wr_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
  */
 
 size_t
-wr_pcap_read(pcap_info_t *pcap,
+_pcap_read(pcap_info_t *pcap,
              pcaprec_hdr_t *pHdr,
              char *pktBuff,
              uint32_t bufLen)
@@ -394,7 +394,7 @@ wr_pcap_read(pcap_info_t *pcap,
 			return 0;
 
 		/* Convert the packet header to the correct format. */
-		wr_pcap_convert(pcap, pHdr);
+		_pcap_convert(pcap, pHdr);
 
 		/* Skip packets larger then the buffer size. */
 		if (pHdr->incl_len > bufLen) {

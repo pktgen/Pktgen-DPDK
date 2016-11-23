@@ -1,7 +1,7 @@
 /*
  * SOURCE: pktgen-udp.c
  *
- * LIBS: libwr_common
+ * LIBS: libpg_common
  */
 
 /* Test driver */

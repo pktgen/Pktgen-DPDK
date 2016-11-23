@@ -90,7 +90,7 @@ extern const char *help_info[];
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-/* Defined in libwr_lua/lua_shell.c */
+/* Defined in lua_shell.c */
 extern int execute_lua_string(lua_State *L, char *str);
 extern int dolibrary(lua_State *L, const char *name);
 
@@ -3406,10 +3406,10 @@ luaopen_pktgen(lua_State *L) {
 	setf_string(L, "Lua_Authors", (char *)LUA_AUTHORS);
 
 	setf_string(L, "Pktgen_Version", (char *)PKTGEN_VERSION);
-	setf_string(L, "Pktgen_Copyright", (char *)wr_copyright_msg());
+	setf_string(L, "Pktgen_Copyright", (char *)copyright_msg());
 	setf_string(L, "Pktgen_Authors", (char *)"Keith Wiles @ Intel Corp");
 	setf_string(L, "DPDK_Version", (char *)rte_version());
-	setf_string(L, "DPDK_Copyright", (char *)wr_powered_by());
+	setf_string(L, "DPDK_Copyright", (char *)powered_by());
 
 	setf_integer(L, "startSeqIdx", FIRST_SEQ_PKT);
 	setf_integer(L, "singlePktIdx", SINGLE_PKT);

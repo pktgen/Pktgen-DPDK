@@ -140,7 +140,7 @@ pktgen_packet_rate(port_info_t *info)
 	uint64_t cpp = (pps > 0) ? (pktgen.hz / pps) : (pktgen.hz / 4);
 
 	info->tx_pps    = pps;
-	info->tx_cycles = ((cpp * info->tx_burst) / wr_get_port_txcnt(pktgen.l2p, info->pid));
+	info->tx_cycles = ((cpp * info->tx_burst) / get_port_txcnt(pktgen.l2p, info->pid));
 }
 
 /**************************************************************************//**
@@ -512,10 +512,10 @@ pktgen_exit_cleanup(uint8_t lid)
 	port_info_t *info;
 	uint8_t idx, pid, qid;
 
-	for (idx = 0; idx < wr_get_lcore_txcnt(pktgen.l2p, lid); idx++) {
-		pid = wr_get_tx_pid(pktgen.l2p, lid, idx);
-		if ( (info = (port_info_t *)wr_get_port_private(pktgen.l2p, pid)) != NULL) {
-			qid = wr_get_txque(pktgen.l2p, lid, pid);
+	for (idx = 0; idx < get_lcore_txcnt(pktgen.l2p, lid); idx++) {
+		pid = get_tx_pid(pktgen.l2p, lid, idx);
+		if ( (info = (port_info_t *)get_port_private(pktgen.l2p, pid)) != NULL) {
+			qid = get_txque(pktgen.l2p, lid, pid);
 			pktgen_tx_flush(info, qid);
 		}
 	}
@@ -536,7 +536,7 @@ pktgen_exit_cleanup(uint8_t lid)
 static __inline__ int
 pktgen_has_work(void)
 {
-	if (!wr_get_map(pktgen.l2p, RTE_MAX_ETHPORTS, rte_lcore_id())) {
+	if (!get_map(pktgen.l2p, RTE_MAX_ETHPORTS, rte_lcore_id())) {
 		pktgen_log_warning("Nothing to do on lcore %d: exiting",
 		                   rte_lcore_id());
 		return 1;
@@ -1177,7 +1177,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 	flags = rte_atomic32_read(&info->port_flags);
 
 	if (flags & SEND_FOREVER) {
-		rc = wr_pktmbuf_alloc_bulk(mp,
+		rc = pg_pktmbuf_alloc_bulk(mp,
 		                           info->q[qid].tx_mbufs.m_table,
 		                           info->tx_burst);
 		if (rc == 0) {
@@ -1191,7 +1191,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count, info->tx_burst);
 		if (txCnt > 0) {
-			rc = wr_pktmbuf_alloc_bulk(mp,
+			rc = pg_pktmbuf_alloc_bulk(mp,
 			                           info->q[qid].tx_mbufs.m_table,
 			                           txCnt);
 			if (rc == 0) {
@@ -1276,7 +1276,7 @@ pktgen_main_receive(port_info_t *info,
 	capture_t *capture;
 
 	pid = info->pid;
-	qid = wr_get_rxque(pktgen.l2p, lid, pid);
+	qid = get_rxque(pktgen.l2p, lid, pid);
 
 	/*
 	 * Read packet from RX queues and free the mbufs
@@ -1312,8 +1312,8 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 	uint8_t rx, tx;
 	char buf[256];
 
-	rx = wr_get_lcore_rxcnt(pktgen.l2p, lid);
-	tx = wr_get_lcore_txcnt(pktgen.l2p, lid);
+	rx = get_lcore_rxcnt(pktgen.l2p, lid);
+	tx = get_lcore_txcnt(pktgen.l2p, lid);
 
 	if (txcnt && rxcnt) {
 		*rxcnt = rx;
@@ -1332,15 +1332,15 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 
 	for (idx = 0; idx < cnt; idx++) {
 		if (rxcnt)
-			pid = wr_get_rx_pid(pktgen.l2p, lid, idx);
+			pid = get_rx_pid(pktgen.l2p, lid, idx);
 		else
-			pid = wr_get_tx_pid(pktgen.l2p, lid, idx);
+			pid = get_tx_pid(pktgen.l2p, lid, idx);
 
-		if ((infos[idx] = wr_get_port_private(pktgen.l2p, pid)) == NULL)
+		if ((infos[idx] = get_port_private(pktgen.l2p, pid)) == NULL)
 			continue;
 
 		if (qids)
-			qids[idx] = wr_get_txque(pktgen.l2p, lid, pid);
+			qids[idx] = get_txque(pktgen.l2p, lid, pid);
 	}
 
 	pktgen_log_info("%s", buf);
@@ -1376,9 +1376,9 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 	tx_next_cycle   = rte_rdtsc() + infos[0]->tx_cycles;
 
-	wr_start_lcore(pktgen.l2p, lid);
+	pg_start_lcore(pktgen.l2p, lid);
 
-	while(wr_lcore_is_running(pktgen.l2p, lid)) {
+	while(pg_lcore_is_running(pktgen.l2p, lid)) {
 		for (idx = 0; idx < rxcnt; idx++) /* Read Packets */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
 
@@ -1428,10 +1428,10 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	tx_next_cycle   = rte_rdtsc() + infos[0]->tx_cycles;
 
-	wr_start_lcore(pktgen.l2p, lid);
+	pg_start_lcore(pktgen.l2p, lid);
 
 	idx = 0;
-	while(wr_lcore_is_running(pktgen.l2p, lid)) {
+	while(pg_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_rdtsc();
 
 		/* Determine when is the next time to send packets */
@@ -1474,9 +1474,9 @@ pktgen_main_rx_loop(uint8_t lid)
 	memset(infos, '\0', sizeof(infos));
 	port_map_info(lid, infos, NULL, NULL, &rxcnt, "RX");
 
-	wr_start_lcore(pktgen.l2p, lid);
+	pg_start_lcore(pktgen.l2p, lid);
 
-	while(wr_lcore_is_running(pktgen.l2p, lid)) {
+	while(pg_lcore_is_running(pktgen.l2p, lid)) {
 		for (idx = 0; idx < rxcnt; idx++) /* Read packet */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
 	}
@@ -1508,7 +1508,7 @@ pktgen_launch_one_lcore(void *arg __rte_unused)
 
 	rte_delay_ms((lid + 1) * 21);
 
-	switch (wr_get_type(pktgen.l2p, lid)) {
+	switch (get_type(pktgen.l2p, lid)) {
 	case RX_TYPE:               pktgen_main_rx_loop(lid);       break;
 	case TX_TYPE:               pktgen_main_tx_loop(lid);       break;
 	case (RX_TYPE | TX_TYPE):   pktgen_main_rxtx_loop(lid);     break;
@@ -1533,10 +1533,43 @@ pktgen_page_config(void)
 {
 	display_topline("<Config Page>");
 
-	wr_scrn_center(20,
+	scrn_center(20,
 	               pktgen.scrn->ncols,
 	               "Need to add the configuration stuff here");
 	display_dashline(22);
+}
+
+static void
+_page_display(void)
+{
+    static unsigned int counter = 0;
+
+    pktgen_display_set_color("top.spinner");
+    scrn_printf(1, 1, "%c", "-\\|/"[(counter++ & 3)]);
+    pktgen_display_set_color(NULL);
+
+    if (pktgen.flags & CPU_PAGE_FLAG)
+        pktgen_page_cpu();
+    else if (pktgen.flags & PCAP_PAGE_FLAG)
+        pktgen_page_pcap(pktgen.portNum);
+    else if (pktgen.flags & RANGE_PAGE_FLAG)
+        pktgen_page_range();
+    else if (pktgen.flags & CONFIG_PAGE_FLAG)
+        pktgen_page_config();
+    else if (pktgen.flags & SEQUENCE_PAGE_FLAG)
+        pktgen_page_seq(pktgen.portNum);
+    else if (pktgen.flags & RND_BITFIELD_PAGE_FLAG)
+        pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
+                                     pktgen.portNum,
+                                     pktgen.info[pktgen.portNum].rnd_bitfields);
+    else if (pktgen.flags & LOG_PAGE_FLAG)
+        pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
+    else if (pktgen.flags & LATENCY_PAGE_FLAG)
+        pktgen_page_latency();
+        else if (pktgen.flags & STATS_PAGE_FLAG)
+                pktgen_page_phys_stats();
+    else
+        pktgen_page_stats();
 }
 
 /**************************************************************************//**
@@ -1554,47 +1587,31 @@ pktgen_page_config(void)
 void
 pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
-	static unsigned int counter = 0;
+    static unsigned int update_display = 1;
 
 	/* Leave if the screen is paused */
-	if (wr_scrn_is_paused())
+	if (scrn_is_paused())
 		return;
 
-	wr_scrn_save();
+	scrn_save();
 
-	pktgen_display_set_color("top.spinner");
-	wr_scrn_printf(1, 1, "%c", "-\\|/"[(counter++ & 3)]);
-	pktgen_display_set_color(NULL);
+    if (pktgen.flags & UPDATE_DISPLAY_FLAG) {
+        pktgen.flags &= ~UPDATE_DISPLAY_FLAG;
+        update_display = 1;
+    }
 
-	if (pktgen.flags & CPU_PAGE_FLAG)
-		pktgen_page_cpu();
-	else if (pktgen.flags & PCAP_PAGE_FLAG)
-		pktgen_page_pcap(pktgen.portNum);
-	else if (pktgen.flags & RANGE_PAGE_FLAG)
-		pktgen_page_range();
-	else if (pktgen.flags & CONFIG_PAGE_FLAG)
-		pktgen_page_config();
-	else if (pktgen.flags & SEQUENCE_PAGE_FLAG)
-		pktgen_page_seq(pktgen.portNum);
-	else if (pktgen.flags & RND_BITFIELD_PAGE_FLAG)
-		pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
-		                             pktgen.portNum,
-		                             pktgen.info[pktgen.portNum].rnd_bitfields);
-	else if (pktgen.flags & LOG_PAGE_FLAG)
-		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
-	else if (pktgen.flags & LATENCY_PAGE_FLAG)
-		pktgen_page_latency();
-        else if (pktgen.flags & STATS_PAGE_FLAG)
-                pktgen_page_phys_stats();
-	else
-		pktgen_page_stats();
+    update_display--;
+    if (update_display == 0) {
+        update_display = UPDATE_DISPLAY_TICK_INTERVAL;
+        _page_display();
 
-	wr_scrn_restore();
+        if (pktgen.flags & PRINT_LABELS_FLAG)
+            pktgen.flags &= ~PRINT_LABELS_FLAG;
+    }
 
-	pktgen_print_packet_dump();
+	scrn_restore();
 
-	if (pktgen.flags & PRINT_LABELS_FLAG)
-		pktgen.flags &= ~PRINT_LABELS_FLAG;
+    pktgen_print_packet_dump();
 }
 
 static struct rte_timer timer0;
@@ -1624,9 +1641,9 @@ rte_timer_setup(void)
 	rte_timer_init(&timer0);
 	rte_timer_init(&timer1);
 
-	/* load timer0, every 2 seconds, on Display lcore, reloaded automatically */
+	/* load timer0, every 1/2 seconds, on Display lcore, reloaded automatically */
 	rte_timer_reset(&timer0,
-	                (pktgen.hz * 2),
+                    UPDATE_DISPLAY_TICK_RATE,
 	                PERIODICAL,
 	                lcore_id,
 	                pktgen_page_display,

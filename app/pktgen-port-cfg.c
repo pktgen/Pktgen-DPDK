@@ -295,7 +295,7 @@ pktgen_config_ports(void)
 	else
 		pktgen.ending_port = pktgen.starting_port + pktgen.nb_ports;
 
-	wr_port_matrix_dump(pktgen.l2p);
+	pg_port_matrix_dump(pktgen.l2p);
 
 	pktgen_log_info(
 	        "Configuring %d ports, MBUF Size %d, MBUF Cache Size %d",
@@ -305,25 +305,25 @@ pktgen_config_ports(void)
 
 	/* For each lcore setup each port that is handled by that lcore. */
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
-		if (wr_get_map(pktgen.l2p, RTE_MAX_ETHPORTS, lid) == 0)
+		if (get_map(pktgen.l2p, RTE_MAX_ETHPORTS, lid) == 0)
 			continue;
 
 		/* For each port attached or handled by the lcore */
 		for (pid = 0; pid < pktgen.nb_ports; pid++) {
 			/* If non-zero then this port is handled by this lcore. */
-			if (wr_get_map(pktgen.l2p, pid, lid) == 0)
+			if (get_map(pktgen.l2p, pid, lid) == 0)
 				continue;
-			wr_set_port_private(pktgen.l2p, pid, &pktgen.info[pid]);
+			pg_set_port_private(pktgen.l2p, pid, &pktgen.info[pid]);
 			pktgen.info[pid].pid = pid;
 		}
 	}
-	wr_dump_l2p(pktgen.l2p);
+	pg_dump_l2p(pktgen.l2p);
 
 	pktgen.total_mem_used = 0;
 
 	for (pid = 0; pid < pktgen.nb_ports; pid++) {
 		/* Skip if we do not have any lcores attached to a port. */
-		if ( (rt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0)
+		if ( (rt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0)
 			continue;
 
 		pktgen.port_cnt++;
@@ -331,7 +331,7 @@ pktgen_config_ports(void)
 		         "Initialize Port %d -- TxQ %d, RxQ %d",
 		         pid, rt.tx, rt.rx);
 
-		info = wr_get_port_private(pktgen.l2p, pid);
+		info = get_port_private(pktgen.l2p, pid);
 
 		info->fill_pattern_type  = ABC_FILL_PATTERN;
 		strncpy(info->user_pattern, "0123456789abcdef", USER_PATTERN_SIZE);
@@ -388,7 +388,7 @@ pktgen_config_ports(void)
 
 		for (q = 0; q < rt.rx; q++) {
 			/* grab the socket id value based on the lcore being used. */
-			sid = rte_lcore_to_socket_id(wr_get_port_lid(pktgen.l2p, pid, q));
+			sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, q));
 
 			/* Create and initialize the default Receive buffers. */
 			info->q[q].rx_mp = pktgen_mbuf_pool_create( "Default RX", pid, q,
@@ -401,7 +401,7 @@ pktgen_config_ports(void)
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s",
 				        ret, pid, rte_strerror(-ret));
-			lid = wr_get_port_lid(pktgen.l2p, pid, q);
+			lid = get_port_lid(pktgen.l2p, pid, q);
 			pktgen_log_info("      Set RX queue stats mapping pid %d, q %d, lcore %d\n", pid, q, lid);
 			rte_eth_dev_set_rx_queue_stats_mapping(pid, q, lid);
 		}
@@ -409,7 +409,7 @@ pktgen_config_ports(void)
 
 		for (q = 0; q < rt.tx; q++) {
 			/* grab the socket id value based on the lcore being used. */
-			sid = rte_lcore_to_socket_id(wr_get_port_lid(pktgen.  l2p, pid, q));
+			sid = rte_lcore_to_socket_id(get_port_lid(pktgen.  l2p, pid, q));
 
 			/* Create and initialize the default Transmit buffers. */
 			info->q[q].tx_mp = pktgen_mbuf_pool_create( "Default TX", pid, q,
@@ -456,10 +456,10 @@ pktgen_config_ports(void)
 
 	/* Start up the ports and display the port Link status */
 	for (pid = 0; pid < pktgen.nb_ports; pid++) {
-		if (wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
+		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
-		info = wr_get_port_private(pktgen.l2p, pid);
+		info = get_port_private(pktgen.l2p, pid);
 
 		/* Start device */
 		if ( (ret = rte_eth_dev_start(pid)) < 0)
@@ -501,6 +501,6 @@ pktgen_config_ports(void)
 	pktgen_log_info("");
 
 	/* Setup the packet capture per port if needed. */
-	for (sid = 0; sid < wr_coremap_cnt(pktgen.core_info, pktgen.core_cnt, 0); sid++)
+	for (sid = 0; sid < coremap_cnt(pktgen.core_info, pktgen.core_cnt, 0); sid++)
 		pktgen_packet_capture_init(&pktgen.capture[sid], sid);
 }

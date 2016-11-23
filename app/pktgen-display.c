@@ -177,16 +177,16 @@ theme_color_map_t theme_color_map[] = {
 void
 pktgen_init_screen(int theme)
 {
-	pktgen.scrn = wr_scrn_init(MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
+	pktgen.scrn = scrn_init(MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
 }
 
 /* Print out the top line on the screen */
 void
 display_topline(const char *msg)
 {
-	wr_scrn_printf(1, 20, "%s", msg);
+	scrn_printf(1, 20, "%s", msg);
 	pktgen_display_set_color("top.copyright");
-	wr_scrn_puts("  %s", wr_copyright_msg_short());
+	scrn_puts("  %s", copyright_msg_short());
 	pktgen_display_set_color(NULL);
 }
 
@@ -196,16 +196,16 @@ display_dashline(int last_row)
 {
 	int i;
 
-	wr_scrn_setw(last_row);
+	scrn_setw(last_row);
 	last_row--;
-	wr_scrn_pos(last_row, 1);
+	scrn_pos(last_row, 1);
 	pktgen_display_set_color("sep.dash");
 	for (i = 0; i < 79; i++)
-		wr_scrn_fprintf(0, 0, stdout, "-");
+		scrn_fprintf(0, 0, stdout, "-");
 	pktgen_display_set_color("sep.text");
-	wr_scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
+	scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
 	pktgen_display_set_color("top.poweredby");
-	wr_scrn_puts(" %s ", wr_powered_by());
+	scrn_puts(" %s ", powered_by());
 	pktgen_display_set_color(NULL);
 }
 
@@ -263,7 +263,7 @@ pktgen_display_set_color(const char *elem) {
 		return;
 	}
 
-	wr_scrn_color(theme_color->fg_color,
+	scrn_color(theme_color->fg_color,
 	              theme_color->bg_color,
 	              theme_color->attr);
 }
@@ -277,7 +277,7 @@ __set_prompt(void)
 	/* Set default return value. */
 	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_APP_NAME);
 
-	if ( (__scrn->theme == THEME_ON) && !wr_scrn_is_paused() ) {
+	if ( (__scrn->theme == THEME_ON) && !scrn_is_paused() ) {
 		/* Look up the default and prompt values */
 		def    = lookup_item(NULL);
 		prompt = lookup_item("pktgen.prompt");

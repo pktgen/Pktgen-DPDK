@@ -1183,7 +1183,7 @@ stream_box(void)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 5);
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = wr_get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
+		cnt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE);
 		if (cnt.rxtx == 0)
 			continue;
 

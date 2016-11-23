@@ -1,6 +1,6 @@
 /*
  * SOURCE: pktgen-gre.c
- * LIBS: libwr_common
+ * LIBS: libpg_common
  */
 
 #include "pktgen.h"

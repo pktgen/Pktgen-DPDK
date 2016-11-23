@@ -6,6 +6,10 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.1.0   - Rename functions and files.
+             When files are written change the file modes to 0666 as they are owned by root.
+             More general cleanup of the display refresh.
+             loading command or lua files is faster because of the screen updates fixed.
  - 3.0.17  - Fixed a formating issue on sequence page for port numbers.
              Save of lua code wrong for pktgen.range() should be pktgen.set_range().
  - 3.0.16  - Add command line option to strip CRC in hardware one RX.

@@ -1,0 +1,51 @@
+Contributors Guide
+==================
+
+This document outlines how to contribute code to the PKTGEN project.
+
+Getting the code
+----------------
+
+The PKTGEN code can be cloned from the repository on dpdk.org as follows:
+
+    git clone git://dpdk.org/apps/pktgen-dpdk
+    git clone http://dpdk.org/git/apps/pktgen-dpdk
+
+The code can be browsed at http://dpdk.org/browse/apps/pktgen-dpdk/
+
+Submitting Patches
+------------------
+
+Contributions to PKTGEN should be submitted as git formatted patches to the
+DPDK mailing list: dev@dpdk.org
+
+Note you must first register for the mailing list at:
+http://dpdk.org/ml/listinfo/dev
+
+The commit message must end with a "Signed-off-by:" line which is added using:
+
+    git commit --signoff # or -s
+
+The purpose of the signoff is explained in the Linux kernel guidelines
+Developer's Certificate of Origin:
+http://www.kernel.org/doc/Documentation/SubmittingPatches
+
+Note:
+    All developers must ensure that they have read, understood and complied
+    with the Developer's Certificate of Origin section of the documentation
+    prior to applying the signoff and submitting a patch.
+
+The DPDK Code Contributors guidelines contain information that is
+useful for submitting patches to PKTGEN:
+http://dpdk.org/doc/guides/contributing/index.html
+
+Coding Guidelines
+-----------------
+
+* C code should follow the DPDK coding standards.
+* Lua code should follow existing code.
+
+Maintainer
+----------
+
+The PKTGEN maintainer is: Keith Wiles <keith.wiles@intel.com>

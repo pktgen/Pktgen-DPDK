@@ -115,7 +115,7 @@ const ring_conf_t default_ring_conf = {
 	.tx_hthresh = RTE_PMD_PARAM_UNSET,
 	.tx_wthresh = RTE_PMD_PARAM_UNSET,
 
-	.rx_free_thresh = RTE_PMD_PARAM_UNSET,
+	.rx_free_thresh = 32,
 	.rx_drop_en = RTE_PMD_PARAM_UNSET,
 	.tx_free_thresh = RTE_PMD_PARAM_UNSET,
 	.tx_rs_thresh = RTE_PMD_PARAM_UNSET,

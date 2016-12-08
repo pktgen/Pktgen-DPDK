@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Normal setup
-#   different cores for each port.
-
 name=`uname -n`
 
 # Use 'sudo -E ./setup.sh' to include environment variables
@@ -64,40 +61,26 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-if [ $name == "rkwiles-DESK1.intel.com" ]; then
-#	dpdk_opts="-l 1-17 -n 4 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
-	dpdk_opts="-l 1-5 -n 4 --proc-type auto --log-level 8 --socket-mem 2048,2048 --file-prefix pg"
-#	dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
-	dpdk_opts="${dpdk_opts} --vdev=eth_bond0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
-	dpdk_opts="${dpdk_opts} --vdev=eth_bond1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
-	pktgen_opts="-T -P --crc-strip"
-	pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1"
-#	pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
-#	pktgen_opts="${pktgen_opts} -m [10:11].4 -m [12:13].5 -m [14:15].6 -m [16:17].7"
-	black_list="-b 05:00.0 -b 05:00.1"
-#	black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
-#	black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
-	black_list="${black_list} -b 82:00.0 -b 83:00.0"
-	load_file="-f themes/black-yellow.theme"
+#dpdk_opts="-l 1-17 -n 4 --proc-type auto --log-level 8 --socket-mem 512,512 --file-prefix pg"
+dpdk_opts="-l 1-5 -n 4 --proc-type auto --log-level 8 --socket-mem 4096,4096 --file-prefix pg"
+#dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
 
-	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
-	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
+pktgen_opts="-T -P --crc-strip"
+pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1"
+#pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
+#pktgen_opts="${pktgen_opts} -m [10:11].4 -m [12:13].5 -m [14:15].6 -m [16:17].7"
 
-	# Restore the screen and keyboard to a sane state
-	stty sane
-fi
+black_list="-b 05:00.0 -b 05:00.1"
+#black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
+#black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
+black_list="${black_list} -b 82:00.0 -b 83:00.0"
 
-if [ $name == "rkwiles-VirtualBox" ]; then
-	dpdk_opts="-l 1-3 -n 4 --proc-type auto --log-level 7 --socket-mem 256 --file-prefix pg"
-	dpdk_opts=${dpdk_opts}" --vdev=net_ring0 --vdev=net_ring1"
-	pktgen_opts="-T -P"
-	pktgen_opts="${pktgen_opts} -m 2.0 -m 3.1"
-	black_list="-b 00:03.0"
-	load_file="-f themes/black-yellow.theme"
+load_file="-f themes/black-yellow.theme"
 
-	echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
-	sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
+echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
+sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 
-	# Restore the screen and keyboard to a sane state
-	stty sane
-fi
+# Restore the screen and keyboard to a sane state
+stty sane

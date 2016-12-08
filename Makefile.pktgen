@@ -1,8 +1,0 @@
-# Makefile.pktgen
-# Created on: Apr 10, 2014
-#     Author: keithw
-
-all:
-	make -C ${RTE_SDK} EXTRA_CFLAGS+="-g" install T=${RTE_TARGET}
-	make EXTRA_CFLAGS+="-g" #V=1
-

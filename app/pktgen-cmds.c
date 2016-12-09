@@ -994,7 +994,7 @@ pktgen_flags_string(port_info_t *info)
 	         (flags & PROCESS_INPUT_PKTS)		? 'I' : '-',
 	         "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
 	         (flags & SEND_LATENCY_PKTS)		? 'L' : '-',
-		 (flags & SEND_VLAN_ID)			? 'V' :
+             (flags & SEND_VLAN_ID)			? 'V' :
 	           (flags & SEND_MPLS_LABEL)		? 'M' :
 	           (flags & SEND_Q_IN_Q_IDS)		? 'Q' : '-',
 	         (flags & PROCESS_GARP_PKTS)		? 'g' : '-',
@@ -1050,6 +1050,7 @@ pktgen_redisplay(int cls_flag)
 void
 pktgen_update_display(void)
 {
+    pktgen.flags |= PRINT_LABELS_FLAG;
     pktgen.flags |= UPDATE_DISPLAY_FLAG;
 }
 
@@ -2170,7 +2171,6 @@ pktgen_reset(port_info_t *info)
         pktgen_set_port_seqCnt(info, 0);
 	}
 
-	pktgen.flags &= ~PRINT_LABELS_FLAG;
 	pktgen_update_display();
 }
 
@@ -2203,7 +2203,6 @@ pktgen_port_restart(port_info_t *info)
 
 	rte_eth_dev_start(info->pid);
 
-	pktgen.flags &= ~PRINT_LABELS_FLAG;
 	pktgen_update_display();
 }
 

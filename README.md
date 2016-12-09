@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.1.1   - Minor cleanup of top level directory.
  - 3.1.0   - Rename functions and files.
              When files are written change the file modes to 0666 as they are owned by root.
              More general cleanup of the display refresh.
@@ -338,12 +339,12 @@ sure you have contiguous memory for the 2Meg pages.
 This is my current machine you will have a few different numbers depending on 
 how your system was booted and if you had hugeTLB support enabled.
 
-At the ${RTE_SDK}/examples/pktgen level directory we have the 'setup' script,
+At the ${RTE_SDK}/examples/pktgen level directory we have the 'setup.sh' script,
 which needs to be run as root once per boot. The script contains a commands to setup
 the environment.
 
-Make sure you run the setup script as root via 'sudo -E ./setup'. The setup script
-is a bash script and tries to setup the system correctly, but you may have to 
+Make sure you run the setup script as root via 'sudo -E ./tools/setup.sh'. The setup
+script is a bash script and tries to setup the system correctly, but you may have to 
 change the script to match your number of huge pages you configured above.
 
 The modprobe uio command, in the setup script, loads the UIO support module into the
@@ -390,11 +391,11 @@ Next we build pktgen:
 # cd <PktgenInstallDir>
 # make
 ```
-You should now have pktgen built and to run pktgen type 'sudo -E ./doit', which is a script
+You should now have pktgen built and to run pktgen type 'sudo -E ./tools/run.sh', which is a script
 to help with the command line options of pktgen. You may need to modify this script for
 your system and configuration.
 ```
-# cat doit
+# cat tools/run.sh
 #!/bin/bash
 
 #rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
@@ -539,7 +540,7 @@ Usage: ./app/pktgen [EAL options] -- [-h] [-P] [-G] [-f cmd_file] [-l log_file] 
 A new feature for pktgen and DPDK is to run multiple instances of pktgen. This
 allows the developer to share ports on the same machine.
 
-------------- doit script ----------------
+------------- run.sh script ----------------
 ```
 #!/bin/bash
 
@@ -548,17 +549,17 @@ allows the developer to share ports on the same machine.
 
 name=`uname -n`
 
-# Use 'sudo -E ./setup.sh' to include environment variables
+# Use 'sudo -E ./tools/setup.sh' to include environment variables
 
 if [ -z ${RTE_SDK} ] ; then
-    echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
+    echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
 	export RTE_TARGET=x86_64-native-linuxapp-clang
 fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
-    echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
+    echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
     target=x86_64-pktgen-linuxapp-gcc
 else
     target=${RTE_TARGET}
@@ -592,16 +593,16 @@ if [ $name == "rkwiles-mini-i7" ]; then
 ./app/app/${target}/pktgen -c 1f -n 3 --proc-type auto --socket-mem 512 --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
 fi
 ```
-------------- doit script ----------------
+------------- run.sh script ----------------
 
-------------- setup script ----------------
+------------- setup.sh script ----------------
 ```
 #!/bin/bash
 
-# Use 'sudo -E ./setup.sh' to include environment variables
+# Use 'sudo -E ./tools/setup.sh' to include environment variables
 
 if [ -z ${RTE_SDK} ] ; then
-	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
+	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
 	echo "    Using "${RTE_SDK}
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
 	export RTE_TARGET=x86_64-native-linuxapp-clang
@@ -609,7 +610,7 @@ fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
-	echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
+	echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
 	target=x86_64-pktgen-linuxapp-gcc
 else
 	target=${RTE_TARGET}
@@ -670,10 +671,10 @@ lspci |grep Ether
 If you have run pktgen before then remove the files in /mnt/huge/* before
 running the new version.
 
-Running the doit script produces output as follows, but maybe different on your
+Running the run.sh script produces output as follows, but maybe different on your
 system configuration.
 ```
-[22:20][keithw@keithw-S5520HC:pktgen(master)]$ sudo -E ./doit
+[22:20][keithw@keithw-S5520HC:pktgen(master)]$ sudo -E ./tools/run.sh
 ------------------------------------------------------------------------
 -----------------------
   

@@ -1981,31 +1981,29 @@ cmd_set_parsed(void *parsed_result,
 	struct cmd_set_result *res = parsed_result;
 
 	foreach_port(res->portlist.map, _do(
-	                     if (!strcmp(res->what, "count"))
-				     pktgen_set_tx_count(info, res->value);
-	                     else if (!strcmp(res->what, "size"))
-				     pktgen_set_pkt_size(info, res->value);
-	                     else if (!strcmp(res->what, "rate"))
-				     pktgen_set_tx_rate(info, res->value);
-	                     else if (!strcmp(res->what, "burst"))
-				     pktgen_set_tx_burst(info, res->value);
-	                     else if (!strcmp(res->what, "tx_cycles"))
-				     pktgen_set_tx_cycles(info, res->value);
-	                     else if (!strcmp(res->what, "sport"))
-				     pktgen_set_port_value(info, res->what[0],
-				                           res->value);
-	                     else if (!strcmp(res->what, "dport"))
-				     pktgen_set_port_value(info, res->what[0],
-				                           res->value);
-	                     else if (!strcmp(res->what, "seqCnt"))
-				     pktgen_set_port_seqCnt(info, res->value);
-	                     else if (!strcmp(res->what, "prime"))
-				     pktgen_set_port_prime(info, res->value);
-	                     else if (!strcmp(res->what, "dump"))
-				     pktgen_set_port_dump(info, res->value);
-	                     else if (!strcmp(res->what, "vlanid"))
-				     pktgen_set_vlanid(info, res->value);
-	                     ) );
+         if (!strcmp(res->what, "count"))
+             pktgen_set_tx_count(info, res->value);
+         else if (!strcmp(res->what, "size"))
+             pktgen_set_pkt_size(info, res->value);
+         else if (!strcmp(res->what, "rate"))
+             pktgen_set_tx_rate(info, res->value);
+         else if (!strcmp(res->what, "burst"))
+             pktgen_set_tx_burst(info, res->value);
+         else if (!strcmp(res->what, "tx_cycles"))
+             pktgen_set_tx_cycles(info, res->value);
+         else if (!strcmp(res->what, "sport"))
+             pktgen_set_port_value(info, res->what[0], res->value);
+         else if (!strcmp(res->what, "dport"))
+             pktgen_set_port_value(info, res->what[0], res->value);
+         else if (!strcmp(res->what, "seqCnt"))
+             pktgen_set_port_seqCnt(info, res->value);
+         else if (!strcmp(res->what, "prime"))
+             pktgen_set_port_prime(info, res->value);
+         else if (!strcmp(res->what, "dump"))
+             pktgen_set_port_dump(info, res->value);
+         else if (!strcmp(res->what, "vlanid"))
+             pktgen_set_vlanid(info, res->value);
+         ) );
 
 	pktgen_update_display();
 }

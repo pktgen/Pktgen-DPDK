@@ -263,7 +263,7 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait) {
 			rte_delay_ms(250);
 	}
 	/* Setup a few default values to prevent problems later. */
-	info->link.link_speed   = 10000;
+	info->link.link_speed   = ETH_SPEED_NUM_10G;
 	info->link.link_duplex  = ETH_LINK_FULL_DUPLEX;
 }
 
@@ -467,7 +467,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	static unsigned int counter = 0;
 
 	counter++;
-	if (pktgen.flags & BLINK_PORTS_FLAG)
+	if (pktgen.flags & BLINK_PORTS_FLAG) {
 		for (pid = 0; pid < pktgen.nb_ports; pid++) {
 			if ( (pktgen.blinklist & (1ULL << pid)) == 0)
 				continue;
@@ -477,10 +477,11 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 			else
 				rte_eth_led_off(pid);
 		}
-
+    }
 	for (pid = 0; pid < pktgen.nb_ports; pid++) {
+        /*
 		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
-			continue;
+			continue; */
 
 		info = &pktgen.info[pid];
 
@@ -542,7 +543,7 @@ void
 pktgen_page_phys_stats(void)
 {
     unsigned int pid, col, row;
-    struct rte_eth_stats stats, *s;
+    struct rte_eth_stats stats, *s, *r;
     struct ether_addr ethaddr;
     char buff[32], mac_buf[32];
 
@@ -557,7 +558,7 @@ pktgen_page_phys_stats(void)
     pktgen_display_set_color("stats.port.label");
     scrn_printf(row++, col, "Port Name");
     pktgen_display_set_color("stats.stat.label");
-    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
         snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
         scrn_printf(row++, col, "%-*s", COLUMN_WIDTH_0 - 4, buff);
     }
@@ -565,17 +566,17 @@ pktgen_page_phys_stats(void)
     row = 4;
     /* Display the colon after the row label. */
     pktgen_display_set_color("stats.colon");
-    for (pid = 0; pid < rte_eth_dev_count(); pid++)
-        scrn_printf(row++, COLUMN_WIDTH_0 - 5, ":");
+    for (pid = 0; pid < pktgen.nb_ports; pid++)
+        scrn_printf(row++, COLUMN_WIDTH_0 - 4, ":");
 
     display_dashline(++row);
 
     row = 3;
-    col = COLUMN_WIDTH_0 - 4;
+    col = COLUMN_WIDTH_0 - 3;
     pktgen_display_set_color("stats.port.label");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
     pktgen_display_set_color("stats.stat.values");
-    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
         rte_eth_stats_get(pid, &stats);
 
@@ -586,11 +587,11 @@ pktgen_page_phys_stats(void)
     }
 
     row = 3;
-    col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 4;
+    col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 3;
     pktgen_display_set_color("stats.port.label");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
     pktgen_display_set_color("stats.stat.values");
-    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
         rte_eth_stats_get(pid, &stats);
 
@@ -600,26 +601,26 @@ pktgen_page_phys_stats(void)
     }
 
     row = 3;
-    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 4;
+    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
     pktgen_display_set_color("stats.port.label");
-    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Bad CRC/Len");
+    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
     pktgen_display_set_color("stats.stat.values");
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
         rte_eth_stats_get(pid, &stats);
 
-        snprintf(buff, sizeof(buff), "%lu/%lu", s->ibadcrc, s->ibadlen);
+        r = &pktgen.info[pid].rate_stats;
+        snprintf(buff, sizeof(buff), "%lu/%lu", r->ipackets, r->opackets);
 
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     }
-#endif
     row = 3;
-    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 4;
+    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
     pktgen_display_set_color("stats.port.label");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
     pktgen_display_set_color("stats.stat.values");
-    for (pid = 0; pid < rte_eth_dev_count(); pid++) {
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
         rte_eth_macaddr_get(pid, &ethaddr);
 

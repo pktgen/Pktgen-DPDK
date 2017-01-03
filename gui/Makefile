@@ -54,6 +54,7 @@ GTK_INCLUDE := $(shell pkg-config --cflags glib-2.0) \
 CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common -I$(RTE_SRCDIR)/../app
 CFLAGS += -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
+CFLAGS += $(GTK_INCLUDE)
 CFLAGS += -Wno-strict-prototypes -Wno-cast-qual
 
 # all source are stored in SRCS-y

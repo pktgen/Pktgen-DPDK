@@ -236,6 +236,7 @@ pktgen_print_static_data(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
+#define LINK_RETRY  16
 /**************************************************************************//**
  *
  * pktgen_get_link_status - Get the port link status.
@@ -254,7 +255,7 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait) {
 	int i;
 
 	/* get link status */
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
+	for (i = 0; i < LINK_RETRY; i++) {
 		memset(&info->link, 0, sizeof(info->link));
 		rte_eth_link_get_nowait(pid, &info->link);
 		if (info->link.link_status)
@@ -285,9 +286,8 @@ pktgen_page_stats(void)
 	port_info_t *info;
 	unsigned int pid, col, row;
 	struct rte_eth_stats *rate, *cumm, *prev;
-	unsigned sp;
 	char buff[32];
-	int display_cnt;
+	int display_cnt, column;
 
 	if (pktgen.flags & PRINT_LABELS_FLAG)
 		pktgen_print_static_data();
@@ -326,31 +326,30 @@ pktgen_page_stats(void)
 		cumm->imcasts += rate->imcasts;
 #endif
 		cumm->rx_nombuf += rate->rx_nombuf;
-	}
 
-	sp = pktgen.starting_port;
+        /* Grab the link state of the port and display Duplex/Speed and UP/Down */
+        pktgen_get_link_status(info, pid, 0);
+    }
+
 	display_cnt = 0;
-	for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
-		if (get_map(pktgen.l2p, pid + sp, RTE_MAX_LCORE) == 0)
+    column = 0;
+	for (pid = pktgen.starting_port; pid < pktgen.ending_port; pid++) {
+		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
-		info = &pktgen.info[pid + sp];
+		info = &pktgen.info[pid];
 
 		/* Display the disable string when port is not enabled. */
-		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
+		col = (COLUMN_WIDTH_1 * column) + COLUMN_WIDTH_0;
 		row = PORT_STATE_ROW;
 
 		/* Display the port number for the column */
-		snprintf(buff, sizeof(buff), "%s:%d", pktgen_flags_string(
-		                 info), pid + sp);
+		snprintf(buff, sizeof(buff), "%s:%d", pktgen_flags_string(info), pid);
 		pktgen_display_set_color("stats.port.flags");
 		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
 
 		row = LINK_STATE_ROW;
-
-		/* Grab the link state of the port and display Duplex/Speed and UP/Down */
-		pktgen_get_link_status(info, pid, 0);
 
 		pktgen_link_state(pid, buff, sizeof(buff));
 		pktgen_display_set_color("stats.port.status");
@@ -425,6 +424,7 @@ pktgen_page_stats(void)
 			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
+		column++;
 		display_cnt++;
 	}
 

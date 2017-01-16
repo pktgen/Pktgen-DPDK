@@ -61,13 +61,14 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-dpdk_opts="-l 1-3,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 4096,4096 --file-prefix pg"
+dpdk_opts="-l 1-2,6,18,22 -n 4 --proc-type auto --log-level 7 --socket-mem 6144,6144 --file-prefix pg"
 #dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
-dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
-dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3,socket_id=0"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3,socket_id=1"
 
 pktgen_opts="-T -P --crc-strip"
-pktgen_opts="${pktgen_opts} -m [2:3].0 -m [18:19].1"
+pktgen_opts="${pktgen_opts} -m [2:6].8 -m [18:22].9"
+#pktgen_opts="${pktgen_opts} -m [2-5:6-9].8 -m [18-21:22-25].9"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
 #pktgen_opts="${pktgen_opts} -m [10:11].4 -m [12:13].5 -m [14:15].6 -m [16:17].7"
 
@@ -82,4 +83,6 @@ echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 
 # Restore the screen and keyboard to a sane state
+echo "[1;r" 
+echo "[99;1H"
 stty sane

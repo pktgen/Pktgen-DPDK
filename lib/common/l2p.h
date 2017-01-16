@@ -445,7 +445,6 @@ static __inline__ void
 pg_stop_lcore(l2p_t *l2p, uint8_t lid)
 {
 	l2p->stop[lid] = 1;
-	rte_mb();
 }
 
 /**************************************************************************//**
@@ -456,7 +455,6 @@ static __inline__ void
 pg_start_lcore(l2p_t *l2p, uint8_t lid)
 {
 	l2p->stop[lid] = 0;
-	rte_mb();
 }
 
 /**************************************************************************//**
@@ -466,7 +464,6 @@ pg_start_lcore(l2p_t *l2p, uint8_t lid)
 static __inline__ int32_t
 pg_lcore_is_running(l2p_t *l2p, uint8_t lid)
 {
-	rte_mb();
 	return l2p->stop[lid] == 0;
 }
 

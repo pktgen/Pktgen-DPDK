@@ -37,22 +37,20 @@ function num_cpu_sockets {
 ${Sudo} rm -fr /mnt/huge/*
 
 NR_HUGEPAGES=$(( `sysctl -n vm.nr_hugepages` / $(num_cpu_sockets) ))
-echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages."
-for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
-    ${Sudo} echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
-done
+echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages each"
+#for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
+#	echo "echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)"
+#	${Sudo} echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
+#done
 
 grep -i huge /proc/meminfo
 ${Sudo} modprobe uio
 echo "trying to remove old igb_uio module and may get an error message, ignore it"
 ${Sudo} rmmod igb_uio
 ${Sudo} insmod $sdk/$target/kmod/igb_uio.ko
-#echo "trying to remove old rte_kni module and may get an error message, ignore it"
-#${Sudo} rmmod rte_kni
-#${Sudo} insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
 if [ $name == "rkwiles-DESK1.intel.com" ]; then
-	${Sudo} -E $sdk/tools/dpdk-devbind.py -b igb_uio 04:00.0 04:00.1 04:00.2 04:00.3 81:00.0 81:00.1 81:00.2 81:00.3 82:00.0 83:00.0
+	${Sudo} $sdk/usertools/dpdk-devbind.py -b igb_uio 04:00.0 04:00.1 04:00.2 04:00.3 81:00.0 81:00.1 81:00.2 81:00.3 82:00.0 83:00.0
 fi
-$sdk/tools/dpdk-devbind.py --status
+${Sudo} $sdk/usertools/dpdk-devbind.py --status

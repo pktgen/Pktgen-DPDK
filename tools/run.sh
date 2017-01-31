@@ -33,8 +33,7 @@ cmd=./app/app/${target}/app/pktgen
 # 
 
 #============================================================
-#Core and Socket Information (as reported by '/proc/cpuinfo')
-#============================================================
+#Core and Socket Information (as reported by '/proc/cpuinfo') #============================================================
 #
 #cores =  [0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 19, 20, 24, 25, 26, 27]
 #sockets =  [0, 1]
@@ -61,14 +60,14 @@ cmd=./app/app/${target}/app/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-dpdk_opts="-l 1-2,6,18,22 -n 4 --proc-type auto --log-level 7 --socket-mem 6144,6144 --file-prefix pg"
+dpdk_opts="-l 1,2-9,18-25 -n 4 --proc-type auto --log-level 7 --socket-mem 10240,2048 --file-prefix pg"
 #dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
-dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3,socket_id=0"
-dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3,socket_id=1"
+#dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3,socket_id=0"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3,socket_id=1"
 
 pktgen_opts="-T -P --crc-strip"
-pktgen_opts="${pktgen_opts} -m [2:6].8 -m [18:22].9"
-#pktgen_opts="${pktgen_opts} -m [2-5:6-9].8 -m [18-21:22-25].9"
+pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8"
+#pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].4-7"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
 #pktgen_opts="${pktgen_opts} -m [10:11].4 -m [12:13].5 -m [14:15].6 -m [16:17].7"
 

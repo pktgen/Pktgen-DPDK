@@ -1935,6 +1935,7 @@ pktgen_clear_stats(port_info_t *info)
 	info->max_latency           = 0;
 	info->avg_latency           = 0;
 	info->jitter_count          = 0;
+	info->max_missed            = 0;
 
 	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 

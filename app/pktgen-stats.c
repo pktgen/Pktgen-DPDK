@@ -260,8 +260,9 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait) {
 		rte_eth_link_get_nowait(pid, &info->link);
 		if (info->link.link_status)
 			return;
-		if (wait)
-			rte_delay_ms(250);
+		if (!wait)
+			break;
+		rte_delay_us(250000);
 	}
 	/* Setup a few default values to prevent problems later. */
 	info->link.link_speed   = ETH_SPEED_NUM_10G;
@@ -543,12 +544,9 @@ void
 pktgen_page_phys_stats(void)
 {
     unsigned int pid, col, row;
-    struct rte_eth_stats stats, *s, *r;
+    struct rte_eth_stats *r, *p;
     struct ether_addr ethaddr;
     char buff[32], mac_buf[32];
-
-    s = &stats;
-    memset(s, 0, sizeof(struct rte_eth_stats));
 
     pktgen_display_set_color("top.page");
     display_topline("<Real Port Stats Page>");
@@ -578,9 +576,8 @@ pktgen_page_phys_stats(void)
     pktgen_display_set_color("stats.stat.values");
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
-        rte_eth_stats_get(pid, &stats);
-
-        snprintf(buff, sizeof(buff), "%lu/%lu", s->ipackets, s->opackets);
+	p = &pktgen.info[pid].prev_stats;
+        snprintf(buff, sizeof(buff), "%lu/%lu", p->ipackets, p->opackets);
 
         /* Total Rx/Tx */
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
@@ -589,13 +586,14 @@ pktgen_page_phys_stats(void)
     row = 3;
     col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 3;
     pktgen_display_set_color("stats.port.label");
-    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
+    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Max/Missed");
     pktgen_display_set_color("stats.stat.values");
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
-        rte_eth_stats_get(pid, &stats);
-
-        snprintf(buff, sizeof(buff), "%lu/%lu", s->ierrors, s->imissed);
+        r = &pktgen.info[pid].rate_stats;
+        snprintf(buff, sizeof(buff), "%lu/%lu", pktgen.info[pid].max_missed, r->imissed);
+	if (r->imissed > pktgen.info[pid].max_missed)
+		pktgen.info[pid].max_missed = r->imissed;
 
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     }
@@ -607,8 +605,6 @@ pktgen_page_phys_stats(void)
     pktgen_display_set_color("stats.stat.values");
 
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
-
-        rte_eth_stats_get(pid, &stats);
 
         r = &pktgen.info[pid].rate_stats;
         snprintf(buff, sizeof(buff), "%lu/%lu", r->ipackets, r->opackets);

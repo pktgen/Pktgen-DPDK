@@ -6,7 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
- - 3.1.1   - Minor cleanup of top level directory.
+ - 3.1.1   - Minor cleanup of top level directory and code.
  - 3.1.0   - Rename functions and files.
              When files are written change the file modes to 0666 as they are owned by root.
              More general cleanup of the display refresh.

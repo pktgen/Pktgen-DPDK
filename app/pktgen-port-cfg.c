@@ -459,12 +459,21 @@ pktgen_config_ports(void)
 		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
-		info = get_port_private(pktgen.l2p, pid);
-
 		/* Start device */
 		if ( (ret = rte_eth_dev_start(pid)) < 0)
 			pktgen_log_panic("rte_eth_dev_start: port=%d, %s",
 			                 pid, rte_strerror(-ret));
+		rte_delay_us(250000);
+	}
+
+	rte_delay_us(1000000);
+
+	/* Start up the ports and display the port Link status */
+	for (pid = 0; pid < pktgen.nb_ports; pid++) {
+		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
+			continue;
+
+		info = get_port_private(pktgen.l2p, pid);
 
 		pktgen_get_link_status(info, pid, 1);
 

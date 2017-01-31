@@ -161,7 +161,7 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.1.0"
+#define PKTGEN_VERSION          "3.1.1"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -397,7 +397,7 @@ enum {						/* Pktgen flags bits */
 	UPDATE_DISPLAY_FLAG     = (1 << 31)
 };
 
-#define UPDATE_DISPLAY_RATE             2   /* two seconds */
+#define UPDATE_DISPLAY_RATE             1   /* one second */
 #define UPDATE_DISPLAY_TICK_INTERVAL    8
 #define UPDATE_DISPLAY_TICK_RATE        \
             ((pktgen.hz * UPDATE_DISPLAY_RATE)/UPDATE_DISPLAY_TICK_INTERVAL)

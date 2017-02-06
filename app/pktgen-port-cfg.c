@@ -369,21 +369,6 @@ pktgen_config_ports(void)
 
 		pkt = &info->seq_pkt[SINGLE_PKT];
 
-		/* Grab the source MAC addresses * / */
-		rte_eth_macaddr_get(pid, &pkt->eth_src_addr);
-		pktgen_log_info("%s,  Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
-		                output_buff,
-		                pkt->eth_src_addr.addr_bytes[0],
-		                pkt->eth_src_addr.addr_bytes[1],
-		                pkt->eth_src_addr.addr_bytes[2],
-		                pkt->eth_src_addr.addr_bytes[3],
-		                pkt->eth_src_addr.addr_bytes[4],
-		                pkt->eth_src_addr.addr_bytes[5]);
-
-		/* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
-		for (i = 0; i < NUM_SEQ_PKTS; i++)
-			ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
-
 		pktgen.mem_used = 0;
 
 		for (q = 0; q < rt.rx; q++) {
@@ -450,6 +435,22 @@ pktgen_config_ports(void)
 		}
 		pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ",
 		                (pktgen.mem_used + 1023) / 1024);
+
+		/* Grab the source MAC addresses */
+		rte_eth_macaddr_get(pid, &pkt->eth_src_addr);
+		pktgen_log_info("%s,  Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
+		                output_buff,
+		                pkt->eth_src_addr.addr_bytes[0],
+		                pkt->eth_src_addr.addr_bytes[1],
+		                pkt->eth_src_addr.addr_bytes[2],
+		                pkt->eth_src_addr.addr_bytes[3],
+		                pkt->eth_src_addr.addr_bytes[4],
+		                pkt->eth_src_addr.addr_bytes[5]);
+
+		/* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
+		for (i = 0; i < NUM_SEQ_PKTS; i++)
+			ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
+
 	}
 	pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ",
 	                (pktgen.total_mem_used + 1023) / 1024);

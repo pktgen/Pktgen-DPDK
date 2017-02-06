@@ -2541,6 +2541,8 @@ pktgen_portSizes(lua_State *L) {
 static void
 pkt_stats(lua_State *L, port_info_t *info)
 {
+	struct ether_addr ethaddr;
+	char mac_buf[32];
 	pkt_stats_t stats;
 	uint32_t flags = rte_atomic32_read(&info->port_flags);
 
@@ -2557,6 +2559,11 @@ pkt_stats(lua_State *L, port_info_t *info)
 	setf_integer(L, "dropped_pkts", stats.dropped_pkts);
 	setf_integer(L, "unknown_pkts", stats.unknown_pkts);
 	setf_integer(L, "tx_failed", stats.tx_failed);
+
+        rte_eth_macaddr_get(info->pid, &ethaddr);
+
+        ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+	setf_string(L, "mac_addr", mac_buf);
 
 	if (flags & SEND_LATENCY_PKTS) {
 		setf_integer(L, "avg_latency", info->avg_latency);

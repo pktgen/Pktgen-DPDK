@@ -567,6 +567,29 @@ pktgen_page_phys_stats(void)
     for (pid = 0; pid < pktgen.nb_ports; pid++)
         scrn_printf(row++, COLUMN_WIDTH_0 - 4, ":");
 
+    row++;
+    scrn_printf(row++, 1, "Per port qid RX/TX counters");
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
+        port_info_t *info = &pktgen.info[pid];
+	rxtx_t rt;
+	uint16_t qid;
+
+	/* Skip if we do not have any lcores attached to a port. */
+	if ( (rt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0)
+		continue;
+
+	col = 1;
+	scrn_printf(row, col, "Pid: %d", pid);
+	col += COLUMN_WIDTH_0;
+	for (qid = 0; qid < rt.rx; qid++) {
+		snprintf(buff, sizeof(buff), "%2d - %lu/%lu", qid,
+			    info->q[qid].rx_cnt, info->q[qid].tx_cnt);
+		scrn_printf(row, col, "%-*s", COLUMN_WIDTH_0, buff);
+		col += COLUMN_WIDTH_0;
+	}
+	row++;
+    }
+
     display_dashline(++row);
 
     row = 3;

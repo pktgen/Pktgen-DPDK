@@ -70,12 +70,20 @@
 
 #include <_pcap.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct port_info_s;
 
 extern int pktgen_pcap_parse(pcap_info_t *pcap,
-                             struct port_info_s *info,
-                             unsigned qid);
+			     struct port_info_s *info,
+			     unsigned qid);
 
 extern void pktgen_page_pcap(uint16_t pid);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_PCAP_H_ */

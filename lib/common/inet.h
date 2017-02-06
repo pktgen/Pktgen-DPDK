@@ -186,15 +186,15 @@ typedef struct ipv6Hdr_s {
 #define PG_IPPROTO_IPV6_NONXT   59
 #define PG_IPPROTO_IPV6_OPTS    60
 #define PG_IPPROTO_RAW          IPPROTO_RAW
-#define PG_IPPROTO_USR_DEF	255
+#define PG_IPPROTO_USR_DEF  255
 #define PG_IPPROTO_MAX          256
 
 #define PG_IPPROTO_L4_GTPU_PORT 2152
 
 #define IPv4(a, b, c, d)   ((uint32_t)(((a) & 0xff) << 24) |   \
-                            (((b) & 0xff) << 16) |      \
-                            (((c) & 0xff) << 8)  |      \
-                            ((d) & 0xff))
+			    (((b) & 0xff) << 16) |	\
+			    (((c) & 0xff) << 8)  |	\
+			    ((d) & 0xff))
 
 /*************************************************************************
  *
@@ -619,7 +619,7 @@ typedef struct l3_6route_s {
  */
 static inline uint32_t
 rte_hash6_crc(const void *data,
-              __attribute__ ((unused)) uint32_t data_len, uint32_t init_val)
+	      __attribute__ ((unused)) uint32_t data_len, uint32_t init_val)
 {
 #ifdef RTE_MACHINE_CPUFLAG_SSE4_2
 	const uint32_t *p32 = (const uint32_t *)data;
@@ -748,9 +748,9 @@ inet_ntop6(char *buff, int len, uint8_t *ip6) {
 static __inline__ char *
 inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
 	snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
-	         eaddr->addr_bytes[0], eaddr->addr_bytes[1],
-	         eaddr->addr_bytes[2], eaddr->addr_bytes[3],
-	         eaddr->addr_bytes[4], eaddr->addr_bytes[5]);
+		 eaddr->addr_bytes[0], eaddr->addr_bytes[1],
+		 eaddr->addr_bytes[2], eaddr->addr_bytes[3],
+		 eaddr->addr_bytes[4], eaddr->addr_bytes[5]);
 	return buff;
 }
 
@@ -758,11 +758,11 @@ inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
 static __inline__ uint64_t
 inet_mtoh64(struct ether_addr *eaddr, uint64_t *value) {
 	*value = ((uint64_t)eaddr->addr_bytes[5] << 0)
-	        + ((uint64_t)eaddr->addr_bytes[4] << 8)
-	        + ((uint64_t)eaddr->addr_bytes[3] << 16)
-	        + ((uint64_t)eaddr->addr_bytes[2] << 24)
-	        + ((uint64_t)eaddr->addr_bytes[1] << 32)
-	        + ((uint64_t)eaddr->addr_bytes[0] << 40);
+		+ ((uint64_t)eaddr->addr_bytes[4] << 8)
+		+ ((uint64_t)eaddr->addr_bytes[3] << 16)
+		+ ((uint64_t)eaddr->addr_bytes[2] << 24)
+		+ ((uint64_t)eaddr->addr_bytes[1] << 32)
+		+ ((uint64_t)eaddr->addr_bytes[0] << 40);
 	return *value;
 }
 

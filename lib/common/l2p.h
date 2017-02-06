@@ -480,7 +480,7 @@ pg_dump_l2p(l2p_t *l2p)
 	pobj_t        *pobj;
 	uint8_t lid, pid, i;
 	const char    *types[] =
-		{ "Unknown", "RX-Only", "TX-Only", "RX-TX  ", NULL };
+	{ "Unknown", "RX-Only", "TX-Only", "RX-TX  ", NULL };
 
 	printf("Lcore:\n");
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {

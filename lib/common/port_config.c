@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2014>, Intel Corporation
+ * Copyright (c) <2014-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,39 +32,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the applcation must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2014 by Keith Wiles @ intel.com */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -104,9 +74,9 @@
 
 uint32_t
 get_portdesc(struct rte_pci_addr *pciAddr,
-                uint8_t **portdesc,
-                uint32_t num,
-                int verbose)
+	     uint8_t **portdesc,
+	     uint32_t num,
+	     int verbose)
 {
 	FILE *fd;
 	uint32_t idx;
@@ -141,12 +111,22 @@ get_portdesc(struct rte_pci_addr *pciAddr,
 
 		if (verbose)
 			fprintf(stdout, " 0x%016llx: %s\n", (1ULL << idx),
-			        buff);
+				buff);
 
 		/* Save the port description for later if asked to do so. */
-		if (portdesc)
-			portdesc[idx] = (uint8_t *)strdup(buff);	/* portdesc[idx] needs to be NULL or we lose memory. */
+		if (portdesc) {
+			const char *s = "ethernet controller";
+			int n = strlen(s);
 
+			p = strcasestr(buff, s);
+			if (p)
+				memmove(p, p + n, (strlen(buff) - ((p - buff) + n)) + 1);
+			p = strcasestr(buff, s);
+			n++;
+			if (p)	/* Try to remove the two strings to make the line shorter */
+				memmove(p, p + n, (strlen(buff) - ((p - buff) + n)) + 1);
+			portdesc[idx] = (uint8_t *)strdup(buff);/* portdesc[idx] needs to be NULL or we lose memory. */
+		}
 		if (++idx >= num)
 			break;
 	}
@@ -196,9 +176,9 @@ free_portdesc(uint8_t **portdesc, uint32_t num)
 
 uint32_t
 create_blacklist(uint64_t portmask,
-                    struct rte_pci_addr *portlist,
-                    uint32_t port_cnt,
-                    uint8_t *desc[]) {
+		 struct rte_pci_addr *portlist,
+		 uint32_t port_cnt,
+		 uint8_t *desc[]) {
 	uint32_t i, idx;
 	char pci_addr_str[32];
 
@@ -207,8 +187,8 @@ create_blacklist(uint64_t portmask,
 		return 0;
 
 	fprintf(stdout,
-	        "Ports: Port Mask: %016lx blacklisted = --, not-blacklisted = ++\n",
-	        portmask);
+		"Ports: Port Mask: %016lx blacklisted = --, not-blacklisted = ++\n",
+		portmask);
 	idx = 0;
 	for (i = 0; i < port_cnt; i++) {
 		memset(pci_addr_str, 0, sizeof(pci_addr_str));
@@ -216,12 +196,12 @@ create_blacklist(uint64_t portmask,
 			fprintf(stdout, "-- %s\n", desc[i]);
 			strncpy(pci_addr_str, (void *)desc[i], 12);
 			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI,
-			                    pci_addr_str);
+					    pci_addr_str);
 			idx++;
 		} else {
 			strncpy(pci_addr_str, (void *)desc[i], 12);
 			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI,
-			                    pci_addr_str);
+					    pci_addr_str);
 			fprintf(stdout, "++ %s\n", desc[i]);
 		}
 	}

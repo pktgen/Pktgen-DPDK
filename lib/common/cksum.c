@@ -223,7 +223,7 @@ cksumDone(uint32_t cksum)
  */
 uint32_t
 pseudoChecksum(uint32_t src, uint32_t dst, uint16_t pro, uint16_t len,
-               uint32_t sum)
+	       uint32_t sum)
 {
 	/* Compute the Pseudo Header checksum */
 	return sum + (src & 0xFFFF) + (src >> 16) + (dst & 0xFFFF) +
@@ -253,10 +253,10 @@ pseudoChecksum(uint32_t src, uint32_t dst, uint16_t pro, uint16_t len,
  */
 uint32_t
 pseudoIPv6Checksum(uint16_t *src,
-                   uint16_t *dst,
-                   uint8_t next_hdr,
-                   uint32_t total_len,
-                   uint32_t sum)
+		   uint16_t *dst,
+		   uint8_t next_hdr,
+		   uint32_t total_len,
+		   uint32_t sum)
 {
 	uint32_t len = htonl(total_len), i;
 

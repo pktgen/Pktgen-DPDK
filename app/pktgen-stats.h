@@ -70,6 +70,10 @@
 
 #include <rte_timer.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct pkt_stats_s {
 	uint64_t arp_pkts;	/**< Number of ARP packets received */
 	uint64_t echo_pkts;	/**< Number of ICMP echo requests received */
@@ -95,5 +99,9 @@ extern void pktgen_process_stats(struct rte_timer *tim, void *arg);
 
 extern void pktgen_page_stats(void);
 extern void pktgen_page_phys_stats(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_STATS_H_ */

@@ -102,7 +102,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 
 		/* adjust header size for VLAN tag */
 		pkt->ether_hdr_size = sizeof(struct ether_hdr) +
-		        sizeof(struct vlan_hdr);
+			sizeof(struct vlan_hdr);
 
 		return (char *)(vlan_hdr + 1);
 	} else if (rte_atomic32_read(&info->port_flags) & SEND_MPLS_LABEL) {
@@ -120,7 +120,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 
 		/* Adjust header size for MPLS label */
 		pkt->ether_hdr_size = sizeof(struct ether_hdr) +
-		        sizeof(mplsHdr_t);
+			sizeof(mplsHdr_t);
 
 		return (char *)(mpls_hdr + 1);
 	} else if (rte_atomic32_read(&info->port_flags) & SEND_Q_IN_Q_IDS) {
@@ -139,7 +139,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 
 		/* Adjust header size for Q-in-Q header */
 		pkt->ether_hdr_size = sizeof(struct ether_hdr) +
-		        sizeof(qinqHdr_t);
+			sizeof(qinqHdr_t);
 
 		return (char *)(qinq_hdr + 1);
 	} else {

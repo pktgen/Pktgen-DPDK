@@ -138,7 +138,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 	*ppkt = *spkt;	/* Copy the sequence setup to the ping setup. */
 	pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO);
 	rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-	           (uint8_t *)&ppkt->hdr, ppkt->pktSize);
+		   (uint8_t *)&ppkt->hdr, ppkt->pktSize);
 
 	m->pkt_len  = ppkt->pktSize;
 	m->data_len = ppkt->pktSize;
@@ -177,13 +177,13 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 	if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
 	     (ip->proto == PG_IPPROTO_ICMP) ) {
 		icmpv4Hdr_t *icmp =
-		        (icmpv4Hdr_t *)((uintptr_t)ip + sizeof(ipHdr_t));
+			(icmpv4Hdr_t *)((uintptr_t)ip + sizeof(ipHdr_t));
 
 		/* We do not handle IP options, which will effect the IP header size. */
 		if (unlikely(cksum(icmp,
-		                   (m->data_len - sizeof(struct ether_hdr) -
-		                    sizeof(ipHdr_t)),
-		                   0)) ) {
+				   (m->data_len - sizeof(struct ether_hdr) -
+				    sizeof(ipHdr_t)),
+				   0)) ) {
 			pktgen_log_error("ICMP checksum failed");
 			return;
 		}
@@ -191,10 +191,10 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 		if (unlikely(icmp->type == ICMP4_ECHO) ) {
 			if (ntohl(ip->dst) == INADDR_BROADCAST) {
 				pktgen_log_warning(
-				        "IP address %s is a Broadcast",
-				        inet_ntop4(buff,
-				                   sizeof(buff), ip->dst,
-				                   INADDR_BROADCAST));
+					"IP address %s is a Broadcast",
+					inet_ntop4(buff,
+						   sizeof(buff), ip->dst,
+						   INADDR_BROADCAST));
 				return;
 			}
 
@@ -204,10 +204,10 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 			/* ARP request not for this interface. */
 			if (unlikely(pkt == NULL) ) {
 				pktgen_log_warning("IP address %s not found",
-				                   inet_ntop4(buff,
-				                              sizeof(buff),
-				                              ip->dst,
-				                              INADDR_BROADCAST));
+						   inet_ntop4(buff,
+							      sizeof(buff),
+							      ip->dst,
+							      INADDR_BROADCAST));
 				return;
 			}
 
@@ -218,9 +218,9 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 			/* Recompute the ICMP checksum */
 			icmp->cksum = 0;
 			icmp->cksum =
-			        cksum(icmp,
-			              (m->data_len - sizeof(struct ether_hdr) -
-			               sizeof(ipHdr_t)), 0);
+				cksum(icmp,
+				      (m->data_len - sizeof(struct ether_hdr) -
+				       sizeof(ipHdr_t)), 0);
 
 			/* Swap the IP addresses. */
 			inetAddrSwap(&ip->src, &ip->dst);

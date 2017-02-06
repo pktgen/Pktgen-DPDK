@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2016>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,37 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <stdint.h>
@@ -81,6 +50,7 @@
 #include "pktgen-random.h"
 #include "pktgen-log.h"
 #include "pktgen-gtpu.h"
+#include "pktgen-cfg.h"
 
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
@@ -104,17 +74,17 @@ pktgen_wire_size(port_info_t *info)
 
 	if (rte_atomic32_read(&info->port_flags) & SEND_PCAP_PKTS)
 		size = info->pcap->pkt_size + PKT_PREAMBLE_SIZE +
-		        INTER_FRAME_GAP + FCS_SIZE;
+			INTER_FRAME_GAP + FCS_SIZE;
 	else {
 		if (unlikely(info->seqCnt > 0)) {
 			for (i = 0; i < info->seqCnt; i++)
 				size += info->seq_pkt[i].pktSize +
-				        PKT_PREAMBLE_SIZE + INTER_FRAME_GAP +
-				        FCS_SIZE;
+					PKT_PREAMBLE_SIZE + INTER_FRAME_GAP +
+					FCS_SIZE;
 			size = size / info->seqCnt;	/* Calculate the average sized packet */
 		} else
 			size = info->seq_pkt[SINGLE_PKT].pktSize +
-			        PKT_PREAMBLE_SIZE + INTER_FRAME_GAP + FCS_SIZE;
+				PKT_PREAMBLE_SIZE + INTER_FRAME_GAP + FCS_SIZE;
 	}
 	return size;
 }
@@ -282,7 +252,7 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
 
 static inline void
 pktgen_latency_apply(port_info_t *info __rte_unused,
-                     struct rte_mbuf **mbufs, int cnt)
+		     struct rte_mbuf **mbufs, int cnt)
 {
 	latency_t *latency;
 	int i;
@@ -290,8 +260,8 @@ pktgen_latency_apply(port_info_t *info __rte_unused,
 	for (i = 0; i < cnt; i++) {
 		latency = pktgen_latency_pointer(info, mbufs[i]);
 
-		latency->timestamp	= rte_rdtsc_precise();
-		latency->magic		= LATENCY_MAGIC;
+		latency->timestamp  = rte_rdtsc_precise();
+		latency->magic      = LATENCY_MAGIC;
 	}
 }
 
@@ -300,12 +270,11 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 {
 	int i;
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
 		if (write(info->tx_tapfd, rte_pktmbuf_mtod(mbufs[i], char *), mbufs[i]->pkt_len) < 0) {
 			pktgen_log_error("Write failed for tx_tap%d", info->pid);
 			break;
 		}
-	}
 }
 
 /**************************************************************************//**
@@ -332,7 +301,7 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 
 	pkts    = mtab->m_table;
 
-	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS) {
+	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
 		while (cnt > 0) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -341,14 +310,13 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 			pkts += ret;
 			cnt -= ret;
 		}
-	} else {
-		while(cnt > 0) {
+	else
+		while (cnt > 0) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pkts += ret;
 			cnt -= ret;
 		}
-	}
 }
 
 /**************************************************************************//**
@@ -456,7 +424,7 @@ pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 		int i;
 		latency_t *latency;
 
-		for(i = 0; i < nb_pkts; i++) {
+		for (i = 0; i < nb_pkts; i++) {
 			latency = pktgen_latency_pointer(info, pkts[i]);
 
 			if (latency->magic == LATENCY_MAGIC) {
@@ -538,7 +506,7 @@ pktgen_has_work(void)
 {
 	if (!get_map(pktgen.l2p, RTE_MAX_ETHPORTS, rte_lcore_id())) {
 		pktgen_log_warning("Nothing to do on lcore %d: exiting",
-		                   rte_lcore_id());
+				   rte_lcore_id());
 		return 1;
 	}
 	return 0;
@@ -565,19 +533,19 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
 	/* Fill in the pattern for data space. */
 	pktgen_fill_pattern((uint8_t *)&pkt->hdr,
-	                    (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
-	                    info->fill_pattern_type, info->user_pattern);
+			    (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
+			    info->fill_pattern_type, info->user_pattern);
 
 	char *ether_hdr = pktgen_ether_hdr_ctor(info, pkt, eth);
 
 	/* Add GRE header and adjust ether_hdr pointer if requested */
 	if (rte_atomic32_read(&info->port_flags) & SEND_GRE_IPv4_HEADER)
 		ether_hdr =
-		        pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)ether_hdr);
+			pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)ether_hdr);
 	else if (rte_atomic32_read(&info->port_flags) & SEND_GRE_ETHER_HEADER)
 		ether_hdr = pktgen_gre_ether_hdr_ctor(info,
-		                                      pkt,
-		                                      (greEther_t *)ether_hdr);
+						      pkt,
+						      (greEther_t *)ether_hdr);
 
 	if (likely(pkt->ethType == ETHER_TYPE_IPv4)) {
 		if (likely(pkt->ipProto == PG_IPPROTO_TCP)) {
@@ -594,7 +562,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				pktgen_ipv4_ctor(pkt, (ipHdr_t *)tip);
 
 				pkt->tlen = pkt->ether_hdr_size +
-				        sizeof(ipHdr_t) + sizeof(tcpHdr_t);
+					sizeof(ipHdr_t) + sizeof(tcpHdr_t);
 			} else {
 				gtpuTcpIp_t     *tcpGtpu;
 
@@ -602,20 +570,20 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				tcpGtpu = (gtpuTcpIp_t *)ether_hdr;
 				/* Construct the GTP-U header */
 				pktgen_gtpu_hdr_ctor(pkt,
-				                     (gtpuHdr_t *)tcpGtpu,
-				                     pkt->ipProto);
+						     (gtpuHdr_t *)tcpGtpu,
+						     pkt->ipProto);
 
 				/* Construct the TCP header */
 				pktgen_tcp_hdr_ctor(pkt,
-				                    (tcpip_t *)tcpGtpu,
-				                    ETHER_TYPE_IPv4);
+						    (tcpip_t *)tcpGtpu,
+						    ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, (ipHdr_t *)tcpGtpu);
 
 				pkt->tlen = pkt->ether_hdr_size +
-				        sizeof(ipHdr_t) + sizeof(tcpHdr_t) +
-				        sizeof(gtpuHdr_t);
+					sizeof(ipHdr_t) + sizeof(tcpHdr_t) +
+					sizeof(gtpuHdr_t);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
 			if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
@@ -632,7 +600,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				pktgen_ipv4_ctor(pkt, (ipHdr_t *)udp);
 
 				pkt->tlen = pkt->ether_hdr_size +
-				        sizeof(ipHdr_t) + sizeof(udpHdr_t);
+					sizeof(ipHdr_t) + sizeof(udpHdr_t);
 			} else {
 				gtpuUdpIp_t   *udpGtpu;
 
@@ -640,20 +608,20 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
 				/* Construct the GTP-U header */
 				pktgen_gtpu_hdr_ctor(pkt,
-				                     (gtpuHdr_t *)udpGtpu,
-				                     pkt->ipProto);
+						     (gtpuHdr_t *)udpGtpu,
+						     pkt->ipProto);
 
 				/* Construct the UDP header */
 				pktgen_udp_hdr_ctor(pkt,
-				                    (udpip_t *)udpGtpu,
-				                    ETHER_TYPE_IPv4);
+						    (udpip_t *)udpGtpu,
+						    ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, (ipHdr_t *)udpGtpu);
 
 				pkt->tlen = pkt->ether_hdr_size +
-				        sizeof(ipHdr_t) + sizeof(udpHdr_t) +
-				        sizeof(gtpuHdr_t);
+					sizeof(ipHdr_t) + sizeof(udpHdr_t) +
+					sizeof(gtpuHdr_t);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_ICMP) {
 			udpip_t           *uip;
@@ -666,7 +634,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 			uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 			tlen                = pkt->pktSize -
-			        (pkt->ether_hdr_size + sizeof(ipHdr_t));
+				(pkt->ether_hdr_size + sizeof(ipHdr_t));
 			uip->ip.len         = htons(tlen);
 			uip->ip.proto       = pkt->ipProto;
 
@@ -674,7 +642,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			icmp->code                      = 0;
 			if ( (type == -1) || (type == ICMP4_TIMESTAMP)) {
 				icmp->type                      =
-				        ICMP4_TIMESTAMP;
+					ICMP4_TIMESTAMP;
 				icmp->data.timestamp.ident      = 0x1234;
 				icmp->data.timestamp.seq        = 0x5678;
 				icmp->data.timestamp.originate  = 0x80004321;
@@ -688,7 +656,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			}
 			icmp->cksum     = 0;
 			tlen            = pkt->pktSize -
-			        (pkt->ether_hdr_size + sizeof(ipHdr_t));/* ICMP4_TIMESTAMP_SIZE */
+				(pkt->ether_hdr_size + sizeof(ipHdr_t));/* ICMP4_TIMESTAMP_SIZE */
 			icmp->cksum     = cksum(icmp, tlen, 0);
 			if (icmp->cksum == 0)
 				icmp->cksum = 0xFFFF;
@@ -697,7 +665,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			pktgen_ipv4_ctor(pkt, (ipHdr_t *)uip);
 
 			pkt->tlen = pkt->ether_hdr_size + sizeof(ipHdr_t) +
-			        ICMP4_TIMESTAMP_SIZE;
+				ICMP4_TIMESTAMP_SIZE;
 		}
 	} else if (pkt->ethType == ETHER_TYPE_IPv6) {
 		if (pkt->ipProto == PG_IPPROTO_TCP) {
@@ -708,13 +676,13 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
 			/* Create the pseudo header and TCP information */
 			(void)rte_memcpy(tip->ip.daddr, &pkt->ip_dst_addr.addr.ipv4.s_addr,
-			                 sizeof(struct in6_addr));
+					 sizeof(struct in6_addr));
 			(void)rte_memcpy(tip->ip.saddr, &pkt->ip_src_addr.addr.ipv4.s_addr,
-			                 sizeof(struct in6_addr));
+					 sizeof(struct in6_addr));
 
 			tlen                = sizeof(tcpHdr_t) +
-			        (pkt->pktSize - pkt->ether_hdr_size -
-			         sizeof(ipv6Hdr_t) - sizeof(tcpHdr_t));
+				(pkt->pktSize - pkt->ether_hdr_size -
+				 sizeof(ipv6Hdr_t) - sizeof(tcpHdr_t));
 			tip->ip.tcp_length  = htonl(tlen);
 			tip->ip.next_header = pkt->ipProto;
 
@@ -723,21 +691,21 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			tip->tcp.seq        = htonl(DEFAULT_PKT_NUMBER);
 			tip->tcp.ack        = htonl(DEFAULT_ACK_NUMBER);
 			tip->tcp.offset     =
-			        ((sizeof(tcpHdr_t) / sizeof(uint32_t)) << 4);	/* Offset in words */
+				((sizeof(tcpHdr_t) / sizeof(uint32_t)) << 4);	/* Offset in words */
 			tip->tcp.window     = htons(DEFAULT_WND_SIZE);
 			tip->tcp.urgent     = 0;
 			tip->tcp.flags      = ACK_FLAG;	/* ACK */
 
 			tlen                = sizeof(tcpipv6_t) +
-			        (pkt->pktSize - pkt->ether_hdr_size -
-			         sizeof(ipv6Hdr_t) - sizeof(tcpHdr_t));
+				(pkt->pktSize - pkt->ether_hdr_size -
+				 sizeof(ipv6Hdr_t) - sizeof(tcpHdr_t));
 			tip->tcp.cksum      = cksum(tip, tlen, 0);
 
 			/* IPv6 Header constructor */
 			pktgen_ipv6_ctor(pkt, (ipv6Hdr_t *)&tip->ip);
 
 			pkt->tlen = sizeof(tcpHdr_t) + pkt->ether_hdr_size +
-			        sizeof(ipv6Hdr_t);
+				sizeof(ipv6Hdr_t);
 			if (unlikely(pkt->pktSize < pkt->tlen))
 				pkt->pktSize = pkt->tlen;
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
@@ -750,14 +718,14 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			/* Create the pseudo header and TCP information */
 			addr                = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 			(void)rte_memcpy(&uip->ip.daddr[8], &addr,
-			                 sizeof(uint32_t));
+					 sizeof(uint32_t));
 			addr                = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 			(void)rte_memcpy(&uip->ip.saddr[8], &addr,
-			                 sizeof(uint32_t));
+					 sizeof(uint32_t));
 
 			tlen                = sizeof(udpHdr_t) +
-			        (pkt->pktSize - pkt->ether_hdr_size -
-			         sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
+				(pkt->pktSize - pkt->ether_hdr_size -
+				 sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
 			uip->ip.tcp_length  = htonl(tlen);
 			uip->ip.next_header = pkt->ipProto;
 
@@ -765,8 +733,8 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			uip->udp.dport      = htons(pkt->dport);
 
 			tlen                = sizeof(udpipv6_t) +
-			        (pkt->pktSize - pkt->ether_hdr_size -
-			         sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
+				(pkt->pktSize - pkt->ether_hdr_size -
+				 sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
 			uip->udp.cksum      = cksum(uip, tlen, 0);
 			if (uip->udp.cksum == 0)
 				uip->udp.cksum = 0xFFFF;
@@ -775,7 +743,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			pktgen_ipv6_ctor(pkt, (ipv6Hdr_t *)&uip->ip);
 
 			pkt->tlen = sizeof(udpHdr_t) + pkt->ether_hdr_size +
-			        sizeof(ipv6Hdr_t);
+				sizeof(ipv6Hdr_t);
 			if (unlikely(pkt->pktSize < pkt->tlen))
 				pkt->pktSize = pkt->tlen;
 		}
@@ -792,11 +760,11 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		arp->op  = htons(2);
 
 		ether_addr_copy(&pkt->eth_src_addr,
-		                (struct ether_addr *)&arp->sha);
+				(struct ether_addr *)&arp->sha);
 		arp->spa._32 = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 
 		ether_addr_copy(&pkt->eth_dst_addr,
-		                (struct ether_addr *)&arp->tha);
+				(struct ether_addr *)&arp->tha);
 		arp->tpa._32 = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	} else
 		pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
@@ -882,9 +850,9 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 	if (unlikely(flags & (PROCESS_INPUT_PKTS | PROCESS_RX_TAP_PKTS))) {
 		if (unlikely(flags & PROCESS_RX_TAP_PKTS))
 			if (write(info->rx_tapfd, rte_pktmbuf_mtod(m, char *),
-			          m->pkt_len) < 0)
+				  m->pkt_len) < 0)
 				pktgen_log_error("Write failed for rx_tap%d",
-				                 pid);
+						 pid);
 
 		switch ((int)pType) {
 		case ETHER_TYPE_ARP:    info->stats.arp_pkts++;
@@ -961,7 +929,7 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
 	/* Prefetch and handle already prefetched packets */
 	for (j = 0; j < (nb_rx - PREFETCH_OFFSET); j++) {
 		rte_prefetch0(rte_pktmbuf_mtod(pkts[j + PREFETCH_OFFSET],
-		                               void *));
+					       void *));
 		pktgen_packet_classify(pkts[j], pid);
 	}
 
@@ -1025,16 +993,16 @@ typedef struct {
 
 static __inline__ void
 pktgen_setup_cb(struct rte_mempool *mp,
-        void *opaque, void *obj, unsigned obj_idx __rte_unused)
+		void *opaque, void *obj, unsigned obj_idx __rte_unused)
 {
-    pkt_data_t *data = (pkt_data_t *)opaque;
+	pkt_data_t *data = (pkt_data_t *)opaque;
 	struct rte_mbuf *m = (struct rte_mbuf *)obj;
-    port_info_t *info;
+	port_info_t *info;
 	pkt_seq_t *pkt;
-    uint16_t qid;
+	uint16_t qid;
 
-    info = data->info;
-    qid = data->qid;
+	info = data->info;
+	qid = data->qid;
 
 	if (mp == info->q[qid].tx_mp)
 		pkt = &info->seq_pkt[SINGLE_PKT];
@@ -1042,65 +1010,65 @@ pktgen_setup_cb(struct rte_mempool *mp,
 		pkt = &info->seq_pkt[RANGE_PKT];
 	else if (mp == info->q[qid].seq_mp)
 		pkt = &info->seq_pkt[info->seqIdx];
-    else
-        pkt = NULL;
+	else
+		pkt = NULL;
 
 	/* allocate each mbuf and put them on a list to be freed. */
-    if (mp == info->q[qid].tx_mp) {
-        pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	if (mp == info->q[qid].tx_mp) {
+		pktgen_packet_ctor(info, SINGLE_PKT, -1);
 
-        rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-                   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+			   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
-        m->pkt_len  = pkt->pktSize;
-        m->data_len = pkt->pktSize;
-    } else if (mp == info->q[qid].range_mp) {
-        pktgen_range_ctor(&info->range, pkt);
-        pktgen_packet_ctor(info, RANGE_PKT, -1);
+		m->pkt_len  = pkt->pktSize;
+		m->data_len = pkt->pktSize;
+	} else if (mp == info->q[qid].range_mp) {
+		pktgen_range_ctor(&info->range, pkt);
+		pktgen_packet_ctor(info, RANGE_PKT, -1);
 
-        rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-                   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+			   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
-        m->pkt_len  = pkt->pktSize;
-        m->data_len = pkt->pktSize;
-    } else if (mp == info->q[qid].seq_mp) {
-        if (pktgen.is_gui_running) {
-            while(info->seqIdx < info->seqCnt) {
-                pkt = &info->seq_pkt[info->seqIdx];
+		m->pkt_len  = pkt->pktSize;
+		m->data_len = pkt->pktSize;
+	} else if (mp == info->q[qid].seq_mp) {
+		if (pktgen.is_gui_running)
+			while (info->seqIdx < info->seqCnt) {
+				pkt = &info->seq_pkt[info->seqIdx];
 
-                /* Check the sequence and start from the beginning */
-                if (++info->seqIdx >= info->seqCnt)
-                    info->seqIdx = 0;
+				/* Check the sequence and start from the beginning */
+				if (++info->seqIdx >= info->seqCnt)
+					info->seqIdx = 0;
 
-                if (pkt->seq_enabled) {
-                    /* Call ctor for those sequence which are enabled in the GUI */
-                    pktgen_packet_ctor(info, info->seqIdx, -1);
+				if (pkt->seq_enabled) {
+					/* Call ctor for those sequence which are enabled in the GUI */
+					pktgen_packet_ctor(info, info->seqIdx, -1);
 
-                    rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-                               (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
-                    m->pkt_len  = pkt->pktSize;
-                    m->data_len = pkt->pktSize;
-                    pkt = &info->seq_pkt[info->seqIdx];
-                    break;
-                }
-            }
-        } else {
-            pkt = &info->seq_pkt[info->seqIdx];
-            pktgen_packet_ctor(info, info->seqIdx, -1);
+					rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+						   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+					m->pkt_len  = pkt->pktSize;
+					m->data_len = pkt->pktSize;
+					pkt = &info->seq_pkt[info->seqIdx];
+					break;
+				}
+			}
+		else {
+			pkt = &info->seq_pkt[info->seqIdx];
+			pktgen_packet_ctor(info, info->seqIdx, -1);
 
-            rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-                       (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
+			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+				   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
-            m->pkt_len  = pkt->pktSize;
-            m->data_len = pkt->pktSize;
+			m->pkt_len  = pkt->pktSize;
+			m->data_len = pkt->pktSize;
 
-            pkt = &info->seq_pkt[info->seqIdx];
+			pkt = &info->seq_pkt[info->seqIdx];
 
-            /* move to the next packet in the sequence. */
-            if (unlikely(++info->seqIdx >= info->seqCnt))
-                info->seqIdx = 0;
-        }
-    }
+			/* move to the next packet in the sequence. */
+			if (unlikely(++info->seqIdx >= info->seqCnt))
+				info->seqIdx = 0;
+		}
+	}
 }
 
 /**************************************************************************//**
@@ -1118,42 +1086,42 @@ pktgen_setup_cb(struct rte_mempool *mp,
 static __inline__ void
 pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 {
-    pkt_data_t pkt_data;
+	pkt_data_t pkt_data;
 
-    pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
+	pktgen_clr_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG);
 
-    if (mp == info->q[qid].pcap_mp)
-        return;
+	if (mp == info->q[qid].pcap_mp)
+		return;
 
-    rte_spinlock_lock(&info->port_lock);
+	rte_spinlock_lock(&info->port_lock);
 
-    pkt_data.info = info;
-    pkt_data.qid = qid;
+	pkt_data.info = info;
+	pkt_data.qid = qid;
 
 #if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
-    rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
+	rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
 #else
-    {
-    struct rte_mbuf *m, *mm;
+	{
+		struct rte_mbuf *m, *mm;
 
-    mm  = NULL;
+		mm  = NULL;
 
-    /* allocate each mbuf and put them on a list to be freed. */
-    for (;; ) {
-        if ((m = rte_pktmbuf_alloc(mp)) == NULL)
-            break;
+		/* allocate each mbuf and put them on a list to be freed. */
+		for (;; ) {
+			if ((m = rte_pktmbuf_alloc(mp)) == NULL)
+				break;
 
-        /* Put the allocated mbuf into a list to be freed later */
-        m->next = mm;
-        mm = m;
+			/* Put the allocated mbuf into a list to be freed later */
+			m->next = mm;
+			mm = m;
 
-        pktgen_setup_cb(mp, &pkt_data, m, 0);
-    }
-    if (mm != NULL)
-        rte_pktmbuf_free(mm);
-    }
+			pktgen_setup_cb(mp, &pkt_data, m, 0);
+		}
+		if (mm != NULL)
+			rte_pktmbuf_free(mm);
+	}
 #endif
-    rte_spinlock_unlock(&info->port_lock);
+	rte_spinlock_unlock(&info->port_lock);
 }
 
 /**************************************************************************//**
@@ -1178,8 +1146,8 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 
 	if (flags & SEND_FOREVER) {
 		rc = pg_pktmbuf_alloc_bulk(mp,
-		                           info->q[qid].tx_mbufs.m_table,
-		                           info->tx_burst);
+					   info->q[qid].tx_mbufs.m_table,
+					   info->tx_burst);
 		if (rc == 0) {
 			info->q[qid].tx_mbufs.len = info->tx_burst;
 			info->q[qid].tx_cnt += info->tx_burst;
@@ -1192,8 +1160,8 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count, info->tx_burst);
 		if (txCnt > 0) {
 			rc = pg_pktmbuf_alloc_bulk(mp,
-			                           info->q[qid].tx_mbufs.m_table,
-			                           txCnt);
+						   info->q[qid].tx_mbufs.m_table,
+						   txCnt);
 			if (rc == 0) {
 				info->q[qid].tx_mbufs.len = txCnt;
 				pktgen_send_burst(info, qid);
@@ -1268,8 +1236,8 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
 
 static __inline__ void
 pktgen_main_receive(port_info_t *info,
-                    uint8_t lid,
-                    struct rte_mbuf *pkts_burst[])
+		    uint8_t lid,
+		    struct rte_mbuf *pkts_burst[])
 {
 	uint8_t pid;
 	uint16_t qid, nb_rx;
@@ -1297,7 +1265,7 @@ pktgen_main_receive(port_info_t *info,
 	if (unlikely(rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS)) {
 		capture = &pktgen.capture[pktgen.core_info[lid].s.socket_id];
 		if (unlikely((capture->port == pid) &&
-		             (capture->lcore == lid)))
+			     (capture->lcore == lid)))
 			pktgen_packet_capture_bulk(pkts_burst, nb_rx, capture);
 	}
 
@@ -1328,7 +1296,7 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 	}
 
 	snprintf(buf, sizeof(buf), "  %s processing lcore: %3d rx: %2d tx: %2d",
-		msg, lid, rx, tx);
+		 msg, lid, rx, tx);
 
 	for (idx = 0; idx < cnt; idx++) {
 		if (rxcnt)
@@ -1378,8 +1346,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 	pg_start_lcore(pktgen.l2p, lid);
 
-	while(pg_lcore_is_running(pktgen.l2p, lid)) {
-		for (idx = 0; idx < rxcnt; idx++) /* Read Packets */
+	while (pg_lcore_is_running(pktgen.l2p, lid)) {
+		for (idx = 0; idx < rxcnt; idx++)	/* Read Packets */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
 
 		curr_tsc = rte_rdtsc();
@@ -1388,12 +1356,11 @@ pktgen_main_rxtx_loop(uint8_t lid)
 		if (curr_tsc >= tx_next_cycle) {
 			tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
 
-			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
+			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-		} else if (curr_tsc >= (tx_next_cycle /8)) {
-			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
+		} else if (curr_tsc >= (tx_next_cycle / 8))
+			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
-		}
 	}
 
 	pktgen_log_debug("Exit %d", lid);
@@ -1431,19 +1398,18 @@ pktgen_main_tx_loop(uint8_t lid)
 	pg_start_lcore(pktgen.l2p, lid);
 
 	idx = 0;
-	while(pg_lcore_is_running(pktgen.l2p, lid)) {
+	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_rdtsc();
 
 		/* Determine when is the next time to send packets */
 		if (curr_tsc >= tx_next_cycle) {
 			tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
 
-			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
+			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-		} else if (curr_tsc >= (tx_next_cycle /8)) {
-			for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
+		} else if (curr_tsc >= (tx_next_cycle / 8))
+			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
-		}
 	}
 
 	pktgen_log_debug("Exit %d", lid);
@@ -1476,10 +1442,9 @@ pktgen_main_rx_loop(uint8_t lid)
 
 	pg_start_lcore(pktgen.l2p, lid);
 
-	while(pg_lcore_is_running(pktgen.l2p, lid)) {
-		for (idx = 0; idx < rxcnt; idx++) /* Read packet */
+	while (pg_lcore_is_running(pktgen.l2p, lid))
+		for (idx = 0; idx < rxcnt; idx++)	/* Read packet */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
-	}
 
 	pktgen_log_debug("Exit %d", lid);
 
@@ -1516,60 +1481,37 @@ pktgen_launch_one_lcore(void *arg __rte_unused)
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * pktgen_page_config - Show the configuration page for pktgen.
- *
- * DESCRIPTION
- * Display the pktgen configuration page. (Not used)
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static void
-pktgen_page_config(void)
-{
-	display_topline("<Config Page>");
-
-	scrn_center(20,
-	               pktgen.scrn->ncols,
-	               "Need to add the configuration stuff here");
-	display_dashline(22);
-}
-
 static void
 _page_display(void)
 {
-    static unsigned int counter = 0;
+	static unsigned int counter = 0;
 
-    pktgen_display_set_color("top.spinner");
-    scrn_printf(1, 1, "%c", "-\\|/"[(counter++ & 3)]);
-    pktgen_display_set_color(NULL);
+	pktgen_display_set_color("top.spinner");
+	scrn_printf(1, 1, "%c", "-\\|/"[(counter++ & 3)]);
+	pktgen_display_set_color(NULL);
 
-    if (pktgen.flags & CPU_PAGE_FLAG)
-        pktgen_page_cpu();
-    else if (pktgen.flags & PCAP_PAGE_FLAG)
-        pktgen_page_pcap(pktgen.portNum);
-    else if (pktgen.flags & RANGE_PAGE_FLAG)
-        pktgen_page_range();
-    else if (pktgen.flags & CONFIG_PAGE_FLAG)
-        pktgen_page_config();
-    else if (pktgen.flags & SEQUENCE_PAGE_FLAG)
-        pktgen_page_seq(pktgen.portNum);
-    else if (pktgen.flags & RND_BITFIELD_PAGE_FLAG)
-        pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
-                                     pktgen.portNum,
-                                     pktgen.info[pktgen.portNum].rnd_bitfields);
-    else if (pktgen.flags & LOG_PAGE_FLAG)
-        pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
-    else if (pktgen.flags & LATENCY_PAGE_FLAG)
-        pktgen_page_latency();
-        else if (pktgen.flags & STATS_PAGE_FLAG)
-                pktgen_page_phys_stats();
-    else
-        pktgen_page_stats();
+	if (pktgen.flags & CPU_PAGE_FLAG)
+		pktgen_page_cpu();
+	else if (pktgen.flags & PCAP_PAGE_FLAG)
+		pktgen_page_pcap(pktgen.portNum);
+	else if (pktgen.flags & RANGE_PAGE_FLAG)
+		pktgen_page_range();
+	else if (pktgen.flags & CONFIG_PAGE_FLAG)
+		pktgen_page_config();
+	else if (pktgen.flags & SEQUENCE_PAGE_FLAG)
+		pktgen_page_seq(pktgen.portNum);
+	else if (pktgen.flags & RND_BITFIELD_PAGE_FLAG)
+		pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
+					     pktgen.portNum,
+					     pktgen.info[pktgen.portNum].rnd_bitfields);
+	else if (pktgen.flags & LOG_PAGE_FLAG)
+		pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
+	else if (pktgen.flags & LATENCY_PAGE_FLAG)
+		pktgen_page_latency();
+	else if (pktgen.flags & STATS_PAGE_FLAG)
+		pktgen_page_phys_stats();
+	else
+		pktgen_page_stats();
 }
 
 /**************************************************************************//**
@@ -1587,7 +1529,7 @@ _page_display(void)
 void
 pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
-    static unsigned int update_display = 1;
+	static unsigned int update_display = 1;
 
 	/* Leave if the screen is paused */
 	if (scrn_is_paused())
@@ -1595,23 +1537,23 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 
 	scrn_save();
 
-    if (pktgen.flags & UPDATE_DISPLAY_FLAG) {
-        pktgen.flags &= ~UPDATE_DISPLAY_FLAG;
-        update_display = 1;
-    }
+	if (pktgen.flags & UPDATE_DISPLAY_FLAG) {
+		pktgen.flags &= ~UPDATE_DISPLAY_FLAG;
+		update_display = 1;
+	}
 
-    update_display--;
-    if (update_display == 0) {
-        update_display = UPDATE_DISPLAY_TICK_INTERVAL;
-        _page_display();
+	update_display--;
+	if (update_display == 0) {
+		update_display = UPDATE_DISPLAY_TICK_INTERVAL;
+		_page_display();
 
-        if (pktgen.flags & PRINT_LABELS_FLAG)
-            pktgen.flags &= ~PRINT_LABELS_FLAG;
-    }
+		if (pktgen.flags & PRINT_LABELS_FLAG)
+			pktgen.flags &= ~PRINT_LABELS_FLAG;
+	}
 
 	scrn_restore();
 
-    pktgen_print_packet_dump();
+	pktgen_print_packet_dump();
 }
 
 static struct rte_timer timer0;
@@ -1643,17 +1585,17 @@ rte_timer_setup(void)
 
 	/* load timer0, every 1/2 seconds, on Display lcore, reloaded automatically */
 	rte_timer_reset(&timer0,
-                    UPDATE_DISPLAY_TICK_RATE,
-	                PERIODICAL,
-	                lcore_id,
-	                pktgen_page_display,
-	                NULL);
+			UPDATE_DISPLAY_TICK_RATE,
+			PERIODICAL,
+			lcore_id,
+			pktgen_page_display,
+			NULL);
 
 	/* load timer1, every second, on timer lcore, reloaded automatically */
 	rte_timer_reset(&timer1,
-	                pktgen.hz,
-	                PERIODICAL,
-	                lcore_id,
-	                pktgen_process_stats,
-	                NULL);
+			pktgen.hz,
+			PERIODICAL,
+			lcore_id,
+			pktgen_process_stats,
+			NULL);
 }

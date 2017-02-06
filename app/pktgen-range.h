@@ -72,6 +72,10 @@
 
 #include "pktgen-seq.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct range_info_s {
 	uint32_t src_ip_inc;	/**< Source IP increment */
 	uint32_t dst_ip_inc;	/**< Destination increment IP address */
@@ -128,5 +132,9 @@ extern void pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt);
 extern void pktgen_range_setup(struct port_info_s *info);
 
 extern void pktgen_page_range(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_RANGE_H_ */

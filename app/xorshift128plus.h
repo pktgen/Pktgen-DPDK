@@ -13,6 +13,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* This is the fastest generator passing BigCrush without systematic
  * errors, but due to the relatively short period it is acceptable only
  * for applications with a very mild amount of parallelism; otherwise, use
@@ -30,8 +34,12 @@ xor_next(void) {
 	const uint64_t s0 = xor_seed[ 1 ];
 
 	xor_seed[ 0 ] = s0;
-	s1 ^= s1 << 23;			/* a */
-	return (xor_seed[1] = (s1 ^ s0 ^ (s1 >> 17) ^ (s0 >> 26))) + s0; /* b, c */
+	s1 ^= s1 << 23;							/* a */
+	return (xor_seed[1] = (s1 ^ s0 ^ (s1 >> 17) ^ (s0 >> 26))) + s0;/* b, c */
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _XORSHIFT128PLUS_H_ */

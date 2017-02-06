@@ -163,8 +163,8 @@ set_thread_id_str(const char *unused, lcore_t *lc)
 {
 	(void)unused;
 	lc->u.s.thread_id = get_next_thread_id(lc->next,
-	                                       lc->u.s.socket_id,
-	                                       lc->u.s.core_id);
+					       lc->u.s.socket_id,
+					       lc->u.s.core_id);
 	return lc;
 }
 
@@ -369,9 +369,9 @@ count_cores(lcore_t *lcores)
 
 int
 coremap(const char *arg,
-           lc_info_t *get_lcores,
-           int max_cnt,
-           const char *proc_cpuinfo)
+	lc_info_t *get_lcores,
+	int max_cnt,
+	const char *proc_cpuinfo)
 {
 	FILE         *f;
 	char         *line = NULL;
@@ -386,7 +386,7 @@ coremap(const char *arg,
 
 	if ( (f = fopen(proc_cpuinfo, "r")) == NULL) {
 		fprintf(stderr, "Cannot open %s on this system\n",
-		        proc_cpuinfo);
+			proc_cpuinfo);
 		return -1;
 	}
 
@@ -414,8 +414,8 @@ coremap(const char *arg,
 			int num_cores = count_cores(lcores);
 			if ( (get_lcores != NULL) || (max_cnt > 0) )
 				get_and_free_lcores(lcores,
-				                    &get_lcores[0],
-				                    max_cnt);
+						    &get_lcores[0],
+						    max_cnt);
 			return num_cores;
 		}
 	}

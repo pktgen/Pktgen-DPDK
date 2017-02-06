@@ -61,20 +61,20 @@ test_pktgen_packet_ctor_IPv4_UDP(void)
 
 	pkt = (pkt_seq_t) {
 		.eth_dst_addr =
-		        (struct ether_addr) {.addr_bytes =
+			(struct ether_addr) {.addr_bytes =
 					     { 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
 					       0xdd } },
 		.eth_src_addr =
-		        (struct ether_addr) {.addr_bytes =
+			(struct ether_addr) {.addr_bytes =
 					     { 0x55, 0x55, 0x55, 0x55, 0x55,
 					       0x55 } },
 
 		.ip_src_addr  = (192 << 24) + (168 << 16) + (  0 << 8) +
-		        (1 << 0),
+			(1 << 0),
 		.ip_dst_addr  = (192 << 24) + (168 << 16) + (  1 << 8) +
-		        (2 << 0),
+			(2 << 0),
 		.ip_mask      = (255 << 24) + (255 << 16) + (255 << 8) +
-		        (0 << 0),
+			(0 << 0),
 
 		.sport        = 3333,
 		.dport        = 4444,
@@ -85,43 +85,42 @@ test_pktgen_packet_ctor_IPv4_UDP(void)
 	};
 
 	lives_ok({ pktgen_packet_ctor(&info,
-	                              0,
-	                              0);
-		 }, "pktgen_packet_ctor must generate IPv4/UDP");
+				      0,
+				      0); }, "pktgen_packet_ctor must generate IPv4/UDP");
 
 	note("... with Ethernet header");
 	cmp_mem_lit_incr(data,
-	                 (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd),
-	                 "    ... with correct dest MAC");
+			 (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd),
+			 "    ... with correct dest MAC");
 	cmp_mem_lit_incr(data,
-	                 (0x55, 0x55, 0x55, 0x55, 0x55, 0x55),
-	                 "    ... and correct src MAC");
+			 (0x55, 0x55, 0x55, 0x55, 0x55, 0x55),
+			 "    ... and correct src MAC");
 	cmp_mem_lit_incr(data, (0x08, 0x00), "    ... and correct EtherType");
 
 	note("... and with IP header");
 	cmp_mem_lit_incr(data, (0x45), "    ... with correct version and IHL");
 	cmp_mem_lit_incr(data, (0x00), "    ... and correct TOS");
 	cmp_mem_lit_incr(data, (0x00, 0x2e),
-	                 "    ... and correct total length");
+			 "    ... and correct total length");
 	data += 2;	/* Skip over Identification field */
 	cmp_mem_lit_incr(data,
-	                 (0x00, 0x00),
-	                 "    ... and no flags and fragment offset");
+			 (0x00, 0x00),
+			 "    ... and no flags and fragment offset");
 	cmp_mem_lit_incr(data, (0x04), "    ... and default TTL");
 	cmp_mem_lit_incr(data,
-	                 (PG_IPPROTO_UDP),
-	                 "    ... and UDP payload protocol");
+			 (PG_IPPROTO_UDP),
+			 "    ... and UDP payload protocol");
 	data += 2;	/* Skip over checksum */
 	cmp_mem_lit_incr(data, (192, 168, 0, 1), "    ... and correct src IP");
 	cmp_mem_lit_incr(data, (192, 168, 1, 2), "    ... and correct dest IP");
 
 	note("... and with UDP header");
 	cmp_mem_lit_incr(data,
-	                 (3333 / 256, 3333 % 256),
-	                 "    ... with correct src port");
+			 (3333 / 256, 3333 % 256),
+			 "    ... with correct src port");
 	cmp_mem_lit_incr(data,
-	                 (4444 / 256, 4444 % 256),
-	                 "    ... and correct dst port");
+			 (4444 / 256, 4444 % 256),
+			 "    ... and correct dst port");
 	cmp_mem_lit_incr(data, (0, 26), "    ... and correct length");
 	data += 2;	/* Skip over checksum */
 
@@ -142,20 +141,20 @@ test_pktgen_packet_ctor_IPv4_GRE_Ether(void)
 
 	pkt = (pkt_seq_t) {
 		.eth_dst_addr =
-		        (struct ether_addr) {.addr_bytes =
+			(struct ether_addr) {.addr_bytes =
 					     { 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
 					       0xdd } },
 		.eth_src_addr =
-		        (struct ether_addr) {.addr_bytes =
+			(struct ether_addr) {.addr_bytes =
 					     { 0x55, 0x55, 0x55, 0x55, 0x55,
 					       0x55 } },
 
 		.ip_src_addr  = (192 << 24) + (168 << 16) + (  0 << 8) +
-		        (1 << 0),
+			(1 << 0),
 		.ip_dst_addr  = (192 << 24) + (168 << 16) + (  1 << 8) +
-		        (2 << 0),
+			(2 << 0),
 		.ip_mask      = (255 << 24) + (255 << 16) + (255 << 8) +
-		        (0 << 0),
+			(0 << 0),
 
 		.sport        = 3333,
 		.dport        = 4444,
@@ -168,78 +167,77 @@ test_pktgen_packet_ctor_IPv4_GRE_Ether(void)
 	pktgen_packet_ctor(&info, 0, 0);
 
 	lives_ok({ pktgen_packet_ctor(&info,
-	                              0,
-	                              0);
-		 }, "pktgen_packet_ctor must generate IPv4 GRE Ethernet frame");
+				      0,
+				      0); }, "pktgen_packet_ctor must generate IPv4 GRE Ethernet frame");
 
 	note("... with outer Ethernet header");
 	cmp_mem_lit_incr(data,
-	                 (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd),
-	                 "    ... with correct dest MAC");
+			 (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd),
+			 "    ... with correct dest MAC");
 	cmp_mem_lit_incr(data,
-	                 (0x55, 0x55, 0x55, 0x55, 0x55, 0x55),
-	                 "    ... and correct src MAC");
+			 (0x55, 0x55, 0x55, 0x55, 0x55, 0x55),
+			 "    ... and correct src MAC");
 	cmp_mem_lit_incr(data, (0x08, 0x00), "    ... and correct EtherType");
 
 	note("... and with outer IP header");
 	cmp_mem_lit_incr(data, (0x45), "    ... with correct version and IHL");
 	cmp_mem_lit_incr(data, (0x00), "    ... and correct TOS");
 	cmp_mem_lit_incr(data, (0x00, 0x58),
-	                 "    ... and correct total length");
+			 "    ... and correct total length");
 	data += 2;	/* Skip over Identification field */
 	cmp_mem_lit_incr(data,
-	                 (0x00, 0x00),
-	                 "    ... and no flags and fragment offset");
+			 (0x00, 0x00),
+			 "    ... and no flags and fragment offset");
 	cmp_mem_lit_incr(data, (0x40), "    ... and default TTL");
 	cmp_mem_lit_incr(data,
-	                 (PG_IPPROTO_GRE),
-	                 "    ... and GRE payload protocol");
+			 (PG_IPPROTO_GRE),
+			 "    ... and GRE payload protocol");
 	data += 2;	/* Skip over checksum */
 	cmp_mem_lit_incr(data, (10, 10, 1, 1), "    ... and correct src IP");
 	cmp_mem_lit_incr(data, (10, 10, 1, 2), "    ... and correct dest IP");
 
 	note("... and with GRE header");
 	cmp_mem_lit_incr(data,
-	                 (0x20, 0x00),
-	                 "    ... with correct flags and version");
+			 (0x20, 0x00),
+			 "    ... with correct flags and version");
 	cmp_mem_lit_incr(data, (0x65, 0x58),
-	                 "    ... and correct protocol type");
+			 "    ... and correct protocol type");
 	data += 4;	/* TODO check flags for checksum, key, seq. nr. and test
 			 * accordingly */
 
 	note("... with inner Ethernet header");
 	cmp_mem_lit_incr(data,
-	                 (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd),
-	                 "    ... with correct dest MAC");
+			 (0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd),
+			 "    ... with correct dest MAC");
 	cmp_mem_lit_incr(data,
-	                 (0x55, 0x55, 0x55, 0x55, 0x55, 0x55),
-	                 "    ... and correct src MAC");
+			 (0x55, 0x55, 0x55, 0x55, 0x55, 0x55),
+			 "    ... and correct src MAC");
 	cmp_mem_lit_incr(data, (0x08, 0x00), "    ... and correct EtherType");
 
 	note("... and with inner IP header");
 	cmp_mem_lit_incr(data, (0x45), "    ... with correct version and IHL");
 	cmp_mem_lit_incr(data, (0x00), "    ... and correct TOS");
 	cmp_mem_lit_incr(data, (0x00, 0x2e),
-	                 "    ... and correct total length");
+			 "    ... and correct total length");
 	data += 2;	/* Skip over Identification field */
 	cmp_mem_lit_incr(data,
-	                 (0x00, 0x00),
-	                 "    ... and no flags and fragment offset");
+			 (0x00, 0x00),
+			 "    ... and no flags and fragment offset");
 	cmp_mem_lit_incr(data, (0x04), "    ... and default TTL");
 	cmp_mem_lit_incr(data,
-	                 (PG_IPPROTO_UDP),
-	                 "    ... and UDP payload protocol");
+			 (PG_IPPROTO_UDP),
+			 "    ... and UDP payload protocol");
 	data += 2;	/* Skip over checksum */
 	cmp_mem_lit_incr(data, (192, 168, 0, 1), "    ... and correct src IP");
 	cmp_mem_lit_incr(data, (192, 168, 1, 2), "    ... and correct dest IP");
 
 	note("... and with UDP header");
 	cmp_mem_lit_incr(data,
-	                 (3333 / 256, 3333 % 256),
-	                 "    ... with correct src port");
+			 (3333 / 256, 3333 % 256),
+			 "    ... with correct src port");
 	cmp_mem_lit_incr(data,
-	                 (4444 / 256, 4444 % 256),
-	                 "    ... and correct dst port");
+			 (4444 / 256, 4444 % 256),
+			 "    ... and correct dst port");
 	cmp_mem_lit_incr(data, (0, 26), "    ... and correct length");
 	data += 2;	/* Skip over checksum */
 

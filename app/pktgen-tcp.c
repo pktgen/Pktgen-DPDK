@@ -93,7 +93,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, tcpip_t *tip, int type __rte_unused)
 	tip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 	tip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	tlen                = pkt->pktSize -
-	        (pkt->ether_hdr_size + sizeof(ipHdr_t));
+		(pkt->ether_hdr_size + sizeof(ipHdr_t));
 
 	tip->ip.len         = htons(tlen);
 	tip->ip.proto       = pkt->ipProto;

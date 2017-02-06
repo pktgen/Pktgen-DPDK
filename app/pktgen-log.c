@@ -132,7 +132,7 @@ pktgen_log_set_screen_level(int level)
 /* Log the provided message to the log screen and optionally a file. */
 void
 pktgen_log(int level, const char *file, long line,
-           const char *func, const char *fmt, ...)
+	   const char *func, const char *fmt, ...)
 {
 	log_msg_t *curr_msg;
 	va_list args;
@@ -192,7 +192,7 @@ pktgen_log_set_file(const char *filename)
 
 	/* Clean up if already logging to a file */
 	if (log_file != NULL) {
-        fchmod(fileno(log_file), 0666);
+		fchmod(fileno(log_file), 0666);
 		fclose(log_file);
 		log_file = NULL;
 	}
@@ -205,7 +205,7 @@ pktgen_log_set_file(const char *filename)
 
 	if (fp == NULL)
 		pktgen_log_warning("Unable to open log file '%s' for writing",
-		                   filename);
+				   filename);
 
 	/* Unbuffered output if file is successfully opened */
 	if (fp != NULL)
@@ -233,7 +233,7 @@ pktgen_page_log(uint32_t print_labels)
 
 	/* Header line */
 	scrn_printf(row++, 1, "%1s %8s %-32s %s",
-	               "L", "Time", "Function", "Message");
+		    "L", "Time", "Function", "Message");
 
 	curr_line = output_lines = 0;
 	curr_msg = log_history.head;
@@ -243,7 +243,7 @@ pktgen_page_log(uint32_t print_labels)
 		curr_msg = (curr_msg + LOG_HISTORY - 1) % LOG_HISTORY;
 
 		snprintf(lines[curr_line], LOG_MAX_LINE, "%s",
-		         pktgen_format_msg_page(&log_history.msg[curr_msg]));
+			 pktgen_format_msg_page(&log_history.msg[curr_msg]));
 
 		/* Count number of lines occupied by current log entry. Line wrapping
 		 * because of screen width is not counted, \n's embedded in the log
@@ -312,25 +312,25 @@ pktgen_format_msg_page(const log_msg_t *log_msg)
 	char func[32];
 
 	strftime(timestamp, sizeof(timestamp), "%H:%M:%S",
-	         localtime(&log_msg->tv.tv_sec));
+		 localtime(&log_msg->tv.tv_sec));
 
 	if (strlen(log_msg->func) > sizeof(func) - 1)
 		snprintf(func, sizeof(func), "…%s",
-		         &log_msg->func[strlen(
-		                                log_msg->func) - sizeof(func) -
-		                        2]);
+			 &log_msg->func[strlen(
+						log_msg->func) - sizeof(func) -
+					2]);
 	else
 		sprintf(func, "%s", log_msg->func);
 
 	snprintf(msg, sizeof(msg), "%1s %8s %-*s %s",
-	         (log_msg->level == LOG_LEVEL_TRACE)   ? "t"
+		 (log_msg->level == LOG_LEVEL_TRACE)   ? "t"
 		 : (log_msg->level == LOG_LEVEL_DEBUG)   ? "d"
 		 : (log_msg->level == LOG_LEVEL_INFO)    ? "I"
 		 : (log_msg->level == LOG_LEVEL_WARNING) ? "W"
 		 : (log_msg->level == LOG_LEVEL_ERROR)   ? "E"
 		 : (log_msg->level == LOG_LEVEL_PANIC)   ? "P"
 		 : "?",
-	         timestamp, (int)sizeof(func), func, log_msg->msg);
+		 timestamp, (int)sizeof(func), func, log_msg->msg);
 
 	return msg;
 }
@@ -367,20 +367,20 @@ pktgen_format_msg_file(const log_msg_t *log_msg)
 	char *file;
 
 	strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S",
-	         localtime(&log_msg->tv.tv_sec));
+		 localtime(&log_msg->tv.tv_sec));
 
 	file = strdup(log_msg->file);
 
 	snprintf(msg, sizeof(msg), "%s %s.%03ld [%s:%ld(%s)] %s",
-	         (log_msg->level == LOG_LEVEL_TRACE)   ? "tt"
+		 (log_msg->level == LOG_LEVEL_TRACE)   ? "tt"
 		 : (log_msg->level == LOG_LEVEL_DEBUG)   ? "dd"
 		 : (log_msg->level == LOG_LEVEL_INFO)    ? "II"
 		 : (log_msg->level == LOG_LEVEL_WARNING) ? "WW"
 		 : (log_msg->level == LOG_LEVEL_ERROR)   ? "EE"
 		 : (log_msg->level == LOG_LEVEL_PANIC)   ? "PP"
 		 : "??",
-	         timestamp, log_msg->tv.tv_usec / 1000,
-	         basename(file), log_msg->line, log_msg->func, log_msg->msg);
+		 timestamp, log_msg->tv.tv_usec / 1000,
+		 basename(file), log_msg->line, log_msg->func, log_msg->msg);
 
 	free(file);
 
@@ -417,12 +417,12 @@ pktgen_format_msg_stdout(const log_msg_t *log_msg)
 	static char msg[LOG_MAX_LINE] = { 0 };
 
 	snprintf(msg, sizeof(msg), "%s%s",
-	         (log_msg->level <= LOG_LEVEL_INFO)    ? ""
+		 (log_msg->level <= LOG_LEVEL_INFO)    ? ""
 		 : (log_msg->level == LOG_LEVEL_WARNING) ? "WARNING: "
 		 : (log_msg->level == LOG_LEVEL_ERROR)   ? "!ERROR!: "
 		 : (log_msg->level == LOG_LEVEL_PANIC)   ? "!PANIC!: "
 		 : "??? ",
-	         log_msg->msg);
+		 log_msg->msg);
 
 	return msg;
 }

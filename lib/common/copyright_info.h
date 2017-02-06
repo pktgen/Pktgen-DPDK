@@ -37,9 +37,9 @@
 extern void print_copyright(const char *appname, const char *created_by);
 extern void logo(int row, int col, const char *appname);
 extern void splash_screen(int row,
-                             int col,
-                             const char *appname,
-                             const char *created_by);
+			  int col,
+			  const char *appname,
+			  const char *created_by);
 
 /**
  * Function returning string for Copyright message."

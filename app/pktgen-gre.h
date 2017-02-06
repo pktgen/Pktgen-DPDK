@@ -73,10 +73,18 @@
 #include "pktgen-port-cfg.h"
 #include "pktgen-seq.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern char *pktgen_gre_hdr_ctor(port_info_t *info, pkt_seq_t *pkt,
-                                 greIp_t *gre);
+				 greIp_t *gre);
 extern char *pktgen_gre_ether_hdr_ctor(port_info_t *info,
-                                       pkt_seq_t *pkt,
-                                       greEther_t *gre);
+				       pkt_seq_t *pkt,
+				       greEther_t *gre);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_GRE_H_ */

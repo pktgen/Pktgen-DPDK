@@ -112,7 +112,7 @@ scrn_cbl(void)            scrn_puts("\033[1K")	/**< Clear from cursor to beginin
 static __inline__ void
 scrn_cel(void)            scrn_puts("\033[2K")	/**< Clear entire line */
 static __inline__ void
-scrn_clw(void)            scrn_puts("\033[J")	    /**< Clear from cursor to end of screen */
+scrn_clw(void)            scrn_puts("\033[J")		/**< Clear from cursor to end of screen */
 static __inline__ void
 scrn_clb(void)            scrn_puts("\033[1J")	/**< Clear from cursor to begining of screen */
 static __inline__ void
@@ -124,7 +124,7 @@ scrn_normal(void)         scrn_puts("\033[0m")	/**< Stop attribute like reverse 
 static __inline__ void
 scrn_scroll(int r)        scrn_puts("\033[%d;r", r)	/**< Scroll whole screen up r number of lines */
 static __inline__ void
-scrn_scroll_up(int r)     scrn_puts("\033[%dS", r)		/**< Scroll whole screen up r number of lines */
+scrn_scroll_up(int r)     scrn_puts("\033[%dS", r)	/**< Scroll whole screen up r number of lines */
 static __inline__ void
 scrn_scroll_down(int r)   scrn_puts("\033[%dT", r)	/**< Scroll whole screen down r number of lines */
 static __inline__ void

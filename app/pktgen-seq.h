@@ -75,6 +75,10 @@
 
 #include "pktgen-constants.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct pkt_seq_s {
 	/* Packet type and information */
 	struct ether_addr eth_dst_addr;	/**< Destination Ethernet address */
@@ -99,7 +103,7 @@ typedef struct pkt_seq_s {
 	uint16_t pktSize;	/**< Size of packet in bytes not counting FCS */
 	uint16_t tlen;		/**< Total length of packet data */
 	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
-	uint8_t seq_enabled;/**< Enable or disable this sequence through GUI */
+	uint8_t seq_enabled;	/**< Enable or disable this sequence through GUI */
 	pkt_hdr_t hdr;	/**< Packet header data */
 	/* 2048 - sizeof(pkt_hdr_t) */
 	uint8_t pad[DEFAULT_BUFF_SIZE - sizeof(pkt_hdr_t)] __rte_cache_aligned;
@@ -110,5 +114,9 @@ struct port_info_s;
 extern void pktgen_send_seq_pkt(struct port_info_s *info, uint32_t seq_idx);
 
 extern void pktgen_page_seq(uint32_t pid);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_SEQ_H_ */

@@ -70,12 +70,20 @@
 
 #include <rte_mbuf.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MAX_DUMP_PACKETS        32
 
 extern void pktgen_packet_dump(struct rte_mbuf *m, int pid);
 extern void pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump,
-                                    int pid);
+				    int pid);
 
 extern void pktgen_print_packet_dump(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_DUMP_H_ */

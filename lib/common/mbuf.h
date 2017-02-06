@@ -65,12 +65,12 @@ pktmbuf_reset(struct rte_mbuf *m)
  */
 static inline int
 pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
-	 struct rte_mbuf **mbufs, unsigned count)
+		      struct rte_mbuf **mbufs, unsigned count)
 {
 	unsigned idx = 0;
 	int rc;
 
-	rc = rte_mempool_get_bulk(pool, (void **)mbufs, count);
+	rc = rte_mempool_get_bulk(pool, (void * *)mbufs, count);
 	if (unlikely(rc))
 		return rc;
 
@@ -90,7 +90,7 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
-	case 3:
+		case 3:
 #ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
 #else
@@ -99,7 +99,7 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
-	case 2:
+		case 2:
 #ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
 #else
@@ -108,7 +108,7 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
-	case 1:
+		case 1:
 #ifdef RTE_ASSERT
 			RTE_ASSERT(rte_mbuf_refcnt_read(mbufs[idx]) == 0);
 #else

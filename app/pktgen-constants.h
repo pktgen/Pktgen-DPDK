@@ -70,6 +70,10 @@
 
 #include <rte_mbuf.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {
 	DEFAULT_PKT_BURST       = 32,	/* Increasing this number consumes memory very fast */
 #ifdef RTE_LIBRTE_VMXNET3_PMD
@@ -87,9 +91,13 @@ enum {
 	DEFAULT_BUFF_SIZE       = 2048,
 	DEFAULT_PRIV_SIZE       = 0,
 	MBUF_SIZE               =
-	        (DEFAULT_BUFF_SIZE - sizeof(struct rte_mbuf) - DEFAULT_PRIV_SIZE),
+		(DEFAULT_BUFF_SIZE - sizeof(struct rte_mbuf) - DEFAULT_PRIV_SIZE),
 
 	NUM_Q                   = 8,	/**< Number of cores per port. */
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_CONSTANTS_H_ */

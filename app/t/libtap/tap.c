@@ -56,7 +56,7 @@ tap_plan(int tests, const char *fmt, ...) {
 
 int
 vok_at_loc(const char *file, int line, int test, const char *fmt,
-           va_list args)
+	   va_list args)
 {
 	char *name = vstrdupf(fmt, args);
 
@@ -106,7 +106,7 @@ mystrcmp(const char *a, const char *b) {
 
 int
 is_at_loc(const char *file, int line, const char *got, const char *expected,
-          const char *fmt, ...)
+	  const char *fmt, ...)
 {
 	int test = eq(got, expected);
 	va_list args;
@@ -123,7 +123,7 @@ is_at_loc(const char *file, int line, const char *got, const char *expected,
 
 int
 isnt_at_loc(const char *file, int line, const char *got, const char *expected,
-            const char *fmt, ...)
+	    const char *fmt, ...)
 {
 	int test = ne(got, expected);
 	va_list args;
@@ -140,7 +140,7 @@ isnt_at_loc(const char *file, int line, const char *got, const char *expected,
 
 int
 cmp_ok_at_loc(const char *file, int line, int a, const char *op, int b,
-              const char *fmt, ...)
+	      const char *fmt, ...)
 {
 	int test = eq(op, "||") ? a || b
 		: eq(op, "&&") ? a && b
@@ -192,7 +192,7 @@ find_mem_diff(const char *a, const char *b, size_t n, size_t *offset) {
 
 int
 cmp_mem_at_loc(const char *file, int line, const void *got,
-               const void *expected, size_t n, const char *fmt, ...)
+	       const void *expected, size_t n, const char *fmt, ...)
 {
 	size_t offset;
 	int diff = find_mem_diff(got, expected, n, &offset);
@@ -340,7 +340,7 @@ tap_test_died(int status) {
 
 	if (!test_died) {
 		test_died = mmap(0, sizeof(int), PROT_READ | PROT_WRITE,
-		                 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+				 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 		*test_died = 0;
 	}
 	prev = *test_died;
@@ -350,7 +350,7 @@ tap_test_died(int status) {
 
 int
 like_at_loc(int for_match, const char *file, int line, const char *got,
-            const char *expected, const char *fmt, ...)
+	    const char *expected, const char *fmt, ...)
 {
 	int test;
 	regex_t re;
@@ -361,11 +361,11 @@ like_at_loc(int for_match, const char *file, int line, const char *got,
 		char errbuf[256];
 		regerror(err, &re, errbuf, sizeof errbuf);
 		fprintf(stderr,
-		        "Unable to compile regex '%s': %s at %s line %d\n",
-		        expected,
-		        errbuf,
-		        file,
-		        line);
+			"Unable to compile regex '%s': %s at %s line %d\n",
+			expected,
+			errbuf,
+			file,
+			line);
 		exit(255);
 	}
 	err = regexec(&re, got, 0, NULL, 0);

@@ -44,7 +44,7 @@
 
 #include "scrn.h"
 
-scrn_t   *__scrn;		/**< Global screen structure pointer, their can be only one */
+scrn_t   *__scrn;	/**< Global screen structure pointer, their can be only one */
 
 void
 scrn_center(int16_t r, int16_t ncols, const char *fmt, ...)

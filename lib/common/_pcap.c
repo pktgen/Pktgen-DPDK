@@ -144,8 +144,8 @@ _pcap_open(char *filename, uint16_t port)
 	}
 
 	pcap = (pcap_info_t *)rte_malloc("PCAP info",
-	                                 sizeof(pcap_info_t),
-	                                 RTE_CACHE_LINE_SIZE);
+					 sizeof(pcap_info_t),
+					 RTE_CACHE_LINE_SIZE);
 	if (pcap == NULL) {
 		printf("%s: malloc failed for pcap_info_t structure\n",
 		       __FUNCTION__);
@@ -160,7 +160,7 @@ _pcap_open(char *filename, uint16_t port)
 	}
 
 	if (fread(&pcap->info, 1, sizeof(pcap_hdr_t),
-	          pcap->fd) != sizeof(pcap_hdr_t) ) {
+		  pcap->fd) != sizeof(pcap_hdr_t) ) {
 		printf("%s: failed to read the file header\n", __FUNCTION__);
 		goto leave;
 	}
@@ -180,7 +180,7 @@ _pcap_open(char *filename, uint16_t port)
 	/* Convert from big-endian to little-endian. */
 	if (pcap->info.magic_number == ntohl(PCAP_MAGIC_NUMBER) ) {
 		printf(
-		        "PCAP: Big Endian file format found, converting to little endian\n");
+			"PCAP: Big Endian file format found, converting to little endian\n");
 		pcap->endian                = BIG_ENDIAN;
 		pcap->info.magic_number     = ntohl(pcap->info.magic_number);
 		pcap->info.network          = ntohl(pcap->info.network);
@@ -286,7 +286,7 @@ _pcap_skip(pcap_info_t *pcap, uint32_t skip)
 	phdr = &hdr;
 	while (skip--) {
 		if (fread(phdr, 1, sizeof(pcaprec_hdr_t),
-		          pcap->fd) != sizeof(pcaprec_hdr_t) )
+			  pcap->fd) != sizeof(pcaprec_hdr_t) )
 			break;
 
 		/* Convert the packet header to the correct format. */
@@ -335,9 +335,9 @@ _pcap_close(pcap_info_t *pcap)
 
 int
 _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
-                 unsigned int *length) {
+		    unsigned int *length) {
 	const ipHdr_t *iph =
-	        (const ipHdr_t *)(pkt_data + sizeof(struct ether_hdr));
+		(const ipHdr_t *)(pkt_data + sizeof(struct ether_hdr));
 	const tcpHdr_t *th = NULL;
 
 	/* Ignore packets that aren't IPv4 */
@@ -384,13 +384,13 @@ _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 
 size_t
 _pcap_read(pcap_info_t *pcap,
-             pcaprec_hdr_t *pHdr,
-             char *pktBuff,
-             uint32_t bufLen)
+	   pcaprec_hdr_t *pHdr,
+	   char *pktBuff,
+	   uint32_t bufLen)
 {
 	do {
 		if (fread(pHdr, 1, sizeof(pcaprec_hdr_t),
-		          pcap->fd) != sizeof(pcaprec_hdr_t) )
+			  pcap->fd) != sizeof(pcaprec_hdr_t) )
 			return 0;
 
 		/* Convert the packet header to the correct format. */

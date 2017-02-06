@@ -84,7 +84,7 @@
 #include "copyright_info.h"
 
 #define COPYRIGHT_MSG \
-        "Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
+	"Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
 #define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2016>, Intel Corporation"
 #define POWERED_BY_DPDK         "Powered by Intel® DPDK"
 
@@ -186,9 +186,9 @@ print_copyright(const char *appname, const char *created_by)
 
 	scrn_color(YELLOW, NO_CHANGE, OFF);
 	rte_printf_status("  %s created by: %s -- >>> %s <<<\n",
-	                  appname,
-	                  created_by,
-	                  POWERED_BY_DPDK);
+			  appname,
+			  created_by,
+			  POWERED_BY_DPDK);
 	scrn_color(BLUE, NO_CHANGE, OFF);
 	rte_printf_status("-----------------------\n");
 #else
@@ -214,11 +214,11 @@ splash_screen(int row, int col, const char *appname, const char *created_by)
 		scrn_printf(row++, 7, "%s", pg_copyright[i]);
 	scrn_color(BLUE, NO_CHANGE, BOLD);
 	scrn_printf(row++,
-	               col,
-	               "%s created by %s -- >>> %s <<<",
-	               appname,
-	               created_by,
-	               POWERED_BY_DPDK);
+		    col,
+		    "%s created by %s -- >>> %s <<<",
+		    appname,
+		    created_by,
+		    POWERED_BY_DPDK);
 	scrn_color(BLACK, NO_CHANGE, OFF);
 	scrn_pos(++row, 1);
 

@@ -93,7 +93,7 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type __rte_unused)
 	uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 	uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	tlen                = pkt->pktSize -
-	        (pkt->ether_hdr_size + sizeof(ipHdr_t));
+		(pkt->ether_hdr_size + sizeof(ipHdr_t));
 
 	uip->ip.len         = htons(tlen);
 	uip->ip.proto       = pkt->ipProto;

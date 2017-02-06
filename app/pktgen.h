@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2016>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,38 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors
- * may be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice
- * as defined above and can not be removed without specific prior written
- * permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #ifndef _PKTGEN_H_
@@ -161,7 +129,11 @@
 
 #include "pktgen-seq.h"
 
-#define PKTGEN_VERSION          "3.1.1"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define PKTGEN_VERSION          "3.2.0"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -176,33 +148,33 @@
 
 #define _do(_exp)       do { _exp; } while ((0))
 
-#define forall_ports(_action)                                   \
-	do {                                                    \
-		uint32_t pid;                                   \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {   \
-			port_info_t   *info;                    \
-			info = &pktgen.info[pid];               \
-			if (info->seq_pkt == NULL)              \
-				continue;                       \
-			_action;                                \
-		}                                               \
+#define forall_ports(_action)					\
+	do {							\
+		uint32_t pid;					\
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {	\
+			port_info_t   *info;			\
+			info = &pktgen.info[pid];		\
+			if (info->seq_pkt == NULL)		\
+				continue;			\
+			_action;				\
+		}						\
 	} while ((0))
 
-#define foreach_port(_portlist, _action)                                \
-	do {                                                            \
-		uint32_t    *_pl = (uint32_t *)&_portlist;              \
-		uint32_t pid, idx, bit;                                 \
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {           \
-			port_info_t   *info;                            \
-			idx = (pid / (sizeof(uint32_t) * 8));           \
-			bit = (pid - (idx * (sizeof(uint32_t) * 8)));   \
-			if ( (_pl[idx] & (1 << bit)) == 0)              \
-				continue;                               \
-			info = &pktgen.info[pid];                       \
-			if (info->seq_pkt == NULL)                      \
-				continue;                               \
-			_action;                                        \
-		}                                                       \
+#define foreach_port(_portlist, _action)				\
+	do {								\
+		uint32_t    *_pl = (uint32_t *)&_portlist;		\
+		uint32_t pid, idx, bit;					\
+		for (pid = 0; pid < pktgen.nb_ports; pid++) {		\
+			port_info_t   *info;				\
+			idx = (pid / (sizeof(uint32_t) * 8));		\
+			bit = (pid - (idx * (sizeof(uint32_t) * 8)));	\
+			if ( (_pl[idx] & (1 << bit)) == 0)		\
+				continue;				\
+			info = &pktgen.info[pid];			\
+			if (info->seq_pkt == NULL)			\
+				continue;				\
+			_action;					\
+		}							\
 	} while ((0))
 
 /**
@@ -300,11 +272,11 @@ typedef union {
 } ethaddr_t;
 
 #define MAX_PORT_DESC_SIZE  132
-#define MAX_CMD_FILES	    16
+#define MAX_CMD_FILES       16
 
 typedef struct {
-	char	*filename[MAX_CMD_FILES];
-	uint8_t	idx;
+	char    *filename[MAX_CMD_FILES];
+	uint8_t idx;
 } cmd_files_t;
 
 /* Ethernet addresses of ports */
@@ -312,10 +284,10 @@ typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
-	scrn_t *scrn;	/**< Screen structure pointer */
-	cmd_files_t cmd_files; /**< Command file path and name */
+	scrn_t *scrn;		/**< Screen structure pointer */
+	cmd_files_t cmd_files;	/**< Command file path and name */
 
-	int32_t socket_port;	/**< GUI port number */
+	int32_t socket_port;		/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */
 	uint32_t flags;			/**< Flag values */
 	uint16_t ident;			/**< IPv4 ident value */
@@ -350,16 +322,16 @@ typedef struct pktgen_s {
 	lscpu_t *lscpu;
 	char *uname;
 	eth_stats_t cumm_rate_totals;	/**< port rates total values */
-    uint64_t    max_total_ipackets; /**< Total Max seen input packet rate */
-    uint64_t    max_total_opackets; /**< Total Max seen output packet rate */
+	uint64_t max_total_ipackets;	/**< Total Max seen input packet rate */
+	uint64_t max_total_opackets;	/**< Total Max seen output packet rate */
 
 	pthread_t thread;	/**< Thread structure for Lua server */
 
 	uint64_t counter;	/**< A debug counter */
 	uint64_t mem_used;	/**< Display memory used counters per ports */
 	uint64_t total_mem_used;/**< Display memory used for all ports */
-	int32_t argc;		/**< Number of arguments */
-	char *argv[64];		/**< Argument list */
+	int32_t argc;	/**< Number of arguments */
+	char *argv[64];	/**< Argument list */
 
 	capture_t capture[RTE_MAX_NUMA_NODES];	/**< Packet capture, 1 struct per socket */
 	uint8_t is_gui_running;
@@ -391,22 +363,22 @@ enum {						/* Pktgen flags bits */
 	CPU_PAGE_FLAG           = (1 << 20),	/**< Display the PCAP page */
 	RND_BITFIELD_PAGE_FLAG  = (1 << 21),	/**< Display the random bitfield page */
 	LOG_PAGE_FLAG           = (1 << 22),	/**< Display the message log page */
-	LATENCY_PAGE_FLAG       = (1 << 23),    /**< Display latency page */
-	STATS_PAGE_FLAG         = (1 << 24),    /**< Display the physical port stats */
+	LATENCY_PAGE_FLAG       = (1 << 23),	/**< Display latency page */
+	STATS_PAGE_FLAG         = (1 << 24),	/**< Display the physical port stats */
 
 	UPDATE_DISPLAY_FLAG     = (1 << 31)
 };
 
-#define UPDATE_DISPLAY_RATE             1   /* one second */
+#define UPDATE_DISPLAY_RATE             1	/* one second */
 #define UPDATE_DISPLAY_TICK_INTERVAL    8
-#define UPDATE_DISPLAY_TICK_RATE        \
-            ((pktgen.hz * UPDATE_DISPLAY_RATE)/UPDATE_DISPLAY_TICK_INTERVAL)
+#define UPDATE_DISPLAY_TICK_RATE	\
+	((pktgen.hz * UPDATE_DISPLAY_RATE) / UPDATE_DISPLAY_TICK_INTERVAL)
 
 #define PAGE_MASK_BITS  (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | \
-	                     RANGE_PAGE_FLAG | \
-	                     PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
-	                     RND_BITFIELD_PAGE_FLAG | \
-	                     LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | STATS_PAGE_FLAG)
+			 RANGE_PAGE_FLAG | \
+			 PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
+			 RND_BITFIELD_PAGE_FLAG | \
+			 LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | STATS_PAGE_FLAG)
 
 struct cmdline_etheraddr {
 	uint8_t mac[6];
@@ -418,7 +390,7 @@ extern pktgen_t pktgen;
 extern void pktgen_page_display(struct rte_timer *tim, void *arg);
 
 extern void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx,
-                               int32_t type);
+			       int32_t type);
 extern void pktgen_packet_rate(port_info_t *info);
 
 extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
@@ -438,7 +410,7 @@ pktgen_set_port_flags(port_info_t *info, uint32_t flags) {
 	do
 		val = rte_atomic32_read(&info->port_flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt,
-	                           val, (val | flags)) == 0);
+				   val, (val | flags)) == 0);
 }
 
 static __inline__ void
@@ -448,7 +420,7 @@ pktgen_clr_port_flags(port_info_t *info, uint32_t flags) {
 	do
 		val = rte_atomic32_read(&info->port_flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt,
-	                           val, (val & ~flags)) == 0);
+				   val, (val & ~flags)) == 0);
 }
 
 static __inline__ void
@@ -458,7 +430,7 @@ pktgen_set_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 	do
 		val = rte_atomic32_read(&info->q[q].flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
-	                           val, (val | flags)) == 0);
+				   val, (val | flags)) == 0);
 }
 
 static __inline__ void
@@ -468,7 +440,7 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 	do
 		val = rte_atomic32_read(&info->q[q].flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
-	                           val, (val & ~flags)) == 0);
+				   val, (val & ~flags)) == 0);
 }
 
 /* onOff values */
@@ -477,9 +449,9 @@ enum { DISABLE_STATE = 0, ENABLE_STATE = 1 };
 static __inline__ uint32_t
 parseState(const char *state) {
 	return ( !strcasecmp(state,
-	                     "on") ||
-	         !strcasecmp(state,
-	                     "enable") || !strcasecmp(state, "start") ) ?
+			     "on") ||
+		 !strcasecmp(state,
+			     "enable") || !strcasecmp(state, "start") ) ?
 	       ENABLE_STATE : DISABLE_STATE;
 }
 
@@ -493,7 +465,7 @@ pktgen_version(void) {
 	static char pkt_version[128];
 
 	snprintf(pkt_version, sizeof(pkt_version),
-	         "Ver: %s (%s)", PKTGEN_VERSION, rte_version());
+		 "Ver: %s (%s)", PKTGEN_VERSION, rte_version());
 	return pkt_version;
 }
 
@@ -544,6 +516,10 @@ do_command(const char *cmd, int (*display)(char *, int)) {
 
 #ifndef MEMPOOL_F_DMA
 #define MEMPOOL_F_DMA       0
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _PKTGEN_H_ */

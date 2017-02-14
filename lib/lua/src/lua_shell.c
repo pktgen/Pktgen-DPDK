@@ -338,8 +338,8 @@ int lua_shell(void * pServer) {
 int
 execute_lua_string( lua_State * L, char * buffer )
 {
-    if ( (buffer == NULL) || (L == NULL) )
-        return -1;
+	if ( (buffer == NULL) || (L == NULL) )
+		return -1;
 
 	if ( luaL_dostring(L, buffer) != 0 ) {
 		fprintf(stderr,"%s\n", lua_tostring(L,-1));

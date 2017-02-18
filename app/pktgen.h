@@ -95,18 +95,6 @@
 #include <rte_udp.h>
 #include <rte_tcp.h>
 
-#include <cmdline_rdline.h>
-#include <cmdline_parse.h>
-#include <cmdline_socket.h>
-#include <cmdline_parse_string.h>
-#include <cmdline_parse_num.h>
-#include <cmdline_parse_ipaddr.h>
-#include <cmdline_parse_etheraddr.h>
-#include <cmdline_parse_portlist.h>
-#include <cmdline.h>
-
-#include <scrn.h>
-
 #include <copyright_info.h>
 #include <l2p.h>
 #include <port_config.h>
@@ -284,7 +272,7 @@ typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
-	scrn_t *scrn;		/**< Screen structure pointer */
+	void *scrn;		/**< Screen structure pointer */
 	cmd_files_t cmd_files;	/**< Command file path and name */
 
 	int32_t socket_port;		/**< GUI port number */
@@ -355,6 +343,7 @@ enum {						/* Pktgen flags bits */
 	FAKE_PORTS_FLAG         = (1 << 9),	/**< Fake ports enabled */
 	BLINK_PORTS_FLAG        = (1 << 10),	/**< Blink the port leds */
 	ENABLE_THEME_FLAG       = (1 << 11),	/**< Enable theme or color support */
+	USE_CLI					= (1 << 12),	/**< Use the CLI commands */
 
 	CONFIG_PAGE_FLAG        = (1 << 16),	/**< Display the configure page */
 	SEQUENCE_PAGE_FLAG      = (1 << 17),	/**< Display the Packet sequence page */
@@ -383,7 +372,7 @@ enum {						/* Pktgen flags bits */
 struct cmdline_etheraddr {
 	uint8_t mac[6];
 };
-typedef struct cmdline_etheraddr cmdline_etheraddr_t;
+typedef struct ether_addr etheraddr_t;
 
 extern pktgen_t pktgen;
 

@@ -55,14 +55,17 @@ COMMON_LIB := $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib
 GUI_LIB    := $(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib
 
 # all source are stored in SRCS-y
-SRCS-y := \
-	cmd-functions.c lpktgenlib.c pktgen-cfg.c pktgen-cmds.c pktgen.c \
+SRCS-y += \
+	lpktgenlib.c pktgen-cfg.c pktgen-cmds.c pktgen.c \
 	pktgen-main.c pktgen-pcap.c pktgen-range.c pktgen-cpu.c \
 	pktgen-seq.c pktgen-dump.c pktgen-capture.c pktgen-stats.c \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
 	pktgen-latency.c
+
+SRCS-$(CONFIG_RTE_LIBRTE_CMDLINE) += cmd-functions.c
+SRCS-$(CONFIG_RTE_LIBRTE_CLI) += cli-functions.c
 
 MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB)
 MYLIBS := -llua -lcommon

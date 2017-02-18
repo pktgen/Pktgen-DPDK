@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2016-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -308,7 +308,7 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 	if (rnd_bits == NULL) {
 		scrn_center(
 			10,
-			pktgen.scrn->ncols,
+			((scrn_t *)pktgen.scrn)->ncols,
 			"** Port is not active - no random bitfields set **");
 		row = 28;
 		goto leave;

@@ -37,6 +37,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <scrn.h>
+
 #include "pktgen.h"
 #include "pktgen-gre.h"
 #include "pktgen-tcp.h"

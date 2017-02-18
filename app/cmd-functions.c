@@ -42,12 +42,19 @@
 #include <unistd.h>
 
 #include <cmdline_rdline.h>
+#include <cmdline_parse.h>
+#include <cmdline_socket.h>
 #include <cmdline_parse_string.h>
+#include <cmdline_parse_num.h>
 #include <cmdline_parse_ipaddr.h>
+#include <cmdline_parse_etheraddr.h>
+#include <cmdline_parse_portlist.h>
 #include <cmdline.h>
+
 #include <rte_atomic.h>
 #include <rte_devargs.h>
 
+#include <scrn.h>
 #include "pktgen.h"
 
 #include "copyright_info.h"
@@ -1366,7 +1373,7 @@ struct cmd_dest_mac_result {
 	cmdline_fixed_string_t dst_mac;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t addr;
+	etheraddr_t addr;
 };
 
 /**************************************************************************//**
@@ -1425,7 +1432,7 @@ struct cmd_src_mac_result {
 	cmdline_fixed_string_t src_mac;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t addr;
+	etheraddr_t addr;
 };
 
 /**************************************************************************//**
@@ -1483,7 +1490,7 @@ struct cmd_src_ip_result {
 	cmdline_fixed_string_t src_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	rte_ipaddr_t ipaddr;
 };
 
 /**************************************************************************//**
@@ -1541,7 +1548,7 @@ struct cmd_dst_ip_result {
 	cmdline_fixed_string_t dst_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	rte_ipaddr_t ipaddr;
 };
 
 /**************************************************************************//**
@@ -2451,10 +2458,10 @@ struct cmd_set_seq_result {
 	cmdline_fixed_string_t seq;
 	uint32_t seqnum;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t daddr;
-	cmdline_etheraddr_t saddr;
-	cmdline_ipaddr_t ip_daddr;
-	cmdline_ipaddr_t ip_saddr;
+	etheraddr_t daddr;
+	etheraddr_t saddr;
+	rte_ipaddr_t ip_daddr;
+	rte_ipaddr_t ip_saddr;
 	uint32_t sport;
 	uint32_t dport;
 	cmdline_fixed_string_t eth;
@@ -2562,7 +2569,7 @@ struct cmd_setip_dst_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	rte_ipaddr_t ipaddr;
 };
 
 /**************************************************************************//**
@@ -2622,7 +2629,7 @@ struct cmd_setip_src_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	rte_ipaddr_t ipaddr;
 };
 
 /**************************************************************************//**
@@ -4048,7 +4055,7 @@ struct cmd_setmac_result {
 	cmdline_fixed_string_t set;
 	cmdline_fixed_string_t mac;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t addr;
+	etheraddr_t addr;
 };
 
 /**************************************************************************//**

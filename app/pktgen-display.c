@@ -38,6 +38,8 @@
 #include "pktgen-display.h"
 #include "pktgen-cmds.h"
 
+#include <cmdline.h>
+
 #define MAX_COLOR_NAME_SIZE     64
 #define MAX_PROMPT_STRING_SIZE  64
 

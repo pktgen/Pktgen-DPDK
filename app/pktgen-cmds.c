@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #define _GNU_SOURCE
 #include <string.h>
 #include <sys/stat.h>
 
+#include <scrn.h>
+
 #include "pktgen-cmds.h"
 
 #include "pktgen-display.h"
 #include "pktgen.h"
+
+#include <cmdline.h>
 
 static char hash_line[] = "#######################################################################";
 
@@ -2436,7 +2409,7 @@ pktgen_set_tx_rate(port_info_t *info, uint32_t rate)
  */
 
 void
-pktgen_set_ipaddr(port_info_t *info, char type, cmdline_ipaddr_t *ip)
+pktgen_set_ipaddr(port_info_t *info, char type, rte_ipaddr_t *ip)
 {
 	if (type == 's') {
 		info->seq_pkt[SINGLE_PKT].ip_mask = size_to_mask(ip->prefixlen);
@@ -2461,9 +2434,9 @@ pktgen_set_ipaddr(port_info_t *info, char type, cmdline_ipaddr_t *ip)
  */
 
 void
-pktgen_set_dst_mac(port_info_t *info, cmdline_etheraddr_t *mac)
+pktgen_set_dst_mac(port_info_t *info, struct ether_addr *mac)
 {
-	memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac->mac, 6);
+	memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
@@ -2604,7 +2577,7 @@ pktgen_user_pattern_set(port_info_t *info, char *str)
 void
 pktgen_set_dest_mac(port_info_t *info,
 		    const char *what,
-		    cmdline_etheraddr_t *mac)
+		    struct ether_addr *mac)
 {
 	if (!strcmp(what, "min") )
 		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_min);
@@ -2615,7 +2588,7 @@ pktgen_set_dest_mac(port_info_t *info,
 	else if (!strcmp(what, "start") ) {
 		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac);
 		/* Changes add below to reflect MAC value in range */
-		memcpy(&info->seq_pkt[RANGE_PKT].eth_dst_addr, mac->mac, 6);
+		memcpy(&info->seq_pkt[RANGE_PKT].eth_dst_addr, mac, 6);
 	}
 }
 
@@ -2633,18 +2606,18 @@ pktgen_set_dest_mac(port_info_t *info,
 
 void
 pktgen_set_src_mac(port_info_t *info, const char *what,
-		   cmdline_etheraddr_t *mac)
+		   struct ether_addr *mac)
 {
 	if (!strcmp(what, "min") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_min);
+		inet_mtoh64(mac, &info->range.src_mac_min);
 	else if (!strcmp(what, "max") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_max);
+		inet_mtoh64(mac, &info->range.src_mac_max);
 	else if (!strcmp(what, "inc") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_inc);
+		inet_mtoh64(mac, &info->range.src_mac_inc);
 	else if (!strcmp(what, "start") ) {
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac);
+		inet_mtoh64(mac, &info->range.src_mac);
 		/* Changes add below to reflect MAC value in range */
-		memcpy(&info->seq_pkt[RANGE_PKT].eth_src_addr, mac->mac, 6);
+		memcpy(&info->seq_pkt[RANGE_PKT].eth_src_addr, mac, 6);
 	}
 }
 
@@ -2661,7 +2634,7 @@ pktgen_set_src_mac(port_info_t *info, const char *what,
  */
 
 void
-pktgen_set_src_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
+pktgen_set_src_ip(port_info_t *info, char *what, rte_ipaddr_t *ip)
 {
 	if (!strcmp(what, "min") )
 		info->range.src_ip_min = ntohl(ip->addr.ipv4.s_addr);
@@ -2686,7 +2659,7 @@ pktgen_set_src_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
  */
 
 void
-pktgen_set_dst_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
+pktgen_set_dst_ip(port_info_t *info, char *what, rte_ipaddr_t *ip)
 {
 	if (!strcmp(what, "min") )
 		info->range.dst_ip_min = ntohl(ip->addr.ipv4.s_addr);
@@ -2982,16 +2955,16 @@ pktgen_set_page(char *str)
 
 void
 pktgen_set_seq(port_info_t *info, uint32_t seqnum,
-	       cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
-	       cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
+	       struct ether_addr *daddr, struct ether_addr *saddr,
+	       rte_ipaddr_t *ip_daddr, rte_ipaddr_t *ip_saddr,
 	       uint32_t sport, uint32_t dport, char type, char proto,
 	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
 	pkt = &info->seq_pkt[seqnum];
-	memcpy(&pkt->eth_dst_addr, daddr->mac, 6);
-	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
+	memcpy(&pkt->eth_dst_addr, daddr, 6);
+	memcpy(&pkt->eth_src_addr, saddr, 6);
 	pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
 	if (type == '4') {
 		pkt->ip_src_addr.addr.ipv4.s_addr = htonl(
@@ -3034,8 +3007,8 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 
 void
 pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
-		   cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
-		   cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
+		   struct ether_addr *daddr, struct ether_addr *saddr,
+		   rte_ipaddr_t *ip_daddr, rte_ipaddr_t *ip_saddr,
 		   uint32_t sport, uint32_t dport, char type, char proto,
 		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
@@ -3046,8 +3019,8 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 
 	pkt = &info->seq_pkt[seqnum + EXTRA_TX_PKT];
 
-	memcpy(&pkt->eth_dst_addr, daddr->mac, 6);
-	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
+	memcpy(&pkt->eth_dst_addr, daddr, 6);
+	memcpy(&pkt->eth_src_addr, saddr, 6);
 	pkt->ip_mask        = size_to_mask(ip_saddr->prefixlen);
 	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->addr.ipv4.s_addr);
 	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->addr.ipv4.s_addr);

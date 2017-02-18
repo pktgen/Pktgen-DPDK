@@ -44,85 +44,125 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+"C" {
 #endif
 
-extern int pktgen_port_transmitting(int port);
-extern char *pktgen_link_state(int port, char *buff, int len);
-extern char *pktgen_transmit_count(int port, char *buff, int len);
-extern char *pktgen_transmit_rate(int port, char *buff, int len);
-extern int pktgen_port_sizes(int port, port_sizes_t *psizes);
-extern char *pktgen_transmit_count_rate(int port, char *buff, int len);
-extern int pktgen_pkt_stats(int port, pkt_stats_t *pstats);
-extern int pktgen_port_stats(int port, const char *name, eth_stats_t *pstats);
-extern char *pktgen_flags_string(port_info_t *info);
-extern void pktgen_matrix_dump(void);
-extern void pktgen_redisplay(int cls_flag);
-extern void pktgen_update_display(void);
-extern void pktgen_update(void);
-extern void pktgen_set_page_size(uint32_t page_size);
-extern void pktgen_screen(const char *onOff);
-extern void pktgen_set_port_number(uint32_t port_number);
-extern void pktgen_set_icmp_echo(port_info_t *info, uint32_t onOff);
-extern void pktgen_config_mac_from_arp(uint32_t onOff);
-extern void pktgen_mempool_dump(port_info_t *info, char *name);
-extern void pktgen_start_transmitting(port_info_t *info);
-extern void pktgen_stop_transmitting(port_info_t *info);
-extern void pktgen_prime_ports(port_info_t *info);
-extern void pktgen_set_proto(port_info_t *info, char type);
-extern void pktgen_set_rx_tap(port_info_t *info, uint32_t onOff);
-extern void pktgen_set_tx_tap(port_info_t *info, uint32_t onOff);
-extern int pktgen_save(char *path);
+/* Internal APIs */
+char *pktgen_flags_string(port_info_t *info);
+char *pktgen_transmit_count_rate(int port, char *buff, int len);
+void pktgen_update_display(void);
+void pktgen_update(void);
+char *pktgen_link_state(int port, char *buff, int len);
+char *pktgen_transmit_count(int port, char *buff, int len);
+char *pktgen_transmit_rate(int port, char *buff, int len);
+int pktgen_pkt_stats(int port, pkt_stats_t *pstats);
+int pktgen_port_stats(int port, const char *name, eth_stats_t *pstats);
+int pktgen_port_sizes(int port, port_sizes_t *psizes);
 
-extern void pktgen_pcap_enable_disable(port_info_t *info, char *str);
-extern void pktgen_blink_enable_disable(port_info_t *info, char *str);
-extern void pktgen_process_enable_disable(port_info_t *info, char *str);
-extern void pktgen_capture_enable_disable(port_info_t *info, char *str);
-extern void pktgen_pcap_filter(port_info_t *info, char *str);
-extern void pktgen_set_pkt_type(port_info_t *info, const char *type);
-extern void pktgen_clear_stats(port_info_t *info);
-extern void pktgen_cls(void);
-extern void pktgen_port_defaults(uint32_t pid, uint8_t seq);
-extern void pktgen_pdump(port_info_t *info);
-extern void pktgen_ping4(port_info_t *info);
+/* Global commands */
+void pktgen_send_arp_requests(port_info_t *info, uint32_t type);
+void pktgen_start_transmitting(port_info_t *info);
+void pktgen_stop_transmitting(port_info_t *info);
+int pktgen_port_transmitting(int port);
+void pktgen_set_page(char *str);
+void pktgen_screen(const char *onOff);
+void pktgen_redisplay(int cls_flag);
+int pktgen_save(char *path);
+void pktgen_cls(void);
+void pktgen_ping4(port_info_t *info);
 #ifdef INCLUDE_PING6
-extern void pktgen_ping6(port_info_t *info);
+void pktgen_ping6(port_info_t *info);
 #endif
-extern void pktgen_reset(port_info_t *info);
-extern void pktgen_port_restart(port_info_t *info);
-extern void pktgen_set_tx_count(port_info_t *info, uint32_t cnt);
-extern void pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt);
-extern void pktgen_set_port_prime(port_info_t *info, uint32_t cnt);
-extern void pktgen_set_port_dump(port_info_t *info, uint32_t cnt);
-extern void pktgen_set_tx_burst(port_info_t *info, uint32_t burst);
-extern void pktgen_set_tx_cycles(port_info_t *info, uint32_t cycles);
-extern void pktgen_set_rx_cycles(port_info_t *info, uint32_t cycles);
-extern void pktgen_set_pkt_size(port_info_t *info, uint32_t size);
-extern void pktgen_set_port_value(port_info_t *info,
+void pktgen_clear_stats(port_info_t *info);
+void pktgen_reset(port_info_t *info);
+void pktgen_port_restart(port_info_t *info);
+void pktgen_mac_from_arp(uint32_t onOff);
+void pktgen_prime_ports(port_info_t *info);
+void pktgen_quit(void);
+void pktgen_set_page_size(uint32_t page_size);
+void pktgen_set_port_number(uint32_t port_number);
+void pktgen_set_port_prime(port_info_t *info, uint32_t cnt);
+void pktgen_port_defaults(uint32_t pid, uint8_t seq);
+
+/* Single */
+void single_set_ipaddr(port_info_t *info, char type,
+			      rte_ipaddr_t *ip);
+void single_set_proto(port_info_t *info, char type);
+void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
+void single_set_dst_mac(port_info_t *info, struct ether_addr *mac);
+void single_set_pkt_type(port_info_t *info, const char *type);
+void single_set_tx_count(port_info_t *info, uint32_t cnt);
+void single_set_tx_burst(port_info_t *info, uint32_t burst);
+void single_set_pkt_size(port_info_t *info, uint32_t size);
+void single_set_tx_rate(port_info_t *info, uint32_t rate);
+
+void single_set_port_value(port_info_t *info,
 				  char type,
 				  uint32_t portValue);
-extern void pktgen_set_tx_rate(port_info_t *info, uint32_t rate);
-extern void pktgen_set_ipaddr(port_info_t *info, char type,
-			      rte_ipaddr_t *ip);
-extern void pktgen_set_dst_mac(port_info_t *info, struct ether_addr *mac);
-extern void pktgen_range_enable_disable(port_info_t *info, char *str);
-extern void pktgen_set_dest_mac(port_info_t *info,
+
+/* Debug */
+void debug_dump(port_info_t *info, char *str);
+void debug_blink(port_info_t *info, char *str);
+void debug_pdump(port_info_t *info);
+void debug_set_tx_cycles(port_info_t *info, uint32_t cycles);
+void debug_set_rx_cycles(port_info_t *info, uint32_t cycles);
+void debug_matrix_dump(void);
+void debug_mempool_dump(port_info_t *info, char *name);
+void debug_set_port_dump(port_info_t *info, uint32_t cnt);
+
+/* Enable or toggle types */
+void enable_rx_tap(port_info_t *info, uint32_t onOff);
+void enable_tx_tap(port_info_t *info, uint32_t onOff);
+void enable_vlan(port_info_t *info, uint32_t onOff);
+void enable_qinq(port_info_t *info, uint32_t onOff);
+void enable_mpls(port_info_t *info, uint32_t onOff);
+void enable_gre(port_info_t *info, uint32_t onOff);
+void enable_gre_eth(port_info_t *info, uint32_t onOff);
+void enable_icmp_echo(port_info_t *info, uint32_t onOff);
+void enable_random(port_info_t *info, uint32_t onOff);
+void enable_latency(port_info_t *info, char *str);
+void enable_garp(port_info_t *info, char *str);
+void enable_mac_from_arp(uint32_t onOff);
+void enable_process(port_info_t *info, char *str);
+void enable_capture(port_info_t *info, char *str);
+void enable_range(port_info_t *info, char *str);
+void enable_jitter(port_info_t *info, uint64_t threshold);
+
+/* PCAP */
+void pcap_filter(port_info_t *info, char *str);
+void pcap_enable_disable(port_info_t *info, char *str);
+
+/* Range commands */
+void range_set_dest_mac(port_info_t *info,
 				const char *what,
 				struct ether_addr *mac);
-extern void pktgen_set_src_mac(port_info_t *info,
+void range_set_src_mac(port_info_t *info,
 			       const char *what,
 			       struct ether_addr *mac);
-extern void pktgen_set_src_ip(port_info_t *info,
+void range_set_src_ip(port_info_t *info,
 			      char *what,
 			      rte_ipaddr_t *ip);
-extern void pktgen_set_dst_ip(port_info_t *info,
+void range_set_dst_ip(port_info_t *info,
 			      char *what,
 			      rte_ipaddr_t *ip);
-extern void pktgen_set_src_port(port_info_t *info, char *what, uint16_t port);
-extern void pktgen_set_dst_port(port_info_t *info, char *what, uint16_t port);
-extern void pktgen_send_arp_requests(port_info_t *info, uint32_t type);
-extern void pktgen_set_page(char *str);
-extern void pktgen_set_seq(port_info_t *info,
+void range_set_src_port(port_info_t *info, char *what, uint16_t port);
+void range_set_dst_port(port_info_t *info, char *what, uint16_t port);
+void range_set_proto(port_info_t *info, char type);
+void range_set_pkt_type(port_info_t *info, const char *type);
+void range_set_pkt_size(port_info_t *info,
+				      char *what,
+				      uint16_t size);
+void range_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid);
+void range_set_vlan_id(port_info_t *info, char *what, uint16_t id);
+void range_set_mpls_entry(port_info_t *info, uint32_t mpls_entry);
+void range_set_qinqids(port_info_t *info,
+			       uint16_t outerid,
+			       uint16_t innerid);
+void range_set_gre_key(port_info_t *info, uint32_t gre_key);
+
+/* Sequence */
+void pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt);
+void pktgen_set_seq(port_info_t *info,
 			   uint32_t seqnum,
 			   struct ether_addr *daddr,
 			   struct ether_addr *saddr,
@@ -135,14 +175,12 @@ extern void pktgen_set_seq(port_info_t *info,
 			   uint16_t vlanid,
 			   uint32_t pktsize,
 			   uint32_t gtpu_teid);
-extern void pktgen_set_range_pkt_size(port_info_t *info,
-				      char *what,
-				      uint16_t size);
-extern void pktgen_send_pkt(port_info_t *info, uint32_t seqnum);
-extern void pktgen_recv_pkt(port_info_t *info);
-extern void pktgen_dump_enable_disable(port_info_t *info, char *str);
 
-extern void pktgen_compile_pkt(port_info_t *info,
+/* Packet */
+void pktgen_send_pkt(port_info_t *info, uint32_t seqnum);
+void pktgen_recv_pkt(port_info_t *info);
+
+void pktgen_compile_pkt(port_info_t *info,
 			       uint32_t seqnum,
 			       struct ether_addr *daddr,
 			       struct ether_addr *saddr,
@@ -156,38 +194,9 @@ extern void pktgen_compile_pkt(port_info_t *info,
 			       uint32_t pktsize,
 			       uint32_t gtpu_teid);
 
-extern void pktgen_quit(void);
-
-extern void pktgen_set_vlan(port_info_t *info, uint32_t onOff);
-extern void pktgen_set_vlan_id(port_info_t *info, char *what, uint16_t id);
-extern void pktgen_set_vlanid(port_info_t *info, uint16_t vlanid);
-
-extern void pktgen_set_mpls(port_info_t *info, uint32_t onOff);
-extern void pktgen_set_mpls_entry(port_info_t *info, uint32_t mpls_entry);
-
-extern void pktgen_set_qinq(port_info_t *info, uint32_t onOff);
-extern void pktgen_set_qinqids(port_info_t *info,
-			       uint16_t outerid,
-			       uint16_t innerid);
-
-extern void pktgen_set_gre(port_info_t *info, uint32_t onOff);
-extern void pktgen_set_gre_eth(port_info_t *info, uint32_t onOff);
-extern void pktgen_set_gre_key(port_info_t *info, uint32_t gre_key);
-
-extern void pktgen_garp_enable_disable(port_info_t *info, char *str);
-
-extern void pktgen_mac_from_arp(uint32_t onOff);
-
-extern void pktgen_set_random(port_info_t *info, uint32_t onOff);
-
-extern void pktgen_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid);
-extern void pktgen_set_proto_range(port_info_t *info, char type);
-extern void pktgen_set_pkt_type_range(port_info_t *info, const char *type);
-
-extern void pktgen_set_pattern_type(port_info_t *info, char *str);
-extern void pktgen_user_pattern_set(port_info_t *info, char *str);
-extern void pktgen_latency_enable_disable(port_info_t *info, char *str);
-extern void pktgen_set_jitter(port_info_t *info, uint64_t threshold);
+/* Pattern */
+void pattern_set_type(port_info_t *info, char *str);
+void pattern_set_user_pattern(port_info_t *info, char *str);
 
 #ifdef __cplusplus
 }

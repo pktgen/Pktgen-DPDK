@@ -162,6 +162,7 @@ pktgen_usage(const char *prgname)
 		"  -s P:file    PCAP packet stream file, 'P' is the port number\n"
 		"  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
 		"  -l filename  Write log to filename\n"
+		"  -I           use CLI\n"
 		"  -P           Enable PROMISCUOUS mode on all ports\n"
 		"  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
 		"               If -g is used that enable socket support as a server application\n"
@@ -277,7 +278,7 @@ pktgen_parse_args(int argc, char **argv)
 			break;
 
 		case 'I':	/* Enable CLI prompt */
-			pktgen.flags = USE_CLI;
+			pktgen.flags |= USE_CLI;
 			break;
 		case 'P':	/* Enable promiscuous mode on the ports */
 			pktgen.flags    |= PROMISCUOUS_ON_FLAG;
@@ -338,7 +339,7 @@ pktgen_parse_args(int argc, char **argv)
 		argv[optind - 1] = prgname;
 
 	ret = optind - 1;
-	optind = 0;	/* reset getopt lib */
+	optind = 1;	/* reset getopt lib */
 	return ret;
 }
 

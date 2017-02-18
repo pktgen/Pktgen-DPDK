@@ -464,7 +464,7 @@ pdump_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 
-	foreach_port(portlist, pktgen_pdump(info));
+	foreach_port(portlist, debug_pdump(info));
 	pktgen_update_display();
 	return 0;
 }
@@ -521,7 +521,7 @@ ping6_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_set_range_parsed - Set the range command options.
+ * range_set_cmd - Set the range command options.
  *
  * DESCRIPTION
  * Set the range port options.
@@ -538,7 +538,7 @@ range_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_range_enable_disable(info, argv[2]) );
+		     enable_range(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -563,7 +563,7 @@ latency_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_latency_enable_disable(info, argv[2]));
+		     enable_latency(info, argv[2]));
 
 	pktgen_update_display();
 	return 0;
@@ -588,7 +588,7 @@ jitter_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_jitter(info, strtoull(argv[2], NULL, 0)) );
+		     enable_jitter(info, strtoull(argv[2], NULL, 0)) );
 
 	pktgen_update_display();
 	return 0;
@@ -613,7 +613,7 @@ pattern_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_pattern_type(info, argv[2]) );
+		     pattern_set_type(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -638,7 +638,7 @@ pattern_user_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **arg
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_user_pattern_set(info, argv[2]) );
+		     pattern_set_user_pattern(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -681,7 +681,7 @@ rnd_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+		     enable_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
 									atoi(argv[2]), atoi(argv[3]), mask) ? ENABLE_STATE : DISABLE_STATE));
 
 	pktgen_update_display();
@@ -765,9 +765,9 @@ pci_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_u
 	return 0;
 }
 
-/**************************************************************************//**
+/**************************************************************************//**s
  *
- * cmd_dest_mac_parsed - Set the Destination MAC address
+ * range_mac_dest_cmd - Set the Destination MAC address
  *
  * DESCRIPTION
  * Set the destination MAC address for given port(s).
@@ -778,13 +778,13 @@ pci_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_u
  */
 
 static int
-mac_dest_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+range_mac_dest_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 {
 	uint32_t portlist;
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_dest_mac(info, argv[1], rte_ether_aton((const char *)argv[3], NULL)));
+		     range_set_dest_mac(info, argv[1], rte_ether_aton((const char *)argv[3], NULL)));
 
 	pktgen_update_display();
 	return 0;
@@ -809,7 +809,7 @@ mac_src_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_src_mac(info, argv[1], rte_ether_aton((const char *)argv[3], NULL)));
+		     range_set_src_mac(info, argv[1], rte_ether_aton((const char *)argv[3], NULL)));
 
 	pktgen_update_display();
 	return 0;
@@ -836,7 +836,7 @@ ip_src_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	rte_parse_portlist(argv[2], &portlist);
 	rte_atoip(argv[3], RTE_IPADDR_V4 , &ip, sizeof(ip));
 	foreach_port(portlist,
-		     pktgen_set_src_ip(info, argv[1], &ip));
+		     range_set_src_ip(info, argv[1], &ip));
 
 	pktgen_update_display();
 	return 0;
@@ -863,7 +863,7 @@ ip_dst_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	rte_parse_portlist(argv[2], &portlist);
 	rte_atoip(argv[3], RTE_IPADDR_V4 , &ip, sizeof(ip));
 	foreach_port(portlist,
-		     pktgen_set_dst_ip(info, argv[1], &ip));
+		     range_set_dst_ip(info, argv[1], &ip));
 
 	pktgen_update_display();
 	return 0;
@@ -888,7 +888,7 @@ src_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_src_port(info, argv[1], atoi(argv[3])) );
+		     range_set_src_port(info, argv[1], atoi(argv[3])) );
 
 	pktgen_update_display();
 	return 0;
@@ -913,7 +913,7 @@ ip_proto_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_proto_range(info, argv[2][0]) );
+		     range_set_proto(info, argv[2][0]) );
 
 	pktgen_update_display();
 	return 0;
@@ -938,7 +938,7 @@ dst_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_dst_port(info, argv[1], atoi(argv[3])) );
+		     range_set_dst_port(info, argv[1], atoi(argv[3])) );
 
 	pktgen_update_display();
 	return 0;
@@ -963,7 +963,7 @@ vlan_id_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_vlan_id(info, argv[1], atoi(argv[3])) );
+		     range_set_vlan_id(info, argv[1], atoi(argv[3])) );
 
 	pktgen_update_display();
 	return 0;
@@ -982,13 +982,13 @@ vlan_id_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
  */
 
 static int
-pkt_size_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+range_pkt_size_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 {
 	uint32_t portlist;
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_range_pkt_size(info, argv[1], atoi(argv[3])) );
+		     range_set_pkt_size(info, argv[1], atoi(argv[3])) );
 
 	pktgen_update_display();
 	return 0;
@@ -1016,27 +1016,27 @@ set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist, _do(
 			     if (!strcmp(what, "count"))
-				     pktgen_set_tx_count(info, value);
+				     single_set_tx_count(info, value);
 			     else if (!strcmp(what, "size"))
-				     pktgen_set_pkt_size(info, value);
+				     single_set_pkt_size(info, value);
 			     else if (!strcmp(what, "rate"))
-				     pktgen_set_tx_rate(info, value);
+				     single_set_tx_rate(info, value);
 			     else if (!strcmp(what, "burst"))
-				     pktgen_set_tx_burst(info, value);
+				     single_set_tx_burst(info, value);
 			     else if (!strcmp(what, "tx_cycles"))
-				     pktgen_set_tx_cycles(info, value);
+				     debug_set_tx_cycles(info, value);
 			     else if (!strcmp(what, "sport"))
-				     pktgen_set_port_value(info, what[0], value);
+				     single_set_port_value(info, what[0], value);
 			     else if (!strcmp(what, "dport"))
-				     pktgen_set_port_value(info, what[0], value);
+				     single_set_port_value(info, what[0], value);
 			     else if (!strcmp(what, "seqCnt"))
 				     pktgen_set_port_seqCnt(info, value);
 			     else if (!strcmp(what, "prime"))
 				     pktgen_set_port_prime(info, value);
 			     else if (!strcmp(what, "dump"))
-				     pktgen_set_port_dump(info, value);
+				     debug_set_port_dump(info, value);
 			     else if (!strcmp(what, "vlanid"))
-				     pktgen_set_vlanid(info, value);
+				     single_set_vlan_id(info, value);
 			     ) );
 
 	pktgen_update_display();
@@ -1062,7 +1062,7 @@ pcap_onoff_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_pcap_enable_disable(info, argv[2]) );
+		     pcap_enable_disable(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -1087,7 +1087,7 @@ pcap_filter_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_pcap_filter(info, argv[2]) );
+		     pcap_filter(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -1166,7 +1166,7 @@ blink_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_blink_enable_disable(info, argv[2]) );
+		     debug_blink(info, argv[2]) );
 
 	if (pktgen.blinklist)
 		pktgen.flags |= BLINK_PORTS_FLAG;
@@ -1196,7 +1196,7 @@ garp_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_garp_enable_disable(info, argv[2]) );
+		     enable_garp(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -1222,7 +1222,7 @@ process_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_process_enable_disable(info, argv[2]) );
+		     enable_process(info, argv[2]) );
 
 	pktgen_update_display();
 	return 0;
@@ -1336,7 +1336,7 @@ ip_dst_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	rte_parse_portlist(argv[3], &portlist);
 	rte_atoip(argv[3], RTE_IPADDR_V4, &ip, sizeof(ip));
 	foreach_port(portlist,
-		     pktgen_set_ipaddr(info, argv[2][0], &ip) );
+		     single_set_ipaddr(info, argv[2][0], &ip) );
 
 	pktgen_update_display();
 	return 0;
@@ -1363,7 +1363,7 @@ ip_src_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	rte_parse_portlist(argv[3], &portlist);
 	rte_atoip(argv[3], RTE_IPADDR_V4, &ip, sizeof(ip));
 	foreach_port(portlist,
-		     pktgen_set_ipaddr(info, argv[2][0], &ip) );
+		     single_set_ipaddr(info, argv[2][0], &ip) );
 
 	pktgen_update_display();
 	return 0;
@@ -1416,7 +1416,7 @@ set_proto_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_proto(info, argv[1][0]) );
+		     single_set_proto(info, argv[1][0]) );
 
 	pktgen_update_display();
 	return 0;
@@ -1544,7 +1544,7 @@ mempool_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	rte_parse_portlist(argv[2], &portlist);
 	if (!strcmp(argv[1], "dump") )
 		foreach_port(portlist,
-			     pktgen_mempool_dump(info, argv[3]) );
+			     debug_mempool_dump(info, argv[3]) );
 	return 0;
 }
 
@@ -1567,7 +1567,7 @@ pkt_type_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **arg
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_pkt_type(info, argv[1]) );
+		     single_set_pkt_type(info, argv[1]) );
 
 	pktgen_update_display();
 	return 0;
@@ -1592,7 +1592,7 @@ icmp_echo_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_icmp_echo(info, parseState(argv[2])) );
+		enable_icmp_echo(info, parseState(argv[1])));
 	return 0;
 }
 
@@ -1638,7 +1638,7 @@ rx_tap_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_rx_tap(info, parseState(argv[2])) );
+		     enable_rx_tap(info, parseState(argv[2])) );
 	return 0;
 }
 
@@ -1661,7 +1661,7 @@ tx_tap_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_tx_tap(info, parseState(argv[2])) );
+		     enable_tx_tap(info, parseState(argv[2])) );
 	return 0;
 }
 
@@ -1684,7 +1684,7 @@ vlan_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_vlan(info, parseState(argv[2])) );
+		     enable_vlan(info, parseState(argv[2])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1708,7 +1708,7 @@ vlanid_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_vlanid(info, atoi(argv[2])) );
+		     single_set_vlan_id(info, atoi(argv[2])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1732,7 +1732,7 @@ mpls_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_mpls(info, parseState(argv[2])) );
+		     enable_mpls(info, parseState(argv[2])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1757,7 +1757,7 @@ mpls_entry_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_mpls_entry(info, entry) );
+		     range_set_mpls_entry(info, entry) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1781,7 +1781,7 @@ qinq_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_qinq(info, parseState(argv[2])) );
+		     enable_qinq(info, parseState(argv[2])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1805,7 +1805,7 @@ qinqids_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_qinqids(info, atoi(argv[2]), atoi(argv[3])) );
+		     range_set_qinqids(info, atoi(argv[2]), atoi(argv[3])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1829,7 +1829,7 @@ gre_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_gre(info, parseState(argv[2])) );
+		     enable_gre(info, parseState(argv[2])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1853,7 +1853,7 @@ gre_eth_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_gre_eth(info, parseState(argv[2])) );
+		     enable_gre_eth(info, parseState(argv[2])) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1877,7 +1877,7 @@ gre_key_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_gre_key(info, strtoul(argv[2], NULL, 10)) );
+		     range_set_gre_key(info, strtoul(argv[2], NULL, 10)) );
 	pktgen_update_display();
 	return 0;
 }
@@ -1899,7 +1899,7 @@ mac_from_arp_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **arg
 {
 	uint32_t onOff = parseState(argv[1]);
 
-	pktgen_mac_from_arp(onOff);
+	enable_mac_from_arp(onOff);
 	return 0;
 }
 /**************************************************************************//**
@@ -1959,7 +1959,7 @@ mac_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
-		     pktgen_set_dst_mac(info, rte_ether_aton(argv[3], NULL)) );
+		     single_set_dst_mac(info, rte_ether_aton(argv[3], NULL)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2109,83 +2109,95 @@ restart_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **arg
 
 static struct cli_tree default_tree[] = {
 	c_dir("/bin"),
-	c_cmd("help",		help_cmd, 		"help command"),
-
 	c_cmd("blink", 		blink_cmd,		"blink the leds in the ports"),
 	c_cmd("clear",		clear_cmd,		""),
-	c_cmd("delay", delay_cmd, ""),
-	c_cmd("mac.dest", mac_dest_cmd, ""),
-	c_cmd("ip", ip_dst_cmd, ""),
-	c_cmd("port.dst", dst_port_cmd, ""),
-	c_cmd("dev", dev_cmd, ""),
-	c_cmd("geom", geometry_cmd, ""),
-	c_cmd("icmp.echo", icmp_echo_cmd, ""),
-	c_cmd("load", load_cmd, ""),
-	c_cmd("mac_from_arp", mac_from_arp_cmd, ""),
-	c_cmd("mempool", mempool_cmd, ""),
-	c_cmd("page", page_set_cmd, ""),
-	c_cmd("pcap.inded", pcap_index_cmd, ""),
-	c_cmd("pcap", pcap_onoff_cmd, ""),
-	c_cmd("pcap.show", pcap_show_cmd, ""),
-	c_cmd("pcap.filter", pcap_filter_cmd, ""),
-	c_cmd("pci", pci_cmd, ""),
-	c_cmd("ping4", ping4_cmd, ""),
-#ifdef INCLUDE_PING6
-	c_cmd("ping6", ping6_cmd, ""),
-#endif
-	c_cmd("pkt.size", pkt_size_cmd, ""),
-	c_cmd("pkt.type", pkt_type_set_cmd, ""),
-	c_cmd("prime", prime_cmd, ""),
-	c_cmd("process", process_cmd, ""),
-	c_cmd("garp", garp_cmd, ""),
-	c_cmd("set.proto", set_proto_cmd, ""),
-	c_cmd("range", range_set_cmd, ""),
-	c_cmd("rnd", rnd_cmd, ""),
-	c_cmd("reset", reset_cmd, ""),
-	c_cmd("restart", restart_port_cmd, ""),
-	c_cmd("save", save_cmd, ""),
-	c_cmd("screen", screen_cmd, ""),
-	c_cmd("script", script_cmd, ""),
-	c_cmd("exec.lua", exec_lua_cmd, ""),
-	c_cmd("send.arp", send_arp_cmd, ""),
-	c_cmd("seq", seq_set_cmd, ""),
-	c_cmd("set", set_cmd, ""),
-	c_cmd("ip.dst", ip_dst_set_cmd, ""),
-	c_cmd("ip.src", ip_src_cmd, ""),
-	c_cmd("mac", mac_set_cmd, ""),
+	c_cmd("delay",		delay_cmd, ""),
+	c_cmd("geom",		geometry_cmd, ""),
+	c_cmd("load",		load_cmd, ""),
+	c_cmd("script", 	script_cmd, ""),
+	c_cmd("exec.lua", 	exec_lua_cmd, ""),
+	c_cmd("save", 		save_cmd, ""),
+
+	c_dir("/pktgen/bin"),
+	c_cmd("prime", 		prime_cmd, ""),
+	c_cmd("process", 	process_cmd, ""),
+	c_cmd("mac_arp",	mac_from_arp_cmd, ""),
+	c_cmd("page",		page_set_cmd, ""),
+	c_cmd("pdump", 		pdump_cmd, ""),
+	c_cmd("help",		help_cmd, 		"help command"),
+	c_cmd("set", 		set_cmd, ""),
+	c_cmd("reset", 		reset_cmd, ""),
+	c_cmd("restart", 	restart_port_cmd, ""),
+	c_cmd("screen", 	screen_cmd, ""),
+	c_cmd("mpls", mpls_cmd, ""),
 	c_cmd("port", port_cmd, ""),
 	c_cmd("ppp", ppp_cmd, ""),
 	c_cmd("sleep", sleep_cmd, ""),
-	c_cmd("src.ip", ip_src_set_cmd, ""),
-	c_cmd("ip_proto", ip_proto_cmd, ""),
-	c_cmd("mac.src", mac_src_cmd, ""),
-	c_cmd("port.src", src_port_cmd, ""),
 	c_cmd("start", start_cmd, ""),
 	c_cmd("stop", stop_cmd, ""),
 	c_cmd("capture", capture_cmd, ""),
 	c_cmd("rx_tap", rx_tap_cmd, ""),
 	c_cmd("tx_tap", tx_tap_cmd, ""),
 	c_cmd("vlan", vlan_cmd, ""),
-	c_cmd("vlan_id", vlan_id_cmd, ""),
-	c_cmd("vlan.id", vlanid_cmd, ""),
-	c_cmd("mpls", mpls_cmd, ""),
-	c_cmd("mpls.entry", mpls_entry_cmd, ""),
+	c_cmd("garp", garp_cmd, ""),
+	c_cmd("rnd", rnd_cmd, ""),
+	c_cmd("send.arp", send_arp_cmd, ""),
+	c_cmd("seq", seq_set_cmd, ""),
 	c_cmd("qinq", qinq_cmd, ""),
-	c_cmd("qinq.idx", qinqids_cmd, ""),
 	c_cmd("gre", gre_cmd, ""),
 	c_cmd("gre_eth", gre_eth_cmd, ""),
-	c_cmd("gre_key", gre_key_cmd, ""),
-	c_cmd("l2p", l2p_cmd, ""),
-	c_cmd("tx_debug", tx_debug_cmd, ""),
-	c_cmd("theme.save", theme_save_cmd, ""),
-	c_cmd("theme.show", theme_show_cmd, ""),
-	c_cmd("theme.set", theme_set_cmd, ""),
-	c_cmd("theme", theme_state_cmd, ""),
 	c_cmd("pattern", pattern_cmd, ""),
 	c_cmd("pattern.user", pattern_user_cmd, ""),
 	c_cmd("latency", latency_set_cmd, ""),
 	c_cmd("jitter", jitter_set_cmd, ""),
-	c_cmd("pdump", pdump_cmd, ""),
+	c_cmd("icmp.echo", 	icmp_echo_cmd, ""),
+	c_cmd("ping4", 		ping4_cmd, ""),
+#ifdef INCLUDE_PING6
+	c_cmd("ping6", 		ping6_cmd, ""),
+#endif
+
+	c_dir("/pktgen/single"),
+	c_cmd("pkt.type", 	pkt_type_set_cmd, ""),
+	c_cmd("ip", 		ip_dst_cmd, ""),
+	c_cmd("port.dst", 	dst_port_cmd, ""),
+	c_cmd("set.proto", set_proto_cmd, ""),
+	c_cmd("ip.dst", ip_dst_set_cmd, ""),
+	c_cmd("ip.src", ip_src_cmd, ""),
+	c_cmd("src.ip", ip_src_set_cmd, ""),
+	c_cmd("mac", mac_set_cmd, ""),
+	c_cmd("vlan.id", vlanid_cmd, ""),
+
+	c_dir("/pktgen/pcap"),
+	c_cmd("pcap.inded", pcap_index_cmd, ""),
+	c_cmd("pcap", pcap_onoff_cmd, ""),
+	c_cmd("pcap.show", pcap_show_cmd, ""),
+	c_cmd("pcap.filter", pcap_filter_cmd, ""),
+
+	c_dir("/pktgen/range"),
+	c_cmd("range", range_set_cmd, ""),
+	c_cmd("range.size", range_pkt_size_cmd, ""),
+	c_cmd("mac.dest", 	range_mac_dest_cmd, ""),
+	c_cmd("ip_proto", ip_proto_cmd, ""),
+	c_cmd("mac.src", mac_src_cmd, ""),
+	c_cmd("port.src", src_port_cmd, ""),
+	c_cmd("vlan_id", vlan_id_cmd, ""),
+	c_cmd("mpls.entry", mpls_entry_cmd, ""),
+	c_cmd("qinq.idx", qinqids_cmd, ""),
+	c_cmd("gre_key", gre_key_cmd, ""),
+
+	c_dir("/pktgen/debug"),
+	c_cmd("l2p", l2p_cmd, ""),
+	c_cmd("tx_debug", tx_debug_cmd, ""),
+	c_cmd("mempool",	mempool_cmd, ""),
+	c_cmd("pci",		pci_cmd, ""),
+	c_cmd("dev",		dev_cmd, ""),
+
+	c_dir("/pktgen/theme"),
+	c_cmd("theme.save", theme_save_cmd, ""),
+	c_cmd("theme.show", theme_show_cmd, ""),
+	c_cmd("theme.set", theme_set_cmd, ""),
+	c_cmd("theme", theme_state_cmd, ""),
+
 	c_end()
 };
 
@@ -2199,6 +2211,9 @@ init_tree(struct cli *cli)
         return -1;
 
     if (cli_add_bin_path(cli, "/bin"))
+        return -1;
+
+    if (cli_add_bin_path(cli, "/pktgen/bin"))
         return -1;
 
     return 0;
@@ -2222,7 +2237,7 @@ pktgen_cli_start(void)
     if (cli) {
         cli_stdin_setup(cli);
 
-        cli_start(cli, NULL, 0);
+        cli_start(cli, NULL, 1);
 
         cli_stdin_restore(cli);
 

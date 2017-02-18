@@ -66,7 +66,7 @@ dpdk_opts="-l 1-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 -
 #dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3,socket_id=0"
 dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3,socket_id=1"
 
-pktgen_opts="-T -P --crc-strip"
+pktgen_opts="-I -T -P --crc-strip"
 pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].4-7"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"

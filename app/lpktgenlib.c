@@ -251,27 +251,25 @@ pktgen_set(lua_State *L) {
 
 	foreach_port(portlist, _do(
 			     if (!strcasecmp(what, "count"))
-				     pktgen_set_tx_count(info, value);
+				     single_set_tx_count(info, value);
 			     else if (!strcasecmp(what, "size"))
-				     pktgen_set_pkt_size(info, value);
+				     single_set_pkt_size(info, value);
 			     else if (!strcasecmp(what, "rate"))
-				     pktgen_set_tx_rate(info, value);
+				     single_set_tx_rate(info, value);
 			     else if (!strcasecmp(what, "burst"))
-				     pktgen_set_tx_burst(info, value);
+				     single_set_tx_burst(info, value);
 			     else if (!strcasecmp(what, "cycles"))
-				     pktgen_set_tx_cycles(info, value);
+				     debug_set_tx_cycles(info, value);
 			     else if (!strcasecmp(what, "sport"))
-				     pktgen_set_port_value(info, what[0],
-							   value);
+				     single_set_port_value(info, what[0], value);
 			     else if (!strcasecmp(what, "dport"))
-				     pktgen_set_port_value(info, what[0],
-							   value);
+				     single_set_port_value(info, what[0], value);
 			     else if (!strcasecmp(what, "seqCnt"))
 				     pktgen_set_port_seqCnt(info, value);
 			     else if (!strcasecmp(what, "prime"))
 				     pktgen_set_port_prime(info, value);
 			     else if (!strcasecmp(what, "dump"))
-				     pktgen_set_port_dump(info, value);
+				     debug_set_port_dump(info, value);
 			     else
 				     return luaL_error(L,
 						       "set does not support %s",
@@ -525,7 +523,7 @@ pktgen_icmp(lua_State *L) {
 	}
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 	foreach_port(portlist,
-		     pktgen_set_icmp_echo(info,
+		     enable_icmp_echo(info,
 					  parseState((char *)luaL_checkstring(L,
 									      2))) );
 	return 0;
@@ -588,7 +586,7 @@ pktgen_set_mac(lua_State *L)
 	rte_ether_aton(luaL_checkstring(L, 2), &mac);
 
 	foreach_port(portlist,
-		     pktgen_set_dst_mac(info, &mac) );
+		     single_set_dst_mac(info, &mac) );
 
 	pktgen_update_display();
 	return 0;
@@ -622,7 +620,7 @@ pktgen_macFromArp(lua_State *L)
 
 	onOff = parseState(state);
 
-	pktgen_mac_from_arp(onOff);
+	enable_mac_from_arp(onOff);
 
 	return 0;
 }
@@ -654,7 +652,7 @@ pktgen_prototype(lua_State *L)
 	type = (char *)luaL_checkstring(L, 2);
 
 	foreach_port(portlist,
-		     pktgen_set_proto(info, type[0]) );
+		     single_set_proto(info, type[0]) );
 
 	return 0;
 }
@@ -694,7 +692,7 @@ pktgen_set_ip_addr(lua_State *L)
 			     sizeof(rte_ipaddr_t));
 
 	foreach_port(portlist,
-		     pktgen_set_ipaddr(info, type[0], &ipaddr) );
+		     single_set_ipaddr(info, type[0], &ipaddr) );
 
 	pktgen_update_display();
 	return 0;
@@ -727,7 +725,7 @@ pktgen_set_type(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_pkt_type(info, type) );
+		     single_set_pkt_type(info, type) );
 
 	pktgen_update_display();
 	return 0;
@@ -823,7 +821,7 @@ pktgen_pcap(lua_State *L)
 	what = (char *)luaL_checkstring(L, 2);
 
 	foreach_port(portlist,
-		     pktgen_pcap_enable_disable(info, what) );
+		     pcap_enable_disable(info, what) );
 
 	return 0;
 }
@@ -1321,7 +1319,7 @@ pktgen_restart(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_dst_mac - Set a destination MAC address
+ * range_dst_mac - Set a destination MAC address
  *
  * DESCRIPTION
  * Set a destination MAC address.
@@ -1332,7 +1330,7 @@ pktgen_restart(lua_State *L)
  */
 
 static int
-pktgen_dst_mac(lua_State *L)
+range_dst_mac(lua_State *L)
 {
 	uint32_t portlist;
 	struct ether_addr mac;
@@ -1346,7 +1344,7 @@ pktgen_dst_mac(lua_State *L)
 	rte_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
-		     pktgen_set_dest_mac(info, luaL_checkstring(L, 2), &mac) );
+		     range_set_dest_mac(info, luaL_checkstring(L, 2), &mac) );
 
 	pktgen_update_display();
 	return 0;
@@ -1354,7 +1352,7 @@ pktgen_dst_mac(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_src_mac - Set the source MAC address in the range data.
+ * range_src_mac - Set the source MAC address in the range data.
  *
  * DESCRIPTION
  * Set the source MAC address for a given set of ports in the range data.
@@ -1365,7 +1363,7 @@ pktgen_dst_mac(lua_State *L)
  */
 
 static int
-pktgen_src_mac(lua_State *L)
+range_src_mac(lua_State *L)
 {
 	uint32_t portlist;
 	struct ether_addr mac;
@@ -1379,7 +1377,7 @@ pktgen_src_mac(lua_State *L)
 	rte_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
-		     pktgen_set_src_mac(info, luaL_checkstring(L, 2), &mac) );
+		     range_set_src_mac(info, luaL_checkstring(L, 2), &mac) );
 
 	pktgen_update_display();
 	return 0;
@@ -1387,7 +1385,7 @@ pktgen_src_mac(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_dst_ip - Set the IP address in the range data.
+ * range_dst_ip - Set the IP address in the range data.
  *
  * DESCRIPTION
  * Set the IP address in the range data.
@@ -1398,7 +1396,7 @@ pktgen_src_mac(lua_State *L)
  */
 
 static int
-pktgen_dst_ip(lua_State *L)
+range_dst_ip(lua_State *L)
 {
 	uint32_t portlist;
 	rte_ipaddr_t ipaddr;
@@ -1418,7 +1416,7 @@ pktgen_dst_ip(lua_State *L)
 
 	type = (char *)luaL_checkstring(L, 2);
 	foreach_port(portlist,
-		     pktgen_set_dst_ip(info, type, &ipaddr) );
+		     range_set_dst_ip(info, type, &ipaddr) );
 
 	pktgen_update_display();
 	return 0;
@@ -1426,7 +1424,7 @@ pktgen_dst_ip(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_src_ip - Set the source IP address in the range data.
+ * range_src_ip - Set the source IP address in the range data.
  *
  * DESCRIPTION
  * Set the source IP address in the range data.
@@ -1437,7 +1435,7 @@ pktgen_dst_ip(lua_State *L)
  */
 
 static int
-pktgen_src_ip(lua_State *L)
+range_src_ip(lua_State *L)
 {
 	uint32_t portlist;
 	rte_ipaddr_t ipaddr;
@@ -1456,7 +1454,7 @@ pktgen_src_ip(lua_State *L)
 
 	type = (char *)luaL_checkstring(L, 2);
 	foreach_port(portlist,
-		     pktgen_set_src_ip(info, type, &ipaddr) );
+		     range_set_src_ip(info, type, &ipaddr) );
 
 	pktgen_update_display();
 	return 0;
@@ -1464,7 +1462,7 @@ pktgen_src_ip(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_dst_port - Set the port type in the range data.
+ * range_dst_port - Set the port type in the range data.
  *
  * DESCRIPTION
  * Set the port type in the range data.
@@ -1475,7 +1473,7 @@ pktgen_src_ip(lua_State *L)
  */
 
 static int
-pktgen_dst_port(lua_State *L)
+range_dst_port(lua_State *L)
 {
 	uint32_t portlist;
 
@@ -1487,7 +1485,7 @@ pktgen_dst_port(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_dst_port(info, (char *)luaL_checkstring(L, 2),
+		     range_set_dst_port(info, (char *)luaL_checkstring(L, 2),
 					 luaL_checkinteger(L, 3)) );
 
 	pktgen_update_display();
@@ -1496,7 +1494,7 @@ pktgen_dst_port(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_src_port - Set the source port value in the range data.
+ * range_src_port - Set the source port value in the range data.
  *
  * DESCRIPTION
  * Set the source port value in the range data.
@@ -1507,7 +1505,7 @@ pktgen_dst_port(lua_State *L)
  */
 
 static int
-pktgen_ip_proto(lua_State *L)
+range_ip_proto(lua_State *L)
 {
 	uint32_t portlist;
 	const char *ip;
@@ -1521,7 +1519,7 @@ pktgen_ip_proto(lua_State *L)
 
 	ip = luaL_checkstring(L, 2);
 	foreach_port(portlist,
-		     pktgen_set_proto_range(info, ip[0]));
+		     range_set_proto(info, ip[0]));
 
 	pktgen_update_display();
 	return 0;
@@ -1529,7 +1527,7 @@ pktgen_ip_proto(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_src_port - Set the source port value in the range data.
+ * range_src_port - Set the source port value in the range data.
  *
  * DESCRIPTION
  * Set the source port value in the range data.
@@ -1540,7 +1538,7 @@ pktgen_ip_proto(lua_State *L)
  */
 
 static int
-pktgen_src_port(lua_State *L)
+range_src_port(lua_State *L)
 {
 	uint32_t portlist;
 
@@ -1552,7 +1550,7 @@ pktgen_src_port(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_src_port(info, (char *)luaL_checkstring(L, 2),
+		     range_set_src_port(info, (char *)luaL_checkstring(L, 2),
 					 luaL_checkinteger(L, 3)));
 
 	pktgen_update_display();
@@ -1572,7 +1570,7 @@ pktgen_src_port(lua_State *L)
  */
 
 static int
-pktgen_gtpu_teid(lua_State *L)
+range_gtpu_teid(lua_State *L)
 {
 	uint32_t portlist;
 
@@ -1584,7 +1582,7 @@ pktgen_gtpu_teid(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_gtpu_teid(info, (char *)luaL_checkstring(L, 2),
+		     range_set_gtpu_teid(info, (char *)luaL_checkstring(L, 2),
 					  luaL_checkinteger(L, 3)));
 
 	pktgen_update_display();
@@ -1593,7 +1591,7 @@ pktgen_gtpu_teid(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_vlan_id - Set the VLAN id in the range data.
+ * range_vlan_id - Set the VLAN id in the range data.
  *
  * DESCRIPTION
  * Set the VLAN id in the range data.
@@ -1604,7 +1602,7 @@ pktgen_gtpu_teid(lua_State *L)
  */
 
 static int
-pktgen_vlan_id(lua_State *L)
+range_vlan_id(lua_State *L)
 {
 	uint32_t portlist;
 	uint32_t vlan_id;
@@ -1618,7 +1616,7 @@ pktgen_vlan_id(lua_State *L)
 	vlan_id = luaL_checkinteger(L, 3);
 
 	foreach_port(portlist,
-		     pktgen_set_vlan_id(info, (char *)luaL_checkstring(L, 2),
+		     range_set_vlan_id(info, (char *)luaL_checkstring(L, 2),
 					vlan_id) );
 
 	pktgen_update_display();
@@ -1627,7 +1625,7 @@ pktgen_vlan_id(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_vlanid - Set the VLAN id for a single port
+ * single_vlan_id - Set the VLAN id for a single port
  *
  * DESCRIPTION
  * Set the VLAN id for a single port.
@@ -1638,7 +1636,7 @@ pktgen_vlan_id(lua_State *L)
  */
 
 static int
-pktgen_vlanid(lua_State *L)
+single_vlan_id(lua_State *L)
 {
 	uint32_t portlist;
 	uint32_t vlanid;
@@ -1654,7 +1652,7 @@ pktgen_vlanid(lua_State *L)
 		vlanid = 1;
 
 	foreach_port(portlist,
-		     pktgen_set_vlanid(info, vlanid) );
+		     single_set_vlan_id(info, vlanid) );
 
 	pktgen_update_display();
 	return 0;
@@ -1662,7 +1660,7 @@ pktgen_vlanid(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_vlan - Enable or Disable vlan header
+ * single_vlan - Enable or Disable vlan header
  *
  * DESCRIPTION
  * Enable or disable insertion of VLAN header.
@@ -1673,7 +1671,7 @@ pktgen_vlanid(lua_State *L)
  */
 
 static int
-pktgen_vlan(lua_State *L)
+single_vlan(lua_State *L)
 {
 	uint32_t portlist;
 
@@ -1685,7 +1683,7 @@ pktgen_vlan(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_vlan(info,
+		     enable_vlan(info,
 				     parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1694,7 +1692,7 @@ pktgen_vlan(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_mpls_entry - Set the MPLS entry in the range data.
+ * range_mpls_entry - Set the MPLS entry in the range data.
  *
  * DESCRIPTION
  * Set the VLAN id in the range data.
@@ -1705,7 +1703,7 @@ pktgen_vlan(lua_State *L)
  */
 
 static int
-pktgen_mpls_entry(lua_State *L)
+range_mpls_entry(lua_State *L)
 {
 	uint32_t portlist;
 	uint32_t mpls_entry;
@@ -1719,7 +1717,7 @@ pktgen_mpls_entry(lua_State *L)
 	mpls_entry = strtoul(luaL_checkstring(L, 2), NULL, 16);
 
 	foreach_port(portlist,
-		     pktgen_set_mpls_entry(info, mpls_entry) );
+		     range_set_mpls_entry(info, mpls_entry) );
 
 	pktgen_update_display();
 	return 0;
@@ -1750,7 +1748,7 @@ pktgen_mpls(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_mpls(info,
+		     enable_mpls(info,
 				     parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1759,7 +1757,7 @@ pktgen_mpls(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_qinqids - Set the Q-in-Q ID's in the range data.
+ * range_qinqids - Set the Q-in-Q ID's in the range data.
  *
  * DESCRIPTION
  * Set the Q-in-Q ID's in the range data.
@@ -1770,7 +1768,7 @@ pktgen_mpls(lua_State *L)
  */
 
 static int
-pktgen_qinqids(lua_State *L)
+range_qinqids(lua_State *L)
 {
 	uint32_t portlist;
 	uint32_t qinq_id1, qinq_id2;
@@ -1790,7 +1788,7 @@ pktgen_qinqids(lua_State *L)
 		qinq_id2 = 1;
 
 	foreach_port(portlist,
-		     pktgen_set_qinqids(info, qinq_id1, qinq_id2) );
+		     range_set_qinqids(info, qinq_id1, qinq_id2) );
 
 	pktgen_update_display();
 	return 0;
@@ -1821,7 +1819,7 @@ pktgen_qinq(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_qinq(info,
+		     enable_qinq(info,
 				     parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
@@ -1830,7 +1828,7 @@ pktgen_qinq(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_gre_key - Set the GRE key in the range data.
+ * range_gre_key - Set the GRE key in the range data.
  *
  * DESCRIPTION
  * Set the GRE key in the range data.
@@ -1841,7 +1839,7 @@ pktgen_qinq(lua_State *L)
  */
 
 static int
-pktgen_gre_key(lua_State *L)
+range_gre_key(lua_State *L)
 {
 	uint32_t portlist;
 	uint32_t gre_key;
@@ -1855,7 +1853,7 @@ pktgen_gre_key(lua_State *L)
 	gre_key = luaL_checkinteger(L, 2);
 
 	foreach_port(portlist,
-		     pktgen_set_gre_key(info, gre_key) );
+		     range_set_gre_key(info, gre_key) );
 
 	pktgen_update_display();
 	return 0;
@@ -1886,7 +1884,7 @@ pktgen_gre(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_gre(info, parseState(luaL_checkstring(L, 2))) );
+		     enable_gre(info, parseState(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -1917,7 +1915,7 @@ pktgen_gre_eth(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_gre_eth(info, parseState(luaL_checkstring(L,
+		     enable_gre_eth(info, parseState(luaL_checkstring(L,
 									  2))) );
 
 	pktgen_update_display();
@@ -1926,7 +1924,7 @@ pktgen_gre_eth(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_pkt_size - Set the port range size.
+ * range_pkt_size - Set the port range size.
  *
  * DESCRIPTION
  * Set the port range size.
@@ -1937,7 +1935,7 @@ pktgen_gre_eth(lua_State *L)
  */
 
 static int
-pktgen_pkt_size(lua_State *L)
+range_pkt_size(lua_State *L)
 {
 	uint32_t portlist;
 	uint32_t size;
@@ -1953,7 +1951,7 @@ pktgen_pkt_size(lua_State *L)
 	size = luaL_checkinteger(L, 3);
 
 	foreach_port(portlist,
-		     pktgen_set_range_pkt_size(info, type, size) );
+		     range_set_pkt_size(info, type, size) );
 
 	pktgen_update_display();
 	return 0;
@@ -1961,7 +1959,7 @@ pktgen_pkt_size(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_range - Enable or disable the range data sending.
+ * range - Enable or disable the range data sending.
  *
  * DESCRIPTION
  * Enable or disable the range data sending.
@@ -1972,7 +1970,7 @@ pktgen_pkt_size(lua_State *L)
  */
 
 static int
-pktgen_range(lua_State *L)
+range(lua_State *L)
 {
 	uint32_t portlist;
 
@@ -1984,7 +1982,7 @@ pktgen_range(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_range_enable_disable(info,
+		     enable_range(info,
 						 (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
@@ -2016,8 +2014,7 @@ pktgen_latency(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_latency_enable_disable(info,
-						   (char *)luaL_checkstring(L, 2)) );
+		     enable_latency(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2048,8 +2045,7 @@ pktgen_jitter(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_jitter(info,
-				       luaL_checkinteger(L, 2)) );
+	     enable_jitter(info, luaL_checkinteger(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2080,7 +2076,7 @@ pktgen_pattern(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_pattern_type(info,
+		     pattern_set_type(info,
 					     (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
@@ -2113,8 +2109,7 @@ pktgen_user_pattern(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_user_pattern_set(info,
-					     (char *)luaL_checkstring(L, 2)) );
+	     pattern_set_user_pattern(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2193,8 +2188,7 @@ pktgen_process(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_process_enable_disable(info,
-						   (char *)luaL_checkstring(L, 2)) );
+		     enable_process(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2225,8 +2219,7 @@ pktgen_capture(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_capture_enable_disable(info,
-						   (char *)luaL_checkstring(L, 2)) );
+		     enable_capture(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2257,7 +2250,7 @@ pktgen_rxtap(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_rx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
+		     enable_rx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2288,7 +2281,7 @@ pktgen_txtap(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_set_tx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
+		     enable_tx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2319,9 +2312,7 @@ pktgen_garp(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_garp_enable_disable(info,
-						(char *)luaL_checkstring(L,
-									 2)) );
+		     enable_garp(info, (char *)luaL_checkstring(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2352,9 +2343,7 @@ pktgen_blink(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     pktgen_blink_enable_disable(info,
-						 (char *)luaL_checkstring(L,
-									  2)) );
+		     debug_blink(info, (char *)luaL_checkstring(L, 2)) );
 
 	if (pktgen.blinklist)
 		pktgen.flags |= BLINK_PORTS_FLAG;
@@ -3035,11 +3024,10 @@ pktgen_rnd(lua_State *L)
 				mask[mask_idx++] = curr_bit;
 
 	foreach_port(portlist,
-		     pktgen_set_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
-									luaL_checkinteger(L,
-											  2),
-									luaL_checkinteger(L,
-											  3), mask) ? ENABLE_STATE : DISABLE_STATE));
+		     enable_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+									luaL_checkinteger(L, 2),
+									luaL_checkinteger(L, 3), mask) ?
+										ENABLE_STATE : DISABLE_STATE));
 
 	return 0;
 }
@@ -3313,18 +3301,18 @@ pktgen_lua_help(lua_State *L)
 
 static const luaL_Reg pktgenlib_range[] = {
 	/* Range commands */
-	{"dst_mac",       pktgen_dst_mac},	/* Set the destination MAC address for a port */
-	{"src_mac",       pktgen_src_mac},	/* Set the src MAC address for a port */
-	{"src_ip",        pktgen_src_ip},	/* Set the source IP address and netmask value */
-	{"dst_ip",        pktgen_dst_ip},	/* Set the destination IP address */
-	{"ip_proto",      pktgen_ip_proto},	/* Set the IP Protocol type */
-	{"src_port",      pktgen_src_port},	/* Set the IP source port number */
-	{"dst_port",      pktgen_dst_port},	/* Set the IP destination port number */
-	{"vlan_id",       pktgen_vlan_id},	/* Set the vlan id value */
-	{"mpls_entry",    pktgen_mpls_entry},	/* Set the MPLS entry value */
-	{"qinqids",       pktgen_qinqids},	/* Set the Q-in-Q ID values */
-	{"gre_key",       pktgen_gre_key},	/* Set the GRE key */
-	{"pkt_size",      pktgen_pkt_size},	/* the packet size for a range port */
+	{"dst_mac",       range_dst_mac},		/* Set the destination MAC address for a port */
+	{"src_mac",       range_src_mac},		/* Set the src MAC address for a port */
+	{"src_ip",        range_src_ip},		/* Set the source IP address and netmask value */
+	{"dst_ip",        range_dst_ip},		/* Set the destination IP address */
+	{"ip_proto",      range_ip_proto},		/* Set the IP Protocol type */
+	{"src_port",      range_src_port},		/* Set the IP source port number */
+	{"dst_port",      range_dst_port},		/* Set the IP destination port number */
+	{"vlan_id",       range_vlan_id},		/* Set the vlan id value */
+	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
+	{"qinqids",       range_qinqids},		/* Set the Q-in-Q ID values */
+	{"gre_key",       range_gre_key},		/* Set the GRE key */
+	{"pkt_size",      range_pkt_size},		/* the packet size for a range port */
 	{NULL, NULL}
 };
 
@@ -3370,8 +3358,8 @@ static const luaL_Reg pktgenlib[] = {
 	{"portCount",     pktgen_portCount},	/* Used port count value */
 	{"totalPorts",    pktgen_totalPorts},	/* Total ports seen by DPDK */
 
-	{"vlan",          pktgen_vlan},		/* Enable or disable VLAN header */
-	{"vlanid",        pktgen_vlanid},	/* Set the vlan ID for a given portlist */
+	{"vlan",          single_vlan},		/* Enable or disable VLAN header */
+	{"vlanid",        single_vlan_id},	/* Set the vlan ID for a given portlist */
 
 	{"mpls",          pktgen_mpls},		/* Enable or disable MPLS header */
 	{"qinq",          pktgen_qinq},		/* Enable or disable Q-in-Q header */
@@ -3379,19 +3367,19 @@ static const luaL_Reg pktgenlib[] = {
 	{"gre_eth",       pktgen_gre_eth},	/* Enable or disable GRE with Ethernet payload */
 
 	/* Range commands */
-	{"dst_mac",       pktgen_dst_mac},	/* Set the destination MAC address for a port */
-	{"src_mac",       pktgen_src_mac},	/* Set the src MAC address for a port */
-	{"src_ip",        pktgen_src_ip},	/* Set the source IP address and netmask value */
-	{"dst_ip",        pktgen_dst_ip},	/* Set the destination IP address */
-	{"ip_proto",      pktgen_ip_proto},	/* Set the IP Protocol type */
-	{"src_port",      pktgen_src_port},	/* Set the IP source port number */
-	{"dst_port",      pktgen_dst_port},	/* Set the IP destination port number */
-	{"vlan_id",       pktgen_vlan_id},	/* Set the vlan id value */
-	{"mpls_entry",    pktgen_mpls_entry},	/* Set the MPLS entry value */
-	{"qinqids",       pktgen_qinqids},	/* Set the Q-in-Q ID values */
-	{"gre_key",       pktgen_gre_key},	/* Set the GRE key */
-	{"pkt_size",      pktgen_pkt_size},	/* the packet size for a range port */
-	{"set_range",     pktgen_range},	/* Enable or disable sending range data on a port. */
+	{"dst_mac",       range_dst_mac},		/* Set the destination MAC address for a port */
+	{"src_mac",       range_src_mac},		/* Set the src MAC address for a port */
+	{"src_ip",        range_src_ip},		/* Set the source IP address and netmask value */
+	{"dst_ip",        range_dst_ip},		/* Set the destination IP address */
+	{"ip_proto",      range_ip_proto},		/* Set the IP Protocol type */
+	{"src_port",      range_src_port},		/* Set the IP source port number */
+	{"dst_port",      range_dst_port},		/* Set the IP destination port number */
+	{"vlan_id",       range_vlan_id},		/* Set the vlan id value */
+	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
+	{"qinqids",       range_qinqids},		/* Set the Q-in-Q ID values */
+	{"gre_key",       range_gre_key},		/* Set the GRE key */
+	{"pkt_size",      range_pkt_size},		/* the packet size for a range port */
+	{"set_range",     range},				/* Enable or disable sending range data on a port. */
 
 	{"ports_per_page", pktgen_ports_per_page},	/* Set the number of ports per page */
 	{"page",          pktgen_page},			/* Select a page to display, seq, range, pcap and a number from 0-N */
@@ -3423,7 +3411,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"userPattern",   pktgen_user_pattern},	/* Set the user pattern string */
 	{"latency",       pktgen_latency},	/* Enable or disable latency testing */
 	{"jitter",        pktgen_jitter},	/* Set the jitter threshold */
-	{"gtpu_teid",     pktgen_gtpu_teid},	/* set GTP-U TEID. */
+	{"gtpu_teid",     range_gtpu_teid},	/* set GTP-U TEID. */
 
 	{"rnd",           pktgen_rnd},		/* Set up the rnd function on a portlist */
 	{"rnd_list",      pktgen_rnd_list},	/* Return a table of rnd bit patterns per port */

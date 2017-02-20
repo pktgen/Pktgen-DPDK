@@ -80,7 +80,9 @@ static const char *help_info[] = {
 	"        none                       - No fill pattern, maybe random data",
 	"        zero                       - Fill of zero bytes",
 	"        user                       - User supplied string of max 16 bytes",
-	"user.pattern \"string\"              - A 16 byte string, must set 'pattern user' command",
+	"pattern user \"string\"            - A 16 byte string, must set 'pattern user' command",
+	"enable|disable <feature>           - Enable or Disable a feature",
+	"    Feature - process|mpls|qinq|gre|vlan|garp|random|latency|pcap",
 	"latency <portlist> <state>         - Enable Latency testing",
 	"jitter <portlist> <usec>           - Set the jitter threshold in micro-seconds",
 	"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
@@ -103,8 +105,6 @@ static const char *help_info[] = {
 	"set ip src|dst <portlist> ipaddr   - Set IP addresses",
 	"geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
 	"capture <portlist> <state>         - Enable/disable packet capturing on a portlist",
-	"rxtap <portlist> <state>           - Enable/disable Rx tap interface support pg_rxtapN",
-	"txtap <portlist> <state>           - Enable/disable Tx tap interface support pg_txtapN",
 	"vlan <portlist> <state>            - Enable/disable sending VLAN ID in packets",
 	"vlanid <portlist> <vlanid>         - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
 	"mpls <portlist> <state>            - Enable/disable sending MPLS entry in packets",
@@ -143,7 +143,6 @@ static const char *help_info[] = {
 	"port <number>                      - Sets the sequence of packets to display for a given port",
 	"process <portlist> <state>         - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
 	"garp <portlist> <state>            - Enable or Disable GARP packet processing and update MAC address",
-	"blink <portlist> <state>           - Blink the link led on the given port list",
 	"",
 	"<<PageBreak>>",
 	"rnd <portlist> <idx> <off> <mask>  - Set random mask for all transmitted packets from portlist",
@@ -167,8 +166,6 @@ static const char *help_info[] = {
 	"off                                - screen off shortcut",
 	"on                                 - screen on shortcut",
 	"prime <portlist>                   - Transmit N packets on each port listed. See set prime command above",
-	"delay milliseconds                 - Wait a number of milliseconds for scripting commands",
-	"sleep seconds                      - Wait a number of seconds for scripting commands",
 	"dev.list                           - Show the device whitelist/blacklist/Virtual",
 	"pci.list                           - Show all the PCI devices",
 	"clear <portlist>                   - Clear the statistics",
@@ -295,83 +292,46 @@ leave:
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_theme_state - Enable or disable the theme
- *
- * DESCRIPTION
- * Enable or disable the theme.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
+static struct cli_map theme_map[] = {
+	{  0, "theme" },
+	{ 10, "theme %|on|off" },
+	{ 20, "theme item %s %s %s %s" },
+	{ 30, "theme save" },
+	{ CLI_MAP_HELP, "theme -?" },
+	{ -1, NULL }
+};
 
 static int
-theme_state_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char ** argv)
+theme_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
-	pktgen_theme_state(argv[1]);
-	pktgen_cls();
+	struct cli_map *m;
 
+	m = cli_mapping(cli, theme_map, argc, argv);
+	if (!m)
+		return -1;
+
+	switch(m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 0:
+			pktgen_theme_show();
+			break;
+		case 10:
+			pktgen_theme_state(argv[1]);
+			pktgen_cls();
+			break;
+		case 20:
+			pktgen_set_theme_item(argv[2], argv[3], argv[4], argv[5]);
+			break;
+		case 30:
+			pktgen_theme_save(argv[2]);
+			break;
+		default:
+			return -1;
+	}
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_theme - Set a color for a given item
- *
- * DESCRIPTION
- * Set the given item to the give color/attr
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-theme_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	pktgen_set_theme_item(argv[1], argv[2], argv[3], argv[4]);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_theme_show - show the item names and attributes
- *
- * DESCRIPTION
- * show the item names and attributes
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-theme_show_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
-{
-	pktgen_theme_show();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_theme_save - Save a theme to a file
- *
- * DESCRIPTION
- * Save the current theme to a file.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-theme_save_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	pktgen_theme_save(argv[1]);
-	return 0;
-}
 
 /**************************************************************************//**
  *
@@ -521,175 +481,6 @@ ping6_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 /**************************************************************************//**
  *
- * range_set_cmd - Set the range command options.
- *
- * DESCRIPTION
- * Set the range port options.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-range_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_range(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_latency_parsed - Set the latency testing.
- *
- * DESCRIPTION
- * Set the latency testing.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-latency_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_latency(info, argv[2]));
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_jitter_parsed - Set the jitter threshold testing.
- *
- * DESCRIPTION
- * Set the jitter threshold testing.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-jitter_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_jitter(info, strtoull(argv[2], NULL, 0)) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_pattern_parsed - Set the fill pattern per port
- *
- * DESCRIPTION
- * Set the fill pattern per port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pattern_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pattern_set_type(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_user_pattern_parsed - Set the user fill pattern per port
- *
- * DESCRIPTION
- * Set the user fill pattern per port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pattern_user_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pattern_set_user_pattern(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_rnd_parsed - Set random bitfields.
- *
- * DESCRIPTION
- * Set random bitfields.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-rnd_cmd(struct cli *cli __rte_unused, int argc, char **argv)
-{
-	uint32_t portlist;
-
-	char mask[33] = { 0 };
-	int i, mask_idx = 0;
-	char curr_bit;
-
-	if (argc >= 4)
-		return -1;
-
-	if (strcmp(argv[4], "off"))
-		/* Filter invalid characters from provided mask. This way the user can
-		 * more easily enter long bitmasks, using for example '_' as a separator
-		 * every 8 bits. */
-		for (i = 0;
-		     (mask_idx < 32) && ((curr_bit = argv[4][i]) != '\0');
-		     ++i)
-			if ((curr_bit == '0') || (curr_bit == '1') ||
-			    (curr_bit == '.') || (curr_bit == 'X') || (curr_bit == 'x'))
-				mask[mask_idx++] = curr_bit;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
-									atoi(argv[2]), atoi(argv[3]), mask) ? ENABLE_STATE : DISABLE_STATE));
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
  * cmd_set_geometry_parsed - Set teh display geometry values.
  *
  * DESCRIPTION
@@ -727,524 +518,261 @@ geometry_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_dev_parsed - Display the PCI bus devices.
- *
- * DESCRIPTION
- * Display all of the PCI bus devices.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
+static struct cli_map range_map[] = {
+	{ 10, "range %P %|on|off" },
+	{ 20, "range %P mac dst %|start|min|max|inc %m" },
+	{ 21, "range %P mac src %|start|min|max|inc %m" },
+	{ 30, "range %P ip dst %|start|min|max|inc %4" },
+	{ 31, "range %P ip src %|start|min|max|inc %4" },
+	{ 40, "range %P proto %|start|min|max|inc %d" },
+	{ 50, "range %P port dst %|start|min|max|inc %d" },
+	{ 51, "range %P port src %|start|min|max|inc %d" },
+	{ 60, "range %P vlan %|start|min|max|inc %d" },
+	{ 70, "range %P size %|start|min|max|inc %d" },
+	{ 80, "range %P mpls entry %x" },
+	{ 85, "range %P qinq index %d %d" },
+	{ 90, "range %P gre key %d" },
+    { CLI_MAP_HELP, "range -?" },
+    { -1, NULL }
+};
 
 static int
-dev_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
+range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
-	rte_eal_devargs_dump(stdout);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_pci_parsed - Display the PCI bus devices.
- *
- * DESCRIPTION
- * Display all of the PCI bus devices.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pci_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
-{
-	rte_eal_pci_dump(stdout);
-	return 0;
-}
-
-/**************************************************************************//**s
- *
- * range_mac_dest_cmd - Set the Destination MAC address
- *
- * DESCRIPTION
- * Set the destination MAC address for given port(s).
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-range_mac_dest_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     range_set_dest_mac(info, argv[1], rte_ether_aton((const char *)argv[3], NULL)));
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_src_mac_parsed - Set the source MAC address
- *
- * DESCRIPTION
- * Set the source MAC address values.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-mac_src_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     range_set_src_mac(info, argv[1], rte_ether_aton((const char *)argv[3], NULL)));
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_src_ip_parsed - Set the source IP address.
- *
- * DESCRIPTION
- * Set the source IP address.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ip_src_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
+	struct cli_map *m;
 	uint32_t portlist;
 	rte_ipaddr_t ip;
 
-	rte_parse_portlist(argv[2], &portlist);
-	rte_atoip(argv[3], RTE_IPADDR_V4 , &ip, sizeof(ip));
-	foreach_port(portlist,
-		     range_set_src_ip(info, argv[1], &ip));
+	m = cli_mapping(cli, range_map, argc, argv);
+	if (!m)
+		return -1;
 
+	rte_parse_portlist(argv[1], &portlist);
+
+	switch(m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 10:
+			foreach_port(portlist, enable_range(info, estate(argv[2])));
+			break;
+		case 20:
+			foreach_port(portlist,
+			     range_set_dest_mac(info, argv[4],
+								rte_ether_aton((const char *)argv[5], NULL)));
+			break;
+		case 21:
+			foreach_port(portlist,
+			     range_set_src_mac(info, argv[4],
+								rte_ether_aton((const char *)argv[5], NULL)));
+			break;
+		case 30:
+			rte_atoip(argv[5], RTE_IPADDR_V4, &ip, sizeof(ip));
+			foreach_port(portlist,
+			     range_set_dst_ip(info, argv[4], &ip));
+			break;
+		case 31:
+			rte_atoip(argv[5], RTE_IPADDR_V4, &ip, sizeof(ip));
+			foreach_port(portlist,
+			     range_set_src_ip(info, argv[4], &ip));
+			break;
+		case 40:
+			foreach_port(portlist,
+				range_set_proto(info, argv[4]) );
+			break;
+		case 50:
+			foreach_port(portlist,
+				range_set_dst_port(info, argv[4], atoi(argv[5])) );
+			break;
+		case 51:
+			foreach_port(portlist,
+				range_set_src_port(info, argv[4], atoi(argv[5])) );
+			break;
+		case 60:
+			foreach_port(portlist,
+				range_set_vlan_id(info, argv[3], atoi(argv[4])) );
+			break;
+		case 70:
+			foreach_port(portlist,
+				range_set_pkt_size(info, argv[3], atoi(argv[4])) );
+			break;
+		case 80:
+			foreach_port(portlist,
+				range_set_mpls_entry(info, strtoul(argv[4], NULL, 16)) );
+			break;
+		case 85:
+			foreach_port(portlist,
+				range_set_qinqids(info, atoi(argv[4]), atoi(argv[5])) );
+			break;
+		case 90:
+			foreach_port(portlist,
+				range_set_gre_key(info, strtoul(argv[4], NULL, 10)) );
+			break;
+		default:
+			return -1;
+	}
 	pktgen_update_display();
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_dst_ip_parsed - Set the destination IP address.
- *
- * DESCRIPTION
- * Set the destination IP address.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
+#define set_types	"count|"		/*  0 */ \
+					"size|"			/*  1 */ \
+					"rate|"			/*  2 */ \
+					"burst|"		/*  3 */ \
+					"tx_cycles|"	/*  4 */ \
+					"sport|"		/*  5 */ \
+					"dport|"		/*  6 */ \
+					"seqCnt|"		/*  7 */ \
+					"prime|"		/*  8 */ \
+					"dump|"			/*  9 */ \
+					"vlan_id"		/* 10 */
+
+static struct cli_map set_map[] = {
+	{ 10, "set %P %|" set_types " %d" },
+	{ 11, "set %P jitter %D" },
+	{ 20, "set %P type %|arp|ip4|ip6" },
+	{ 21, "set %P proto %|udp|tcp|icmp" },
+	{ 22, "set %P mac %m" },
+	{ 23, "set %P pattern %|abc|none|user|zero" },
+	{ 24, "set %P user pattern %s" },
+	{ 30, "set %P ip %|src|dst %4" },
+	{ 40, "set ports_per_page %d" },
+    { CLI_MAP_HELP, "set -?" },
+    { -1, NULL }
+};
+
+	/* c_cmd("pattern", 	pattern_user_cmd, "set the user pattern"), */
 
 static int
-ip_dst_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
 	uint32_t portlist;
+	char *what;
+	int value;
+	struct cli_map *m;
 	rte_ipaddr_t ip;
 
-	rte_parse_portlist(argv[2], &portlist);
-	rte_atoip(argv[3], RTE_IPADDR_V4 , &ip, sizeof(ip));
-	foreach_port(portlist,
-		     range_set_dst_ip(info, argv[1], &ip));
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_src_port_parsed - Set the source port value.
- *
- * DESCRIPTION
- * Set the port source value.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-src_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     range_set_src_port(info, argv[1], atoi(argv[3])) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_ip_proto_parsed - Set IP Protocol type
- *
- * DESCRIPTION
- * Set the IP protocol type
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ip_proto_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
+	m = cli_mapping(cli, set_map, argc, argv);
+	if (!m)
+		return -1;
 
 	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     range_set_proto(info, argv[2][0]) );
+
+	what = argv[2];
+	value = atoi(argv[3]);
+
+	switch(m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 10:
+			foreach_port(portlist, _do(
+				switch(m->index) {
+					case 0: single_set_tx_count(info, value); break;
+					case 1: single_set_pkt_size(info, value); break;
+					case 2: single_set_tx_rate(info, value); break;
+					case 3: single_set_tx_burst(info, value); break;
+					case 4: debug_set_tx_cycles(info, value); break;
+					case 5: single_set_port_value(info, what[0], value); break;
+					case 6: single_set_port_value(info, what[0], value); break;
+					case 7: pktgen_set_port_seqCnt(info, value); break;
+					case 8: pktgen_set_port_prime(info, value); break;
+					case 9: debug_set_port_dump(info, value); break;
+					case 10: single_set_vlan_id(info, value); break;
+					default:
+						return -1;
+				}) );
+			break;
+		case 11:
+			foreach_port(portlist, single_set_jitter(info,
+										strtoull(argv[3], NULL, 0)));
+			break;
+		case 20:
+			foreach_port(portlist, single_set_pkt_type(info, argv[3]));
+			break;
+		case 21:
+			foreach_port(portlist, single_set_proto(info, argv[3]));
+			break;
+		case 22:
+			foreach_port(portlist, single_set_dst_mac(info,
+										rte_ether_aton(argv[3], NULL)));
+			break;
+		case 23:
+			foreach_port(portlist, pattern_set_type(info, argv[3]));
+			break;
+		case 24:
+			foreach_port(portlist,
+				     pattern_set_user_pattern(info, argv[3]));
+			break;
+		case 30:
+			rte_atoip(argv[4], RTE_IPADDR_V4, &ip, sizeof(ip));
+			foreach_port(portlist, single_set_ipaddr(info, argv[3][0], &ip));
+			break;
+		case 40:
+			pktgen_set_page_size(atoi(argv[2]));
+			break;
+		default:
+			return -1;
+	}
 
 	pktgen_update_display();
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_dst_ip_port_parsed - Set the destination port value
- *
- * DESCRIPTION
- * Set the destination port value.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
+static struct cli_map pcap_map[] = {
+	{ 10, "pcap index" },
+	{ 20, "pcap show" },
+	{ 30, "pcap filter %P %s" },
+    { CLI_MAP_HELP, "pcap -?" },
+    { -1, NULL }
+
+};
 
 static int
-dst_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
+	struct cli_map *m;
+	pcap_info_t   *pcap;
+	uint32_t max_cnt;
+	uint32_t value;
 	uint32_t portlist;
 
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     range_set_dst_port(info, argv[1], atoi(argv[3])) );
+	m = cli_mapping(cli, pcap_map, argc, argv);
+	if (!m)
+		return -1;
 
+	switch(m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 10:
+			pcap = pktgen.info[pktgen.portNum].pcap;
+			max_cnt = pcap->pkt_count;
+			value = strtoul(argv[1], NULL, 10);
+
+			if (pcap) {
+				if (value >= max_cnt)
+					pcap->pkt_idx = max_cnt - RTE_MIN(PCAP_PAGE_SIZE, (int)max_cnt);
+				else
+					pcap->pkt_idx = value;
+				pktgen.flags |= PRINT_LABELS_FLAG;
+			} else
+				pktgen_log_error(" ** PCAP file is not loaded on port %d",
+						 pktgen.portNum);
+			break;
+		case 20:
+			if (pktgen.info[pktgen.portNum].pcap)
+				_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum, 1);
+			else
+				pktgen_log_error(" ** PCAP file is not loaded on port %d",
+						 pktgen.portNum);
+			break;
+		case 30:
+			rte_parse_portlist(argv[2], &portlist);
+			foreach_port(portlist,
+				pcap_filter(info, argv[3]) );
+			break;
+		default:
+			return -1;
+	}
 	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_vlan_id_parsed - Set the vlan id value
- *
- * DESCRIPTION
- * Set the vlan id value
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-vlan_id_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     range_set_vlan_id(info, argv[1], atoi(argv[3])) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_pkt_size_parsed - Set the PKT Size value
- *
- * DESCRIPTION
- * Set the PKT Size value
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-range_pkt_size_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     range_set_pkt_size(info, argv[1], atoi(argv[3])) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_parsed - Set a value for a set of options.
- *
- * DESCRIPTION
- * Set a value for a given set of variables.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-	char *what = argv[2];
-	int value = atoi(argv[3]);
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist, _do(
-			     if (!strcmp(what, "count"))
-				     single_set_tx_count(info, value);
-			     else if (!strcmp(what, "size"))
-				     single_set_pkt_size(info, value);
-			     else if (!strcmp(what, "rate"))
-				     single_set_tx_rate(info, value);
-			     else if (!strcmp(what, "burst"))
-				     single_set_tx_burst(info, value);
-			     else if (!strcmp(what, "tx_cycles"))
-				     debug_set_tx_cycles(info, value);
-			     else if (!strcmp(what, "sport"))
-				     single_set_port_value(info, what[0], value);
-			     else if (!strcmp(what, "dport"))
-				     single_set_port_value(info, what[0], value);
-			     else if (!strcmp(what, "seqCnt"))
-				     pktgen_set_port_seqCnt(info, value);
-			     else if (!strcmp(what, "prime"))
-				     pktgen_set_port_prime(info, value);
-			     else if (!strcmp(what, "dump"))
-				     debug_set_port_dump(info, value);
-			     else if (!strcmp(what, "vlanid"))
-				     single_set_vlan_id(info, value);
-			     ) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_pcap_onoff - Enable/Disable PCAP sending on a given port list.
- *
- * DESCRIPTION
- * Enable/Disable PCAP sending of data for a given port list.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pcap_onoff_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pcap_enable_disable(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_pcap_filter - Set PCAP port filtering on a set of ports.
- *
- * DESCRIPTION
- * Compile a filter for a set of ports.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pcap_filter_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pcap_filter(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_pcap_show - Show PCAP information.
- *
- * DESCRIPTION
- * Show PCAP information.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pcap_show_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
-{
-	if (pktgen.info[pktgen.portNum].pcap)
-		_pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum, 1);
-	else
-		pktgen_log_error(" ** PCAP file is not loaded on port %d",
-				 pktgen.portNum);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_pcap_index - Set PCAP index value
- *
- * DESCRIPTION
- * Set PCAP index value.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pcap_index_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	pcap_info_t   *pcap = pktgen.info[pktgen.portNum].pcap;
-	uint32_t max_cnt = pcap->pkt_count;
-	uint32_t value = strtoul(argv[1], NULL, 10);
-
-	if (pcap) {
-		if (value >= max_cnt)
-			pcap->pkt_idx = max_cnt - RTE_MIN(PCAP_PAGE_SIZE, (int)max_cnt);
-		else
-			pcap->pkt_idx = value;
-		pktgen.flags |= PRINT_LABELS_FLAG;
-	} else
-		pktgen_log_error(" ** PCAP file is not loaded on port %d",
-				 pktgen.portNum);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_blink_onoff_parsed - Enable/disable blinking a port led.
- *
- * DESCRIPTION
- * Enable/disable blinking a port led.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-blink_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     debug_blink(info, argv[2]) );
-
-	if (pktgen.blinklist)
-		pktgen.flags |= BLINK_PORTS_FLAG;
-	else
-		pktgen.flags &= ~BLINK_PORTS_FLAG;
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_garp_onoff - Enable/Disable GARP packet processing
- *
- * DESCRIPTION
- * Enable/Disable packet GARP processing for ARP, ICMP and a number of other
- * related processing for a given port list.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-garp_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_garp(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_process_onoff - Enable/Disable input packet processing for ARP, ICMP, ...
- *
- * DESCRIPTION
- * Enable/Disable packet input processing for ARP, ICMP and a number of other
- * related processing for a given port list.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-process_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_process(info, argv[2]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_ppp_parsed - Set the number of port per page to display
- *
- * DESCRIPTION
- * Set the number of ports per page to display.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ppp_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-
-	pktgen_set_page_size(atoi(argv[1]));
 	return 0;
 }
 
@@ -1317,113 +845,6 @@ seq_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_setip_dst_parsed - Set the IP address for the main single packet.
- *
- * DESCRIPTION
- * Set the primary IP address for the single packet type based on src/dst flags.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ip_dst_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-	rte_ipaddr_t ip;
-
-	rte_parse_portlist(argv[3], &portlist);
-	rte_atoip(argv[3], RTE_IPADDR_V4, &ip, sizeof(ip));
-	foreach_port(portlist,
-		     single_set_ipaddr(info, argv[2][0], &ip) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_setip_src_parsed - Set the IP address for the main single packet.
- *
- * DESCRIPTION
- * Set the primary IP address for the single packet type based on src/dst flags.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ip_src_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-	rte_ipaddr_t ip;
-
-	rte_parse_portlist(argv[3], &portlist);
-	rte_atoip(argv[3], RTE_IPADDR_V4, &ip, sizeof(ip));
-	foreach_port(portlist,
-		     single_set_ipaddr(info, argv[2][0], &ip) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_send_arp_parsed - Send a ARP request on a given port list.
- *
- * DESCRIPTION
- * Send an ARP request or gratuitous ARP packet for a given port list.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-send_arp_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-	char *what = argv[1];
-
-	rte_parse_portlist(argv[2], &portlist);
-	if (what[0] == 'g')
-		foreach_port(portlist,
-			     pktgen_send_arp_requests(info, GRATUITOUS_ARP) );
-	else
-		foreach_port(portlist,
-			     pktgen_send_arp_requests(info, 0) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_proto_parsed - Set the protocol type for a packet.
- *
- * DESCRIPTION
- * Set the protocol type for a set of given ports.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-set_proto_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     single_set_proto(info, argv[1][0]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
  * cmd_set_load_parsed - load a command or script file to be executed.
  *
  * DESCRIPTION
@@ -1460,577 +881,6 @@ static int
 page_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 {
 	pktgen_set_page(argv[1]);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_screen_parsed - Enable or Disable the screen updates.
- *
- * DESCRIPTION
- * Enable or disable screen updates.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-screen_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	pktgen_screen(argv[1]);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_tx_debug_parsed - Toggle TX debug data
- *
- * DESCRIPTION
- * Toggle TX debug data
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-tx_debug_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
-{
-	if ( (pktgen.flags & TX_DEBUG_FLAG) == 0)
-		pktgen.flags |= TX_DEBUG_FLAG;
-	else
-		pktgen.flags &= ~TX_DEBUG_FLAG;
-	pktgen_cls();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_l2p_parsed - Display the l2p table information
- *
- * DESCRIPTION
- * Display the l2p table information.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-l2p_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
-{
-	pktgen_l2p_dump();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_mempool_parsed - Display the memory pool information
- *
- * DESCRIPTION
- * Display the memory pool information.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-mempool_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	if (!strcmp(argv[1], "dump") )
-		foreach_port(portlist,
-			     debug_mempool_dump(info, argv[3]) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_pkt_type_parsed - Set the packet type for a port IPv4 or IPv6
- *
- * DESCRIPTION
- * Set the ports to the given type IPv4 or IPv6.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pkt_type_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     single_set_pkt_type(info, argv[1]) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_icmp_echo_parsed - Enable or Disable the processing of ICMP packets
- *
- * DESCRIPTION
- * Enable or disable the processing of ICMP echo requests.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-icmp_echo_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		enable_icmp_echo(info, parseState(argv[1])));
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_capture_parsed - Enable or Disable packet capturing
- *
- * DESCRIPTION
- * Enable or Disable packet capturing
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-capture_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_set_capture(info, parseState(argv[2])) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_rx_tap_parsed - Enable or Disable the Rx TAP interface option
- *
- * DESCRIPTION
- * Enable or Disable the Rx TAP interface option
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-rx_tap_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_rx_tap(info, parseState(argv[2])) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_tx_tap_parsed - Enable or Disable the Tx TAP interface option
- *
- * DESCRIPTION
- * Enable or Disable the Tx TAP interface option
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-tx_tap_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_tx_tap(info, parseState(argv[2])) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_vlan_parsed - Enable or Disable sending VLAN ID on each packet
- *
- * DESCRIPTION
- * Enable or Disable sending the VLAN ID on each packet
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-vlan_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_vlan(info, parseState(argv[2])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_vlanid_parsed - Set the VLAN ID for a given port
- *
- * DESCRIPTION
- * Set the VLAN ID value for each port given.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-vlanid_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     single_set_vlan_id(info, atoi(argv[2])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_mpls_parsed - Enable or Disable sending mpls ID on each packet
- *
- * DESCRIPTION
- * Enable or Disable sending the mpls ID on each packet
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-mpls_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_mpls(info, parseState(argv[2])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_mpls_entry_parsed - Set the MPLS entry for a given port
- *
- * DESCRIPTION
- * Set the VLAN ID value for each port given.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-mpls_entry_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-	uint32_t entry = strtoul(argv[2], NULL, 16);
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     range_set_mpls_entry(info, entry) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_qinq_parsed - Enable or Disable sending Q-in-Q tag on each packet
- *
- * DESCRIPTION
- * Enable or Disable sending the Q-in-Q tag on each packet
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-qinq_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_qinq(info, parseState(argv[2])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_qinqids_parsed - Set the Q-in-Q ID's for a given port
- *
- * DESCRIPTION
- * Set the Q-in-Q ID values for each port given.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-qinqids_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     range_set_qinqids(info, atoi(argv[2]), atoi(argv[3])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_gre_parsed - Enable or Disable GRE with IPv4 payload
- *
- * DESCRIPTION
- * Enable or Disable GRE with IPv4 payload
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-gre_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_gre(info, parseState(argv[2])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_gre_eth_parsed - Enable or Disable GRE with Ethernet payload
- *
- * DESCRIPTION
- * Enable or Disable GRE with Ethernet payload
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-gre_eth_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     enable_gre_eth(info, parseState(argv[2])) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_gre_key_parsed - Set the GRE key for a given port
- *
- * DESCRIPTION
- * Set the GRE key for each port given.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-gre_key_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     range_set_gre_key(info, strtoul(argv[2], NULL, 10)) );
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_mac_from_arp_parsed - Enable or Disable the ARP packets setting the MAC address
- *
- * DESCRIPTION
- * Enable or disable having ARP packets set the MAC address.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-mac_from_arp_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t onOff = parseState(argv[1]);
-
-	enable_mac_from_arp(onOff);
-	return 0;
-}
-/**************************************************************************//**
- *
- * cmd_delay_parsed - Delay the script for a given number of milli-seconds
- *
- * DESCRIPTION
- * Delay the script processing for a given number of milli-seconds.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-delay_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	_delay_ms(atoi(argv[1]));
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_sleep_parsed - Sleep the script for a given number of seconds
- *
- * DESCRIPTION
- * Sleep the script processing for a given number of seconds.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-sleep_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	_sleep(atoi(argv[1]));
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_setmac_parsed - Set the single packet MAC address
- *
- * DESCRIPTION
- * Set the single packet MAC address.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-mac_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     single_set_dst_mac(info, rte_ether_aton(argv[3], NULL)) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_start_parsed - Start sending packets in a given port list.
- *
- * DESCRIPTION
- * Start sending packets on a given port list.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-start_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_start_transmitting(info) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_stop_parsed - Stop ports from sending packets on a given port list
- *
- * DESCRIPTION
- * Stop ports from sending packetss on a given port list.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-stop_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_stop_transmitting(info) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_prime_parsed - Send a small number of packets to prime the forwarding tables.
- *
- * DESCRIPTION
- * Send a small number of packets on a given port list to prime the fowarding tables.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-prime_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_prime_ports(info) );
 	return 0;
 }
 
@@ -2103,100 +953,252 @@ restart_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **arg
 	return 0;
 }
 
+static struct cli_map start_stop_map[] = {
+	{  10, "start %P" },
+	{  20, "stop %P" },
+	{  30, "%|start|stop %P capture" },
+	{  40, "start %P prime" },
+	{  50, "start %P arp %|request|gratuitous|req|grat" },
+    { CLI_MAP_HELP, "%|start|stop -?" },
+    { -1, NULL }
+};
+
+static int
+start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+{
+	struct cli_map *m;
+	uint32_t portlist;
+
+	m = cli_mapping(cli, start_stop_map, argc, argv);
+	if (!m)
+		return -1;
+
+	rte_parse_portlist(argv[1], &portlist);
+
+	switch (m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 10:
+			foreach_port(portlist, pktgen_start_transmitting(info));
+			break;
+		case 20:
+			foreach_port(portlist, pktgen_stop_transmitting(info));
+			break;
+		case 30:
+			foreach_port(portlist, pktgen_set_capture(info, estate(argv[0])));
+			break;
+		case 40:
+			foreach_port(portlist, pktgen_prime_ports(info));
+			break;
+		case 50:
+			if (argv[3][0] == 'g')
+				foreach_port(portlist,
+				     pktgen_send_arp_requests(info, GRATUITOUS_ARP) );
+			else
+				foreach_port(portlist,
+				     pktgen_send_arp_requests(info, 0) );
+			break;
+		default:
+			return -1;
+	}
+	pktgen_update_display();
+	return 0;
+}
+
+#define ed_type	"process|"		/*  0 */	\
+				"mpls|" 		/*  1 */	\
+				"qinq|" 		/*  2 */	\
+				"gre|" 			/*  3 */	\
+				"vlan|" 		/*  4 */	\
+				"garp|" 		/*  5 */	\
+				"random|" 		/*  6 */	\
+				"latency|" 		/*  7 */	\
+				"pcap|" 		/*  8 */	\
+				"screen|" 		/*  9 */	\
+				"mac_from_arp|" /* 10 */	\
+				"blink|" 		/* 11 */	\
+				"rx_tap|" 		/* 12 */	\
+				"tx_tap|"		/* 13 */	\
+				"icmp"			/* 14 */
+
+static struct cli_map enable_disable_map[] = {
+	{ 10, "enable %P %|" ed_type },
+	{ 20, "disable %P %|" ed_type },
+    { CLI_MAP_HELP, "%|enable|disable -?" },
+    { -1, NULL }
+};
+
+static int
+enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+{
+	struct cli_map *m;
+	char *opts[RTE_MAX_ARGVS + 1];
+	uint32_t portlist;
+	int n, state;
+
+	m = cli_mapping(cli, enable_disable_map, argc, argv);
+	if (!m)
+		return -1;
+
+    /* split up the format string into opts, do not modify original */
+    strcpy(cli->scratch, m->fmt);
+    rte_strtok(cli->scratch, " ", opts, RTE_MAX_ARGVS);
+
+	rte_parse_portlist(argv[1], &portlist);
+
+	switch (m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 10:
+		case 20:
+	        /* Skip the %| in the string options */
+        	n = rte_stropt(&opts[1][2], argv[1], "|#");
+
+			state = estate(argv[0]);
+
+			switch(n) {
+				case 0:
+					foreach_port(portlist, enable_process(info, state));
+					break;
+				case 1:
+					foreach_port(portlist, enable_mpls(info, state) );
+					break;
+				case 2:
+					foreach_port(portlist, enable_qinq(info, state) );
+					break;
+				case 3:
+					foreach_port(portlist, enable_gre(info, state) );
+					break;
+				case 4:
+					foreach_port(portlist, enable_vlan(info, state) );
+					break;
+				case 5:
+					foreach_port(portlist, enable_garp(info, state) );
+					break;
+				case 6:
+					foreach_port(portlist, enable_random(info, state) );
+					break;
+				case 7:
+					foreach_port(portlist, enable_latency(info, state) );
+					break;
+				case 8:
+					foreach_port(portlist, enable_pcap(info, state) );
+					break;
+				case 9:
+					pktgen_screen(state);
+					break;
+				case 10:
+					enable_mac_from_arp(state);
+					break;
+				case 11:
+					foreach_port(portlist, debug_blink(info, state));
+
+					if (pktgen.blinklist)
+						pktgen.flags |= BLINK_PORTS_FLAG;
+					else
+						pktgen.flags &= ~BLINK_PORTS_FLAG;
+					break;
+				case 12:
+					foreach_port(portlist, enable_rx_tap(info, state));
+					break;
+				case 13:
+					foreach_port(portlist, enable_tx_tap(info, state));
+					break;
+				case 14:
+					foreach_port(portlist, enable_icmp_echo(info, state));
+					break;
+				default:
+					return -1;
+			}
+			break;
+		default:
+			return -1;
+	}
+	pktgen_update_display();
+	return 0;
+}
+
+static struct cli_map debug_map[] = {
+	{ 10, "debug l2p" },
+	{ 20, "debug tx_debug" },
+	{ 30, "debug mempool dump %P %s" },
+    { CLI_MAP_HELP, "debug -?" },
+    { -1, NULL }
+};
+
+static int
+debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+{
+	struct cli_map *m;
+	uint32_t portlist;
+
+	m = cli_mapping(cli, debug_map, argc, argv);
+	if (!m)
+		return -1;
+
+	switch(m->index) {
+		case CLI_MAP_HELP:
+			break;
+		case 10:
+			pktgen_l2p_dump();
+			break;
+		case 20:
+			if ( (pktgen.flags & TX_DEBUG_FLAG) == 0)
+				pktgen.flags |= TX_DEBUG_FLAG;
+			else
+				pktgen.flags &= ~TX_DEBUG_FLAG;
+			pktgen_cls();
+			break;
+		case 30:
+			rte_parse_portlist(argv[2], &portlist);
+			if (!strcmp(argv[1], "dump") )
+				foreach_port(portlist,
+					     debug_mempool_dump(info, argv[3]) );
+			break;
+		case 40:
+			break;
+		case 50:
+			break;
+		default:
+			return -1;
+	}
+	return 0;
+}
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
 
 static struct cli_tree default_tree[] = {
-	c_dir("/bin"),
-	c_cmd("blink", 		blink_cmd,		"blink the leds in the ports"),
-	c_cmd("clear",		clear_cmd,		""),
-	c_cmd("delay",		delay_cmd, ""),
-	c_cmd("geom",		geometry_cmd, ""),
-	c_cmd("load",		load_cmd, ""),
-	c_cmd("script", 	script_cmd, ""),
-	c_cmd("exec.lua", 	exec_lua_cmd, ""),
-	c_cmd("save", 		save_cmd, ""),
-
 	c_dir("/pktgen/bin"),
-	c_cmd("prime", 		prime_cmd, ""),
-	c_cmd("process", 	process_cmd, ""),
-	c_cmd("mac_arp",	mac_from_arp_cmd, ""),
-	c_cmd("page",		page_set_cmd, ""),
-	c_cmd("pdump", 		pdump_cmd, ""),
+	c_cmd("clear",		clear_cmd,		"clear stats"),
+	c_cmd("geom",		geometry_cmd, 	"set the screen geometry"),
+	c_cmd("load",		load_cmd, 		"load command file"),
+	c_cmd("script", 	script_cmd, 	"run a Lua script"),
+	c_cmd("lua", 		exec_lua_cmd, 	"execute a Lua string"),
+	c_cmd("save", 		save_cmd, 		"save the current state"),
+
 	c_cmd("help",		help_cmd, 		"help command"),
-	c_cmd("set", 		set_cmd, ""),
-	c_cmd("reset", 		reset_cmd, ""),
-	c_cmd("restart", 	restart_port_cmd, ""),
-	c_cmd("screen", 	screen_cmd, ""),
-	c_cmd("mpls", mpls_cmd, ""),
-	c_cmd("port", port_cmd, ""),
-	c_cmd("ppp", ppp_cmd, ""),
-	c_cmd("sleep", sleep_cmd, ""),
-	c_cmd("start", start_cmd, ""),
-	c_cmd("stop", stop_cmd, ""),
-	c_cmd("capture", capture_cmd, ""),
-	c_cmd("rx_tap", rx_tap_cmd, ""),
-	c_cmd("tx_tap", tx_tap_cmd, ""),
-	c_cmd("vlan", vlan_cmd, ""),
-	c_cmd("garp", garp_cmd, ""),
-	c_cmd("rnd", rnd_cmd, ""),
-	c_cmd("send.arp", send_arp_cmd, ""),
-	c_cmd("seq", seq_set_cmd, ""),
-	c_cmd("qinq", qinq_cmd, ""),
-	c_cmd("gre", gre_cmd, ""),
-	c_cmd("gre_eth", gre_eth_cmd, ""),
-	c_cmd("pattern", pattern_cmd, ""),
-	c_cmd("pattern.user", pattern_user_cmd, ""),
-	c_cmd("latency", latency_set_cmd, ""),
-	c_cmd("jitter", jitter_set_cmd, ""),
-	c_cmd("icmp.echo", 	icmp_echo_cmd, ""),
-	c_cmd("ping4", 		ping4_cmd, ""),
+	c_cmd("theme", 		theme_cmd,		"Set, save, show the theme"),
+	c_cmd("range",		range_cmd,		"Range commands"),
+	c_cmd("enable",		enable_disable_cmd,	"enable features"),
+	c_cmd("disable",	enable_disable_cmd,	"disable features"),
+	c_cmd("start",		start_stop_cmd,	"start features"),
+	c_cmd("stop",		start_stop_cmd,	"stop features"),
+	c_cmd("pcap",		pcap_cmd, 		"pcap commands"),
+	c_cmd("set", 		set_cmd, 		"set a number of options"),
+	c_cmd("page",		page_set_cmd, 	"change page displays"),
+	c_cmd("port", 		port_cmd, 		"Switch between ports"),
+
+	c_cmd("pdump", 		pdump_cmd, 		"packet dump command"),
+	c_cmd("reset", 		reset_cmd, 		"reset pktgen to default state"),
+	c_cmd("restart", 	restart_port_cmd, "reset port to default state"),
+	c_cmd("seq", 		seq_set_cmd, 	"Set a sequence packet to a port"),
+	c_cmd("ping4", 		ping4_cmd, 		"Send a ping packet for IPv4"),
 #ifdef INCLUDE_PING6
-	c_cmd("ping6", 		ping6_cmd, ""),
+	c_cmd("ping6", 		ping6_cmd,		"Send a ping packet for IPv6"),
 #endif
-
-	c_dir("/pktgen/single"),
-	c_cmd("pkt.type", 	pkt_type_set_cmd, ""),
-	c_cmd("ip", 		ip_dst_cmd, ""),
-	c_cmd("port.dst", 	dst_port_cmd, ""),
-	c_cmd("set.proto", set_proto_cmd, ""),
-	c_cmd("ip.dst", ip_dst_set_cmd, ""),
-	c_cmd("ip.src", ip_src_cmd, ""),
-	c_cmd("src.ip", ip_src_set_cmd, ""),
-	c_cmd("mac", mac_set_cmd, ""),
-	c_cmd("vlan.id", vlanid_cmd, ""),
-
-	c_dir("/pktgen/pcap"),
-	c_cmd("pcap.inded", pcap_index_cmd, ""),
-	c_cmd("pcap", pcap_onoff_cmd, ""),
-	c_cmd("pcap.show", pcap_show_cmd, ""),
-	c_cmd("pcap.filter", pcap_filter_cmd, ""),
-
-	c_dir("/pktgen/range"),
-	c_cmd("range", range_set_cmd, ""),
-	c_cmd("range.size", range_pkt_size_cmd, ""),
-	c_cmd("mac.dest", 	range_mac_dest_cmd, ""),
-	c_cmd("ip_proto", ip_proto_cmd, ""),
-	c_cmd("mac.src", mac_src_cmd, ""),
-	c_cmd("port.src", src_port_cmd, ""),
-	c_cmd("vlan_id", vlan_id_cmd, ""),
-	c_cmd("mpls.entry", mpls_entry_cmd, ""),
-	c_cmd("qinq.idx", qinqids_cmd, ""),
-	c_cmd("gre_key", gre_key_cmd, ""),
-
-	c_dir("/pktgen/debug"),
-	c_cmd("l2p", l2p_cmd, ""),
-	c_cmd("tx_debug", tx_debug_cmd, ""),
-	c_cmd("mempool",	mempool_cmd, ""),
-	c_cmd("pci",		pci_cmd, ""),
-	c_cmd("dev",		dev_cmd, ""),
-
-	c_dir("/pktgen/theme"),
-	c_cmd("theme.save", theme_save_cmd, ""),
-	c_cmd("theme.show", theme_show_cmd, ""),
-	c_cmd("theme.set", theme_set_cmd, ""),
-	c_cmd("theme", theme_state_cmd, ""),
+	c_cmd("debug",      debug_cmd,		"debug commands"),
 
 	c_end()
 };
@@ -2210,13 +1212,10 @@ init_tree(struct cli *cli)
     if (cli_add_tree(cli, cli_root_node(cli), default_tree))
         return -1;
 
-    if (cli_add_bin_path(cli, "/bin"))
-        return -1;
-
     if (cli_add_bin_path(cli, "/pktgen/bin"))
         return -1;
 
-    return 0;
+	return 0;
 }
 
 static void

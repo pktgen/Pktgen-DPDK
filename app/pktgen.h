@@ -436,11 +436,10 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 enum { DISABLE_STATE = 0, ENABLE_STATE = 1 };
 
 static __inline__ uint32_t
-parseState(const char *state) {
-	return ( !strcasecmp(state,
-			     "on") ||
-		 !strcasecmp(state,
-			     "enable") || !strcasecmp(state, "start") ) ?
+estate(const char *state) {
+	return ( !strcasecmp(state, "on") ||
+		 !strcasecmp(state, "enable") ||
+		 !strcasecmp(state, "start") ) ?
 	       ENABLE_STATE : DISABLE_STATE;
 }
 

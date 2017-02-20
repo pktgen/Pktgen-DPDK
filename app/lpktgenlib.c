@@ -524,7 +524,7 @@ pktgen_icmp(lua_State *L) {
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 	foreach_port(portlist,
 		     enable_icmp_echo(info,
-					  parseState((char *)luaL_checkstring(L,
+					  estate((char *)luaL_checkstring(L,
 									      2))) );
 	return 0;
 }
@@ -618,7 +618,7 @@ pktgen_macFromArp(lua_State *L)
 	}
 	state = (char *)luaL_checkstring(L, 1);
 
-	onOff = parseState(state);
+	onOff = estate(state);
 
 	enable_mac_from_arp(onOff);
 
@@ -652,7 +652,7 @@ pktgen_prototype(lua_State *L)
 	type = (char *)luaL_checkstring(L, 2);
 
 	foreach_port(portlist,
-		     single_set_proto(info, type[0]) );
+		     single_set_proto(info, type) );
 
 	return 0;
 }
@@ -821,7 +821,7 @@ pktgen_pcap(lua_State *L)
 	what = (char *)luaL_checkstring(L, 2);
 
 	foreach_port(portlist,
-		     pcap_enable_disable(info, what) );
+		     enable_pcap(info, estate(what)) );
 
 	return 0;
 }
@@ -904,7 +904,7 @@ pktgen_scrn(lua_State *L)
 	case 1:
 		break;
 	}
-	pktgen_screen((char *)luaL_checkstring(L, 1));
+	pktgen_screen(estate((const char *)luaL_checkstring(L, 1)));
 	return 0;
 }
 
@@ -1519,7 +1519,7 @@ range_ip_proto(lua_State *L)
 
 	ip = luaL_checkstring(L, 2);
 	foreach_port(portlist,
-		     range_set_proto(info, ip[0]));
+		     range_set_proto(info, ip));
 
 	pktgen_update_display();
 	return 0;
@@ -1684,7 +1684,7 @@ single_vlan(lua_State *L)
 
 	foreach_port(portlist,
 		     enable_vlan(info,
-				     parseState(luaL_checkstring(L, 2))) );
+				     estate(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -1749,7 +1749,7 @@ pktgen_mpls(lua_State *L)
 
 	foreach_port(portlist,
 		     enable_mpls(info,
-				     parseState(luaL_checkstring(L, 2))) );
+				     estate(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -1820,7 +1820,7 @@ pktgen_qinq(lua_State *L)
 
 	foreach_port(portlist,
 		     enable_qinq(info,
-				     parseState(luaL_checkstring(L, 2))) );
+				     estate(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -1884,7 +1884,7 @@ pktgen_gre(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_gre(info, parseState(luaL_checkstring(L, 2))) );
+		     enable_gre(info, estate(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -1915,7 +1915,7 @@ pktgen_gre_eth(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_gre_eth(info, parseState(luaL_checkstring(L,
+		     enable_gre_eth(info, estate(luaL_checkstring(L,
 									  2))) );
 
 	pktgen_update_display();
@@ -1982,8 +1982,7 @@ range(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_range(info,
-						 (char *)luaL_checkstring(L, 2)) );
+	     enable_range(info, estate((const char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2014,7 +2013,7 @@ pktgen_latency(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_latency(info, (char *)luaL_checkstring(L, 2)) );
+	     enable_latency(info, estate((const char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2045,7 +2044,7 @@ pktgen_jitter(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-	     enable_jitter(info, luaL_checkinteger(L, 2)) );
+	     single_set_jitter(info, luaL_checkinteger(L, 2)) );
 
 	pktgen_update_display();
 	return 0;
@@ -2188,7 +2187,7 @@ pktgen_process(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_process(info, (char *)luaL_checkstring(L, 2)) );
+	     enable_process(info, estate((const char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2219,7 +2218,7 @@ pktgen_capture(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_capture(info, (char *)luaL_checkstring(L, 2)) );
+	     enable_capture(info, estate((const char *)luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -2250,7 +2249,7 @@ pktgen_rxtap(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_rx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
+		     enable_rx_tap(info, estate((char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2281,7 +2280,7 @@ pktgen_txtap(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_tx_tap(info, parseState((char *)luaL_checkstring(L, 2))));
+		     enable_tx_tap(info, estate((char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2312,7 +2311,7 @@ pktgen_garp(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_garp(info, (char *)luaL_checkstring(L, 2)) );
+	     enable_garp(info, estate((const char *)luaL_checkstring(L, 2))));
 
 	pktgen_update_display();
 	return 0;
@@ -2343,7 +2342,7 @@ pktgen_blink(lua_State *L)
 	parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     debug_blink(info, (char *)luaL_checkstring(L, 2)) );
+	     debug_blink(info, estate((const char *)luaL_checkstring(L, 2))));
 
 	if (pktgen.blinklist)
 		pktgen.flags |= BLINK_PORTS_FLAG;

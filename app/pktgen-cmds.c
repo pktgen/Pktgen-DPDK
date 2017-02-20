@@ -1070,13 +1070,13 @@ pktgen_set_page_size(uint32_t page_size)
  */
 
 void
-pktgen_screen(const char *onOff)
+pktgen_screen(int state)
 {
 	uint16_t rows;
 
 	pktgen_display_get_geometry(&rows, NULL);
 
-	if (parseState(onOff) == DISABLE_STATE) {
+	if (state == DISABLE_STATE) {
 		if (!scrn_is_paused() ) {
 			scrn_pause();
 			scrn_cls();
@@ -1453,15 +1453,15 @@ pktgen_prime_ports(port_info_t *info)
  */
 
 void
-single_set_proto(port_info_t *info, char type)
+single_set_proto(port_info_t *info, char *type)
 {
-	info->seq_pkt[SINGLE_PKT].ipProto = (type == 'u') ? PG_IPPROTO_UDP :
-		(type == 'i') ? PG_IPPROTO_ICMP :
-		(type == 't') ? PG_IPPROTO_TCP :
+	info->seq_pkt[SINGLE_PKT].ipProto = (type[0] == 'u') ? PG_IPPROTO_UDP :
+		(type[0] == 'i') ? PG_IPPROTO_ICMP :
+		(type[0] == 't') ? PG_IPPROTO_TCP :
 		/* TODO print error: unknown type */ PG_IPPROTO_TCP;
 
 	/* ICMP only works on IPv4 packets. */
-	if (type == 'i')
+	if (type[0] == 'i')
 		info->seq_pkt[SINGLE_PKT].ethType = ETHER_TYPE_IPv4;
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
@@ -1480,16 +1480,16 @@ single_set_proto(port_info_t *info, char type)
  */
 
 void
-range_set_proto(port_info_t *info, char type)
+range_set_proto(port_info_t *info, const char *type)
 {
-	info->seq_pkt[RANGE_PKT].ipProto = (type == 'u') ? PG_IPPROTO_UDP :
-		(type == 'i') ? PG_IPPROTO_ICMP :
-		(type == 't') ? PG_IPPROTO_TCP :
+	info->seq_pkt[RANGE_PKT].ipProto = (type[0] == 'u') ? PG_IPPROTO_UDP :
+		(type[0] == 'i') ? PG_IPPROTO_ICMP :
+		(type[0] == 't') ? PG_IPPROTO_TCP :
 		/* TODO print error: unknown type */ PG_IPPROTO_TCP;
 	info->range.ip_proto = info->seq_pkt[RANGE_PKT].ipProto;
 
 	/* ICMP only works on IPv4 packets. */
-	if (type == 'i')
+	if (type[0] == 'i')
 		info->seq_pkt[RANGE_PKT].ethType = ETHER_TYPE_IPv4;
 }
 
@@ -1506,10 +1506,10 @@ range_set_proto(port_info_t *info, char type)
  */
 
 void
-pcap_enable_disable(port_info_t *info, char *str)
+enable_pcap(port_info_t *info, uint32_t state)
 {
 	if ( (info->pcap != NULL) && (info->pcap->pkt_count != 0) ) {
-		if (parseState(str) == ENABLE_STATE) {
+		if (state == ENABLE_STATE) {
 			pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
 			pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
 			pktgen_set_port_flags(info, SEND_PCAP_PKTS);
@@ -1558,9 +1558,9 @@ pcap_filter(port_info_t *info, char *str)
  */
 
 void
-debug_blink(port_info_t *info, char *str)
+debug_blink(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen.blinklist |= (1 << info->pid);
 	else {
 		pktgen.blinklist &= ~(1 << info->pid);
@@ -1581,9 +1581,9 @@ debug_blink(port_info_t *info, char *str)
  */
 
 void
-enable_process(port_info_t *info, char *str)
+enable_process(port_info_t *info, int state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen_set_port_flags(info, PROCESS_INPUT_PKTS);
 	else
 		pktgen_clr_port_flags(info, PROCESS_INPUT_PKTS);
@@ -1602,9 +1602,9 @@ enable_process(port_info_t *info, char *str)
  */
 
 void
-enable_capture(port_info_t *info, char *str)
+enable_capture(port_info_t *info, uint32_t state)
 {
-	pktgen_set_capture(info, parseState(str));
+	pktgen_set_capture(info, state);
 }
 
 /**************************************************************************//**
@@ -1620,9 +1620,9 @@ enable_capture(port_info_t *info, char *str)
  */
 
 void
-enable_garp(port_info_t *info, char *str)
+enable_garp(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen_set_port_flags(info,
 				      PROCESS_GARP_PKTS | PROCESS_INPUT_PKTS);
 	else
@@ -2142,7 +2142,7 @@ pktgen_reset(port_info_t *info)
 		pktgen_range_setup(info);
 		pktgen_clear_stats(info);
 
-		enable_range(info, off);
+		enable_range(info, estate(off));
 		memset(info->rnd_bitfields, 0, sizeof(struct rnd_bits_s));
 		pktgen_rnd_bits_init(&info->rnd_bitfields);
 		pktgen_set_port_seqCnt(info, 0);
@@ -2453,9 +2453,9 @@ single_set_dst_mac(port_info_t *info, struct ether_addr *mac)
  */
 
 void
-enable_range(port_info_t *info, char *str)
+enable_range(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE) {
+	if (state == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
 		pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
 		pktgen_set_port_flags(info, SEND_RANGE_PKTS);
@@ -2477,9 +2477,9 @@ enable_range(port_info_t *info, char *str)
  */
 
 void
-enable_latency(port_info_t *info, char *str)
+enable_latency(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
 	else
 		pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
@@ -2487,7 +2487,7 @@ enable_latency(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * enable_jitter - Set the jitter threshold.
+ * single_set_jitter - Set the jitter threshold.
  *
  * DESCRIPTION
  * Set the jitter threshold.
@@ -2498,7 +2498,7 @@ enable_latency(port_info_t *info, char *str)
  */
 
 void
-enable_jitter(port_info_t *info, uint64_t threshold)
+single_set_jitter(port_info_t *info, uint64_t threshold)
 {
 	uint64_t ticks;
 

@@ -127,7 +127,7 @@ const char *help_info[] = {
 	"        none                       - No fill pattern, maybe random data",
 	"        zero                       - Fill of zero bytes",
 	"        user                       - User supplied string of max 16 bytes",
-	"user.pattern \"string\"              - A 16 byte string, must set 'pattern user' command",
+	"user.pattern \"string\"            - A 16 byte string, must set 'pattern user' command",
 	"latency <portlist> <state>         - Enable Latency testing",
 	"jitter <portlist> <usec>           - Set the jitter threshold in micro-seconds",
 	"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
@@ -899,7 +899,7 @@ cmd_set_range_parsed(void *parsed_result,
 	struct cmd_set_range_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_range(info, res->what) );
+		     enable_range(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -953,7 +953,7 @@ cmd_set_latency_parsed(void *parsed_result,
 	struct cmd_set_latency_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_latency(info, res->state) );
+		     enable_latency(info, estate(res->state)) );
 
 	pktgen_update_display();
 }
@@ -1009,7 +1009,7 @@ cmd_set_jitter_parsed(void *parsed_result,
 	struct cmd_set_jitter_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_jitter(info, strtoull(res->usec, NULL, 0)) );
+		     single_set_jitter(info, strtoull(res->usec, NULL, 0)) );
 
 	pktgen_update_display();
 }
@@ -1688,7 +1688,7 @@ cmd_ip_proto_parsed(void *parsed_result,
 	struct cmd_ip_proto_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     single_set_proto(info, res->proto[0]) );
+		     single_set_proto(info, res->proto) );
 
 	pktgen_update_display();
 }
@@ -2006,7 +2006,7 @@ cmd_pcap_onoff_parsed(void *parsed_result,
 	struct cmd_pcap_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pcap_enable_disable(info, res->what) );
+		     enable_pcap(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -2220,7 +2220,7 @@ cmd_blink_onoff_parsed(void *parsed_result,
 	struct cmd_blink_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     debug_blink(info, res->what) );
+		     debug_blink(info, estate(res->what)) );
 
 	if (pktgen.blinklist)
 		pktgen.flags |= BLINK_PORTS_FLAG;
@@ -2279,7 +2279,7 @@ cmd_garp_onoff_parsed(void *parsed_result,
 	struct cmd_garp_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_garp(info, res->what) );
+		     enable_garp(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -2334,7 +2334,7 @@ cmd_process_onoff_parsed(void *parsed_result,
 	struct cmd_process_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_process(info, res->what) );
+		     enable_process(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -2768,7 +2768,7 @@ cmd_set_proto_parsed(void *parsed_result,
 	struct cmd_set_proto_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     single_set_proto(info, res->type[0]) );
+		     single_set_proto(info, res->type) );
 
 	pktgen_update_display();
 }
@@ -2917,7 +2917,7 @@ cmd_screen_parsed(void *parsed_result,
 {
 	struct cmd_screen_result *res = parsed_result;
 
-	pktgen_screen(res->onOff);
+	pktgen_screen(estate(res->onOff));
 }
 
 cmdline_parse_token_string_t cmd_set_screen =
@@ -2961,7 +2961,7 @@ cmd_off_parsed(void *parsed_result __rte_unused,
 	       struct cmdline *cl __rte_unused,
 	       void *data __rte_unused)
 {
-	pktgen_screen("off");
+	pktgen_screen(DISABLE_STATE);
 }
 
 cmdline_parse_token_string_t cmd_set_off =
@@ -3000,7 +3000,7 @@ cmd_on_parsed(void *parsed_result __rte_unused,
 	      struct cmdline *cl __rte_unused,
 	      void *data __rte_unused)
 {
-	pktgen_screen("on");
+	pktgen_screen(ENABLE_STATE);
 }
 
 cmdline_parse_token_string_t cmd_set_on =
@@ -3239,7 +3239,7 @@ cmd_icmp_echo_parsed(void *parsed_result,
 	struct cmd_icmp_echo_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_icmp_echo(info, parseState(res->onOff)) );
+		     enable_icmp_echo(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_icmp =
@@ -3293,7 +3293,7 @@ cmd_capture_parsed(void *parsed_result,
 	struct cmd_capture_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_capture(info, parseState(res->onOff)) );
+		     pktgen_set_capture(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_capture =
@@ -3345,7 +3345,7 @@ cmd_rx_tap_parsed(void *parsed_result,
 	struct cmd_rx_tap_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_rx_tap(info, parseState(res->onOff)) );
+		     enable_rx_tap(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_rx_tap =
@@ -3397,7 +3397,7 @@ cmd_tx_tap_parsed(void *parsed_result,
 	struct cmd_tx_tap_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_tx_tap(info, parseState(res->onOff)) );
+		     enable_tx_tap(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_tx_tap =
@@ -3449,7 +3449,7 @@ cmd_vlan_parsed(void *parsed_result,
 	struct cmd_vlan_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_vlan(info, parseState(res->onOff)) );
+		     enable_vlan(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3555,7 +3555,7 @@ cmd_mpls_parsed(void *parsed_result,
 	struct cmd_mpls_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_mpls(info, parseState(res->onOff)) );
+		     enable_mpls(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3665,7 +3665,7 @@ cmd_qinq_parsed(void *parsed_result,
 	struct cmd_qinq_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_qinq(info, parseState(res->onOff)) );
+		     enable_qinq(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3775,7 +3775,7 @@ cmd_gre_parsed(void *parsed_result,
 	struct cmd_gre_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_gre(info, parseState(res->onOff)) );
+		     enable_gre(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3829,7 +3829,7 @@ cmd_gre_eth_parsed(void *parsed_result,
 	struct cmd_gre_eth_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     enable_gre_eth(info, parseState(res->onOff)) );
+		     enable_gre_eth(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3934,7 +3934,7 @@ cmd_mac_from_arp_parsed(void *parsed_result,
 			void *data __rte_unused)
 {
 	struct cmd_mac_from_arp_result *res = parsed_result;
-	uint32_t onOff = parseState(res->onOff);
+	uint32_t onOff = estate(res->onOff);
 
 	enable_mac_from_arp(onOff);
 }

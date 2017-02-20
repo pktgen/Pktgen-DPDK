@@ -65,7 +65,7 @@ void pktgen_start_transmitting(port_info_t *info);
 void pktgen_stop_transmitting(port_info_t *info);
 int pktgen_port_transmitting(int port);
 void pktgen_set_page(char *str);
-void pktgen_screen(const char *onOff);
+void pktgen_screen(int state);
 void pktgen_redisplay(int cls_flag);
 int pktgen_save(char *path);
 void pktgen_cls(void);
@@ -76,7 +76,7 @@ void pktgen_ping6(port_info_t *info);
 void pktgen_clear_stats(port_info_t *info);
 void pktgen_reset(port_info_t *info);
 void pktgen_port_restart(port_info_t *info);
-void pktgen_mac_from_arp(uint32_t onOff);
+void pktgen_mac_from_arp(int state);
 void pktgen_prime_ports(port_info_t *info);
 void pktgen_quit(void);
 void pktgen_set_page_size(uint32_t page_size);
@@ -85,9 +85,8 @@ void pktgen_set_port_prime(port_info_t *info, uint32_t cnt);
 void pktgen_port_defaults(uint32_t pid, uint8_t seq);
 
 /* Single */
-void single_set_ipaddr(port_info_t *info, char type,
-			      rte_ipaddr_t *ip);
-void single_set_proto(port_info_t *info, char type);
+void single_set_ipaddr(port_info_t *info, char type, rte_ipaddr_t *ip);
+void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_dst_mac(port_info_t *info, struct ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);
@@ -95,14 +94,13 @@ void single_set_tx_count(port_info_t *info, uint32_t cnt);
 void single_set_tx_burst(port_info_t *info, uint32_t burst);
 void single_set_pkt_size(port_info_t *info, uint32_t size);
 void single_set_tx_rate(port_info_t *info, uint32_t rate);
-
+void single_set_jitter(port_info_t *info, uint64_t threshold);
 void single_set_port_value(port_info_t *info,
-				  char type,
-				  uint32_t portValue);
+				  char type, uint32_t portValue);
 
 /* Debug */
 void debug_dump(port_info_t *info, char *str);
-void debug_blink(port_info_t *info, char *str);
+void debug_blink(port_info_t *info, uint32_t state);
 void debug_pdump(port_info_t *info);
 void debug_set_tx_cycles(port_info_t *info, uint32_t cycles);
 void debug_set_rx_cycles(port_info_t *info, uint32_t cycles);
@@ -111,26 +109,25 @@ void debug_mempool_dump(port_info_t *info, char *name);
 void debug_set_port_dump(port_info_t *info, uint32_t cnt);
 
 /* Enable or toggle types */
-void enable_rx_tap(port_info_t *info, uint32_t onOff);
-void enable_tx_tap(port_info_t *info, uint32_t onOff);
-void enable_vlan(port_info_t *info, uint32_t onOff);
-void enable_qinq(port_info_t *info, uint32_t onOff);
-void enable_mpls(port_info_t *info, uint32_t onOff);
-void enable_gre(port_info_t *info, uint32_t onOff);
-void enable_gre_eth(port_info_t *info, uint32_t onOff);
-void enable_icmp_echo(port_info_t *info, uint32_t onOff);
-void enable_random(port_info_t *info, uint32_t onOff);
-void enable_latency(port_info_t *info, char *str);
-void enable_garp(port_info_t *info, char *str);
-void enable_mac_from_arp(uint32_t onOff);
-void enable_process(port_info_t *info, char *str);
-void enable_capture(port_info_t *info, char *str);
-void enable_range(port_info_t *info, char *str);
-void enable_jitter(port_info_t *info, uint64_t threshold);
+void enable_rx_tap(port_info_t *info, uint32_t state);
+void enable_tx_tap(port_info_t *info, uint32_t state);
+void enable_vlan(port_info_t *info, uint32_t state);
+void enable_qinq(port_info_t *info, uint32_t state);
+void enable_mpls(port_info_t *info, uint32_t state);
+void enable_gre(port_info_t *info, uint32_t state);
+void enable_gre_eth(port_info_t *info, uint32_t state);
+void enable_icmp_echo(port_info_t *info, uint32_t state);
+void enable_random(port_info_t *info, uint32_t state);
+void enable_latency(port_info_t *info, uint32_t state);
+void enable_garp(port_info_t *info, uint32_t state);
+void enable_mac_from_arp(uint32_t state);
+void enable_process(port_info_t *info, int state);
+void enable_capture(port_info_t *info, uint32_t state);
+void enable_range(port_info_t *info, uint32_t state);
+void enable_pcap(port_info_t *info, uint32_t state);
 
 /* PCAP */
 void pcap_filter(port_info_t *info, char *str);
-void pcap_enable_disable(port_info_t *info, char *str);
 
 /* Range commands */
 void range_set_dest_mac(port_info_t *info,
@@ -147,7 +144,7 @@ void range_set_dst_ip(port_info_t *info,
 			      rte_ipaddr_t *ip);
 void range_set_src_port(port_info_t *info, char *what, uint16_t port);
 void range_set_dst_port(port_info_t *info, char *what, uint16_t port);
-void range_set_proto(port_info_t *info, char type);
+void range_set_proto(port_info_t *info, const char *type);
 void range_set_pkt_type(port_info_t *info, const char *type);
 void range_set_pkt_size(port_info_t *info,
 				      char *what,

@@ -347,7 +347,7 @@ pktgen_theme_show(void)
 void
 pktgen_theme_state(const char *state)
 {
-	if (parseState(state) == DISABLE_STATE)
+	if (estate(state) == DISABLE_STATE)
 		__scrn->theme = THEME_OFF;
 	else
 		__scrn->theme = THEME_ON;

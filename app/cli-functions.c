@@ -297,7 +297,6 @@ static struct cli_map theme_map[] = {
 	{ 10, "theme %|on|off" },
 	{ 20, "theme item %s %s %s %s" },
 	{ 30, "theme save" },
-	{ CLI_MAP_HELP, "theme -?" },
 	{ -1, NULL }
 };
 
@@ -311,8 +310,6 @@ theme_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 		return -1;
 
 	switch(m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 0:
 			pktgen_theme_show();
 			break;
@@ -335,25 +332,6 @@ theme_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_save - Save a configuration
- *
- * DESCRIPTION
- * Save the configuration into a script file.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-save_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	pktgen_save(argv[1]);
-	return 0;
-}
-
-/**************************************************************************//**
- *
  * cmd_script_parsed - Command to execute a script.
  *
  * DESCRIPTION
@@ -372,6 +350,11 @@ script_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	if (L == NULL) {
 		pktgen_log_error("Lua is not initialized!");
 		return -1;
+	}
+
+	if (is_cli_help(argc, argv)) {
+		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
+		return 0;
 	}
 
 	if (luaL_dofile(L, argv[1]) != 0)
@@ -399,6 +382,11 @@ exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __
 	if (L == NULL) {
 		pktgen_log_error("Lua is not initialized!");
 		return -1;
+	}
+
+	if (is_cli_help(argc, argv)) {
+		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
+		return 0;
 	}
 
 	if (luaL_dostring(L, cli->gb->buf) != 0)
@@ -479,45 +467,6 @@ ping6_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 }
 #endif
 
-/**************************************************************************//**
- *
- * cmd_set_geometry_parsed - Set teh display geometry values.
- *
- * DESCRIPTION
- * Set the number of columns and rows for the display.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-geometry_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint16_t rows, cols;
-
-	pktgen_display_get_geometry(&rows, &cols);
-	pktgen_log_debug("Old geometry is %dx%d", cols, rows);
-	if (strcmp(argv[1], "show") ) {
-		char *p;
-
-		p = strchr(argv[1], 'x');
-		if (p) {
-			rows = strtol(++p, NULL, 10);
-			cols = strtol(argv[1], NULL, 10);
-
-			pktgen_display_set_geometry(rows, cols);
-			pktgen_cls();
-		} else
-			pktgen_log_error(
-				"Geometry string is invalid (%s) must be CxR format",
-				argv[1]);
-		pktgen_display_get_geometry(&rows, &cols);
-		pktgen_log_debug("New geometry is %dx%d", cols, rows);
-	}
-	return 0;
-}
-
 static struct cli_map range_map[] = {
 	{ 10, "range %P %|on|off" },
 	{ 20, "range %P mac dst %|start|min|max|inc %m" },
@@ -532,7 +481,6 @@ static struct cli_map range_map[] = {
 	{ 80, "range %P mpls entry %x" },
 	{ 85, "range %P qinq index %d %d" },
 	{ 90, "range %P gre key %d" },
-    { CLI_MAP_HELP, "range -?" },
     { -1, NULL }
 };
 
@@ -550,8 +498,6 @@ range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	rte_parse_portlist(argv[1], &portlist);
 
 	switch(m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 10:
 			foreach_port(portlist, enable_range(info, estate(argv[2])));
 			break;
@@ -636,7 +582,6 @@ static struct cli_map set_map[] = {
 	{ 24, "set %P user pattern %s" },
 	{ 30, "set %P ip %|src|dst %4" },
 	{ 40, "set ports_per_page %d" },
-    { CLI_MAP_HELP, "set -?" },
     { -1, NULL }
 };
 
@@ -647,7 +592,7 @@ set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
 	uint32_t portlist;
 	char *what;
-	int value;
+	int value, n;
 	struct cli_map *m;
 	rte_ipaddr_t ip;
 
@@ -661,11 +606,10 @@ set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	value = atoi(argv[3]);
 
 	switch(m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 10:
+			n = cli_list_search(cli, m->fmt, argv[2], 2);
 			foreach_port(portlist, _do(
-				switch(m->index) {
+				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
 					case 1: single_set_pkt_size(info, value); break;
 					case 2: single_set_tx_rate(info, value); break;
@@ -721,7 +665,6 @@ static struct cli_map pcap_map[] = {
 	{ 10, "pcap index" },
 	{ 20, "pcap show" },
 	{ 30, "pcap filter %P %s" },
-    { CLI_MAP_HELP, "pcap -?" },
     { -1, NULL }
 
 };
@@ -740,8 +683,6 @@ pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 		return -1;
 
 	switch(m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 10:
 			pcap = pktgen.info[pktgen.portNum].pcap;
 			max_cnt = pcap->pkt_count;
@@ -845,28 +786,6 @@ seq_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_set_load_parsed - load a command or script file to be executed.
- *
- * DESCRIPTION
- * Load and execute a set of commands or a script file.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-load_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	if (cli_load_cmds(cli, argv[1]) )
-		cli_printf(cli, "load command failed for %s\n", argv[1]);
-	if (!scrn_is_paused() )
-		pktgen_redisplay(0);
-	return 0;
-}
-
-/**************************************************************************//**
- *
  * cmd_set_page_parsed - Set which page to display on the screen.
  *
  * DESCRIPTION
@@ -881,29 +800,6 @@ static int
 page_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 {
 	pktgen_set_page(argv[1]);
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_clear_parsed - Clear the statistics on all ports.
- *
- * DESCRIPTION
- * Clear all statistics on all ports.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-clear_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_clear_stats(info) );
 	return 0;
 }
 
@@ -959,7 +855,6 @@ static struct cli_map start_stop_map[] = {
 	{  30, "%|start|stop %P capture" },
 	{  40, "start %P prime" },
 	{  50, "start %P arp %|request|gratuitous|req|grat" },
-    { CLI_MAP_HELP, "%|start|stop -?" },
     { -1, NULL }
 };
 
@@ -976,8 +871,6 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	rte_parse_portlist(argv[1], &portlist);
 
 	switch (m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 10:
 			foreach_port(portlist, pktgen_start_transmitting(info));
 			break;
@@ -1024,7 +917,6 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 static struct cli_map enable_disable_map[] = {
 	{ 10, "enable %P %|" ed_type },
 	{ 20, "disable %P %|" ed_type },
-    { CLI_MAP_HELP, "%|enable|disable -?" },
     { -1, NULL }
 };
 
@@ -1032,7 +924,6 @@ static int
 enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
 	struct cli_map *m;
-	char *opts[RTE_MAX_ARGVS + 1];
 	uint32_t portlist;
 	int n, state;
 
@@ -1040,19 +931,12 @@ enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	if (!m)
 		return -1;
 
-    /* split up the format string into opts, do not modify original */
-    strcpy(cli->scratch, m->fmt);
-    rte_strtok(cli->scratch, " ", opts, RTE_MAX_ARGVS);
-
 	rte_parse_portlist(argv[1], &portlist);
 
 	switch (m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 10:
 		case 20:
-	        /* Skip the %| in the string options */
-        	n = rte_stropt(&opts[1][2], argv[1], "|#");
+			n = cli_list_search(cli, m->fmt, argv[1], 1);
 
 			state = estate(argv[0]);
 
@@ -1122,7 +1006,6 @@ static struct cli_map debug_map[] = {
 	{ 10, "debug l2p" },
 	{ 20, "debug tx_debug" },
 	{ 30, "debug mempool dump %P %s" },
-    { CLI_MAP_HELP, "debug -?" },
     { -1, NULL }
 };
 
@@ -1137,8 +1020,6 @@ debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 		return -1;
 
 	switch(m->index) {
-		case CLI_MAP_HELP:
-			break;
 		case 10:
 			pktgen_l2p_dump();
 			break;
@@ -1165,20 +1046,82 @@ debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	return 0;
 }
 
+static struct cli_map misc_map[] = {
+	{ 10, "clear %P" },
+	{ 20, "geom %s" },
+	{ 21, "geom" },
+	{ 30, "load %s" },
+	{ 40, "script %l" },
+	{ 50, "lua %l" },
+	{ 60, "save %s" },
+	{ 70, "redisplay" },
+	{ -1, NULL }
+};
+
+static int
+misc_cmd(struct cli *cli, int argc, char **argv)
+{
+	struct cli_map *m;
+	uint32_t portlist;
+	uint16_t rows, cols;
+	char *p;
+
+	m = cli_mapping(cli, misc_map, argc, argv);
+	if (!m)
+		return -1;
+
+	switch(m->index) {
+		case 10:
+			rte_parse_portlist(argv[1], &portlist);
+			foreach_port(portlist,
+				     pktgen_clear_stats(info) );
+			break;
+		case 20:
+			p = strchr(argv[1], 'x');
+			if (p) {
+				rows = strtol(++p, NULL, 10);
+				cols = strtol(argv[1], NULL, 10);
+
+				pktgen_display_set_geometry(rows, cols);
+				pktgen_cls();
+			} else
+				return -1;
+			/* FALLTHRU */
+		case 21:
+			pktgen_display_get_geometry(&rows, &cols);
+			break;
+		case 30:
+			if (cli_load_cmds(cli, argv[1]) )
+				cli_printf(cli, "load command failed for %s\n", argv[1]);
+			if (!scrn_is_paused() )
+				pktgen_redisplay(0);
+			break;
+		case 40: script_cmd(cli, argc, argv); break;
+		case 50: exec_lua_cmd(cli, argc, argv); break;
+		case 60: pktgen_save(argv[1]); break;
+		case 70: pktgen_redisplay(1); break;
+		default:
+			return -1;
+	}
+	return 0;
+}
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
 
 static struct cli_tree default_tree[] = {
 	c_dir("/pktgen/bin"),
-	c_cmd("clear",		clear_cmd,		"clear stats"),
-	c_cmd("geom",		geometry_cmd, 	"set the screen geometry"),
-	c_cmd("load",		load_cmd, 		"load command file"),
-	c_cmd("script", 	script_cmd, 	"run a Lua script"),
-	c_cmd("lua", 		exec_lua_cmd, 	"execute a Lua string"),
-	c_cmd("save", 		save_cmd, 		"save the current state"),
-
 	c_cmd("help",		help_cmd, 		"help command"),
+
+	c_cmd("clear",		misc_cmd,		"clear stats"),
+	c_cmd("geom",		misc_cmd, 		"set the screen geometry"),
+	c_cmd("load",		misc_cmd, 		"load command file"),
+	c_cmd("script", 	misc_cmd, 		"run a Lua script"),
+	c_cmd("lua", 		misc_cmd, 		"execute a Lua string"),
+	c_cmd("save", 		misc_cmd, 		"save the current state"),
+	c_cmd("redisplay",	misc_cmd,		"redisplay the screen"),
+
 	c_cmd("theme", 		theme_cmd,		"Set, save, show the theme"),
 	c_cmd("range",		range_cmd,		"Range commands"),
 	c_cmd("enable",		enable_disable_cmd,	"enable features"),

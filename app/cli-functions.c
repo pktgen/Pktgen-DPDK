@@ -1104,12 +1104,15 @@ static struct cli_tree default_tree[] = {
 static int
 init_tree(struct cli *cli)
 {
+	/* Add the system default commands in /sbin directory */
     if (cli_default_tree_init(cli))
         return -1;
 
+	/* Add the Pktgen directory tree */
     if (cli_add_tree(cli, cli_root_node(cli), default_tree))
         return -1;
 
+	/* Make sure the pktgen commands are executable an in search path */
     if (cli_add_bin_path(cli, "/pktgen/bin"))
         return -1;
 

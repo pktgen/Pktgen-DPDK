@@ -393,29 +393,6 @@ exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __
 		pktgen_log_error("%s", lua_tostring(L, -1));
 	return 0;
 }
-/**************************************************************************//**
- *
- * cmd_pdump_parsed - Hex dump of the first packet.
- *
- * DESCRIPTION
- * dump out the first packet in hex.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pdump_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-
-	foreach_port(portlist, debug_pdump(info));
-	pktgen_update_display();
-	return 0;
-}
 
 /**************************************************************************//**
  *
@@ -803,52 +780,6 @@ page_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_reset_parsed - Reset Pktgen to the default configuration state.
- *
- * DESCRIPTION
- * Reset Pktgen to the default configuration state.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-reset_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_reset(info) );
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_port_restart_parsed - Port Reset
- *
- * DESCRIPTION
- * Port Reset
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-restart_port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_port_restart(info) );
-	return 0;
-}
-
 static struct cli_map start_stop_map[] = {
 	{  10, "start %P" },
 	{  20, "stop %P" },
@@ -1055,6 +986,10 @@ static struct cli_map misc_map[] = {
 	{ 50, "lua %l" },
 	{ 60, "save %s" },
 	{ 70, "redisplay" },
+	{ 80, "seq %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
+	{ 90, "pdump %P" },
+	{ 100, "reset" },
+	{ 110, "restart " },
 	{ -1, NULL }
 };
 
@@ -1100,6 +1035,22 @@ misc_cmd(struct cli *cli, int argc, char **argv)
 		case 50: exec_lua_cmd(cli, argc, argv); break;
 		case 60: pktgen_save(argv[1]); break;
 		case 70: pktgen_redisplay(1); break;
+		case 80: seq_set_cmd(cli, argc, argv); break;
+		case 90:
+			rte_parse_portlist(argv[1], &portlist);
+			foreach_port(portlist, debug_pdump(info));
+			pktgen_update_display();
+			break;
+		case 100:
+			rte_parse_portlist(argv[1], &portlist);
+			foreach_port(portlist,
+				     pktgen_reset(info) );
+			break;
+		case 110:
+			rte_parse_portlist(argv[1], &portlist);
+			foreach_port(portlist,
+				     pktgen_port_restart(info) );
+			break;
 		default:
 			return -1;
 	}
@@ -1121,6 +1072,10 @@ static struct cli_tree default_tree[] = {
 	c_cmd("lua", 		misc_cmd, 		"execute a Lua string"),
 	c_cmd("save", 		misc_cmd, 		"save the current state"),
 	c_cmd("redisplay",	misc_cmd,		"redisplay the screen"),
+	c_cmd("seq",		misc_cmd,		"sequence command"),
+	c_cmd("pdump",		misc_cmd,		"Dump packet on port"),
+	c_cmd("reset",		misc_cmd,		"reset pktgen configuration"),
+	c_cmd("restart", 	misc_cmd, 		"reset port to default state"),
 
 	c_cmd("theme", 		theme_cmd,		"Set, save, show the theme"),
 	c_cmd("range",		range_cmd,		"Range commands"),
@@ -1133,15 +1088,15 @@ static struct cli_tree default_tree[] = {
 	c_cmd("page",		page_set_cmd, 	"change page displays"),
 	c_cmd("port", 		port_cmd, 		"Switch between ports"),
 
-	c_cmd("pdump", 		pdump_cmd, 		"packet dump command"),
-	c_cmd("reset", 		reset_cmd, 		"reset pktgen to default state"),
-	c_cmd("restart", 	restart_port_cmd, "reset port to default state"),
-	c_cmd("seq", 		seq_set_cmd, 	"Set a sequence packet to a port"),
 	c_cmd("ping4", 		ping4_cmd, 		"Send a ping packet for IPv4"),
 #ifdef INCLUDE_PING6
 	c_cmd("ping6", 		ping6_cmd,		"Send a ping packet for IPv6"),
 #endif
 	c_cmd("debug",      debug_cmd,		"debug commands"),
+
+	c_alias("str",		"start all",	"start all ports sending packets"),
+	c_alias("stp",		"stop all",		"stop all ports sending packets"),
+	c_alias("clr",		"clear all",	"clear all port stats"),
 
 	c_end()
 };

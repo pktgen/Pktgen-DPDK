@@ -61,10 +61,11 @@
 /**********************************************************/
 static const char *help_info[] = {
 	"",						/* Leave blank not used */
-	"   *** Help Information for Pktgen ***\n",	/* leave newline, Copyright is below this line. */
-	"set <portlist> <xxx> value         - Set a few port values",
+	"   *** Help Information for Pktgen ***",	/* leave newline, Copyright is below this line. */
+	"",
+	"set <portlist> <type> value        - Set a few port values",
 	"  <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'",
-	"  <xxx>          count             - number of packets to transmit",
+	"  <type>         count             - number of packets to transmit",
 	"                 size              - size of the packet to transmit",
 	"                 rate              - Packet rate in percentage",
 	"                 burst             - number of packets in a burst",
@@ -74,53 +75,63 @@ static const char *help_info[] = {
 	"                 seqCnt            - Set the number of packet in the sequence to send",
 	"                 dump              - Dump the next <value> received packets to the screen",
 	"                 vlanid            - Set the VLAN ID value for the portlist",
-	"                 random            - Enable or disable random mode\n",
+	"                 random            - Enable or disable random mode",
+	"                 jitter            - Set the jitter threshold in micro-seconds",
+	"                 ppp [1-6]         - Set the number of ports displayed per page",
+	"                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)",
+	"                 gre_key           - Set the GRE key",
+	"                 mac <etheraddr>   - Set MAC addresses 00:11:22:33:44:55",
+	"                                     You can use 0011:2233:4455 format as well",
+	"set <portlist> ip src|dst ipaddr   - Set IP addresses",
+	"set <portlist> vlanid <vlanid>     - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
+	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
+	"set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port",
+	"set <portlist> type ipv4|ipv6|vlan - Set the packet type to IPv4 or IPv6 or VLAN",
+	"<<PageBreak>>",
+	"enable|disable <portlist> <features>",
+	"    Feature - process              - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
+	"              mpls                 - Enable/disable sending MPLS entry in packets",
+    "              qinq                 - Enable/disable sending Q-in-Q header in packets",
+	"              gre                  - Enable/disable GRE support",
+	"              gre_eth              - Enable/disable GRE with Ethernet frame payload",
+	"              vlan                 - Enable/disable VLAN tagging",
+	"              garp                 - Enable or Disable GARP packet processing and update MAC address",
+	"              random               - Enable/disable Random packet support",
+	"              latency              - Enable/disable latency testing",
+    "              pcap                 - Enable or Disable sending pcap packets on a portlist",
+	"              screen               - Enable/disable updating the screen and unlock/lock window",
+	"              mac_from_arp         - Enable/disable MAC address from ARP packet",
+	"              blink                - Blink LED on port(s)",
+	"              rx_tap               - Enable/Disable RX Tap support",
+	"              tx_tap               - Enable/Disable TX Tap support",
+	"              icmp                 - Enable/Disable sending ICMP packets",
+	"              range                - Enable or Disable the given portlist for sending a range of packets",
+	"              capture              - Enable/disable packet capturing on a portlist",
+	"              screen               - Enable/disable updating the screen and unlock/lock window",
+	"off                                - screen off shortcut",
+	"on                                 - screen on shortcut",
+	"",
+	"<<PageBreak>>",
 	"pattern <type>                     - Fill Pattern type",
 	"        abc                        - Default pattern of abc string",
 	"        none                       - No fill pattern, maybe random data",
 	"        zero                       - Fill of zero bytes",
 	"        user                       - User supplied string of max 16 bytes",
 	"pattern user \"string\"            - A 16 byte string, must set 'pattern user' command",
-	"enable|disable <feature>           - Enable or Disable a feature",
-	"    Feature - process|mpls|qinq|gre|vlan|garp|random|latency|pcap",
-	"latency <portlist> <state>         - Enable Latency testing",
-	"jitter <portlist> <usec>           - Set the jitter threshold in micro-seconds",
-	"seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vlan pktsize",
+	"seq <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> teid <val>",
+	"seq <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> <teid>",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
 	"save <path-to-file>                - Save a configuration file using the filename",
 	"load <path-to-file>                - Load a command/script file from the given path",
 	"script <filename>                  - Execute the Lua script code in file (www.lua.org).",
-	"!lua 'lua string'                  - Execute the Lua code in the string needs quotes",
-	"ppp [1-6]                          - Set the number of ports displayed per page",
-	"icmp.echo <portlist> <state>       - Enable/disable ICMP echo responses per port",
-	"send arp req|grat <portlist>       - Send a ARP request or gratuitous ARP on a set of ports",
-	"set mac <portlist> etheraddr       - Set MAC addresses 00:11:22:33:44:55",
-	"                                     You can use 0011:2233:4455 format as well",
-	"",
-	"<<PageBreak>>",
-	"mac_from_arp <state>               - Set the option to get MAC from ARP request",
-	"proto udp|tcp|icmp <portlist>      - Set the packet protocol to UDP or TCP or ICMP per port",
-	"type ipv4|ipv6|vlan <portlist>     - Set the packet type to IPv4 or IPv6 or VLAN",
-	"set ip src|dst <portlist> ipaddr   - Set IP addresses",
+	"lua 'lua string'                   - Execute the Lua code in the string needs quotes",
 	"geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
-	"capture <portlist> <state>         - Enable/disable packet capturing on a portlist",
-	"vlan <portlist> <state>            - Enable/disable sending VLAN ID in packets",
-	"vlanid <portlist> <vlanid>         - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
-	"mpls <portlist> <state>            - Enable/disable sending MPLS entry in packets",
-	"mpls_entry <portlist> <entry>      - Set the MPLS entry for the portlist (must be specified in hex)",
-	"qinq <portlist> <state>            - Enable/disable sending Q-in-Q header in packets",
-	"qinqids <portlist> <id1> <id2>     - Set the Q-in-Q ID's for the portlist",
-	"pdump <portlist>                   - Hex dump the first packet to be sent, single packet mode only",
 	"",
 	"<<PageBreak>>",
-	"gre <portlist> <state>             - Enable/disable GRE with IPv4 payload",
-	"gre_eth <portlist> <state>         - Enable/disable GRE with Ethernet frame payload",
-	"gre_key <portlist> <state>         - Set the GRE key",
-	"pcap <portlist> <state>            - Enable or Disable sending pcap packets on a portlist",
-	"pcap.show                          - Show the PCAP information",
-	"pcap.index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file",
-	"pcap.filter <portlist> <string>    - PCAP filter string to filter packets on receive",
+	"pcap show                          - Show PCAP information",
+	"pcap index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file",
+	"pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive",
 	"ping4 <portlist>                   - Send a IPv4 ICMP echo request on the given portlist",
 #ifdef INCLUDE_PING6
 	"ping6 <portlist>                   - Send a IPv6 ICMP echo request on the given portlist",
@@ -140,9 +151,7 @@ static const char *help_info[] = {
 	"     log                           - Display the log messages page",
 	"     latency                       - Display the latency page",
 	"     stats                         - Display physical ports stats for all ports",
-	"port <number>                      - Sets the sequence of packets to display for a given port",
-	"process <portlist> <state>         - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
-	"garp <portlist> <state>            - Enable or Disable GARP packet processing and update MAC address",
+	"port <number>                      - Sets the sequence packets to display for a given port",
 	"",
 	"<<PageBreak>>",
 	"rnd <portlist> <idx> <off> <mask>  - Set random mask for all transmitted packets from portlist",
@@ -155,58 +164,45 @@ static const char *help_info[] = {
 	"                                       X: bit will get random value",
 	"theme <state>                      - Enable or Disable the theme",
 	"theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value",
-	"theme.show                         - List the item strings, colors and attributes to the items",
-	"theme.save <filename>              - Save the current color theme to a file",
+	"theme show                         - List the item strings, colors and attributes to the items",
+	"theme save <filename>              - Save the current color theme to a file",
+	"",
+	"start <portlist> arp <type>        - Send a ARP type packet",
+	"    type - request | gratuitous | req | grat",
 	"start <portlist>                   - Start transmitting packets",
 	"stop <portlist>                    - Stop transmitting packets",
 	"stp                                - Stop all ports from transmitting",
 	"str                                - Start all ports transmitting",
 	"",
-	"screen stop|start                  - stop/start updating the screen and unlock/lock window",
-	"off                                - screen off shortcut",
-	"on                                 - screen on shortcut",
-	"prime <portlist>                   - Transmit N packets on each port listed. See set prime command above",
-	"dev.list                           - Show the device whitelist/blacklist/Virtual",
-	"pci.list                           - Show all the PCI devices",
+	"<<PageBreak>>",
+	"prime <portlist>                   - Transmit packets on each port listed. See set prime command above",
 	"clear <portlist>                   - Clear the statistics",
 	"clr                                - Clear all Statistices",
 	"cls                                - Clear the screen",
-	"reset <portlist>                   - Reset the configuration to the default",
+	"reset <portlist>                   - Reset the configuration the ports to the default",
 	"rst                                - Reset the configuration for all ports",
-	"port.restart <portlist>            - Restart or stop a ethernet port and restart",
+	"port restart <portlist>            - Restart or stop a ethernet port and restart",
+	"debug l2p                          - Dump out internal lcore to port mapping",
+	"debug tx_debug                     - Enable tx debug output",
+	"debug mempool <portlist> <type>    - Dump out the mempool info for a given type",
+	"debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
+	"",
 	"help                               - Display this help message",
-	"quit                               - Quit the Pktgen program",
+	"quit                               - Quit Pktgen program",
 	"",
 	"<<PageBreak>>",
 	"  -- Setup the packet range values --",
-	"dst.mac start <portlist> etheraddr - Set destination MAC address start",
-	"src.mac start <portlist> etheraddr - Set source MAC address start",
-	"src.ip start <portlist> ipaddr     - Set source IP start address",
-	"src.ip min <portlist> ipaddr       - Set source IP minimum address",
-	"src.ip max <portlist> ipaddr       - Set source IP maximum address",
-	"src.ip inc <portlist> ipaddr       - Set source IP increment address",
-	"dst.ip start <portlist> ipaddr     - Set destination IP start address",
-	"dst.ip min <portlist> ipaddr       - Set destination IP minimum address",
-	"dst.ip max <portlist> ipaddr       - Set destination IP maximum address",
-	"dst.ip inc <portlist> ipaddr       - Set destination IP increment address",
-	"ip.proto <portlist> [tcp|udp]      - Set the IP protocol type (alias range.proto)",
-	"src.port start <portlist> value    - Set source port start address",
-	"src.port min <portlist> value      - Set source port minimum address",
-	"src.port max <portlist> value      - Set source port maximum address",
-	"src.port inc <portlist> value      - Set source port increment address",
-	"dst.port start <portlist> value    - Set destination port start address",
-	"dst.port min <portlist> value      - Set destination port minimum address",
-	"dst.port max <portlist> value      - Set destination port maximum address",
-	"dst.port inc <portlist> value      - Set destination port increment address",
-	"vlan.id start <portlist> value     - Set vlan id start address",
-	"vlan.id min <portlist> value       - Set vlan id minimum address",
-	"vlan.id max <portlist> value       - Set vlan id maximum address",
-	"vlan.id inc <portlist> value       - Set vlan id increment address",
-	"pkt.size start <portlist> value    - Set pkt size start address",
-	"pkt.size min <portlist> value      - Set pkt size minimum address",
-	"pkt.size max <portlist> value      - Set pkt size maximum address",
-	"pkt.size inc <portlist> value      - Set pkt size increment address",
-	"range <portlist> <state>           - Enable or Disable the given portlist for sending a range of packets",
+	"                 - SMMI = Start|Min|Max|Inc (Start, Minimum, Maximum, Increment)",
+	"range <portlist> mac [dst|src] <etheraddr>    - Set destination/source MAC address",
+	"range <portlist> ip [src|dst] <SMMI> <ipaddr> - Set source IP start address",
+	"range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)",
+	"range <portlist> [sport|dport] <SMMI> <value> - Set source port start address",
+	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
+	"range <portlist> size <SMMI> <value>          - Set pkt size start address",
+	"range <portlist> teid <SMMI> <value>          - Set TEID value",
+	"range <portlist> mpls entry <hex-value>       - Set MPLS entry value",
+	"range <portlist> qinq index <val1> <val2>     - Set QinQ index values",
+	"range <portlist> gre key <value>              - Set GRE key value",
 	"",
 	"<<PageBreak>>",
 	"       Flags: P---------------- - Promiscuous mode enabled",
@@ -253,6 +249,7 @@ static int
 help_cmd(struct cli *cli, int argc __rte_unused, char **argv __rte_unused)
 {
 	int i, paused;
+	char key;
 
 	paused = scrn_is_paused();
 
@@ -266,23 +263,20 @@ help_cmd(struct cli *cli, int argc __rte_unused, char **argv __rte_unused)
 	scrn_pos(4, 0);
 	for (i = 2; help_info[i] != NULL; i++) {
 		if (strcmp(help_info[i], "<<PageBreak>>") == 0) {
-			if (cli_pause(cli,
-					"   <More Help: Press Return to Continue or ESC>",
-				 	NULL, NULL) )
+			key = cli_pause(cli,
+				"   <More Help: Press Return to Continue or ESC>", NULL);
+			if (key == cli_vt100_escape)
 				goto leave;
 			scrn_cls();
 			scrn_pos(0, 0);
-			cli_printf(cli,
-				       "%s%s\n",
-				       help_info[1],
-				       copyright_msg());
+			cli_printf(cli, "%s%s\n", help_info[1], copyright_msg());
 			scrn_pos(4, 0);
 			continue;
 		}
 		cli_printf(cli, "%s\n", help_info[i]);
 	}
 
-	cli_pause(cli, "   <Press Return to Continue or ESC>", NULL, NULL);
+	cli_pause(cli, "   <Press Return to Continue or ESC>", NULL);
 leave:
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);
@@ -394,58 +388,7 @@ exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_ping4_parsed - Ping command for IPv4
- *
- * DESCRIPTION
- * Ping command for IPv4 sending a ICMP echo request.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ping4_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_ping4(info));
-	pktgen_update_display();
-	return 0;
-}
-
-#ifdef INCLUDE_PING6
-/**************************************************************************//**
- *
- * cmd_ping6_parsed - Send a Ping IPv6 command
- *
- * DESCRIPTION
- * Send a ICMP Ping IPv6 request.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-ping6_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	uint32_t portlist;
-
-	rte_parse_portlist(argv[1], &portlist);
-	foreach_port(portlist,
-		     pktgen_ping6(info));
-	pktgen_update_display();
-	return 0;
-}
-#endif
-
 static struct cli_map range_map[] = {
-	{ 10, "range %P %|on|off" },
 	{ 20, "range %P mac dst %|start|min|max|inc %m" },
 	{ 21, "range %P mac src %|start|min|max|inc %m" },
 	{ 30, "range %P ip dst %|start|min|max|inc %4" },
@@ -475,9 +418,6 @@ range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	rte_parse_portlist(argv[1], &portlist);
 
 	switch(m->index) {
-		case 10:
-			foreach_port(portlist, enable_range(info, estate(argv[2])));
-			break;
 		case 20:
 			foreach_port(portlist,
 			     range_set_dest_mac(info, argv[4],
@@ -694,96 +634,9 @@ pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
- *
- * cmd_set_port_parsed - Set the current working port number
- *
- * DESCRIPTION
- * Set the current working port number for sequence configuration.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-port_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-
-	pktgen_set_port_number(atoi(argv[1]));
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
- *
- * DESCRIPTION
- * Set up the sequence packets for a given port and slot.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-seq_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	char *proto = argv[10];
-	char *eth = argv[9];
-	int seqnum = atoi(argv[1]);
-	uint32_t portlist;
-	rte_ipaddr_t dst, src;
-	uint32_t teid;
-
-	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf(cli, "Must use IPv4 with ICMP type packets\n");
-		return -1;
-	}
-
-	if (seqnum >= NUM_SEQ_PKTS)
-		return -1;
-
-	teid = strtoul(argv[13], NULL, 10);
-	rte_atoip(argv[5], RTE_IPADDR_V4, &dst, sizeof(dst));
-	rte_atoip(argv[6], RTE_IPADDR_V4, &src, sizeof(src));
-	rte_parse_portlist(argv[2], &portlist);
-	foreach_port(portlist,
-		     pktgen_set_seq(info, seqnum,
-				    rte_ether_aton(argv[3], NULL), rte_ether_aton(argv[4], NULL),
-				    &dst, &src,
-				    atoi(argv[7]), atoi(argv[8]), eth[3],
-				    proto[0],
-				    atoi(argv[11]), atoi(argv[12]),
-				    teid) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_set_page_parsed - Set which page to display on the screen.
- *
- * DESCRIPTION
- * Set the page to display on the screen.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-page_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	pktgen_set_page(argv[1]);
-	return 0;
-}
-
 static struct cli_map start_stop_map[] = {
 	{  10, "start %P" },
 	{  20, "stop %P" },
-	{  30, "%|start|stop %P capture" },
 	{  40, "start %P prime" },
 	{  50, "start %P arp %|request|gratuitous|req|grat" },
     { -1, NULL }
@@ -807,9 +660,6 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 			break;
 		case 20:
 			foreach_port(portlist, pktgen_stop_transmitting(info));
-			break;
-		case 30:
-			foreach_port(portlist, pktgen_set_capture(info, estate(argv[0])));
 			break;
 		case 40:
 			foreach_port(portlist, pktgen_prime_ports(info));
@@ -843,7 +693,10 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 				"blink|" 		/* 11 */	\
 				"rx_tap|" 		/* 12 */	\
 				"tx_tap|"		/* 13 */	\
-				"icmp"			/* 14 */
+				"icmp|"			/* 14 */	\
+				"range|"		/* 15 */	\
+				"capture|"		/* 16 */	\
+				"gre_eth"		/* 17 */
 
 static struct cli_map enable_disable_map[] = {
 	{ 10, "enable %P %|" ed_type },
@@ -922,6 +775,13 @@ enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 				case 14:
 					foreach_port(portlist, enable_icmp_echo(info, state));
 					break;
+				case 15:
+					foreach_port(portlist, enable_range(info, state));
+					break;
+				case 16:
+					foreach_port(portlist, pktgen_set_capture(info, state));
+					break;
+
 				default:
 					return -1;
 			}
@@ -936,7 +796,8 @@ enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 static struct cli_map debug_map[] = {
 	{ 10, "debug l2p" },
 	{ 20, "debug tx_debug" },
-	{ 30, "debug mempool dump %P %s" },
+	{ 30, "debug mempool %P %s" },
+	{ 40, "debug pdump %P" },
     { -1, NULL }
 };
 
@@ -968,12 +829,110 @@ debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 					     debug_mempool_dump(info, argv[3]) );
 			break;
 		case 40:
-			break;
-		case 50:
+			rte_parse_portlist(argv[2], &portlist);
+			foreach_port(portlist, debug_pdump(info));
+			pktgen_update_display();
 			break;
 		default:
 			return -1;
 	}
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * cmd_set_seq_parsed - Set a sequence config for given port and slot.
+ *
+ * DESCRIPTION
+ * Set up the sequence packets for a given port and slot.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ * 	"%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d"
+
+ */
+
+static int
+seq_1_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+{
+	char *proto = argv[10];
+	char *eth = argv[9];
+	int seqnum = atoi(argv[1]);
+	uint32_t portlist;
+	rte_ipaddr_t dst, src;
+	uint32_t teid;
+
+	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
+		cli_printf(cli, "Must use IPv4 with ICMP type packets\n");
+		return -1;
+	}
+
+	if (seqnum >= NUM_SEQ_PKTS)
+		return -1;
+
+	teid = (argc == 11)? strtoul(argv[13], NULL, 10) : 0;
+	rte_atoip(argv[5], RTE_IPADDR_V4, &dst, sizeof(dst));
+	rte_atoip(argv[6], RTE_IPADDR_V4, &src, sizeof(src));
+	rte_parse_portlist(argv[2], &portlist);
+	foreach_port(portlist,
+		     pktgen_set_seq(info, seqnum,
+				    rte_ether_aton(argv[3], NULL), rte_ether_aton(argv[4], NULL),
+				    &dst, &src,
+				    atoi(argv[7]), atoi(argv[8]), eth[3],
+				    proto[0],
+				    atoi(argv[11]), atoi(argv[12]),
+				    teid) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * cmd_set_seq_parsed - Set a sequence config for given port and slot.
+ *
+ * DESCRIPTION
+ * Set up the sequence packets for a given port and slot.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ * 	"%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d"
+ */
+
+static int
+seq_2_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+{
+	char *proto = argv[16];
+	char *eth = argv[15];
+	int seqnum = atoi(argv[1]);
+	uint32_t portlist;
+	rte_ipaddr_t dst, src;
+	uint32_t teid;
+
+	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
+		cli_printf(cli, "Must use IPv4 with ICMP type packets\n");
+		return -1;
+	}
+
+	if (seqnum >= NUM_SEQ_PKTS)
+		return -1;
+
+	teid = (argc == 23)? strtoul(argv[22], NULL, 10) : 0;
+	rte_atoip(argv[8], RTE_IPADDR_V4, &dst, sizeof(dst));
+	rte_atoip(argv[10], RTE_IPADDR_V4, &src, sizeof(src));
+	rte_parse_portlist(argv[2], &portlist);
+	foreach_port(portlist,
+		     pktgen_set_seq(info, seqnum,
+				    rte_ether_aton(argv[4], NULL), rte_ether_aton(argv[6], NULL),
+				    &dst, &src,
+				    atoi(argv[12]), atoi(argv[14]), eth[3],
+				    proto[0],
+				    atoi(argv[18]), atoi(argv[20]),
+				    teid) );
+
+	pktgen_update_display();
 	return 0;
 }
 
@@ -986,10 +945,18 @@ static struct cli_map misc_map[] = {
 	{ 50, "lua %l" },
 	{ 60, "save %s" },
 	{ 70, "redisplay" },
-	{ 80, "seq %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
-	{ 90, "pdump %P" },
+	{ 80, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d" },
+	{ 81, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d" },
+	{ 82, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
 	{ 100, "reset" },
-	{ 110, "restart " },
+	{ 110, "restart" },
+	{ 120, "page %d" },
+	{ 121, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|log|latency|stats" },
+	{ 130, "port %d" },
+	{ 140, "ping4 %P %4" },
+#ifdef INCLUDE_PING6
+	{ 141, "ping6 %P %6" },
+#endif
 	{ -1, NULL }
 };
 
@@ -1035,12 +1002,9 @@ misc_cmd(struct cli *cli, int argc, char **argv)
 		case 50: exec_lua_cmd(cli, argc, argv); break;
 		case 60: pktgen_save(argv[1]); break;
 		case 70: pktgen_redisplay(1); break;
-		case 80: seq_set_cmd(cli, argc, argv); break;
-		case 90:
-			rte_parse_portlist(argv[1], &portlist);
-			foreach_port(portlist, debug_pdump(info));
-			pktgen_update_display();
-			break;
+		case 80: seq_1_set_cmd(cli, argc, argv); break;
+		case 81: seq_2_set_cmd(cli, argc, argv); break;
+		case 82: seq_2_set_cmd(cli, argc, argv); break;
 		case 100:
 			rte_parse_portlist(argv[1], &portlist);
 			foreach_port(portlist,
@@ -1051,6 +1015,21 @@ misc_cmd(struct cli *cli, int argc, char **argv)
 			foreach_port(portlist,
 				     pktgen_port_restart(info) );
 			break;
+		case 120:
+		case 121: pktgen_set_page(argv[1]); break;
+		case 130: pktgen_set_port_number(atoi(argv[1])); break;
+		case 140:
+			rte_parse_portlist(argv[1], &portlist);
+			foreach_port(portlist, pktgen_ping4(info));
+			pktgen_update_display();
+			break;
+#ifdef INCLUDE_PING6
+		case 141:
+			rte_parse_portlist(argv[1], &portlist);
+			foreach_port(portlist, pktgen_ping6(info));
+			pktgen_update_display();
+			break;
+#endif
 		default:
 			return -1;
 	}
@@ -1073,9 +1052,14 @@ static struct cli_tree default_tree[] = {
 	c_cmd("save", 		misc_cmd, 		"save the current state"),
 	c_cmd("redisplay",	misc_cmd,		"redisplay the screen"),
 	c_cmd("seq",		misc_cmd,		"sequence command"),
-	c_cmd("pdump",		misc_cmd,		"Dump packet on port"),
 	c_cmd("reset",		misc_cmd,		"reset pktgen configuration"),
-	c_cmd("restart", 	misc_cmd, 		"reset port to default state"),
+	c_cmd("restart", 	misc_cmd, 		"restart port"),
+	c_cmd("page",		misc_cmd, 		"change page displays"),
+	c_cmd("port", 		misc_cmd, 		"Switch between ports"),
+	c_cmd("ping4", 		misc_cmd, 		"Send a ping packet for IPv4"),
+#ifdef INCLUDE_PING6
+	c_cmd("ping6", 		misc_cmd,		"Send a ping packet for IPv6"),
+#endif
 
 	c_cmd("theme", 		theme_cmd,		"Set, save, show the theme"),
 	c_cmd("range",		range_cmd,		"Range commands"),
@@ -1085,18 +1069,14 @@ static struct cli_tree default_tree[] = {
 	c_cmd("stop",		start_stop_cmd,	"stop features"),
 	c_cmd("pcap",		pcap_cmd, 		"pcap commands"),
 	c_cmd("set", 		set_cmd, 		"set a number of options"),
-	c_cmd("page",		page_set_cmd, 	"change page displays"),
-	c_cmd("port", 		port_cmd, 		"Switch between ports"),
-
-	c_cmd("ping4", 		ping4_cmd, 		"Send a ping packet for IPv4"),
-#ifdef INCLUDE_PING6
-	c_cmd("ping6", 		ping6_cmd,		"Send a ping packet for IPv6"),
-#endif
 	c_cmd("debug",      debug_cmd,		"debug commands"),
 
 	c_alias("str",		"start all",	"start all ports sending packets"),
 	c_alias("stp",		"stop all",		"stop all ports sending packets"),
 	c_alias("clr",		"clear all",	"clear all port stats"),
+	c_alias("on",       "enable screen","Enable screen updates"),
+	c_alias("off",      "disable screen", "Disable screen updates"),
+	c_alias("rst",      "reset all",    "reset all ports"),
 
 	c_end()
 };

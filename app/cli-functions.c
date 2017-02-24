@@ -61,13 +61,11 @@
 /**********************************************************/
 static const char *title_help[] = {
 	"   *** Help Information for Pktgen ***",
+	"",
 	NULL
 };
 
-static struct cli_info title_info = {
-	.map = NULL,
-	.help = title_help
-};
+CLI_INFO(Title, NULL, title_help);
 
 static const char *status_help[] = {
 	"       Flags: P---------------- - Promiscuous mode enabled",
@@ -94,122 +92,11 @@ static const char *status_help[] = {
 	"       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'",
 	"       Color best seen on a black background for now",
 	"       To see a set of example Lua commands see the files in wr-examples/pktgen/test",
+	"",
 	NULL
 };
 
-static struct cli_info status_info = {
-	.map = NULL,
-	.help = status_help
-};
-
-static struct cli_map theme_map[] = {
-	{  0, "theme" },
-	{ 10, "theme %|on|off" },
-	{ 20, "theme item %s %s %s %s" },
-	{ 30, "theme save" },
-	{ -1, NULL }
-};
-
-static const char *theme_help[] = {
-	"theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value",
-	"theme show                         - List the item strings, colors and attributes to the items",
-	"theme save <filename>              - Save the current color theme to a file",
-	NULL
-};
-
-static int
-theme_cmd(struct cli *cli __rte_unused, int argc, char **argv)
-{
-	struct cli_map *m;
-
-	m = cli_mapping(cli, theme_map, argc, argv);
-	if (!m)
-		return -1;
-
-	switch(m->index) {
-		case 0:
-			pktgen_theme_show();
-			break;
-		case 10:
-			pktgen_theme_state(argv[1]);
-			pktgen_cls();
-			break;
-		case 20:
-			pktgen_set_theme_item(argv[2], argv[3], argv[4], argv[5]);
-			break;
-		case 30:
-			pktgen_theme_save(argv[2]);
-			break;
-		default:
-			return -1;
-	}
-	return 0;
-}
-
-
-/**************************************************************************//**
- *
- * cmd_script_parsed - Command to execute a script.
- *
- * DESCRIPTION
- * Load the script file and execute the commands.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-script_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
-{
-	lua_State *L = pktgen.L;
-
-	if (L == NULL) {
-		pktgen_log_error("Lua is not initialized!");
-		return -1;
-	}
-
-	if (is_cli_help(argc, argv)) {
-		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
-		return 0;
-	}
-
-	if (luaL_dofile(L, argv[1]) != 0)
-		pktgen_log_error("%s", lua_tostring(L, -1));
-	return 0;
-}
-
-/**************************************************************************//**
- *
- * cmd_exec_lua_parsed - Command to execute lua code on command line.
- *
- * DESCRIPTION
- * Execute a string of lua code
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
-{
-	lua_State *L = pktgen.L;
-
-	if (L == NULL) {
-		pktgen_log_error("Lua is not initialized!");
-		return -1;
-	}
-
-	if (is_cli_help(argc, argv)) {
-		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
-		return 0;
-	}
-
-	if (luaL_dostring(L, cli->gb->buf) != 0)
-		pktgen_log_error("%s", lua_tostring(L, -1));
-	return 0;
-}
+CLI_INFO(Status, NULL, status_help);
 
 static struct cli_map range_map[] = {
 	{ 20, "range %P mac dst %|start|min|max|inc %m" },
@@ -240,8 +127,11 @@ static const char *range_help[] = {
 	"range <portlist> mpls entry <hex-value>       - Set MPLS entry value",
 	"range <portlist> qinq index <val1> <val2>     - Set QinQ index values",
 	"range <portlist> gre key <value>              - Set GRE key value",
+	CLI_PAUSE,
 	NULL
 };
+
+CLI_INFO(Range, range_map, range_help);
 
 static int
 range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
@@ -250,7 +140,7 @@ range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	uint32_t portlist;
 	rte_ipaddr_t ip;
 
-	m = cli_mapping(cli, range_map, argc, argv);
+	m = cli_mapping(cli, Range_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -378,8 +268,11 @@ static const char *set_help[] = {
 	"                                       1: bit will be 1",
 	"                                       .: bit will be ignored (original value is retained)",
 	"                                       X: bit will get random value",
+	CLI_PAUSE,
 	NULL
 };
+
+CLI_INFO(Set, set_map, set_help);
 
 static int
 set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
@@ -390,7 +283,7 @@ set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	struct cli_map *m;
 	rte_ipaddr_t ip;
 
-	m = cli_mapping(cli, set_map, argc, argv);
+	m = cli_mapping(cli, Set_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -467,8 +360,11 @@ static const char *pcap_help[] = {
 	"pcap show                          - Show PCAP information",
 	"pcap index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file",
 	"pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive",
+	"",
 	NULL
 };
+
+CLI_INFO(PCAP, pcap_map, pcap_help);
 
 static int
 pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
@@ -479,7 +375,7 @@ pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	uint32_t value;
 	uint32_t portlist;
 
-	m = cli_mapping(cli, pcap_map, argc, argv);
+	m = cli_mapping(cli, PCAP_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -518,7 +414,7 @@ pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	return 0;
 }
 
-static struct cli_map start_stop_map[] = {
+static struct cli_map start_map[] = {
 	{  10, "start %P" },
 	{  20, "stop %P" },
 	{  40, "start %P prime" },
@@ -535,8 +431,11 @@ static const char *start_help[] = {
 	"start <portlist> prime             - Transmit packets on each port listed. See set prime command above",
 	"start <portlist> arp <type>        - Send a ARP type packet",
 	"    type - request | gratuitous | req | grat",
+	CLI_PAUSE,
 	NULL
 };
+
+CLI_INFO(Start, start_map, start_help);
 
 static int
 start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
@@ -544,7 +443,7 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	struct cli_map *m;
 	uint32_t portlist;
 
-	m = cli_mapping(cli, start_stop_map, argc, argv);
+	m = cli_mapping(cli, Start_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -575,6 +474,53 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	return 0;
 }
 
+static struct cli_map theme_map[] = {
+	{  0, "theme" },
+	{ 10, "theme %|on|off" },
+	{ 20, "theme item %s %s %s %s" },
+	{ 30, "theme save" },
+	{ -1, NULL }
+};
+
+static const char *theme_help[] = {
+	"theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value",
+	"theme show                         - List the item strings, colors and attributes to the items",
+	"theme save <filename>              - Save the current color theme to a file",
+	CLI_PAUSE,
+	NULL
+};
+
+CLI_INFO(Theme, theme_map, theme_help);
+
+static int
+theme_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+{
+	struct cli_map *m;
+
+	m = cli_mapping(cli, Theme_info.map, argc, argv);
+	if (!m)
+		return -1;
+
+	switch(m->index) {
+		case 0:
+			pktgen_theme_show();
+			break;
+		case 10:
+			pktgen_theme_state(argv[1]);
+			pktgen_cls();
+			break;
+		case 20:
+			pktgen_set_theme_item(argv[2], argv[3], argv[4], argv[5]);
+			break;
+		case 30:
+			pktgen_theme_save(argv[2]);
+			break;
+		default:
+			return -1;
+	}
+	return 0;
+}
+
 #define ed_type	"process|"		/*  0 */	\
 				"mpls|" 		/*  1 */	\
 				"qinq|" 		/*  2 */	\
@@ -594,7 +540,7 @@ start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 				"capture|"		/* 16 */	\
 				"gre_eth"		/* 17 */
 
-static struct cli_map enable_disable_map[] = {
+static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
 	{ 20, "disable %P %|" ed_type },
     { -1, NULL }
@@ -624,9 +570,11 @@ static const char *enable_help[] = {
 	"              theme                - Enable or Disable the theme",
 	"off                                - screen off shortcut",
 	"on                                 - screen on shortcut",
-	"",
+	CLI_PAUSE,
 	NULL
 };
+
+CLI_INFO(Enable, enable_map, enable_help);
 
 static int
 enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
@@ -635,7 +583,7 @@ enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	uint32_t portlist;
 	int n, state;
 
-	m = cli_mapping(cli, enable_disable_map, argc, argv);
+	m = cli_mapping(cli, Enable_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -730,8 +678,11 @@ static const char *debug_help[] = {
 	"debug tx_debug                     - Enable tx debug output",
 	"debug mempool <portlist> <type>    - Dump out the mempool info for a given type",
 	"debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
+	"",
 	NULL
 };
+
+CLI_INFO(Debug, debug_map, debug_help);
 
 static int
 debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
@@ -739,7 +690,7 @@ debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	struct cli_map *m;
 	uint32_t portlist;
 
-	m = cli_mapping(cli, debug_map, argc, argv);
+	m = cli_mapping(cli, Debug_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -868,14 +819,6 @@ seq_2_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	return 0;
 }
 
-static const char *seq_help[] = {
-	"seq <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> teid <val>",
-	"seq <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> <teid>",
-	"                                   - Set the sequence packet information, make sure the src-IP",
-	"                                     has the netmask value eg 1.2.3.4/24",
-	NULL
-};
-
 static struct cli_map seq_map[] = {
 	{ 10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d" },
 	{ 11, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d" },
@@ -883,22 +826,97 @@ static struct cli_map seq_map[] = {
 	{ -1, NULL }
 };
 
+static const char *seq_help[] = {
+	"seq <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> teid <val>",
+	"seq <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> <teid>",
+	"                                   - Set the sequence packet information, make sure the src-IP",
+	"                                     has the netmask value eg 1.2.3.4/24",
+	"",
+	NULL
+};
+
+CLI_INFO(Seq, seq_map, seq_help);
+
 static int
 seq_cmd(struct cli *cli, int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(cli, seq_map, argc, argv);
+	m = cli_mapping(cli, Seq_info.map, argc, argv);
 	if (!m)
 		return -1;
 
 	switch(m->index) {
 		case 10: seq_1_set_cmd(cli, argc, argv); break;
-		case 11: seq_2_set_cmd(cli, argc, argv); break;
+		case 11:
 		case 12: seq_2_set_cmd(cli, argc, argv); break;
 		default:
 			return -1;
 	}
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * cmd_script_parsed - Command to execute a script.
+ *
+ * DESCRIPTION
+ * Load the script file and execute the commands.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+script_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+{
+	lua_State *L = pktgen.L;
+
+	if (L == NULL) {
+		pktgen_log_error("Lua is not initialized!");
+		return -1;
+	}
+
+	if (is_cli_help(argc, argv)) {
+		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
+		return 0;
+	}
+
+	if (luaL_dofile(L, argv[1]) != 0)
+		pktgen_log_error("%s", lua_tostring(L, -1));
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * cmd_exec_lua_parsed - Command to execute lua code on command line.
+ *
+ * DESCRIPTION
+ * Execute a string of lua code
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
+{
+	lua_State *L = pktgen.L;
+
+	if (L == NULL) {
+		pktgen_log_error("Lua is not initialized!");
+		return -1;
+	}
+
+	if (is_cli_help(argc, argv)) {
+		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
+		return 0;
+	}
+
+	if (luaL_dostring(L, cli->gb->buf) != 0)
+		pktgen_log_error("%s", lua_tostring(L, -1));
 	return 0;
 }
 
@@ -940,8 +958,11 @@ static const char *misc_help[] = {
 #ifdef INCLUDE_PING6
 	"ping6 <portlist>                   - Send a IPv6 ICMP echo request on the given portlist",
 #endif
+	CLI_PAUSE,
 	NULL
 };
+
+CLI_INFO(Misc, misc_map, misc_help);
 
 static int
 misc_cmd(struct cli *cli, int argc, char **argv)
@@ -951,7 +972,7 @@ misc_cmd(struct cli *cli, int argc, char **argv)
 	uint16_t rows, cols;
 	char *p;
 
-	m = cli_mapping(cli, misc_map, argc, argv);
+	m = cli_mapping(cli, Misc_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -1037,22 +1058,18 @@ static const char *page_help[] = {
 	"     log                           - Display the log messages page",
 	"     latency                       - Display the latency page",
 	"     stats                         - Display physical ports stats for all ports",
-	"<<PageBreak>>",
+	CLI_PAUSE,
 	NULL
 };
 
-static struct cli_info page_info = {
-	.group = "Page",
-	.map = page_map,
-	.help = page_help
-};
+CLI_INFO(Page, page_map, page_help);
 
 static int
 page_cmd(struct cli *cli, int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(cli, page_info.map, argc, argv);
+	m = cli_mapping(cli, Page_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -1159,36 +1176,20 @@ pktgen_cli_start(void)
 }
 
 static struct cli_info *help_data[] = {
-	&title_info,
-	&page_info,
-	&status_info,
+	&Title_info,
+	&Page_info,
+	&Enable_info,
+	&Set_info,
+	&Range_info,
+	&Seq_info,
+	&PCAP_info,
+	&Start_info,
+	&Debug_info,
+	&Misc_info,
+	&Theme_info,
+	&Status_info,
 	NULL
 };
-
-static const char **help_data2[] = {
-	title_help, status_help, debug_help, seq_help, misc_help,
-	enable_help, start_help, pcap_help, set_help, range_help, theme_help,
-	NULL
-};
-
-static int
-help_pause(struct cli *cli, const char *str, const char *title)
-{
-	char key;
-
-	if (strcmp(str, "<<PageBreak>>") == 0) {
-		key = cli_pause(cli, "\n   <Press Return to Continue or ESC>", NULL);
-		if (key == cli_vt100_escape)
-			return 1;
-		scrn_cls();
-		scrn_pos(0, 0);
-		cli_printf(cli, "%s\n", title);
-		cli_printf(cli, "%s\n", copyright_msg());
-		scrn_pos(4, 0);
-		return 2;
-	}
-	return 0;
-}
 
 /**************************************************************************//**
  *
@@ -1205,36 +1206,19 @@ help_pause(struct cli *cli, const char *str, const char *title)
 static int
 help_cmd(struct cli *cli, int argc __rte_unused, char **argv __rte_unused)
 {
-	int i, j, k, paused;
-	const char **h;
+	int paused;
 
 	paused = scrn_is_paused();
 
 	if (!paused)
 		scrn_pause();
+
 	scrn_setw(1);
 	scrn_cls();
-
 	scrn_pos(0, 0);
-	cli_printf(cli, "%s\n", help_data[0]->help[0]);
-	cli_printf(cli, "%s\n", copyright_msg());
-	scrn_pos(4, 0);
 
-	(void)help_data2;
-	for (i = 1; help_data[i] != NULL; i++) {
-		h = help_data[i]->help;
-		for(j = 0; h[j] != NULL; j++) {
-			k = help_pause(cli, h[j], help_data[0]->help[0]);
-			if (k == 1)
-				goto leave;
-			if (k == 2)
-				continue;
-			cli_printf(cli, "%s\n", h[j]);
-		}
-	}
+	cli_show_help(cli, help_data);
 
-	cli_pause(cli, "\n   <Press Return to Continue or ESC>", NULL);
-leave:
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);
 		scrn_resume();

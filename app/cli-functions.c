@@ -353,7 +353,6 @@ static struct cli_map pcap_map[] = {
 	{ 20, "pcap show" },
 	{ 30, "pcap filter %P %s" },
     { -1, NULL }
-
 };
 
 static const char *pcap_help[] = {
@@ -367,7 +366,7 @@ static const char *pcap_help[] = {
 CLI_INFO(PCAP, pcap_map, pcap_help);
 
 static int
-pcap_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+pcap_cmd(struct cli *cli, int argc, char **argv)
 {
 	struct cli_map *m;
 	pcap_info_t   *pcap;

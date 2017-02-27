@@ -44,16 +44,14 @@
 
 #include "scrn.h"
 
-scrn_t   *__scrn;	/**< Global screen structure pointer, their can be only one */
-
 void
-scrn_center(int16_t r, int16_t ncols, const char *fmt, ...)
+scrn_center(scrn_t *scrn, int16_t r, int16_t ncols, const char *fmt, ...)
 {
 	va_list vaList;
 	char str[512];
 
 	if (ncols == -1)
-		ncols = __scrn->ncols;
+		ncols = scrn->ncols;
 	va_start(vaList, fmt);
 	vsnprintf(str, sizeof(str), fmt, vaList);
 	va_end(vaList);
@@ -93,11 +91,6 @@ scrn_init(int16_t nrows, int16_t ncols, int theme)
 {
 	scrn_t *scrn;
 
-	if (__scrn != NULL) {
-		free(__scrn);
-		__scrn = NULL;
-	}
-
 	scrn = malloc(sizeof(scrn_t));
 	if (scrn) {
 		rte_atomic32_set(&scrn->pause, SCRN_PAUSED);
@@ -109,9 +102,6 @@ scrn_init(int16_t nrows, int16_t ncols, int theme)
 
 		scrn_erase(nrows);
 	}
-
-	/* Save the global scrn_t pointer */
-	__scrn = scrn;
 
 	return scrn;
 }

@@ -53,16 +53,16 @@ extern "C" {
 #define SCRN_VERSION    "1.3.0"
 
 /** Structure to hold information about the screen and control access. */
-typedef struct scrn_s {
+struct scrn {
 	rte_atomic32_t pause;	/**< Pause the update of the screen. */
 	rte_atomic32_t state;	/**< Screen state on or off */
 	uint16_t nrows;		/**< Max number of rows. */
 	uint16_t ncols;		/**< Max number of columns. */
 	uint16_t theme;		/**< Current theme state on or off */
 	uint16_t pad0;		/**< alignment */
-} scrn_t;
+};
 
-extern scrn_t    *__scrn;	/**< Global extern for scrn_t pointer (their can be only one!) */
+typedef struct scrn scrn_t;
 
 /** Enable or disable the screen from being updated */
 enum { SCRN_RUNNING = 0, SCRN_PAUSED = 1 };
@@ -157,22 +157,22 @@ extern void __set_prompt(void);
 
 /** Stop screen from updating until resumed later */
 static __inline__ void
-scrn_pause(void) {
-	rte_atomic32_set(&__scrn->pause, SCRN_PAUSED);
+scrn_pause(scrn_t *scrn) {
+	rte_atomic32_set(&scrn->pause, SCRN_PAUSED);
 	__set_prompt();
 }
 
 /** Resume the screen from a pause */
 static __inline__ void
-scrn_resume(void) {
-	rte_atomic32_set(&__scrn->pause, SCRN_RUNNING);
+scrn_resume(scrn_t *scrn) {
+	rte_atomic32_set(&scrn->pause, SCRN_RUNNING);
 	__set_prompt();
 }
 
 /* Is the screen in the paused state */
 static __inline__ int
-scrn_is_paused(void) {
-	return rte_atomic32_read(&__scrn->pause) == SCRN_PAUSED;
+scrn_is_paused(scrn_t *scrn) {
+	return rte_atomic32_read(&scrn->pause) == SCRN_PAUSED;
 }
 
 /** Output a message of the current line centered */
@@ -266,7 +266,7 @@ scrn_rgb(uint8_t fg_bg, rgb_t r, rgb_t g, rgb_t b) {
 /** External functions used for positioning the cursor and outputing a string like printf */
 extern scrn_t *scrn_init(int16_t nrows, int16_t ncols, int theme);
 
-extern void scrn_center(int16_t r, int16_t ncols, const char *fmt, ...);
+extern void scrn_center(scrn_t *scrn, int16_t r, int16_t ncols, const char *fmt, ...);
 extern void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
 extern void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 

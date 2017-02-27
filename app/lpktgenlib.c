@@ -37,6 +37,10 @@
 #define LUA_LIB
 #define lua_c
 
+#include <rte_ether.h>
+#include <rte_net.h>
+#include <rte_portlist.h>
+
 #include "lpktgenlib.h"
 
 #include <stdint.h>
@@ -50,9 +54,6 @@
 
 #include "pktgen-cmds.h"
 #include "cmd-functions.h"
-#ifdef RTE_LIBRTE_CLI
-#include <string_fns.h>
-#endif
 
 extern const char *help_info[];
 
@@ -177,7 +178,7 @@ getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, 1) ) {
 		rte_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
-				     sizeof(rte_ipaddr_t));
+				     sizeof(struct rte_ipaddr));
 	}
 	lua_pop(L, 1);
 }
@@ -212,11 +213,7 @@ static inline void
 parse_portlist(const char *buf, void *pl)
 {
 #if (RTE_VERSION >= RTE_VERSION_NUM(2, 0, 0, 0))
-#ifdef RTE_LIBRTE_CLI
 	rte_parse_portlist((char *)(uintptr_t)buf, pl);
-#else
-	cmdline_parse_portlist(NULL, buf, pl, sizeof(uint32_t));
-#endif
 #else
 	cmdline_parse_portlist(NULL, buf, pl, PORTLIST_TOKEN_SIZE);
 #endif
@@ -300,8 +297,8 @@ set_seq(lua_State *L, uint32_t seqnum)
 	uint16_t vlanid;
 	struct ether_addr daddr;
 	struct ether_addr saddr;
-	rte_ipaddr_t ip_daddr;
-	rte_ipaddr_t ip_saddr;
+	struct rte_ipaddr ip_daddr;
+	struct rte_ipaddr ip_saddr;
 	cmdline_parse_token_ipaddr_t tkd, tks;
 	char *proto, *ip;
 
@@ -314,22 +311,22 @@ set_seq(lua_State *L, uint32_t seqnum)
 		tkd.ipaddr_data.flags = CMDLINE_IPADDR_V6;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
 				     luaL_checkstring(L, 5), &ip_daddr,
-				     sizeof(rte_ipaddr_t));
+				     sizeof(struct rte_ipaddr));
 		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK |
 			CMDLINE_IPADDR_V6;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
 				     luaL_checkstring(L, 6), &ip_saddr,
-				     sizeof(rte_ipaddr_t));
+				     sizeof(struct rte_ipaddr));
 	} else {
 		tkd.ipaddr_data.flags = CMDLINE_IPADDR_V4;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tkd,
 				     luaL_checkstring(L, 5), &ip_daddr,
-				     sizeof(rte_ipaddr_t));
+				     sizeof(struct rte_ipaddr));
 		tks.ipaddr_data.flags = CMDLINE_IPADDR_NETWORK |
 			CMDLINE_IPADDR_V4;
 		cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tks,
 				     luaL_checkstring(L, 6), &ip_saddr,
-				     sizeof(rte_ipaddr_t));
+				     sizeof(struct rte_ipaddr));
 	}
 	sport   = luaL_checkinteger(L, 7);
 	dport   = luaL_checkinteger(L, 8);
@@ -406,8 +403,8 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	uint16_t vlanid;
 	struct ether_addr daddr;
 	struct ether_addr saddr;
-	rte_ipaddr_t ip_daddr;
-	rte_ipaddr_t ip_saddr;
+	struct rte_ipaddr ip_daddr;
+	struct rte_ipaddr ip_saddr;
 	char *ipProto, *ethType;
 
 	parse_portlist(luaL_checkstring(L, 2), &portlist);
@@ -673,7 +670,7 @@ static int
 pktgen_set_ip_addr(lua_State *L)
 {
 	uint32_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 	cmdline_parse_token_ipaddr_t tk;
 	char      *type;
 
@@ -689,7 +686,7 @@ pktgen_set_ip_addr(lua_State *L)
 		tk.ipaddr_data.flags |= CMDLINE_IPADDR_NETWORK;
 	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk,
 			     luaL_checkstring(L, 3), &ipaddr,
-			     sizeof(rte_ipaddr_t));
+			     sizeof(struct rte_ipaddr));
 
 	foreach_port(portlist,
 		     single_set_ipaddr(info, type[0], &ipaddr) );
@@ -1399,7 +1396,7 @@ static int
 range_dst_ip(lua_State *L)
 {
 	uint32_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 	cmdline_parse_token_ipaddr_t tk;
 	char      *type;
 
@@ -1412,7 +1409,7 @@ range_dst_ip(lua_State *L)
 	tk.ipaddr_data.flags = CMDLINE_IPADDR_V4;
 	cmdline_parse_ipaddr((cmdline_parse_token_hdr_t *)&tk,
 			     luaL_checkstring(L, 3), &ipaddr,
-			     sizeof(rte_ipaddr_t));
+			     sizeof(struct rte_ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
 	foreach_port(portlist,
@@ -1438,7 +1435,7 @@ static int
 range_src_ip(lua_State *L)
 {
 	uint32_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 	cmdline_parse_token_ipaddr_t tk;
 	char      *type;
 

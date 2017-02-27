@@ -267,12 +267,13 @@ typedef struct {
 	uint8_t idx;
 } cmd_files_t;
 
+struct scrn;
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
-	void *scrn;		/**< Screen structure pointer */
+	struct scrn *scrn;		/**< Screen structure pointer */
 	cmd_files_t cmd_files;	/**< Command file path and name */
 
 	int32_t socket_port;		/**< GUI port number */

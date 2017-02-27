@@ -306,7 +306,7 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 	row = PORT_STATE_ROW;
 
 	if (rnd_bits == NULL) {
-		scrn_center(
+		scrn_center(pktgen.scrn,
 			10,
 			((scrn_t *)pktgen.scrn)->ncols,
 			"** Port is not active - no random bitfields set **");

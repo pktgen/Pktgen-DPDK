@@ -53,6 +53,7 @@
 
 #include <rte_atomic.h>
 #include <rte_devargs.h>
+#include <rte_net.h>
 
 #include <scrn.h>
 #include "pktgen.h"
@@ -337,10 +338,10 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 {
 	int i, paused;
 
-	paused = scrn_is_paused();
+	paused = scrn_is_paused(pktgen.scrn);
 
 	if (!paused)
-		scrn_pause();
+		scrn_pause(pktgen.scrn);
 	scrn_setw(1);
 	scrn_cls();
 
@@ -368,7 +369,7 @@ cmd_help_parsed(void *parsed_result __rte_unused,
 leave:
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);
-		scrn_resume();
+		scrn_resume(pktgen.scrn);
 		pktgen_redisplay(1);
 	}
 }
@@ -1490,7 +1491,7 @@ struct cmd_src_ip_result {
 	cmdline_fixed_string_t src_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -1548,7 +1549,7 @@ struct cmd_dst_ip_result {
 	cmdline_fixed_string_t dst_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2460,8 +2461,8 @@ struct cmd_set_seq_result {
 	cmdline_portlist_t portlist;
 	etheraddr_t daddr;
 	etheraddr_t saddr;
-	rte_ipaddr_t ip_daddr;
-	rte_ipaddr_t ip_saddr;
+	struct rte_ipaddr ip_daddr;
+	struct rte_ipaddr ip_saddr;
 	uint32_t sport;
 	uint32_t dport;
 	cmdline_fixed_string_t eth;
@@ -2569,7 +2570,7 @@ struct cmd_setip_dst_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2629,7 +2630,7 @@ struct cmd_setip_src_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	rte_ipaddr_t ipaddr;
+	struct rte_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2822,7 +2823,7 @@ cmd_set_load_parsed(void *parsed_result,
 
 	if (pktgen_load_cmds(res->path) )
 		cmdline_printf(cl, "load command failed for %s\n", res->path);
-	if (!scrn_is_paused() )
+	if (!scrn_is_paused(pktgen.scrn) )
 		pktgen_redisplay(0);
 }
 

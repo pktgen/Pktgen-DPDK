@@ -45,6 +45,7 @@
 #include "pktgen-display.h"
 #include "pktgen.h"
 
+#include <rte_net.h>
 #include <cmdline.h>
 
 static char hash_line[] = "#######################################################################";
@@ -997,16 +998,16 @@ pktgen_flags_string(port_info_t *info)
 void
 pktgen_redisplay(int cls_flag)
 {
-	if (scrn_is_paused() )
+	if (scrn_is_paused(pktgen.scrn) )
 		return;
 
-	scrn_pause();
+	scrn_pause(pktgen.scrn);
 	if (cls_flag) {
 		scrn_cls();
 		scrn_pos(100, 1);
 	}
 	pktgen.flags |= PRINT_LABELS_FLAG;
-	scrn_resume();
+	scrn_resume(pktgen.scrn);
 
 	pktgen_page_display(NULL, NULL);
 }
@@ -1077,8 +1078,8 @@ pktgen_screen(int state)
 	pktgen_display_get_geometry(&rows, NULL);
 
 	if (state == DISABLE_STATE) {
-		if (!scrn_is_paused() ) {
-			scrn_pause();
+		if (!scrn_is_paused(pktgen.scrn) ) {
+			scrn_pause(pktgen.scrn);
 			scrn_cls();
 			scrn_setw(1);
 			scrn_pos(100, 1);
@@ -1087,7 +1088,7 @@ pktgen_screen(int state)
 		scrn_cls();
 		scrn_pos(100, 1);
 		scrn_setw(pktgen.last_row + 1);
-		scrn_resume();
+		scrn_resume(pktgen.scrn);
 		pktgen_redisplay(1);
 	}
 }
@@ -1933,7 +1934,7 @@ pktgen_clear_stats(port_info_t *info)
 void
 pktgen_cls(void)
 {
-	if (scrn_is_paused() ) {
+	if (scrn_is_paused(pktgen.scrn) ) {
 		scrn_cls();
 		scrn_pos(100, 1);
 	} else	/* Update the display quickly. */
@@ -2409,7 +2410,7 @@ single_set_tx_rate(port_info_t *info, uint32_t rate)
  */
 
 void
-single_set_ipaddr(port_info_t *info, char type, rte_ipaddr_t *ip)
+single_set_ipaddr(port_info_t *info, char type, struct rte_ipaddr *ip)
 {
 	if (type == 's') {
 		info->seq_pkt[SINGLE_PKT].ip_mask = size_to_mask(ip->prefixlen);
@@ -2634,7 +2635,7 @@ range_set_src_mac(port_info_t *info, const char *what,
  */
 
 void
-range_set_src_ip(port_info_t *info, char *what, rte_ipaddr_t *ip)
+range_set_src_ip(port_info_t *info, char *what, struct rte_ipaddr *ip)
 {
 	if (!strcmp(what, "min") )
 		info->range.src_ip_min = ntohl(ip->addr.ipv4.s_addr);
@@ -2659,7 +2660,7 @@ range_set_src_ip(port_info_t *info, char *what, rte_ipaddr_t *ip)
  */
 
 void
-range_set_dst_ip(port_info_t *info, char *what, rte_ipaddr_t *ip)
+range_set_dst_ip(port_info_t *info, char *what, struct rte_ipaddr *ip)
 {
 	if (!strcmp(what, "min") )
 		info->range.dst_ip_min = ntohl(ip->addr.ipv4.s_addr);
@@ -2956,7 +2957,7 @@ pktgen_set_page(char *str)
 void
 pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	       struct ether_addr *daddr, struct ether_addr *saddr,
-	       rte_ipaddr_t *ip_daddr, rte_ipaddr_t *ip_saddr,
+	       struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
 	       uint32_t sport, uint32_t dport, char type, char proto,
 	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
@@ -3008,7 +3009,7 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 void
 pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 		   struct ether_addr *daddr, struct ether_addr *saddr,
-		   rte_ipaddr_t *ip_daddr, rte_ipaddr_t *ip_saddr,
+		   struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
 		   uint32_t sport, uint32_t dport, char type, char proto,
 		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {

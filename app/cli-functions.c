@@ -138,7 +138,7 @@ range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
-	rte_ipaddr_t ip;
+	struct rte_ipaddr ip;
 
 	m = cli_mapping(cli, Range_info.map, argc, argv);
 	if (!m)
@@ -281,7 +281,7 @@ set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	char *what;
 	int value, n;
 	struct cli_map *m;
-	rte_ipaddr_t ip;
+	struct rte_ipaddr ip;
 
 	m = cli_mapping(cli, Set_info.map, argc, argv);
 	if (!m)
@@ -742,7 +742,7 @@ seq_1_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	char *eth = argv[9];
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
-	rte_ipaddr_t dst, src;
+	struct rte_ipaddr dst, src;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -790,7 +790,7 @@ seq_2_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	char *eth = argv[15];
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
-	rte_ipaddr_t dst, src;
+	struct rte_ipaddr dst, src;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -998,7 +998,7 @@ misc_cmd(struct cli *cli, int argc, char **argv)
 		case 30:
 			if (cli_load_cmds(cli, argv[1]) )
 				cli_printf(cli, "load command failed for %s\n", argv[1]);
-			if (!scrn_is_paused() )
+			if (!scrn_is_paused(pktgen.scrn) )
 				pktgen_redisplay(0);
 			break;
 		case 40: script_cmd(cli, argc, argv); break;
@@ -1207,10 +1207,10 @@ help_cmd(struct cli *cli, int argc __rte_unused, char **argv __rte_unused)
 {
 	int paused;
 
-	paused = scrn_is_paused();
+	paused = scrn_is_paused(pktgen.scrn);
 
 	if (!paused)
-		scrn_pause();
+		scrn_pause(pktgen.scrn);
 
 	scrn_setw(1);
 	scrn_cls();
@@ -1220,7 +1220,7 @@ help_cmd(struct cli *cli, int argc __rte_unused, char **argv __rte_unused)
 
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);
-		scrn_resume();
+		scrn_resume(pktgen.scrn);
 		pktgen_redisplay(1);
 	}
 	return 0;

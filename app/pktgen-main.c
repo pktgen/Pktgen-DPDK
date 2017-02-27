@@ -276,9 +276,10 @@ pktgen_parse_args(int argc, char **argv)
 				return -1;
 			}
 			break;
-
 		case 'I':	/* Enable CLI prompt */
+#ifdef RTE_LIBRTE_CLI
 			pktgen.flags |= USE_CLI;
+#endif
 			break;
 		case 'P':	/* Enable promiscuous mode on the ports */
 			pktgen.flags    |= PROMISCUOUS_ON_FLAG;
@@ -452,15 +453,15 @@ main(int argc, char **argv)
 
 	splash_screen(3, 16, PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
-	scrn_resume();
+	scrn_resume(pktgen.scrn);
 
 	pktgen_redisplay(1);
 
 	rte_timer_setup();
 
 	if (pktgen.flags & ENABLE_GUI_FLAG) {
-		if (!scrn_is_paused() ) {
-			scrn_pause();
+		if (!scrn_is_paused(pktgen.scrn) ) {
+			scrn_pause(pktgen.scrn);
 			scrn_cls();
 			scrn_setw(1);
 			scrn_pos(((scrn_t *)pktgen.scrn)->nrows, 1);
@@ -471,20 +472,21 @@ main(int argc, char **argv)
 				pktgen.hostname,
 				pktgen.socket_port);
 #ifdef GUI
-		printf("%s: Here\n", __func__);
 		pktgen_gui_main(argc, argv);
 #endif
 	}
 
+#ifdef RTE_LIBRTE_CLI
 	if (pktgen.flags & USE_CLI)
 		pktgen_cli_start();
 	else
+#endif
 		pktgen_cmdline_start();
 
 	execute_lua_close(pktgen.L);
 	pktgen_stop_running();
 
-	scrn_pause();
+	scrn_pause(pktgen.scrn);
 
 	scrn_setw(1);
 	scrn_printf(100, 1, "\n");	/* Put the cursor on the last row and do a newline. */

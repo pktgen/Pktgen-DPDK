@@ -41,7 +41,7 @@ CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
 EXPORT_MAP := common_version.map
 LIBABIVER := 1
 
-CFLAGS_wr_scrn.o := -Wno-format-nonliteral
+CFLAGS_scrn.o := -Wno-format-nonliteral
 
 # all source are stored in SRCS-y
 SRCS-y := copyright_info.c port_config.c core_info.c cmdline_parse_args.c \

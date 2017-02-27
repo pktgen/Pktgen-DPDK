@@ -185,8 +185,8 @@ display_dashline(int last_row)
 void
 pktgen_display_set_geometry(uint16_t rows, uint16_t cols)
 {
-	__scrn->nrows = rows;
-	__scrn->ncols = cols;
+	pktgen.scrn->nrows = rows;
+	pktgen.scrn->ncols = cols;
 }
 
 /* Get the display geometry */
@@ -194,10 +194,10 @@ void
 pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols)
 {
 	if (rows != NULL)
-		*rows = __scrn->nrows;
+		*rows = pktgen.scrn->nrows;
 
 	if (cols != NULL)
-		*cols = __scrn->ncols;
+		*cols = pktgen.scrn->ncols;
 }
 
 /* Look up the named color in the colormap */
@@ -226,7 +226,7 @@ void
 pktgen_display_set_color(const char *elem) {
 	theme_color_map_t *theme_color;
 
-	if (__scrn->theme == THEME_OFF)
+	if (pktgen.scrn->theme == THEME_OFF)
 		return;
 
 	theme_color = lookup_item(elem);
@@ -249,7 +249,7 @@ __set_prompt(void)
 	/* Set default return value. */
 	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_APP_NAME);
 
-	if ( (__scrn->theme == THEME_ON) && !scrn_is_paused() ) {
+	if ( (pktgen.scrn->theme == THEME_ON) && !scrn_is_paused(pktgen.scrn) ) {
 		/* Look up the default and prompt values */
 		def    = lookup_item(NULL);
 		prompt = lookup_item("pktgen.prompt");
@@ -324,7 +324,7 @@ pktgen_theme_show(void)
 	int i;
 
 	printf("*** Theme Color Map Names (%s) ***\n",
-	       __scrn->theme ? "Enabled" : "Disabled");
+       pktgen.scrn->theme ? "Enabled" : "Disabled");
 	printf("   %-30s %-10s %-10s %s\n",
 	       "name",
 	       "FG Color",
@@ -348,9 +348,9 @@ void
 pktgen_theme_state(const char *state)
 {
 	if (estate(state) == DISABLE_STATE)
-		__scrn->theme = THEME_OFF;
+		pktgen.scrn->theme = THEME_OFF;
 	else
-		__scrn->theme = THEME_ON;
+		pktgen.scrn->theme = THEME_ON;
 	__set_prompt();
 }
 

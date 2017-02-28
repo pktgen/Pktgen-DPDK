@@ -62,9 +62,9 @@ cmd=./app/app/${target}/app/pktgen
 #
 
 dpdk_opts="-l 1-3,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 4096,4096 --file-prefix pg"
-#dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
-dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
-dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
+dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
+#dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
+#dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
 
 pktgen_opts="-T -P --crc-strip"
 pktgen_opts="${pktgen_opts} -m [2:3].0 -m [18:19].1"
@@ -72,8 +72,8 @@ pktgen_opts="${pktgen_opts} -m [2:3].0 -m [18:19].1"
 #pktgen_opts="${pktgen_opts} -m [10:11].4 -m [12:13].5 -m [14:15].6 -m [16:17].7"
 
 black_list="-b 05:00.0 -b 05:00.1"
-#black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
-#black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
+black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
+black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
 black_list="${black_list} -b 82:00.0 -b 83:00.0"
 
 load_file="-f themes/black-yellow.theme"

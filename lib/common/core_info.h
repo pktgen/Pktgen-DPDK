@@ -75,7 +75,7 @@
  * \returns number of lcores enabled.
  */
 static __inline__ uint32_t
-lcore_mask(uint8_t *first, uint8_t *last) {
+lcore_mask(uint16_t *first, uint16_t *last) {
 	int32_t cnt, lid;
 
 	lid  = rte_get_master_lcore();

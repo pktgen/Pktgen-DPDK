@@ -118,7 +118,7 @@ pktgen_set_capture(port_info_t *info, uint32_t onOff)
 		}
 
 		/* Find an lcore that can capture packets for the requested port */
-		uint8_t lid_idx, lid, rxid;
+		uint16_t lid_idx, lid, rxid;
 		for (lid_idx = 0;
 		     lid_idx < get_port_nb_lids(pktgen.l2p, info->pid);
 		     ++lid_idx) {
@@ -140,7 +140,7 @@ found_rx_lid:
 		}
 
 		/* Get socket of the selected lcore and check if capturing is possible */
-		uint8_t sid = pktgen.core_info[lid].s.socket_id;
+		uint16_t sid = pktgen.core_info[lid].s.socket_id;
 		if (pktgen.capture[sid].mz == NULL) {
 			pktgen_log_warning(
 				"No memory allocated for capturing on socket %d, are hugepages allocated on this socket?",

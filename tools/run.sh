@@ -33,7 +33,8 @@ cmd=./app/app/${target}/app/pktgen
 # 
 
 #============================================================
-#Core and Socket Information (as reported by '/proc/cpuinfo') #============================================================
+#Core and Socket Information (as reported by '/proc/cpuinfo')
+#============================================================
 #
 #cores =  [0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 19, 20, 24, 25, 26, 27]
 #sockets =  [0, 1]

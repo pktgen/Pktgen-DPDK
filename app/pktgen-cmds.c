@@ -3107,7 +3107,7 @@ pktgen_input_start(void)
 }
 
 void
-pktgen_input_start(void)
+pktgen_input_init(void)
 {
 	printf("TODO: %s\n", __func__);
 }

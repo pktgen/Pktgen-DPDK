@@ -4718,37 +4718,6 @@ cmdline_parse_ctx_t main_ctx[] = {
 	NULL,
 };
 
-void
-pktgen_cmdline_start(void)
-{
-	int i;
-
-	/* Start up the command line, which exits on Control-D */
-	pktgen.cl = cmdline_stdin_new(main_ctx, "Pktgen > ");
-	__set_prompt();
-
-	if (pktgen.cl && pktgen.cmd_files.idx)
-		for (i = 0; i < pktgen.cmd_files.idx; i++) {
-			pktgen_log_info("# *** Executing file (%s)",
-					pktgen.cmd_files.filename[i]);
-			cmdline_in(pktgen.cl, "\r", 1);
-			if (pktgen_load_cmds(pktgen.cmd_files.filename[i]) == -1)
-				pktgen_log_warning(
-					"*** Unable to find file (%s) or invalid call",
-					pktgen.cmd_files.filename[i]);
-			else
-				pktgen_log_info("# *** Done.");
-			cmdline_in(pktgen.cl, "\r", 1);
-
-			free(pktgen.cmd_files.filename[i]);
-			pktgen.cmd_files.filename[i] = NULL;
-		}
-
-	pktgen_interact(pktgen.cl);
-
-	cmdline_stdin_exit(pktgen.cl);
-}
-
 /**************************************************************************//**
  *
  * pktgen_load_cmds - Load and execute a command file or Lua script file.
@@ -4795,3 +4764,41 @@ pktgen_load_cmds(char *filename)
 	}
 	return 0;
 }
+
+void
+pktgen_input_init(void)
+{
+	int i;
+
+	/* Start up the command line, which exits on Control-D */
+	pktgen.cl = cmdline_stdin_new(main_ctx, "Pktgen > ");
+	__set_prompt();
+
+	if (pktgen.cl && pktgen.cmd_files.idx) {
+		for(i = 0; i < pktgen.cmd_files.idx; i++) {
+			pktgen_log_info("# *** Executing file (%s)",
+					pktgen.cmd_files.filename[i]);
+			cmdline_in(pktgen.cl, "\r", 1);
+			if (pktgen_load_cmds(pktgen.cmd_files.filename[i]) == -1)
+				pktgen_log_warning(
+					"*** Unable to find file (%s) or invalid call",
+					pktgen.cmd_files.filename[i]);
+			else
+				pktgen_log_info("# *** Done.");
+			cmdline_in(pktgen.cl, "\r", 1);
+
+			free(pktgen.cmd_files.filename[i]);
+			pktgen.cmd_files.filename[i] = NULL;
+		}
+	}
+
+}
+
+void
+pktgen_input_start(void)
+{
+	pktgen_interact(pktgen.cl);
+
+	cmdline_stdin_exit(pktgen.cl);
+}
+

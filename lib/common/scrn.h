@@ -38,6 +38,7 @@
 extern "C" {
 #endif
 
+#ifndef RTE_LIBRTE_CLI
 /**
  * @file
  * RTE simple cursor and color support for VT100 using ANSI color escape codes.
@@ -271,6 +272,8 @@ extern void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
 extern void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 
 #define rte_printf_status(...)  scrn_fprintf(0, 0, stdout, __VA_ARGS__)
+
+#endif
 
 #ifdef __cplusplus
 }

@@ -390,6 +390,7 @@ extern pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
 extern int pktgen_launch_one_lcore(void *arg);
 extern uint64_t pktgen_wire_size(port_info_t *info);
+extern void pktgen_input_start(void);
 
 extern void rte_timer_setup(void);
 

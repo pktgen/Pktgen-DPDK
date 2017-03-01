@@ -1003,8 +1003,8 @@ pktgen_redisplay(int cls_flag)
 
 	scrn_pause(pktgen.scrn);
 	if (cls_flag) {
-		scrn_cls();
-		scrn_pos(100, 1);
+		scrn_cls(pktgen.scrn);
+		scrn_pos(pktgen.scrn, 100, 1);
 	}
 	pktgen.flags |= PRINT_LABELS_FLAG;
 	scrn_resume(pktgen.scrn);
@@ -1077,17 +1077,17 @@ pktgen_screen(int state)
 
 	pktgen_display_get_geometry(&rows, NULL);
 
-	if (state == DISABLE_STATE) {
+	if (parseState(onOff) == DISABLE_STATE) {
 		if (!scrn_is_paused(pktgen.scrn) ) {
 			scrn_pause(pktgen.scrn);
-			scrn_cls();
-			scrn_setw(1);
-			scrn_pos(100, 1);
+			scrn_cls(pktgen.scrn);
+			scrn_setw(pktgen.scrn, 1);
+			scrn_pos(pktgen.scrn, 100, 1);
 		}
 	} else {
-		scrn_cls();
-		scrn_pos(100, 1);
-		scrn_setw(pktgen.last_row + 1);
+		scrn_cls(pktgen.scrn);
+		scrn_pos(pktgen.scrn, 100, 1);
+		scrn_setw(pktgen.scrn, pktgen.last_row + 1);
 		scrn_resume(pktgen.scrn);
 		pktgen_redisplay(1);
 	}
@@ -1935,8 +1935,8 @@ void
 pktgen_cls(void)
 {
 	if (scrn_is_paused(pktgen.scrn) ) {
-		scrn_cls();
-		scrn_pos(100, 1);
+		scrn_cls(pktgen.scrn);
+		scrn_pos(pktgen.scrn, 100, 1);
 	} else	/* Update the display quickly. */
 		pktgen_redisplay(1);
 }
@@ -2415,10 +2415,10 @@ single_set_ipaddr(port_info_t *info, char type, struct rte_ipaddr *ip)
 	if (type == 's') {
 		info->seq_pkt[SINGLE_PKT].ip_mask = size_to_mask(ip->prefixlen);
 		info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr = ntohl(
-				ip->addr.ipv4.s_addr);
+		                ip->ipv4.s_addr);
 	} else
 		info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
-				ip->addr.ipv4.s_addr);
+		                ip->ipv4.s_addr);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
@@ -2581,13 +2581,13 @@ range_set_dest_mac(port_info_t *info,
 		    struct ether_addr *mac)
 {
 	if (!strcmp(what, "min") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_min);
+		inet_mtoh64(mac, &info->range.dst_mac_min);
 	else if (!strcmp(what, "max") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_max);
+		inet_mtoh64(mac, &info->range.dst_mac_max);
 	else if (!strcmp(what, "inc") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_inc);
+		inet_mtoh64(mac, &info->range.dst_mac_inc);
 	else if (!strcmp(what, "start") ) {
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac);
+		inet_mtoh64(mac, &info->range.dst_mac);
 		/* Changes add below to reflect MAC value in range */
 		memcpy(&info->seq_pkt[RANGE_PKT].eth_dst_addr, mac, 6);
 	}
@@ -2638,13 +2638,13 @@ void
 range_set_src_ip(port_info_t *info, char *what, struct rte_ipaddr *ip)
 {
 	if (!strcmp(what, "min") )
-		info->range.src_ip_min = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip_min = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "max") )
-		info->range.src_ip_max = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip_max = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "inc") )
-		info->range.src_ip_inc = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip_inc = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "start") )
-		info->range.src_ip = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip = ntohl(ip->ipv4.s_addr);
 }
 
 /**************************************************************************//**
@@ -2663,13 +2663,13 @@ void
 range_set_dst_ip(port_info_t *info, char *what, struct rte_ipaddr *ip)
 {
 	if (!strcmp(what, "min") )
-		info->range.dst_ip_min = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "max") )
-		info->range.dst_ip_max = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip_max = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "inc") )
-		info->range.dst_ip_inc = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip_inc = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "start") )
-		info->range.dst_ip = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip = ntohl(ip->ipv4.s_addr);
 }
 
 /**************************************************************************//**
@@ -2956,10 +2956,10 @@ pktgen_set_page(char *str)
 
 void
 pktgen_set_seq(port_info_t *info, uint32_t seqnum,
-	       struct ether_addr *daddr, struct ether_addr *saddr,
-	       struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
-	       uint32_t sport, uint32_t dport, char type, char proto,
-	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
+               struct ether_addr *daddr, struct ether_addr *saddr,
+               struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
+               uint32_t sport, uint32_t dport, char type, char proto,
+               uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -2969,15 +2969,15 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
 	if (type == '4') {
 		pkt->ip_src_addr.addr.ipv4.s_addr = htonl(
-				ip_saddr->addr.ipv4.s_addr);
+		                ip_saddr->ipv4.s_addr);
 		pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(
-				ip_daddr->addr.ipv4.s_addr);
+		                ip_daddr->ipv4.s_addr);
 	} else {
 		memcpy(&pkt->ip_src_addr.addr.ipv6.s6_addr,
-		       ip_saddr->addr.ipv6.s6_addr,
+		       ip_saddr->ipv6.s6_addr,
 		       sizeof(struct in6_addr));
 		memcpy(&pkt->ip_dst_addr.addr.ipv6.s6_addr,
-		       ip_daddr->addr.ipv6.s6_addr,
+		       ip_daddr->ipv6.s6_addr,
 		       sizeof(struct in6_addr));
 	}
 	pkt->dport          = dport;
@@ -3008,10 +3008,10 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 
 void
 pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
-		   struct ether_addr *daddr, struct ether_addr *saddr,
-		   struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
-		   uint32_t sport, uint32_t dport, char type, char proto,
-		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
+                   struct ether_addr *daddr, struct ether_addr *saddr,
+                   struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
+                   uint32_t sport, uint32_t dport, char type, char proto,
+                   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -3023,8 +3023,8 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 	memcpy(&pkt->eth_dst_addr, daddr, 6);
 	memcpy(&pkt->eth_src_addr, saddr, 6);
 	pkt->ip_mask        = size_to_mask(ip_saddr->prefixlen);
-	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->addr.ipv4.s_addr);
-	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->addr.ipv4.s_addr);
+	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->ipv4.s_addr);
+	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->ipv4.s_addr);
 	pkt->dport          = dport;
 	pkt->sport          = sport;
 	pkt->pktSize        = pktsize - FCS_SIZE;
@@ -3093,5 +3093,21 @@ pktgen_recv_pkt(port_info_t *info __rte_unused)
 void
 pktgen_quit(void)
 {
+#ifdef RTE_LIBRTE_CLI
+	printf("TODO: Add a exit routine\n");
+#else
 	cmdline_quit(pktgen.cl);
+#endif
+}
+
+void
+pktgen_input_start(void)
+{
+	printf("TODO: %s\n", __func__);
+}
+
+void
+pktgen_input_start(void)
+{
+	printf("TODO: %s\n", __func__);
 }

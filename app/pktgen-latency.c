@@ -132,12 +132,12 @@ pktgen_print_static_data(void)
 			    (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" :
 			    info->user_pattern);
 		pktgen_transmit_count_rate(pid, buff, sizeof(buff));
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + FCS_SIZE, info->tx_burst);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
 			 (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
 			 (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
@@ -176,8 +176,8 @@ pktgen_print_static_data(void)
 	/* Display the string for total pkts/s rate of all ports */
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	pktgen_display_set_color("stats.total.label");
-	scrn_printf(LINK_STATE_ROW, col, "%*s", COLUMN_WIDTH_3, "----TotalRate----");
-	scrn_eol();
+	scrn_printf(pktgen.scrn, LINK_STATE_ROW, col, "%*s", COLUMN_WIDTH_3, "----TotalRate----");
+	scrn_eol(pktgen.scrn);
 	pktgen_display_set_color(NULL);
 
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
@@ -226,7 +226,7 @@ pktgen_page_latency(void)
 		snprintf(buff, sizeof(buff), "%s:%d", pktgen_flags_string(
 				 info), pid + sp);
 		pktgen_display_set_color("stats.port.flags");
-		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
 
 		row = LINK_STATE_ROW;
@@ -236,16 +236,16 @@ pktgen_page_latency(void)
 
 		pktgen_link_state(pid, buff, sizeof(buff));
 		pktgen_display_set_color("stats.port.status");
-		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
 
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
 		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_ipackets, info->rate_stats.ipackets);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_opackets, info->rate_stats.opackets);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu",
 			 iBitsTotal(info->rate_stats) / Million,

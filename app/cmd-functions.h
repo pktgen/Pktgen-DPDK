@@ -44,10 +44,11 @@
 extern "C" {
 #endif
 
-extern char *cmd_port_display(char *buff, uint32_t len, uint64_t portlist);
-extern void pktgen_cmdline_start(void);
+char *cmd_port_display(char *buff, uint32_t len, uint64_t portlist);
 
-extern int pktgen_load_cmds(char *filename);
+void pktgen_input_start(void);
+void pktgen_input_init(void);
+int pktgen_load_cmds(char *filename);
 
 #ifdef __cplusplus
 }

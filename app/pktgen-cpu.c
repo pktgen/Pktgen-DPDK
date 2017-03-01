@@ -85,27 +85,27 @@ pktgen_page_cpu(void)
 		return;
 
 	row = 3;
-	scrn_printf(row++, 1, "Kernel: %s", pktgen.uname);
+	scrn_printf(pktgen.scrn, row++, 1, "Kernel: %s", pktgen.uname);
 	row++;
-	scrn_printf(row++, 1, "Model Name: %s", pktgen.lscpu->model_name);
-	scrn_printf(row++, 1, "CPU Speed : %s", pktgen.lscpu->cpu_mhz);
-	scrn_printf(row++, 1, "Cache Size: %s", pktgen.lscpu->cache_size);
+	scrn_printf(pktgen.scrn, row++, 1, "Model Name: %s", pktgen.lscpu->model_name);
+	scrn_printf(pktgen.scrn, row++, 1, "CPU Speed : %s", pktgen.lscpu->cpu_mhz);
+	scrn_printf(pktgen.scrn, row++, 1, "Cache Size: %s", pktgen.lscpu->cache_size);
 	row++;
-	scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
+	scrn_printf(pktgen.scrn, row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
 	row += 4;
 
-	scrn_printf(
-		row++,
-		5,
-		"%d sockets, %d cores, %d threads",
-		nb_sockets,
-		nb_cores,
-		nb_threads);
+	scrn_printf(pktgen.scrn,
+	        row++,
+	        5,
+	        "%d sockets, %d cores per socket and %d threads per core.",
+	        nb_sockets,
+	        nb_cores,
+	        nb_threads);
 
 	sprintf(buff, "Socket   : ");
 	for (i = 0; i < nb_sockets; i++)
 		strncatf(buff, "%4d      ", i);
-	scrn_printf(row++, 3, "%s", buff);
+	scrn_printf(pktgen.scrn, row++, 3, "%s", buff);
 
 	buff[0] = '\0';
 	for (i = 0; i < nb_cores; i++) {
@@ -122,7 +122,7 @@ pktgen_page_cpu(void)
 				 sct(3, i, 0), sct(3, i, 1));
 		strncatf(buff, "\n");
 	}
-	scrn_printf(row++, 1, "%s", buff);
+	scrn_printf(pktgen.scrn, row++, 1, "%s", buff);
 
 	pg_port_matrix_dump(pktgen.l2p);
 
@@ -130,8 +130,8 @@ pktgen_page_cpu(void)
 		pktgen.last_row = 36;
 		display_dashline(pktgen.last_row);
 
-		scrn_setw(pktgen.last_row);
-		scrn_printf(100, 1, "");/* Put cursor on the last row. */
+		scrn_setw(pktgen.scrn, pktgen.last_row);
+		scrn_printf(pktgen.scrn, 100, 1, "");	/* Put cursor on the last row. */
 	}
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
@@ -154,8 +154,8 @@ pktgen_cpu_init(void)
 	pktgen_get_uname();
 	memset(&pktgen.core_info, 0xff, (sizeof(lc_info_t) * RTE_MAX_LCORE));
 	pktgen.core_cnt     = coremap("array",
-				      pktgen.core_info,
-				      RTE_MAX_LCORE,
-				      NULL);
+	                                 pktgen.core_info,
+	                                 RTE_MAX_LCORE,
+	                                 NULL);
 	pktgen.lscpu        = lscpu_info(NULL, NULL);
 }

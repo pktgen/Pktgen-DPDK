@@ -405,6 +405,8 @@ main(int argc, char **argv)
 	if (ret < 0)
 		return -1;
 
+	pktgen_input_init();
+
 	pktgen_init_screen(
 		(pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
 
@@ -488,8 +490,8 @@ main(int argc, char **argv)
 
 	scrn_pause(pktgen.scrn);
 
-	scrn_setw(1);
-	scrn_printf(100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
+	scrn_setw(pktgen.scrn, 1);
+	scrn_printf(pktgen.scrn, 100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
 
 	/* Wait for all of the cores to stop running and exit. */
 	rte_eal_mp_wait_lcore();

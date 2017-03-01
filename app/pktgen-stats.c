@@ -149,11 +149,19 @@ pktgen_print_static_data(void)
 		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
 		row = ip_row;
 
+<<<<<<< HEAD
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 			    (info->fill_pattern_type == ABC_FILL_PATTERN) ? "abcd..." :
 			    (info->fill_pattern_type == NO_FILL_PATTERN) ? "None" :
 			    (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" :
 			    info->user_pattern);
+=======
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1,
+		        (info->fill_pattern_type == ABC_FILL_PATTERN) ? "abcd..." :
+		        (info->fill_pattern_type == NO_FILL_PATTERN) ? "None" :
+		        (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" :
+		        info->user_pattern);
+>>>>>>> update with CLI
 		pktgen_transmit_count_rate(pid, buff, sizeof(buff));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
@@ -162,6 +170,7 @@ pktgen_print_static_data(void)
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
+<<<<<<< HEAD
 			 (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
 			 (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
 			 (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other",
@@ -180,6 +189,26 @@ pktgen_print_static_data(void)
 			    inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 			    inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
+=======
+		         (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
+		         (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
+		         (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other",
+		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
+		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
+		         pkt->vlanid);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1,
+		               inet_ntop4(buff, sizeof(buff),
+					  htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1,
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1,
+		               inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1,
+		               inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
+>>>>>>> update with CLI
 		rte_eth_dev_info_get(pid, &dev);
 		if (dev.pci_dev)
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
@@ -190,8 +219,13 @@ pktgen_print_static_data(void)
 				 dev.pci_dev->addr.function);
 		else
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+<<<<<<< HEAD
 				 0, 0, 0, 0, 0);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+=======
+				0, 0, 0, 0, 0);
+		scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_1, buff);
+>>>>>>> update with CLI
 
 		display_cnt++;
 	}
@@ -339,9 +373,15 @@ pktgen_page_stats(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%lu/%lu",
+<<<<<<< HEAD
 			 iBitsTotal(info->rate_stats) / Million,
 			 oBitsTotal(info->rate_stats) / Million);
 		scrn_printf(row++,  col, "%*s", COLUMN_WIDTH_1, buff);
+=======
+		         iBitsTotal(info->rate_stats) / Million,
+		         oBitsTotal(info->rate_stats) / Million);
+		scrn_printf(pktgen.scrn, row++,  col, "%*s", COLUMN_WIDTH_1, buff);
+>>>>>>> update with CLI
 
 		/* Packets Sizes */
 		row = PKT_SIZE_ROW;
@@ -403,6 +443,7 @@ pktgen_page_stats(void)
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	row = LINK_STATE_ROW + 1;
 	snprintf(buff, sizeof(buff), "%lu/%lu",
+<<<<<<< HEAD
 		 pktgen.max_total_ipackets, cumm->ipackets);
 	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	scrn_eol();
@@ -415,6 +456,20 @@ pktgen_page_stats(void)
 		 oBitsTotal(pktgen.cumm_rate_totals) / Million);
 	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	scrn_eol();
+=======
+	         pktgen.max_total_ipackets, cumm->ipackets);
+	scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+	scrn_eol(pktgen.scrn);
+	snprintf(buff, sizeof(buff), "%lu/%lu",
+	         pktgen.max_total_opackets, cumm->opackets);
+	scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+	scrn_eol(pktgen.scrn);
+	snprintf(buff, sizeof(buff), "%lu/%lu",
+	         iBitsTotal(pktgen.cumm_rate_totals) / Million,
+	         oBitsTotal(pktgen.cumm_rate_totals) / Million);
+	scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+	scrn_eol(pktgen.scrn);
+>>>>>>> update with CLI
 }
 
 /**************************************************************************//**
@@ -512,6 +567,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 void
 pktgen_page_phys_stats(void)
 {
+<<<<<<< HEAD
 	unsigned int pid, col, row;
 	struct rte_eth_stats *r, *p;
 	struct ether_addr ethaddr;
@@ -614,4 +670,94 @@ pktgen_page_phys_stats(void)
 	}
 
 	scrn_eol();
+=======
+    unsigned int pid, col, row;
+    struct rte_eth_stats stats, *s, *r;
+    struct ether_addr ethaddr;
+    char buff[32], mac_buf[32];
+
+    s = &stats;
+    memset(s, 0, sizeof(struct rte_eth_stats));
+
+    pktgen_display_set_color("top.page");
+    display_topline("<Real Port Stats Page>");
+
+    row = 3;
+    col = 1;
+    pktgen_display_set_color("stats.port.label");
+    scrn_printf(pktgen.scrn, row++, col, "Port Name");
+    pktgen_display_set_color("stats.stat.label");
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
+        snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
+        scrn_printf(pktgen.scrn, row++, col, "%-*s", COLUMN_WIDTH_0 - 4, buff);
+    }
+
+    row = 4;
+    /* Display the colon after the row label. */
+    pktgen_display_set_color("stats.colon");
+    for (pid = 0; pid < pktgen.nb_ports; pid++)
+        scrn_printf(pktgen.scrn, row++, COLUMN_WIDTH_0 - 4, ":");
+
+    display_dashline(++row);
+
+    row = 3;
+    col = COLUMN_WIDTH_0 - 3;
+    pktgen_display_set_color("stats.port.label");
+    scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
+
+        rte_eth_stats_get(pid, &stats);
+
+        snprintf(buff, sizeof(buff), "%lu/%lu", s->ipackets, s->opackets);
+
+        /* Total Rx/Tx */
+        scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    row = 3;
+    col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 3;
+    pktgen_display_set_color("stats.port.label");
+    scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
+
+        rte_eth_stats_get(pid, &stats);
+
+        snprintf(buff, sizeof(buff), "%lu/%lu", s->ierrors, s->imissed);
+
+        scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    row = 3;
+    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
+    pktgen_display_set_color("stats.port.label");
+    scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
+    pktgen_display_set_color("stats.stat.values");
+
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
+
+        rte_eth_stats_get(pid, &stats);
+
+        r = &pktgen.info[pid].rate_stats;
+        snprintf(buff, sizeof(buff), "%lu/%lu", r->ipackets, r->opackets);
+
+        scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+    row = 3;
+    col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
+    pktgen_display_set_color("stats.port.label");
+    scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
+    pktgen_display_set_color("stats.stat.values");
+    for (pid = 0; pid < pktgen.nb_ports; pid++) {
+
+        rte_eth_macaddr_get(pid, &ethaddr);
+
+        ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+        snprintf(buff, sizeof(buff), "%s", mac_buf);
+        scrn_printf(pktgen.scrn, row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    }
+
+    scrn_eol(pktgen.scrn);
+>>>>>>> update with CLI
 }

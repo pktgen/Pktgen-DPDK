@@ -1483,6 +1483,7 @@ pktgen_launch_one_lcore(void *arg __rte_unused)
 	return 0;
 }
 
+<<<<<<< HEAD
 static void
 _page_display(void)
 {
@@ -1514,6 +1515,62 @@ _page_display(void)
 		pktgen_page_phys_stats();
 	else
 		pktgen_page_stats();
+=======
+/**************************************************************************//**
+ *
+ * pktgen_page_config - Show the configuration page for pktgen.
+ *
+ * DESCRIPTION
+ * Display the pktgen configuration page. (Not used)
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static void
+pktgen_page_config(void)
+{
+	display_topline("<Config Page>");
+
+	scrn_center(pktgen.scrn, 20,
+	               pktgen.scrn->ncols,
+	               "Need to add the configuration stuff here");
+	display_dashline(22);
+}
+
+static void
+_page_display(void)
+{
+    static unsigned int counter = 0;
+
+    pktgen_display_set_color("top.spinner");
+    scrn_printf(pktgen.scrn, 1, 1, "%c", "-\\|/"[(counter++ & 3)]);
+    pktgen_display_set_color(NULL);
+
+    if (pktgen.flags & CPU_PAGE_FLAG)
+        pktgen_page_cpu();
+    else if (pktgen.flags & PCAP_PAGE_FLAG)
+        pktgen_page_pcap(pktgen.portNum);
+    else if (pktgen.flags & RANGE_PAGE_FLAG)
+        pktgen_page_range();
+    else if (pktgen.flags & CONFIG_PAGE_FLAG)
+        pktgen_page_config();
+    else if (pktgen.flags & SEQUENCE_PAGE_FLAG)
+        pktgen_page_seq(pktgen.portNum);
+    else if (pktgen.flags & RND_BITFIELD_PAGE_FLAG)
+        pktgen_page_random_bitfields(pktgen.flags & PRINT_LABELS_FLAG,
+                                     pktgen.portNum,
+                                     pktgen.info[pktgen.portNum].rnd_bitfields);
+    else if (pktgen.flags & LOG_PAGE_FLAG)
+        pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
+    else if (pktgen.flags & LATENCY_PAGE_FLAG)
+        pktgen_page_latency();
+        else if (pktgen.flags & STATS_PAGE_FLAG)
+                pktgen_page_phys_stats();
+    else
+        pktgen_page_stats();
+>>>>>>> update with CLI
 }
 
 /**************************************************************************//**

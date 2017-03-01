@@ -38,6 +38,8 @@
 
 #include <inttypes.h>
 
+#include <rte_net.h>
+
 #include "pktgen.h"
 #ifdef RTE_LIBRTE_CLI
 #include <string_fns.h>

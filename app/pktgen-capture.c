@@ -229,10 +229,10 @@ found_rx_lid:
 
 			char status[256];
 			sprintf(
-				status,
-				"\r    Dumping ~%.2fMB of captured data to disk: 0%%",
-				(double)cap->used / (1024 * 1024));
-			rte_printf_status("\n%s", status);
+			        status,
+			        "\r    Dumping ~%.2fMB of captured data to disk: 0%%",
+			        (double)cap->used / (1024 * 1024));
+			scrn_printf(pktgen.scrn, 0, 0, "\n%s", status);
 
 			pcap = pcap_open_dead(DLT_EN10MB, 65535);
 
@@ -274,11 +274,11 @@ found_rx_lid:
 					else if (pct % 2 == 0)
 						strncatf(status, ".");
 
-					rte_printf_status("%s", status);
+					scrn_printf(pktgen.scrn, 0, 0,"%s", status);
 				}
 			}
-			rte_printf_status("\r");
-			rte_printf_status("\n");/* Clean of the screen a bit */
+			scrn_printf(pktgen.scrn, 0, 0, "\r");
+			scrn_printf(pktgen.scrn, 0, 0, "\n");/* Clean of the screen a bit */
 
 			pcap_dump_close(pcap_dumper);
 			pcap_close(pcap);

@@ -48,100 +48,100 @@ static char prompt_str[MAX_PROMPT_STRING_SIZE] = { 0 };
 /* String to color value mapping */
 typedef struct string_color_map_s {
 	const char    *name;	/**< Color name */
-	color_e color;		/**< Color value for scrn_{fg,bg}color() */
+	scrn_color_e color;		/**< Color value for scrn_{fg,bg}color() */
 } string_color_map_t;
 
 string_color_map_t string_color_map[] = {
-	{ "black",      BLACK       },
-	{ "black",      DEFAULT_FG  },
-	{ "red",        RED         },
-	{ "green",      GREEN       },
-	{ "yellow",     YELLOW      },
-	{ "blue",       BLUE        },
-	{ "magenta",    MAGENTA     },
-	{ "cyan",       CYAN        },
-	{ "white",      WHITE       },
-	{ "white",      DEFAULT_BG  },
-	{ "default",    WHITE       },	/* alias */
+	{ "black",      SCRN_BLACK       },
+	{ "black",      SCRN_DEFAULT_FG  },
+	{ "red",        SCRN_RED         },
+	{ "green",      SCRN_GREEN       },
+	{ "yellow",     SCRN_YELLOW      },
+	{ "blue",       SCRN_BLUE        },
+	{ "magenta",    SCRN_MAGENTA     },
+	{ "cyan",       SCRN_CYAN        },
+	{ "white",      SCRN_WHITE       },
+	{ "white",      SCRN_DEFAULT_BG  },
+	{ "default",    SCRN_WHITE       },	/* alias */
 
-	{ "none",       NO_CHANGE   },
-	{ "default_fg", NO_CHANGE   },
-	{ "default_bg", NO_CHANGE   },
+	{ "none",       SCRN_NO_CHANGE   },
+	{ "default_fg", SCRN_NO_CHANGE   },
+	{ "default_bg", SCRN_NO_CHANGE   },
 	{ NULL, 0 }
 };
 
 /* String to attribute mapping */
 typedef struct string_attr_map_s {
 	const char    *name;	/**< Attribute name */
-	attr_e attr;		/**< Attribute value for scrn_{fg,bg}color_attr() */
+	scrn_attr_e attr;		/**< Attribute value for scrn_{fg,bg}color_attr() */
 } string_attr_map_t;
 
 string_attr_map_t string_attr_map[] = {
-	{ "off",        OFF         },
-	{ "default",    OFF         },	/* alias */
-	{ "bold",       BOLD        },
-	{ "bright",     BOLD        },	/* alias */
-	{ "underscore", UNDERSCORE  },
-	{ "underline",  UNDERSCORE  },	/* alias */
-	{ "blink",      BLINK       },
-	{ "reverse",    REVERSE     },
-	{ "concealed",  CONCEALED   },
+	{ "off",        SCRN_OFF         },
+	{ "default",    SCRN_OFF         },	/* alias */
+	{ "bold",       SCRN_BOLD        },
+	{ "bright",     SCRN_BOLD        },	/* alias */
+	{ "underscore", SCRN_UNDERSCORE  },
+	{ "underline",  SCRN_UNDERSCORE  },	/* alias */
+	{ "blink",      SCRN_BLINK       },
+	{ "reverse",    SCRN_REVERSE     },
+	{ "concealed",  SCRN_CONCEALED   },
 	{ NULL, 0 }
 };
 
 /* Element to color mapping */
 typedef struct theme_color_map_s {
 	const char        *name;/**< Display element name */
-	color_e fg_color;
-	color_e bg_color;
-	attr_e attr;
+	scrn_color_e fg_color;
+	scrn_color_e bg_color;
+	scrn_attr_e attr;
 } theme_color_map_t;
 
 theme_color_map_t theme_color_map[] = {
 /*	{ "element name",		FG_COLOR,	BG_COLOR,	ATTR	} */
-	{ "default",            DEFAULT_FG, DEFAULT_BG, OFF     },
+	{ "default",            SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF     },
 
 	/*
 	 * Top line of the screen
 	 */
-	{ "top.spinner",        CYAN,       NO_CHANGE,  BOLD    },
-	{ "top.ports",          GREEN,      NO_CHANGE,  BOLD    },
-	{ "top.page",           WHITE,      NO_CHANGE,  BOLD    },
-	{ "top.copyright",      YELLOW,     NO_CHANGE,  OFF     },
-	{ "top.poweredby",      BLUE,       NO_CHANGE,  BOLD    },
+	{ "top.spinner",        SCRN_CYAN,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "top.ports",          SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "top.page",           SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "top.copyright",      SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "top.poweredby",      SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/*
 	 * Separator between displayed values and command history
 	 */
-	{ "sep.dash",           BLUE,       NO_CHANGE,  OFF     },
-	{ "sep.text",           WHITE,      NO_CHANGE,  OFF     },
+	{ "sep.dash",           SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "sep.text",           SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_OFF     },
 
 	/*
 	 * Stats screen
 	 */
 	/* Port related */
-	{ "stats.port.label",   BLUE,       NO_CHANGE,  BOLD    },
-	{ "stats.port.flags",   BLUE,       NO_CHANGE,  BOLD    },
-	{ "stats.port.status",  YELLOW,     NO_CHANGE,  BOLD    },
+	{ "stats.port.label",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.flags",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.status",  SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/* Dynamic elements (updated every second) */
-	{ "stats.dyn.label",    YELLOW,     NO_CHANGE,  OFF     },
-	{ "stats.dyn.values",   YELLOW,     NO_CHANGE,  OFF     },
+	{ "stats.dyn.label",    SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.dyn.values",   SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_OFF     },
 
 	/* Static elements (only update when explicitly set to different value) */
-	{ "stats.stat.label",   MAGENTA,    NO_CHANGE,  OFF     },
-	{ "stats.stat.values",  WHITE,      NO_CHANGE,  BOLD    },
+	{ "stats.stat.label",   SCRN_MAGENTA,    SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.stat.values",  SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/* Total statistics */
-	{ "stats.total.label",  RED,        NO_CHANGE,  BOLD    },
+	{ "stats.total.label",  SCRN_RED,        SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/* Colon separating labels and values */
-	{ "stats.colon",        BLUE,       NO_CHANGE,  BOLD    },
+	{ "stats.colon",        SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/*
 	 * Misc.
 	 */
-	{ "pktgen.prompt",      GREEN,      NO_CHANGE,  OFF     },
+	{ "pktgen.prompt",      SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_OFF     },
 	{ NULL, 0, 0, 0 }
 };
 
@@ -149,16 +149,16 @@ theme_color_map_t theme_color_map[] = {
 void
 pktgen_init_screen(int theme)
 {
-	pktgen.scrn = scrn_init(MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
+	pktgen.scrn = scrn_create(SCRN_STDIN_TYPE, MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
 }
 
 /* Print out the top line on the screen */
 void
 display_topline(const char *msg)
 {
-	scrn_printf(1, 20, "%s", msg);
+	scrn_printf(pktgen.scrn, 1, 20, "%s", msg);
 	pktgen_display_set_color("top.copyright");
-	scrn_puts("  %s", copyright_msg_short());
+	scrn_puts(pktgen.scrn, "  %s", copyright_msg_short());
 	pktgen_display_set_color(NULL);
 }
 
@@ -168,16 +168,16 @@ display_dashline(int last_row)
 {
 	int i;
 
-	scrn_setw(last_row);
+	scrn_setw(pktgen.scrn, last_row);
 	last_row--;
-	scrn_pos(last_row, 1);
+	scrn_pos(pktgen.scrn, last_row, 1);
 	pktgen_display_set_color("sep.dash");
 	for (i = 0; i < 79; i++)
-		scrn_fprintf(0, 0, stdout, "-");
+		scrn_fprintf(pktgen.scrn, 0, 0, stdout, "-");
 	pktgen_display_set_color("sep.text");
-	scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
+	scrn_printf(pktgen.scrn, last_row, 3, " Pktgen %s ", pktgen_version());
 	pktgen_display_set_color("top.poweredby");
-	scrn_puts(" %s ", powered_by());
+	scrn_puts(pktgen.scrn, " %s ", powered_by());
 	pktgen_display_set_color(NULL);
 }
 
@@ -242,7 +242,7 @@ pktgen_display_set_color(const char *elem) {
 
 /* String to use as prompt, with proper ANSI color codes */
 void
-__set_prompt(void)
+__set_prompt(struct cli_scrn *scrn)
 {
 	theme_color_map_t *def, *prompt;
 
@@ -270,12 +270,15 @@ __set_prompt(void)
 				 30 + def->fg_color,
 				 40 + def->bg_color);
 	}
-
+#ifdef RTE_LIBRTE_CLI
+	printf("TODO: fix %s\n", __func__);
+#else
 	cmdline_set_prompt(pktgen.cl, prompt_str);
+#endif
 }
 
 static const char *
-get_name_by_color(color_e color)
+get_name_by_color(scrn_color_e color)
 {
 	int i;
 
@@ -286,7 +289,7 @@ get_name_by_color(color_e color)
 }
 
 static const char *
-get_name_by_attr(attr_e attr)
+get_name_by_attr(scrn_attr_e attr)
 {
 	int i;
 
@@ -296,7 +299,7 @@ get_name_by_attr(attr_e attr)
 	return NULL;
 }
 
-static color_e
+static scrn_color_e
 get_color_by_name(char *name)
 {
 	int i;
@@ -304,10 +307,10 @@ get_color_by_name(char *name)
 	for (i = 0; string_color_map[i].name; i++)
 		if (strcmp(name, string_color_map[i].name) == 0)
 			return string_color_map[i].color;
-	return UNKNOWN_COLOR;
+	return SCRN_UNKNOWN_COLOR;
 }
 
-static attr_e
+static scrn_attr_e
 get_attr_by_name(char *name)
 {
 	int i;
@@ -315,7 +318,7 @@ get_attr_by_name(char *name)
 	for (i = 0; string_attr_map[i].name; i++)
 		if (strcmp(name, string_attr_map[i].name) == 0)
 			return string_attr_map[i].attr;
-	return UNKNOWN_ATTR;
+	return SCRN_UNKNOWN_ATTR;
 }
 
 void
@@ -324,7 +327,7 @@ pktgen_theme_show(void)
 	int i;
 
 	printf("*** Theme Color Map Names (%s) ***\n",
-       pktgen.scrn->theme ? "Enabled" : "Disabled");
+	       pktgen.scrn->theme ? "Enabled" : "Disabled");
 	printf("   %-30s %-10s %-10s %s\n",
 	       "name",
 	       "FG Color",
@@ -347,19 +350,19 @@ pktgen_theme_show(void)
 void
 pktgen_theme_state(const char *state)
 {
-	if (estate(state) == DISABLE_STATE)
-		pktgen.scrn->theme = THEME_OFF;
+	if (parseState(state) == DISABLE_STATE)
+		pktgen.scrn->theme = SCRN_THEME_OFF;
 	else
-		pktgen.scrn->theme = THEME_ON;
-	__set_prompt();
+		pktgen.scrn->theme = SCRN_THEME_ON;
+	__set_prompt(pktgen.scrn);
 }
 
 void
 pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr)
 {
 	theme_color_map_t *elem;
-	color_e fg, bg;
-	attr_e at;
+	scrn_color_e fg, bg;
+	scrn_attr_e at;
 
 	elem = lookup_item(item);
 
@@ -372,12 +375,12 @@ pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr)
 	bg = get_color_by_name(bg_color);
 	at = get_attr_by_name(attr);
 
-	if ( (fg == UNKNOWN_COLOR) || (bg == UNKNOWN_COLOR) ||
-	     (at == UNKNOWN_ATTR) ) {
+	if ( (fg == SCRN_UNKNOWN_COLOR) || (bg == SCRN_UNKNOWN_COLOR) ||
+	     (at == SCRN_UNKNOWN_ATTR) ) {
 		pktgen_log_error("Unknown color or attribute (%s, %s, %s)\n",
-				 fg_color,
-				 bg_color,
-				 attr);
+		                 fg_color,
+		                 bg_color,
+		                 attr);
 		return;
 	}
 
@@ -400,10 +403,10 @@ pktgen_theme_save(char *filename)
 
 	for (i = 0; theme_color_map[i].name; i++)
 		fprintf(f, "theme %s %s %s %s\n",
-			theme_color_map[i].name,
-			get_name_by_color(theme_color_map[i].fg_color),
-			get_name_by_color(theme_color_map[i].bg_color),
-			get_name_by_attr(theme_color_map[i].attr));
+		        theme_color_map[i].name,
+		        get_name_by_color(theme_color_map[i].fg_color),
+		        get_name_by_color(theme_color_map[i].bg_color),
+		        get_name_by_attr(theme_color_map[i].attr));
 	fprintf(f, "cls\n");
 
 	fchmod(fileno(f), 0666);

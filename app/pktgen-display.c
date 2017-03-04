@@ -38,8 +38,6 @@
 #include "pktgen-display.h"
 #include "pktgen-cmds.h"
 
-#include <cmdline.h>
-
 #define MAX_COLOR_NAME_SIZE     64
 #define MAX_PROMPT_STRING_SIZE  64
 
@@ -149,16 +147,16 @@ theme_color_map_t theme_color_map[] = {
 void
 pktgen_init_screen(int theme)
 {
-	pktgen.scrn = scrn_create(SCRN_STDIN_TYPE, MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
+	scrn_create(SCRN_STDIN_TYPE, MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
 }
 
 /* Print out the top line on the screen */
 void
 display_topline(const char *msg)
 {
-	scrn_printf(pktgen.scrn, 1, 20, "%s", msg);
+	scrn_printf(1, 20, "%s", msg);
 	pktgen_display_set_color("top.copyright");
-	scrn_puts(pktgen.scrn, "  %s", copyright_msg_short());
+	scrn_puts("  %s", copyright_msg_short());
 	pktgen_display_set_color(NULL);
 }
 
@@ -168,16 +166,16 @@ display_dashline(int last_row)
 {
 	int i;
 
-	scrn_setw(pktgen.scrn, last_row);
+	scrn_setw(last_row);
 	last_row--;
-	scrn_pos(pktgen.scrn, last_row, 1);
+	scrn_pos(last_row, 1);
 	pktgen_display_set_color("sep.dash");
 	for (i = 0; i < 79; i++)
-		scrn_fprintf(pktgen.scrn, 0, 0, stdout, "-");
+		scrn_fprintf(0, 0, stdout, "-");
 	pktgen_display_set_color("sep.text");
-	scrn_printf(pktgen.scrn, last_row, 3, " Pktgen %s ", pktgen_version());
+	scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
 	pktgen_display_set_color("top.poweredby");
-	scrn_puts(pktgen.scrn, " %s ", powered_by());
+	scrn_puts(" %s ", powered_by());
 	pktgen_display_set_color(NULL);
 }
 
@@ -185,8 +183,8 @@ display_dashline(int last_row)
 void
 pktgen_display_set_geometry(uint16_t rows, uint16_t cols)
 {
-	pktgen.scrn->nrows = rows;
-	pktgen.scrn->ncols = cols;
+	this_scrn->nrows = rows;
+	this_scrn->ncols = cols;
 }
 
 /* Get the display geometry */
@@ -194,10 +192,10 @@ void
 pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols)
 {
 	if (rows != NULL)
-		*rows = pktgen.scrn->nrows;
+		*rows = this_scrn->nrows;
 
 	if (cols != NULL)
-		*cols = pktgen.scrn->ncols;
+		*cols = this_scrn->ncols;
 }
 
 /* Look up the named color in the colormap */
@@ -226,7 +224,7 @@ void
 pktgen_display_set_color(const char *elem) {
 	theme_color_map_t *theme_color;
 
-	if (pktgen.scrn->theme == THEME_OFF)
+	if (this_scrn->theme == SCRN_THEME_OFF)
 		return;
 
 	theme_color = lookup_item(elem);
@@ -236,20 +234,20 @@ pktgen_display_set_color(const char *elem) {
 	}
 
 	scrn_color(theme_color->fg_color,
-		   theme_color->bg_color,
-		   theme_color->attr);
+	              theme_color->bg_color,
+	              theme_color->attr);
 }
 
 /* String to use as prompt, with proper ANSI color codes */
 void
-__set_prompt(struct cli_scrn *scrn)
+__set_prompt(void)
 {
 	theme_color_map_t *def, *prompt;
 
 	/* Set default return value. */
 	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_APP_NAME);
 
-	if ( (pktgen.scrn->theme == THEME_ON) && !scrn_is_paused(pktgen.scrn) ) {
+	if ( (this_scrn->theme == SCRN_THEME_ON) && !scrn_is_paused() ) {
 		/* Look up the default and prompt values */
 		def    = lookup_item(NULL);
 		prompt = lookup_item("pktgen.prompt");
@@ -270,11 +268,6 @@ __set_prompt(struct cli_scrn *scrn)
 				 30 + def->fg_color,
 				 40 + def->bg_color);
 	}
-#ifdef RTE_LIBRTE_CLI
-	printf("TODO: fix %s\n", __func__);
-#else
-	cmdline_set_prompt(pktgen.cl, prompt_str);
-#endif
 }
 
 static const char *
@@ -327,7 +320,7 @@ pktgen_theme_show(void)
 	int i;
 
 	printf("*** Theme Color Map Names (%s) ***\n",
-	       pktgen.scrn->theme ? "Enabled" : "Disabled");
+	       this_scrn->theme ? "Enabled" : "Disabled");
 	printf("   %-30s %-10s %-10s %s\n",
 	       "name",
 	       "FG Color",
@@ -350,11 +343,11 @@ pktgen_theme_show(void)
 void
 pktgen_theme_state(const char *state)
 {
-	if (parseState(state) == DISABLE_STATE)
-		pktgen.scrn->theme = SCRN_THEME_OFF;
+	if (estate(state) == DISABLE_STATE)
+		this_scrn->theme = SCRN_THEME_OFF;
 	else
-		pktgen.scrn->theme = SCRN_THEME_ON;
-	__set_prompt(pktgen.scrn);
+		this_scrn->theme = SCRN_THEME_ON;
+	__set_prompt();
 }
 
 void
@@ -378,9 +371,9 @@ pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr)
 	if ( (fg == SCRN_UNKNOWN_COLOR) || (bg == SCRN_UNKNOWN_COLOR) ||
 	     (at == SCRN_UNKNOWN_ATTR) ) {
 		pktgen_log_error("Unknown color or attribute (%s, %s, %s)\n",
-		                 fg_color,
-		                 bg_color,
-		                 attr);
+				 fg_color,
+				 bg_color,
+				 attr);
 		return;
 	}
 
@@ -403,10 +396,10 @@ pktgen_theme_save(char *filename)
 
 	for (i = 0; theme_color_map[i].name; i++)
 		fprintf(f, "theme %s %s %s %s\n",
-		        theme_color_map[i].name,
-		        get_name_by_color(theme_color_map[i].fg_color),
-		        get_name_by_color(theme_color_map[i].bg_color),
-		        get_name_by_attr(theme_color_map[i].attr));
+			theme_color_map[i].name,
+			get_name_by_color(theme_color_map[i].fg_color),
+			get_name_by_color(theme_color_map[i].bg_color),
+			get_name_by_attr(theme_color_map[i].attr));
 	fprintf(f, "cls\n");
 
 	fchmod(fileno(f), 0666);

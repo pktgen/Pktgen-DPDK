@@ -34,7 +34,7 @@
 
 /* Created 2015 by abhinandan.gujjar@intel.com */
 
-#include <scrn.h>
+#include <cli_scrn.h>
 #include "pktgen.h"
 
 #include "pktgen-gtpu.h"

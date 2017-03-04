@@ -44,7 +44,6 @@
 #include "lua-socket.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
-#include "cmd-functions.h"
 #include "pktgen-display.h"
 #include "pktgen-log.h"
 #include "cli-functions.h"
@@ -71,57 +70,6 @@ void
 pktgen_l2p_dump(void)
 {
 	pg_raw_dump_l2p(pktgen.l2p);
-}
-
-#include <poll.h>
-
-/**************************************************************************//**
- *
- * pktgen_interact - Main interaction routine for command line and display
- *
- * DESCRIPTION
- * Process keyboard input and is called from the main command line loop.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_interact(struct cmdline *cl)
-{
-	char c;
-	struct pollfd fds;
-	uint64_t curr_tsc;
-	uint64_t next_poll;
-	uint64_t reload;
-
-	fds.fd      = cl->s_in;
-	fds.events  = POLLIN;
-	fds.revents = 0;
-
-	c = -1;
-	reload = (pktgen.hz / 1000);
-	next_poll = rte_rdtsc() + reload;
-
-	for (;; ) {
-		rte_timer_manage();
-		curr_tsc = rte_rdtsc();
-		if (unlikely(curr_tsc >= next_poll)  ) {
-			next_poll = curr_tsc + reload;
-			if (poll(&fds, 1, 0) ) {
-				if ( (fds.revents &
-				      (POLLERR | POLLNVAL | POLLHUP)) )
-					break;
-				if ( (fds.revents & POLLIN) ) {
-					if (read(cl->s_in, &c, 1) < 0)
-						break;
-					if (cmdline_in(cl, &c, 1) < 0)
-						break;
-				}
-			}
-		}
-	}
 }
 
 /**************************************************************************//**
@@ -256,8 +204,7 @@ pktgen_parse_args(int argc, char **argv)
 
 		case 'm':	/* Matrix for port mapping. */
 			if (pg_parse_matrix(pktgen.l2p, optarg) == -1) {
-				pktgen_log_error("invalid matrix string (%s)",
-						 optarg);
+				pktgen_log_error("invalid matrix string (%s)", optarg);
 				pktgen_usage(prgname);
 				return -1;
 			}
@@ -298,17 +245,13 @@ pktgen_parse_args(int argc, char **argv)
 
 			p = strchr(optarg, ':');
 			if (p == NULL)	/* No : symbol means pktgen is a server application. */
-				pktgen.hostname = (char *)strdupf(
-						pktgen.hostname,
-						optarg);
+				pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
 			else {
 				char c = *p;
 
 				*p = '\0';
 				if (p != optarg)
-					pktgen.hostname = (char *)strdupf(
-							pktgen.hostname,
-							optarg);
+					pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
 
 				pktgen.socket_port = strtol(++p, NULL, 0);
 				pktgen_log_info(
@@ -362,7 +305,7 @@ main(int argc, char **argv)
 	uint32_t i;
 	int32_t ret;
 
-	scrn_setw(1);		/* Reset the window size, from possible crash run. */
+	scrn_setw(1);	/* Reset the window size, from possible crash run. */
 	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
 	printf("\n%s %s\n", copyright_msg(), powered_by());
@@ -395,20 +338,22 @@ main(int argc, char **argv)
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
 		return -1;
+
 	argc -= ret;
 	argv += ret;
-
-	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
 
 	/* parse application arguments (after the EAL ones) */
 	ret = pktgen_parse_args(argc, argv);
 	if (ret < 0)
 		return -1;
 
-	pktgen_input_init();
+	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
+
+	if (pktgen_cli_create())
+		return -1;
 
 	pktgen_init_screen(
-		(pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
+	        (pktgen.flags & ENABLE_THEME_FLAG) ? SCRN_THEME_ON : SCRN_THEME_OFF);
 
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 
@@ -451,22 +396,22 @@ main(int argc, char **argv)
 	/* Disable printing log messages of level info and below to screen, */
 	/* erase the screen and start updating the screen again. */
 	pktgen_log_set_screen_level(LOG_LEVEL_WARNING);
-	scrn_erase(((scrn_t *)pktgen.scrn)->nrows);
+	scrn_erase(this_scrn->nrows);
 
 	splash_screen(3, 16, PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
-	scrn_resume(pktgen.scrn);
+	scrn_resume();
 
 	pktgen_redisplay(1);
 
 	rte_timer_setup();
 
 	if (pktgen.flags & ENABLE_GUI_FLAG) {
-		if (!scrn_is_paused(pktgen.scrn) ) {
-			scrn_pause(pktgen.scrn);
+		if (!scrn_is_paused() ) {
+			scrn_pause();
 			scrn_cls();
 			scrn_setw(1);
-			scrn_pos(((scrn_t *)pktgen.scrn)->nrows, 1);
+			scrn_pos(this_scrn->nrows, 1);
 		}
 
 		lua_init_socket(pktgen.L,
@@ -478,20 +423,15 @@ main(int argc, char **argv)
 #endif
 	}
 
-#ifdef RTE_LIBRTE_CLI
-	if (pktgen.flags & USE_CLI)
-		pktgen_cli_start();
-	else
-#endif
-		pktgen_cmdline_start();
+	pktgen_cli_start();
 
 	execute_lua_close(pktgen.L);
 	pktgen_stop_running();
 
-	scrn_pause(pktgen.scrn);
+	scrn_pause();
 
-	scrn_setw(pktgen.scrn, 1);
-	scrn_printf(pktgen.scrn, 100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
+	scrn_setw(1);
+	scrn_printf(100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
 
 	/* Wait for all of the cores to stop running and exit. */
 	rte_eal_mp_wait_lcore();
@@ -501,6 +441,8 @@ main(int argc, char **argv)
 		rte_delay_ms(100);
 		rte_eth_dev_close(i);
 	}
+
+	scrn_destroy();
 
 	return 0;
 }

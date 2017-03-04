@@ -41,8 +41,9 @@
 extern "C" {
 #endif
 
-void pktgen_cli_start(void);
+int pktgen_cli_create(void);
 
+void pktgen_cli_start(void);
 
 #ifdef __cplusplus
 }

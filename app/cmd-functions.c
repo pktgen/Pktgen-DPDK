@@ -32,6 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if 0
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include "cmd-functions.h"
@@ -55,7 +56,7 @@
 #include <rte_devargs.h>
 #include <rte_net.h>
 
-#include <scrn.h>
+#include <cli_scrn.h>
 #include "pktgen.h"
 
 #include "copyright_info.h"
@@ -4802,3 +4803,4 @@ pktgen_input_start(void)
 	cmdline_stdin_exit(pktgen.cl);
 }
 
+#endif

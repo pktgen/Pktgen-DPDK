@@ -45,7 +45,7 @@
 #include "scrn.h"
 
 void
-scrn_center(scrn_t *scrn, int16_t r, int16_t ncols, const char *fmt, ...)
+scrn_center(struct cli_scrn *scrn, int16_t r, int16_t ncols, const char *fmt, ...)
 {
 	va_list vaList;
 	char str[512];
@@ -86,12 +86,12 @@ scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...)
 	fflush(f);
 }
 
-scrn_t *
+struct cli_scrn *
 scrn_init(int16_t nrows, int16_t ncols, int theme)
 {
-	scrn_t *scrn;
+	struct cli_scrn *scrn;
 
-	scrn = malloc(sizeof(scrn_t));
+	scrn = malloc(sizeof(struct cli_scrn));
 	if (scrn) {
 		rte_atomic32_set(&scrn->pause, SCRN_PAUSED);
 
@@ -102,6 +102,9 @@ scrn_init(int16_t nrows, int16_t ncols, int theme)
 
 		scrn_erase(nrows);
 	}
+
+	/* Save the global struct cli_scrn pointer */
+	pktgen.scrn = scrn;
 
 	return scrn;
 }

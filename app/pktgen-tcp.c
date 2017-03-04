@@ -33,7 +33,7 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#include <scrn.h>
+#include <cli_scrn.h>
 #include "pktgen.h"
 
 #include "pktgen-tcp.h"

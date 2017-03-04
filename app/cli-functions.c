@@ -48,7 +48,7 @@
 
 #include <cli.h>
 #include <cli_map.h>
-#include <string_fns.h>
+#include <cli_string_fns.h>
 
 #include "copyright_info.h"
 #include "pktgen-cmds.h"
@@ -134,13 +134,13 @@ static const char *range_help[] = {
 CLI_INFO(Range, range_map, range_help);
 
 static int
-range_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+range_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
 	struct rte_ipaddr ip;
 
-	m = cli_mapping(cli, Range_info.map, argc, argv);
+	m = cli_mapping(Range_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -275,7 +275,7 @@ static const char *set_help[] = {
 CLI_INFO(Set, set_map, set_help);
 
 static int
-set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+set_cmd(int argc, char **argv)
 {
 	uint32_t portlist;
 	char *what;
@@ -283,7 +283,7 @@ set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	struct cli_map *m;
 	struct rte_ipaddr ip;
 
-	m = cli_mapping(cli, Set_info.map, argc, argv);
+	m = cli_mapping(Set_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -294,7 +294,7 @@ set_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 
 	switch(m->index) {
 		case 10:
-			n = cli_list_search(cli, m->fmt, argv[2], 2);
+			n = cli_list_search(m->fmt, argv[2], 2);
 			foreach_port(portlist, _do(
 				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
@@ -366,7 +366,7 @@ static const char *pcap_help[] = {
 CLI_INFO(PCAP, pcap_map, pcap_help);
 
 static int
-pcap_cmd(struct cli *cli, int argc, char **argv)
+pcap_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	pcap_info_t   *pcap;
@@ -374,7 +374,7 @@ pcap_cmd(struct cli *cli, int argc, char **argv)
 	uint32_t value;
 	uint32_t portlist;
 
-	m = cli_mapping(cli, PCAP_info.map, argc, argv);
+	m = cli_mapping(PCAP_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -437,12 +437,12 @@ static const char *start_help[] = {
 CLI_INFO(Start, start_map, start_help);
 
 static int
-start_stop_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+start_stop_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
 
-	m = cli_mapping(cli, Start_info.map, argc, argv);
+	m = cli_mapping(Start_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -492,11 +492,11 @@ static const char *theme_help[] = {
 CLI_INFO(Theme, theme_map, theme_help);
 
 static int
-theme_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+theme_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(cli, Theme_info.map, argc, argv);
+	m = cli_mapping(Theme_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -576,13 +576,13 @@ static const char *enable_help[] = {
 CLI_INFO(Enable, enable_map, enable_help);
 
 static int
-enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+enable_disable_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
 	int n, state;
 
-	m = cli_mapping(cli, Enable_info.map, argc, argv);
+	m = cli_mapping(Enable_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -591,7 +591,7 @@ enable_disable_cmd(struct cli *cli __rte_unused, int argc, char **argv)
 	switch (m->index) {
 		case 10:
 		case 20:
-			n = cli_list_search(cli, m->fmt, argv[1], 1);
+			n = cli_list_search(m->fmt, argv[1], 1);
 
 			state = estate(argv[0]);
 
@@ -684,12 +684,12 @@ static const char *debug_help[] = {
 CLI_INFO(Debug, debug_map, debug_help);
 
 static int
-debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
+debug_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
 
-	m = cli_mapping(cli, Debug_info.map, argc, argv);
+	m = cli_mapping(Debug_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -736,7 +736,7 @@ debug_cmd(struct cli *cli __rte_unused, int argc, char **argv)
  */
 
 static int
-seq_1_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+seq_1_set_cmd(int argc __rte_unused, char **argv)
 {
 	char *proto = argv[10];
 	char *eth = argv[9];
@@ -746,7 +746,7 @@ seq_1_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf(cli, "Must use IPv4 with ICMP type packets\n");
+		cli_printf("Must use IPv4 with ICMP type packets\n");
 		return -1;
 	}
 
@@ -784,7 +784,7 @@ seq_1_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
  */
 
 static int
-seq_2_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+seq_2_set_cmd(int argc __rte_unused, char **argv)
 {
 	char *proto = argv[16];
 	char *eth = argv[15];
@@ -794,7 +794,7 @@ seq_2_set_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf(cli, "Must use IPv4 with ICMP type packets\n");
+		cli_printf("Must use IPv4 with ICMP type packets\n");
 		return -1;
 	}
 
@@ -837,18 +837,18 @@ static const char *seq_help[] = {
 CLI_INFO(Seq, seq_map, seq_help);
 
 static int
-seq_cmd(struct cli *cli, int argc, char **argv)
+seq_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(cli, Seq_info.map, argc, argv);
+	m = cli_mapping(Seq_info.map, argc, argv);
 	if (!m)
 		return -1;
 
 	switch(m->index) {
-		case 10: seq_1_set_cmd(cli, argc, argv); break;
+		case 10: seq_1_set_cmd(argc, argv); break;
 		case 11:
-		case 12: seq_2_set_cmd(cli, argc, argv); break;
+		case 12: seq_2_set_cmd(argc, argv); break;
 		default:
 			return -1;
 	}
@@ -868,7 +868,7 @@ seq_cmd(struct cli *cli, int argc, char **argv)
  */
 
 static int
-script_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
+script_cmd(int argc __rte_unused, char **argv)
 {
 	lua_State *L = pktgen.L;
 
@@ -878,7 +878,7 @@ script_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
 	}
 
 	if (is_cli_help(argc, argv)) {
-		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
+		cli_printf("\nUsage: %s <script-string>\n", argv[0]);
 		return 0;
 	}
 
@@ -900,7 +900,7 @@ script_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv)
  */
 
 static int
-exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __rte_unused)
+exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 {
 	lua_State *L = pktgen.L;
 
@@ -910,11 +910,11 @@ exec_lua_cmd(struct cli *cli __rte_unused, int argc __rte_unused, char **argv __
 	}
 
 	if (is_cli_help(argc, argv)) {
-		cli_printf(cli, "\nUsage: %s <script-string>\n", argv[0]);
+		cli_printf("\nUsage: %s <script-string>\n", argv[0]);
 		return 0;
 	}
 
-	if (luaL_dostring(L, cli->gb->buf) != 0)
+	if (luaL_dostring(L, this_cli->gb->buf) != 0)
 		pktgen_log_error("%s", lua_tostring(L, -1));
 	return 0;
 }
@@ -964,14 +964,14 @@ static const char *misc_help[] = {
 CLI_INFO(Misc, misc_map, misc_help);
 
 static int
-misc_cmd(struct cli *cli, int argc, char **argv)
+misc_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
 	uint16_t rows, cols;
 	char *p;
 
-	m = cli_mapping(cli, Misc_info.map, argc, argv);
+	m = cli_mapping(Misc_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -996,13 +996,13 @@ misc_cmd(struct cli *cli, int argc, char **argv)
 			pktgen_display_get_geometry(&rows, &cols);
 			break;
 		case 30:
-			if (cli_load_cmds(cli, argv[1]) )
-				cli_printf(cli, "load command failed for %s\n", argv[1]);
-			if (!scrn_is_paused(pktgen.scrn) )
+			if (cli_load_cmds(argv[1]) )
+				cli_printf("load command failed for %s\n", argv[1]);
+			if (!scrn_is_paused() )
 				pktgen_redisplay(0);
 			break;
-		case 40: script_cmd(cli, argc, argv); break;
-		case 50: exec_lua_cmd(cli, argc, argv); break;
+		case 40: script_cmd(argc, argv); break;
+		case 50: exec_lua_cmd(argc, argv); break;
 		case 60: pktgen_save(argv[1]); break;
 		case 70: pktgen_redisplay(1); break;
 		case 100:
@@ -1064,11 +1064,11 @@ static const char *page_help[] = {
 CLI_INFO(Page, page_map, page_help);
 
 static int
-page_cmd(struct cli *cli, int argc, char **argv)
+page_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(cli, Page_info.map, argc, argv);
+	m = cli_mapping(Page_info.map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -1085,7 +1085,7 @@ page_cmd(struct cli *cli, int argc, char **argv)
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
 
-static int help_cmd(struct cli *cli, int argc, char **argv);
+static int help_cmd(int argc, char **argv);
 
 static struct cli_tree default_tree[] = {
 	c_dir("/pktgen/bin"),
@@ -1131,47 +1131,44 @@ static struct cli_tree default_tree[] = {
 };
 
 static int
-init_tree(struct cli *cli)
+init_tree(void)
 {
 	/* Add the system default commands in /sbin directory */
-    if (cli_default_tree_init(cli))
+    if (cli_default_tree_init())
         return -1;
 
 	/* Add the Pktgen directory tree */
-    if (cli_add_tree(cli, cli_root_node(cli), default_tree))
+    if (cli_add_tree(cli_root_node(), default_tree))
         return -1;
 
 	/* Make sure the pktgen commands are executable an in search path */
-    if (cli_add_bin_path(cli, "/pktgen/bin"))
+    if (cli_add_bin_path("/pktgen/bin"))
         return -1;
 
 	return 0;
 }
 
 static void
-my_prompt(struct cli *cli, int cont __rte_unused)
+my_prompt(int cont __rte_unused)
 {
-    cli_printf(cli, "Pktgen:%s> ", cli_path_string(cli, NULL, NULL));
+    cli_printf("Pktgen:%s> ", cli_path_string(NULL, NULL));
+}
+
+int
+pktgen_cli_create(void)
+{
+    return cli_create(my_prompt,      /* my local prompt routine */
+                     init_tree,
+                     CLI_DEFAULT_NODES,
+                     CLI_DEFAULT_HISTORY);
 }
 
 void
 pktgen_cli_start(void)
 {
-    struct cli *cli;
+    cli_start(NULL, 1);
 
-    cli = cli_create(my_prompt,      /* my local prompt routine */
-                     init_tree,
-                     CLI_DEFAULT_NODES,
-                     CLI_DEFAULT_HISTORY);
-    if (cli) {
-        cli_stdin_setup(cli);
-
-        cli_start(cli, NULL, 1);
-
-        cli_stdin_restore(cli);
-
-        cli_destroy(cli);
-    }
+    cli_destroy();
 }
 
 static struct cli_info *help_data[] = {
@@ -1203,24 +1200,24 @@ static struct cli_info *help_data[] = {
  */
 
 static int
-help_cmd(struct cli *cli, int argc __rte_unused, char **argv __rte_unused)
+help_cmd(int argc __rte_unused, char **argv __rte_unused)
 {
 	int paused;
 
-	paused = scrn_is_paused(pktgen.scrn);
+	paused = scrn_is_paused();
 
 	if (!paused)
-		scrn_pause(pktgen.scrn);
+		scrn_pause();
 
 	scrn_setw(1);
 	scrn_cls();
 	scrn_pos(0, 0);
 
-	cli_show_help(cli, help_data);
+	cli_show_help(help_data);
 
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);
-		scrn_resume(pktgen.scrn);
+		scrn_resume();
 		pktgen_redisplay(1);
 	}
 	return 0;

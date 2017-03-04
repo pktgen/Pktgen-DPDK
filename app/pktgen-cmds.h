@@ -42,7 +42,7 @@
 
 #include "pktgen.h"
 #ifdef RTE_LIBRTE_CLI
-#include <string_fns.h>
+#include <cli_string_fns.h>
 #endif
 
 #ifdef __cplusplus

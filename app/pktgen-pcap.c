@@ -72,25 +72,25 @@ pktgen_print_pcap(uint16_t pid)
 	row = PORT_STATE_ROW;
 	col = 1;
 	if (pcap == NULL) {
-		scrn_center(pktgen.scrn, 10,
-			    ((scrn_t *)pktgen.scrn)->ncols,
-			    "** Port does not have a PCAP file assigned **");
+		scrn_center(10,
+		               this_scrn->ncols,
+		               "** Port does not have a PCAP file assigned **");
 		row = 28;
 		goto leave;
 	}
 
 	scrn_eol_pos(row, col);
 	scrn_printf(row++, col, "Port: %d, PCAP Count: %d of %d",
-		    pid, pcap->pkt_idx, pcap->pkt_count);
+	               pid, pcap->pkt_idx, pcap->pkt_count);
 	scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s",
-		    5, "Seq",
-		    COLUMN_WIDTH_0, "Dst MAC",
-		    COLUMN_WIDTH_0, "Src MAC",
-		    COLUMN_WIDTH_0, "Dst IP",
-		    COLUMN_WIDTH_0 + 2, "Src IP",
-		    12, "Port S/D",
-		    15, "Protocol:VLAN",
-		    9, "Size-FCS");
+	               5, "Seq",
+	               COLUMN_WIDTH_0, "Dst MAC",
+	               COLUMN_WIDTH_0, "Src MAC",
+	               COLUMN_WIDTH_0, "Dst IP",
+	               COLUMN_WIDTH_0 + 2, "Src IP",
+	               12, "Port S/D",
+	               15, "Protocol:VLAN",
+	               9, "Size-FCS");
 
 	max_pkts = pcap->pkt_idx + PCAP_PAGE_SIZE;
 	if (max_pkts > pcap->pkt_count)
@@ -126,10 +126,10 @@ pktgen_print_pcap(uint16_t pid)
 		scrn_printf(row, col, "%5d:", i);
 		col += 7;
 		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff), &hdr->eth.d_addr));
+		               inet_mtoa(buff, sizeof(buff), &hdr->eth.d_addr));
 		col += COLUMN_WIDTH_1;
 		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff), &hdr->eth.s_addr));
+		               inet_mtoa(buff, sizeof(buff), &hdr->eth.s_addr));
 		col += COLUMN_WIDTH_1;
 
 		type = ntohs(hdr->eth.ether_type);
@@ -143,25 +143,25 @@ pktgen_print_pcap(uint16_t pid)
 
 		if (type == ETHER_TYPE_IPv4) {
 			scrn_printf(row,
-				    col,
-				    "%*s",
-				    COLUMN_WIDTH_1,
-				    inet_ntop4(buff, sizeof(buff),
-					       hdr->u.ipv4.dst,
-					       0xFFFFFFFF));
+			               col,
+			               "%*s",
+			               COLUMN_WIDTH_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          hdr->u.ipv4.dst,
+			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1;
 			scrn_printf(row,
-				    col,
-				    "%*s",
-				    COLUMN_WIDTH_1 + 2,
-				    inet_ntop4(buff, sizeof(buff),
-					       hdr->u.ipv4.src,
-					       0xFFFFFFFF));
+			               col,
+			               "%*s",
+			               COLUMN_WIDTH_1 + 2,
+			               inet_ntop4(buff, sizeof(buff),
+			                          hdr->u.ipv4.src,
+			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1 + 2;
 
 			snprintf(buff, sizeof(buff), "%d/%d",
-				 ntohs(hdr->u.uip.udp.sport),
-				 ntohs(hdr->u.uip.udp.dport));
+			         ntohs(hdr->u.uip.udp.sport),
+			         ntohs(hdr->u.uip.udp.dport));
 			scrn_printf(row, col, "%*s", 12, buff);
 			col += 12;
 		} else {
@@ -169,11 +169,11 @@ pktgen_print_pcap(uint16_t pid)
 			col += ((2 * COLUMN_WIDTH_1) + 2 + 12);
 		}
 		snprintf(buff, sizeof(buff), "%s/%s:%4d",
-			 (type == ETHER_TYPE_IPv4) ? "IPv4" :
-			 (type == ETHER_TYPE_IPv6) ? "IPv6" : "Other",
-			 (type == PG_IPPROTO_TCP) ? "TCP" :
-			 (proto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
-			 (vlan & 0xFFF));
+		         (type == ETHER_TYPE_IPv4) ? "IPv4" :
+		         (type == ETHER_TYPE_IPv6) ? "IPv6" : "Other",
+		         (type == PG_IPPROTO_TCP) ? "TCP" :
+		         (proto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
+		         (vlan & 0xFFF));
 		scrn_printf(row, col, "%*s", 15, buff);
 		col += 15;
 		scrn_printf(row, col, "%5d", len);
@@ -276,7 +276,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 
 	for (;; ) {
 		if ( (i & 0x3ff) == 0) {
-			rte_printf_status("%c\b", "-\\|/"[(i >> 10) & 3]);
+			scrn_printf(1, 1, "%c\b", "-\\|/"[(i >> 10) & 3]);
 			i++;
 		}
 
@@ -329,7 +329,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 	_pcap_rewind(pcap);
 
 	snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP TX", info->pid, qid);
-	rte_printf_status("    Process: %-*s ", 18, name);
+	scrn_printf(0, 0, "    Process: %-*s ", 18, name);
 
 	pkt_sizes = elt_count = i = 0;
 
@@ -346,7 +346,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		elt_count++;
 
 		if ( (elt_count & 0x3ff) == 0)
-			rte_printf_status("%c\b", "-\\|/"[i++ & 3]);
+			scrn_printf(1, 1, "%c\b", "-\\|/"[i++ & 3]);
 
 		pkt_sizes += len;
 	}
@@ -365,33 +365,33 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 			elt_count = MAX_MBUFS_PER_PORT;
 		elt_count = rte_align32pow2(elt_count);
 
-		rte_printf_status("\r    Create: %-*s   \b", 16, name);
+		scrn_printf(0, 0, "\r    Create: %-*s   \b", 16, name);
 		info->q[qid].pcap_mp = rte_mempool_create(
-				name,
-				elt_count,
-				MBUF_SIZE,
-				0,
-				sizeof(struct rte_pktmbuf_pool_private),
-				rte_pktmbuf_pool_init,
-				NULL,
-				pktgen_pcap_mbuf_ctor,
-				(void *)pcap,
-				rte_lcore_to_socket_id(
-					0),
-				MEMPOOL_F_DMA);
-		rte_printf_status("\r");
+		                name,
+		                elt_count,
+		                MBUF_SIZE,
+		                0,
+		                sizeof(struct rte_pktmbuf_pool_private),
+		                rte_pktmbuf_pool_init,
+		                NULL,
+		                pktgen_pcap_mbuf_ctor,
+		                (void *)pcap,
+		                rte_lcore_to_socket_id(
+		                        0),
+		                MEMPOOL_F_DMA);
+		scrn_printf(0, 0, "\r");
 		if (info->q[qid].pcap_mp == NULL)
 			pktgen_log_panic("Cannot init port %d for PCAP packets",
 					 info->pid);
 
 		data_size = (info->pcap->pkt_count * MBUF_SIZE);
-		rte_printf_status(
-			"    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
-			16,
-			name,
-			elt_count,
-			info->pcap->pkt_count,
-			(data_size + 1023) / 1024);
+		scrn_printf(0, 0,
+		        "    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
+		        16,
+		        name,
+		        elt_count,
+		        info->pcap->pkt_count,
+		        (data_size + 1023) / 1024);
 		pktgen.mem_used         += data_size;
 		pktgen.total_mem_used   += data_size;
 

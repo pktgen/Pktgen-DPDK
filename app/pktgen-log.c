@@ -201,7 +201,7 @@ pktgen_page_log(uint32_t print_labels)
 
 	/* Header line */
 	scrn_printf(row++, 1, "%1s %8s %-32s %s",
-		    "L", "Time", "Function", "Message");
+	               "L", "Time", "Function", "Message");
 
 	curr_line = output_lines = 0;
 	curr_msg = log_history.head;

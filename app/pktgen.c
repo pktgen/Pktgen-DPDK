@@ -1591,7 +1591,7 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	static unsigned int update_display = 1;
 
 	/* Leave if the screen is paused */
-	if (scrn_is_paused(pktgen.scrn))
+	if (scrn_is_paused())
 		return;
 
 	scrn_save();

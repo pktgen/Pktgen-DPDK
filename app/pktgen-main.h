@@ -40,17 +40,13 @@
 #include <termios.h>
 #include <stdio.h>
 
-#include <cmdline_parse.h>
-#include <cmdline_rdline.h>
-#include <cmdline.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern void pktgen_l2p_dump(void);
 
-extern void pktgen_interact(struct cmdline *cl);
+extern void pktgen_interact(void);
 
 extern void *pktgen_get_lua(void);
 

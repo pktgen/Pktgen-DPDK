@@ -52,14 +52,4 @@ SYMLINK-y-include := cksum.h copyright_info.h core_info.h coremap.h \
 	cmdline_parse_args.h cycles.h inet.h l2p.h lscpu.h mbuf.h _pcap.h \
 	port_config.h utils.h
 
-ifndef CONFIG_RTE_LIBRTE_CLI
-SRCS-y += scrn.c
-SYMLINK-y-include += scrn.h
-else
-ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
-SRCS-y += foo.c scrn.c
-SYMLINK-y-include += scrn.h
-endif
-endif
-
 include $(RTE_SDK)/mk/rte.extlib.mk

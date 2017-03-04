@@ -38,15 +38,13 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include <scrn.h>
+#include "pktgen.h"
 
 #include "pktgen-cmds.h"
 
 #include "pktgen-display.h"
-#include "pktgen.h"
 
 #include <rte_net.h>
-#include <cmdline.h>
 
 static char hash_line[] = "#######################################################################";
 
@@ -62,7 +60,7 @@ convert_bitfield(bf_spec_t *bf)
 	memset(rnd_bitmask, '.', sizeof(rnd_bitmask) - 1);
 
 	p = rnd_bitmask;
-	for (i = 0; i < MAX_BITFIELD_SIZE; i++) {
+	for(i = 0; i < MAX_BITFIELD_SIZE; i++) {
 		mask = (uint32_t)(1 << (MAX_BITFIELD_SIZE - i - 1));
 
 		/* Need to check rndMask before andMask: for random bits, the
@@ -998,16 +996,16 @@ pktgen_flags_string(port_info_t *info)
 void
 pktgen_redisplay(int cls_flag)
 {
-	if (scrn_is_paused(pktgen.scrn) )
+	if (scrn_is_paused() )
 		return;
 
-	scrn_pause(pktgen.scrn);
+	scrn_pause();
 	if (cls_flag) {
-		scrn_cls(pktgen.scrn);
-		scrn_pos(pktgen.scrn, 100, 1);
+		scrn_cls();
+		scrn_pos(100, 1);
 	}
 	pktgen.flags |= PRINT_LABELS_FLAG;
-	scrn_resume(pktgen.scrn);
+	scrn_resume();
 
 	pktgen_page_display(NULL, NULL);
 }
@@ -1077,18 +1075,18 @@ pktgen_screen(int state)
 
 	pktgen_display_get_geometry(&rows, NULL);
 
-	if (parseState(onOff) == DISABLE_STATE) {
-		if (!scrn_is_paused(pktgen.scrn) ) {
-			scrn_pause(pktgen.scrn);
-			scrn_cls(pktgen.scrn);
-			scrn_setw(pktgen.scrn, 1);
-			scrn_pos(pktgen.scrn, 100, 1);
+	if (state == DISABLE_STATE) {
+		if (!scrn_is_paused() ) {
+			scrn_pause();
+			scrn_cls();
+			scrn_setw(1);
+			scrn_pos(100, 1);
 		}
 	} else {
-		scrn_cls(pktgen.scrn);
-		scrn_pos(pktgen.scrn, 100, 1);
-		scrn_setw(pktgen.scrn, pktgen.last_row + 1);
-		scrn_resume(pktgen.scrn);
+		scrn_cls();
+		scrn_pos(100, 1);
+		scrn_setw(pktgen.last_row + 1);
+		scrn_resume();
 		pktgen_redisplay(1);
 	}
 }
@@ -1934,9 +1932,9 @@ pktgen_clear_stats(port_info_t *info)
 void
 pktgen_cls(void)
 {
-	if (scrn_is_paused(pktgen.scrn) ) {
-		scrn_cls(pktgen.scrn);
-		scrn_pos(pktgen.scrn, 100, 1);
+	if (scrn_is_paused() ) {
+		scrn_cls();
+		scrn_pos(100, 1);
 	} else	/* Update the display quickly. */
 		pktgen_redisplay(1);
 }
@@ -2956,10 +2954,10 @@ pktgen_set_page(char *str)
 
 void
 pktgen_set_seq(port_info_t *info, uint32_t seqnum,
-               struct ether_addr *daddr, struct ether_addr *saddr,
-               struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
-               uint32_t sport, uint32_t dport, char type, char proto,
-               uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
+	       struct ether_addr *daddr, struct ether_addr *saddr,
+	       struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
+	       uint32_t sport, uint32_t dport, char type, char proto,
+	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -3008,10 +3006,10 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 
 void
 pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
-                   struct ether_addr *daddr, struct ether_addr *saddr,
-                   struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
-                   uint32_t sport, uint32_t dport, char type, char proto,
-                   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
+		   struct ether_addr *daddr, struct ether_addr *saddr,
+		   struct rte_ipaddr *ip_daddr, struct rte_ipaddr *ip_saddr,
+		   uint32_t sport, uint32_t dport, char type, char proto,
+		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -3098,16 +3096,4 @@ pktgen_quit(void)
 #else
 	cmdline_quit(pktgen.cl);
 #endif
-}
-
-void
-pktgen_input_start(void)
-{
-	printf("TODO: %s\n", __func__);
-}
-
-void
-pktgen_input_init(void)
-{
-	printf("TODO: %s\n", __func__);
 }

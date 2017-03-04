@@ -114,8 +114,9 @@
 #include "pktgen-capture.h"
 #include "pktgen-log.h"
 #include "pktgen-latency.h"
-
 #include "pktgen-seq.h"
+
+#include <cli.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -267,14 +268,12 @@ typedef struct {
 	uint8_t idx;
 } cmd_files_t;
 
-struct scrn;
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
-	struct scrn *scrn;		/**< Screen structure pointer */
-	cmd_files_t cmd_files;	/**< Command file path and name */
+	cmd_files_t cmd_files; /**< Command file path and name */
 
 	int32_t socket_port;		/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */
@@ -369,11 +368,6 @@ enum {						/* Pktgen flags bits */
 			 PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
 			 RND_BITFIELD_PAGE_FLAG | \
 			 LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | STATS_PAGE_FLAG)
-
-struct cmdline_etheraddr {
-	uint8_t mac[6];
-};
-typedef struct ether_addr etheraddr_t;
 
 extern pktgen_t pktgen;
 

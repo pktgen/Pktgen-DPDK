@@ -38,7 +38,7 @@
 #define _PKTGEN_DISPLAY_H_
 
 /* TODO create pktgen_display_*() abstractions and remove this #include */
-#include <scrn.h>
+#include <cli_scrn.h>
 
 #include <copyright_info.h>
 

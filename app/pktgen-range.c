@@ -226,7 +226,7 @@ pktgen_print_range(void)
 
 	display_topline("<Range Page>");
 	scrn_printf(1, 3, "Ports %d-%d of %d", pktgen.starting_port,
-		    (pktgen.ending_port - 1), pktgen.nb_ports);
+	               (pktgen.ending_port - 1), pktgen.nb_ports);
 
 	row = PORT_STATE_ROW;
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port #");
@@ -301,151 +301,147 @@ pktgen_print_range(void)
 
 		range = &info->range;
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->dst_ip),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->dst_ip),
+		                          0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->dst_ip_inc),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->dst_ip_inc),
+		                          0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->dst_ip_min),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->dst_ip_min),
+		                          0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->dst_ip_max),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->dst_ip_max),
+		                          0xFFFFFFFF));
 
 		row++;
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->src_ip),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->src_ip),
+		                          0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->src_ip_inc),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->src_ip_inc),
+		                          0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->src_ip_min),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->src_ip_min),
+		                          0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(range->src_ip_max),
-				       0xFFFFFFFF));
+		               inet_ntop4(buff, sizeof(buff),
+		                          htonl(range->src_ip_max),
+		                          0xFFFFFFFF));
 
 		row++;
-		scrn_printf(
-			row++,
-			col,
-			"%*s",
-			COLUMN_WIDTH_1,
-			(range->ip_proto ==
-			 PG_IPPROTO_TCP) ? "TCP" : "UDP");
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+		        (range->ip_proto ==
+PG_IPPROTO_TCP) ? "TCP" : "UDP");
 
 		row++;
 		snprintf(str,
-			 sizeof(str),
-			 "%5d/%5d",
-			 range->dst_port,
-			 range->dst_port_inc);
+		         sizeof(str),
+		         "%5d/%5d",
+		         range->dst_port,
+		         range->dst_port_inc);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 		snprintf(str,
-			 sizeof(str),
-			 "%5d/%5d",
-			 range->dst_port_min,
-			 range->dst_port_max);
+		         sizeof(str),
+		         "%5d/%5d",
+		         range->dst_port_min,
+		         range->dst_port_max);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 
 		row++;
 		snprintf(str,
-			 sizeof(str),
-			 "%5d/%5d",
-			 range->src_port,
-			 range->src_port_inc);
+		         sizeof(str),
+		         "%5d/%5d",
+		         range->src_port,
+		         range->src_port_inc);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 		snprintf(str,
-			 sizeof(str),
-			 "%5d/%5d",
-			 range->src_port_min,
-			 range->src_port_max);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
-
-		row++;
-		snprintf(str,
-			 sizeof(str),
-			 "%4d/%4d",
-			 range->vlan_id,
-			 range->vlan_id_inc);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
-		snprintf(str,
-			 sizeof(str),
-			 "%4d/%4d",
-			 range->vlan_id_min,
-			 range->vlan_id_max);
+		         sizeof(str),
+		         "%5d/%5d",
+		         range->src_port_min,
+		         range->src_port_max);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 
 		row++;
 		snprintf(str,
-			 sizeof(str),
-			 "%4d/%4d",
-			 range->pkt_size + FCS_SIZE,
-			 range->pkt_size_inc);
+		         sizeof(str),
+		         "%4d/%4d",
+		         range->vlan_id,
+		         range->vlan_id_inc);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 		snprintf(str,
-			 sizeof(str),
-			 "%4d/%4d",
-			 range->pkt_size_min + FCS_SIZE,
-			 range->pkt_size_max + FCS_SIZE);
+		         sizeof(str),
+		         "%4d/%4d",
+		         range->vlan_id_min,
+		         range->vlan_id_max);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+
+		row++;
+		snprintf(str,
+		         sizeof(str),
+		         "%4d/%4d",
+		         range->pkt_size + FCS_SIZE,
+		         range->pkt_size_inc);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
+		snprintf(str,
+		         sizeof(str),
+		         "%4d/%4d",
+		         range->pkt_size_min + FCS_SIZE,
+		         range->pkt_size_max + FCS_SIZE);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 
 		row++;
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->dst_mac, &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->dst_mac, &eaddr)));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->dst_mac_inc,
-						  &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->dst_mac_inc,
+		                                     &eaddr)));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->dst_mac_min,
-						  &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->dst_mac_min,
+		                                     &eaddr)));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->dst_mac_max,
-						  &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->dst_mac_max,
+		                                     &eaddr)));
 
 		row++;
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->src_mac, &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->src_mac, &eaddr)));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->src_mac_inc,
-						  &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->src_mac_inc,
+		                                     &eaddr)));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->src_mac_min,
-						  &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->src_mac_min,
+		                                     &eaddr)));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-			    inet_mtoa(buff, sizeof(buff),
-				      inet_h64tom(range->src_mac_max,
-						  &eaddr)));
+		               inet_mtoa(buff, sizeof(buff),
+		                         inet_h64tom(range->src_mac_max,
+		                                     &eaddr)));
 
 		row++;
 		snprintf(str,
-			 sizeof(str),
-			 "%5d/%5d",
-			 range->gtpu_teid,
-			 range->gtpu_teid_inc);
+		         sizeof(str),
+		         "%5d/%5d",
+		         range->gtpu_teid,
+		         range->gtpu_teid_inc);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 		snprintf(str,
-			 sizeof(str),
-			 "%5d/%5d",
-			 range->gtpu_teid_min,
-			 range->gtpu_teid_max);
+		         sizeof(str),
+		         "%5d/%5d",
+		         range->gtpu_teid_min,
+		         range->gtpu_teid_max);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 	}
 

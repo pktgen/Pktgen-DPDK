@@ -36,7 +36,7 @@
 
 #include <arpa/inet.h>
 
-#include <scrn.h>
+#include <cli_scrn.h>
 #include "pktgen.h"
 #include "pktgen-log.h"
 #include "pktgen-ipv4.h"

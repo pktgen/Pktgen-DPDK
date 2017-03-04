@@ -16,7 +16,7 @@ else
     target=${RTE_TARGET}
 fi
 
-cmd=./app/app/${target}/app/pktgen
+cmd=./app/app/${target}/pktgen
 
 # 04:00.0 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
 # 04:00.1 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)

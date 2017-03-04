@@ -12,8 +12,8 @@
 #include "pktgen.h"
 #include "lpktgenlib.h"
 
-#include <scrn.h>
-scrn_t *scrn = NULL;
+#include <cli_scrn.h>
+struct cli_scrn *scrn = NULL;
 
 pktgen_t pktgen;
 int rte_cycles_vmware_tsc_map = 0;

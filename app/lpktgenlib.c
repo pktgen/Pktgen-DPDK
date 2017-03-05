@@ -84,8 +84,6 @@
 #include "pktgen-cmds.h"
 #include "cmd-functions.h"
 
-extern const char *help_info[];
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif

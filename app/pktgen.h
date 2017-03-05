@@ -160,6 +160,7 @@
 #include "pktgen-latency.h"
 
 #include "pktgen-seq.h"
+#include "pktgen-help.h"
 
 #define PKTGEN_VERSION          "3.1.0"
 #define PKTGEN_APP_NAME         "Pktgen"

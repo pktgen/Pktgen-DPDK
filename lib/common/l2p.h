@@ -221,7 +221,7 @@ pg_inc_tx(l2p_t *l2p, uint16_t pid, uint16_t lid) {
  * return the rxtx_t value at given lcore/port index
  *
  */
-static __inline__ uint16_t
+static __inline__ uint32_t
 get_map(l2p_t *l2p, uint16_t pid, uint16_t lid)
 {
 	return l2p->map[pid][lid].rxtx;

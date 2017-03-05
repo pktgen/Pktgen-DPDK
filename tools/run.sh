@@ -63,12 +63,12 @@ cmd=./app/app/${target}/app/pktgen
 
 dpdk_opts="-l 1-3,18-19 -n 4 --proc-type auto --log-level 8 --file-prefix pg"
 #dpdk_opts="-l 1-3,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,8192 --file-prefix pg"
-dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
-#dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
-#dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
+#dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
 
 pktgen_opts="-T -P --crc-strip"
-pktgen_opts="${pktgen_opts} -m [2:3].0 -m [18:19].1"
+pktgen_opts="${pktgen_opts} -m [2:3].8 -m [18:19].9"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
 #pktgen_opts="${pktgen_opts} -m [10:11].4 -m [12:13].5 -m [14:15].6 -m [16:17].7"
 

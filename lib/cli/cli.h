@@ -451,7 +451,7 @@ is_executable(struct cli_node *node)
  *
  * @note Uses thread variable this_cli.
  *
- * @param
+ * @return
  *   -1 just to remove code having to return error anyway.
  */
 static inline int

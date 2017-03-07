@@ -69,7 +69,7 @@ __print_help(struct cli_node *node, char *search)
 }
 
 static int
-dhelp_cmd(int argc, char **argv)
+chelp_cmd(int argc, char **argv)
 {
 	struct cli *cli = this_cli;
     struct cli_node *bin;
@@ -93,7 +93,7 @@ dhelp_cmd(int argc, char **argv)
 	cli_printf("  Use !<NN> to execute a history line\n");
 	cli_printf("  Use @<host command> to execute a host binary\n");
 	cli_printf("  Use Up/Down arrows to access history commands\n");
-	cli_printf("  Use 'dhelp -a' to list all commands\n");
+	cli_printf("  Use 'chelp -a' to list all commands\n");
 
     if (all == 0) {
 		/* Look in the current directory first for a command */
@@ -625,7 +625,7 @@ c_file("copyright", copyright_file, "DPDK copyright information"),
 c_dir("/sbin"),
 c_cmd("delay",      delay_cmd,  "delay a number of milliseconds"),
 c_cmd("sleep",      sleep_cmd,  "delay a number of seconds"),
-c_cmd("dhelp",      dhelp_cmd,  "DPDK help - display information for DPDK"),
+c_cmd("chelp",      chelp_cmd,  "CLI help - display information for DPDK"),
 c_cmd("mkdir", 		mkdir_cmd, 	"create a directory"),
 c_cmd("rm",			rm_cmd,		"remove a file or directory"),
 c_cmd("ls",         ls_cmd,     "ls [-lr] <dir> # list current directory"),

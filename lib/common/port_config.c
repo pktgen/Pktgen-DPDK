@@ -54,7 +54,6 @@
 #include <rte_devargs.h>
 #include <rte_debug.h>
 
-#include "scrn.h"
 #include "port_config.h"
 #include "core_info.h"
 

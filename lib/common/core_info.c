@@ -83,7 +83,6 @@
 #include <rte_pci.h>
 #include <rte_debug.h>
 
-#include "scrn.h"
 #include "core_info.h"
 #include "lscpu.h"
 #include "utils.h"

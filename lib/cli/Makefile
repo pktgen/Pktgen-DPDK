@@ -1,12 +1,4 @@
-#   BSD LICENSE
-#
-#   Copyright(c) 2010-2012 Intel Corporation. All rights reserved.
-#   All rights reserved.
-#
-#   Redistribution and use in source and binary forms, with or without
-#   modification, are permitted provided that the following conditions
-#   are met:
-#
+#   BSD LICENSE # #   Copyright(c) 2016-2017 Intel Corporation. All rights reserved.  #   All rights reserved.  # #   Redistribution and use in source and binary forms, with or without #   modification, are permitted provided that the following conditions #   are met: #
 #     * Redistributions of source code must retain the above copyright
 #       notice, this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above copyright
@@ -28,26 +20,51 @@
 #   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
 include $(RTE_SDK)/$(RTE_TARGET)/.config
 include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
-LIB = libcommon.a
-LIBABIVER := 1
+LIB = libcli.a
 
-CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
+CFLAGS += -O3 -D_GNU_SOURCE $(WERROR_FLAGS) -I$(SRCDIR)
+CFLAGS += -DRTE_CLI_HOST_COMMANDS
+#CFLAGS += -DRTE_CLI_INCLUDE_LUA
+#CFLAGS += -DRTE_LIBRTE_CLI_DEBUG
+CFLAGS += -I../lua/src
 
-EXPORT_MAP := common_version.map
-LIBABIVER := 1
 
 # all source are stored in SRCS-y
-SRCS-y := copyright_info.c port_config.c core_info.c cmdline_parse_args.c \
-	lscpu.c utils.c coremap.c _pcap.c cksum.c l2p.c pg_inet.c
+SRCS-y +=  cli.c
+SRCS-y +=  cli_cmds.c
+SRCS-y +=  cli_map.c
+SRCS-y +=  cli_gapbuf.c
+SRCS-y +=  cli_file.c
+SRCS-y +=  cli_env.c
+SRCS-y +=  cli_auto_complete.c
+SRCS-y +=  cli_history.c
+SRCS-y +=  cli_search.c
+SRCS-y +=  cli_cmap.c
+SRCS-y +=  cli_vt100.c
+SRCS-y +=  cli_vt100_keys.c
+SRCS-y +=  cli_scrn.c
+SRCS-y +=  cli_string_fns.c
 
-SYMLINK-y-include := cksum.h copyright_info.h core_info.h coremap.h \
-	cmdline_parse_args.h cycles.h pg_ether.h pg_inet.h l2p.h lscpu.h mbuf.h _pcap.h \
-	port_config.h utils.h portlist.h 
+# install includes
+SYMLINK-y-include += cli.h
+SYMLINK-y-include += cli_map.h
+SYMLINK-y-include += cli_gapbuf.h
+SYMLINK-y-include += cli_file.h
+SYMLINK-y-include += cli_env.h
+SYMLINK-y-include += cli_search.h
+SYMLINK-y-include += cli_history.h
+SYMLINK-y-include += cli_vt100.h
+SYMLINK-y-include += cli_vt100_keys.h
+SYMLINK-y-include += cli_scrn.h
+SYMLINK-y-include += cli_string_fns.h
+
+# this lib needs eal
+DEPDIRS-y += lib/librte_eal lib/librte_mempool
+DEPDIRS-y += lib/librte_ether
 
 include $(RTE_SDK)/mk/rte.extlib.mk

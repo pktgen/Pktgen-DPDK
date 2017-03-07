@@ -117,9 +117,8 @@
 #include <rte_byteorder.h>
 #include <rte_errno.h>
 
-#include "scrn.h"
 #include "_pcap.h"
-#include "inet.h"
+#include "pg_inet.h"
 
 /**************************************************************************//**
  *

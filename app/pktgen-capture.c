@@ -33,7 +33,6 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#include <scrn.h>
 #include "pktgen-capture.h"
 #include <time.h>
 

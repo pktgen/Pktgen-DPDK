@@ -57,6 +57,7 @@
 #include "pktgen-display.h"
 #include "pktgen-random.h"
 #include "pktgen-log.h"
+#include "pg_ether.h"
 
 /**********************************************************/
 static const char *title_help[] = {
@@ -138,7 +139,7 @@ range_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
-	struct rte_ipaddr ip;
+	struct pg_ipaddr ip;
 
 	m = cli_mapping(Range_info.map, argc, argv);
 	if (!m)
@@ -158,12 +159,12 @@ range_cmd(int argc, char **argv)
 								rte_ether_aton((const char *)argv[5], NULL)));
 			break;
 		case 30:
-			rte_atoip(argv[5], RTE_IPADDR_V4, &ip, sizeof(ip));
+			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_dst_ip(info, argv[4], &ip));
 			break;
 		case 31:
-			rte_atoip(argv[5], RTE_IPADDR_V4, &ip, sizeof(ip));
+			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_src_ip(info, argv[4], &ip));
 			break;
@@ -281,7 +282,7 @@ set_cmd(int argc, char **argv)
 	char *what;
 	int value, n;
 	struct cli_map *m;
-	struct rte_ipaddr ip;
+	struct pg_ipaddr ip;
 
 	m = cli_mapping(Set_info.map, argc, argv);
 	if (!m)
@@ -334,7 +335,7 @@ set_cmd(int argc, char **argv)
 				     pattern_set_user_pattern(info, argv[3]));
 			break;
 		case 30:
-			rte_atoip(argv[4], RTE_IPADDR_V4, &ip, sizeof(ip));
+			rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, argv[3][0], &ip));
 			break;
 		case 40:
@@ -476,7 +477,7 @@ start_stop_cmd(int argc, char **argv)
 static struct cli_map theme_map[] = {
 	{  0, "theme" },
 	{ 10, "theme %|on|off" },
-	{ 20, "theme item %s %s %s %s" },
+	{ 20, "theme %s %s %s %s" },
 	{ 30, "theme save" },
 	{ -1, NULL }
 };
@@ -501,21 +502,11 @@ theme_cmd(int argc, char **argv)
 		return -1;
 
 	switch(m->index) {
-		case 0:
-			pktgen_theme_show();
-			break;
-		case 10:
-			pktgen_theme_state(argv[1]);
-			pktgen_cls();
-			break;
-		case 20:
-			pktgen_set_theme_item(argv[2], argv[3], argv[4], argv[5]);
-			break;
-		case 30:
-			pktgen_theme_save(argv[2]);
-			break;
-		default:
-			return -1;
+	case 0:  pktgen_theme_show(); break;
+	case 10: pktgen_theme_state(argv[1]); pktgen_redisplay(1); break;
+	case 20: pktgen_set_theme_item(argv[1], argv[2], argv[3], argv[4]); break;
+	case 30: pktgen_theme_save(argv[2]); break;
+	default: return cli_help_show(theme_help);
 	}
 	return 0;
 }
@@ -579,19 +570,19 @@ static int
 enable_disable_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 	int n, state;
 
 	m = cli_mapping(Enable_info.map, argc, argv);
 	if (!m)
-		return -1;
+		return cli_help_show(enable_help);
 
 	rte_parse_portlist(argv[1], &portlist);
 
 	switch (m->index) {
 		case 10:
 		case 20:
-			n = cli_list_search(m->fmt, argv[1], 1);
+			n = cli_list_search(m->fmt, argv[2], 2);
 
 			state = estate(argv[0]);
 
@@ -654,10 +645,12 @@ enable_disable_cmd(int argc, char **argv)
 					break;
 
 				default:
+					cli_printf("Invalid option %s\n", ed_type);
 					return -1;
 			}
 			break;
 		default:
+			cli_usage();
 			return -1;
 	}
 	pktgen_update_display();
@@ -742,7 +735,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	char *eth = argv[9];
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
-	struct rte_ipaddr dst, src;
+	struct pg_ipaddr dst, src;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -754,8 +747,8 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 
 	teid = (argc == 11)? strtoul(argv[13], NULL, 10) : 0;
-	rte_atoip(argv[5], RTE_IPADDR_V4, &dst, sizeof(dst));
-	rte_atoip(argv[6], RTE_IPADDR_V4, &src, sizeof(src));
+	rte_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
+	rte_atoip(argv[6], PG_IPADDR_V4, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
@@ -790,7 +783,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	char *eth = argv[15];
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
-	struct rte_ipaddr dst, src;
+	struct pg_ipaddr dst, src;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -802,8 +795,8 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 
 	teid = (argc == 23)? strtoul(argv[22], NULL, 10) : 0;
-	rte_atoip(argv[8], RTE_IPADDR_V4, &dst, sizeof(dst));
-	rte_atoip(argv[10], RTE_IPADDR_V4, &src, sizeof(src));
+	rte_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
+	rte_atoip(argv[10], PG_IPADDR_V4, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
@@ -947,7 +940,6 @@ static const char *misc_help[] = {
 	"geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
 	"clear <portlist>                   - Clear the statistics",
 	"clr                                - Clear all Statistices",
-	"cls                                - Clear the screen",
 	"reset <portlist>                   - Reset the configuration the ports to the default",
 	"rst                                - Reset the configuration for all ports",
 	"ports per page [1-6]               - Set the number of ports displayed per page",
@@ -996,7 +988,7 @@ misc_cmd(int argc, char **argv)
 			pktgen_display_get_geometry(&rows, &cols);
 			break;
 		case 30:
-			if (cli_load_cmds(argv[1]) )
+			if (cli_execute_cmdfile(argv[1]) )
 				cli_printf("load command failed for %s\n", argv[1]);
 			if (!scrn_is_paused() )
 				pktgen_redisplay(0);
@@ -1120,6 +1112,7 @@ static struct cli_tree default_tree[] = {
 	c_cmd("set", 		set_cmd, 		"set a number of options"),
 	c_cmd("debug",      debug_cmd,		"debug commands"),
 
+	c_alias("cls",		"redisplay",	"clear and redraw screen"),
 	c_alias("str",		"start all",	"start all ports sending packets"),
 	c_alias("stp",		"stop all",		"stop all ports sending packets"),
 	c_alias("clr",		"clear all",	"clear all port stats"),

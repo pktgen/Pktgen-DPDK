@@ -1492,7 +1492,7 @@ struct cmd_src_ip_result {
 	cmdline_fixed_string_t src_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -1550,7 +1550,7 @@ struct cmd_dst_ip_result {
 	cmdline_fixed_string_t dst_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2462,8 +2462,8 @@ struct cmd_set_seq_result {
 	cmdline_portlist_t portlist;
 	etheraddr_t daddr;
 	etheraddr_t saddr;
-	struct rte_ipaddr ip_daddr;
-	struct rte_ipaddr ip_saddr;
+	struct pg_ipaddr ip_daddr;
+	struct pg_ipaddr ip_saddr;
 	uint32_t sport;
 	uint32_t dport;
 	cmdline_fixed_string_t eth;
@@ -2571,7 +2571,7 @@ struct cmd_setip_dst_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2631,7 +2631,7 @@ struct cmd_setip_src_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**

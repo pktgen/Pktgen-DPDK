@@ -31,42 +31,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#ifndef __INET_H
-#define __INET_H
+#ifndef _PG_INET_H
+#define _PG_INET_H
 
 #define IPv4_VERSION    4
 #define IPv6_VERSION    6
@@ -82,6 +50,28 @@
 #include <arpa/inet.h>
 
 #include <rte_ether.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define PG_IPADDR_V4      0x01
+#define PG_IPADDR_V6      0x02
+#define PG_IPADDR_NETWORK 0x04
+
+#define PG_INADDRSZ       4
+#define PG_IN6ADDRSZ      16
+#define PG_PREFIXMAX      128
+#define PG_V4PREFIXMAX    32
+
+struct pg_ipaddr {
+        uint8_t family;
+        union {
+                struct in_addr ipv4;
+                struct in6_addr ipv6;
+        };
+        unsigned int prefixlen; /* in case of network only */
+};
 
 /* Internet protocol header structure */
 /* Basic IPv4 packet header
@@ -778,4 +768,24 @@ inet_h64tom(uint64_t value, struct ether_addr *eaddr) {
 	return eaddr;
 }
 
-#endif /* __INET_H */
+/**
+ * Convert an IPv4/v6 address into a binary value.
+ *
+ * @param buf
+ *   Location of string to convert
+ * @param flags
+ *   Set of flags for converting IPv4/v6 addresses and netmask.
+ * @param res
+ *   Location to put the results
+ * @param ressize
+ *   Length of res in bytes.
+ * @return
+ *   0 on OK and -1 on error
+ */
+int rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _PG_INET_H */

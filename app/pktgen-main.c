@@ -36,8 +36,6 @@
 
 #include "pktgen-main.h"
 
-#include <scrn.h>
-
 #include "pktgen.h"
 #include "lpktgenlib.h"
 #include "lua_shell.h"
@@ -195,7 +193,7 @@ pktgen_parse_args(int argc, char **argv)
 			break;
 
 		case 'f':	/* Command file or Lua script. */
-			pktgen.cmd_files.filename[pktgen.cmd_files.idx++] = strdup(optarg);
+			cli_add_cmdfile(optarg);
 			break;
 
 		case 'l':	/* Log file */
@@ -342,15 +340,15 @@ main(int argc, char **argv)
 	argc -= ret;
 	argv += ret;
 
+	if (pktgen_cli_create())
+		return -1;
+
 	/* parse application arguments (after the EAL ones) */
 	ret = pktgen_parse_args(argc, argv);
 	if (ret < 0)
 		return -1;
 
 	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
-
-	if (pktgen_cli_create())
-		return -1;
 
 	pktgen_init_screen(
 	        (pktgen.flags & ENABLE_THEME_FLAG) ? SCRN_THEME_ON : SCRN_THEME_OFF);

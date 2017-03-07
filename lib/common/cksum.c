@@ -96,8 +96,7 @@
 #include "copyright_info.h"
 #include "port_config.h"
 
-#include "scrn.h"
-#include "inet.h"
+#include "pg_inet.h"
 #include "cycles.h"
 #include "mbuf.h"
 #include "cksum.h"

@@ -34,7 +34,6 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#include <scrn.h>
 #include "pktgen-cmds.h"
 #include "pktgen-display.h"
 

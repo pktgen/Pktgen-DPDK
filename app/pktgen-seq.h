@@ -39,7 +39,7 @@
 #include <rte_ether.h>
 #include <cmdline_parse.h>
 #include <cmdline_parse_ipaddr.h>
-#include <inet.h>
+#include <pg_inet.h>
 
 #include "pktgen-constants.h"
 

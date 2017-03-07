@@ -37,10 +37,9 @@
 #define LUA_LIB
 #define lua_c
 
-#include <rte_ether.h>
-#include <rte_net.h>
-#include <rte_portlist.h>
-
+#include <portlist.h>
+#include <pg_ether.h>
+#include <pg_inet.h>
 #include "lpktgenlib.h"
 
 #include <stdint.h>
@@ -178,7 +177,7 @@ getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, 1) ) {
 		rte_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
-				     sizeof(struct rte_ipaddr));
+				     sizeof(struct pg_ipaddr));
 	}
 	lua_pop(L, 1);
 }
@@ -297,8 +296,8 @@ set_seq(lua_State *L, uint32_t seqnum)
 	uint16_t vlanid;
 	struct ether_addr daddr;
 	struct ether_addr saddr;
-	struct rte_ipaddr ip_daddr;
-	struct rte_ipaddr ip_saddr;
+	struct pg_ipaddr ip_daddr;
+	struct pg_ipaddr ip_saddr;
 	char *proto, *ip;
 
 	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
@@ -307,17 +306,17 @@ set_seq(lua_State *L, uint32_t seqnum)
 	/* Determine if we are IPv4 or IPv6 packets */
 	ip      = (char *)luaL_checkstring(L, 10);
 	if (ip[3] == '6') {
-		rte_atoip(luaL_checkstring(L, 5), RTE_IPADDR_V6,
-				  &ip_daddr, sizeof(struct rte_ipaddr));
+		rte_atoip(luaL_checkstring(L, 5), PG_IPADDR_V6,
+				  &ip_daddr, sizeof(struct pg_ipaddr));
 		rte_atoip(luaL_checkstring(L, 6),
-				  RTE_IPADDR_NETWORK | RTE_IPADDR_V6,
-				  &ip_saddr, sizeof(struct rte_ipaddr));
+				  PG_IPADDR_NETWORK | PG_IPADDR_V6,
+				  &ip_saddr, sizeof(struct pg_ipaddr));
 	} else {
-		rte_atoip(luaL_checkstring(L, 5), RTE_IPADDR_V4,
-				  &ip_daddr, sizeof(struct rte_ipaddr));
+		rte_atoip(luaL_checkstring(L, 5), PG_IPADDR_V4,
+				  &ip_daddr, sizeof(struct pg_ipaddr));
 		rte_atoip(luaL_checkstring(L, 6),
-				  RTE_IPADDR_NETWORK | RTE_IPADDR_V4,
-				  &ip_saddr, sizeof(struct rte_ipaddr));
+				  PG_IPADDR_NETWORK | PG_IPADDR_V4,
+				  &ip_saddr, sizeof(struct pg_ipaddr));
 	}
 	sport   = luaL_checkinteger(L, 7);
 	dport   = luaL_checkinteger(L, 8);
@@ -394,17 +393,17 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	uint16_t vlanid;
 	struct ether_addr daddr;
 	struct ether_addr saddr;
-	struct rte_ipaddr ip_daddr;
-	struct rte_ipaddr ip_saddr;
+	struct pg_ipaddr ip_daddr;
+	struct pg_ipaddr ip_saddr;
 	char *ipProto, *ethType;
 
 	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
 
 	getf_etheraddr(L, "eth_dst_addr", &daddr);
 	getf_etheraddr(L, "eth_src_addr", &saddr);
-	getf_ipaddr(L, "ip_dst_addr", &ip_daddr, RTE_IPADDR_V4);
+	getf_ipaddr(L, "ip_dst_addr", &ip_daddr, PG_IPADDR_V4);
 	getf_ipaddr(L, "ip_src_addr", &ip_saddr,
-	            RTE_IPADDR_NETWORK | RTE_IPADDR_V4);
+	            PG_IPADDR_NETWORK | PG_IPADDR_V4);
 
 	sport       = getf_integer(L, "sport");
 	dport       = getf_integer(L, "dport");
@@ -660,7 +659,7 @@ pktgen_prototype(lua_State *L)
 static int
 pktgen_set_ip_addr(lua_State *L) {
 	portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 	int flags;
 	char      *type;
 
@@ -671,11 +670,11 @@ pktgen_set_ip_addr(lua_State *L) {
 	}
 	type = (char *)luaL_checkstring(L, 2);
 	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
-	flags = RTE_IPADDR_V4;
+	flags = PG_IPADDR_V4;
 	if (type[0] == 's')
-		flags |= RTE_IPADDR_NETWORK;
+		flags |= PG_IPADDR_NETWORK;
 	rte_atoip(luaL_checkstring(L, 3), flags,
-			  &ipaddr, sizeof(struct rte_ipaddr));
+			  &ipaddr, sizeof(struct pg_ipaddr));
 
 	foreach_port(portlist,
 	             single_set_ipaddr(info, type[0], &ipaddr) );
@@ -1118,13 +1117,8 @@ pktgen_load(lua_State *L)
 	}
 	path = (char *)luaL_checkstring(L, 1);
 
-#ifdef RTE_LIBRTE_CLI
-	if (cli_load_cmds(path) )
+	if (cli_execute_cmdfile(path) )
 		return luaL_error(L, "load command failed for %s\n", path);
-#else
-	if (pktgen_load_cmds(path) )
-		return luaL_error(L, "load command failed for %s\n", path);
-#endif
 	return 0;
 }
 
@@ -1389,7 +1383,7 @@ static int
 range_dst_ip(lua_State *L)
 {
 	portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 	char      *type;
 
 	switch (lua_gettop(L) ) {
@@ -1398,8 +1392,8 @@ range_dst_ip(lua_State *L)
 		break;
 	}
 	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
-	rte_atoip(luaL_checkstring(L, 3), RTE_IPADDR_V4,
-			  &ipaddr, sizeof(struct rte_ipaddr));
+	rte_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
+			  &ipaddr, sizeof(struct pg_ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
 	foreach_port(portlist,
@@ -1425,7 +1419,7 @@ static int
 range_src_ip(lua_State *L)
 {
 	portlist_t portlist;
-	struct rte_ipaddr ipaddr;
+	struct pg_ipaddr ipaddr;
 	char      *type;
 
 	switch (lua_gettop(L) ) {
@@ -1434,7 +1428,7 @@ range_src_ip(lua_State *L)
 		break;
 	}
 	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
-	rte_atoip(luaL_checkstring(L, 3), RTE_IPADDR_V4,
+	rte_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
 			  &ipaddr, sizeof(ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
@@ -3119,13 +3113,11 @@ pktgen_run(lua_State *L)
 
 	/* A cmd executes a file on the disk and can be a lua Script of command line file. */
 	if (strcasecmp("cmd", luaL_checkstring(L, 1)) == 0)
-		printf("TODO: %s cli_load_cmds(luaL_checkstring(L, 2)\n", __func__);
+		cli_execute_cmdfile(luaL_checkstring(L, 2));
 	else if (strcasecmp("lua", luaL_checkstring(L, 1)) == 0)/* Only a Lua script in memory. */
 		execute_lua_string(L, (char *)luaL_checkstring(L, 2));
 	else
-		return luaL_error(
-			       L,
-			       "run( ['cmd'|'lua'], <string>), arguments wrong.");
+		return luaL_error(L, "run( ['cmd'|'lua'], <string>), arguments wrong.");
 
 	return 0;
 }

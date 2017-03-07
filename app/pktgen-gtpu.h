@@ -36,7 +36,7 @@
 #ifndef _PKTGEN_GTPU_H_
 #define _PKTGEN_GTPU_H_
 
-#include <inet.h>
+#include <pg_inet.h>
 
 #include "pktgen-seq.h"
 

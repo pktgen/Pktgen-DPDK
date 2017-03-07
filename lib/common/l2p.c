@@ -84,7 +84,6 @@
 #include <rte_debug.h>
 #include <rte_memory.h>
 
-#include "scrn.h"
 #include "l2p.h"
 #include "core_info.h"
 #include "utils.h"

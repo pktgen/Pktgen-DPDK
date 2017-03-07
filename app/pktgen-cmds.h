@@ -86,10 +86,10 @@ void pktgen_set_port_number(uint32_t port_number);
 void pktgen_set_port_prime(port_info_t *info, uint32_t cnt);
 void pktgen_port_defaults(uint32_t pid, uint8_t seq);
 
-struct rte_ipaddr;
+struct pg_ipaddr;
 
 /* Single */
-void single_set_ipaddr(port_info_t *info, char type, struct rte_ipaddr *ip);
+void single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip);
 void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_dst_mac(port_info_t *info, struct ether_addr *mac);
@@ -142,10 +142,10 @@ void range_set_src_mac(port_info_t *info,
 			       struct ether_addr *mac);
 void range_set_src_ip(port_info_t *info,
 			      char *what,
-			      struct rte_ipaddr *ip);
+			      struct pg_ipaddr *ip);
 void range_set_dst_ip(port_info_t *info,
 			      char *what,
-			      struct rte_ipaddr *ip);
+			      struct pg_ipaddr *ip);
 void range_set_src_port(port_info_t *info, char *what, uint16_t port);
 void range_set_dst_port(port_info_t *info, char *what, uint16_t port);
 void range_set_proto(port_info_t *info, const char *type);
@@ -167,8 +167,8 @@ void pktgen_set_seq(port_info_t *info,
 			   uint32_t seqnum,
 			   struct ether_addr *daddr,
 			   struct ether_addr *saddr,
-			   struct rte_ipaddr *ip_daddr,
-			   struct rte_ipaddr *ip_saddr,
+			   struct pg_ipaddr *ip_daddr,
+			   struct pg_ipaddr *ip_saddr,
 			   uint32_t sport,
 			   uint32_t dport,
 			   char ip,
@@ -185,8 +185,8 @@ void pktgen_compile_pkt(port_info_t *info,
 			       uint32_t seqnum,
 			       struct ether_addr *daddr,
 			       struct ether_addr *saddr,
-			       struct rte_ipaddr *ip_daddr,
-			       struct rte_ipaddr *ip_saddr,
+			       struct pg_ipaddr *ip_daddr,
+			       struct pg_ipaddr *ip_saddr,
 			       uint32_t sport,
 			       uint32_t dport,
 			       char type,

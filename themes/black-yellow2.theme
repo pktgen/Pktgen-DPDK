@@ -16,4 +16,4 @@ theme stats.stat.values black none off
 theme stats.total.label red none bold
 theme stats.colon blue none bold
 theme pktgen.prompt blue none off
-cls
+theme on

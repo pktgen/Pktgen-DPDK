@@ -63,7 +63,7 @@ static char *model_name;
 char *
 cmap_cpu_model(void)
 {
-    return model_name;
+	return model_name;
 }
 
 static const char *
@@ -126,7 +126,7 @@ get_next_thread_id(const lcore_t *lc, unsigned socket_id, unsigned core_id)
 static lcore_t *
 set_thread_id_str(const char *unused, lcore_t *lc)
 {
-    (void)unused;
+	(void)unused;
 	lc->u.tid = get_next_thread_id(lc->next, lc->u.sid, lc->u.cid);
 	return lc;
 }
@@ -214,10 +214,10 @@ static void
 get_and_free_lcore_info(lcore_t *lc, lc_info_t *get)
 {
 	if (lc) {
-        get_and_free_lcore_info(lc->next, get + 1);
-        get->word = lc->u.word;
-        free(lc);
-    }
+		get_and_free_lcore_info(lc->next, get + 1);
+		get->word = lc->u.word;
+		free(lc);
+	}
 }
 
 static inline int
@@ -241,14 +241,14 @@ my_getline(char **line, size_t *line_sz, int fd)
 	if (*line == NULL) {
 		if (*line_sz == 0)
 			*line_sz = 4096;
-		 l = malloc(*line_sz);
+		l = malloc(*line_sz);
 		if (l == NULL)
 			return -1;
 		*line = l;
 	} else
 		l = *line;
 
-	for(i = 0, sz = 0; i < *line_sz; i++) {
+	for (i = 0, sz = 0; i < *line_sz; i++) {
 		if (read(fd, &c, 1) != 1)
 			return -1;
 		*l++ = c;
@@ -268,25 +268,25 @@ cmap_create(void)
 {
 	int fd;
 	char         *line = NULL;
-    struct cmap *cmap;
-    lc_info_t *lc_info = &lcore_info[0];
+	struct cmap *cmap;
+	lc_info_t *lc_info = &lcore_info[0];
 	size_t line_sz = 0;
 	lcore_t *lcores = NULL;
 
-    memset(lcore_info, '\0', sizeof(lcore_info));
+	memset(lcore_info, '\0', sizeof(lcore_info));
 
-    cmap = malloc(sizeof(struct cmap));
-    if (!cmap)
-        return NULL;
+	cmap = malloc(sizeof(struct cmap));
+	if (!cmap)
+		return NULL;
 
 	if ( (fd = open(PROC_CPUINFO, O_RDONLY)) < 0) {
 		fprintf(stderr, "Cannot open %s on this system\n", PROC_CPUINFO);
-        free(cmap);
+		free(cmap);
 		return NULL;
 	}
 
 	while (my_getline(&line, &line_sz, fd) >= 0)
-		lcores = get_matching_action(line)(line, lcores);
+		lcores = get_matching_action(line) (line, lcores);
 
 	if (fd) close(fd);
 	if (line) free(line);
@@ -294,15 +294,15 @@ cmap_create(void)
 	zero_base(lcores, cmap_socket_id, cmap_set_socket_id);
 	zero_base(lcores, cmap_core_id, cmap_set_core_id);
 
-    cmap->linfo = lc_info;
+	cmap->linfo = lc_info;
 
-    cmap->model = model_name;
-    cmap->num_cores = count_cores(lcores);
-    cmap->sid_cnt = cmap_cnt(lcores, cmap_socket_id);
-    cmap->cid_cnt = cmap_cnt(lcores, cmap_core_id);
-    cmap->tid_cnt = cmap_cnt(lcores, cmap_thread_id);
+	cmap->model = model_name;
+	cmap->num_cores = count_cores(lcores);
+	cmap->sid_cnt = cmap_cnt(lcores, cmap_socket_id);
+	cmap->cid_cnt = cmap_cnt(lcores, cmap_core_id);
+	cmap->tid_cnt = cmap_cnt(lcores, cmap_thread_id);
 
-    get_and_free_lcore_info(lcores, lc_info);
+	get_and_free_lcore_info(lcores, lc_info);
 
 	return cmap;
 }
@@ -310,7 +310,7 @@ cmap_create(void)
 void
 cmap_free(struct cmap *cmap)
 {
-    free(cmap);
+	free(cmap);
 }
 
 /* Helper for building log strings.
@@ -318,58 +318,58 @@ cmap_free(struct cmap *cmap)
  * arguments. It formats the string and appends it to the existing string, while
  * avoiding possible buffer overruns.
  */
-#define strncatf(dest, fmt, ...) do {                                   \
-                char _buff[1024];                                       \
-                snprintf(_buff, sizeof(_buff), fmt, ## __VA_ARGS__);    \
-                strncat(dest, _buff, sizeof(dest) - strlen(dest) - 1);  \
-            } while (0)
+#define strncatf(dest, fmt, ...) do {					\
+		char _buff[1024];					\
+		snprintf(_buff, sizeof(_buff), fmt, ## __VA_ARGS__);	\
+		strncat(dest, _buff, sizeof(dest) - strlen(dest) - 1);	\
+} while (0)
 
 static __inline__ uint8_t
 sct(struct cmap *cm, uint8_t s, uint8_t c, uint8_t t) {
-        lc_info_t   *lc = cm->linfo;
-        uint8_t i;
+	lc_info_t   *lc = cm->linfo;
+	uint8_t i;
 
-        for (i = 0; i < cm->num_cores; i++, lc++)
-                if (lc->sid == s && lc->cid == c && lc->tid == t)
-                        return lc->lid;
+	for (i = 0; i < cm->num_cores; i++, lc++)
+		if (lc->sid == s && lc->cid == c && lc->tid == t)
+			return lc->lid;
 
-        return 0;
+	return 0;
 }
 
 void
 cmap_dump(FILE *f)
 {
 	struct cmap *c = cmap_create();
-    int i;
+	int i;
 
 	if (!f)
 		f = stdout;
 
-    fprintf(f, "CPU : %s", c->model);
-    fprintf(f, "      %d lcores, %u socket%s, %u core%s per socket and "
-                    "%u thread%s per core\n",
-           c->num_cores,
-           c->sid_cnt, c->sid_cnt > 1 ? "s" : "",
-           c->cid_cnt, c->cid_cnt > 1 ? "s" : "",
-           c->tid_cnt, c->tid_cnt > 1 ? "s" : "");
+	fprintf(f, "CPU : %s", c->model);
+	fprintf(f, "      %d lcores, %u socket%s, %u core%s per socket and "
+		   "%u thread%s per core\n",
+		c->num_cores,
+		c->sid_cnt, c->sid_cnt > 1 ? "s" : "",
+		c->cid_cnt, c->cid_cnt > 1 ? "s" : "",
+		c->tid_cnt, c->tid_cnt > 1 ? "s" : "");
 
-    fprintf(f, "Socket     : ");
-    for (i = 0; i < c->sid_cnt; i++)
-            fprintf(f, "%4d      ", i);
+	fprintf(f, "Socket     : ");
+	for (i = 0; i < c->sid_cnt; i++)
+		fprintf(f, "%4d      ", i);
 
-    for (i = 0; i < c->cid_cnt; i++) {
-            fprintf(f, "  Core %3d : [%2d,%2d]   ", i,
-                     sct(c, 0, i, 0), sct(c, 0, i, 1));
-            if (c->sid_cnt > 1)
-                    fprintf(f, "[%2d,%2d]   ",
-                             sct(c, 1, i, 0), sct(c, 1, i, 1));
-            if (c->sid_cnt > 2)
-                    fprintf(f, "[%2d,%2d]   ",
-                             sct(c, 2, i, 0), sct(c, 2, i, 1));
-            if (c->sid_cnt > 3)
-                    fprintf(f, "[%2d,%2d]   ",
-                             sct(c, 3, i, 0), sct(c, 3, i, 1));
-            fprintf(f, "\n");
-    }
+	for (i = 0; i < c->cid_cnt; i++) {
+		fprintf(f, "  Core %3d : [%2d,%2d]   ", i,
+			sct(c, 0, i, 0), sct(c, 0, i, 1));
+		if (c->sid_cnt > 1)
+			fprintf(f, "[%2d,%2d]   ",
+				sct(c, 1, i, 0), sct(c, 1, i, 1));
+		if (c->sid_cnt > 2)
+			fprintf(f, "[%2d,%2d]   ",
+				sct(c, 2, i, 0), sct(c, 2, i, 1));
+		if (c->sid_cnt > 3)
+			fprintf(f, "[%2d,%2d]   ",
+				sct(c, 3, i, 0), sct(c, 3, i, 1));
+		fprintf(f, "\n");
+	}
 	cmap_free(c);
 }

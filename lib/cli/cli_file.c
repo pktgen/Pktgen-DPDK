@@ -40,63 +40,63 @@ cli_file_open(const char *path, const char *type)
     struct cli_node *node;
     uint32_t flags = 0;
 
-    if (!path)
-        return NULL;
+	if (!path)
+		return NULL;
 
-    if (!cli_find_node(path, &node))
-        return NULL;
+	if (!cli_find_node(path, &node))
+		return NULL;
 
-    if (!is_file(node))
-        return NULL;
+	if (!is_file(node))
+		return NULL;
 
-    if (type && strlen(type)) {
-        if (strchr(type, 'r'))
-            file_set(flags, CLI_FILE_RD);
-        if (strchr(type, 'w'))
-            file_set(flags, CLI_FILE_WR);
-        if (strchr(type, '+'))
-            file_set(flags, CLI_FILE_APPEND);
-    } else
-        file_set(flags, CLI_FILE_RD);
+	if (type && strlen(type)) {
+		if (strchr(type, 'r'))
+			file_set(flags, CLI_FILE_RD);
+		if (strchr(type, 'w'))
+			file_set(flags, CLI_FILE_WR);
+		if (strchr(type, '+'))
+			file_set(flags, CLI_FILE_APPEND);
+	} else
+		file_set(flags, CLI_FILE_RD);
 
-    file_set(flags, CLI_FILE_OPEN);
+	file_set(flags, CLI_FILE_OPEN);
 
-    if (node->ffunc(node, NULL, 0, flags))
-        return NULL;
+	if (node->ffunc(node, NULL, 0, flags))
+		return NULL;
 
-    return node;
+	return node;
 }
 
 int
 cli_file_close(struct cli_node *node)
 {
-    uint32_t flags = CLI_FILE_CLOSE;
+	uint32_t flags = CLI_FILE_CLOSE;
 
 	if (!node)
 		return -1;
-    return node->ffunc(node, NULL, 0, flags);
+	return node->ffunc(node, NULL, 0, flags);
 }
 
 int
-cli_file_read(struct cli_node *node, char * buff, int len)
+cli_file_read(struct cli_node *node, char *buff, int len)
 {
-    uint32_t flags = CLI_FILE_RD;
+	uint32_t flags = CLI_FILE_RD;
 
 	if (!node || !is_file(node))
 		return -1;
-    return node->ffunc(node, buff, len, flags);
+	return node->ffunc(node, buff, len, flags);
 }
 
 int
-cli_file_write(struct cli_node *node, char * buff, int len)
+cli_file_write(struct cli_node *node, char *buff, int len)
 {
-    uint32_t flags = CLI_FILE_WR;
+	uint32_t flags = CLI_FILE_WR;
 
 	if (!node || !is_file(node))
 		return -1;
 	if (is_data_rdonly(node->fflags))
 		return -1;
-    return node->ffunc(node, buff, len, flags);
+	return node->ffunc(node, buff, len, flags);
 }
 
 int
@@ -105,41 +105,41 @@ cli_file_seek(struct cli_node *node, int offset, uint32_t whence)
 	if (!node || !is_file(node))
 		return -1;
 
-    switch(whence) {
-        case CLI_SEEK_SET:
-        case CLI_SEEK_CUR:
-        case CLI_SEEK_END:
-            break;
-        default:
-            return -1;
-    }
-    return node->ffunc(node, NULL, offset, whence);
+	switch (whence) {
+	case CLI_SEEK_SET:
+	case CLI_SEEK_CUR:
+	case CLI_SEEK_END:
+		break;
+	default:
+		return -1;
+	}
+	return node->ffunc(node, NULL, offset, whence);
 }
 
 int
 cli_readline(struct cli_node *node, char *buff, int len)
 {
-    int i, n;
-    char c;
+	int i, n;
+	char c;
 
 	if (!node || !buff || !is_file(node))
 		return -1;
-    /* Needs to be optimized for performance ??? */
-    for(i = 0, c = '\0'; i < len && c != '\n'; i++) {
-        n = cli_file_read(node, &c, 1);
-        if (n <= 0)
-            break;
-        buff[i] = c;
-    }
-    buff[i] = '\0';
-    return i;
+	/* Needs to be optimized for performance ??? */
+	for (i = 0, c = '\0'; i < len && c != '\n'; i++) {
+		n = cli_file_read(node, &c, 1);
+		if (n <= 0)
+			break;
+		buff[i] = c;
+	}
+	buff[i] = '\0';
+	return i;
 }
 
 /* Add generic function for handling files */
 int
 cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 {
-    char *p;
+	char *p;
 
 	if (!node || !is_file(node))
 		return -1;
@@ -182,7 +182,7 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 					node->file_data = data;
 					node->file_size = node->foffset;
 				} else
-					return -1; /* TODO: add code to expand the file */
+					return -1;	/* TODO: add code to expand the file */
 			} else {
 				node->foffset = saved;
 				return -1;
@@ -207,17 +207,17 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 		if (is_file_wr(opt))
 			node->fflags |= CLI_FILE_WR;
 	} else if (is_file_rd(opt)) {
-        if (len <= 0)
-            return 0;
+		if (len <= 0)
+			return 0;
 
-        len = RTE_MIN(len, (int)(node->file_size - node->foffset));
+		len = RTE_MIN(len, (int)(node->file_size - node->foffset));
 
-        p = node->file_data + node->foffset;
+		p = node->file_data + node->foffset;
 
-        memcpy(buff, p, len);
+		memcpy(buff, p, len);
 
-        node->foffset += len;
-    } else if (is_file_wr(opt)) {
+		node->foffset += len;
+	} else if (is_file_wr(opt)) {
 		if (!is_data_rdonly(node->fflags))
 			return -1;
 		if (len <= 0)
@@ -234,47 +234,46 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 		}
 	}
 
-    return len;
+	return len;
 }
 
 struct cli_node *
-cli_file_create(const char *path, const char *type)
-{
-    struct cli_node *node, *parent;
-    char *file, *mypath;
-    char *data = NULL;
+cli_file_create(const char *path, const char *type){
+	struct cli_node *node, *parent;
+	char *file, *mypath;
+	char *data = NULL;
 
-    node = cli_file_open(path, type);
-    if (node)
-        return node;
+	node = cli_file_open(path, type);
+	if (node)
+		return node;
 
-    mypath = alloca(strlen(path)+1);
+	mypath = alloca(strlen(path) + 1);
 
-    strcpy(mypath, path);
+	strcpy(mypath, path);
 
-    file = basename(mypath);
+	file = basename(mypath);
 
-    data = malloc(CLI_FILE_SIZE);
-    if (data) {
-        parent = cli_last_node_in_path(path);
-        if (parent) {
-            node = cli_add_file(file, parent, cli_file_handler, "");
-            if (node) {
-                node->file_data = data;
-                node->file_size = CLI_FILE_SIZE;
-                node->fflags = CLI_FREE_DATA;
+	data = malloc(CLI_FILE_SIZE);
+	if (data) {
+		parent = cli_last_node_in_path(path);
+		if (parent) {
+			node = cli_add_file(file, parent, cli_file_handler, "");
+			if (node) {
+				node->file_data = data;
+				node->file_size = CLI_FILE_SIZE;
+				node->fflags = CLI_FREE_DATA;
 				if (strchr(type, 'r') && !strchr(type, 'w'))
 					node->fflags |= CLI_DATA_RDONLY;
 				node->foffset = 0;
 				node->fflags = 0;
 				node->fstate = 0;
-                return node;
-            }
-        }
-    }
+				return node;
+			}
+		}
+	}
 
-    free(data);
-    return NULL;
+	free(data);
+	return NULL;
 }
 
 int
@@ -288,7 +287,7 @@ cli_system(char *p)
 	if (!f)
 		return -1;
 
-	while((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+	while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
 		cli_write(buf, n);
 		tot += n;
 	}

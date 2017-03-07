@@ -75,7 +75,7 @@ cli_env_destroy(struct cli_env *env)
 	if (!env)
 		return;
 
-	while(!TAILQ_EMPTY(&env->head)) {
+	while (!TAILQ_EMPTY(&env->head)) {
 		n = TAILQ_FIRST(&env->head);
 		env_free(env, n);
 	}
@@ -155,9 +155,9 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
 	memset(tmp, '\0', sz + 1);
 
 	e = line + sz;
-	for(p = line, t = tmp; (p[0] != '\0') || (p < e); p++) {
+	for (p = line, t = tmp; (p[0] != '\0') || (p < e); p++) {
 		if ((p[0] == '$') && ((p[1] == '{') || (p[1] == '('))) {
-			s = strchr(p, (p[1] == '{')? '}' : ')');
+			s = strchr(p, (p[1] == '{') ? '}' : ')');
 			if (s) {
 				*s++ = '\0';
 				v = cli_env_get(env, &p[2]);

@@ -52,44 +52,44 @@ RTE_DEFINE_PER_LCORE(struct cli_scrn *, scrn);
 void
 scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 {
-    va_list vaList;
+	va_list vaList;
 
-    if ( (r != 0) && (c != 0) )
-        scrn_pos(r, c);
-    va_start(vaList, fmt);
-    vfprintf(this_scrn->fd_out, fmt, vaList);
-    va_end(vaList);
-    fflush(this_scrn->fd_out);
+	if ( (r != 0) && (c != 0) )
+		scrn_pos(r, c);
+	va_start(vaList, fmt);
+	vfprintf(this_scrn->fd_out, fmt, vaList);
+	va_end(vaList);
+	fflush(this_scrn->fd_out);
 }
 
 void
 scrn_center(int16_t r, int16_t ncols, const char *fmt, ...)
 {
-    va_list vaList;
-    char    str[512];
+	va_list vaList;
+	char str[512];
 
-    if (ncols == -1)
-        ncols = this_scrn->ncols;
+	if (ncols == -1)
+		ncols = this_scrn->ncols;
 
-    va_start(vaList, fmt);
-    vsnprintf(str, sizeof(str), fmt, vaList);
-    va_end(vaList);
+	va_start(vaList, fmt);
+	vsnprintf(str, sizeof(str), fmt, vaList);
+	va_end(vaList);
 
-    scrn_pos(r, scrn_center_col(ncols, str));
-    scrn_puts("%s", str);
+	scrn_pos(r, scrn_center_col(ncols, str));
+	scrn_puts("%s", str);
 }
 
 void
 scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...)
 {
-    va_list vaList;
+	va_list vaList;
 
-    if ( (r != 0) && (c != 0) )
-        scrn_pos(r, c);
-    va_start(vaList, fmt);
-    vfprintf(f, fmt, vaList);
-    va_end(vaList);
-    fflush(f);
+	if ( (r != 0) && (c != 0) )
+		scrn_pos(r, c);
+	va_start(vaList, fmt);
+	vfprintf(f, fmt, vaList);
+	va_end(vaList);
+	fflush(f);
 }
 
 static void
@@ -107,21 +107,21 @@ static int
 scrn_stdin_setup(void)
 {
 	struct cli_scrn *scrn = this_scrn;
-    struct termios term;
+	struct termios term;
 
-    if (!scrn)
-        return -1;
+	if (!scrn)
+		return -1;
 
-    scrn_set_io(stdin, stdout);
+	scrn_set_io(stdin, stdout);
 
-    tcgetattr(fileno(scrn->fd_in), &scrn->oldterm);
-    memcpy(&term, &scrn->oldterm, sizeof(term));
+	tcgetattr(fileno(scrn->fd_in), &scrn->oldterm);
+	memcpy(&term, &scrn->oldterm, sizeof(term));
 
-    term.c_lflag &= ~(ICANON | ECHO | ISIG);
-    tcsetattr(0, TCSANOW, &term);
-    setbuf(scrn->fd_in, NULL);
+	term.c_lflag &= ~(ICANON | ECHO | ISIG);
+	tcsetattr(0, TCSANOW, &term);
+	setbuf(scrn->fd_in, NULL);
 
-    return 0;
+	return 0;
 }
 
 static void
@@ -129,29 +129,28 @@ scrn_stdin_restore(void)
 {
 	struct cli_scrn *scrn = this_scrn;
 
-    if (!scrn || !scrn->fd_in)
-        return;
+	if (!scrn || !scrn->fd_in)
+		return;
 
-    tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm);
+	tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm);
 }
 
 struct cli_scrn *
-scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
-{
-    struct cli_scrn *scrn;
+scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme){
+	struct cli_scrn *scrn;
 
-    scrn = malloc(sizeof(struct cli_scrn));
-    if (!scrn)
+	scrn = malloc(sizeof(struct cli_scrn));
+	if (!scrn)
 		return NULL;
 
 	this_scrn = scrn;
 
-    rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
+	rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
 
-    scrn->nrows = nrows;
-    scrn->ncols = ncols;
-    scrn->theme = theme;
-	scrn_type	= scrn_type;
+	scrn->nrows = nrows;
+	scrn->ncols = ncols;
+	scrn->theme = theme;
+	scrn_type   = scrn_type;
 
 	if (scrn_type == SCRN_STDIN_TYPE) {
 		if (scrn_stdin_setup()) {
@@ -163,9 +162,9 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
 		return NULL;
 	}
 
-    scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
+	scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 
-    scrn_erase(nrows);
+	scrn_erase(nrows);
 
 	return scrn;
 }
@@ -175,5 +174,4 @@ scrn_destroy(void)
 {
 	if (this_scrn->type == SCRN_STDIN_TYPE)
 		scrn_stdin_restore();
-
 }

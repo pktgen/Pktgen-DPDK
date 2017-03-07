@@ -199,7 +199,8 @@ cli_remove_node(struct cli_node *node)
 /* Helper routine to add nodes to the CLI tree */
 static struct cli_node *
 __add_node(const char *name, struct cli_node *parent,
-	   int type, cli_funcs_t func, const char *short_desc){
+	   int type, cli_funcs_t func, const char *short_desc)
+{
 	struct cli_node *node;
 
 	if (!name)

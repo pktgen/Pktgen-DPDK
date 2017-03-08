@@ -130,7 +130,6 @@ gb_destroy(struct gapbuf *gb)
 	}
 }
 
-#ifdef RTE_LIBRTE_CLI_DEBUG
 /* Dump out the gap buffer and pointers in a readable format */
 void
 gb_dump(struct gapbuf *gb, const char *msg)
@@ -174,11 +173,3 @@ gb_dump(struct gapbuf *gb, const char *msg)
 		fprintf(stderr, "%c", (p == gb->point) ? '^' : ' ');
 	fprintf(stderr, "\n");
 }
-
-#else
-void
-gb_dump(struct gapbuf *gb __rte_unused, const char *msg __rte_unused)
-{
-}
-
-#endif /* CLI_DEBUG_ENABLED */

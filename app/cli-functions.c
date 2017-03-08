@@ -744,6 +744,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
 	struct pg_ipaddr dst, src;
+	struct ether_addr dmac, smac;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -756,11 +757,13 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 
 	teid = (argc == 11)? strtoul(argv[13], NULL, 10) : 0;
 	rte_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
-	rte_atoip(argv[6], PG_IPADDR_V4, &src, sizeof(src));
+	rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
+    rte_ether_aton(argv[3], &dmac);
+	rte_ether_aton(argv[4], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
-				    rte_ether_aton(argv[3], NULL), rte_ether_aton(argv[4], NULL),
+				    &dmac, &smac,
 				    &dst, &src,
 				    atoi(argv[7]), atoi(argv[8]), eth[3],
 				    proto[0],
@@ -792,6 +795,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
 	struct pg_ipaddr dst, src;
+	struct ether_addr dmac, smac;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -806,9 +810,11 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	rte_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
 	rte_atoip(argv[10], PG_IPADDR_V4, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
+    rte_ether_aton(argv[3], &dmac);
+	rte_ether_aton(argv[4], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
-				    rte_ether_aton(argv[4], NULL), rte_ether_aton(argv[6], NULL),
+				    &dmac, &smac,
 				    &dst, &src,
 				    atoi(argv[12]), atoi(argv[14]), eth[3],
 				    proto[0],
@@ -820,15 +826,16 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 }
 
 static struct cli_map seq_map[] = {
-	{ 10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d" },
-	{ 11, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d" },
-	{ 12, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
+	{ 10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d" },
+	{ 11, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d" },
+	{ 12, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d" },
+	{ 13, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
 	{ -1, NULL }
 };
 
 static const char *seq_help[] = {
-	"seq <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> teid <val>",
-	"seq <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> <teid>",
+	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]",
+	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
 	"",
@@ -843,13 +850,16 @@ seq_cmd(int argc, char **argv)
 	struct cli_map *m;
 
 	m = cli_mapping(Seq_info.map, argc, argv);
-	if (!m)
+	if (!m) {
+		cli_help_show(Seq_info.help);
 		return -1;
+	}
 
 	switch(m->index) {
-		case 10: seq_1_set_cmd(argc, argv); break;
-		case 11:
-		case 12: seq_2_set_cmd(argc, argv); break;
+		case 10:
+		case 11: seq_1_set_cmd(argc, argv); break;
+		case 12:
+		case 13: seq_2_set_cmd(argc, argv); break;
 		default:
 			return -1;
 	}
@@ -1106,7 +1116,7 @@ static struct cli_tree default_tree[] = {
 	c_cmd("ping6", 		misc_cmd,		"Send a ping packet for IPv6"),
 #endif
 
-	c_cmd("sequeuce",	seq_cmd,		"sequence command"),
+	c_cmd("sequence",	seq_cmd,		"sequence command"),
 	c_alias("seq",		"sequence",		"sequence command"),
 
 	c_cmd("page",		page_cmd,		"change page displays"),

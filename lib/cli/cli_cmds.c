@@ -77,7 +77,7 @@ chelp_cmd(int argc, char **argv)
 	int i, opt, all = 0;
 
 	RTE_ASSERT(cli != NULL);
-	optind = 1;
+	optind = 0;
 	while ((opt = getopt(argc, argv, "a?")) != -1) {
 		switch (opt) {
 		case '?': cli_usage(); return 0;
@@ -230,7 +230,7 @@ ls_cmd(int argc, char **argv)
 	uint32_t flags = 0;
 	int opt;
 
-	optind = 1;
+	optind = 0;
 	while ((opt = getopt(argc, argv, "?rl")) != -1) {
 		switch (opt) {
 		case '?':   cli_usage(); return 0;
@@ -296,7 +296,7 @@ more_cmd(int argc, char **argv)
 	int i, len, n, k, lines = 24;
 	int opt;
 
-	optind = 1;
+	optind = 0;
 	while ((opt = getopt(argc, argv, "?n:")) != -1) {
 		switch (opt) {
 		case '?':   cli_usage(); return 0;

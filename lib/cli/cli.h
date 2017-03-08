@@ -476,10 +476,9 @@ cli_usage(void)
 static inline int
 cli_help_show(const char **msg)
 {
-	while(msg && *msg) {
-		if (strcmp(*msg, CLI_PAUSE) == 0)
-			continue;
-		cli_printf("%s\n", *msg++);
+	for( ; msg && *msg; msg++) {
+		if (strcmp(*msg, CLI_PAUSE))
+			cli_printf("%s\n", *msg);
 	}
 	return -1;
 }

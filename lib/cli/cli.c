@@ -38,6 +38,11 @@
 
 #include "cli.h"
 
+#ifdef RTE_CLI_INCLUDE_LUA 
+#include "lua.h"
+#include "lauxlib.h"
+#endif
+
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
 /* The CLI write routine, using write() call */
@@ -859,7 +864,7 @@ cli_execute_cmdfile(const char *filename)
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
 		/* Execute the Lua script file. */
 		if (luaL_dofile(this_cli->user_state, filename) != 0) {
-			printf("%s", lua_tostring(L, -1));
+			printf("%s", lua_tostring(this_cli->user_state, -1));
 			return -1;
 		}
 	} else

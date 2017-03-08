@@ -517,24 +517,25 @@ theme_cmd(int argc, char **argv)
 				"mpls|" 		/*  1 */	\
 				"qinq|" 		/*  2 */	\
 				"gre|" 			/*  3 */	\
-				"vlan|" 		/*  4 */	\
-				"garp|" 		/*  5 */	\
-				"random|" 		/*  6 */	\
-				"latency|" 		/*  7 */	\
-				"pcap|" 		/*  8 */	\
-				"screen|" 		/*  9 */	\
+				"gre_eth|"		/*  4 */	\
+				"vlan|" 		/*  5 */	\
+				"garp|" 		/*  6 */	\
+				"random|" 		/*  7 */	\
+				"latency|" 		/*  8 */	\
+				"pcap|" 		/*  9 */	\
 				"mac_from_arp|" /* 10 */	\
 				"blink|" 		/* 11 */	\
 				"rx_tap|" 		/* 12 */	\
 				"tx_tap|"		/* 13 */	\
 				"icmp|"			/* 14 */	\
 				"range|"		/* 15 */	\
-				"capture|"		/* 16 */	\
-				"gre_eth"		/* 17 */
+				"capture"		/* 16 */
 
 static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
 	{ 20, "disable %P %|" ed_type },
+	{ 30, "enable screen" },
+	{ 31, "disable screen"},
     { -1, NULL }
 };
 
@@ -550,7 +551,6 @@ static const char *enable_help[] = {
 	"              random               - Enable/disable Random packet support",
 	"              latency              - Enable/disable latency testing",
     "              pcap                 - Enable or Disable sending pcap packets on a portlist",
-	"              screen               - Enable/disable updating the screen and unlock/lock window",
 	"              mac_from_arp         - Enable/disable MAC address from ARP packet",
 	"              blink                - Blink LED on port(s)",
 	"              rx_tap               - Enable/Disable RX Tap support",
@@ -558,8 +558,8 @@ static const char *enable_help[] = {
 	"              icmp                 - Enable/Disable sending ICMP packets",
 	"              range                - Enable or Disable the given portlist for sending a range of packets",
 	"              capture              - Enable/disable packet capturing on a portlist",
-	"              screen               - Enable/disable updating the screen and unlock/lock window",
-	"              theme                - Enable or Disable the theme",
+	"",
+	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
 	"off                                - screen off shortcut",
 	"on                                 - screen on shortcut",
 	CLI_PAUSE,
@@ -617,12 +617,9 @@ enable_disable_cmd(int argc, char **argv)
 					foreach_port(portlist, enable_pcap(info, state) );
 					break;
 				case 9:
-					pktgen_screen(state);
-					break;
-				case 10:
 					enable_mac_from_arp(state);
 					break;
-				case 11:
+				case 10:
 					foreach_port(portlist, debug_blink(info, state));
 
 					if (pktgen.blinklist)
@@ -630,26 +627,35 @@ enable_disable_cmd(int argc, char **argv)
 					else
 						pktgen.flags &= ~BLINK_PORTS_FLAG;
 					break;
-				case 12:
+				case 11:
 					foreach_port(portlist, enable_rx_tap(info, state));
 					break;
-				case 13:
+				case 12:
 					foreach_port(portlist, enable_tx_tap(info, state));
 					break;
-				case 14:
+				case 13:
 					foreach_port(portlist, enable_icmp_echo(info, state));
 					break;
-				case 15:
+				case 14:
 					foreach_port(portlist, enable_range(info, state));
 					break;
-				case 16:
+				case 15:
 					foreach_port(portlist, pktgen_set_capture(info, state));
 					break;
-
+				case 16:
+					foreach_port(portlist, enable_gre_eth(info, state));
+					break;
 				default:
 					cli_printf("Invalid option %s\n", ed_type);
 					return -1;
 			}
+			break;
+
+		case 30:
+		case 31:
+			state = estate(argv[0]);
+
+			pktgen_screen(state);
 			break;
 		default:
 			cli_usage();

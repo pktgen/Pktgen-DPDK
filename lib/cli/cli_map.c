@@ -126,15 +126,11 @@ cli_mapping(struct cli_map *maps, int argc, char **argv)
 		for (j = 0, ok = 1; ok && (j < argc); j++) {
 			if (map[j][0] == '%') {
 				/* Found a format '%' validate it */
-				if (!is_map_valid(map[j], argv[j])) {
+				if (!is_map_valid(map[j], argv[j]))
 					ok = 0;
-					break;
-				}
 				/* a constant string match valid */
-			} else if (!is_match(map[j], argv[j])) {
+			} else if (!is_match(map[j], argv[j]))
 				ok = 0;
-				break;
-			}
 		}
 
 		if (ok)

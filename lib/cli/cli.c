@@ -38,7 +38,7 @@
 
 #include "cli.h"
 
-#ifdef RTE_CLI_INCLUDE_LUA 
+#ifdef RTE_CLI_INCLUDE_LUA
 #include "lua.h"
 #include "lauxlib.h"
 #endif
@@ -257,7 +257,8 @@ __add_node(const char *name, struct cli_node *parent,
 		break;
 	}
 	node->short_desc = short_desc;
-	snprintf(node->name, sizeof(node->name) - 1, "%s", name);
+	snprintf(node->name, sizeof(node->name), "%s", name);
+	node->name_sz = strlen(node->name);
 
 	if (parent)
 		TAILQ_INSERT_HEAD(&parent->items, node, next);
@@ -428,6 +429,7 @@ int
 cli_execute(void)
 {
 	struct cli *cli = this_cli;
+	struct cli_node *node;
 	int argc, ret, sz;
 	struct gapbuf *gb = cli->gb;
 	char *line, *p, *hist;
@@ -444,7 +446,8 @@ cli_execute(void)
 	gb_copy_to_buf(gb, line, sz);
 
 	/* Trim the string of whitspace on front and back */
-	if (strlen(p = rte_strtrim(line)) == 0)
+	p = rte_strtrim(line);
+	if (!strlen(p))
 		return 0;
 
 	if (p[0] == '#')	/* Found a comment line starting with a '#' */
@@ -470,64 +473,63 @@ cli_execute(void)
 	/* Process the line for environment variable substitution */
 	cli_env_substitution(cli->env, p, sz - (p - line));
 
-	memset(cli->argv, '\0', CLI_MAX_ARGVS * sizeof(void *));
-
 	argc = rte_strtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
 
-	ret = 0;
-	if (argc) {
-		struct cli_node *node;
+	if (!argc)
+		return 0;
 
-		node = cli_find_cmd(cli->argv[0]);
-		if (!node) {
-			cli_printf("** command not found (%s)\n", cli->argv[0]);
-			return -1;
-		}
-
-		switch (node->type) {
-		case CLI_CMD_NODE:
-			cli->exe_node = node;
-			ret = node->cfunc(argc, cli->argv);
-			cli->exe_node = NULL;
-			return ret;
-
-		case CLI_ALIAS_NODE:
-			/* Delete the alias history line */
-			cli_history_del();
-
-			cli->scratch[0] = '\0';
-
-			/* If there is more data after command name save it */
-			if (gb_data_size(gb) > strlen(node->name))
-				gb_copy_to_buf(cli->gb, cli->scratch, gb_data_size(gb));
-
-			gb_reset_buf(gb);
-			ret = strlen(node->alias_str);
-
-			gb_str_insert(gb, (char *)(uintptr_t)node->alias_str, ret);
-
-			/* Add the extra line arguments */
-			p = cli->scratch;
-			sz = strlen(p) - strlen(node->name);
-			if (sz > 0)
-				gb_str_insert(gb, &p[strlen(node->name)], sz);
-			return cli_execute();
-
-		case CLI_DIR_NODE:
-			cli_printf("** (%s) is a directory\n", cli->argv[0]);
-			break;
-
-		case CLI_FILE_NODE:
-			cli_printf("** (%s) is a file\n", cli->argv[0]);
-			return -1;
-
-		case CLI_UNK_NODE:
-		default:
-			cli_printf("** unknown file type (%s)\n", cli->argv[0]);
-			return -1;
-		}
+	node = cli_find_cmd(cli->argv[0]);
+	if (!node) {
+		cli_printf("** command not found (%s)\n", cli->argv[0]);
+		return -1;
 	}
-	return 0;
+
+	ret = -1;
+	switch (node->type) {
+	case CLI_CMD_NODE:
+		cli->exe_node = node;
+		ret = node->cfunc(argc, cli->argv);
+		cli->exe_node = NULL;
+		break;
+
+	case CLI_ALIAS_NODE:
+		/* Delete the alias history line just added */
+		cli_history_del();
+
+		cli->scratch[0] = '\0';		/* Reset scratch to empty */
+
+		/* If there is more data after command name save it */
+		if (gb_data_size(gb) > node->name_sz)
+			gb_copy_to_buf(cli->gb, cli->scratch, gb_data_size(gb));
+
+		sz = strlen(cli->scratch);
+
+		gb_reset_buf(gb);
+
+		gb_str_insert(gb, (char *)(uintptr_t)node->alias_str,
+					  strlen(node->alias_str));
+
+		/* Add the extra line arguments */
+		sz = sz - node->name_sz;
+		if (sz > 0)
+			gb_str_insert(gb, &cli->scratch[node->name_sz], sz);
+		ret = cli_execute();
+		break;
+
+	case CLI_DIR_NODE:
+		cli_printf("** (%s) is a directory\n", cli->argv[0]);
+		break;
+
+	case CLI_FILE_NODE:
+		cli_printf("** (%s) is a file\n", cli->argv[0]);
+		break;
+
+	case CLI_UNK_NODE:
+	default:
+		cli_printf("** unknown type (%s)\n", cli->argv[0]);
+		break;
+	}
+	return ret;
 }
 
 /* Process the input for the CLI from the user */
@@ -877,13 +879,9 @@ cli_execute_cmdfile(const char *filename)
 		if (fd == NULL)
 			return -1;
 
-		cli_input((char *)(uintptr_t)"\r", 1);
-
 		/* Read and feed the lines to the cmdline parser. */
 		while (fgets(buff, sizeof(buff), fd))
 			cli_input(buff, strlen(buff));
-
-		cli_input((char *)(uintptr_t)"\r", 1);
 
 		fclose(fd);
 	}

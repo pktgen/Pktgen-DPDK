@@ -119,15 +119,17 @@ struct cli_node {
     TAILQ_ENTRY(cli_node) next;     /**< link list of commands */
     struct cli_node *parent;        /**< Parent directory (NULL == ROOT) */
     char name[CLI_NAME_LEN];        /**< Name of Node */
-    node_type_t type;               /**< Node Type Root, Dir or cmd */
+    uint16_t name_sz;				/**< Number of bytes in name w/o null */
+    uint16_t fstate;                /**< File State */
+    uint16_t fflags;                /**< File flags */
+    uint16_t pad0;
+    node_type_t type;  				/**< Node Type Root, Dir or cmd */
     union {
         cli_cfunc_t cfunc;          /**< Function pointer for commands */
         cli_ffunc_t ffunc;          /**< Function pointer for files */
     };
     const char *short_desc;         /**< Short description */
     const char *alias_str;          /**< Alias string */
-    uint32_t fstate;                /**< File State */
-    uint32_t fflags;                /**< File flags */
     size_t foffset;                 /**< Current offset in file */
     size_t file_size;               /**< Size of file */
     char *file_data;                /**< Pointer to file data */
@@ -138,7 +140,7 @@ struct cli_node {
 
 typedef struct {
 	char    *filename[MAX_CMD_FILES];
-	uint8_t idx;
+	uint32_t idx;
 } cli_files_t;
 
 struct cli {
@@ -348,7 +350,6 @@ is_cli_valid(void)
 static inline int
 is_match(const char * s1, const char * s2)
 {
-
     if (!s1 || !s2)
         return 0;
 

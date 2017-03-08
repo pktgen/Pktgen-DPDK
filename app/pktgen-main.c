@@ -350,8 +350,7 @@ main(int argc, char **argv)
 
 	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
 
-	pktgen_init_screen(
-	        (pktgen.flags & ENABLE_THEME_FLAG) ? SCRN_THEME_ON : SCRN_THEME_OFF);
+	scrn_create_with_defaults(pktgen.flags & ENABLE_THEME_FLAG);
 
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 

@@ -98,6 +98,12 @@ scrn_set_io(FILE *in, FILE *out)
 	struct cli_scrn *scrn = this_scrn;
 
 	if (scrn) {
+		if (scrn->fd_in && (scrn->fd_in != stdin))
+			fclose(scrn->fd_in);
+
+		if (scrn->fd_out && (scrn->fd_out != stdout))
+			fclose(scrn->fd_in);
+
 		scrn->fd_in = in;
 		scrn->fd_out = out;
 	}
@@ -135,14 +141,17 @@ scrn_stdin_restore(void)
 	tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm);
 }
 
-struct cli_scrn *
-scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme){
-	struct cli_scrn *scrn;
+int
+scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
+{
+	struct cli_scrn *scrn = this_scrn;
 
-	scrn = malloc(sizeof(struct cli_scrn));
-	if (!scrn)
-		return NULL;
-
+	if (!scrn) {
+		scrn = malloc(sizeof(struct cli_scrn));
+		if (!scrn)
+			return -1;
+		memset(scrn, 0, sizeof(struct cli_scrn));
+	}
 	this_scrn = scrn;
 
 	rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
@@ -155,18 +164,26 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme){
 	if (scrn_type == SCRN_STDIN_TYPE) {
 		if (scrn_stdin_setup()) {
 			free(scrn);
-			return NULL;
+			return -1;
 		}
 	} else {
 		free(scrn);
-		return NULL;
+		return -1;
 	}
 
 	scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 
 	scrn_erase(nrows);
 
-	return scrn;
+	return 0;
+}
+
+int
+scrn_create_with_defaults(int theme)
+{
+	return scrn_create(SCRN_STDIN_TYPE,
+					   SCRN_DEFAULT_ROWS, SCRN_DEFAULT_COLS,
+					   (theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
 }
 
 void

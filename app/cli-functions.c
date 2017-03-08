@@ -57,7 +57,9 @@
 #include "pktgen-display.h"
 #include "pktgen-random.h"
 #include "pktgen-log.h"
+#ifndef RTE_LIBRTE_CLI
 #include "pg_ether.h"
+#endif
 
 /**********************************************************/
 static const char *title_help[] = {

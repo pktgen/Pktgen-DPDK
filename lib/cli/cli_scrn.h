@@ -61,6 +61,9 @@ extern "C" {
 /* Add more defines for new types */
 #define SCRN_STDIN_TYPE		0
 
+#define SCRN_DEFAULT_ROWS			44
+#define SCRN_DEFAULT_COLS			132
+
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
     rte_atomic32_t  pause;      /**< Pause the update of the screen. */
@@ -344,7 +347,8 @@ scrn_rgb(uint8_t fg_bg, cli_rgb_t r, cli_rgb_t g, cli_rgb_t b)
 
 /** External functions used for positioning the cursor and outputing a string
    like printf */
-struct cli_scrn *scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme);
+int scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme);
+int scrn_create_with_defaults(int theme);
 void scrn_destroy(void);
 
 #ifdef __cplusplus

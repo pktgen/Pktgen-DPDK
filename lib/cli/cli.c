@@ -727,6 +727,9 @@ cli_create(cli_prompt_t prompt, cli_tree_t default_func,
 	CIRCLEQ_INIT(&cli->free_hist);	/* List of free hist nodes */
 	CIRCLEQ_INIT(&cli->hd_hist);	/* Init the history for list head */
 
+	if (scrn_create_with_defaults(SCRN_THEME_ON))
+		goto error_exit;
+
 	cli->vt = vt100_create();
 	if (!cli->vt)
 		goto error_exit;
@@ -905,7 +908,8 @@ cli_execute_cmdfiles(void)
 }
 
 struct cli_info *
-cli_find_help_group(struct cli_info **data, const char *group){
+cli_find_help_group(struct cli_info **data, const char *group)
+{
 	int i;
 	struct cli_info *info;
 

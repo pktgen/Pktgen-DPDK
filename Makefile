@@ -56,6 +56,12 @@ DEPDIRS-y += lib/libcommon lib/lua
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk
 
+realclean:
+	@rm -fr app/app
+	@rm -fr lib/common/lib
+	@rm -fr lib/cli/lib
+	@rm -fr lib/lua/src/lib
+
 docs:
 	@make -C docs html
 

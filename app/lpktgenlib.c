@@ -38,8 +38,10 @@
 #define lua_c
 
 #include <portlist.h>
+#ifndef RTE_LIBRTE_CLI
 #include <pg_ether.h>
 #include <pg_inet.h>
+#endif
 #include "lpktgenlib.h"
 
 #include <stdint.h>

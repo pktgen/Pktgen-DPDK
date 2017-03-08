@@ -278,7 +278,6 @@ void lua_newlibs_init(lua_State * L) {
 
 	for(i = 0; i < newlibs_idx; i++)
 		newlibs[i](L);
-
 }
 
 static int pmain(lua_State *L) {

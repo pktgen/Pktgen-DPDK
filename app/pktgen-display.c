@@ -144,12 +144,6 @@ theme_color_map_t theme_color_map[] = {
 };
 
 /* Initialize screen data structures */
-void
-pktgen_init_screen(int theme)
-{
-	scrn_create(SCRN_STDIN_TYPE, MAX_SCRN_ROWS, MAX_SCRN_COLS, theme);
-}
-
 /* Print out the top line on the screen */
 void
 display_topline(const char *msg)

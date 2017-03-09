@@ -216,7 +216,7 @@ range_cmd(int argc, char **argv)
 					"tx_cycles|"	/*  4 */ \
 					"sport|"		/*  5 */ \
 					"dport|"		/*  6 */ \
-					"seqCnt|"		/*  7 */ \
+					"seq_cnt|"		/*  7 */ \
 					"prime|"		/*  8 */ \
 					"dump|"			/*  9 */ \
 					"vlan_id"		/* 10 */
@@ -244,7 +244,7 @@ static const char *set_help[] = {
 	"                 sport             - Source port number for TCP",
 	"                 dport             - Destination port number for TCP",
 	"                 prime             - Set the number of packets to send on prime command",
-	"                 seqCnt            - Set the number of packet in the sequence to send",
+	"                 seq_cnt           - Set the number of packet in the sequence to send",
 	"                 dump              - Dump the next <value> received packets to the screen",
 	"                 vlanid            - Set the VLAN ID value for the portlist",
 	"                 jitter            - Set the jitter threshold in micro-seconds",
@@ -256,7 +256,7 @@ static const char *set_help[] = {
 	"set <portlist> vlanid <vlanid>     - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
 	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
 	"set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port",
-	"set <portlist> type ipv4|ipv6|vlan - Set the packet type to IPv4 or IPv6 or VLAN",
+	"set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
 	"set <portlist> pattern <type>      - Set the fill pattern type",
 	"     type - abc                    - Default pattern of abc string",
 	"            none                   - No fill pattern, maybe random data",
@@ -523,19 +523,18 @@ theme_cmd(int argc, char **argv)
 				"random|" 		/*  7 */	\
 				"latency|" 		/*  8 */	\
 				"pcap|" 		/*  9 */	\
-				"mac_from_arp|" /* 10 */	\
-				"blink|" 		/* 11 */	\
-				"rx_tap|" 		/* 12 */	\
-				"tx_tap|"		/* 13 */	\
-				"icmp|"			/* 14 */	\
-				"range|"		/* 15 */	\
-				"capture"		/* 16 */
+				"blink|" 		/* 10 */	\
+				"rx_tap|" 		/* 11 */	\
+				"tx_tap|"		/* 12 */	\
+				"icmp|"			/* 13 */	\
+				"range|"		/* 14 */	\
+				"capture"		/* 15 */
 
 static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
 	{ 20, "disable %P %|" ed_type },
-	{ 30, "enable screen" },
-	{ 31, "disable screen"},
+	{ 30, "enable %|screen|mac_from_arp" },
+	{ 31, "disable %|screen|mac_from_arp"},
     { -1, NULL }
 };
 
@@ -551,7 +550,6 @@ static const char *enable_help[] = {
 	"              random               - Enable/disable Random packet support",
 	"              latency              - Enable/disable latency testing",
     "              pcap                 - Enable or Disable sending pcap packets on a portlist",
-	"              mac_from_arp         - Enable/disable MAC address from ARP packet",
 	"              blink                - Blink LED on port(s)",
 	"              rx_tap               - Enable/Disable RX Tap support",
 	"              tx_tap               - Enable/Disable TX Tap support",
@@ -560,6 +558,7 @@ static const char *enable_help[] = {
 	"              capture              - Enable/disable packet capturing on a portlist",
 	"",
 	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
+	"               mac_from_arp        - Enable/disable MAC address from ARP packet",
 	"off                                - screen off shortcut",
 	"on                                 - screen on shortcut",
 	CLI_PAUSE,
@@ -617,9 +616,6 @@ enable_disable_cmd(int argc, char **argv)
 					foreach_port(portlist, enable_pcap(info, state) );
 					break;
 				case 9:
-					enable_mac_from_arp(state);
-					break;
-				case 10:
 					foreach_port(portlist, debug_blink(info, state));
 
 					if (pktgen.blinklist)
@@ -627,22 +623,22 @@ enable_disable_cmd(int argc, char **argv)
 					else
 						pktgen.flags &= ~BLINK_PORTS_FLAG;
 					break;
-				case 11:
+				case 10:
 					foreach_port(portlist, enable_rx_tap(info, state));
 					break;
-				case 12:
+				case 11:
 					foreach_port(portlist, enable_tx_tap(info, state));
 					break;
-				case 13:
+				case 12:
 					foreach_port(portlist, enable_icmp_echo(info, state));
 					break;
-				case 14:
+				case 13:
 					foreach_port(portlist, enable_range(info, state));
 					break;
-				case 15:
+				case 14:
 					foreach_port(portlist, pktgen_set_capture(info, state));
 					break;
-				case 16:
+				case 15:
 					foreach_port(portlist, enable_gre_eth(info, state));
 					break;
 				default:
@@ -655,7 +651,10 @@ enable_disable_cmd(int argc, char **argv)
 		case 31:
 			state = estate(argv[0]);
 
-			pktgen_screen(state);
+			if (argv[1][0] == 'm')
+				enable_mac_from_arp(state);
+			else
+				pktgen_screen(state);
 			break;
 		default:
 			cli_usage();
@@ -932,8 +931,8 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 
 static struct cli_map misc_map[] = {
 	{ 10, "clear %P" },
-	{ 20, "geom %s" },
-	{ 21, "geom" },
+	{ 20, "geometry %s" },
+	{ 21, "geometry" },
 	{ 30, "load %s" },
 	{ 40, "script %l" },
 	{ 50, "lua %l" },
@@ -998,7 +997,7 @@ misc_cmd(int argc, char **argv)
 				cols = strtol(argv[1], NULL, 10);
 
 				pktgen_display_set_geometry(rows, cols);
-				pktgen_cls();
+				pktgen_redisplay(1);
 			} else
 				return -1;
 			/* FALLTHRU */
@@ -1102,7 +1101,8 @@ static struct cli_tree default_tree[] = {
 	c_cmd("help",		help_cmd, 		"help command"),
 
 	c_cmd("clear",		misc_cmd,		"clear stats"),
-	c_cmd("geom",		misc_cmd, 		"set the screen geometry"),
+	c_cmd("geometry",	misc_cmd, 		"set the screen geometry"),
+	c_alias("geom",		"geometry",		"set or show screen geometry"),
 	c_cmd("load",		misc_cmd, 		"load command file"),
 	c_cmd("script", 	misc_cmd,		"run a Lua script"),
 	c_cmd("lua", 		misc_cmd,		"execute a Lua string"),

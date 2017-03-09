@@ -151,7 +151,7 @@ pktgen_script_save(char *path)
 	uint16_t rows, cols;
 	pktgen_display_get_geometry(&rows, &cols);
 	fprintf(fd, "geometry %dx%d\n", cols, rows);
-	fprintf(fd, "mac_from_arp %s\n\n",
+	fprintf(fd, "%s mac_from_arp\n\n",
 		(pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
 	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
@@ -173,7 +173,7 @@ pktgen_script_save(char *path)
 		flags = rte_atomic32_read(&info->port_flags);
 		fprintf(fd, "# Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
 			info->pid, info->tx_burst, info->tx_rate, flags, buff);
-		fprintf(fd, "#           SeqCnt:%d, Prime:%d VLAN ID:%04x, ",
+		fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ",
 			info->seqCnt, info->prime_cnt, info->vlanid);
 		pktgen_link_state(info->pid, buff, sizeof(buff));
 		fprintf(fd, "Link: %s\n", buff);
@@ -187,28 +187,27 @@ pktgen_script_save(char *path)
 		fprintf(fd, "set %d sport %d\n", info->pid, pkt->sport);
 		fprintf(fd, "set %d dport %d\n", info->pid, pkt->dport);
 		fprintf(fd, "set %d prime %d\n", info->pid, info->prime_cnt);
-		fprintf(fd, "type %s %d\n",
+		fprintf(fd, "set %d type %s\n", i,
 			(pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
 			(pkt->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
 			(pkt->ethType == ETHER_TYPE_VLAN) ? "vlan" :
-			(pkt->ethType == ETHER_TYPE_ARP) ? "arp" : "unknown",
-			i);
-		fprintf(fd, "proto %s %d\n",
+			(pkt->ethType == ETHER_TYPE_ARP) ? "arp" : "unknown");
+		fprintf(fd, "set %d proto %s\n", i,
 			(pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
-			(pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp", i);
-		fprintf(fd, "set ip dst %d %s\n", i,
+			(pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp");
+		fprintf(fd, "set %d ip dst %s\n", i,
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 				   0xFFFFFFFF));
-		fprintf(fd, "set ip src %d %s\n", i,
+		fprintf(fd, "set %d ip src %s\n", i,
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
-		fprintf(fd, "set mac %d %s\n", info->pid,
+		fprintf(fd, "set %d mac %s\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
-		fprintf(fd, "vlanid %d %d\n\n", i, pkt->vlanid);
+		fprintf(fd, "set %d vlanid %d\n\n", i, pkt->vlanid);
 
-		fprintf(fd, "pattern %d %s\n", i,
+		fprintf(fd, "set %d pattern %s\n", i,
 			(info->fill_pattern_type == ABC_FILL_PATTERN) ? "abc" :
 			(info->fill_pattern_type == NO_FILL_PATTERN) ? "none" :
 			(info->fill_pattern_type ==
@@ -217,136 +216,136 @@ pktgen_script_save(char *path)
 			char buff[32];
 			memset(buff, 0, sizeof(buff));
 			strncpy(buff, info->user_pattern, sizeof(info->user_pattern));
-			fprintf(fd, "user.pattern %d %s\n", i, buff);
+			fprintf(fd, "set %d user pattern %s\n", i, buff);
 		}
 		fprintf(fd, "\n");
 
-		fprintf(fd, "jitter %d %lu\n", i, info->jitter_threshold);
-		fprintf(fd, "mpls %d %sable\n", i,
-			(flags & SEND_MPLS_LABEL) ? "en" : "dis");
+		fprintf(fd, "set %d jitter %lu\n", i, info->jitter_threshold);
+		fprintf(fd, "%sable %d mpls\n",
+			(flags & SEND_MPLS_LABEL) ? "en" : "dis", i);
 		sprintf(buff, "%x", pkt->mpls_entry);
-		fprintf(fd, "mpls_entry %d %s\n", i, buff);
+		fprintf(fd, "set %d mpls_entry %s\n", i, buff);
 
-		fprintf(fd, "qinq %d %sable\n", i,
-			(flags & SEND_Q_IN_Q_IDS) ? "en" : "dis");
-		fprintf(fd, "qinqids %d %d %d\n", i,
+		fprintf(fd, "%sable %d qinq\n",
+			(flags & SEND_Q_IN_Q_IDS) ? "en" : "dis", i);
+		fprintf(fd, "set %d qinqids %d %d\n", i,
 			pkt->qinq_outerid, pkt->qinq_innerid);
 
-		fprintf(fd, "gre %d %sable\n", i,
-			(flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis");
-		fprintf(fd, "gre_eth %d %sable\n", i,
-			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis");
-		fprintf(fd, "gre_key %d %d\n", i, pkt->gre_key);
+		fprintf(fd, "%sable %d gre\n",
+			(flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d gre_eth\n",
+			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis", i);
+		fprintf(fd, "set %d gre_key %d\n", i, pkt->gre_key);
 
 		fprintf(fd, "#\n# Port flag values:\n");
-		fprintf(fd, "icmp.echo %d %sable\n", i,
-			(flags & ICMP_ECHO_ENABLE_FLAG) ? "en" : "dis");
-		fprintf(fd, "pcap %d %sable\n", i,
-			(flags & SEND_PCAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "range %d %sable\n", i,
-			(flags & SEND_RANGE_PKTS) ? "en" : "dis");
-		fprintf(fd, "latency %d %sable\n", i,
-			(flags & SEND_LATENCY_PKTS) ? "en" : "dis");
-		fprintf(fd, "process %d %sable\n", i,
-			(flags & PROCESS_INPUT_PKTS) ? "en" : "dis");
-		fprintf(fd, "capture %d %sable\n", i,
-			(flags & CAPTURE_PKTS) ? "en" : "dis");
-		fprintf(fd, "rxtap %d %sable\n", i,
-			(flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "txtap %d %sable\n", i,
-			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "vlan %d %sable\n\n", i,
-			(flags & SEND_VLAN_ID) ? "en" : "dis");
+		fprintf(fd, "%sable %d icmp\n",
+			(flags & ICMP_ECHO_ENABLE_FLAG) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d pcap\n",
+			(flags & SEND_PCAP_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d range\n",
+			(flags & SEND_RANGE_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d latency\n",
+			(flags & SEND_LATENCY_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d process\n",
+			(flags & PROCESS_INPUT_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d capture\n",
+			(flags & CAPTURE_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d rx_tap\n",
+			(flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d tx_tap\n",
+			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d vlan\n\n",
+			(flags & SEND_VLAN_ID) ? "en" : "dis", i);
 
 		fprintf(fd, "#\n# Range packet information:\n");
-		fprintf(fd, "src.mac start %d %s\n", i,
+		fprintf(fd, "range %d mac src start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac, &eaddr)));
-		fprintf(fd, "src.mac min %d %s\n", i,
+		fprintf(fd, "range %d mac src min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_min, &eaddr)));
-		fprintf(fd, "src.mac max %d %s\n", i,
+		fprintf(fd, "range %d mac src max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_max, &eaddr)));
-		fprintf(fd, "src.mac inc %d %s\n", i,
+		fprintf(fd, "range %d mac src inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_inc, &eaddr)));
 
-		fprintf(fd, "dst.mac start %d %s\n", i,
+		fprintf(fd, "range %d mac dst start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac, &eaddr)));
-		fprintf(fd, "dst.mac min %d %s\n", i,
+		fprintf(fd, "range %d mac dst min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_min, &eaddr)));
-		fprintf(fd, "dst.mac max %d %s\n", i,
+		fprintf(fd, "range %d mac dst max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_max, &eaddr)));
-		fprintf(fd, "dst.mac inc %d %s\n", i,
+		fprintf(fd, "range %d mac dst inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_inc, &eaddr)));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "src.ip start %d %s\n", i,
+		fprintf(fd, "range %d ip src start %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip),
 				   0xFFFFFFFF));
-		fprintf(fd, "src.ip min %d %s\n", i,
+		fprintf(fd, "range %d ip src min %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_min),
 				   0xFFFFFFFF));
-		fprintf(fd, "src.ip max %d %s\n", i,
+		fprintf(fd, "range %d ip src max %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "src.ip inc %d %s\n", i,
+		fprintf(fd, "range %d ip src inc %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_inc),
 				   0xFFFFFFFF));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "dst.ip start %d %s\n", i,
+		fprintf(fd, "range %d ip dst start %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip),
 				   0xFFFFFFFF));
-		fprintf(fd, "dst.ip min %d %s\n", i,
+		fprintf(fd, "range %d ip dst min %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_min),
 				   0xFFFFFFFF));
-		fprintf(fd, "dst.ip max %d %s\n", i,
+		fprintf(fd, "range %d ip dst max %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "dst.ip inc %d %s\n", i,
+		fprintf(fd, "range %d ip dst inc %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_inc),
 				   0xFFFFFFFF));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "ip.proto %d %s\n", i,
+		fprintf(fd, "range %d proto %s\n", i,
 			(range->ip_proto == PG_IPPROTO_UDP) ? "udp" :
 			(range->ip_proto == PG_IPPROTO_ICMP) ? "icmp" : "tcp");
 
 		fprintf(fd, "\n");
-		fprintf(fd, "src.port start %d %d\n", i, range->src_port);
-		fprintf(fd, "src.port min %d %d\n", i, range->src_port_min);
-		fprintf(fd, "src.port max %d %d\n", i, range->src_port_max);
-		fprintf(fd, "src.port inc %d %d\n", i, range->src_port_inc);
+		fprintf(fd, "range %d sport start %d\n", i, range->src_port);
+		fprintf(fd, "range %d sport min %d\n", i, range->src_port_min);
+		fprintf(fd, "range %d sport max %d\n", i, range->src_port_max);
+		fprintf(fd, "range %d sport inc %d\n", i, range->src_port_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "dst.port start %d %d\n", i, range->dst_port);
-		fprintf(fd, "dst.port min %d %d\n", i, range->dst_port_min);
-		fprintf(fd, "dst.port max %d %d\n", i, range->dst_port_max);
-		fprintf(fd, "dst.port inc %d %d\n", i, range->dst_port_inc);
+		fprintf(fd, "range %d dport start %d\n", i, range->dst_port);
+		fprintf(fd, "range %d dport min %d\n", i, range->dst_port_min);
+		fprintf(fd, "range %d dport max %d\n", i, range->dst_port_max);
+		fprintf(fd, "range %d dport inc %d\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "vlan.id start %d %d\n", i, range->vlan_id);
-		fprintf(fd, "vlan.id min %d %d\n", i, range->vlan_id_min);
-		fprintf(fd, "vlan.id max %d %d\n", i, range->vlan_id_max);
-		fprintf(fd, "vlan.id inc %d %d\n", i, range->vlan_id_inc);
+		fprintf(fd, "range %d vlan start %d\n", i, range->vlan_id);
+		fprintf(fd, "range %d vlan min %d\n", i, range->vlan_id_min);
+		fprintf(fd, "range %d vlan max %d\n", i, range->vlan_id_max);
+		fprintf(fd, "range %d vlan inc %d\n", i, range->vlan_id_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "pkt.size start %d %d\n", i,
+		fprintf(fd, "range %d size start %d\n", i,
 			range->pkt_size + FCS_SIZE);
-		fprintf(fd, "pkt.size min %d %d\n", i,
+		fprintf(fd, "range %d size min %d\n", i,
 			range->pkt_size_min + FCS_SIZE);
-		fprintf(fd, "pkt.size max %d %d\n", i,
+		fprintf(fd, "range %d size max %d\n", i,
 			range->pkt_size_max + FCS_SIZE);
-		fprintf(fd, "pkt.size inc %d %d\n\n", i, range->pkt_size_inc);
+		fprintf(fd, "range %d size inc %d\n\n", i, range->pkt_size_inc);
 
 		fprintf(fd, "#\n# Set up the sequence data for the port.\n");
-		fprintf(fd, "set %d seqCnt %d\n", info->pid, info->seqCnt);
+		fprintf(fd, "set %d seq_cnt %d\n", info->pid, info->seqCnt);
 		for (j = 0; j < info->seqCnt; j++) {
 			pkt = &info->seq_pkt[j];
 			fprintf(fd, "seq %d %d %s ", j, i,
@@ -399,7 +398,7 @@ pktgen_script_save(char *path)
 			if ((active & (1 << j)) == 0)
 				continue;
 			bf = &info->rnd_bitfields->specs[j];
-			fprintf(fd, "rnd %d %d %d %s\n",
+			fprintf(fd, "set %d rnd %d %d %s\n",
 				i, j, bf->offset, convert_bitfield(bf));
 		}
 		fprintf(fd, "\n");
@@ -498,7 +497,7 @@ pktgen_lua_save(char *path)
 		flags = rte_atomic32_read(&info->port_flags);
 		fprintf(fd, "-- Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
 			info->pid, info->tx_burst, info->tx_rate, flags, buff);
-		fprintf(fd, "--           SeqCnt:%d, Prime:%d VLAN ID:%04x, ",
+		fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ",
 			info->seqCnt, info->prime_cnt, info->vlanid);
 		pktgen_link_state(info->pid, buff, sizeof(buff));
 		fprintf(fd, "Link: %s\n", buff);
@@ -671,7 +670,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.pkt_size('%d', 'inc', %d);\n\n", i, range->pkt_size_inc);
 
 		fprintf(fd, "--\n-- Set up the sequence data for the port.\n");
-		fprintf(fd, "pktgen.set('%d', 'seqCnt', %d);\n\n", info->pid, info->seqCnt);
+		fprintf(fd, "pktgen.set('%d', 'seq_cnt', %d);\n\n", info->pid, info->seqCnt);
 		fflush(fd);
 		if (info->seqCnt) {
 			fprintf(

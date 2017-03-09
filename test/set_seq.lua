@@ -14,4 +14,4 @@ local seq_table = {			-- entries can be in any order
   };
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );
-pktgen.set("all", "seqCnt", 1);
+pktgen.set("all", "seq_cnt", 1);

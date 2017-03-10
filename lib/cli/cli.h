@@ -178,6 +178,7 @@ struct cli {
 RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define this_cli		RTE_PER_LCORE(cli)
 
+#define CLI_NO_TIMERS			0x0000  /**< Do not enable timers */
 #define CLI_USE_TIMERS			0x0001	/**< call rte_timer_manager() on input */
 #define CLI_NODES_UNLIMITED		0x0002	/**< Allocate nodes with no limit */
 
@@ -828,7 +829,7 @@ void cli_input(char *str, int n);
  *
  * @param prompt_func
  *   Function pointer to call for displaying the prompt.
- * @param tree
+ * @param tree_func
  *   The user supplied function to init the tree or can be NULL. If NULL then
  *   a default tree is initialized with basic commands.
  * @param nb_entries
@@ -1147,7 +1148,7 @@ int cli_execute_cmdfiles(void);
  * @param data
  *   Pointer to the cli_info structure.
  */
-void cli_show_help(struct cli_info **data);
+int cli_show_help(const char **data);
 
 /**
  * Find the help group section defined by the group string.

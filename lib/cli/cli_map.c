@@ -60,7 +60,7 @@ is_map_valid(const char *fmt, char *arg)
 {
 	int ret = 0;
 
-	if (strchr("dDhHs46mk|lCP", fmt[1]) == NULL)
+	if (strchr("dDhHsn46mk|lCP", fmt[1]) == NULL)
 		return ret;
 
 	/* validate all of the characters match the format */
@@ -73,14 +73,16 @@ is_map_valid(const char *fmt, char *arg)
 		case 'h': if (isxdigit(*arg)) ret = 1; break;
 		case 'H': if (isxdigit(*arg)) ret = 1; break;
 		case 's': if (isprint(*arg)) ret = 1; break;
-		/* TODO: validate this is a valid IPv4 address */
+					/* TODO: validate this is a valid IPv4 network address */
+		case 'n': if (isdigit(*arg)) ret = 1; break;
+					/* TODO: validate this is a valid IPv4 address */
 		case '4': if (isdigit(*arg)) ret = 1; break;
-		/* TODO: validate this is a valid IPv6 address */
+					/* TODO: validate this is a valid IPv6 address */
 		case '6': if (isdigit(*arg)) ret = 1; break;
-		/* TODO: validate this is a valid MAC address */
+					/* TODO: validate this is a valid MAC address */
 		case 'm': if (isxdigit(*arg)) ret = 1; break;
 		case 'k': return 1;
-		/* list of ports or cores or the word all */
+					/* list of ports or cores or the word all */
 		case 'P': if (isdigit(*arg) || (*arg == 'a')) ret = 1; break;
 		case 'C': if (isdigit(*arg) || (*arg == 'a')) ret = 1; break;
 		case '#':
@@ -222,6 +224,54 @@ cli_maps_show(struct cli_map *maps, int argc, char **argv)
 		if (nb_args && !strcmp(argv[0], map[0]))
 			cli_map_show(m);
 	}
+}
+
+static int
+_show_help_lines(const char **h)
+{
+	int j;
+	char key;
+
+	for (j = 0; h[j] != NULL; j++) {
+		if (!strcmp(h[j], CLI_PAUSE)) {
+			key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
+			if (key == vt100_escape)
+				return -1;
+			continue;
+		}
+		cli_printf("%s\n", h[j]);
+	}
+
+	cli_pause("   <Press Return to Continue or ESC>", NULL);
+	return 0;
+}
+
+int
+cli_map_info_help(struct cli_info *data)
+{
+	if (!data)
+		return -1;
+
+	return _show_help_lines(data->help);
+}
+
+int
+cli_map_help_all(struct cli_info **data)
+{
+	int i;
+	const char **h;
+
+	if (!data)
+		return -1;
+
+	for (i = 0; data[i] != NULL; i++) {
+		h = data[i]->help;
+		if (_show_help_lines(h))
+			return -1;
+	}
+
+	cli_pause("   <Press Return to Continue or ESC>", NULL);
+	return 0;
 }
 
 void

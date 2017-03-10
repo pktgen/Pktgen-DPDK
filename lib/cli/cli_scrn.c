@@ -151,8 +151,9 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
 		if (!scrn)
 			return -1;
 		memset(scrn, 0, sizeof(struct cli_scrn));
+
+		this_scrn = scrn;
 	}
-	this_scrn = scrn;
 
 	rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
 
@@ -189,6 +190,6 @@ scrn_create_with_defaults(int theme)
 void
 scrn_destroy(void)
 {
-	if (this_scrn->type == SCRN_STDIN_TYPE)
+	if (this_scrn && (this_scrn->type == SCRN_STDIN_TYPE))
 		scrn_stdin_restore();
 }

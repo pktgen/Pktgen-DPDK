@@ -114,6 +114,26 @@ void cli_map_show(struct cli_map *m);
 void cli_maps_show(struct cli_map *maps, int argc, char **argv);
 
 /**
+ * Show the map table entries
+ *
+ * @param maps
+ *   The cli_info structure pointer
+ * @return
+ *   0 on success or -1 on error
+ */
+int cli_map_info_help(struct cli_info *data);
+
+/**
+ * Show the map table entries
+ *
+ * @param maps
+ *   The cli_info structure pointer
+ * @return
+ *   0 on success or -1 on error
+ */
+int cli_map_help_all(struct cli_info **data);
+
+/**
  * Dump out the map table entry matching the argc/argv
  *
  * @param maps

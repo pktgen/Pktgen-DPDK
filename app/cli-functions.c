@@ -732,7 +732,6 @@ debug_cmd(int argc, char **argv)
  *
  * SEE ALSO:
  * 	"%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d"
-
  */
 
 static int
@@ -1224,7 +1223,7 @@ help_cmd(int argc __rte_unused, char **argv __rte_unused)
 	scrn_cls();
 	scrn_pos(0, 0);
 
-	cli_show_help(help_data);
+	cli_map_help_all(help_data);
 
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);

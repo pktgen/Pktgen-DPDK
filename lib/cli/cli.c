@@ -818,6 +818,8 @@ cli_destroy(void)
 	free(cli->hist_mem);
 	free(cli->node_mem);
 	free(cli);
+
+	this_cli = NULL;
 }
 
 /* Helper routine around the cli_create() routine */
@@ -922,8 +924,8 @@ cli_find_help_group(struct cli_info **data, const char *group)
 	return NULL;
 }
 
-static int
-show_help_line(const char **h)
+int
+cli_show_help(const char **h)
 {
 	int j;
 	char key;
@@ -937,23 +939,6 @@ show_help_line(const char **h)
 		}
 		cli_printf("%s\n", h[j]);
 	}
-	return 0;
-}
-
-void
-cli_show_help(struct cli_info **data)
-{
-	int i;
-	const char **h;
-
-	if (!data)
-		return;
-
-	for (i = 0; data[i] != NULL; i++) {
-		h = data[i]->help;
-		if (show_help_line(h))
-			return;
-	}
-
 	cli_pause("   <Press Return to Continue or ESC>", NULL);
+	return 0;
 }

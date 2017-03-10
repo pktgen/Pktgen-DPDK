@@ -439,7 +439,7 @@ main(int argc, char **argv)
 		rte_eth_dev_close(i);
 	}
 
-	scrn_destroy();
+	cli_destroy();
 
 	return 0;
 }

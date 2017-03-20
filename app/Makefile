@@ -58,7 +58,7 @@ CLI_LIB    := $(RTE_SRCDIR)/../lib/cli/lib/cli/$(RTE_TARGET)/lib
 
 # all source are stored in SRCS-y
 SRCS-y := \
-	lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
+	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
 	pktgen-main.c pktgen-pcap.c pktgen-range.c pktgen-cpu.c \
 	pktgen-seq.c pktgen-dump.c pktgen-capture.c pktgen-stats.c \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \
@@ -66,10 +66,13 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
 	pktgen-latency.c pktgen-help.c
 
-SRCS-y += cli-functions.c
+MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB)
+MYLIBS := -llua -lcommon
 
-MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB) -L$(CLI_LIB)
-MYLIBS := -llua -lcommon -lcli
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
+MYLIB_PATH += -L$(CLI_LIB)
+MYLIBS += -cli
+endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe
@@ -98,6 +101,10 @@ pktgen: $(COMMON_LIB)/libcommon.a $(LUA_LIB)/liblua.a $(CLI_LIB)/libcli.a
 
 LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) $(GTK_LIB) -lm
 
-DEPDIRS-y += ../lib/common ../lib/lua ../lib/cli
+DEPDIRS-y += ../lib/common ../lib/lua
+
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
+DEPDIRS += ../lib/cli
+endif
 
 include $(RTE_SDK)/mk/rte.extapp.mk

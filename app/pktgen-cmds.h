@@ -93,6 +93,7 @@ void single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip);
 void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_dst_mac(port_info_t *info, struct ether_addr *mac);
+void single_set_src_mac(port_info_t *info, struct ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);
 void single_set_tx_count(port_info_t *info, uint32_t cnt);
 void single_set_tx_burst(port_info_t *info, uint32_t burst);

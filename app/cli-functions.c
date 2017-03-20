@@ -63,12 +63,9 @@
 
 /**********************************************************/
 static const char *title_help[] = {
-	"   *** Help Information for Pktgen ***",
-	"",
-	NULL
+	"   *** Pktgen Help information ***",
+	NULL,
 };
-
-CLI_INFO(Title, NULL, title_help);
 
 static const char *status_help[] = {
 	"       Flags: P---------------- - Promiscuous mode enabled",
@@ -99,8 +96,6 @@ static const char *status_help[] = {
 	NULL
 };
 
-CLI_INFO(Status, NULL, status_help);
-
 static struct cli_map range_map[] = {
 	{ 20, "range %P mac dst %|start|min|max|inc %m" },
 	{ 21, "range %P mac src %|start|min|max|inc %m" },
@@ -130,11 +125,9 @@ static const char *range_help[] = {
 	"range <portlist> mpls entry <hex-value>       - Set MPLS entry value",
 	"range <portlist> qinq index <val1> <val2>     - Set QinQ index values",
 	"range <portlist> gre key <value>              - Set GRE key value",
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Range, range_map, range_help);
 
 static int
 range_cmd(int argc, char **argv)
@@ -143,7 +136,7 @@ range_cmd(int argc, char **argv)
 	uint32_t portlist;
 	struct pg_ipaddr ip;
 
-	m = cli_mapping(Range_info.map, argc, argv);
+	m = cli_mapping(range_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -226,7 +219,7 @@ static struct cli_map set_map[] = {
 	{ 11, "set %P jitter %D" },
 	{ 20, "set %P type %|arp|ip4|ip6" },
 	{ 21, "set %P proto %|udp|tcp|icmp" },
-	{ 22, "set %P mac %m" },
+	{ 22, "set %P mac %|dst|src %m" },
 	{ 23, "set %P pattern %|abc|none|user|zero" },
 	{ 24, "set %P user pattern %s" },
 	{ 30, "set %P ip %|src|dst %4" },
@@ -250,7 +243,7 @@ static const char *set_help[] = {
 	"                 jitter            - Set the jitter threshold in micro-seconds",
 	"                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)",
 	"                 gre_key           - Set the GRE key",
-	"                 mac <etheraddr>   - Set MAC addresses 00:11:22:33:44:55",
+	"                 mac dst <etheraddr> - Set MAC addresses 00:11:22:33:44:55",
 	"                                     You can use 0011:2233:4455 format as well",
 	"set <portlist> ip src|dst ipaddr   - Set IP addresses",
 	"set <portlist> vlanid <vlanid>     - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
@@ -271,11 +264,9 @@ static const char *set_help[] = {
 	"                                       1: bit will be 1",
 	"                                       .: bit will be ignored (original value is retained)",
 	"                                       X: bit will get random value",
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Set, set_map, set_help);
 
 static int
 set_cmd(int argc, char **argv)
@@ -286,7 +277,7 @@ set_cmd(int argc, char **argv)
 	struct cli_map *m;
 	struct pg_ipaddr ip;
 
-	m = cli_mapping(Set_info.map, argc, argv);
+	m = cli_mapping(set_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -297,7 +288,7 @@ set_cmd(int argc, char **argv)
 
 	switch(m->index) {
 		case 10:
-			n = cli_list_search(m->fmt, argv[2], 2);
+			n = cli_map_list_search(m->fmt, argv[2], 2);
 			foreach_port(portlist, _do(
 				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
@@ -326,8 +317,12 @@ set_cmd(int argc, char **argv)
 			foreach_port(portlist, single_set_proto(info, argv[3]));
 			break;
 		case 22:
-			foreach_port(portlist, single_set_dst_mac(info,
-										rte_ether_aton(argv[3], NULL)));
+			if (argv[3][0] == 'd')
+				foreach_port(portlist,
+					single_set_dst_mac(info, rte_ether_aton(argv[4], NULL)));
+			else
+				foreach_port(portlist,
+					single_set_src_mac(info, rte_ether_aton(argv[4], NULL)));
 			break;
 		case 23:
 			foreach_port(portlist, pattern_set_type(info, argv[3]));
@@ -366,8 +361,6 @@ static const char *pcap_help[] = {
 	NULL
 };
 
-CLI_INFO(PCAP, pcap_map, pcap_help);
-
 static int
 pcap_cmd(int argc, char **argv)
 {
@@ -377,7 +370,7 @@ pcap_cmd(int argc, char **argv)
 	uint32_t value;
 	uint32_t portlist;
 
-	m = cli_mapping(PCAP_info.map, argc, argv);
+	m = cli_mapping(pcap_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -433,11 +426,9 @@ static const char *start_help[] = {
 	"start <portlist> prime             - Transmit packets on each port listed. See set prime command above",
 	"start <portlist> arp <type>        - Send a ARP type packet",
 	"    type - request | gratuitous | req | grat",
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Start, start_map, start_help);
 
 static int
 start_stop_cmd(int argc, char **argv)
@@ -445,7 +436,7 @@ start_stop_cmd(int argc, char **argv)
 	struct cli_map *m;
 	uint32_t portlist;
 
-	m = cli_mapping(Start_info.map, argc, argv);
+	m = cli_mapping(start_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -488,18 +479,16 @@ static const char *theme_help[] = {
 	"theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value",
 	"theme show                         - List the item strings, colors and attributes to the items",
 	"theme save <filename>              - Save the current color theme to a file",
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Theme, theme_map, theme_help);
 
 static int
 theme_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(Theme_info.map, argc, argv);
+	m = cli_mapping(theme_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -508,7 +497,7 @@ theme_cmd(int argc, char **argv)
 	case 10: pktgen_theme_state(argv[1]); pktgen_redisplay(1); break;
 	case 20: pktgen_set_theme_item(argv[1], argv[2], argv[3], argv[4]); break;
 	case 30: pktgen_theme_save(argv[2]); break;
-	default: return cli_help_show(theme_help);
+	default: return cli_help_show("Theme");
 	}
 	return 0;
 }
@@ -561,11 +550,9 @@ static const char *enable_help[] = {
 	"               mac_from_arp        - Enable/disable MAC address from ARP packet",
 	"off                                - screen off shortcut",
 	"on                                 - screen on shortcut",
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Enable, enable_map, enable_help);
 
 static int
 enable_disable_cmd(int argc, char **argv)
@@ -574,16 +561,16 @@ enable_disable_cmd(int argc, char **argv)
 	portlist_t portlist;
 	int n, state;
 
-	m = cli_mapping(Enable_info.map, argc, argv);
+	m = cli_mapping(enable_map, argc, argv);
 	if (!m)
-		return cli_help_show(enable_help);
+		return cli_help_show("Enable");
 
 	rte_parse_portlist(argv[1], &portlist);
 
 	switch (m->index) {
 		case 10:
 		case 20:
-			n = cli_list_search(m->fmt, argv[2], 2);
+			n = cli_map_list_search(m->fmt, argv[2], 2);
 
 			state = estate(argv[0]);
 
@@ -681,15 +668,13 @@ static const char *debug_help[] = {
 	NULL
 };
 
-CLI_INFO(Debug, debug_map, debug_help);
-
 static int
 debug_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	uint32_t portlist;
 
-	m = cli_mapping(Debug_info.map, argc, argv);
+	m = cli_mapping(debug_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -840,16 +825,14 @@ static const char *seq_help[] = {
 	NULL
 };
 
-CLI_INFO(Seq, seq_map, seq_help);
-
 static int
 seq_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(Seq_info.map, argc, argv);
+	m = cli_mapping(seq_map, argc, argv);
 	if (!m) {
-		cli_help_show(Seq_info.help);
+		cli_help_show("Seq");
 		return -1;
 	}
 
@@ -886,7 +869,7 @@ script_cmd(int argc __rte_unused, char **argv)
 		return -1;
 	}
 
-	if (is_cli_help(argc, argv)) {
+	if (is_help(argc, argv)) {
 		cli_printf("\nUsage: %s <script-string>\n", argv[0]);
 		return 0;
 	}
@@ -918,7 +901,7 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 		return -1;
 	}
 
-	if (is_cli_help(argc, argv)) {
+	if (is_help(argc, argv)) {
 		cli_printf("\nUsage: %s <script-string>\n", argv[0]);
 		return 0;
 	}
@@ -965,11 +948,9 @@ static const char *misc_help[] = {
 #ifdef INCLUDE_PING6
 	"ping6 <portlist>                   - Send a IPv6 ICMP echo request on the given portlist",
 #endif
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Misc, misc_map, misc_help);
 
 static int
 misc_cmd(int argc, char **argv)
@@ -979,7 +960,7 @@ misc_cmd(int argc, char **argv)
 	uint16_t rows, cols;
 	char *p;
 
-	m = cli_mapping(Misc_info.map, argc, argv);
+	m = cli_mapping(misc_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -1065,18 +1046,16 @@ static const char *page_help[] = {
 	"     log                           - Display the log messages page",
 	"     latency                       - Display the latency page",
 	"     stats                         - Display physical ports stats for all ports",
-	CLI_PAUSE,
+	CLI_HELP_PAUSE,
 	NULL
 };
-
-CLI_INFO(Page, page_map, page_help);
 
 static int
 page_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 
-	m = cli_mapping(Page_info.map, argc, argv);
+	m = cli_mapping(page_map, argc, argv);
 	if (!m)
 		return -1;
 
@@ -1151,6 +1130,19 @@ init_tree(void)
     if (cli_add_tree(cli_root_node(), default_tree))
         return -1;
 
+	cli_help_add("Title", NULL, title_help);
+	cli_help_add("Page", page_map, page_help);
+	cli_help_add("Enable", enable_map, enable_help);
+	cli_help_add("Set", set_map, set_help);
+	cli_help_add("Range", range_map, range_help);
+	cli_help_add("Sequence", seq_map, seq_help);
+	cli_help_add("PCAP", pcap_map, pcap_help);
+	cli_help_add("Start", start_map, start_help);
+	cli_help_add("Debug", debug_map, debug_help);
+	cli_help_add("Misc", misc_map, misc_help);
+	cli_help_add("Theme", theme_map, theme_help);
+	cli_help_add("Status", NULL, status_help);
+
 	/* Make sure the pktgen commands are executable an in search path */
     if (cli_add_bin_path("/pktgen/bin"))
         return -1;
@@ -1176,26 +1168,10 @@ pktgen_cli_create(void)
 void
 pktgen_cli_start(void)
 {
-    cli_start(NULL, 1);
+    cli_start(NULL, CLI_USE_TIMERS);
 
     cli_destroy();
 }
-
-static struct cli_info *help_data[] = {
-	&Title_info,
-	&Page_info,
-	&Enable_info,
-	&Set_info,
-	&Range_info,
-	&Seq_info,
-	&PCAP_info,
-	&Start_info,
-	&Debug_info,
-	&Misc_info,
-	&Theme_info,
-	&Status_info,
-	NULL
-};
 
 /**************************************************************************//**
  *
@@ -1223,7 +1199,7 @@ help_cmd(int argc __rte_unused, char **argv __rte_unused)
 	scrn_cls();
 	scrn_pos(0, 0);
 
-	cli_map_help_all(help_data);
+	cli_help_all();
 
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);

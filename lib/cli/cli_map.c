@@ -34,7 +34,7 @@
 #include "cli.h"
 
 int
-cli_list_search(const char *fmt, char *item, int index)
+cli_map_list_search(const char *fmt, char *item, int index)
 {
 	char *buf;
 	int size;
@@ -224,54 +224,6 @@ cli_maps_show(struct cli_map *maps, int argc, char **argv)
 		if (nb_args && !strcmp(argv[0], map[0]))
 			cli_map_show(m);
 	}
-}
-
-static int
-_show_help_lines(const char **h)
-{
-	int j;
-	char key;
-
-	for (j = 0; h[j] != NULL; j++) {
-		if (!strcmp(h[j], CLI_PAUSE)) {
-			key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
-			if (key == vt100_escape)
-				return -1;
-			continue;
-		}
-		cli_printf("%s\n", h[j]);
-	}
-
-	cli_pause("   <Press Return to Continue or ESC>", NULL);
-	return 0;
-}
-
-int
-cli_map_info_help(struct cli_info *data)
-{
-	if (!data)
-		return -1;
-
-	return _show_help_lines(data->help);
-}
-
-int
-cli_map_help_all(struct cli_info **data)
-{
-	int i;
-	const char **h;
-
-	if (!data)
-		return -1;
-
-	for (i = 0; data[i] != NULL; i++) {
-		h = data[i]->help;
-		if (_show_help_lines(h))
-			return -1;
-	}
-
-	cli_pause("   <Press Return to Continue or ESC>", NULL);
-	return 0;
 }
 
 void

@@ -1,5 +1,5 @@
 #
-# Copyright (c) <2010-2015>, Wind River Systems, Inc.
+# Copyright (c) <2010-2017>, Intel Corp
 #
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
@@ -11,7 +11,7 @@
 # this list of conditions and the following disclaimer in the documentation and/or
 # other materials provided with the distribution.
 #
-# 3) Neither the name of Wind River Systems nor the names of its contributors may be
+# 3) Neither the name of Intel nor the names of its contributors may be
 # used to endorse or promote products derived from this software without specific
 # prior written permission.
 #
@@ -29,7 +29,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Created 2010-2015 by Keith Wiles @ windriver.com
+# Created 2010-2017 by Keith Wiles @ intel.com
 
 ifeq ($(RTE_SDK),)
 $(error "Please define RTE_SDK environment variable")

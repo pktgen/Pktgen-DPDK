@@ -2440,6 +2440,25 @@ single_set_dst_mac(port_info_t *info, struct ether_addr *mac)
 
 /**************************************************************************//**
  *
+ * single_set_src_mac - Setup the source MAC address
+ *
+ * DESCRIPTION
+ * Set the source MAC address for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_src_mac(port_info_t *info, struct ether_addr *mac)
+{
+	memcpy(&info->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
  * enable_range - Enable or disable range packet sending.
  *
  * DESCRIPTION

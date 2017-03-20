@@ -125,20 +125,8 @@ complete_args(int argc, char **argv, uint32_t types)
 
 	gb = this_cli->gb;
 
-	/* Handle the simple case of a complete commmand path */
-	if (argc == 1) {
-		node = cli_find_cmd(match);
-		if (node && is_executable(node)) {
-			if (gb_eof(gb)) {
-				gb_str_insert(gb, (char *)(uintptr_t)" ", 1);
-				cli_clear_line(0);	/* redraw the line with the space */
-				cli_display_line();
-			}
-			return 0;
-		}
-	}
-
 	if (match) {
+		uint32_t stype;
 		uint32_t slashes;
 		char *p;
 
@@ -160,7 +148,11 @@ complete_args(int argc, char **argv, uint32_t types)
 			}
 		}
 
-		node_cnt = cli_node_list_with_type(node, CLI_ALL_TYPE, (void * *)&nodes);
+		stype = CLI_ALL_TYPE;			/* search for all nodes */
+		if (argc > 1)
+			stype = CLI_OTHER_TYPE;		/* search for non-exe nodes */
+
+		node_cnt = cli_node_list_with_type(node, stype, (void * *)&nodes);
 		p = strrchr(match, '/');
 		if (p)
 			match = ++p;

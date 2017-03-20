@@ -31,7 +31,11 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-DIRS-y += common lua cli
+DIRS-y += common lua
+
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
+DIRS-y += cli
+endif
 
 DEPDIRS-y = common
 

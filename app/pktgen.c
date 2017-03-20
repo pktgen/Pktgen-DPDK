@@ -110,7 +110,7 @@ pktgen_packet_rate(port_info_t *info)
 	uint64_t cpp = (pps > 0) ? (pktgen.hz / pps) : (pktgen.hz / 4);
 
 	info->tx_pps    = pps;
-	info->tx_cycles = ((cpp * info->tx_burst) / get_port_txcnt(pktgen.l2p, info->pid));
+	info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid));
 }
 
 /**************************************************************************//**

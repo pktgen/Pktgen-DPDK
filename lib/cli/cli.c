@@ -187,6 +187,7 @@ cli_remove_node(struct cli_node *node)
 	case CLI_CMD_NODE:
 	case CLI_FILE_NODE:
 	case CLI_ALIAS_NODE:
+	case CLI_STR_NODE:
 		break;
 	default:
 		return -1;
@@ -232,6 +233,10 @@ __add_node(const char *name, struct cli_node *parent,
 		if (!parent || func.cfunc)
 			return NULL;
 		break;
+	case CLI_STR_NODE:
+		if (!func.sfunc && !short_desc)
+			return NULL;
+		break;
 	default:
 		return NULL;
 	}
@@ -244,6 +249,7 @@ __add_node(const char *name, struct cli_node *parent,
 
 	node->type = type;
 	node->parent = parent;
+
 	switch (type) {
 	case CLI_CMD_NODE:
 	case CLI_ALIAS_NODE:
@@ -253,6 +259,8 @@ __add_node(const char *name, struct cli_node *parent,
 		node->ffunc = func.ffunc;
 		break;
 	case CLI_DIR_NODE:
+	case CLI_STR_NODE:
+		break;
 	default:
 		break;
 	}
@@ -365,6 +373,13 @@ cli_add_file(const char * name,
 	return __add_node(name, dir, CLI_FILE_NODE, funcs, short_desc);
 }
 
+/* Add a string to the CLI tree */
+int
+cli_add_str(const char * name, cli_sfunc_t func, const char *str)
+{
+	return cli_env_string(this_cli->env, name, func, str);
+}
+
 /* Add a directory/commands/files/... to a directory */
 int
 cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
@@ -375,6 +390,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 	struct cli_cmd *c;
 	struct cli_file *f;
 	struct cli_alias *a;
+	struct cli_str *s;
 	struct cli_node *n;
 
 	if (!tree)
@@ -415,6 +431,12 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 				return -1;
 			break;
 
+		case CLI_STR_NODE:
+			s = &t->str;
+			if (cli_add_str(s->name, s->sfunc, s->string))
+				return -1;
+			break;
+
 		case CLI_UNK_NODE:
 		default:
 			return 0;
@@ -435,11 +457,14 @@ cli_execute(void)
 	char *line, *p, *hist;
 
 	RTE_ASSERT(cli != NULL);
+
 	sz = gb_data_size(gb);
 	sz = RTE_MAX(sz, CLI_MAX_PATH_LENGTH);
+
 	line = alloca(sz + 1);
 	if (!line)
 		return -1;
+
 	memset(line, '\0', sz + 1);
 
 	/* gb_copy_to_buf() forces linebuf to be null terminated */
@@ -473,7 +498,7 @@ cli_execute(void)
 	/* Process the line for environment variable substitution */
 	cli_env_substitution(cli->env, p, sz - (p - line));
 
-	argc = rte_strtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
+	argc = rte_strqtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
 
 	if (!argc)
 		return 0;
@@ -522,6 +547,10 @@ cli_execute(void)
 
 	case CLI_FILE_NODE:
 		cli_printf("** (%s) is a file\n", cli->argv[0]);
+		break;
+
+	case CLI_STR_NODE:
+		cli_printf("** (%s) is a string\n", cli->argv[0]);
 		break;
 
 	case CLI_UNK_NODE:
@@ -730,6 +759,7 @@ cli_create(cli_prompt_t prompt, cli_tree_t default_func,
 
 	TAILQ_INIT(&cli->root);		/* Init the directory list */
 	TAILQ_INIT(&cli->free_nodes);	/* List of free nodes */
+	TAILQ_INIT(&cli->help_nodes);	/* List of help nodes */
 
 	CIRCLEQ_INIT(&cli->free_hist);	/* List of free hist nodes */
 	CIRCLEQ_INIT(&cli->hd_hist);	/* Init the history for list head */
@@ -909,36 +939,5 @@ cli_execute_cmdfiles(void)
 		this_cli->cmd_files.filename[i] = NULL;
 	}
 	this_cli->cmd_files.idx = 0;
-	return 0;
-}
-
-struct cli_info *
-cli_find_help_group(struct cli_info **data, const char *group)
-{
-	int i;
-	struct cli_info *info;
-
-	for (i = 0; (info = data[i]) != NULL; i++)
-		if (!strcmp(group, info->group))
-			return info;
-	return NULL;
-}
-
-int
-cli_show_help(const char **h)
-{
-	int j;
-	char key;
-
-	for (j = 0; h[j] != NULL; j++) {
-		if (!strcmp(h[j], CLI_PAUSE)) {
-			key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
-			if (key == vt100_escape)
-				return -1;
-			continue;
-		}
-		cli_printf("%s\n", h[j]);
-	}
-	cli_pause("   <Press Return to Continue or ESC>", NULL);
 	return 0;
 }

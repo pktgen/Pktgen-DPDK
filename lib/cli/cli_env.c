@@ -94,24 +94,24 @@ find_env(struct cli_env *env, const char *var)
 	return NULL;
 }
 
-int
-cli_env_set(struct cli_env *env, const char *var, const char *val)
+static struct env_node *
+__env_set(struct cli_env *env, const char *var, const char *val)
 {
 	struct env_node *n;
 
-	if (!env || !var || !val)
-		return -1;
+	if (!env || !var)
+		return NULL;
 
 	n = find_env(env, var);
 	if (n) {
 		free((char *)(uintptr_t)n->val);
 		n->var = strdup(val);
-		return 0;
+		return n;
 	}
 
 	n = (struct env_node *)malloc(sizeof(struct env_node));
 	if (!n)
-		return -1;
+		return NULL;
 
 	n->var = strdup(var);
 	n->val = strdup(val);
@@ -119,6 +119,25 @@ cli_env_set(struct cli_env *env, const char *var, const char *val)
 	TAILQ_INSERT_TAIL(&env->head, n, next);
 	env->count++;
 
+	return n;
+}
+
+int
+cli_env_set(struct cli_env *env, const char *var, const char *val)
+{
+	return (__env_set(env, var, val) == NULL)? -1 : 0;
+}
+
+int
+cli_env_string(struct cli_env *env, const char *var,
+			   cli_sfunc_t sfunc, const char *val)
+{
+	struct env_node *n;
+
+	n = __env_set(env, var, val);
+	if (!n)
+		return -1;
+	n->sfunc = sfunc;
 	return 0;
 }
 
@@ -131,11 +150,11 @@ cli_env_get(struct cli_env *env, const char *var)
 	if (!n)
 		return NULL;
 
-	return n->val;
+	return (n->sfunc)? n->sfunc(n->val) : n->val;
 }
 
 int
-cli_env_remove(struct cli_env *env, const char *var)
+cli_env_del(struct cli_env *env, const char *var)
 {
 	return env_free(env, find_env(env, var));
 }
@@ -192,4 +211,17 @@ cli_env_get_all(struct cli_env *env, struct env_node **list, int max_size)
 	}
 
 	return n;
+}
+
+void
+cli_env_show(struct cli_env *env)
+{
+	struct env_node *node;
+
+	TAILQ_FOREACH(node, &env->head, next) {
+		if (node->sfunc)
+			cli_printf("  \"%s\" = \"%s\"\n", node->var, node->sfunc(node->val));
+		else
+			cli_printf("  \"%s\" = \"%s\"\n", node->var, node->val);
+	}
 }

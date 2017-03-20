@@ -120,27 +120,29 @@ rte_strtok(char *str, const char *delim, char **entries, int maxtokens)
 int
 rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 {
-	char *p, *start_of_word;
-	int c;
+	char *p, *start_of_word, *s;
+	int c, argc = 0;
+	enum { INIT, WORD, STRING } state = WORD;
 
-	enum { INIT, WORD, STRING } state = INIT;
-	int argc = 0;
+	if (!str || !delim || !argv || maxtokens == 0)
+		return 0;
 
-	for (p = str; argc < (maxtokens - 1) && *p != '\0'; p++) {
+	/* Remove white space from start and end of string */
+	s = rte_strtrim(str);
+
+	start_of_word = s;
+	for (p = s; argc < (maxtokens - 1) && *p != '\0'; p++) {
 		c = (unsigned char)*p;
 		switch (state) {
 		case INIT:
-			if (strchr(delim, c) == NULL)
-				continue;
-
 			if ((c == '"') || (c == '\'')) {
 				state = STRING;
 				start_of_word = p + 1;
-				continue;
+			} else if (!strchr(delim, c)) {
+				state = WORD;
+				start_of_word = p;
 			}
-			state = WORD;
-			start_of_word = p;
-			continue;
+			break;
 
 		case STRING:
 			if ((c == '"') || (c == '\'')) {
@@ -148,20 +150,26 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 				argv[argc++] = start_of_word;
 				state = INIT;
 			}
-			continue;
+			break;
 
 		case WORD:
 			if (strchr(delim, c)) {
 				*p = 0;
 				argv[argc++] = start_of_word;
 				state = INIT;
+				start_of_word = p + 1;
 			}
-			continue;
+			break;
+
+		default:
+			break;
 		}
 	}
 
 	if (state != INIT && argc < (maxtokens - 1))
 		argv[argc++] = start_of_word;
+	if (argc == 0 && p != str)
+		argv[argc++] = str;
 
 	argv[argc] = NULL;
 

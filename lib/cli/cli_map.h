@@ -46,23 +46,10 @@
 extern "C" {
 #endif
 
-#define CLI_PAUSE		"<<PauseOutput>>"
-
 struct cli_map {
     int index;
     const char *fmt;
 };
-
-struct cli_info {
-	const char *group;
-	struct cli_map	*map;
-	const char **help;
-};
-
-#define CLI_INFO(t, m, h)						\
-	static struct cli_info t ## _info = { 		\
-		.group = #t, .map = m, .help = h	 	\
-	}
 
 /**
  * Parse a string <list> looking for matching mapping.
@@ -114,26 +101,6 @@ void cli_map_show(struct cli_map *m);
 void cli_maps_show(struct cli_map *maps, int argc, char **argv);
 
 /**
- * Show the map table entries
- *
- * @param maps
- *   The cli_info structure pointer
- * @return
- *   0 on success or -1 on error
- */
-int cli_map_info_help(struct cli_info *data);
-
-/**
- * Show the map table entries
- *
- * @param maps
- *   The cli_info structure pointer
- * @return
- *   0 on success or -1 on error
- */
-int cli_map_help_all(struct cli_info **data);
-
-/**
  * Dump out the map table entry matching the argc/argv
  *
  * @param maps
@@ -159,7 +126,7 @@ void cli_map_dump(struct cli_map *maps, int argc, char **argv);
  * @return
  *  -1 on error or index into list selections.
  */
-int cli_list_search(const char *fmt, char *item, int index);
+int cli_map_list_search(const char *fmt, char *item, int index);
 
 #ifdef __cplusplus
 }

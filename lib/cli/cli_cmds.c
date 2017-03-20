@@ -505,14 +505,6 @@ copyright_file(struct cli_node *node, char *buff, int len, uint32_t flags)
 }
 
 static int
-version_cmd(int argc __rte_unused, char * *argv __rte_unused)
-{
-	cli_printf("  DPDK version: %s\n", rte_version());
-
-	return 0;
-}
-
-static int
 sleep_cmd(int argc __rte_unused, char **argv)
 {
 	int cnt = (atoi(argv[1]) * 4);
@@ -594,6 +586,12 @@ rm_cmd(int argc, char **argv)
 	return cli_remove_node(node);
 }
 
+static char *
+ver_cmd(const char *val __rte_unused)
+{
+	return (char *)(uintptr_t)rte_version();
+}
+
 static struct cli_map cli_env_map[] = {
 	{ 10, "env" },
 	{ 20, "env get %s" },
@@ -611,8 +609,12 @@ env_cmd(int argc, char **argv)
 	if (!m)
 		return -1;
 	switch (m->index) {
-	case 10: break;
-	case 20: rte_eal_devargs_dump(stdout); break;
+	case 10: cli_env_show(this_cli->env); break;
+	case 20:
+		cli_printf("  \"%s\" = \"%s\"\n", argv[2], cli_env_get(this_cli->env, argv[2]));
+		break;
+	case 30: cli_env_set(this_cli->env, argv[2], argv[3]); break;
+	case 40: cli_env_del(this_cli->env, argv[2]); break;
 	default:
 		return -1;
 	}
@@ -638,9 +640,10 @@ static struct cli_tree cli_default_tree[] = {
 	c_cmd("cmap",       core_cmd,   "cmap # display the core mapping"),
 	c_cmd("hugepages",  huge_cmd,   "hugepages # display hugepage info"),
 	c_cmd("path",       path_cmd,   "display the command path list"),
-	c_cmd("version",    version_cmd, "Application version"),
 	c_cmd("dbg",        dbg_cmd,    "debug commands"),
 	c_cmd("env",        env_cmd,    "Set up environment variables"),
+    c_str("SHELL",      NULL,       "DNET CLI shell"),
+    c_str("DPDK_VER",   ver_cmd,	""),
 	c_end()
 };
 

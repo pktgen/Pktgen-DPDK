@@ -46,7 +46,7 @@
 #include <rte_debug.h>
 #include <rte_per_lcore.h>
 
-#include <cli_scrn.h>
+#include <cli_common.h>
 #include <cli_env.h>
 #include <cli_search.h>
 
@@ -56,6 +56,7 @@
 #include <cli_history.h>
 #include <cli_map.h>
 #include <cli_file.h>
+#include <cli_help.h>
 
 #include <cli_string_fns.h>
 
@@ -84,20 +85,22 @@ enum {
 
 /* bitmap for the node type */
 typedef enum {
-    CLI_UNK_NODE    = 0,            /**< Unknown node type */
-    CLI_DIR_NODE    = 1,            /**< Directory node type */
-    CLI_CMD_NODE    = 2,            /**< Command node type */
-    CLI_FILE_NODE   = 4,            /**< File node type */
-    CLI_ALIAS_NODE  = 8             /**< Alias node type */
+    CLI_UNK_NODE    = 0x0000,       /**< Unknown node type */
+    CLI_DIR_NODE    = 0x0001,       /**< Directory node type */
+    CLI_CMD_NODE    = 0x0002,       /**< Command node type */
+    CLI_FILE_NODE   = 0x0004,       /**< File node type */
+    CLI_ALIAS_NODE  = 0x0008,       /**< Alias node type */
+	CLI_STR_NODE	= 0x0010,       /**< String node type */
 } node_type_t;
 
 /* Keep this list in sync with the node_type_t enum above */
 #define CLI_NODE_TYPES  \
-		{ "Unknown", "Directory", "Command", "File", "Alias", NULL }
+		{ "Unknown", "Directory", "Command", "File", "Alias", "String", NULL }
 
 enum {
     CLI_EXE_TYPE = (CLI_CMD_NODE | CLI_ALIAS_NODE),
-    CLI_ALL_TYPE = (CLI_EXE_TYPE | CLI_FILE_NODE | CLI_DIR_NODE)
+    CLI_ALL_TYPE = (CLI_EXE_TYPE | CLI_FILE_NODE | CLI_DIR_NODE),
+    CLI_OTHER_TYPE = (CLI_DIR_NODE | CLI_FILE_NODE)
 };
 
 struct cli;
@@ -127,6 +130,7 @@ struct cli_node {
     union {
         cli_cfunc_t cfunc;          /**< Function pointer for commands */
         cli_ffunc_t ffunc;          /**< Function pointer for files */
+        cli_sfunc_t sfunc;          /**< Function pointer for Strings */
     };
     const char *short_desc;         /**< Short description */
     const char *alias_str;          /**< Alias string */
@@ -170,6 +174,7 @@ struct cli {
     struct cli_node *node_mem;      /**< Base address of node memory */
     struct cli_hist *hist_mem;      /**< Base address of history memory */
 
+    TAILQ_HEAD(, help_node) help_nodes; /**< head of help */
     TAILQ_HEAD(, cli_node) free_nodes;  /**< Free list of nodes */
     CIRCLEQ_HEAD(, cli_hist) free_hist; /**< free list of history nodes */
     void *user_state;				/**< Pointer to some state variable */
@@ -185,11 +190,13 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 typedef union {
     cli_cfunc_t cfunc;              /**< Function pointer for commands */
     cli_ffunc_t ffunc;              /**< Function pointer for files */
+    cli_sfunc_t sfunc;              /**< Function pointer for strings */
 } cli_funcs_t;  /* Internal: Used in argument list for adding nodes */
 
 struct cli_dir {
     const char *name;               /**< directory name */
 };
+
 struct cli_cmd {
     const char *name;               /**< Name of command */
     cli_cfunc_t cfunc;              /**< Function pointer */
@@ -208,6 +215,12 @@ struct cli_file {
     const char *short_desc;         /**< Short description */
 };                                  /**< List of alias for cli_add_aliases() */
 
+struct cli_str {
+    const char *name;               /**< Name of command */
+    cli_sfunc_t sfunc;              /**< Function pointer */
+    const char *string;             /**< Default string */
+};                                  /**< List of commands for cli_add_str() */
+
 struct cli_tree {
     node_type_t type;               /**< type of node to create */
     union {
@@ -215,6 +228,7 @@ struct cli_tree {
         struct cli_cmd cmd;         /**< command nodes */
         struct cli_file file;       /**< file nodes */
         struct cli_alias alias;     /**< alias nodes */
+        struct cli_str str;			/**< string node */
     };
 };                                  /**< Used to help create a directory tree */
 
@@ -222,29 +236,8 @@ struct cli_tree {
 #define c_cmd(n, f, h)   { CLI_CMD_NODE, .cmd = {(n), (f), (h)}}
 #define c_file(n, rw, h) { CLI_FILE_NODE, .file = {(n), (rw), (h)}}
 #define c_alias(n, l, h) { CLI_ALIAS_NODE, .alias = {(n), (l), (h)}}
+#define c_str(n, f, s)   { CLI_STR_NODE, .str = {(n), (f), (s)}}
 #define c_end()          { CLI_UNK_NODE, .dir = {NULL}}
-
-/**
- * CLI printf like routine to write on the console.
- *
- * @note Uses thread variable this_cli.
- *
- * @param va_args
- *   va_args for the rest of the printf ouput.
- * @return
- *   N/A
- */
-
-static inline void
-cli_printf(const char *fmt, ...)
-{
-    va_list vaList;
-
-    va_start(vaList, fmt);
-    vfprintf(this_scrn->fd_out, fmt, vaList);
-    va_end(vaList);
-    fflush(this_scrn->fd_out);
-}
 
 /**
  * The CLI write routine, using write() call
@@ -259,25 +252,6 @@ cli_printf(const char *fmt, ...)
  *   N/A
  */
 void cli_write(const void * msg, int len);
-
-/**
- * Find if the last item is a help request.
- *
- * @param argc
- *   Number of args in the argv list.
- * @param argv
- *   List of strings to parser
- * @return
- *   1 if true or 0 if false
- */
-static inline int
-is_cli_help(int argc, char **argv)
-{
-	if (argc == 0)
-		return 0;
-
-	return !strcmp("-?", argv[argc - 1]) || !strcmp("?", argv[argc - 1]);
-}
 
 /**
  * CLI root directory node.
@@ -465,24 +439,6 @@ cli_usage(void)
         cli_printf("  Usage: %s\n", (p)? p : "No description found");
     }
     return -1;
-}
-
-/**
- * Print out an arrays of pointers to strings.
- *
- * @param msg
- *   Pointer to array of strings to print.
- * @return
- *   -1 just to remove code having to return error anyway.
- */
-static inline int
-cli_help_show(const char **msg)
-{
-	for( ; msg && *msg; msg++) {
-		if (strcmp(*msg, CLI_PAUSE))
-			cli_printf("%s\n", *msg);
-	}
-	return -1;
 }
 
 /**
@@ -1039,6 +995,24 @@ struct cli_node *cli_add_file(const char * name,
                               const char *short_desc);
 
 /**
+ * Add a string to the system.
+ *
+ * @note Uses thread variable this_cli.
+ *
+ * @param name
+ *   Pointer to command name string
+ * @param dir
+ *   Directory node pointer
+ * @param func
+ *   Pointer to a function attached to the string.
+ * @param str
+ *   Value of string if no function defined.
+ * @return
+ *   NULL on error or the node pointer.
+ */
+int cli_add_str(const char * name, cli_sfunc_t func, const char *str);
+
+/**
  * Add a list of nodes to a directory
  *
  * @note Uses thread variable this_cli.
@@ -1139,29 +1113,6 @@ int cli_execute_cmdfile(const char *path);
  *   0 on OK or -1 on error
  */
 int cli_execute_cmdfiles(void);
-
-/**
- * Show the help message from the user.
- *
- * @note Uses thread variable this_cli.
- *
- * @param data
- *   Pointer to the cli_info structure.
- */
-int cli_show_help(const char **data);
-
-/**
- * Find the help group section defined by the group string.
- *
- * @note Uses thread variable this_cli.
- *
- * @param group
- *   The group string name to find.
- * @return
- *   NULL if not found or pointer to struct cli_info.
- */
-struct cli_info *
-cli_find_help_group(struct cli_info **data, const char *group);
 
 /**
  * Remove a node from the directory tree

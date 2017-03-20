@@ -93,6 +93,15 @@ node_list_with_type(uint32_t flags, void **ret)
 			bin = this_cli->bins[i];
 			if (!bin)
 				continue;
+			/*
+			 * Current directory could be a bin directory skip this bin
+			 * directory as the cwd has already been searched. The cwd is
+			 * the first entry in the bins list.
+			 */
+			if ((i > 0) && (bin == get_cwd())) {
+				cli_printf("skip %s\n", bin->name);
+				continue;
+			}
 
 			TAILQ_FOREACH(n, &bin->items, next) {
 				if (n->type & flags)

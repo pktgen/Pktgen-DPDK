@@ -68,7 +68,10 @@ void pktgen_stop_transmitting(port_info_t *info);
 int pktgen_port_transmitting(int port);
 void pktgen_set_page(char *str);
 void pktgen_screen(int state);
-void pktgen_redisplay(int cls_flag);
+void pktgen_force_update(void);
+void pktgen_update_display(void);
+void pktgen_clear_display(void);
+
 int pktgen_save(char *path);
 void pktgen_cls(void);
 void pktgen_ping4(port_info_t *info);

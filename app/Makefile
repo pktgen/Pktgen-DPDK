@@ -69,9 +69,14 @@ SRCS-y := \
 MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB)
 MYLIBS := -llua -lcommon
 
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
+MYLIB_PATH += -L$(CLI_LIB)
+MYLIBS += -lcli
+else
 ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
 MYLIB_PATH += -L$(CLI_LIB)
-MYLIBS += -cli
+MYLIBS += -lcli
+endif
 endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)

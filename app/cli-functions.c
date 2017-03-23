@@ -494,7 +494,7 @@ theme_cmd(int argc, char **argv)
 
 	switch(m->index) {
 	case 0:  pktgen_theme_show(); break;
-	case 10: pktgen_theme_state(argv[1]); pktgen_redisplay(1); break;
+	case 10: pktgen_theme_state(argv[1]); pktgen_clear_display(); break;
 	case 20: pktgen_set_theme_item(argv[1], argv[2], argv[3], argv[4]); break;
 	case 30: pktgen_theme_save(argv[2]); break;
 	default: return cli_help_show("Theme");
@@ -555,7 +555,7 @@ static const char *enable_help[] = {
 };
 
 static int
-enable_disable_cmd(int argc, char **argv)
+en_dis_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	portlist_t portlist;
@@ -588,21 +588,24 @@ enable_disable_cmd(int argc, char **argv)
 					foreach_port(portlist, enable_gre(info, state) );
 					break;
 				case 4:
-					foreach_port(portlist, enable_vlan(info, state) );
+					foreach_port(portlist, enable_gre_eth(info, state));
 					break;
 				case 5:
-					foreach_port(portlist, enable_garp(info, state) );
+					foreach_port(portlist, enable_vlan(info, state) );
 					break;
 				case 6:
-					foreach_port(portlist, enable_random(info, state) );
+					foreach_port(portlist, enable_garp(info, state) );
 					break;
 				case 7:
-					foreach_port(portlist, enable_latency(info, state) );
+					foreach_port(portlist, enable_random(info, state) );
 					break;
 				case 8:
-					foreach_port(portlist, enable_pcap(info, state) );
+					foreach_port(portlist, enable_latency(info, state) );
 					break;
 				case 9:
+					foreach_port(portlist, enable_pcap(info, state) );
+					break;
+				case 10:
 					foreach_port(portlist, debug_blink(info, state));
 
 					if (pktgen.blinklist)
@@ -610,23 +613,20 @@ enable_disable_cmd(int argc, char **argv)
 					else
 						pktgen.flags &= ~BLINK_PORTS_FLAG;
 					break;
-				case 10:
+				case 11:
 					foreach_port(portlist, enable_rx_tap(info, state));
 					break;
-				case 11:
+				case 12:
 					foreach_port(portlist, enable_tx_tap(info, state));
 					break;
-				case 12:
+				case 13:
 					foreach_port(portlist, enable_icmp_echo(info, state));
 					break;
-				case 13:
+				case 14:
 					foreach_port(portlist, enable_range(info, state));
 					break;
-				case 14:
-					foreach_port(portlist, pktgen_set_capture(info, state));
-					break;
 				case 15:
-					foreach_port(portlist, enable_gre_eth(info, state));
+					foreach_port(portlist, pktgen_set_capture(info, state));
 					break;
 				default:
 					cli_printf("Invalid option %s\n", ed_type);
@@ -687,7 +687,7 @@ debug_cmd(int argc, char **argv)
 				pktgen.flags |= TX_DEBUG_FLAG;
 			else
 				pktgen.flags &= ~TX_DEBUG_FLAG;
-			pktgen_cls();
+			pktgen_clear_display();
 			break;
 		case 30:
 			rte_parse_portlist(argv[2], &portlist);
@@ -912,7 +912,7 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 }
 
 static struct cli_map misc_map[] = {
-	{ 10, "clear %P" },
+	{ 10, "clear_stats %P" },
 	{ 20, "geometry %s" },
 	{ 21, "geometry" },
 	{ 30, "load %s" },
@@ -937,7 +937,7 @@ static const char *misc_help[] = {
 	"script <filename>                  - Execute the Lua script code in file (www.lua.org).",
 	"lua 'lua string'                   - Execute the Lua code in the string needs quotes",
 	"geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
-	"clear <portlist>                   - Clear the statistics",
+	"clear_stats <portlist>             - Clear the statistics",
 	"clr                                - Clear all Statistices",
 	"reset <portlist>                   - Reset the configuration the ports to the default",
 	"rst                                - Reset the configuration for all ports",
@@ -969,6 +969,7 @@ misc_cmd(int argc, char **argv)
 			rte_parse_portlist(argv[1], &portlist);
 			foreach_port(portlist,
 				     pktgen_clear_stats(info) );
+			pktgen_clear_display();
 			break;
 		case 20:
 			p = strchr(argv[1], 'x');
@@ -977,7 +978,7 @@ misc_cmd(int argc, char **argv)
 				cols = strtol(argv[1], NULL, 10);
 
 				pktgen_display_set_geometry(rows, cols);
-				pktgen_redisplay(1);
+				pktgen_clear_display();
 			} else
 				return -1;
 			/* FALLTHRU */
@@ -988,12 +989,12 @@ misc_cmd(int argc, char **argv)
 			if (cli_execute_cmdfile(argv[1]) )
 				cli_printf("load command failed for %s\n", argv[1]);
 			if (!scrn_is_paused() )
-				pktgen_redisplay(0);
+				pktgen_force_update();
 			break;
 		case 40: script_cmd(argc, argv); break;
 		case 50: exec_lua_cmd(argc, argv); break;
 		case 60: pktgen_save(argv[1]); break;
-		case 70: pktgen_redisplay(1); break;
+		case 70: pktgen_clear_display(); break;
 		case 100:
 			rte_parse_portlist(argv[1], &portlist);
 			foreach_port(portlist,
@@ -1009,7 +1010,7 @@ misc_cmd(int argc, char **argv)
 		case 140:
 			rte_parse_portlist(argv[1], &portlist);
 			foreach_port(portlist, pktgen_ping4(info));
-			pktgen_update_display();
+			pktgen_force_update();
 			break;
 #ifdef INCLUDE_PING6
 		case 141:
@@ -1078,7 +1079,8 @@ static struct cli_tree default_tree[] = {
 	c_dir("/pktgen/bin"),
 	c_cmd("help",		help_cmd, 		"help command"),
 
-	c_cmd("clear",		misc_cmd,		"clear stats"),
+	c_cmd("clear.stats",misc_cmd,		"clear stats"),
+	c_alias("clr",		"clear.stats all",	"clear all port stats"),
 	c_cmd("geometry",	misc_cmd, 		"set the screen geometry"),
 	c_alias("geom",		"geometry",		"set or show screen geometry"),
 	c_cmd("load",		misc_cmd, 		"load command file"),
@@ -1086,7 +1088,9 @@ static struct cli_tree default_tree[] = {
 	c_cmd("lua", 		misc_cmd,		"execute a Lua string"),
 	c_cmd("save", 		misc_cmd,		"save the current state"),
 	c_cmd("redisplay",	misc_cmd,		"redisplay the screen"),
+	c_alias("cls",		"redisplay",	"redraw screen"),
 	c_cmd("reset",		misc_cmd,		"reset pktgen configuration"),
+	c_alias("rst",      "reset all",    "reset all ports"),
 	c_cmd("restart", 	misc_cmd,		"restart port"),
 	c_cmd("port", 		misc_cmd, 		"Switch between ports"),
 	c_cmd("ping4", 		misc_cmd, 		"Send a ping packet for IPv4"),
@@ -1100,21 +1104,18 @@ static struct cli_tree default_tree[] = {
 	c_cmd("page",		page_cmd,		"change page displays"),
 	c_cmd("theme", 		theme_cmd,		"Set, save, show the theme"),
 	c_cmd("range",		range_cmd,		"Range commands"),
-	c_cmd("enable",		enable_disable_cmd,	"enable features"),
-	c_cmd("disable",	enable_disable_cmd,	"disable features"),
+	c_cmd("enable",		en_dis_cmd,		"enable features"),
+	c_cmd("disable",	en_dis_cmd,		"disable features"),
 	c_cmd("start",		start_stop_cmd,	"start features"),
 	c_cmd("stop",		start_stop_cmd,	"stop features"),
+	c_alias("str",		"start all",	"start all ports sending packets"),
+	c_alias("stp",		"stop all",		"stop all ports sending packets"),
 	c_cmd("pcap",		pcap_cmd, 		"pcap commands"),
 	c_cmd("set", 		set_cmd, 		"set a number of options"),
 	c_cmd("debug",      debug_cmd,		"debug commands"),
 
-	c_alias("cls",		"redisplay",	"clear and redraw screen"),
-	c_alias("str",		"start all",	"start all ports sending packets"),
-	c_alias("stp",		"stop all",		"stop all ports sending packets"),
-	c_alias("clr",		"clear all",	"clear all port stats"),
 	c_alias("on",       "enable screen","Enable screen updates"),
 	c_alias("off",      "disable screen", "Disable screen updates"),
-	c_alias("rst",      "reset all",    "reset all ports"),
 
 	c_end()
 };
@@ -1204,7 +1205,7 @@ help_cmd(int argc __rte_unused, char **argv __rte_unused)
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);
 		scrn_resume();
-		pktgen_redisplay(1);
+		pktgen_clear_display();
 	}
 	return 0;
 }

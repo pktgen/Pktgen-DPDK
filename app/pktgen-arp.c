@@ -148,7 +148,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 							     rte_lcore_id(),
 							     pid),
 						   DO_TX_FLUSH);
-				pktgen_redisplay(0);
+				pktgen_clear_display();
 			}
 			return;
 		}

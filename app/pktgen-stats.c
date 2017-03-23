@@ -321,9 +321,9 @@ pktgen_page_stats(void)
 		row = LINK_STATE_ROW;
 
 		/* Grab the link state of the port and display Duplex/Speed and UP/Down */
-		pktgen_get_link_status(info, pid, 0);
+		pktgen_get_link_status(info, pid + sp, 0);
 
-		pktgen_link_state(pid, buff, sizeof(buff));
+		pktgen_link_state(pid + sp, buff, sizeof(buff));
 		pktgen_display_set_color("stats.port.status");
 		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
@@ -522,8 +522,8 @@ pktgen_page_phys_stats(void)
 
     row = 3;
     col = 1;
-    pktgen_display_set_color("stats.port.label");
-    scrn_printf(row++, col, "Port Name");
+	pktgen_display_set_color("stats.port.status");
+	scrn_printf(row++, col, "Port Name");
     pktgen_display_set_color("stats.stat.label");
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
         snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
@@ -540,7 +540,7 @@ pktgen_page_phys_stats(void)
 
     row = 3;
     col = COLUMN_WIDTH_0 - 3;
-    pktgen_display_set_color("stats.port.label");
+	pktgen_display_set_color("stats.port.status");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
     pktgen_display_set_color("stats.stat.values");
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
@@ -555,7 +555,7 @@ pktgen_page_phys_stats(void)
 
     row = 3;
     col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 3;
-    pktgen_display_set_color("stats.port.label");
+	pktgen_display_set_color("stats.port.status");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
     pktgen_display_set_color("stats.stat.values");
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
@@ -569,7 +569,7 @@ pktgen_page_phys_stats(void)
 
     row = 3;
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
-    pktgen_display_set_color("stats.port.label");
+	pktgen_display_set_color("stats.port.status");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
     pktgen_display_set_color("stats.stat.values");
 
@@ -584,9 +584,9 @@ pktgen_page_phys_stats(void)
     }
     row = 3;
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
-    pktgen_display_set_color("stats.port.label");
+	pktgen_display_set_color("stats.port.status");
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
-    pktgen_display_set_color("stats.stat.values");
+    pktgen_display_set_color(NULL);
     for (pid = 0; pid < pktgen.nb_ports; pid++) {
 
         rte_eth_macaddr_get(pid, &ethaddr);
@@ -596,5 +596,6 @@ pktgen_page_phys_stats(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     }
 
+    pktgen_display_set_color(NULL);
     scrn_eol();
 }

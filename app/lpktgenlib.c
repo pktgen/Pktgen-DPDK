@@ -1178,7 +1178,8 @@ pktgen_clear(lua_State *L)
 	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-	             pktgen_clear_stats(info) );
+         pktgen_clear_stats(info) );
+	pktgen_update_display();
 
 	return 0;
 }
@@ -1199,6 +1200,7 @@ static int
 pktgen_clear_all(lua_State *L __rte_unused)
 {
 	forall_ports(pktgen_clear_stats(info) );
+    pktgen_update_display();
 
 	return 0;
 }
@@ -1218,7 +1220,7 @@ pktgen_clear_all(lua_State *L __rte_unused)
 static int
 pktgen_cls_screen(lua_State *L __rte_unused)
 {
-	pktgen_cls();
+	pktgen_clear_display();
 
 	return 0;
 }
@@ -1238,7 +1240,7 @@ pktgen_cls_screen(lua_State *L __rte_unused)
 static int
 pktgen_update_screen(lua_State *L __rte_unused)
 {
-	pktgen_update();
+	pktgen_update_display();
 
 	return 0;
 }

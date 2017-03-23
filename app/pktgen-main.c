@@ -399,7 +399,7 @@ main(int argc, char **argv)
 
 	scrn_resume();
 
-	pktgen_redisplay(1);
+	pktgen_clear_display();
 
 	rte_timer_setup();
 

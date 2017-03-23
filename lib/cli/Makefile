@@ -30,7 +30,6 @@ LIB = libcli.a
 CFLAGS += -O3 -D_GNU_SOURCE $(WERROR_FLAGS) -I$(SRCDIR)
 CFLAGS += -DRTE_CLI_HOST_COMMANDS
 CFLAGS += -DRTE_CLI_INCLUDE_LUA
-#CFLAGS += -DRTE_LIBRTE_CLI_DEBUG
 CFLAGS += -I$(RTE_SRCDIR)/../lua/src
 
 
@@ -42,6 +41,7 @@ SRCS-y +=  cli_gapbuf.c
 SRCS-y +=  cli_file.c
 SRCS-y +=  cli_env.c
 SRCS-y +=  cli_auto_complete.c
+SRCS-y +=  cli_help.c
 SRCS-y +=  cli_history.c
 SRCS-y +=  cli_search.c
 SRCS-y +=  cli_cmap.c
@@ -52,11 +52,13 @@ SRCS-y +=  cli_string_fns.c
 
 # install includes
 SYMLINK-y-include += cli.h
+SYMLINK-y-include += cli_common.h
 SYMLINK-y-include += cli_map.h
 SYMLINK-y-include += cli_gapbuf.h
 SYMLINK-y-include += cli_file.h
 SYMLINK-y-include += cli_env.h
 SYMLINK-y-include += cli_search.h
+SYMLINK-y-include += cli_help.h
 SYMLINK-y-include += cli_history.h
 SYMLINK-y-include += cli_vt100.h
 SYMLINK-y-include += cli_vt100_keys.h

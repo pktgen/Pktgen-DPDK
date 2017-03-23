@@ -982,39 +982,7 @@ pktgen_flags_string(port_info_t *info)
 
 /**************************************************************************//**
  *
- * pktgen_redisplay - Redisplay the screen or clear the screen.
- *
- * DESCRIPTION
- * Redisplay the screen or clear the screen based on flag.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_redisplay(int cls_flag)
-{
-	if (scrn_is_paused() )
-		return;
-
-	scrn_pause();
-	if (cls_flag) {
-		scrn_cls();
-		scrn_pos(100, 1);
-	}
-	pktgen.flags |= PRINT_LABELS_FLAG;
-	scrn_resume();
-
-	pktgen_page_display(NULL, NULL);
-}
-
-/**************************************************************************//**
- *
- * pktgen_update_display - Update the display, but do not clear screen.
- *
- * DESCRIPTION
- * Update the display, but do not clear the screen.
+ * pktgen_update_display - Update the display data and static data.
  *
  * RETURNS: N/A
  *
@@ -1026,6 +994,53 @@ pktgen_update_display(void)
 {
 	pktgen.flags |= PRINT_LABELS_FLAG;
 	pktgen.flags |= UPDATE_DISPLAY_FLAG;
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_clear_display - clear the screen.
+ *
+ * DESCRIPTION
+ * clear the screen and redisplay data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_clear_display(void)
+{
+	if (!scrn_is_paused()) {
+		scrn_pause();
+
+		scrn_cls();
+		scrn_pos(100, 1);
+
+		pktgen_update_display();
+
+		scrn_resume();
+
+		pktgen_page_display(NULL, NULL);
+	}
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_force_update - Force the screen to update data and static data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_force_update(void)
+{
+	pktgen.flags |= UPDATE_DISPLAY_FLAG;
+
+	if (!scrn_is_paused())
+		pktgen_page_display(NULL, NULL);
 }
 
 /**************************************************************************//**
@@ -1051,7 +1066,7 @@ pktgen_set_page_size(uint32_t page_size)
 		    (pktgen.starting_port + pktgen.nb_ports) )
 			pktgen.ending_port =
 				(pktgen.starting_port + pktgen.nb_ports);
-		pktgen_redisplay(1);
+		pktgen_clear_display();
 	}
 }
 
@@ -1086,7 +1101,7 @@ pktgen_screen(int state)
 		scrn_pos(100, 1);
 		scrn_setw(pktgen.last_row + 1);
 		scrn_resume();
-		pktgen_redisplay(1);
+		pktgen_force_update();
 	}
 }
 
@@ -1107,7 +1122,7 @@ pktgen_set_port_number(uint32_t port_number)
 {
 	if (port_number <= pktgen.nb_ports) {
 		pktgen.portNum = port_number;
-		pktgen_redisplay(1);
+		pktgen_clear_display();
 	}
 }
 
@@ -1912,48 +1927,6 @@ pktgen_clear_stats(port_info_t *info)
 	info->max_missed            = 0;
 
 	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
-
-	pktgen_update_display();
-}
-
-/**************************************************************************//**
- *
- * pktgen_cls - Clear the screen.
- *
- * DESCRIPTION
- * Clear the screen and redisplay the data.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_cls(void)
-{
-	if (scrn_is_paused() ) {
-		scrn_cls();
-		scrn_pos(100, 1);
-	} else	/* Update the display quickly. */
-		pktgen_redisplay(1);
-}
-
-/**************************************************************************//**
- *
- * pktgen_update - Update the screen information
- *
- * DESCRIPTION
- * Update the screen information
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_update(void)
-{
-	pktgen_page_display(NULL, NULL);
 }
 
 /**************************************************************************//**
@@ -2955,7 +2928,7 @@ pktgen_set_page(char *str)
 			pktgen.flags |= PRINT_LABELS_FLAG;
 		}
 	}
-	pktgen_redisplay(1);
+	pktgen_clear_display();
 }
 
 /**************************************************************************//**

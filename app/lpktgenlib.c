@@ -253,7 +253,7 @@ pktgen_set(lua_State *L) {
 			     else if (!strcasecmp(what, "size"))
 				     single_set_pkt_size(info, value);
 			     else if (!strcasecmp(what, "rate"))
-				     single_set_tx_rate(info, value);
+				     single_set_tx_rate(info, luaL_checkstring(L, 3));
 			     else if (!strcasecmp(what, "burst"))
 				     single_set_tx_burst(info, value);
 			     else if (!strcasecmp(what, "cycles"))
@@ -1771,7 +1771,7 @@ range_qinqids(lua_State *L)
 		qinq_id2 = 1;
 
 	foreach_port(portlist,
-		     range_set_qinqids(info, qinq_id1, qinq_id2) );
+		     single_set_qinqids(info, qinq_id1, qinq_id2) );
 
 	pktgen_update_display();
 	return 0;

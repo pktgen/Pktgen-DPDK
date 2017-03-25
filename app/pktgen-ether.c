@@ -73,7 +73,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 			sizeof(struct vlan_hdr);
 
 		return (char *)(vlan_hdr + 1);
-	} else if (rte_atomic32_read(&info->port_flags) & SEND_MPLS_LABEL) {
+	} else if (flags & SEND_MPLS_LABEL) {
 		/* MPLS unicast ethernet header */
 		eth->ether_type = htons(ETHER_TYPE_MPLS_UNICAST);
 
@@ -91,7 +91,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct ether_hdr *eth)
 			sizeof(mplsHdr_t);
 
 		return (char *)(mpls_hdr + 1);
-	} else if (rte_atomic32_read(&info->port_flags) & SEND_Q_IN_Q_IDS) {
+	} else if (flags & SEND_Q_IN_Q_IDS) {
 		/* Q-in-Q ethernet header */
 		eth->ether_type = htons(ETHER_TYPE_Q_IN_Q);
 

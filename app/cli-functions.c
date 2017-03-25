@@ -224,6 +224,8 @@ static struct cli_map set_map[] = {
 	{ 24, "set %P user pattern %s" },
 	{ 30, "set %P ip %|src|dst %4" },
 	{ 40, "set ports_per_page %d" },
+	{ 50, "set %P qinqids %d %d" },
+	{ 60, "set %P rnd %d %d %s" },
     { -1, NULL }
 };
 
@@ -243,19 +245,20 @@ static const char *set_help[] = {
 	"                 jitter            - Set the jitter threshold in micro-seconds",
 	"                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)",
 	"                 gre_key           - Set the GRE key",
-	"                 mac dst <etheraddr> - Set MAC addresses 00:11:22:33:44:55",
+	"                 mac dst|src <etheraddr> - Set MAC addresses 00:11:22:33:44:55",
 	"                                     You can use 0011:2233:4455 format as well",
-	"set <portlist> ip src|dst ipaddr   - Set IP addresses",
-	"set <portlist> vlanid <vlanid>     - Set the VLAN ID for the portlist, same as 'set 0 vlanid 5'",
-	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
-	"set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port",
+	"set <portlist> jitter <value>      - Set the jitter value",
 	"set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
+	"set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port",
 	"set <portlist> pattern <type>      - Set the fill pattern type",
 	"     type - abc                    - Default pattern of abc string",
 	"            none                   - No fill pattern, maybe random data",
 	"            zero                   - Fill of zero bytes",
 	"            user                   - User supplied string of max 16 bytes",
 	"set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command",
+	"set <portlist> ip src|dst ipaddr   - Set IP addresses",
+	"set ports_per_page <value>         - Set ports per page value 1 - 6",
+	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
 	"set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist",
 	"                                     idx: random mask slot",
 	"                                     off: offset in packets, where to apply mask",
@@ -276,6 +279,7 @@ set_cmd(int argc, char **argv)
 	int value, n;
 	struct cli_map *m;
 	struct pg_ipaddr ip;
+	uint16_t id1, id2;
 
 	m = cli_mapping(set_map, argc, argv);
 	if (!m)
@@ -293,7 +297,7 @@ set_cmd(int argc, char **argv)
 				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
 					case 1: single_set_pkt_size(info, value); break;
-					case 2: single_set_tx_rate(info, value); break;
+					case 2: single_set_tx_rate(info, argv[3]); break;
 					case 3: single_set_tx_burst(info, value); break;
 					case 4: debug_set_tx_cycles(info, value); break;
 					case 5: single_set_port_value(info, what[0], value); break;
@@ -337,6 +341,11 @@ set_cmd(int argc, char **argv)
 			break;
 		case 40:
 			pktgen_set_page_size(atoi(argv[2]));
+			break;
+		case 50:
+			id1 = strtol(argv[3], NULL, 0);
+			id2 = strtol(argv[4], NULL, 0);
+			foreach_port(portlist, single_set_qinqids(info, id1, id2));
 			break;
 		default:
 			return -1;

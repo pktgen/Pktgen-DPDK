@@ -163,8 +163,7 @@ typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 typedef struct port_info_s {
 	uint16_t pid;		/**< Port ID value */
 	uint16_t tx_burst;	/**< Number of TX burst packets */
-	uint8_t pad0;
-	uint8_t tx_rate;		/**< Percentage rate for tx packets */
+	double tx_rate;		/**< Percentage rate for tx packets with fractions */
 	rte_atomic32_t port_flags;	/**< Special send flags for ARP and other */
 
 	rte_atomic64_t transmit_count;	/**< Packets to transmit loaded into current_tx_count */
@@ -184,8 +183,6 @@ typedef struct port_info_s {
 	range_info_t range;		/**< Range Information */
 
 	uint32_t mpls_entry;	/**< Set the port MPLS entry */
-	uint16_t qinq_outerid;	/**< Set the port outer VLAN ID value for Q-in-Q */
-	uint16_t qinq_innerid;	/**< Set the port inner VLAN ID value for Q-in-Q */
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */

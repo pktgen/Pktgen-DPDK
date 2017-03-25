@@ -170,8 +170,8 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		               inet_ntop4(buff, sizeof(buff),
-					  htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
+					inet_ntop4(buff, sizeof(buff),
+					htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_ntop4(buff, sizeof(buff),
 		                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));

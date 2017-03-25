@@ -171,7 +171,7 @@ pktgen_script_save(char *path)
 				 rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "#\n");
 		flags = rte_atomic32_read(&info->port_flags);
-		fprintf(fd, "# Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
+		fprintf(fd, "# Port: %2d, Burst:%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
 			info->pid, info->tx_burst, info->tx_rate, flags, buff);
 		fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ",
 			info->seqCnt, info->prime_cnt, info->vlanid);
@@ -182,7 +182,7 @@ pktgen_script_save(char *path)
 		fprintf(fd, "set %d count %ld\n", info->pid,
 			rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "set %d size %d\n", info->pid, pkt->pktSize + FCS_SIZE);
-		fprintf(fd, "set %d rate %d\n", info->pid, info->tx_rate);
+		fprintf(fd, "set %d rate %g\n", info->pid, info->tx_rate);
 		fprintf(fd, "set %d burst %d\n", info->pid, info->tx_burst);
 		fprintf(fd, "set %d sport %d\n", info->pid, pkt->sport);
 		fprintf(fd, "set %d dport %d\n", info->pid, pkt->dport);
@@ -495,7 +495,7 @@ pktgen_lua_save(char *path)
 				 rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "-- \n");
 		flags = rte_atomic32_read(&info->port_flags);
-		fprintf(fd, "-- Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
+		fprintf(fd, "-- Port: %2d, Burst:%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
 			info->pid, info->tx_burst, info->tx_rate, flags, buff);
 		fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ",
 			info->seqCnt, info->prime_cnt, info->vlanid);
@@ -506,7 +506,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.set('%d', 'count', %ld);\n", info->pid,
 			rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "pktgen.set('%d', 'size', %d);\n", info->pid, pkt->pktSize + FCS_SIZE);
-		fprintf(fd, "pktgen.set('%d', 'rate', %d);\n", info->pid, info->tx_rate);
+		fprintf(fd, "pktgen.set('%d', 'rate', %g);\n", info->pid, info->tx_rate);
 		fprintf(fd, "pktgen.set('%d', 'burst', %d);\n", info->pid, info->tx_burst);
 		fprintf(fd, "pktgen.set('%d', 'sport', %d);\n", info->pid, pkt->sport);
 		fprintf(fd, "pktgen.set('%d', 'dport', %d);\n", info->pid, pkt->dport);
@@ -863,9 +863,9 @@ pktgen_transmit_count_rate(int port, char *buff, int len)
 	port_info_t *info = &pktgen.info[port];
 
 	if (rte_atomic64_read(&info->transmit_count) == 0)
-		snprintf(buff, len, "Forever /%4d%%", info->tx_rate);
+		snprintf(buff, len, "Forever /%g%%", info->tx_rate);
 	else
-		snprintf(buff, len, "%ld /%4d%%",
+		snprintf(buff, len, "%ld /%g%%",
 			 rte_atomic64_read(&info->transmit_count),
 			 info->tx_rate);
 
@@ -1778,7 +1778,7 @@ range_set_mpls_entry(port_info_t *info, uint32_t mpls_entry)
 
 /**************************************************************************//**
  *
- * siongle_set_qinq - Set the port to send a Q-in-Q header
+ * enable_qinq - Set the port to send a Q-in-Q header
  *
  * DESCRIPTION
  * Set the given port list to send Q-in-Q ID packets.
@@ -1802,6 +1802,27 @@ enable_qinq(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
+ * single_set_qinqids - Set the port Q-in-Q ID values
+ *
+ * DESCRIPTION
+ * Set the given port list with the given Q-in-Q ID's.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
+{
+	info->seq_pkt[SINGLE_PKT].qinq_outerid = outerid;
+	info->seq_pkt[SINGLE_PKT].qinq_innerid = innerid;
+
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
  * range_set_qinqids - Set the port Q-in-Q ID values
  *
  * DESCRIPTION
@@ -1815,11 +1836,10 @@ enable_qinq(port_info_t *info, uint32_t onOff)
 void
 range_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
 {
-	info->qinq_outerid = outerid;
-	info->seq_pkt[SINGLE_PKT].qinq_outerid = info->qinq_outerid;
-	info->qinq_innerid = innerid;
-	info->seq_pkt[SINGLE_PKT].qinq_innerid = info->qinq_innerid;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	info->seq_pkt[RANGE_PKT].qinq_outerid = outerid;
+	info->seq_pkt[RANGE_PKT].qinq_innerid = innerid;
+
+	pktgen_packet_ctor(info, RANGE_PKT, -1);
 }
 
 /**************************************************************************//**
@@ -2357,13 +2377,16 @@ single_set_port_value(port_info_t *info, char type, uint32_t portValue)
  */
 
 void
-single_set_tx_rate(port_info_t *info, uint32_t rate)
+single_set_tx_rate(port_info_t *info, const char *r)
 {
+	double rate = strtod(r, NULL);
+
 	if (rate == 0)
-		rate = 1;
-	else if (rate > 100)
-		rate = 100;
+		rate = 0.01;
+	else if (rate > 100.00)
+		rate = 100.00;
 	info->tx_rate = rate;
+
 	pktgen_packet_rate(info);
 }
 

@@ -337,8 +337,7 @@ pktgen_print_range(void)
 
 		row++;
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		        (range->ip_proto ==
-PG_IPPROTO_TCP) ? "TCP" : "UDP");
+		        (range->ip_proto == PG_IPPROTO_TCP) ? "TCP" : "UDP");
 
 		row++;
 		snprintf(str,

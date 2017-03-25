@@ -3722,7 +3722,7 @@ cmd_qinqids_parsed(void *parsed_result,
 	struct cmd_qinqids_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     range_set_qinqids(info, res->outerid, res->innerid) );
+		     single_set_qinqids(info, res->outerid, res->innerid) );
 
 	pktgen_update_display();
 }

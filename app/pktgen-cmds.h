@@ -101,10 +101,13 @@ void single_set_pkt_type(port_info_t *info, const char *type);
 void single_set_tx_count(port_info_t *info, uint32_t cnt);
 void single_set_tx_burst(port_info_t *info, uint32_t burst);
 void single_set_pkt_size(port_info_t *info, uint32_t size);
-void single_set_tx_rate(port_info_t *info, uint32_t rate);
+void single_set_tx_rate(port_info_t *info, const char *rate);
 void single_set_jitter(port_info_t *info, uint64_t threshold);
 void single_set_port_value(port_info_t *info,
 				  char type, uint32_t portValue);
+void single_set_qinqids(port_info_t *info,
+			       uint16_t outerid,
+			       uint16_t innerid);
 
 /* Debug */
 void debug_dump(port_info_t *info, char *str);

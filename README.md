@@ -6,6 +6,9 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.2.0   - Add support for decimal point rate values, like 10.1, 20.54, 90.6, ...
+             Convert over to use CLI interface instead of cmdline interface.
+             Many bug fixes.
  - 3.1.2   - Convert spaces to tabs and add pktgen-cfg.[ch] page
              Converting the spaces to tabs to allow for editing the code with tabs
              set to 4 or 8 columns per tab. Changed to allow people who are stuck

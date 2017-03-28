@@ -558,6 +558,7 @@ cli_execute(void)
 		cli_printf("** unknown type (%s)\n", cli->argv[0]);
 		break;
 	}
+	cli_history_reset();
 	return ret;
 }
 

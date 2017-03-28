@@ -82,7 +82,7 @@ struct cli_hist *cli_hist_alloc(void);
 void cli_hist_free(struct cli_hist *hist);
 
 /**
-* Add the default set of directories and commands
+* Add line to history at the end
 *
 * @note Uses the thread variable this_cli
 *
@@ -166,6 +166,13 @@ char *cli_history_prev(void);
 *   pointer to the next history line wrap if needed
 */
 char * cli_history_next(void);
+
+/**
+* Reset the current history pointer to the last entry.
+*
+* @note Uses the thread variable this_cli
+*/
+void cli_history_reset(void);
 
 /**
 * Add the default set of directories and commands

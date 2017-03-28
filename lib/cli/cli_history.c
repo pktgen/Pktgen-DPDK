@@ -74,7 +74,7 @@ cli_history_add(char *line)
 	if (!cli || !cli->hist_mem || !line)
 		return;
 
-	/* Do not all duplicate lines compared to the last line */
+	/* Do not allow duplicate lines compared to the last line */
 	if (!CIRCLEQ_EMPTY(&cli->hd_hist)) {
 		h = CIRCLEQ_LAST(&cli->hd_hist);
 		if (strcmp(h->line, line) == 0)
@@ -237,6 +237,12 @@ cli_set_history(uint32_t nb_hist)
 	}
 
 	return -1;
+}
+
+void
+cli_history_reset(void)
+{
+	this_cli->curr_hist = CIRCLEQ_LAST(&this_cli->hd_hist);
 }
 
 void

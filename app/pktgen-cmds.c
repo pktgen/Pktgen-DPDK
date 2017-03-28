@@ -1098,9 +1098,9 @@ pktgen_screen(int state)
 		}
 	} else {
 		scrn_cls();
-		scrn_pos(100, 1);
 		scrn_setw(pktgen.last_row + 1);
 		scrn_resume();
+		scrn_pos(100, 1);
 		pktgen_force_update();
 	}
 }

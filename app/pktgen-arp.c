@@ -144,10 +144,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 			if (pkt) {
 				rte_memcpy(&pkt->eth_dst_addr, &arp->sha, 6);
 				pktgen_set_q_flags(info,
-						   get_txque(pktgen.l2p,
-							     rte_lcore_id(),
-							     pid),
-						   DO_TX_FLUSH);
+					get_txque(pktgen.l2p, rte_lcore_id(), pid), DO_TX_FLUSH);
 				pktgen_clear_display();
 			}
 			return;

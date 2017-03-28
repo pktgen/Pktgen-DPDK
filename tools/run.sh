@@ -61,7 +61,7 @@ cmd=./app/app/${target}/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-dpdk_opts="-l 1,2-9,18-19 -n 4 --proc-type auto --log-level 7 --socket-mem 10240,2048 --file-prefix pg"
+dpdk_opts="-l 1,2-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 --file-prefix pg"
 #dpdk_opts="-l 1,2-5 -n 4 --proc-type auto --log-level 8 --socket-mem 2048,2048 --file-prefix pg"
 #dpdk_opts="-l 1-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 2048,2048 --file-prefix pg"
 #dpdk_opts="-l 1-3 -n 4 --proc-type auto --log-level 8 --socket-mem 512 --file-prefix pg"

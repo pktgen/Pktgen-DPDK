@@ -457,7 +457,11 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 	/* Flush any queued pkts to the driver. */
 	pktgen_send_burst(info, qid);
 
-	rte_delay_ms(2);
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
+	rte_delay_ms(250);
+
+	rte_eth_tx_done_cleanup(info->pid, qid, 0);
+#endif
 
 	pktgen_clr_q_flags(info, qid, DO_TX_FLUSH);
 }

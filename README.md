@@ -8,6 +8,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 **=== Modifications ===**
  - 3.2.0   - Add support for decimal point rate values, like 10.1, 20.54, 90.6, ...
              Convert over to use CLI interface instead of cmdline interface.
+             CLI is a directory like command line tool and please read the .rst file in the lib/cli directory
              Many bug fixes.
  - 3.1.2   - Convert spaces to tabs and add pktgen-cfg.[ch] page
              Converting the spaces to tabs to allow for editing the code with tabs
@@ -1059,7 +1060,7 @@ Dst  IP Address :        192.168.1.1        192.168.0.1
 Src  IP Address :     192.168.0.1/24     192.168.1.1/24
 Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
 Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:2.9.x(DPDK-2.X.0) -------------------------------------------------------------------------------------
+-- Pktgen Ver:3.2.x(DPDK-17.02) -------------------------------------------------------------------------------------
 
 
 
@@ -1080,57 +1081,12 @@ $
 ```
 ------------------------------------------------------------------------
 ```
-   *** Help Information for Pktgen ***         Copyright (c) <2010-2016>, Intel Corporation.
-
-set <portlist> <xxx> value         - Set a few port values
-  <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'
-  <xxx>          count             - number of packets to transmit
-                 size              - size of the packet to transmit
-                 rate              - Packet rate in percentage
-                 burst             - number of packets in a burst
-                 sport             - Source port number for TCP
-                 dport             - Destination port number for TCP
-                 prime             - Set the number of packets to send on prime command
-                 seqCnt            - Set the number of packet in the sequence to send
-                 dump              - Dump the next <value> received packets to the screen
-seq <seq#> <portlist> dst-Mac src-Mac dst-IP src-IP sport dport ipv4|ipv6 udp|tcp|icmp vid pktsize
-                                   - Set the sequence packet information, make sure the src-IP
-                                     has the netmask value eg 1.2.3.4/24
-save <path-to-file>                - Save a configuration file using the filename
-load <path-to-file>                - Load a command/script file from the given path
-ppp [1-6]                          - Set the number of ports displayed per page
-icmp.echo <portlist> <state>       - Enable/disable ICMP echo responses per port
-send arp req|grat <portlist>       - Send a ARP request or gratuitous ARP on a set of ports
-set mac <portlist> etheraddr       - Set MAC addresses 00:11:22:33:44:55
-                                     You can use 0011:2233:4455 format as well
-mac_from_arp <state>               - Set the option to get MAC from ARP request
-proto udp|tcp|icmp <portlist>      - Set the packet protocol to UDP or TCP or ICMP per port
-type ipv4|ipv6|vlan <portlist>     - Set the packet type to IPv4 or IPv6 or VLAN
-set ip src|dst <portlist> ipaddr   - Set IP addresses
-geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)
-capture <portlist> <state>         - Enable/disable packet capturing on a portlist
-rxtap <portlist> <state>           - Enable/disable Rx tap interface support pg_rxtapN
-txtap <portlist> <state>           - Enable/disable Tx tap interface support pg_txtapN
-vlan <portlist> <state>            - Enable/disable sending VLAN ID in packets
-vlanid <portlist> <vlanid>         - Set the VLAN ID for the portlist
-mpls <portlist> <state>            - Enable/disable sending MPLS entry in packets
-mpls_entry <portlist> <entry>      - Set the MPLS entry for the portlist (must be specified in hex)
-qinq <portlist> <state>            - Enable/disable sending Q-in-Q header in packets
-qinqids <portlist> <id1> <id2>     - Set the Q-in-Q ID's for the portlist
-gre <portlist> <state>             - Enable/disable GRE with IPv4 payload
-gre_eth <portlist> <state>         - Enable/disable GRE with Ethernet frame payload
-gre_key <portlist> <state>         - Set the GRE key
-pcap <portlist> <state>            - Enable or Disable sending pcap packets on a portlist
-pcap.show                          - Show the PCAP information
-pcap.index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file
-pcap.filter <portlist> <string>    - PCAP filter string to filter packets on receive
-script <filename>                  - Execute the Lua script code in file (www.lua.org).
-ping4 <portlist>                   - Send a IPv4 ICMP echo request on the given portlist
-page [0-7]|main|range|config|seq|pcap|next|cpu|rnd- Show the port pages or configuration or sequence page
+   *** Pktgen Help information ***
+page <pages>                       - Show the port pages or configuration or sequence page
      [0-7]                         - Page of different ports
      main                          - Display page zero
      range                         - Display the range packet page
-     config                        - Display the configuration page (not used)
+     config | cfg                  - Display the configuration page
      pcap                          - Display the pcap page
      cpu                           - Display some information about the CPU system
      next                          - Display next page of PCAP packets.
@@ -1139,11 +1095,62 @@ page [0-7]|main|range|config|seq|pcap|next|cpu|rnd- Show the port pages or confi
      rnd                           - Display the random bitfields to packets for a given port
                                      Note: use the 'port <number>' to display a new port sequence
      log                           - Display the log messages page
-port <number>                      - Sets the sequence of packets to display for a given port
-process <portlist> <state>         - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
-garp <portlist> <state>            - Enable or Disable GARP packet processing and update MAC address
-blink <portlist> <state>           - Blink the link led on the given port list
-rnd <portlist> <idx> <off> <mask>  - Set random mask for all transmitted packets from portlist
+     latency                       - Display the latency page
+     stats                         - Display physical ports stats for all ports
+
+enable|disable <portlist> <features>   
+    Feature - process              - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
+              mpls                 - Enable/disable sending MPLS entry in packets
+              qinq                 - Enable/disable sending Q-in-Q header in packets
+              gre                  - Enable/disable GRE support
+              gre_eth              - Enable/disable GRE with Ethernet frame payload
+              vlan                 - Enable/disable VLAN tagging
+              garp                 - Enable or Disable GARP packet processing and update MAC address
+              random               - Enable/disable Random packet support
+              latency              - Enable/disable latency testing
+              pcap                 - Enable or Disable sending pcap packets on a portlist
+              blink                - Blink LED on port(s)
+              rx_tap               - Enable/Disable RX Tap support
+              tx_tap               - Enable/Disable TX Tap support
+              icmp                 - Enable/Disable sending ICMP packets
+              range                - Enable or Disable the given portlist for sending a range of packets
+              capture              - Enable/disable packet capturing on a portlist
+
+enable|disable screen              - Enable/disable updating the screen and unlock/lock window
+               mac_from_arp        - Enable/disable MAC address from ARP packet
+off                                - screen off shortcut
+on                                 - screen on shortcut
+
+set <portlist> <type> value        - Set a few port values
+  <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'
+  <type>         count             - number of packets to transmit
+                 size              - size of the packet to transmit
+                 rate              - Packet rate in percentage
+                 burst             - number of packets in a burst
+                 sport             - Source port number for TCP
+                 dport             - Destination port number for TCP
+                 prime             - Set the number of packets to send on prime command
+                 seq_cnt           - Set the number of packet in the sequence to send
+                 dump              - Dump the next <value> received packets to the screen
+                 vlanid            - Set the VLAN ID value for the portlist
+                 jitter            - Set the jitter threshold in micro-seconds
+                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)
+                 gre_key           - Set the GRE key
+                 mac dst|src <etheraddr> - Set MAC addresses 00:11:22:33:44:55
+                                     You can use 0011:2233:4455 format as well
+set <portlist> jitter <value>      - Set the jitter value
+set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
+set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port
+set <portlist> pattern <type>      - Set the fill pattern type
+     type - abc                    - Default pattern of abc string
+            none                   - No fill pattern, maybe random data
+            zero                   - Fill of zero bytes
+            user                   - User supplied string of max 16 bytes
+set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
+set <portlist> ip src|dst ipaddr   - Set IP addresses
+set ports_per_page <value>         - Set ports per page value 1 - 6
+set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
+set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
                                      idx: random mask slot
                                      off: offset in packets, where to apply mask
                                      mask: up to 32 bit long mask specification (empty to disable):
@@ -1151,76 +1158,80 @@ rnd <portlist> <idx> <off> <mask>  - Set random mask for all transmitted packets
                                        1: bit will be 1
                                        .: bit will be ignored (original value is retained)
                                        X: bit will get random value
-theme <state>                      - Enable or Disable the theme
-theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value
-theme.show                         - List the item strings, colors and attributes to the items
-theme.save <filename>              - Save the current color theme to a file
+
+  -- Setup the packet range values --  
+                 - SMMI = Start|Min|Max|Inc (Start, Minimum, Maximum, Increment)
+range <portlist> mac [dst|src] <etheraddr>    - Set destination/source MAC address
+range <portlist> ip [src|dst] <SMMI> <ipaddr> - Set source IP start address
+range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)
+range <portlist> [sport|dport] <SMMI> <value> - Set source port start address
+range <portlist> vlan <SMMI> <value>          - Set vlan id start address
+range <portlist> size <SMMI> <value>          - Set pkt size start address
+range <portlist> teid <SMMI> <value>          - Set TEID value
+range <portlist> mpls entry <hex-value>       - Set MPLS entry value
+range <portlist> qinq index <val1> <val2>     - Set QinQ index values
+range <portlist> gre key <value>              - Set GRE key value
+
+sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]
+sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
+                                   - Set the sequence packet information, make sure the src-IP
+                                     has the netmask value eg 1.2.3.4/24
+
+pcap show                          - Show PCAP information
+pcap index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file
+pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive
+
+                                      
 start <portlist>                   - Start transmitting packets
 stop <portlist>                    - Stop transmitting packets
 stp                                - Stop all ports from transmitting
 str                                - Start all ports transmitting
-screen stop|start                  - stop/start updating the screen and unlock/lock window
-off                                - screen off shortcut
-on                                 - screen on shortcut
-prime <portlist>                   - Transmit N packets on each port listed. See set prime command above
-delay milliseconds                 - Wait a number of milliseconds for scripting commands
-sleep seconds                      - Wait a number of seconds for scripting commands
-dev.list                           - Show the device whitelist/blacklist/Virtual
-pci.list                           - Show all the PCI devices
-clear <portlist>                   - Clear the statistics
+start <portlist> prime             - Transmit packets on each port listed. See set prime command above
+start <portlist> arp <type>        - Send a ARP type packet
+    type - request | gratuitous | req | grat
+
+debug l2p                          - Dump out internal lcore to port mapping
+debug tx_debug                     - Enable tx debug output
+debug mempool <portlist> <type>    - Dump out the mempool info for a given type
+debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only
+
+save <path-to-file>                - Save a configuration file using the filename
+load <path-to-file>                - Load a command/script file from the given path
+script <filename>                  - Execute the Lua script code in file (www.lua.org).
+lua 'lua string'                   - Execute the Lua code in the string needs quotes
+geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)
+clear_stats <portlist>             - Clear the statistics
 clr                                - Clear all Statistices
-cls                                - Clear the screen
-reset <portlist>                   - Reset the configuration to the default
+reset <portlist>                   - Reset the configuration the ports to the default
 rst                                - Reset the configuration for all ports
-help                               - Display this help message
-quit                               - Quit the Pktgen program
-  -- Setup the packet range values --
-dst.mac start <portlist> etheraddr - Set destination MAC address start
-src.mac start <portlist> etheraddr - Set source MAC address start
-src.ip start <portlist> ipaddr     - Set source IP start address
-src.ip min <portlist> ipaddr       - Set source IP minimum address
-src.ip max <portlist> ipaddr       - Set source IP maximum address
-src.ip inc <portlist> ipaddr       - Set source IP increment address
-dst.ip start <portlist> ipaddr     - Set destination IP start address
-dst.ip min <portlist> ipaddr       - Set destination IP minimum address
-dst.ip max <portlist> ipaddr       - Set destination IP maximum address
-dst.ip inc <portlist> ipaddr       - Set destination IP increment address
-src.port start <portlist> value    - Set source port start address
-src.port min <portlist> value      - Set source port minimum address
-src.port max <portlist> value      - Set source port maximum address
-src.port inc <portlist> value      - Set source port increment address
-dst.port start <portlist> value    - Set source port start address
-dst.port min <portlist> value      - Set source port minimum address
-dst.port max <portlist> value      - Set source port maximum address
-dst.port inc <portlist> value      - Set source port increment address
-vlan.id start <portlist> value     - Set vlan id start address
-vlan.id min <portlist> value       - Set vlan id minimum address
-vlan.id max <portlist> value       - Set vlan id maximum address
-vlan.id inc <portlist> value       - Set vlan id increment address
-pkt.size start <portlist> value    - Set vlan id start address
-pkt.size min <portlist> value      - Set vlan id minimum address
-pkt.size max <portlist> value      - Set vlan id maximum address
-pkt.size inc <portlist> value      - Set vlan id increment address
-range <portlist> <state>           - Enable or Disable the given portlist for sending a range of packets
-       Flags: P--------------- - Promiscuous mode enabled
-               E               - ICMP Echo enabled
-                A              - Send ARP Request flag
-                 G             - Send Gratuitous ARP flag
-                  C            - TX Cleanup flag
-                   p           - PCAP enabled flag
-                    S          - Send Sequence packets enabled
-                     R         - Send Range packets enabled
-                      D        - DPI Scanning enabled (If Enabled)
-                       I       - Process packets on input enabled
-                        T      - Using TAP interface for this port
-                         V     - Send VLAN ID tag
-                         M     - Send MPLS header
-                         Q     - Send Q-in-Q tags
-                          g    - Process GARP packets
-                           g   - Perform GRE with IPv4 payload
-                           G   - Perform GRE with Ethernet payload
-                            C  - Capture received packets
-                             R - Random bitfield(s) are applied
+ports per page [1-6]               - Set the number of ports displayed per page
+port <number>                      - Sets the sequence packets to display for a given port
+restart <portlist>                 - Restart or stop a ethernet port and restart
+ping4 <portlist>                   - Send a IPv4 ICMP echo request on the given portlist
+
+theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value
+theme show                         - List the item strings, colors and attributes to the items
+theme save <filename>              - Save the current color theme to a file
+
+       Flags: P---------------- - Promiscuous mode enabled
+               E                - ICMP Echo enabled
+                A               - Send ARP Request flag
+                 G              - Send Gratuitous ARP flag
+                  C             - TX Cleanup flag
+                   p            - PCAP enabled flag
+                    S           - Send Sequence packets enabled
+                     R          - Send Range packets enabled
+                      D         - DPI Scanning enabled (If Enabled)
+                       I        - Process packets on input enabled
+                        *       - Using TAP interface for this port can be [-rt*]
+                         L      - Send Latency packets                          V     - Send VLAN ID tag
+                          M     - Send MPLS header
+                          Q     - Send Q-in-Q tags
+                           g    - Process GARP packets
+                            g   - Perform GRE with IPv4 payload
+                            G   - Perform GRE with Ethernet payload
+                             C  - Capture received packets
+                              R - Random bitfield(s) are applied
 Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Color best seen on a black background for now
@@ -1258,7 +1269,7 @@ Port: 0, PCAP Count: 0 of 9716, skipped 0
    23:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
    24:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1466
 
-- Pktgen Ver:2.9.x(DPDK-2.X.0) --------------------------------------------------------------------------------------
+- Pktgen Ver:3.2.x(DPDK-17.02) --------------------------------------------------------------------------------------
 
 
 

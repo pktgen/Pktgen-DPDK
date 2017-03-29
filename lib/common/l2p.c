@@ -506,7 +506,7 @@ pg_port_matrix_dump(l2p_t *l2p)
 {
 	uint32_t pid, lid;
 	uint16_t first, last;
-	rxtx_t cnt;
+	rxtx_t cnt, tot;
 
 	first = last = 0;
 

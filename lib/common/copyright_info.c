@@ -80,11 +80,10 @@
 #include <rte_atomic.h>
 #include <rte_cycles.h>
 
-#include "scrn.h"
 #include "copyright_info.h"
 
 #define COPYRIGHT_MSG \
-	"Copyright (c) <2010-2016>, Intel Corporation. All rights reserved."
+	"Copyright (c) <2010-2017>, Intel Corporation. All rights reserved."
 #define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2016>, Intel Corporation"
 #define POWERED_BY_DPDK         "Powered by Intel® DPDK"
 
@@ -93,7 +92,7 @@ static const char *intel_copyright[] = {
 	"",
 	"   BSD LICENSE",
 	"",
-	"   Copyright(c) 2010-2016 Intel Corporation. All rights reserved.",
+	"   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.",
 	"",
 	"   Redistribution and use in source and binary forms, with or without",
 	"   modification, are permitted provided that the following conditions",

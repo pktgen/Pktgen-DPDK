@@ -23,7 +23,7 @@ pktgen.set("all", "burst", 128);
 pktgen.set("all", "sport", 0x5678);
 pktgen.set("all", "dport", 0x9988);
 pktgen.set("all", "prime", 3);
-pktgen.set("all", "seqCnt", 3);
+pktgen.set("all", "seq_cnt", 3);
 
 pktgen.rnd("all", 1, 20, "XX111000.. ..xx11");
 
@@ -144,7 +144,7 @@ printf("Total port Count %d\n", pktgen.totalPorts());
 
 printf("\nDone, Key pressed is (%s)\n", pktgen.continue("\nPress any key: "));
 if ( key == "s" ) then
-	pktgen.set("all", "seqCnt", 4);
+	pktgen.set("all", "seq_cnt", 4);
 	pktgen.save("foobar.cmd");
 	pktgen.continue("Saved foobar.cmd, press key to load that file: ");
 	pktgen.load("foobar.cmd");

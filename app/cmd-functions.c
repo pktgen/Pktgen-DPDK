@@ -32,6 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if 0
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include "cmd-functions.h"
@@ -566,7 +567,7 @@ cmd_pdump_parsed(void *parsed_result,
 	struct cmd_pdump_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_pdump(info) );
+		     debug_pdump(info) );
 	pktgen_update_display();
 }
 
@@ -710,7 +711,7 @@ cmd_set_range_parsed(void *parsed_result,
 	struct cmd_set_range_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_range_enable_disable(info, res->what) );
+		     enable_range(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -764,7 +765,7 @@ cmd_set_latency_parsed(void *parsed_result,
 	struct cmd_set_latency_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_latency_enable_disable(info, res->state) );
+		     enable_latency(info, estate(res->state)) );
 
 	pktgen_update_display();
 }
@@ -820,7 +821,7 @@ cmd_set_jitter_parsed(void *parsed_result,
 	struct cmd_set_jitter_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_jitter(info, strtoull(res->usec, NULL, 0)) );
+		     single_set_jitter(info, strtoull(res->usec, NULL, 0)) );
 
 	pktgen_update_display();
 }
@@ -875,7 +876,7 @@ cmd_set_pattern_parsed(void *parsed_result,
 	struct cmd_set_pattern_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_pattern_type(info, res->what) );
+		     pattern_set_type(info, res->what) );
 
 	pktgen_update_display();
 }
@@ -931,7 +932,7 @@ cmd_user_pattern_parsed(void *parsed_result,
 	struct cmd_user_pattern_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_user_pattern_set(info, res->what) );
+		     pattern_set_user_pattern(info, res->what) );
 
 	pktgen_update_display();
 }
@@ -1002,7 +1003,7 @@ cmd_rnd_parsed(void *parsed_result,
 				mask[mask_idx++] = curr_bit;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+		     enable_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
 									res->idx, res->off, mask) ? ENABLE_STATE : DISABLE_STATE));
 
 	pktgen_update_display();
@@ -1184,7 +1185,7 @@ struct cmd_dest_mac_result {
 	cmdline_fixed_string_t dst_mac;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t addr;
+	etheraddr_t addr;
 };
 
 /**************************************************************************//**
@@ -1207,7 +1208,7 @@ cmd_dest_mac_parsed(void *parsed_result,
 	struct cmd_dest_mac_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_dest_mac(info, res->what, &res->addr) );
+		     range_set_dest_mac(info, res->what, &res->addr) );
 
 	pktgen_update_display();
 }
@@ -1243,7 +1244,7 @@ struct cmd_src_mac_result {
 	cmdline_fixed_string_t src_mac;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t addr;
+	etheraddr_t addr;
 };
 
 /**************************************************************************//**
@@ -1266,7 +1267,7 @@ cmd_src_mac_parsed(void *parsed_result,
 	struct cmd_src_mac_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_src_mac(info, res->what, &res->addr) );
+		     range_set_src_mac(info, res->what, &res->addr) );
 
 	pktgen_update_display();
 }
@@ -1301,7 +1302,7 @@ struct cmd_src_ip_result {
 	cmdline_fixed_string_t src_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -1324,7 +1325,7 @@ cmd_src_ip_parsed(void *parsed_result,
 	struct cmd_src_ip_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_src_ip(info, res->what, &res->ipaddr) );
+		     range_set_src_ip(info, res->what, &res->ipaddr) );
 
 	pktgen_update_display();
 }
@@ -1359,7 +1360,7 @@ struct cmd_dst_ip_result {
 	cmdline_fixed_string_t dst_ip;
 	cmdline_fixed_string_t what;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -1382,7 +1383,7 @@ cmd_dst_ip_parsed(void *parsed_result,
 	struct cmd_dst_ip_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_dst_ip(info, res->what, &res->ipaddr) );
+		     range_set_dst_ip(info, res->what, &res->ipaddr) );
 
 	pktgen_update_display();
 }
@@ -1440,7 +1441,7 @@ cmd_src_port_parsed(void *parsed_result,
 	struct cmd_src_port_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_src_port(info, res->what, res->port) );
+		     range_set_src_port(info, res->what, res->port) );
 
 	pktgen_update_display();
 }
@@ -1499,7 +1500,7 @@ cmd_ip_proto_parsed(void *parsed_result,
 	struct cmd_ip_proto_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_proto_range(info, res->proto[0]) );
+		     single_set_proto(info, res->proto) );
 
 	pktgen_update_display();
 }
@@ -1556,7 +1557,7 @@ cmd_dst_port_parsed(void *parsed_result,
 	struct cmd_dst_port_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_dst_port(info, res->what, res->port) );
+		     range_set_dst_port(info, res->what, res->port) );
 
 	pktgen_update_display();
 }
@@ -1616,7 +1617,7 @@ cmd_vlan_id_parsed(void *parsed_result,
 	struct cmd_vlan_id_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_vlan_id(info, res->what, res->id) );
+		     range_set_vlan_id(info, res->what, res->id) );
 
 	pktgen_update_display();
 }
@@ -1676,7 +1677,7 @@ cmd_pkt_size_parsed(void *parsed_result,
 	struct cmd_pkt_size_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_range_pkt_size(info, res->what, res->size) );
+		     range_set_pkt_size(info, res->what, res->size) );
 
 	pktgen_update_display();
 }
@@ -1737,27 +1738,27 @@ cmd_set_parsed(void *parsed_result,
 
 	foreach_port(res->portlist.map, _do(
 			     if (!strcmp(res->what, "count"))
-				     pktgen_set_tx_count(info, res->value);
+				     single_set_tx_count(info, res->value);
 			     else if (!strcmp(res->what, "size"))
-				     pktgen_set_pkt_size(info, res->value);
+				     single_set_pkt_size(info, res->value);
 			     else if (!strcmp(res->what, "rate"))
-				     pktgen_set_tx_rate(info, res->value);
+				     single_set_tx_rate(info, res->value);
 			     else if (!strcmp(res->what, "burst"))
-				     pktgen_set_tx_burst(info, res->value);
+				     single_set_tx_burst(info, res->value);
 			     else if (!strcmp(res->what, "tx_cycles"))
-				     pktgen_set_tx_cycles(info, res->value);
+				     debug_set_tx_cycles(info, res->value);
 			     else if (!strcmp(res->what, "sport"))
-				     pktgen_set_port_value(info, res->what[0], res->value);
+				     single_set_port_value(info, res->what[0], res->value);
 			     else if (!strcmp(res->what, "dport"))
-				     pktgen_set_port_value(info, res->what[0], res->value);
+				     single_set_port_value(info, res->what[0], res->value);
 			     else if (!strcmp(res->what, "seqCnt"))
 				     pktgen_set_port_seqCnt(info, res->value);
 			     else if (!strcmp(res->what, "prime"))
 				     pktgen_set_port_prime(info, res->value);
 			     else if (!strcmp(res->what, "dump"))
-				     pktgen_set_port_dump(info, res->value);
+				     debug_set_port_dump(info, res->value);
 			     else if (!strcmp(res->what, "vlanid"))
-				     pktgen_set_vlanid(info, res->value);
+				     single_set_vlan_id(info, res->value);
 			     ) );
 
 	pktgen_update_display();
@@ -1817,7 +1818,7 @@ cmd_pcap_onoff_parsed(void *parsed_result,
 	struct cmd_pcap_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_pcap_enable_disable(info, res->what) );
+		     enable_pcap(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -1871,7 +1872,7 @@ cmd_pcap_filter_parsed(void *parsed_result,
 	struct cmd_pcap_filter_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_pcap_filter(info, res->filter_string) );
+		     pcap_filter(info, res->filter_string) );
 
 	pktgen_update_display();
 }
@@ -2031,7 +2032,7 @@ cmd_blink_onoff_parsed(void *parsed_result,
 	struct cmd_blink_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_blink_enable_disable(info, res->what) );
+		     debug_blink(info, estate(res->what)) );
 
 	if (pktgen.blinklist)
 		pktgen.flags |= BLINK_PORTS_FLAG;
@@ -2090,7 +2091,7 @@ cmd_garp_onoff_parsed(void *parsed_result,
 	struct cmd_garp_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_garp_enable_disable(info, res->what) );
+		     enable_garp(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -2145,7 +2146,7 @@ cmd_process_onoff_parsed(void *parsed_result,
 	struct cmd_process_onoff_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_process_enable_disable(info, res->what) );
+		     enable_process(info, estate(res->what)) );
 
 	pktgen_update_display();
 }
@@ -2269,10 +2270,10 @@ struct cmd_set_seq_result {
 	cmdline_fixed_string_t seq;
 	uint32_t seqnum;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t daddr;
-	cmdline_etheraddr_t saddr;
-	cmdline_ipaddr_t ip_daddr;
-	cmdline_ipaddr_t ip_saddr;
+	etheraddr_t daddr;
+	etheraddr_t saddr;
+	struct pg_ipaddr ip_daddr;
+	struct pg_ipaddr ip_saddr;
 	uint32_t sport;
 	uint32_t dport;
 	cmdline_fixed_string_t eth;
@@ -2380,7 +2381,7 @@ struct cmd_setip_dst_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2403,7 +2404,7 @@ cmd_setip_dst_parsed(void *parsed_result,
 	struct cmd_setip_dst_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_ipaddr(info, res->iptype[0], &res->ipaddr) );
+		     single_set_ipaddr(info, res->iptype[0], &res->ipaddr) );
 
 	pktgen_update_display();
 }
@@ -2440,7 +2441,7 @@ struct cmd_setip_src_result {
 	cmdline_fixed_string_t ip;
 	cmdline_fixed_string_t iptype;
 	cmdline_portlist_t portlist;
-	cmdline_ipaddr_t ipaddr;
+	struct pg_ipaddr ipaddr;
 };
 
 /**************************************************************************//**
@@ -2463,7 +2464,7 @@ cmd_setip_src_parsed(void *parsed_result,
 	struct cmd_setip_src_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_ipaddr(info, res->iptype[0], &res->ipaddr) );
+		     single_set_ipaddr(info, res->iptype[0], &res->ipaddr) );
 
 	pktgen_update_display();
 }
@@ -2579,7 +2580,7 @@ cmd_set_proto_parsed(void *parsed_result,
 	struct cmd_set_proto_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_proto(info, res->type[0]) );
+		     single_set_proto(info, res->type) );
 
 	pktgen_update_display();
 }
@@ -2633,7 +2634,7 @@ cmd_set_load_parsed(void *parsed_result,
 
 	if (pktgen_load_cmds(res->path) )
 		cmdline_printf(cl, "load command failed for %s\n", res->path);
-	if (!scrn_is_paused() )
+	if (!scrn_is_paused(pktgen.scrn) )
 		pktgen_redisplay(0);
 }
 
@@ -2728,7 +2729,7 @@ cmd_screen_parsed(void *parsed_result,
 {
 	struct cmd_screen_result *res = parsed_result;
 
-	pktgen_screen(res->onOff);
+	pktgen_screen(estate(res->onOff));
 }
 
 cmdline_parse_token_string_t cmd_set_screen =
@@ -2772,7 +2773,7 @@ cmd_off_parsed(void *parsed_result __rte_unused,
 	       struct cmdline *cl __rte_unused,
 	       void *data __rte_unused)
 {
-	pktgen_screen("off");
+	pktgen_screen(DISABLE_STATE);
 }
 
 cmdline_parse_token_string_t cmd_set_off =
@@ -2811,7 +2812,7 @@ cmd_on_parsed(void *parsed_result __rte_unused,
 	      struct cmdline *cl __rte_unused,
 	      void *data __rte_unused)
 {
-	pktgen_screen("on");
+	pktgen_screen(ENABLE_STATE);
 }
 
 cmdline_parse_token_string_t cmd_set_on =
@@ -2941,7 +2942,7 @@ cmd_mempool_parsed(void *parsed_result,
 
 	if (!strcmp(res->dump, "dump") )
 		foreach_port(res->portlist.map,
-			     pktgen_mempool_dump(info, res->name) );
+			     debug_mempool_dump(info, res->name) );
 }
 
 cmdline_parse_token_string_t cmd_set_mempool =
@@ -2996,7 +2997,7 @@ cmd_set_pkt_type_parsed(void *parsed_result,
 	struct cmd_set_proto_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_pkt_type(info, res->type) );
+		     single_set_pkt_type(info, res->type) );
 
 	pktgen_update_display();
 }
@@ -3050,7 +3051,7 @@ cmd_icmp_echo_parsed(void *parsed_result,
 	struct cmd_icmp_echo_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_icmp_echo(info, parseState(res->onOff)) );
+		     enable_icmp_echo(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_icmp =
@@ -3104,7 +3105,7 @@ cmd_capture_parsed(void *parsed_result,
 	struct cmd_capture_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_capture(info, parseState(res->onOff)) );
+		     pktgen_set_capture(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_capture =
@@ -3156,7 +3157,7 @@ cmd_rx_tap_parsed(void *parsed_result,
 	struct cmd_rx_tap_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_rx_tap(info, parseState(res->onOff)) );
+		     enable_rx_tap(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_rx_tap =
@@ -3208,7 +3209,7 @@ cmd_tx_tap_parsed(void *parsed_result,
 	struct cmd_tx_tap_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_tx_tap(info, parseState(res->onOff)) );
+		     enable_tx_tap(info, estate(res->onOff)) );
 }
 
 cmdline_parse_token_string_t cmd_set_tx_tap =
@@ -3260,7 +3261,7 @@ cmd_vlan_parsed(void *parsed_result,
 	struct cmd_vlan_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_vlan(info, parseState(res->onOff)) );
+		     enable_vlan(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3314,7 +3315,7 @@ cmd_vlanid_parsed(void *parsed_result,
 	struct cmd_vlanid_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_vlanid(info, res->id) );
+		     single_set_vlan_id(info, res->id) );
 
 	pktgen_update_display();
 }
@@ -3366,7 +3367,7 @@ cmd_mpls_parsed(void *parsed_result,
 	struct cmd_mpls_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_mpls(info, parseState(res->onOff)) );
+		     enable_mpls(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3422,7 +3423,7 @@ cmd_mpls_entry_parsed(void *parsed_result,
 	uint32_t entry = strtoul(res->entry, NULL, 16);
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_mpls_entry(info, entry) );
+		     range_set_mpls_entry(info, entry) );
 
 	pktgen_update_display();
 }
@@ -3476,7 +3477,7 @@ cmd_qinq_parsed(void *parsed_result,
 	struct cmd_qinq_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_qinq(info, parseState(res->onOff)) );
+		     enable_qinq(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3531,7 +3532,7 @@ cmd_qinqids_parsed(void *parsed_result,
 	struct cmd_qinqids_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_qinqids(info, res->outerid, res->innerid) );
+		     single_set_qinqids(info, res->outerid, res->innerid) );
 
 	pktgen_update_display();
 }
@@ -3586,7 +3587,7 @@ cmd_gre_parsed(void *parsed_result,
 	struct cmd_gre_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_gre(info, parseState(res->onOff)) );
+		     enable_gre(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3640,7 +3641,7 @@ cmd_gre_eth_parsed(void *parsed_result,
 	struct cmd_gre_eth_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_gre_eth(info, parseState(res->onOff)) );
+		     enable_gre_eth(info, estate(res->onOff)) );
 
 	pktgen_update_display();
 }
@@ -3694,7 +3695,7 @@ cmd_gre_key_parsed(void *parsed_result,
 	struct cmd_gre_key_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_gre_key(info, res->gre_key) );
+		     range_set_gre_key(info, res->gre_key) );
 
 	pktgen_update_display();
 }
@@ -3745,9 +3746,9 @@ cmd_mac_from_arp_parsed(void *parsed_result,
 			void *data __rte_unused)
 {
 	struct cmd_mac_from_arp_result *res = parsed_result;
-	uint32_t onOff = parseState(res->onOff);
+	uint32_t onOff = estate(res->onOff);
 
-	pktgen_mac_from_arp(onOff);
+	enable_mac_from_arp(onOff);
 }
 
 cmdline_parse_token_string_t cmd_set_mac_from_arp =
@@ -3866,7 +3867,7 @@ struct cmd_setmac_result {
 	cmdline_fixed_string_t set;
 	cmdline_fixed_string_t mac;
 	cmdline_portlist_t portlist;
-	cmdline_etheraddr_t addr;
+	etheraddr_t addr;
 };
 
 /**************************************************************************//**
@@ -3889,7 +3890,7 @@ cmd_setmac_parsed(void *parsed_result,
 	struct cmd_setmac_result *res = parsed_result;
 
 	foreach_port(res->portlist.map,
-		     pktgen_set_dst_mac(info, &res->addr) );
+		     single_set_dst_mac(info, &res->addr) );
 
 	pktgen_update_display();
 }
@@ -4606,3 +4607,42 @@ pktgen_load_cmds(char *filename)
 	}
 	return 0;
 }
+
+void
+pktgen_input_init(void)
+{
+	int i;
+
+	/* Start up the command line, which exits on Control-D */
+	pktgen.cl = cmdline_stdin_new(main_ctx, "Pktgen > ");
+	__set_prompt();
+
+	if (pktgen.cl && pktgen.cmd_files.idx) {
+		for(i = 0; i < pktgen.cmd_files.idx; i++) {
+			pktgen_log_info("# *** Executing file (%s)",
+					pktgen.cmd_files.filename[i]);
+			cmdline_in(pktgen.cl, "\r", 1);
+			if (pktgen_load_cmds(pktgen.cmd_files.filename[i]) == -1)
+				pktgen_log_warning(
+					"*** Unable to find file (%s) or invalid call",
+					pktgen.cmd_files.filename[i]);
+			else
+				pktgen_log_info("# *** Done.");
+			cmdline_in(pktgen.cl, "\r", 1);
+
+			free(pktgen.cmd_files.filename[i]);
+			pktgen.cmd_files.filename[i] = NULL;
+		}
+	}
+
+}
+
+void
+pktgen_input_start(void)
+{
+	pktgen_interact(pktgen.cl);
+
+	cmdline_stdin_exit(pktgen.cl);
+}
+
+#endif

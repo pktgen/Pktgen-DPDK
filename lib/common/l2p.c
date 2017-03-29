@@ -84,7 +84,6 @@
 #include <rte_debug.h>
 #include <rte_memory.h>
 
-#include "scrn.h"
 #include "l2p.h"
 #include "core_info.h"
 #include "utils.h"
@@ -95,30 +94,73 @@ enum { RX_IDX = 0, TX_IDX = 1, RXTX_CNT = 2 };
 
 /* Make sure to force sizes to multiples of 8 */
 typedef struct ls_s {
-	uint8_t ls[(RTE_MAX_LCORE + 7) / 8];
+	uint8_t rbits[(RTE_MAX_LCORE + 7) / 8];
+	uint8_t tbits[(RTE_MAX_LCORE + 7) / 8];
 } ls_t;
 
 typedef struct ps_s {
-	uint8_t ps[(RTE_MAX_ETHPORTS + 7) / 8];
+	uint8_t rbits[(RTE_MAX_ETHPORTS + 7) / 8];
+	uint8_t tbits[(RTE_MAX_ETHPORTS + 7) / 8];
 } ps_t;
 
 typedef struct lcore_port_s {
-	ls_t lcores[RXTX_CNT];
-	ps_t ports[RXTX_CNT];
+	ls_t lcores;
+	ps_t ports;
 } lp_t;
 
+static lp_t lp_data, *lp = &lp_data;
+
+static inline uint8_t
+_bget(uint8_t *p, uint16_t idx)
+{
+	int32_t c = (idx / 8);
+
+	return p[c] & (1 << (idx - (c * 8)));
+}
+
 static inline int
-_btst(uint8_t *p, uint8_t idx) {
+_btst(uint8_t *p, uint16_t idx)
+{
 	int32_t c = (idx / 8);
 
 	return p[c] & (1 << (idx - (c * 8)));
 }
 
 static inline void
-_bset(uint8_t *p, uint8_t idx) {
+_bset(uint8_t *p, uint16_t idx)
+{
 	int32_t c = (idx / 8);
+	uint8_t t = p[c];
 
-	p[c] |= (1 << (idx - (c * 8)));
+	p[c] = t | (1 << (idx - (c * 8)));
+}
+
+/**************************************************************************//**
+ * Add an RX lcore to a port
+ *
+ */
+static __inline__ void
+l2p_connect(l2p_t *l2p,  uint16_t pid, uint16_t lid, uint16_t type)
+{
+	lobj_t    *lobj = &l2p->lcores[lid];
+	pobj_t    *pobj = &l2p->ports[pid];
+
+	lobj->type  = type;
+
+	if (type & RX_TYPE) {
+		lobj->pids.rx[lobj->pids.rx_cnt++]  = pid;
+		lobj->qids.rx[pid]  = pg_new_rxque(l2p, pid);	/* allocate a RX qid */
+		lobj->qids.rx_cnt++;
+		pg_inc_rx(l2p, pid, lid);
+	}
+
+	if (type & TX_TYPE) {
+		lobj->pids.tx[lobj->pids.tx_cnt++]  = pid;
+		lobj->qids.tx[pid]  = pg_new_txque(l2p, pid);	/* Allocate a TX qid */
+		lobj->qids.tx_cnt++;
+		pg_inc_tx(l2p, pid, lid);
+	}
+	pobj->lids[pobj->nb_lids++] = lid;
 }
 
 /**************************************************************************//**
@@ -154,19 +196,15 @@ pg_parse_portmask(const char *portmask)
 static int32_t
 pg_parse_rt_list(char *list, uint8_t *map)
 {
-	char      *p;
+	char *p;
 	int32_t k, i;
-	char      *arr[33];
+	char *arr[33];
 
 	if (list == NULL)
 		return 1;
 
-	p = pg_strtrimset(list, "[]{}");/* trim the two character sets from the front/end of string. */
-	if ( (p == NULL) || (*p == '\0') )
-		return 1;
-
 	/* Split up the string by '/' for each list or range set */
-	k = pg_strparse(p, "/", arr, countof(arr));
+	k = pg_strparse(list, "/", arr, countof(arr));
 	if (k == 0)
 		return 1;
 
@@ -201,25 +239,29 @@ pg_parse_rt_list(char *list, uint8_t *map)
 static int32_t
 pg_parse_lcore_list(char *list, ls_t *ls)
 {
-	char      *arr[3];
+	char *arr[3], *p;
 	int32_t k;
 
+	/* trim the two character sets from the front/end of string. */
+	p = pg_strtrimset(list, "[]{}");
+	if ( (p == NULL) || (*p == '\0') )
+		return 1;
+
 	/* Split up the string based on the ':' for Rx:Tx pairs */
-	k = pg_strparse(list, ":", arr, countof(arr) );
+	k = pg_strparse(p, ":", arr, countof(arr) );
 	if ( (k == 0) || (k == 3) ) {
-		fprintf(stderr, "*** Invalid string (%s)\n", list);
+		fprintf(stderr, "*** Invalid string (%s)\n", p);
 		return 1;
 	}
 
-	if (k == 1) {							/* Must be a lcore/port number only */
-		pg_parse_rt_list(arr[0], ls[RX_IDX].ls);		/* Parse the list with no ':' character */
-		memcpy(ls[TX_IDX].ls, ls[RX_IDX].ls, sizeof(ls_t));	/* Update the tx bitmap too. */
-	} else {							/* k == 2 */						/*
-									 * Must be a <rx-list>:<tx-list> pair */
-		if (pg_parse_rt_list(arr[0], ls[RX_IDX].ls) )		/* parse <rx-list> */
+	if (k == 1) {	/* Must be a lcore/port number only */
+		pg_parse_rt_list(arr[0], ls->rbits);		/* Parse the list with no ':' character */
+		pg_parse_rt_list(arr[0], ls->tbits);		/* Parse the list with no ':' character */
+	} else {	/* k == 2 Must be a <rx-list>:<tx-list> pair */
+		if (pg_parse_rt_list(arr[0], ls->rbits) )		/* parse <rx-list> */
 			return 1;
 
-		if (pg_parse_rt_list(arr[1], ls[TX_IDX].ls) )	/* parse <tx-list> */
+		if (pg_parse_rt_list(arr[1], ls->tbits) )	/* parse <tx-list> */
 			return 1;
 	}
 	return 0;
@@ -240,32 +282,37 @@ pg_parse_lcore_list(char *list, ls_t *ls)
 static int32_t
 pg_parse_port_list(char *list, ps_t *ps)
 {
-	char      *arr[3];
+	char *arr[3], *p;
 	int32_t k;
 
+	/* trim the two character sets from the front/end of string. */
+	p = pg_strtrimset(list, "[]{}");
+	if ( (p == NULL) || (*p == '\0') )
+		return 1;
+
 	/* Split up the string based on the ':' for Rx:Tx pairs */
-	k = pg_strparse(list, ":", arr, countof(arr) );
+	k = pg_strparse(p, ":", arr, countof(arr) );
 	if ( (k == 0) || (k == 3) ) {
-		fprintf(stderr, "*** Invalid string (%s)\n", list);
+		fprintf(stderr, "*** Invalid string (%s)\n", p);
 		return 1;
 	}
 
-	if (k == 1) {							/* Must be a lcore/port number only */
-		pg_parse_rt_list(arr[0], ps[RX_IDX].ps);		/* Parse the list with no ':' character */
-		memcpy(ps[TX_IDX].ps, ps[RX_IDX].ps, sizeof(ps_t));	/* Update the tx bitmap too. */
-	} else {							/* k == 2 */						/*
-									 * Must be a <rx-list>:<tx-list> pair */
-		if (pg_parse_rt_list(arr[0], ps[RX_IDX].ps) )		/* parse <rx-list> */
+	if (k == 1) {	/* Must be a lcore/port number only */
+		pg_parse_rt_list(arr[0], ps->rbits);		/* Parse the list with no ':' character */
+		pg_parse_rt_list(arr[0], ps->tbits);		/* Parse the list with no ':' character */
+	} else {	/* k == 2 Must be a <rx-list>:<tx-list> pair */
+		if (pg_parse_rt_list(arr[0], ps->rbits) )	/* parse <rx-list> */
 			return 1;
 
-		if (pg_parse_rt_list(arr[1], ps[TX_IDX].ps) )	/* parse <tx-list> */
+		if (pg_parse_rt_list(arr[1], ps->tbits) )	/* parse <tx-list> */
 			return 1;
 	}
 	return 0;
 }
 
 static inline void
-pg_dump_lcore_map(const char *t, uint8_t *m) {
+pg_dump_lcore_map(const char *t, uint8_t *m)
+{
 	int i;
 
 	fprintf(stderr, "%s( ", t);
@@ -277,7 +324,8 @@ pg_dump_lcore_map(const char *t, uint8_t *m) {
 }
 
 static inline void
-pg_dump_port_map(const char *t, uint8_t *m) {
+pg_dump_port_map(const char *t, uint8_t *m)
+{
 	int i;
 
 	fprintf(stderr, "%s( ", t);
@@ -296,7 +344,7 @@ pg_dump_port_map(const char *t, uint8_t *m) {
  * Parse the command line argument for port configuration.
  *
  * BNF: (or kind of BNF)
- *               <matrix-string> := """ <lcore-port> { "," <lcore-port>} """
+ *      <matrix-string> := """ <lcore-port> { "," <lcore-port>} """
  *		<lcore-port>	:= <lcore-list> "." <port-list>
  *		<lcore-list>	:= "[" <rx-list> ":" <tx-list> "]"
  *		<port-list>		:= "[" <rx-list> ":" <tx-list>"]"
@@ -335,11 +383,10 @@ pg_dump_port_map(const char *t, uint8_t *m) {
 int
 pg_parse_matrix(l2p_t *l2p, char *str)
 {
-	char      *lcore_port[MAX_MATRIX_ENTRIES];
-	char buff[256];
-	int i, m, k, lid_type, pid_type;
-	uint32_t pid, lid;
-	lp_t lp;
+	char *lcore_port[MAX_MATRIX_ENTRIES+1];
+	char buff[512];
+	int i, m, k;
+	uint16_t pid, lid, lid_type, pid_type;
 	rxtx_t cnt, n;
 
 	pg_strccpy(buff, str, " \r\n\t\"");
@@ -348,13 +395,15 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 	k = pg_strparse(buff, ",", lcore_port, countof(lcore_port));
 	if (k <= 0) {
 		fprintf(stderr, "%s: could not parse (%s) string\n",
-			__FUNCTION__, buff);
-		return 0;
+			__func__, buff);
+		goto leave;
 	}
 
 	for (i = 0; (i < k) && lcore_port[i]; i++) {
-		char      *arr[3];
+		char *arr[3];
 		char str[64];
+
+		memset(lp, '\0', sizeof(lp_t));
 
 		/* Grab a private copy of the string. */
 		strncpy(str, lcore_port[i], sizeof(str));
@@ -362,85 +411,81 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 		/* Parse the string into <lcore-list> and <port-list> */
 		m = pg_strparse(lcore_port[i], ".", arr, 3);
 		if (m != 2) {
-			fprintf(stderr,
-				"%s: could not parse <lcore-list>.<port-list> (%s) string\n",
-				__FUNCTION__,
-				lcore_port[i]);
-			return 0;
+			fprintf(stderr, "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
+				__func__, lcore_port[i]);
+			goto leave;
 		}
 
-		memset(&lp, '\0', sizeof(lp));
-
-		if (pg_parse_lcore_list(arr[0], lp.lcores) ) {
-			fprintf(stderr,
-				"%s: could not parse <lcore-list> (%s) string\n",
-				__FUNCTION__,
-				arr[0]);
-			return 0;
+		if (pg_parse_lcore_list(arr[0], &lp->lcores) ) {
+			fprintf(stderr, "%s: could not parse <lcore-list> (%s) string\n",
+				__func__, arr[0]);
+			goto leave;
 		}
 
-		if (pg_parse_port_list(arr[1], lp.ports) ) {
-			fprintf(stderr,
-				"%s: could not parse <port-list> (%s) string\n",
-				__FUNCTION__,
-				arr[1]);
-			return 0;
+		if (pg_parse_port_list(arr[1], &lp->ports) ) {
+			fprintf(stderr, "%s: could not parse <port-list> (%s) string\n",
+				__func__, arr[1]);
+			goto leave;
 		}
-
-		/* Handle the lcore and port list maps */
-		fprintf(stderr, "%-16s lcores: ", str);
-		pg_dump_lcore_map("RX", lp.lcores[RX_IDX].ls);
-		pg_dump_lcore_map("TX", lp.lcores[TX_IDX].ls);
-		fprintf(stderr, " ports: ");
-		pg_dump_port_map("RX", lp.ports[RX_IDX].ps);
-		pg_dump_port_map("TX", lp.ports[TX_IDX].ps);
-		fprintf(stderr, "\n");
 
 		for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
 			lid_type = 0;
-			if (_btst(lp.lcores[RX_IDX].ls, lid) )
+
+			if (_btst(lp->lcores.rbits, lid) )
 				lid_type |= RX_TYPE;
-			if (_btst(lp.lcores[TX_IDX].ls, lid) )
+
+			if (_btst(lp->lcores.tbits, lid) )
 				lid_type |= TX_TYPE;
+
 			if (lid_type == 0)
 				continue;
 
 			for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
 				pid_type = 0;
-				if (_btst(lp.ports[RX_IDX].ps, pid) )
+
+				if (_btst(lp->ports.rbits, pid) )
 					pid_type |= RX_TYPE;
-				if (_btst(lp.ports[TX_IDX].ps, pid) )
+
+				if (_btst(lp->ports.tbits, pid) )
 					pid_type |= TX_TYPE;
-				if (pid_type == 0)
-					continue;
-				l2p_connect(l2p, pid, lid, lid_type);
+
+				if (pid_type)
+					l2p_connect(l2p, pid, lid, lid_type);
 			}
 		}
 	}
 
+	/* Count the number of ports per lcore, put in last slot */
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
 		n.rxtx = 0;
-		for (lid = 0; lid < RTE_MAX_LCORE; lid++)
-			if ( (cnt.rxtx = get_map(l2p, pid, lid)) > 0) {
-				if (cnt.tx > 0)
+		for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
+			cnt.rxtx = get_map(l2p, pid, lid);
+			if (cnt.rxtx) {
+				if (cnt.tx)
 					n.tx++;
-				if (cnt.rx > 0)
+				if (cnt.rx)
 					n.rx++;
 			}
-		l2p->map[pid][lid].rxtx = n.rxtx;	/* Update the lcores per port */
-	}
-	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
-		n.rxtx = 0;
-		for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++)
-			if ( (cnt.rxtx = get_map(l2p, pid, lid)) > 0) {
-				if (cnt.tx > 0)
-					n.tx++;
-				if (cnt.rx > 0)
-					n.rx++;
-			}
-		l2p->map[pid][lid].rxtx = n.rxtx;	/* Update the ports per lcore */
+		}
+		put_map(l2p, pid, RTE_MAX_LCORE, n.rxtx);
 	}
 
+	/* Count the number of lcores per port, put in last slot */
+	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
+		n.rxtx = 0;
+		for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
+			cnt.rxtx = get_map(l2p, pid, lid);
+			if (cnt.rxtx) {
+				if (cnt.tx)
+					n.tx++;
+				if (cnt.rx)
+					n.rx++;
+			}
+		}
+		put_map(l2p, RTE_MAX_ETHPORTS, lid, n.rxtx);
+	}
+
+leave:
 	return 0;
 }
 
@@ -468,35 +513,34 @@ pg_port_matrix_dump(l2p_t *l2p)
 	printf("\n=== port to lcore mapping table (# lcores %d) ===\n",
 	       lcore_mask(&first, &last));
 
-	printf("   lcore: ");
+	printf("   lcore:");
 	for (lid = first; lid <= last; lid++)
-		printf("   %2d ", lid);
-	printf("\n");
+		printf("   %2d   ", lid);
+	printf("   Total\n");
 
 	for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-		cnt.rxtx = get_map(l2p, pid, RTE_MAX_LCORE);
-		if (cnt.rxtx == 0)
+		tot.rxtx = get_map(l2p, pid, RTE_MAX_LCORE);
+		if (tot.rxtx == 0)
 			continue;
 		printf("port  %2d:", pid);
 		for (lid = first; lid <= last; lid++) {
 			cnt.rxtx = get_map(l2p, pid, lid);
 			if (lid == rte_get_master_lcore() )
-				printf(" %s:%s", " D", " T");
+				printf(" (%s:%s)", " D", " T");
 			else
-				printf(" %2d:%2d", cnt.rx, cnt.tx);
+				printf(" (%2d:%2d)", cnt.rx, cnt.tx);
 		}
-		cnt.rxtx = get_map(l2p, pid, RTE_MAX_LCORE);
-		printf(" = %2d:%2d\n", cnt.rx, cnt.tx);
+		printf(" = (%2d:%2d)\n", tot.rx, tot.tx);
 	}
 
 	printf("Total   :");
 	for (lid = first; lid <= last; lid++) {
 		cnt.rxtx = get_map(l2p, RTE_MAX_ETHPORTS, lid);
-		printf(" %2d:%2d", cnt.rx, cnt.tx);
+		printf(" (%2d:%2d)", cnt.rx, cnt.tx);
 	}
 
-	printf(
-		"\n    Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
+	printf("\n  Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
 		rte_get_master_lcore());
+
 	fflush(stdout);
 }

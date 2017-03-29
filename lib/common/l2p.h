@@ -41,6 +41,7 @@
 
 #define MAX_MATRIX_ENTRIES      128
 #define MAX_STRING              256
+
 #define MAX_MAP_PORTS           (RTE_MAX_ETHPORTS + 1)
 #define MAX_MAP_LCORES          (RTE_MAX_LCORE + 1)
 
@@ -59,7 +60,7 @@ typedef struct {
 	pq_t pids;
 	pq_t qids;
 	void      *private;
-} __rte_cache_aligned lobj_t;
+} lobj_t;	/* lcore type and ports/qids */
 
 typedef struct {
 	uint16_t pid;
@@ -68,7 +69,7 @@ typedef struct {
 	uint16_t nb_lids;
 	uint16_t lids[RTE_MAX_LCORE];
 	void      *private;
-} __rte_cache_aligned pobj_t;
+} pobj_t;	/* ports pointer lcores */
 
 typedef union {
 	struct {
@@ -83,7 +84,7 @@ typedef struct {
 	lobj_t lcores[RTE_MAX_LCORE];
 	pobj_t ports[RTE_MAX_ETHPORTS];
 	rxtx_t map[MAX_MAP_PORTS][MAX_MAP_LCORES];
-} __rte_cache_aligned l2p_t;
+} l2p_t;
 
 /**************************************************************************//**
  * Dump the L2P structure in a raw format.
@@ -97,34 +98,27 @@ pg_raw_dump_l2p(l2p_t *l2p)
 	pobj_t    *pobj;
 	const char    *types[] = { "Unkn", " RX ", " TX ", "RXTX", NULL };
 
-	printf("\nRunning lcores: ");
-	for (i = 0; i  < RTE_MAX_LCORE; i++)
-		if (l2p->stop[i] == 0)
-			printf("%2d ", i);
-	printf("\n");
-
-	printf("Lcores:\n");
 	for (j = 0; j < RTE_MAX_LCORE; j++) {
 		lobj = &l2p->lcores[j];
 		if (lobj->pids.rx_cnt || lobj->pids.tx_cnt) {
-			printf(" %2d: type %s private %p\n", lobj->lid,
+			printf("lcore %2d: type %s private %p\n", lobj->lid,
 			       types[lobj->type], lobj->private);
-			printf("    Pids RX %2d: ", lobj->pids.rx_cnt);
+			printf("    Pid rx_cnt(%2d) ", lobj->pids.rx_cnt);
 			for (i = 0; i < lobj->pids.rx_cnt; i++)
 				printf("%2d ", lobj->pids.rx[i]);
 			printf("\n");
-			printf("    Pids TX %2d: ", lobj->pids.tx_cnt);
+			printf("        tx_cnt(%2d) ", lobj->pids.tx_cnt);
 			for (i = 0; i < lobj->pids.tx_cnt; i++)
 				printf("%2d ", lobj->pids.tx[i]);
 			printf("\n");
 		}
 		if (lobj->qids.rx_cnt || lobj->qids.tx_cnt) {
-			printf("    Qids RX %2d: ", lobj->qids.rx_cnt);
-			for (i = 0; i < RTE_MAX_ETHPORTS; i++)
+			printf("    Qid rx_cnt(%2d) ", lobj->qids.rx_cnt);
+			for (i = 0; i < lobj->qids.rx_cnt; i++)
 				printf("%2d ", lobj->qids.rx[i]);
 			printf("\n");
-			printf("    Qids TX %2d: ", lobj->qids.tx_cnt);
-			for (i = 0; i < RTE_MAX_ETHPORTS; i++)
+			printf("        tx_cnt(%2d) ", lobj->qids.tx_cnt);
+			for (i = 0; i < lobj->qids.tx_cnt; i++)
 				printf("%2d ", lobj->qids.tx[i]);
 			printf("\n");
 		}
@@ -152,7 +146,7 @@ pg_raw_dump_l2p(l2p_t *l2p)
 static __inline__ l2p_t *
 l2p_create(void)
 {
-	l2p_t     *l2p;
+	l2p_t *l2p;
 	uint32_t i;
 
 	l2p = (l2p_t *)calloc(1, sizeof(l2p_t));
@@ -228,31 +222,13 @@ get_map(l2p_t *l2p, uint16_t pid, uint16_t lid)
 }
 
 /**************************************************************************//**
- * Add an RX lcore to a port
+ * return the rxtx_t value at given lcore/port index
  *
  */
 static __inline__ void
-l2p_connect(l2p_t *l2p,  uint16_t pid, uint16_t lid, uint32_t type)
+put_map(l2p_t *l2p, uint16_t pid, uint16_t lid, uint32_t rxtx)
 {
-	lobj_t    *lobj = &l2p->lcores[lid];
-	pobj_t    *pobj = &l2p->ports[pid];
-
-	lobj->type  = type;
-
-	if (type & RX_TYPE) {
-		lobj->pids.rx[lobj->pids.rx_cnt++]  = pid;
-		lobj->qids.rx[pid]  = pg_new_rxque(l2p, pid);	/* allocate a RX qid */
-		lobj->qids.rx_cnt++;
-		pg_inc_rx(l2p, pid, lid);
-	}
-
-	if (type & TX_TYPE) {
-		lobj->pids.tx[lobj->pids.tx_cnt++]  = pid;
-		lobj->qids.tx[pid]  = pg_new_txque(l2p, pid);	/* Allocate a TX qid */
-		lobj->qids.tx_cnt++;
-		pg_inc_tx(l2p, pid, lid);
-	}
-	pobj->lids[pobj->nb_lids++] = lid;
+	l2p->map[pid][lid].rxtx = rxtx;
 }
 
 /**************************************************************************//**
@@ -489,20 +465,20 @@ pg_dump_l2p(l2p_t *l2p)
 			       lobj->lid, types[lobj->type]);
 
 			if (lobj->pids.rx_cnt) {
-				printf("                RX(%2d): ",
+				printf("                RX_cnt(%2d): ",
 				       lobj->pids.rx_cnt);
 				for (i = 0; i < lobj->pids.rx_cnt; i++)
-					printf("(%2d:%2d) ",
+					printf("(pid=%2d:qid=%2d) ",
 					       lobj->pids.rx[i],
 					       lobj->qids.rx[lobj->pids.rx[i]]);
 
 				printf("\n");
 			}
 			if (lobj->pids.tx_cnt) {
-				printf("                TX(%2d): ",
+				printf("                TX_cnt(%2d): ",
 				       lobj->pids.tx_cnt);
 				for (i = 0; i < lobj->pids.tx_cnt; i++)
-					printf("(%2d:%2d) ",
+					printf("(pid=%2d:qid=%2d) ",
 					       lobj->pids.tx[i],
 					       lobj->qids.tx[lobj->pids.tx[i]]);
 

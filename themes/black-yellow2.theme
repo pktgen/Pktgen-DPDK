@@ -4,7 +4,7 @@ theme top.ports green none bold
 theme top.page black none off
 theme top.copyright red none off
 theme top.poweredby blue none bold
-theme sep.dash blue none off
+theme sep.dash black none off
 theme sep.text red none bold
 theme stats.port.label blue none bold
 theme stats.port.flags blue none bold
@@ -16,4 +16,4 @@ theme stats.stat.values black none off
 theme stats.total.label red none bold
 theme stats.colon blue none bold
 theme pktgen.prompt blue none off
-cls
+theme on

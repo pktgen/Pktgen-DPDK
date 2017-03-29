@@ -8,12 +8,12 @@
  */
 
 /* scrn.h fake functions */
-#include <scrn.h>
+#include <cli_scrn.h>
 void
 scrn_center(int16_t r, const char *fmt, ...) {         }
 void
 scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }
-scrn_t *scrn = NULL;
+struct cli_scrn *scrn = NULL;
 
 /*
  * rte_ethdev.h fake functions

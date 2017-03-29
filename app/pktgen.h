@@ -95,25 +95,13 @@
 #include <rte_udp.h>
 #include <rte_tcp.h>
 
-#include <cmdline_rdline.h>
-#include <cmdline_parse.h>
-#include <cmdline_socket.h>
-#include <cmdline_parse_string.h>
-#include <cmdline_parse_num.h>
-#include <cmdline_parse_ipaddr.h>
-#include <cmdline_parse_etheraddr.h>
-#include <cmdline_parse_portlist.h>
-#include <cmdline.h>
-
-#include <scrn.h>
-
 #include <copyright_info.h>
 #include <l2p.h>
 #include <port_config.h>
 #include <core_info.h>
 
 #include <_pcap.h>
-#include <inet.h>
+#include <pg_inet.h>
 #include <cksum.h>
 
 #include <cycles.h>
@@ -126,15 +114,16 @@
 #include "pktgen-capture.h"
 #include "pktgen-log.h"
 #include "pktgen-latency.h"
-
 #include "pktgen-seq.h"
 #include "pktgen-help.h"
+
+#include <cli.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define PKTGEN_VERSION          "3.1.2"
+#define PKTGEN_VERSION          "3.2.0"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -273,20 +262,11 @@ typedef union {
 } ethaddr_t;
 
 #define MAX_PORT_DESC_SIZE  132
-#define MAX_CMD_FILES       16
-
-typedef struct {
-	char    *filename[MAX_CMD_FILES];
-	uint8_t idx;
-} cmd_files_t;
-
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
 	void *L;		/**< Lua State pointer */
 	char *hostname;		/**< GUI hostname */
-	scrn_t *scrn;		/**< Screen structure pointer */
-	cmd_files_t cmd_files;	/**< Command file path and name */
 
 	int32_t socket_port;		/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */
@@ -356,6 +336,7 @@ enum {						/* Pktgen flags bits */
 	FAKE_PORTS_FLAG         = (1 << 9),	/**< Fake ports enabled */
 	BLINK_PORTS_FLAG        = (1 << 10),	/**< Blink the port leds */
 	ENABLE_THEME_FLAG       = (1 << 11),	/**< Enable theme or color support */
+	USE_CLI					= (1 << 12),	/**< Use the CLI commands */
 
 	CONFIG_PAGE_FLAG        = (1 << 16),	/**< Display the configure page */
 	SEQUENCE_PAGE_FLAG      = (1 << 17),	/**< Display the Packet sequence page */
@@ -381,11 +362,6 @@ enum {						/* Pktgen flags bits */
 			 RND_BITFIELD_PAGE_FLAG | \
 			 LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | STATS_PAGE_FLAG)
 
-struct cmdline_etheraddr {
-	uint8_t mac[6];
-};
-typedef struct cmdline_etheraddr cmdline_etheraddr_t;
-
 extern pktgen_t pktgen;
 
 extern void pktgen_page_display(struct rte_timer *tim, void *arg);
@@ -401,6 +377,7 @@ extern pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
 extern int pktgen_launch_one_lcore(void *arg);
 extern uint64_t pktgen_wire_size(port_info_t *info);
+extern void pktgen_input_start(void);
 
 extern void rte_timer_setup(void);
 
@@ -448,11 +425,10 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 enum { DISABLE_STATE = 0, ENABLE_STATE = 1 };
 
 static __inline__ uint32_t
-parseState(const char *state) {
-	return ( !strcasecmp(state,
-			     "on") ||
-		 !strcasecmp(state,
-			     "enable") || !strcasecmp(state, "start") ) ?
+estate(const char *state) {
+	return ( !strcasecmp(state, "on") ||
+		 !strcasecmp(state, "enable") ||
+		 !strcasecmp(state, "start") ) ?
 	       ENABLE_STATE : DISABLE_STATE;
 }
 

@@ -94,13 +94,11 @@ pktgen_page_cpu(void)
 	scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
 	row += 4;
 
-	scrn_printf(
-		row++,
-		5,
-		"%d sockets, %d cores, %d threads",
-		nb_sockets,
-		nb_cores,
-		nb_threads);
+	scrn_printf(row++, 5,
+				"%d sockets, %d cores per socket and %d threads per core.",
+	        nb_sockets,
+	        nb_cores,
+	        nb_threads);
 
 	sprintf(buff, "Socket   : ");
 	for (i = 0; i < nb_sockets; i++)
@@ -131,7 +129,7 @@ pktgen_page_cpu(void)
 		display_dashline(pktgen.last_row);
 
 		scrn_setw(pktgen.last_row);
-		scrn_printf(100, 1, "");/* Put cursor on the last row. */
+		scrn_printf(100, 1, "");	/* Put cursor on the last row. */
 	}
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
@@ -154,8 +152,8 @@ pktgen_cpu_init(void)
 	pktgen_get_uname();
 	memset(&pktgen.core_info, 0xff, (sizeof(lc_info_t) * RTE_MAX_LCORE));
 	pktgen.core_cnt     = coremap("array",
-				      pktgen.core_info,
-				      RTE_MAX_LCORE,
-				      NULL);
+	                                 pktgen.core_info,
+	                                 RTE_MAX_LCORE,
+	                                 NULL);
 	pktgen.lscpu        = lscpu_info(NULL, NULL);
 }

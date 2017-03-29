@@ -49,14 +49,16 @@ CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 CFLAGS += -I$(RTE_SRCDIR)/../lib/lua/src
+CFLAGS += -I$(RTE_SRCDIR)/../lib/cli
 
 LUA_LIB    := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib
 COMMON_LIB := $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib
 GUI_LIB    := $(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib
+CLI_LIB    := $(RTE_SRCDIR)/../lib/cli/lib/cli/$(RTE_TARGET)/lib
 
 # all source are stored in SRCS-y
 SRCS-y := \
-	cmd-functions.c lpktgenlib.c pktgen-cfg.c pktgen-cmds.c pktgen.c \
+	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
 	pktgen-main.c pktgen-pcap.c pktgen-range.c pktgen-cpu.c \
 	pktgen-seq.c pktgen-dump.c pktgen-capture.c pktgen-stats.c \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \
@@ -66,6 +68,16 @@ SRCS-y := \
 
 MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB)
 MYLIBS := -llua -lcommon
+
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
+MYLIB_PATH += -L$(CLI_LIB)
+MYLIBS += -lcli
+else
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
+MYLIB_PATH += -L$(CLI_LIB)
+MYLIBS += -lcli
+endif
+endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe
@@ -90,8 +102,14 @@ ifeq ($(GUI),true)
 	DEPDIRS-y += ../gui
 endif
 
+pktgen: $(COMMON_LIB)/libcommon.a $(LUA_LIB)/liblua.a $(CLI_LIB)/libcli.a
+
 LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) $(GTK_LIB) -lm
 
 DEPDIRS-y += ../lib/common ../lib/lua
+
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
+DEPDIRS += ../lib/cli
+endif
 
 include $(RTE_SDK)/mk/rte.extapp.mk

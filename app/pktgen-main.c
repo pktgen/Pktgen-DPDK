@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,37 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include "pktgen-main.h"
@@ -73,9 +42,9 @@
 #include "lua-socket.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
-#include "cmd-functions.h"
 #include "pktgen-display.h"
 #include "pktgen-log.h"
+#include "cli-functions.h"
 
 /* Defined in examples/pktgen/lib/lua/lua_shell.c */
 extern void execute_lua_close(lua_State *L);
@@ -99,57 +68,6 @@ void
 pktgen_l2p_dump(void)
 {
 	pg_raw_dump_l2p(pktgen.l2p);
-}
-
-#include <poll.h>
-
-/**************************************************************************//**
- *
- * pktgen_interact - Main interaction routine for command line and display
- *
- * DESCRIPTION
- * Process keyboard input and is called from the main command line loop.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_interact(struct cmdline *cl)
-{
-	char c;
-	struct pollfd fds;
-	uint64_t curr_tsc;
-	uint64_t next_poll;
-	uint64_t reload;
-
-	fds.fd      = cl->s_in;
-	fds.events  = POLLIN;
-	fds.revents = 0;
-
-	c = -1;
-	reload = (pktgen.hz / 1000);
-	next_poll = rte_rdtsc() + reload;
-
-	for (;; ) {
-		rte_timer_manage();
-		curr_tsc = rte_rdtsc();
-		if (unlikely(curr_tsc >= next_poll)  ) {
-			next_poll = curr_tsc + reload;
-			if (poll(&fds, 1, 0) ) {
-				if ( (fds.revents &
-				      (POLLERR | POLLNVAL | POLLHUP)) )
-					break;
-				if ( (fds.revents & POLLIN) ) {
-					if (read(cl->s_in, &c, 1) < 0)
-						break;
-					if (cmdline_in(cl, &c, 1) < 0)
-						break;
-				}
-			}
-		}
-	}
 }
 
 /**************************************************************************//**
@@ -190,6 +108,7 @@ pktgen_usage(const char *prgname)
 		"  -s P:file    PCAP packet stream file, 'P' is the port number\n"
 		"  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
 		"  -l filename  Write log to filename\n"
+		"  -I           use CLI\n"
 		"  -P           Enable PROMISCUOUS mode on all ports\n"
 		"  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
 		"               If -g is used that enable socket support as a server application\n"
@@ -266,7 +185,7 @@ pktgen_parse_args(int argc, char **argv)
 	for (opt = 0; opt < argc; opt++)
 		pktgen.argv[opt] = strdup(argv[opt]);
 
-	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGT",
+	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hIPNGT",
 				  lgopts, &option_index)) != EOF)
 		switch (opt) {
 		case 'p':
@@ -274,7 +193,7 @@ pktgen_parse_args(int argc, char **argv)
 			break;
 
 		case 'f':	/* Command file or Lua script. */
-			pktgen.cmd_files.filename[pktgen.cmd_files.idx++] = strdup(optarg);
+			cli_add_cmdfile(optarg);
 			break;
 
 		case 'l':	/* Log file */
@@ -283,8 +202,7 @@ pktgen_parse_args(int argc, char **argv)
 
 		case 'm':	/* Matrix for port mapping. */
 			if (pg_parse_matrix(pktgen.l2p, optarg) == -1) {
-				pktgen_log_error("invalid matrix string (%s)",
-						 optarg);
+				pktgen_log_error("invalid matrix string (%s)", optarg);
 				pktgen_usage(prgname);
 				return -1;
 			}
@@ -303,7 +221,11 @@ pktgen_parse_args(int argc, char **argv)
 				return -1;
 			}
 			break;
-
+		case 'I':	/* Enable CLI prompt */
+#ifdef RTE_LIBRTE_CLI
+			pktgen.flags |= USE_CLI;
+#endif
+			break;
 		case 'P':	/* Enable promiscuous mode on the ports */
 			pktgen.flags    |= PROMISCUOUS_ON_FLAG;
 			break;
@@ -321,17 +243,13 @@ pktgen_parse_args(int argc, char **argv)
 
 			p = strchr(optarg, ':');
 			if (p == NULL)	/* No : symbol means pktgen is a server application. */
-				pktgen.hostname = (char *)strdupf(
-						pktgen.hostname,
-						optarg);
+				pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
 			else {
 				char c = *p;
 
 				*p = '\0';
 				if (p != optarg)
-					pktgen.hostname = (char *)strdupf(
-							pktgen.hostname,
-							optarg);
+					pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
 
 				pktgen.socket_port = strtol(++p, NULL, 0);
 				pktgen_log_info(
@@ -363,7 +281,7 @@ pktgen_parse_args(int argc, char **argv)
 		argv[optind - 1] = prgname;
 
 	ret = optind - 1;
-	optind = 0;	/* reset getopt lib */
+	optind = 1;	/* reset getopt lib */
 	return ret;
 }
 
@@ -385,7 +303,7 @@ main(int argc, char **argv)
 	uint32_t i;
 	int32_t ret;
 
-	scrn_setw(1);		/* Reset the window size, from possible crash run. */
+	scrn_setw(1);	/* Reset the window size, from possible crash run. */
 	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
 	printf("\n%s %s\n", copyright_msg(), powered_by());
@@ -418,18 +336,21 @@ main(int argc, char **argv)
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
 		return -1;
+
 	argc -= ret;
 	argv += ret;
 
-	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
+	if (pktgen_cli_create())
+		return -1;
 
 	/* parse application arguments (after the EAL ones) */
 	ret = pktgen_parse_args(argc, argv);
 	if (ret < 0)
 		return -1;
 
-	pktgen_init_screen(
-		(pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
+	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
+
+	scrn_create_with_defaults(pktgen.flags & ENABLE_THEME_FLAG);
 
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 
@@ -472,13 +393,13 @@ main(int argc, char **argv)
 	/* Disable printing log messages of level info and below to screen, */
 	/* erase the screen and start updating the screen again. */
 	pktgen_log_set_screen_level(LOG_LEVEL_WARNING);
-	scrn_erase(pktgen.scrn->nrows);
+	scrn_erase(this_scrn->nrows);
 
 	splash_screen(3, 16, PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
 	scrn_resume();
 
-	pktgen_redisplay(1);
+	pktgen_clear_display();
 
 	rte_timer_setup();
 
@@ -487,7 +408,7 @@ main(int argc, char **argv)
 			scrn_pause();
 			scrn_cls();
 			scrn_setw(1);
-			scrn_pos(pktgen.scrn->nrows, 1);
+			scrn_pos(this_scrn->nrows, 1);
 		}
 
 		lua_init_socket(pktgen.L,
@@ -495,12 +416,11 @@ main(int argc, char **argv)
 				pktgen.hostname,
 				pktgen.socket_port);
 #ifdef GUI
-		printf("%s: Here\n", __func__);
 		pktgen_gui_main(argc, argv);
 #endif
 	}
 
-	pktgen_cmdline_start();
+	pktgen_cli_start();
 
 	execute_lua_close(pktgen.L);
 	pktgen_stop_running();
@@ -518,6 +438,8 @@ main(int argc, char **argv)
 		rte_delay_ms(100);
 		rte_eth_dev_close(i);
 	}
+
+	cli_destroy();
 
 	return 0;
 }

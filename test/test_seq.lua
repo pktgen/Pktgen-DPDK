@@ -1,7 +1,7 @@
 
 --
 -- Set up the sequence data for the port.
-pktgen.set('0', 'seqCnt', 8);
+pktgen.set('0', 'seq_cnt', 8);
 
 -- (seqnum, port, dst_mac, src_mac, ip_dst, ip_src, sport, dport, ethType, proto, vlanid, pktSize, gtpu_teid)
 -- pktgen.seq(0, '0', '3c:fd:fe:9e:2c:b8' '3c:fd:fe:9e:29:78', '192.168.1.1', '192.168.0.1/24', 1234, 5678, 'ipv4', 'tcp', 1, 64, 0);

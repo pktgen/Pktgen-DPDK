@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,19 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #define _GNU_SOURCE
 #include <string.h>
 #include <sys/stat.h>
 
+#include "pktgen.h"
+
 #include "pktgen-cmds.h"
 
 #include "pktgen-display.h"
-#include "pktgen.h"
+
+#include <rte_net.h>
 
 static char hash_line[] = "#######################################################################";
 
@@ -88,7 +60,7 @@ convert_bitfield(bf_spec_t *bf)
 	memset(rnd_bitmask, '.', sizeof(rnd_bitmask) - 1);
 
 	p = rnd_bitmask;
-	for (i = 0; i < MAX_BITFIELD_SIZE; i++) {
+	for(i = 0; i < MAX_BITFIELD_SIZE; i++) {
 		mask = (uint32_t)(1 << (MAX_BITFIELD_SIZE - i - 1));
 
 		/* Need to check rndMask before andMask: for random bits, the
@@ -179,7 +151,7 @@ pktgen_script_save(char *path)
 	uint16_t rows, cols;
 	pktgen_display_get_geometry(&rows, &cols);
 	fprintf(fd, "geometry %dx%d\n", cols, rows);
-	fprintf(fd, "mac_from_arp %s\n\n",
+	fprintf(fd, "%s mac_from_arp\n\n",
 		(pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
 	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
@@ -199,9 +171,9 @@ pktgen_script_save(char *path)
 				 rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "#\n");
 		flags = rte_atomic32_read(&info->port_flags);
-		fprintf(fd, "# Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
+		fprintf(fd, "# Port: %2d, Burst:%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
 			info->pid, info->tx_burst, info->tx_rate, flags, buff);
-		fprintf(fd, "#           SeqCnt:%d, Prime:%d VLAN ID:%04x, ",
+		fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ",
 			info->seqCnt, info->prime_cnt, info->vlanid);
 		pktgen_link_state(info->pid, buff, sizeof(buff));
 		fprintf(fd, "Link: %s\n", buff);
@@ -210,33 +182,32 @@ pktgen_script_save(char *path)
 		fprintf(fd, "set %d count %ld\n", info->pid,
 			rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "set %d size %d\n", info->pid, pkt->pktSize + FCS_SIZE);
-		fprintf(fd, "set %d rate %d\n", info->pid, info->tx_rate);
+		fprintf(fd, "set %d rate %g\n", info->pid, info->tx_rate);
 		fprintf(fd, "set %d burst %d\n", info->pid, info->tx_burst);
 		fprintf(fd, "set %d sport %d\n", info->pid, pkt->sport);
 		fprintf(fd, "set %d dport %d\n", info->pid, pkt->dport);
 		fprintf(fd, "set %d prime %d\n", info->pid, info->prime_cnt);
-		fprintf(fd, "type %s %d\n",
+		fprintf(fd, "set %d type %s\n", i,
 			(pkt->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
 			(pkt->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
 			(pkt->ethType == ETHER_TYPE_VLAN) ? "vlan" :
-			(pkt->ethType == ETHER_TYPE_ARP) ? "arp" : "unknown",
-			i);
-		fprintf(fd, "proto %s %d\n",
+			(pkt->ethType == ETHER_TYPE_ARP) ? "arp" : "unknown");
+		fprintf(fd, "set %d proto %s\n", i,
 			(pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
-			(pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp", i);
-		fprintf(fd, "set ip dst %d %s\n", i,
+			(pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp");
+		fprintf(fd, "set %d ip dst %s\n", i,
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 				   0xFFFFFFFF));
-		fprintf(fd, "set ip src %d %s\n", i,
+		fprintf(fd, "set %d ip src %s\n", i,
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
-		fprintf(fd, "set mac %d %s\n", info->pid,
+		fprintf(fd, "set %d mac %s\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
-		fprintf(fd, "vlanid %d %d\n\n", i, pkt->vlanid);
+		fprintf(fd, "set %d vlanid %d\n\n", i, pkt->vlanid);
 
-		fprintf(fd, "pattern %d %s\n", i,
+		fprintf(fd, "set %d pattern %s\n", i,
 			(info->fill_pattern_type == ABC_FILL_PATTERN) ? "abc" :
 			(info->fill_pattern_type == NO_FILL_PATTERN) ? "none" :
 			(info->fill_pattern_type ==
@@ -245,136 +216,136 @@ pktgen_script_save(char *path)
 			char buff[32];
 			memset(buff, 0, sizeof(buff));
 			strncpy(buff, info->user_pattern, sizeof(info->user_pattern));
-			fprintf(fd, "user.pattern %d %s\n", i, buff);
+			fprintf(fd, "set %d user pattern %s\n", i, buff);
 		}
 		fprintf(fd, "\n");
 
-		fprintf(fd, "jitter %d %lu\n", i, info->jitter_threshold);
-		fprintf(fd, "mpls %d %sable\n", i,
-			(flags & SEND_MPLS_LABEL) ? "en" : "dis");
+		fprintf(fd, "set %d jitter %lu\n", i, info->jitter_threshold);
+		fprintf(fd, "%sable %d mpls\n",
+			(flags & SEND_MPLS_LABEL) ? "en" : "dis", i);
 		sprintf(buff, "%x", pkt->mpls_entry);
-		fprintf(fd, "mpls_entry %d %s\n", i, buff);
+		fprintf(fd, "set %d mpls_entry %s\n", i, buff);
 
-		fprintf(fd, "qinq %d %sable\n", i,
-			(flags & SEND_Q_IN_Q_IDS) ? "en" : "dis");
-		fprintf(fd, "qinqids %d %d %d\n", i,
+		fprintf(fd, "%sable %d qinq\n",
+			(flags & SEND_Q_IN_Q_IDS) ? "en" : "dis", i);
+		fprintf(fd, "set %d qinqids %d %d\n", i,
 			pkt->qinq_outerid, pkt->qinq_innerid);
 
-		fprintf(fd, "gre %d %sable\n", i,
-			(flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis");
-		fprintf(fd, "gre_eth %d %sable\n", i,
-			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis");
-		fprintf(fd, "gre_key %d %d\n", i, pkt->gre_key);
+		fprintf(fd, "%sable %d gre\n",
+			(flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d gre_eth\n",
+			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis", i);
+		fprintf(fd, "set %d gre_key %d\n", i, pkt->gre_key);
 
 		fprintf(fd, "#\n# Port flag values:\n");
-		fprintf(fd, "icmp.echo %d %sable\n", i,
-			(flags & ICMP_ECHO_ENABLE_FLAG) ? "en" : "dis");
-		fprintf(fd, "pcap %d %sable\n", i,
-			(flags & SEND_PCAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "range %d %sable\n", i,
-			(flags & SEND_RANGE_PKTS) ? "en" : "dis");
-		fprintf(fd, "latency %d %sable\n", i,
-			(flags & SEND_LATENCY_PKTS) ? "en" : "dis");
-		fprintf(fd, "process %d %sable\n", i,
-			(flags & PROCESS_INPUT_PKTS) ? "en" : "dis");
-		fprintf(fd, "capture %d %sable\n", i,
-			(flags & CAPTURE_PKTS) ? "en" : "dis");
-		fprintf(fd, "rxtap %d %sable\n", i,
-			(flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "txtap %d %sable\n", i,
-			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis");
-		fprintf(fd, "vlan %d %sable\n\n", i,
-			(flags & SEND_VLAN_ID) ? "en" : "dis");
+		fprintf(fd, "%sable %d icmp\n",
+			(flags & ICMP_ECHO_ENABLE_FLAG) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d pcap\n",
+			(flags & SEND_PCAP_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d range\n",
+			(flags & SEND_RANGE_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d latency\n",
+			(flags & SEND_LATENCY_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d process\n",
+			(flags & PROCESS_INPUT_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d capture\n",
+			(flags & CAPTURE_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d rx_tap\n",
+			(flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d tx_tap\n",
+			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d vlan\n\n",
+			(flags & SEND_VLAN_ID) ? "en" : "dis", i);
 
 		fprintf(fd, "#\n# Range packet information:\n");
-		fprintf(fd, "src.mac start %d %s\n", i,
+		fprintf(fd, "range %d mac src start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac, &eaddr)));
-		fprintf(fd, "src.mac min %d %s\n", i,
+		fprintf(fd, "range %d mac src min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_min, &eaddr)));
-		fprintf(fd, "src.mac max %d %s\n", i,
+		fprintf(fd, "range %d mac src max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_max, &eaddr)));
-		fprintf(fd, "src.mac inc %d %s\n", i,
+		fprintf(fd, "range %d mac src inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_inc, &eaddr)));
 
-		fprintf(fd, "dst.mac start %d %s\n", i,
+		fprintf(fd, "range %d mac dst start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac, &eaddr)));
-		fprintf(fd, "dst.mac min %d %s\n", i,
+		fprintf(fd, "range %d mac dst min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_min, &eaddr)));
-		fprintf(fd, "dst.mac max %d %s\n", i,
+		fprintf(fd, "range %d mac dst max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_max, &eaddr)));
-		fprintf(fd, "dst.mac inc %d %s\n", i,
+		fprintf(fd, "range %d mac dst inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_inc, &eaddr)));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "src.ip start %d %s\n", i,
+		fprintf(fd, "range %d ip src start %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip),
 				   0xFFFFFFFF));
-		fprintf(fd, "src.ip min %d %s\n", i,
+		fprintf(fd, "range %d ip src min %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_min),
 				   0xFFFFFFFF));
-		fprintf(fd, "src.ip max %d %s\n", i,
+		fprintf(fd, "range %d ip src max %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "src.ip inc %d %s\n", i,
+		fprintf(fd, "range %d ip src inc %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_inc),
 				   0xFFFFFFFF));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "dst.ip start %d %s\n", i,
+		fprintf(fd, "range %d ip dst start %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip),
 				   0xFFFFFFFF));
-		fprintf(fd, "dst.ip min %d %s\n", i,
+		fprintf(fd, "range %d ip dst min %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_min),
 				   0xFFFFFFFF));
-		fprintf(fd, "dst.ip max %d %s\n", i,
+		fprintf(fd, "range %d ip dst max %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "dst.ip inc %d %s\n", i,
+		fprintf(fd, "range %d ip dst inc %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_inc),
 				   0xFFFFFFFF));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "ip.proto %d %s\n", i,
+		fprintf(fd, "range %d proto %s\n", i,
 			(range->ip_proto == PG_IPPROTO_UDP) ? "udp" :
 			(range->ip_proto == PG_IPPROTO_ICMP) ? "icmp" : "tcp");
 
 		fprintf(fd, "\n");
-		fprintf(fd, "src.port start %d %d\n", i, range->src_port);
-		fprintf(fd, "src.port min %d %d\n", i, range->src_port_min);
-		fprintf(fd, "src.port max %d %d\n", i, range->src_port_max);
-		fprintf(fd, "src.port inc %d %d\n", i, range->src_port_inc);
+		fprintf(fd, "range %d sport start %d\n", i, range->src_port);
+		fprintf(fd, "range %d sport min %d\n", i, range->src_port_min);
+		fprintf(fd, "range %d sport max %d\n", i, range->src_port_max);
+		fprintf(fd, "range %d sport inc %d\n", i, range->src_port_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "dst.port start %d %d\n", i, range->dst_port);
-		fprintf(fd, "dst.port min %d %d\n", i, range->dst_port_min);
-		fprintf(fd, "dst.port max %d %d\n", i, range->dst_port_max);
-		fprintf(fd, "dst.port inc %d %d\n", i, range->dst_port_inc);
+		fprintf(fd, "range %d dport start %d\n", i, range->dst_port);
+		fprintf(fd, "range %d dport min %d\n", i, range->dst_port_min);
+		fprintf(fd, "range %d dport max %d\n", i, range->dst_port_max);
+		fprintf(fd, "range %d dport inc %d\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "vlan.id start %d %d\n", i, range->vlan_id);
-		fprintf(fd, "vlan.id min %d %d\n", i, range->vlan_id_min);
-		fprintf(fd, "vlan.id max %d %d\n", i, range->vlan_id_max);
-		fprintf(fd, "vlan.id inc %d %d\n", i, range->vlan_id_inc);
+		fprintf(fd, "range %d vlan start %d\n", i, range->vlan_id);
+		fprintf(fd, "range %d vlan min %d\n", i, range->vlan_id_min);
+		fprintf(fd, "range %d vlan max %d\n", i, range->vlan_id_max);
+		fprintf(fd, "range %d vlan inc %d\n", i, range->vlan_id_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "pkt.size start %d %d\n", i,
+		fprintf(fd, "range %d size start %d\n", i,
 			range->pkt_size + FCS_SIZE);
-		fprintf(fd, "pkt.size min %d %d\n", i,
+		fprintf(fd, "range %d size min %d\n", i,
 			range->pkt_size_min + FCS_SIZE);
-		fprintf(fd, "pkt.size max %d %d\n", i,
+		fprintf(fd, "range %d size max %d\n", i,
 			range->pkt_size_max + FCS_SIZE);
-		fprintf(fd, "pkt.size inc %d %d\n\n", i, range->pkt_size_inc);
+		fprintf(fd, "range %d size inc %d\n\n", i, range->pkt_size_inc);
 
 		fprintf(fd, "#\n# Set up the sequence data for the port.\n");
-		fprintf(fd, "set %d seqCnt %d\n", info->pid, info->seqCnt);
+		fprintf(fd, "set %d seq_cnt %d\n", info->pid, info->seqCnt);
 		for (j = 0; j < info->seqCnt; j++) {
 			pkt = &info->seq_pkt[j];
 			fprintf(fd, "seq %d %d %s ", j, i,
@@ -427,7 +398,7 @@ pktgen_script_save(char *path)
 			if ((active & (1 << j)) == 0)
 				continue;
 			bf = &info->rnd_bitfields->specs[j];
-			fprintf(fd, "rnd %d %d %d %s\n",
+			fprintf(fd, "set %d rnd %d %d %s\n",
 				i, j, bf->offset, convert_bitfield(bf));
 		}
 		fprintf(fd, "\n");
@@ -524,9 +495,9 @@ pktgen_lua_save(char *path)
 				 rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "-- \n");
 		flags = rte_atomic32_read(&info->port_flags);
-		fprintf(fd, "-- Port: %2d, Burst:%3d, Rate:%3d%%, Flags:%08x, TX Count:%s\n",
+		fprintf(fd, "-- Port: %2d, Burst:%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
 			info->pid, info->tx_burst, info->tx_rate, flags, buff);
-		fprintf(fd, "--           SeqCnt:%d, Prime:%d VLAN ID:%04x, ",
+		fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ",
 			info->seqCnt, info->prime_cnt, info->vlanid);
 		pktgen_link_state(info->pid, buff, sizeof(buff));
 		fprintf(fd, "Link: %s\n", buff);
@@ -535,7 +506,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.set('%d', 'count', %ld);\n", info->pid,
 			rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "pktgen.set('%d', 'size', %d);\n", info->pid, pkt->pktSize + FCS_SIZE);
-		fprintf(fd, "pktgen.set('%d', 'rate', %d);\n", info->pid, info->tx_rate);
+		fprintf(fd, "pktgen.set('%d', 'rate', %g);\n", info->pid, info->tx_rate);
 		fprintf(fd, "pktgen.set('%d', 'burst', %d);\n", info->pid, info->tx_burst);
 		fprintf(fd, "pktgen.set('%d', 'sport', %d);\n", info->pid, pkt->sport);
 		fprintf(fd, "pktgen.set('%d', 'dport', %d);\n", info->pid, pkt->dport);
@@ -699,7 +670,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.pkt_size('%d', 'inc', %d);\n\n", i, range->pkt_size_inc);
 
 		fprintf(fd, "--\n-- Set up the sequence data for the port.\n");
-		fprintf(fd, "pktgen.set('%d', 'seqCnt', %d);\n\n", info->pid, info->seqCnt);
+		fprintf(fd, "pktgen.set('%d', 'seq_cnt', %d);\n\n", info->pid, info->seqCnt);
 		fflush(fd);
 		if (info->seqCnt) {
 			fprintf(
@@ -892,9 +863,9 @@ pktgen_transmit_count_rate(int port, char *buff, int len)
 	port_info_t *info = &pktgen.info[port];
 
 	if (rte_atomic64_read(&info->transmit_count) == 0)
-		snprintf(buff, len, "Forever /%4d%%", info->tx_rate);
+		snprintf(buff, len, "Forever /%g%%", info->tx_rate);
 	else
-		snprintf(buff, len, "%ld /%4d%%",
+		snprintf(buff, len, "%ld /%g%%",
 			 rte_atomic64_read(&info->transmit_count),
 			 info->tx_rate);
 
@@ -1011,39 +982,7 @@ pktgen_flags_string(port_info_t *info)
 
 /**************************************************************************//**
  *
- * pktgen_redisplay - Redisplay the screen or clear the screen.
- *
- * DESCRIPTION
- * Redisplay the screen or clear the screen based on flag.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_redisplay(int cls_flag)
-{
-	if (scrn_is_paused() )
-		return;
-
-	scrn_pause();
-	if (cls_flag) {
-		scrn_cls();
-		scrn_pos(100, 1);
-	}
-	pktgen.flags |= PRINT_LABELS_FLAG;
-	scrn_resume();
-
-	pktgen_page_display(NULL, NULL);
-}
-
-/**************************************************************************//**
- *
- * pktgen_update_display - Update the display, but do not clear screen.
- *
- * DESCRIPTION
- * Update the display, but do not clear the screen.
+ * pktgen_update_display - Update the display data and static data.
  *
  * RETURNS: N/A
  *
@@ -1055,6 +994,53 @@ pktgen_update_display(void)
 {
 	pktgen.flags |= PRINT_LABELS_FLAG;
 	pktgen.flags |= UPDATE_DISPLAY_FLAG;
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_clear_display - clear the screen.
+ *
+ * DESCRIPTION
+ * clear the screen and redisplay data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_clear_display(void)
+{
+	if (!scrn_is_paused()) {
+		scrn_pause();
+
+		scrn_cls();
+		scrn_pos(100, 1);
+
+		pktgen_update_display();
+
+		scrn_resume();
+
+		pktgen_page_display(NULL, NULL);
+	}
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_force_update - Force the screen to update data and static data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_force_update(void)
+{
+	pktgen.flags |= UPDATE_DISPLAY_FLAG;
+
+	if (!scrn_is_paused())
+		pktgen_page_display(NULL, NULL);
 }
 
 /**************************************************************************//**
@@ -1080,7 +1066,7 @@ pktgen_set_page_size(uint32_t page_size)
 		    (pktgen.starting_port + pktgen.nb_ports) )
 			pktgen.ending_port =
 				(pktgen.starting_port + pktgen.nb_ports);
-		pktgen_redisplay(1);
+		pktgen_clear_display();
 	}
 }
 
@@ -1097,13 +1083,13 @@ pktgen_set_page_size(uint32_t page_size)
  */
 
 void
-pktgen_screen(const char *onOff)
+pktgen_screen(int state)
 {
 	uint16_t rows;
 
 	pktgen_display_get_geometry(&rows, NULL);
 
-	if (parseState(onOff) == DISABLE_STATE) {
+	if (state == DISABLE_STATE) {
 		if (!scrn_is_paused() ) {
 			scrn_pause();
 			scrn_cls();
@@ -1112,10 +1098,10 @@ pktgen_screen(const char *onOff)
 		}
 	} else {
 		scrn_cls();
-		scrn_pos(100, 1);
 		scrn_setw(pktgen.last_row + 1);
 		scrn_resume();
-		pktgen_redisplay(1);
+		scrn_pos(100, 1);
+		pktgen_force_update();
 	}
 }
 
@@ -1136,7 +1122,7 @@ pktgen_set_port_number(uint32_t port_number)
 {
 	if (port_number <= pktgen.nb_ports) {
 		pktgen.portNum = port_number;
-		pktgen_redisplay(1);
+		pktgen_clear_display();
 	}
 }
 
@@ -1153,7 +1139,7 @@ pktgen_set_port_number(uint32_t port_number)
  */
 
 void
-pktgen_set_icmp_echo(port_info_t *info, uint32_t onOff)
+enable_icmp_echo(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE)
 		pktgen_set_port_flags(info, ICMP_ECHO_ENABLE_FLAG);
@@ -1163,7 +1149,7 @@ pktgen_set_icmp_echo(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_rx_tap - Enable or disable the Rx TAP interface
+ * enable_rx_tap - Enable or disable the Rx TAP interface
  *
  * DESCRIPTION
  * Create and setup the Rx TAP interface.
@@ -1174,7 +1160,7 @@ pktgen_set_icmp_echo(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_rx_tap(port_info_t *info, uint32_t onOff)
+enable_rx_tap(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		struct ifreq ifr;
@@ -1227,7 +1213,7 @@ pktgen_set_rx_tap(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_tx_tap - Enable or disable the Tx TAP interface
+ * enable_tx_tap - Enable or disable the Tx TAP interface
  *
  * DESCRIPTION
  * Create and setup the Tx TAP interface.
@@ -1238,7 +1224,7 @@ pktgen_set_rx_tap(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_tx_tap(port_info_t *info, uint32_t onOff)
+enable_tx_tap(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		struct ifreq ifr;
@@ -1291,7 +1277,7 @@ pktgen_set_tx_tap(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_mac_from_arp - Enable or disable getting MAC from ARP requests.
+ * enable_mac_from_arp - Enable or disable getting MAC from ARP requests.
  *
  * DESCRIPTION
  * Enable or disable getting the MAC address from the ARP request packets.
@@ -1302,7 +1288,7 @@ pktgen_set_tx_tap(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_mac_from_arp(uint32_t onOff)
+enable_mac_from_arp(uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE)
 		pktgen.flags |= MAC_FROM_ARP_FLAG;
@@ -1312,7 +1298,7 @@ pktgen_mac_from_arp(uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_random - Enable/disable random bitfield mode
+ * enable_random - Enable/disable random bitfield mode
  *
  * DESCRIPTION
  * Enable/disable random bitfield mode
@@ -1323,7 +1309,7 @@ pktgen_mac_from_arp(uint32_t onOff)
  */
 
 void
-pktgen_set_random(port_info_t *info, uint32_t onOff)
+enable_random(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE)
 		pktgen_set_port_flags(info, SEND_RANDOM_PKTS);
@@ -1344,7 +1330,7 @@ __mempool_dump(FILE *f, struct rte_mempool *mp) {
 
 /**************************************************************************//**
  *
- * pktgen_mempool_dump - Display the mempool information
+ * debug_mempool_dump - Display the mempool information
  *
  * DESCRIPTION
  * Dump out the mempool information.
@@ -1355,7 +1341,7 @@ __mempool_dump(FILE *f, struct rte_mempool *mp) {
  */
 
 void
-pktgen_mempool_dump(port_info_t *info, char *name)
+debug_mempool_dump(port_info_t *info, char *name)
 {
 	int all;
 	uint16_t q;
@@ -1480,15 +1466,15 @@ pktgen_prime_ports(port_info_t *info)
  */
 
 void
-pktgen_set_proto(port_info_t *info, char type)
+single_set_proto(port_info_t *info, char *type)
 {
-	info->seq_pkt[SINGLE_PKT].ipProto = (type == 'u') ? PG_IPPROTO_UDP :
-		(type == 'i') ? PG_IPPROTO_ICMP :
-		(type == 't') ? PG_IPPROTO_TCP :
+	info->seq_pkt[SINGLE_PKT].ipProto = (type[0] == 'u') ? PG_IPPROTO_UDP :
+		(type[0] == 'i') ? PG_IPPROTO_ICMP :
+		(type[0] == 't') ? PG_IPPROTO_TCP :
 		/* TODO print error: unknown type */ PG_IPPROTO_TCP;
 
 	/* ICMP only works on IPv4 packets. */
-	if (type == 'i')
+	if (type[0] == 'i')
 		info->seq_pkt[SINGLE_PKT].ethType = ETHER_TYPE_IPv4;
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
@@ -1496,7 +1482,7 @@ pktgen_set_proto(port_info_t *info, char type)
 
 /**************************************************************************//**
  *
- * pktgen_set_proto_range - Set up the protocol type for a port/packet.
+ * range_set_proto - Set up the protocol type for a port/packet.
  *
  * DESCRIPTION
  * Setup all range packets with a protocol types with the port list.
@@ -1507,22 +1493,22 @@ pktgen_set_proto(port_info_t *info, char type)
  */
 
 void
-pktgen_set_proto_range(port_info_t *info, char type)
+range_set_proto(port_info_t *info, const char *type)
 {
-	info->seq_pkt[RANGE_PKT].ipProto = (type == 'u') ? PG_IPPROTO_UDP :
-		(type == 'i') ? PG_IPPROTO_ICMP :
-		(type == 't') ? PG_IPPROTO_TCP :
+	info->seq_pkt[RANGE_PKT].ipProto = (type[0] == 'u') ? PG_IPPROTO_UDP :
+		(type[0] == 'i') ? PG_IPPROTO_ICMP :
+		(type[0] == 't') ? PG_IPPROTO_TCP :
 		/* TODO print error: unknown type */ PG_IPPROTO_TCP;
 	info->range.ip_proto = info->seq_pkt[RANGE_PKT].ipProto;
 
 	/* ICMP only works on IPv4 packets. */
-	if (type == 'i')
+	if (type[0] == 'i')
 		info->seq_pkt[RANGE_PKT].ethType = ETHER_TYPE_IPv4;
 }
 
 /**************************************************************************//**
  *
- * pktgen_pcap_enable_disable - Enable or disable PCAP sending of packets.
+ * pcap_enable_disable - Enable or disable PCAP sending of packets.
  *
  * DESCRIPTION
  * Enable or disable PCAP packet sending.
@@ -1533,10 +1519,10 @@ pktgen_set_proto_range(port_info_t *info, char type)
  */
 
 void
-pktgen_pcap_enable_disable(port_info_t *info, char *str)
+enable_pcap(port_info_t *info, uint32_t state)
 {
 	if ( (info->pcap != NULL) && (info->pcap->pkt_count != 0) ) {
-		if (parseState(str) == ENABLE_STATE) {
+		if (state == ENABLE_STATE) {
 			pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
 			pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
 			pktgen_set_port_flags(info, SEND_PCAP_PKTS);
@@ -1548,7 +1534,7 @@ pktgen_pcap_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_pcap_filter - Compile a PCAP filter for a portlist
+ * pcap_filter - Compile a PCAP filter for a portlist
  *
  * DESCRIPTION
  * Compile a pcap filter for a portlist
@@ -1559,7 +1545,7 @@ pktgen_pcap_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_pcap_filter(port_info_t *info, char *str)
+pcap_filter(port_info_t *info, char *str)
 {
 	pcap_t *pc = pcap_open_dead(DLT_EN10MB, 65535);
 
@@ -1574,7 +1560,7 @@ pktgen_pcap_filter(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_blink_enable_disable - Enable or disable a port from blinking.
+ * debug_blink - Enable or disable a port from blinking.
  *
  * DESCRIPTION
  * Enable or disable the given ports from blinking.
@@ -1585,9 +1571,9 @@ pktgen_pcap_filter(port_info_t *info, char *str)
  */
 
 void
-pktgen_blink_enable_disable(port_info_t *info, char *str)
+debug_blink(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen.blinklist |= (1 << info->pid);
 	else {
 		pktgen.blinklist &= ~(1 << info->pid);
@@ -1597,7 +1583,7 @@ pktgen_blink_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_process_enable_disable - Enable or disable input packet processing.
+ * enable_process - Enable or disable input packet processing.
  *
  * DESCRIPTION
  * Enable or disable input packet processing of ICMP, ARP, ...
@@ -1608,9 +1594,9 @@ pktgen_blink_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_process_enable_disable(port_info_t *info, char *str)
+enable_process(port_info_t *info, int state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen_set_port_flags(info, PROCESS_INPUT_PKTS);
 	else
 		pktgen_clr_port_flags(info, PROCESS_INPUT_PKTS);
@@ -1618,7 +1604,7 @@ pktgen_process_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_capture_enable_disable - Enable or disable capture packet processing.
+ * enable_capture - Enable or disable capture packet processing.
  *
  * DESCRIPTION
  * Enable or disable capture packet processing of ICMP, ARP, ...
@@ -1629,14 +1615,14 @@ pktgen_process_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_capture_enable_disable(port_info_t *info, char *str)
+enable_capture(port_info_t *info, uint32_t state)
 {
-	pktgen_set_capture(info, parseState(str));
+	pktgen_set_capture(info, state);
 }
 
 /**************************************************************************//**
  *
- * pktgen_garp_enable_disable - Enable or disable GARP packet processing.
+ * enable_garp - Enable or disable GARP packet processing.
  *
  * DESCRIPTION
  * Enable or disable GARP packet processing of ICMP, ARP, ...
@@ -1647,9 +1633,9 @@ pktgen_capture_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_garp_enable_disable(port_info_t *info, char *str)
+enable_garp(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen_set_port_flags(info,
 				      PROCESS_GARP_PKTS | PROCESS_INPUT_PKTS);
 	else
@@ -1659,7 +1645,7 @@ pktgen_garp_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_set_pkt_type_range - Set the packet type value for range packets.
+ * range_set_pkt_type - Set the packet type value for range packets.
  *
  * DESCRIPTION
  * Set the packet type value for the given port list.
@@ -1670,7 +1656,7 @@ pktgen_garp_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_set_pkt_type_range(port_info_t *info, const char *type)
+range_set_pkt_type(port_info_t *info, const char *type)
 {
 	info->seq_pkt[RANGE_PKT].ethType = (type[0] == 'a') ? ETHER_TYPE_ARP :
 		(type[3] == '4') ? ETHER_TYPE_IPv4 :
@@ -1680,7 +1666,7 @@ pktgen_set_pkt_type_range(port_info_t *info, const char *type)
 
 /**************************************************************************//**
  *
- * pktgen_set_pkt_type - Set the packet type value.
+ * single_set_pkt_type - Set the packet type value.
  *
  * DESCRIPTION
  * Set the packet type value for the given port list.
@@ -1691,7 +1677,7 @@ pktgen_set_pkt_type_range(port_info_t *info, const char *type)
  */
 
 void
-pktgen_set_pkt_type(port_info_t *info, const char *type)
+single_set_pkt_type(port_info_t *info, const char *type)
 {
 	info->seq_pkt[SINGLE_PKT].ethType =
 		(type[0] == 'a') ? ETHER_TYPE_ARP  :
@@ -1704,7 +1690,7 @@ pktgen_set_pkt_type(port_info_t *info, const char *type)
 
 /**************************************************************************//**
  *
- * pktgen_set_vlan - Set the port to send a VLAN ID
+ * enable_vlan - Set the port to send a VLAN ID
  *
  * DESCRIPTION
  * Set the given port list to send VLAN ID packets.
@@ -1715,7 +1701,7 @@ pktgen_set_pkt_type(port_info_t *info, const char *type)
  */
 
 void
-pktgen_set_vlan(port_info_t *info, uint32_t onOff)
+enable_vlan(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
@@ -1728,7 +1714,7 @@ pktgen_set_vlan(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_vlanid - Set the port VLAN ID value
+ * single_set_vlan_id - Set the port VLAN ID value
  *
  * DESCRIPTION
  * Set the given port list with the given VLAN ID.
@@ -1739,7 +1725,7 @@ pktgen_set_vlan(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_vlanid(port_info_t *info, uint16_t vlanid)
+single_set_vlan_id(port_info_t *info, uint16_t vlanid)
 {
 	info->vlanid = vlanid;
 	info->seq_pkt[SINGLE_PKT].vlanid = info->vlanid;
@@ -1748,7 +1734,7 @@ pktgen_set_vlanid(port_info_t *info, uint16_t vlanid)
 
 /**************************************************************************//**
  *
- * pktgen_set_mpls - Set the port to send a mpls ID
+ * enable_mpls - Set the port to send a mpls ID
  *
  * DESCRIPTION
  * Set the given port list to send mpls ID packets.
@@ -1759,7 +1745,7 @@ pktgen_set_vlanid(port_info_t *info, uint16_t vlanid)
  */
 
 void
-pktgen_set_mpls(port_info_t *info, uint32_t onOff)
+enable_mpls(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
@@ -1772,7 +1758,7 @@ pktgen_set_mpls(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_mpls_entry - Set the port MPLS entry value
+ * range_set_mpls_entry - Set the port MPLS entry value
  *
  * DESCRIPTION
  * Set the given port list with the given MPLS entry.
@@ -1783,7 +1769,7 @@ pktgen_set_mpls(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_mpls_entry(port_info_t *info, uint32_t mpls_entry)
+range_set_mpls_entry(port_info_t *info, uint32_t mpls_entry)
 {
 	info->mpls_entry = mpls_entry;
 	info->seq_pkt[SINGLE_PKT].mpls_entry = info->mpls_entry;
@@ -1792,7 +1778,7 @@ pktgen_set_mpls_entry(port_info_t *info, uint32_t mpls_entry)
 
 /**************************************************************************//**
  *
- * pktgen_set_qinq - Set the port to send a Q-in-Q header
+ * enable_qinq - Set the port to send a Q-in-Q header
  *
  * DESCRIPTION
  * Set the given port list to send Q-in-Q ID packets.
@@ -1803,7 +1789,7 @@ pktgen_set_mpls_entry(port_info_t *info, uint32_t mpls_entry)
  */
 
 void
-pktgen_set_qinq(port_info_t *info, uint32_t onOff)
+enable_qinq(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
@@ -1816,7 +1802,7 @@ pktgen_set_qinq(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_qinqids - Set the port Q-in-Q ID values
+ * single_set_qinqids - Set the port Q-in-Q ID values
  *
  * DESCRIPTION
  * Set the given port list with the given Q-in-Q ID's.
@@ -1827,18 +1813,38 @@ pktgen_set_qinq(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
+single_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
 {
-	info->qinq_outerid = outerid;
-	info->seq_pkt[SINGLE_PKT].qinq_outerid = info->qinq_outerid;
-	info->qinq_innerid = innerid;
-	info->seq_pkt[SINGLE_PKT].qinq_innerid = info->qinq_innerid;
+	info->seq_pkt[SINGLE_PKT].qinq_outerid = outerid;
+	info->seq_pkt[SINGLE_PKT].qinq_innerid = innerid;
+
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_gre - Set the port to send GRE with IPv4 payload
+ * range_set_qinqids - Set the port Q-in-Q ID values
+ *
+ * DESCRIPTION
+ * Set the given port list with the given Q-in-Q ID's.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
+{
+	info->seq_pkt[RANGE_PKT].qinq_outerid = outerid;
+	info->seq_pkt[RANGE_PKT].qinq_innerid = innerid;
+
+	pktgen_packet_ctor(info, RANGE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
+ * enable_gre - Set the port to send GRE with IPv4 payload
  *
  * DESCRIPTION
  * Set the given port list to send GRE with IPv4 payload
@@ -1849,7 +1855,7 @@ pktgen_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
  */
 
 void
-pktgen_set_gre(port_info_t *info, uint32_t onOff)
+enable_gre(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_GRE_ETHER_HEADER);
@@ -1872,7 +1878,7 @@ pktgen_set_gre(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_gre_eth(port_info_t *info, uint32_t onOff)
+enable_gre_eth(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_GRE_IPv4_HEADER);
@@ -1895,7 +1901,7 @@ pktgen_set_gre_eth(port_info_t *info, uint32_t onOff)
  */
 
 void
-pktgen_set_gre_key(port_info_t *info, uint32_t gre_key)
+range_set_gre_key(port_info_t *info, uint32_t gre_key)
 {
 	info->gre_key = gre_key;
 	info->seq_pkt[SINGLE_PKT].gre_key = info->gre_key;
@@ -1941,48 +1947,6 @@ pktgen_clear_stats(port_info_t *info)
 	info->max_missed            = 0;
 
 	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
-
-	pktgen_update_display();
-}
-
-/**************************************************************************//**
- *
- * pktgen_cls - Clear the screen.
- *
- * DESCRIPTION
- * Clear the screen and redisplay the data.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_cls(void)
-{
-	if (scrn_is_paused() ) {
-		scrn_cls();
-		scrn_pos(100, 1);
-	} else	/* Update the display quickly. */
-		pktgen_redisplay(1);
-}
-
-/**************************************************************************//**
- *
- * pktgen_update - Update the screen information
- *
- * DESCRIPTION
- * Update the screen information
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_update(void)
-{
-	pktgen_page_display(NULL, NULL);
 }
 
 /**************************************************************************//**
@@ -2073,7 +2037,7 @@ pktgen_ping4(port_info_t *info)
 
 /**************************************************************************//**
  *
- * pktgen_pdump - Dump hex output of first packet
+ * debug_pdump - Dump hex output of first packet
  *
  * DESCRIPTION
  * Hex dump the first packets on a given port.
@@ -2084,7 +2048,7 @@ pktgen_ping4(port_info_t *info)
  */
 
 void
-pktgen_pdump(port_info_t *info)
+debug_pdump(port_info_t *info)
 {
 	pkt_seq_t         *ppkt = &info->seq_pkt[DUMP_PKT];
 	pkt_seq_t         *spkt = &info->seq_pkt[SINGLE_PKT];
@@ -2169,7 +2133,7 @@ pktgen_reset(port_info_t *info)
 		pktgen_range_setup(info);
 		pktgen_clear_stats(info);
 
-		pktgen_range_enable_disable(info, off);
+		enable_range(info, estate(off));
 		memset(info->rnd_bitfields, 0, sizeof(struct rnd_bits_s));
 		pktgen_rnd_bits_init(&info->rnd_bitfields);
 		pktgen_set_port_seqCnt(info, 0);
@@ -2212,7 +2176,7 @@ pktgen_port_restart(port_info_t *info)
 
 /**************************************************************************//**
  *
- * pktgen_set_tx_count - Set the number of packets to transmit on a port.
+ * single_set_tx_count - Set the number of packets to transmit on a port.
  *
  * DESCRIPTION
  * Set the transmit count for all ports in the list.
@@ -2223,7 +2187,7 @@ pktgen_port_restart(port_info_t *info)
  */
 
 void
-pktgen_set_tx_count(port_info_t *info, uint32_t cnt)
+single_set_tx_count(port_info_t *info, uint32_t cnt)
 {
 	rte_atomic64_set(&info->transmit_count, cnt);
 }
@@ -2292,7 +2256,7 @@ pktgen_set_port_prime(port_info_t *info, uint32_t cnt)
  */
 
 void
-pktgen_set_port_dump(port_info_t *info, uint32_t cnt)
+debug_set_port_dump(port_info_t *info, uint32_t cnt)
 {
 	int i;
 
@@ -2315,7 +2279,7 @@ pktgen_set_port_dump(port_info_t *info, uint32_t cnt)
 
 /**************************************************************************//**
  *
- * pktgen_set_tx_burst - Set the transmit burst count.
+ * single_set_tx_burst - Set the transmit burst count.
  *
  * DESCRIPTION
  * Set the transmit burst count for all packets.
@@ -2326,7 +2290,7 @@ pktgen_set_port_dump(port_info_t *info, uint32_t cnt)
  */
 
 void
-pktgen_set_tx_burst(port_info_t *info, uint32_t burst)
+single_set_tx_burst(port_info_t *info, uint32_t burst)
 {
 	if (burst == 0)
 		burst = 1;
@@ -2338,7 +2302,7 @@ pktgen_set_tx_burst(port_info_t *info, uint32_t burst)
 
 /**************************************************************************//**
  *
- * pktgen_set_tx_cycles - Set the number of Transmit cycles to use.
+ * debug_set_tx_cycles - Set the number of Transmit cycles to use.
  *
  * DESCRIPTION
  * Set the number of transmit cycles for the given port list.
@@ -2349,14 +2313,14 @@ pktgen_set_tx_burst(port_info_t *info, uint32_t burst)
  */
 
 void
-pktgen_set_tx_cycles(port_info_t *info, uint32_t cycles)
+debug_set_tx_cycles(port_info_t *info, uint32_t cycles)
 {
 	info->tx_cycles     = cycles;
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_pkt_size - Set the size of the packets to send.
+ * single_set_pkt_size - Set the size of the packets to send.
  *
  * DESCRIPTION
  * Set the pkt size for the single packet transmit.
@@ -2367,7 +2331,7 @@ pktgen_set_tx_cycles(port_info_t *info, uint32_t cycles)
  */
 
 void
-pktgen_set_pkt_size(port_info_t *info, uint32_t size)
+single_set_pkt_size(port_info_t *info, uint32_t size)
 {
 	if ( (size - FCS_SIZE) < MIN_PKT_SIZE)
 		size = (MIN_PKT_SIZE + FCS_SIZE);
@@ -2380,7 +2344,7 @@ pktgen_set_pkt_size(port_info_t *info, uint32_t size)
 
 /**************************************************************************//**
  *
- * pktgen_set_port_value - Set the port value for single or sequence packets.
+ * single_set_port_value - Set the port value for single or sequence packets.
  *
  * DESCRIPTION
  * Set the port value for single or sequence packets for the ports listed.
@@ -2391,7 +2355,7 @@ pktgen_set_pkt_size(port_info_t *info, uint32_t size)
  */
 
 void
-pktgen_set_port_value(port_info_t *info, char type, uint32_t portValue)
+single_set_port_value(port_info_t *info, char type, uint32_t portValue)
 {
 	if (type == 'd')
 		info->seq_pkt[SINGLE_PKT].dport = (uint16_t)portValue;
@@ -2402,7 +2366,7 @@ pktgen_set_port_value(port_info_t *info, char type, uint32_t portValue)
 
 /**************************************************************************//**
  *
- * pktgen_set_tx_rate - Set the transmit rate as a percent value.
+ * single_set_tx_rate - Set the transmit rate as a percent value.
  *
  * DESCRIPTION
  * Set the transmit rate as a percent value for all ports listed.
@@ -2413,19 +2377,22 @@ pktgen_set_port_value(port_info_t *info, char type, uint32_t portValue)
  */
 
 void
-pktgen_set_tx_rate(port_info_t *info, uint32_t rate)
+single_set_tx_rate(port_info_t *info, const char *r)
 {
+	double rate = strtod(r, NULL);
+
 	if (rate == 0)
-		rate = 1;
-	else if (rate > 100)
-		rate = 100;
+		rate = 0.01;
+	else if (rate > 100.00)
+		rate = 100.00;
 	info->tx_rate = rate;
+
 	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_ipaddr - Set the IP address for all ports listed
+ * single_set_ipaddr - Set the IP address for all ports listed
  *
  * DESCRIPTION
  * Set an IP address for all ports listed in the call.
@@ -2436,21 +2403,21 @@ pktgen_set_tx_rate(port_info_t *info, uint32_t rate)
  */
 
 void
-pktgen_set_ipaddr(port_info_t *info, char type, cmdline_ipaddr_t *ip)
+single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip)
 {
 	if (type == 's') {
 		info->seq_pkt[SINGLE_PKT].ip_mask = size_to_mask(ip->prefixlen);
 		info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr = ntohl(
-				ip->addr.ipv4.s_addr);
+		                ip->ipv4.s_addr);
 	} else
 		info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
-				ip->addr.ipv4.s_addr);
+		                ip->ipv4.s_addr);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_dst_mac - Setup the destination MAC address
+ * single_set_dst_mac - Setup the destination MAC address
  *
  * DESCRIPTION
  * Set the destination MAC address for all ports given.
@@ -2461,15 +2428,34 @@ pktgen_set_ipaddr(port_info_t *info, char type, cmdline_ipaddr_t *ip)
  */
 
 void
-pktgen_set_dst_mac(port_info_t *info, cmdline_etheraddr_t *mac)
+single_set_dst_mac(port_info_t *info, struct ether_addr *mac)
 {
-	memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac->mac, 6);
+	memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
 /**************************************************************************//**
  *
- * pktgen_range_enable_disable - Enable or disable range packet sending.
+ * single_set_src_mac - Setup the source MAC address
+ *
+ * DESCRIPTION
+ * Set the source MAC address for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_src_mac(port_info_t *info, struct ether_addr *mac)
+{
+	memcpy(&info->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
+ * enable_range - Enable or disable range packet sending.
  *
  * DESCRIPTION
  * Enable or disable range packet sending.
@@ -2480,9 +2466,9 @@ pktgen_set_dst_mac(port_info_t *info, cmdline_etheraddr_t *mac)
  */
 
 void
-pktgen_range_enable_disable(port_info_t *info, char *str)
+enable_range(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE) {
+	if (state == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
 		pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
 		pktgen_set_port_flags(info, SEND_RANGE_PKTS);
@@ -2493,7 +2479,7 @@ pktgen_range_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_latency_enable_disable - Enable or disable latency testing.
+ * enable_latency - Enable or disable latency testing.
  *
  * DESCRIPTION
  * Enable or disable latency testing.
@@ -2504,9 +2490,9 @@ pktgen_range_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_latency_enable_disable(port_info_t *info, char *str)
+enable_latency(port_info_t *info, uint32_t state)
 {
-	if (parseState(str) == ENABLE_STATE)
+	if (state == ENABLE_STATE)
 		pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
 	else
 		pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
@@ -2514,7 +2500,7 @@ pktgen_latency_enable_disable(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_set_jitter - Set the jitter threshold.
+ * single_set_jitter - Set the jitter threshold.
  *
  * DESCRIPTION
  * Set the jitter threshold.
@@ -2525,7 +2511,7 @@ pktgen_latency_enable_disable(port_info_t *info, char *str)
  */
 
 void
-pktgen_set_jitter(port_info_t *info, uint64_t threshold)
+single_set_jitter(port_info_t *info, uint64_t threshold)
 {
 	uint64_t ticks;
 
@@ -2537,7 +2523,7 @@ pktgen_set_jitter(port_info_t *info, uint64_t threshold)
 
 /**************************************************************************//**
  *
- * pktgen_set_pattern_type - Set the pattern type per port.
+ * pattern_set_type - Set the pattern type per port.
  *
  * DESCRIPTION
  * Set the given pattern type.
@@ -2548,7 +2534,7 @@ pktgen_set_jitter(port_info_t *info, uint64_t threshold)
  */
 
 void
-pktgen_set_pattern_type(port_info_t *info, char *str)
+pattern_set_type(port_info_t *info, char *str)
 {
 	if (strncmp(str, "abc", 3) == 0)
 		info->fill_pattern_type = ABC_FILL_PATTERN;
@@ -2562,7 +2548,7 @@ pktgen_set_pattern_type(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_user_pattern_set - Set the user pattern string.
+ * pattern_set_user_pattern - Set the user pattern string.
  *
  * DESCRIPTION
  * Set the given user pattern string.
@@ -2573,7 +2559,7 @@ pktgen_set_pattern_type(port_info_t *info, char *str)
  */
 
 void
-pktgen_user_pattern_set(port_info_t *info, char *str)
+pattern_set_user_pattern(port_info_t *info, char *str)
 {
 	char copy[USER_PATTERN_SIZE + 1], *cp;
 
@@ -2591,7 +2577,7 @@ pktgen_user_pattern_set(port_info_t *info, char *str)
 
 /**************************************************************************//**
  *
- * pktgen_set_dest_mac - Set the destination MAC address
+ * range_set_dest_mac - Set the destination MAC address
  *
  * DESCRIPTION
  * Set the destination MAC address for all ports given.
@@ -2602,26 +2588,26 @@ pktgen_user_pattern_set(port_info_t *info, char *str)
  */
 
 void
-pktgen_set_dest_mac(port_info_t *info,
+range_set_dest_mac(port_info_t *info,
 		    const char *what,
-		    cmdline_etheraddr_t *mac)
+		    struct ether_addr *mac)
 {
 	if (!strcmp(what, "min") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_min);
+		inet_mtoh64(mac, &info->range.dst_mac_min);
 	else if (!strcmp(what, "max") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_max);
+		inet_mtoh64(mac, &info->range.dst_mac_max);
 	else if (!strcmp(what, "inc") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac_inc);
+		inet_mtoh64(mac, &info->range.dst_mac_inc);
 	else if (!strcmp(what, "start") ) {
-		inet_mtoh64((struct ether_addr *)mac, &info->range.dst_mac);
+		inet_mtoh64(mac, &info->range.dst_mac);
 		/* Changes add below to reflect MAC value in range */
-		memcpy(&info->seq_pkt[RANGE_PKT].eth_dst_addr, mac->mac, 6);
+		memcpy(&info->seq_pkt[RANGE_PKT].eth_dst_addr, mac, 6);
 	}
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_src_mac - Set the source MAC address for the ports.
+ * range_set_src_mac - Set the source MAC address for the ports.
  *
  * DESCRIPTION
  * Set the source MAC address for the ports given in the list.
@@ -2632,19 +2618,19 @@ pktgen_set_dest_mac(port_info_t *info,
  */
 
 void
-pktgen_set_src_mac(port_info_t *info, const char *what,
-		   cmdline_etheraddr_t *mac)
+range_set_src_mac(port_info_t *info, const char *what,
+		   struct ether_addr *mac)
 {
 	if (!strcmp(what, "min") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_min);
+		inet_mtoh64(mac, &info->range.src_mac_min);
 	else if (!strcmp(what, "max") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_max);
+		inet_mtoh64(mac, &info->range.src_mac_max);
 	else if (!strcmp(what, "inc") )
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac_inc);
+		inet_mtoh64(mac, &info->range.src_mac_inc);
 	else if (!strcmp(what, "start") ) {
-		inet_mtoh64((struct ether_addr *)mac, &info->range.src_mac);
+		inet_mtoh64(mac, &info->range.src_mac);
 		/* Changes add below to reflect MAC value in range */
-		memcpy(&info->seq_pkt[RANGE_PKT].eth_src_addr, mac->mac, 6);
+		memcpy(&info->seq_pkt[RANGE_PKT].eth_src_addr, mac, 6);
 	}
 }
 
@@ -2661,21 +2647,21 @@ pktgen_set_src_mac(port_info_t *info, const char *what,
  */
 
 void
-pktgen_set_src_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
+range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
 	if (!strcmp(what, "min") )
-		info->range.src_ip_min = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip_min = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "max") )
-		info->range.src_ip_max = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip_max = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "inc") )
-		info->range.src_ip_inc = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip_inc = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "start") )
-		info->range.src_ip = ntohl(ip->addr.ipv4.s_addr);
+		info->range.src_ip = ntohl(ip->ipv4.s_addr);
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_dst_ip - Set the destination IP address values
+ * range_set_dst_ip - Set the destination IP address values
  *
  * DESCRIPTION
  * Set the destination IP address values.
@@ -2686,21 +2672,21 @@ pktgen_set_src_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
  */
 
 void
-pktgen_set_dst_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
+range_set_dst_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
 	if (!strcmp(what, "min") )
-		info->range.dst_ip_min = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "max") )
-		info->range.dst_ip_max = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip_max = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "inc") )
-		info->range.dst_ip_inc = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip_inc = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "start") )
-		info->range.dst_ip = ntohl(ip->addr.ipv4.s_addr);
+		info->range.dst_ip = ntohl(ip->ipv4.s_addr);
 }
 
 /**************************************************************************//**
  *
- * pktgen_set_src_port - Set the source IP port number for the ports
+ * range_set_src_port - Set the source IP port number for the ports
  *
  * DESCRIPTION
  * Set the source IP port number for the ports listed.
@@ -2711,7 +2697,7 @@ pktgen_set_dst_ip(port_info_t *info, char *what, cmdline_ipaddr_t *ip)
  */
 
 void
-pktgen_set_src_port(port_info_t *info, char *what, uint16_t port)
+range_set_src_port(port_info_t *info, char *what, uint16_t port)
 {
 	if (!strcmp(what, "inc") ) {
 		if (port > 64)
@@ -2729,7 +2715,7 @@ pktgen_set_src_port(port_info_t *info, char *what, uint16_t port)
 
 /**************************************************************************//**
  *
- * pktgen_set_gtpu_teid - Set the TEID for GTPU header
+ * range_set_gtpu_teid - Set the TEID for GTPU header
  *
  * DESCRIPTION
  * Set the GTP-U TEID for the ports listed.
@@ -2740,7 +2726,7 @@ pktgen_set_src_port(port_info_t *info, char *what, uint16_t port)
  */
 
 void
-pktgen_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid)
+range_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid)
 {
 	if (!strcmp(what, "inc") ) {
 		if (teid != 0)
@@ -2770,7 +2756,7 @@ pktgen_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid)
  */
 
 void
-pktgen_set_dst_port(port_info_t *info, char *what, uint16_t port)
+range_set_dst_port(port_info_t *info, char *what, uint16_t port)
 {
 	if (!strcmp(what, "inc") ) {
 		if (port > 64)
@@ -2788,7 +2774,7 @@ pktgen_set_dst_port(port_info_t *info, char *what, uint16_t port)
 
 /**************************************************************************//**
  *
- * pktgen_set_vlan_id - Set the VLAN id value
+ * range_set_vlan_id - Set the VLAN id value
  *
  * DESCRIPTION
  * Set the VLAN id values.
@@ -2799,7 +2785,7 @@ pktgen_set_dst_port(port_info_t *info, char *what, uint16_t port)
  */
 
 void
-pktgen_set_vlan_id(port_info_t *info, char *what, uint16_t id)
+range_set_vlan_id(port_info_t *info, char *what, uint16_t id)
 {
 	if (!strcmp(what, "inc") ) {
 		if (id > 64)
@@ -2820,7 +2806,7 @@ pktgen_set_vlan_id(port_info_t *info, char *what, uint16_t id)
 
 /**************************************************************************//**
  *
- * pktgen_set_range_pkt_size - Set the Packet size value
+ * range_set_pkt_size - Set the Packet size value
  *
  * DESCRIPTION
  * Set the packet size values.
@@ -2831,7 +2817,7 @@ pktgen_set_vlan_id(port_info_t *info, char *what, uint16_t id)
  */
 
 void
-pktgen_set_range_pkt_size(port_info_t *info, char *what, uint16_t size)
+range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
 {
 	if (!strcmp(what, "inc") ) {
 		if (size > ETHER_MIN_LEN)
@@ -2965,7 +2951,7 @@ pktgen_set_page(char *str)
 			pktgen.flags |= PRINT_LABELS_FLAG;
 		}
 	}
-	pktgen_redisplay(1);
+	pktgen_clear_display();
 }
 
 /**************************************************************************//**
@@ -2982,28 +2968,28 @@ pktgen_set_page(char *str)
 
 void
 pktgen_set_seq(port_info_t *info, uint32_t seqnum,
-	       cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
-	       cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
+	       struct ether_addr *daddr, struct ether_addr *saddr,
+	       struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
 	       uint32_t sport, uint32_t dport, char type, char proto,
 	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
 	pkt = &info->seq_pkt[seqnum];
-	memcpy(&pkt->eth_dst_addr, daddr->mac, 6);
-	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
+	memcpy(&pkt->eth_dst_addr, daddr, 6);
+	memcpy(&pkt->eth_src_addr, saddr, 6);
 	pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
 	if (type == '4') {
 		pkt->ip_src_addr.addr.ipv4.s_addr = htonl(
-				ip_saddr->addr.ipv4.s_addr);
+		                ip_saddr->ipv4.s_addr);
 		pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(
-				ip_daddr->addr.ipv4.s_addr);
+		                ip_daddr->ipv4.s_addr);
 	} else {
 		memcpy(&pkt->ip_src_addr.addr.ipv6.s6_addr,
-		       ip_saddr->addr.ipv6.s6_addr,
+		       ip_saddr->ipv6.s6_addr,
 		       sizeof(struct in6_addr));
 		memcpy(&pkt->ip_dst_addr.addr.ipv6.s6_addr,
-		       ip_daddr->addr.ipv6.s6_addr,
+		       ip_daddr->ipv6.s6_addr,
 		       sizeof(struct in6_addr));
 	}
 	pkt->dport          = dport;
@@ -3034,8 +3020,8 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 
 void
 pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
-		   cmdline_etheraddr_t *daddr, cmdline_etheraddr_t *saddr,
-		   cmdline_ipaddr_t *ip_daddr, cmdline_ipaddr_t *ip_saddr,
+		   struct ether_addr *daddr, struct ether_addr *saddr,
+		   struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
 		   uint32_t sport, uint32_t dport, char type, char proto,
 		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
@@ -3046,11 +3032,11 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 
 	pkt = &info->seq_pkt[seqnum + EXTRA_TX_PKT];
 
-	memcpy(&pkt->eth_dst_addr, daddr->mac, 6);
-	memcpy(&pkt->eth_src_addr, saddr->mac, 6);
+	memcpy(&pkt->eth_dst_addr, daddr, 6);
+	memcpy(&pkt->eth_src_addr, saddr, 6);
 	pkt->ip_mask        = size_to_mask(ip_saddr->prefixlen);
-	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->addr.ipv4.s_addr);
-	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->addr.ipv4.s_addr);
+	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->ipv4.s_addr);
+	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->ipv4.s_addr);
 	pkt->dport          = dport;
 	pkt->sport          = sport;
 	pkt->pktSize        = pktsize - FCS_SIZE;
@@ -3119,5 +3105,5 @@ pktgen_recv_pkt(port_info_t *info __rte_unused)
 void
 pktgen_quit(void)
 {
-	cmdline_quit(pktgen.cl);
+	printf("TODO: Add a exit routine\n");
 }

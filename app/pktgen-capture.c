@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,6 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
@@ -260,10 +228,10 @@ found_rx_lid:
 
 			char status[256];
 			sprintf(
-				status,
-				"\r    Dumping ~%.2fMB of captured data to disk: 0%%",
-				(double)cap->used / (1024 * 1024));
-			rte_printf_status("\n%s", status);
+			        status,
+			        "\r    Dumping ~%.2fMB of captured data to disk: 0%%",
+			        (double)cap->used / (1024 * 1024));
+			scrn_printf(0, 0, "\n%s", status);
 
 			pcap = pcap_open_dead(DLT_EN10MB, 65535);
 
@@ -305,11 +273,11 @@ found_rx_lid:
 					else if (pct % 2 == 0)
 						strncatf(status, ".");
 
-					rte_printf_status("%s", status);
+					scrn_printf(0, 0,"%s", status);
 				}
 			}
-			rte_printf_status("\r");
-			rte_printf_status("\n");/* Clean of the screen a bit */
+			scrn_printf(0, 0, "\r");
+			scrn_printf(0, 0, "\n");/* Clean of the screen a bit */
 
 			pcap_dump_close(pcap_dumper);
 			pcap_close(pcap);

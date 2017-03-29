@@ -6,8 +6,8 @@
  * STUB: rte_launch.h pktgen-cmds.h commands.h pktgen-log.h
  */
 
-#include <scrn.h>
-scrn_t *scrn = NULL;
+#include <cli_scrn.h>
+struct cli_scrn *scrn = NULL;
 /* scrn.h function stub */
 void
 scrn_printf(int16_t r, int16_t c, const char *fmt, ...) {         }

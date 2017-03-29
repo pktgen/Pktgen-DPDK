@@ -76,6 +76,10 @@
 #include <cmdline_rdline.h>
 #include <cmdline.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void pktgen_l2p_dump(void);
 
 extern void pktgen_interact(struct cmdline *cl);
@@ -97,5 +101,9 @@ extern void pktgen_stop_running(void);
  */
 
 extern void *pktgen_get_lua(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_MAIN_H_ */

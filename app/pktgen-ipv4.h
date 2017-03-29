@@ -70,9 +70,17 @@
 
 #include "pktgen-seq.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip);
 extern void pktgen_send_ping4(uint32_t pid, uint8_t seq_idx);
 extern void pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid,
-                                 uint32_t vlan);
+				 uint32_t vlan);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*  _PKTGEN_IPV4_H_ */

@@ -15,14 +15,14 @@
  *     value for a non-void ret_type.
  * - ...: parameter list of the function to generate
  */
-#define STUB_FUNC(ret_type, func_name, ret_value, ...)                         \
-        ret_type func_name(__VA_ARGS__) { return ret_value; }
+#define STUB_FUNC(ret_type, func_name, ret_value, ...)			       \
+	ret_type func_name(__VA_ARGS__) { return ret_value; }
 
-#define STUB_VOID(func_name, ...)                                              \
-        STUB_FUNC(void, func_name, , __VA_ARGS__)
+#define STUB_VOID(func_name, ...)					       \
+	STUB_FUNC(void, func_name, , __VA_ARGS__)
 
-#define STUB_NULL(ret_type, func_name, ...)                                    \
-        STUB_FUNC(ret_type, func_name, NULL, __VA_ARGS__)
+#define STUB_NULL(ret_type, func_name, ...)				       \
+	STUB_FUNC(ret_type, func_name, NULL, __VA_ARGS__)
 
 /*
  * Zero out a variable.
@@ -33,10 +33,10 @@
  * Test if memory equals a literal array
  */
 #define _UNWRAP(...) __VA_ARGS__	/* helper macro */
-#define cmp_mem_lit(g, e, ...)                                                 \
-        do {                                                                       \
-		const unsigned char e2[] = { _UNWRAP e };                              \
-		cmp_mem(g, e2, sizeof(e2), ## __VA_ARGS__);                             \
+#define cmp_mem_lit(g, e, ...)						       \
+	do {									   \
+		const unsigned char e2[] = { _UNWRAP e };			       \
+		cmp_mem(g, e2, sizeof(e2), ## __VA_ARGS__);				\
 	} while (0)
 
 /*
@@ -44,11 +44,11 @@
  * of elements in "expected".
  * This makes successive tests on a part of memory more concise to write.
  */
-#define cmp_mem_lit_incr(g, e, ...)                                            \
-        do {                                                                       \
-		const unsigned char e2[] = { _UNWRAP e };                              \
-		cmp_mem(g, e2, sizeof(e2), ## __VA_ARGS__);                             \
-		g += sizeof(e2);                                                       \
+#define cmp_mem_lit_incr(g, e, ...)					       \
+	do {									   \
+		const unsigned char e2[] = { _UNWRAP e };			       \
+		cmp_mem(g, e2, sizeof(e2), ## __VA_ARGS__);				\
+		g += sizeof(e2);						       \
 	} while (0)
 
 #endif  /* _TEST_HELPERS_H */

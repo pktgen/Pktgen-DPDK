@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2017>, Intel Corporation
+ * Copyright (c) <2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,32 +32,22 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Created 2010 by Keith Wiles @ intel.com */
-
+/* Created 2017 by Keith Wiles @ intel.com */
 #include "pktgen-display.h"
 #include "pktgen-cpu.h"
-#include "pktgen-log.h"
+#include "pktgen-cfg.h"
 
-#include "pktgen.h"
-
-static int
-save_uname(char *line, int i __rte_unused) {
-	pktgen.uname = pg_strdupf(pktgen.uname, line);
-	return 0;
-}
-
-static void
-pktgen_get_uname(void)
-{
-	do_command("uname -a", save_uname);
-}
-
+/*
+ * 2 sockets, 18 cores, 2 threads
+ * Socket   :    0         1         2         3
+ * Core   0 : [ 0,36]   [18,54]   [18,54]   [18,54]
+ */
 /**************************************************************************//**
  *
- * pktgen_page_cpu - Display the CPU data page.
+ * pktgen_page_config - Show the configuration page for pktgen.
  *
  * DESCRIPTION
- * Display the CPU data page for a given port.
+ * Display the pktgen configuration page. (Not used)
  *
  * RETURNS: N/A
  *
@@ -65,11 +55,11 @@ pktgen_get_uname(void)
  */
 
 void
-pktgen_page_cpu(void)
+pktgen_page_config(void)
 {
-	uint32_t i, row, cnt, nb_sockets, nb_cores, nb_threads;
+	uint32_t i, row, col, cnt, nb_sockets, nb_cores, nb_threads;
 	static int counter = 0;
-	char buff[1024];
+	char buff[2048];
 
 	display_topline("<CPU Page>");
 
@@ -84,19 +74,11 @@ pktgen_page_cpu(void)
 	if ( (counter++ & 3) != 0)
 		return;
 
-	row = 3;
-	scrn_printf(row++, 1, "Kernel: %s", pktgen.uname);
-	row++;
-	scrn_printf(row++, 1, "Model Name: %s", pktgen.lscpu->model_name);
-	scrn_printf(row++, 1, "CPU Speed : %s", pktgen.lscpu->cpu_mhz);
-	scrn_printf(row++, 1, "Cache Size: %s", pktgen.lscpu->cache_size);
-	row++;
-	scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
-	row += 4;
-
+	row = 2;
+	col = 1;
 	scrn_printf(
 		row++,
-		5,
+		2,
 		"%d sockets, %d cores, %d threads",
 		nb_sockets,
 		nb_cores,
@@ -105,8 +87,10 @@ pktgen_page_cpu(void)
 	sprintf(buff, "Socket   : ");
 	for (i = 0; i < nb_sockets; i++)
 		strncatf(buff, "%4d      ", i);
-	scrn_printf(row++, 3, "%s", buff);
+	scrn_printf(row, col + 2, "%s", buff);
+	scrn_printf(0, 0, "Port description");
 
+	row++;
 	buff[0] = '\0';
 	for (i = 0; i < nb_cores; i++) {
 		strncatf(buff, "  Core %3d : [%2d,%2d]   ",
@@ -122,40 +106,19 @@ pktgen_page_cpu(void)
 				 sct(3, i, 0), sct(3, i, 1));
 		strncatf(buff, "\n");
 	}
-	scrn_printf(row++, 1, "%s", buff);
+	scrn_printf(row, 1, "%s", buff);
 
-	pg_port_matrix_dump(pktgen.l2p);
+	col = 13 + (nb_sockets * 10) + 1;
+	for (i = 0; i < pktgen.portdesc_cnt; i++)
+		scrn_printf(row + i, col, "%s", pktgen.portdesc[i]);
 
+	row += RTE_MAX(nb_cores, pktgen.portdesc_cnt) + 2;
 	if (pktgen.flags & PRINT_LABELS_FLAG) {
-		pktgen.last_row = 36;
+		pktgen.last_row = row;
 		display_dashline(pktgen.last_row);
 
 		scrn_setw(pktgen.last_row);
 		scrn_printf(100, 1, "");/* Put cursor on the last row. */
 	}
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
-}
-
-/**************************************************************************//**
- *
- * pktgen_cpu_init - Init the CPU information
- *
- * DESCRIPTION
- * initialize the CPU information
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_cpu_init(void)
-{
-	pktgen_get_uname();
-	memset(&pktgen.core_info, 0xff, (sizeof(lc_info_t) * RTE_MAX_LCORE));
-	pktgen.core_cnt     = coremap("array",
-				      pktgen.core_info,
-				      RTE_MAX_LCORE,
-				      NULL);
-	pktgen.lscpu        = lscpu_info(NULL, NULL);
 }

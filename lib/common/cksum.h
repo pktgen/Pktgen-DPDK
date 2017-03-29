@@ -38,12 +38,12 @@ extern uint16_t     cksum(void *pBuf, int32_t size, uint32_t cksum);
 extern uint32_t     cksumUpdate(void *pBuf, int32_t size, uint32_t cksum);
 extern uint16_t     cksumDone(uint32_t cksum);
 extern uint32_t     pseudoChecksum(uint32_t src, uint32_t dst,
-                                   uint16_t proto, uint16_t len,
-                                   uint32_t cksum);
+				   uint16_t proto, uint16_t len,
+				   uint32_t cksum);
 extern uint32_t     pseudoIPv6Checksum(uint16_t *src,
-                                       uint16_t *dst,
-                                       uint8_t next_hdr,
-                                       uint32_t total_len,
-                                       uint32_t sum);
+				       uint16_t *dst,
+				       uint8_t next_hdr,
+				       uint32_t total_len,
+				       uint32_t sum);
 
 #endif /* __CKSUM_H */

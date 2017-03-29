@@ -186,51 +186,51 @@ static void
 pktgen_usage(const char *prgname)
 {
 	printf(
-	        "Usage: %s [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
-	        "  -s P:file    PCAP packet stream file, 'P' is the port number\n"
-	        "  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
-	        "  -l filename  Write log to filename\n"
-	        "  -P           Enable PROMISCUOUS mode on all ports\n"
-	        "  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
-	        "               If -g is used that enable socket support as a server application\n"
-	        "  -G           Enable socket support using default server values localhost:0x5606 \n"
-	        "  -N           Enable NUMA support\n"
-	        "  -T           Enable the color output\n"
+		"Usage: %s [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
+		"  -s P:file    PCAP packet stream file, 'P' is the port number\n"
+		"  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
+		"  -l filename  Write log to filename\n"
+		"  -P           Enable PROMISCUOUS mode on all ports\n"
+		"  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
+		"               If -g is used that enable socket support as a server application\n"
+		"  -G           Enable socket support using default server values localhost:0x5606 \n"
+		"  -N           Enable NUMA support\n"
+		"  -T           Enable the color output\n"
 		"  --crc-strip  Strip CRC on all ports\n"
-	        "  -m <string>  matrix for mapping ports to logical cores\n"
-	        "      BNF: (or kind of BNF)\n"
-	        "      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
-	        "      <lcore-port>      := <lcore-list> \".\" <port-list>\n"
-	        "      <lcore-list>      := \"[\" <rx-list> \":\" <tx-list> \"]\"\n"
-	        "      <port-list>       := \"[\" <rx-list> \":\" <tx-list>\"]\"\n"
-	        "      <rx-list>         := <num> { \"/\" (<num> | <list>) }\n"
-	        "      <tx-list>         := <num> { \"/\" (<num> | <list>) }\n"
-	        "      <list>            := <num> { \"/\" (<range> | <list>) }\n"
-	        "      <range>           := <num> \"-\" <num> { \"/\" <range> }\n"
-	        "      <num>             := <digit>+\n"
-	        "      <digit>           := 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
-	        "      1.0, 2.1, 3.2                 - core 1 handles port 0 rx/tx,\n"
-	        "                                      core 2 handles port 1 rx/tx\n"
-	        "                                      core 3 handles port 2 rx/tx\n"
-	        "      1.[0-2], 2.3, ...             - core 1 handle ports 0,1,2 rx/tx,\n"
-	        "                                      core 2 handle port 3 rx/tx\n"
-	        "      [0-1].0, [2/4-5].1, ...       - cores 0-1 handle port 0 rx/tx,\n"
-	        "                                      cores 2,4,5 handle port 1 rx/tx\n"
-	        "      [1:2].0, [4:6].1, ...         - core 1 handles port 0 rx,\n"
-	        "                                      core 2 handles port 0 tx,\n"
-	        "      [1:2].[0-1], [4:6].[2/3], ... - core 1 handles port 0 & 1 rx,\n"
-	        "                                      core 2 handles port  0 & 1 tx\n"
-	        "      [1:2-3].0, [4:5-6].1, ...     - core 1 handles port 0 rx, cores 2,3 handle port 0 tx\n"
-	        "                                      core 4 handles port 1 rx & core 5,6 handles port 1 tx\n"
-	        "      [1-2:3].0, [4-5:6].1, ...     - core 1,2 handles port 0 rx, core 3 handles port 0 tx\n"
-	        "                                      core 4,5 handles port 1 rx & core 6 handles port 1 tx\n"
-	        "      [1-2:3-5].0, [4-5:6/8].1, ... - core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx\n"
-	        "                                      core 4,5 handles port 1 rx & core 6,8 handles port 1 tx\n"
-	        "      [1:2].[0:0-7], [3:4].[1:0-7], - core 1 handles port 0 rx, core 2 handles ports 0-7 tx\n"
-	        "                                      core 3 handles port 1 rx & core 4 handles port 0-7 tx\n"
-	        "      BTW: you can use \"{}\" instead of \"[]\" as it does not matter to the syntax.\n"
-	        "  -h           Display the help information\n",
-	        prgname);
+		"  -m <string>  matrix for mapping ports to logical cores\n"
+		"      BNF: (or kind of BNF)\n"
+		"      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
+		"      <lcore-port>      := <lcore-list> \".\" <port-list>\n"
+		"      <lcore-list>      := \"[\" <rx-list> \":\" <tx-list> \"]\"\n"
+		"      <port-list>       := \"[\" <rx-list> \":\" <tx-list>\"]\"\n"
+		"      <rx-list>         := <num> { \"/\" (<num> | <list>) }\n"
+		"      <tx-list>         := <num> { \"/\" (<num> | <list>) }\n"
+		"      <list>            := <num> { \"/\" (<range> | <list>) }\n"
+		"      <range>           := <num> \"-\" <num> { \"/\" <range> }\n"
+		"      <num>             := <digit>+\n"
+		"      <digit>           := 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
+		"      1.0, 2.1, 3.2                 - core 1 handles port 0 rx/tx,\n"
+		"                                      core 2 handles port 1 rx/tx\n"
+		"                                      core 3 handles port 2 rx/tx\n"
+		"      1.[0-2], 2.3, ...             - core 1 handle ports 0,1,2 rx/tx,\n"
+		"                                      core 2 handle port 3 rx/tx\n"
+		"      [0-1].0, [2/4-5].1, ...       - cores 0-1 handle port 0 rx/tx,\n"
+		"                                      cores 2,4,5 handle port 1 rx/tx\n"
+		"      [1:2].0, [4:6].1, ...         - core 1 handles port 0 rx,\n"
+		"                                      core 2 handles port 0 tx,\n"
+		"      [1:2].[0-1], [4:6].[2/3], ... - core 1 handles port 0 & 1 rx,\n"
+		"                                      core 2 handles port  0 & 1 tx\n"
+		"      [1:2-3].0, [4:5-6].1, ...     - core 1 handles port 0 rx, cores 2,3 handle port 0 tx\n"
+		"                                      core 4 handles port 1 rx & core 5,6 handles port 1 tx\n"
+		"      [1-2:3].0, [4-5:6].1, ...     - core 1,2 handles port 0 rx, core 3 handles port 0 tx\n"
+		"                                      core 4,5 handles port 1 rx & core 6 handles port 1 tx\n"
+		"      [1-2:3-5].0, [4-5:6/8].1, ... - core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx\n"
+		"                                      core 4,5 handles port 1 rx & core 6,8 handles port 1 tx\n"
+		"      [1:2].[0:0-7], [3:4].[1:0-7], - core 1 handles port 0 rx, core 2 handles ports 0-7 tx\n"
+		"                                      core 3 handles port 1 rx & core 4 handles port 0-7 tx\n"
+		"      BTW: you can use \"{}\" instead of \"[]\" as it does not matter to the syntax.\n"
+		"  -h           Display the help information\n",
+		prgname);
 }
 
 /**************************************************************************//**
@@ -267,7 +267,7 @@ pktgen_parse_args(int argc, char **argv)
 		pktgen.argv[opt] = strdup(argv[opt]);
 
 	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGT",
-	                          lgopts, &option_index)) != EOF)
+				  lgopts, &option_index)) != EOF)
 		switch (opt) {
 		case 'p':
 			/* Port mask not used anymore */
@@ -284,7 +284,7 @@ pktgen_parse_args(int argc, char **argv)
 		case 'm':	/* Matrix for port mapping. */
 			if (pg_parse_matrix(pktgen.l2p, optarg) == -1) {
 				pktgen_log_error("invalid matrix string (%s)",
-				                 optarg);
+						 optarg);
 				pktgen_usage(prgname);
 				return -1;
 			}
@@ -295,10 +295,10 @@ pktgen_parse_args(int argc, char **argv)
 			p = strchr(optarg, ':');
 			if ( (p == NULL) ||
 			     (pktgen.info[port].pcap =
-			              _pcap_open(++p, port)) == NULL) {
+				      _pcap_open(++p, port)) == NULL) {
 				pktgen_log_error(
-				        "Invalid PCAP filename (%s) must include port number as P:filename",
-				        optarg);
+					"Invalid PCAP filename (%s) must include port number as P:filename",
+					optarg);
 				pktgen_usage(prgname);
 				return -1;
 			}
@@ -322,23 +322,23 @@ pktgen_parse_args(int argc, char **argv)
 			p = strchr(optarg, ':');
 			if (p == NULL)	/* No : symbol means pktgen is a server application. */
 				pktgen.hostname = (char *)strdupf(
-				                pktgen.hostname,
-				                optarg);
+						pktgen.hostname,
+						optarg);
 			else {
 				char c = *p;
 
 				*p = '\0';
 				if (p != optarg)
 					pktgen.hostname = (char *)strdupf(
-					                pktgen.hostname,
-					                optarg);
+							pktgen.hostname,
+							optarg);
 
 				pktgen.socket_port = strtol(++p, NULL, 0);
 				pktgen_log_info(
-				        ">>> Socket GUI support %s%c0x%x",
-				        pktgen.hostname,
-				        c,
-				        pktgen.socket_port);
+					">>> Socket GUI support %s%c0x%x",
+					pktgen.hostname,
+					c,
+					pktgen.socket_port);
 			}
 			break;
 
@@ -385,7 +385,7 @@ main(int argc, char **argv)
 	uint32_t i;
 	int32_t ret;
 
-	scrn_setw(1);	/* Reset the window size, from possible crash run. */
+	scrn_setw(1);		/* Reset the window size, from possible crash run. */
 	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
 	printf("\n%s %s\n", copyright_msg(), powered_by());
@@ -406,9 +406,9 @@ main(int argc, char **argv)
 		pktgen_log_panic("Unable to create l2p");
 
 	pktgen.portdesc_cnt = get_portdesc(pktgen.portlist,
-	                                      pktgen.portdesc,
-	                                      RTE_MAX_ETHPORTS,
-	                                      0);
+					   pktgen.portdesc,
+					   RTE_MAX_ETHPORTS,
+					   0);
 
 	/* Initialize the screen and logging */
 	pktgen_init_log();
@@ -429,7 +429,7 @@ main(int argc, char **argv)
 		return -1;
 
 	pktgen_init_screen(
-	        (pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
+		(pktgen.flags & ENABLE_THEME_FLAG) ? THEME_ON : THEME_OFF);
 
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 
@@ -444,12 +444,12 @@ main(int argc, char **argv)
 	}
 
 	pktgen_log_info(
-	        ">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
-	        DEFAULT_PKT_BURST,
-	        DEFAULT_RX_DESC,
-	        DEFAULT_TX_DESC,
-	        MAX_MBUFS_PER_PORT,
-	        MBUF_CACHE_SIZE);
+		">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
+		DEFAULT_PKT_BURST,
+		DEFAULT_RX_DESC,
+		DEFAULT_TX_DESC,
+		MAX_MBUFS_PER_PORT,
+		MBUF_CACHE_SIZE);
 
 	/* Configure and initialize the ports */
 	pktgen_config_ports();
@@ -464,8 +464,8 @@ main(int argc, char **argv)
 		ret = rte_eal_remote_launch(pktgen_launch_one_lcore, NULL, i);
 		if (ret != 0)
 			pktgen_log_error("Failed to start lcore %d, return %d",
-			                 i,
-			                 ret);
+					 i,
+					 ret);
 	}
 	rte_delay_ms(1000);	/* Wait for the lcores to start up. */
 
@@ -491,9 +491,9 @@ main(int argc, char **argv)
 		}
 
 		lua_init_socket(pktgen.L,
-		                &pktgen.thread,
-		                pktgen.hostname,
-		                pktgen.socket_port);
+				&pktgen.thread,
+				pktgen.hostname,
+				pktgen.socket_port);
 #ifdef GUI
 		printf("%s: Here\n", __func__);
 		pktgen_gui_main(argc, argv);
@@ -513,7 +513,7 @@ main(int argc, char **argv)
 	/* Wait for all of the cores to stop running and exit. */
 	rte_eal_mp_wait_lcore();
 
-	for(i = 0; i < pktgen.nb_ports; i++) {
+	for (i = 0; i < pktgen.nb_ports; i++) {
 		rte_eth_dev_stop(i);
 		rte_delay_ms(100);
 		rte_eth_dev_close(i);

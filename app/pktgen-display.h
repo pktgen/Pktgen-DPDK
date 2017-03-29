@@ -75,6 +75,10 @@
 
 #include "pktgen.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Initialize screen data structures */
 extern void pktgen_init_screen(int theme);
 
@@ -183,9 +187,9 @@ extern void pktgen_show_theme(void);
  * SEE ALSO:
  */
 extern void pktgen_set_theme_item(char *item,
-                                  char *fg_color,
-                                  char *bg_color,
-                                  char *attr);
+				  char *fg_color,
+				  char *bg_color,
+				  char *attr);
 
 /**************************************************************************//**
  *
@@ -225,5 +229,9 @@ extern void pktgen_theme_state(const char *state);
  * SEE ALSO:
  */
 extern void pktgen_theme_show(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_DISPLAY_H_ */

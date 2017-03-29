@@ -110,9 +110,9 @@ pg_strtrimset(char *str, const char *set)
 }
 
 extern uint32_t pg_strparse(char *s,
-                            const char *delim,
-                            char **entries,
-                            uint32_t max_entries);
+			    const char *delim,
+			    char **entries,
+			    uint32_t max_entries);
 extern char *pg_strtrim(char *line);
 extern char *pg_strccpy(char *t, char *f, const char *str);
 

@@ -82,7 +82,7 @@
 
 char *
 pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt,
-                    greIp_t *gre)
+		    greIp_t *gre)
 {
 	/* Zero out the header space */
 	memset((char *)gre, 0, sizeof(greIp_t));
@@ -160,8 +160,8 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt,
 
 char *
 pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused,
-                          pkt_seq_t *pkt,
-                          greEther_t *gre)
+			  pkt_seq_t *pkt,
+			  greEther_t *gre)
 {
 	/* Zero out the header space */
 	memset((char *)gre, 0, sizeof(greEther_t));
@@ -221,9 +221,9 @@ pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused,
 	/* Inner Ethernet header. Exact offset of start of ethernet header depends
 	 * on the presence of optional fields in the GRE header. */
 	struct ether_hdr *eth_hdr = (struct ether_hdr *)((char *)&gre->gre
-	                                                 + 2			/* Flags and version */
-	                                                 + 2			/* Protocol type */
-	                                                 + 4 * extra_count);	/* 4 bytes per optional field */
+							 + 2			/* Flags and version */
+							 + 2			/* Protocol type */
+							 + 4 * extra_count);	/* 4 bytes per optional field */
 	ether_addr_copy(&pkt->eth_src_addr, &eth_hdr->s_addr);			/* FIXME get inner Ethernet parameters from user */
 	ether_addr_copy(&pkt->eth_dst_addr, &eth_hdr->d_addr);			/* FIXME get inner Ethernet parameters from user */
 	eth_hdr->ether_type = htons(ETHER_TYPE_IPv4);				/* FIXME get Ethernet type from actual encapsulated

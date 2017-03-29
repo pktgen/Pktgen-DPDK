@@ -6,15 +6,15 @@ package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 pktgen.range.dst_mac("0", "start", "3c:fd:fe:9c:5c:b8");
 pktgen.range.src_mac("0", "start", "3c:fd:fe:9c:5c:d8");
 
-pktgen.range.dst_ip("0", "start", "10.10.10.1");
+pktgen.range.dst_ip("0", "start", "192.168.1.1");
 pktgen.range.dst_ip("0", "inc", "0.0.0.1");
-pktgen.range.dst_ip("0", "min", "10.10.10.1");
-pktgen.range.dst_ip("0", "max", "10.10.10.128");
+pktgen.range.dst_ip("0", "min", "192.168.1.1");
+pktgen.range.dst_ip("0", "max", "192.168.1.128");
 
-pktgen.range.src_ip("0", "start", "11.11.11.1");
+pktgen.range.src_ip("0", "start", "192.168.0.1");
 pktgen.range.src_ip("0", "inc", "0.0.0.1");
-pktgen.range.src_ip("0", "min", "11.11.11.1");
-pktgen.range.src_ip("0", "max", "11.11.11.128");
+pktgen.range.src_ip("0", "min", "192.168.0.1");
+pktgen.range.src_ip("0", "max", "192.168.0.128");
 
 pktgen.set_proto("0", "udp");
 
@@ -37,15 +37,15 @@ pktgen.range.pkt_size("0", "max", 256);
 pktgen.range.dst_mac("1", "start", "3c:fd:fe:9c:5c:d8");
 pktgen.range.src_mac("1", "start", "3c:fd:fe:9c:5c:b8");
 
-pktgen.range.dst_ip("1", "start", "11.11.11.1");
+pktgen.range.dst_ip("1", "start", "192.168.0.1");
 pktgen.range.dst_ip("1", "inc", "0.0.0.1");
-pktgen.range.dst_ip("1", "min", "11.11.11.1");
-pktgen.range.dst_ip("1", "max", "11.11.11.128");
+pktgen.range.dst_ip("1", "min", "192.168.0.1");
+pktgen.range.dst_ip("1", "max", "192.168.0.128");
 
-pktgen.range.src_ip("1", "start", "10.10.10.1");
+pktgen.range.src_ip("1", "start", "192.168.1.1");
 pktgen.range.src_ip("1", "inc", "0.0.0.1");
-pktgen.range.src_ip("1", "min", "10.10.10.1");
-pktgen.range.src_ip("1", "max", "10.10.10.128");
+pktgen.range.src_ip("1", "min", "192.168.1.1");
+pktgen.range.src_ip("1", "max", "192.168.1.128");
 
 pktgen.set_proto("all", "udp");
 

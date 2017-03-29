@@ -112,7 +112,7 @@ scrn_cbl(void)            scrn_puts("\033[1K")	/**< Clear from cursor to beginin
 static __inline__ void
 scrn_cel(void)            scrn_puts("\033[2K")	/**< Clear entire line */
 static __inline__ void
-scrn_clw(void)            scrn_puts("\033[J")	    /**< Clear from cursor to end of screen */
+scrn_clw(void)            scrn_puts("\033[J")		/**< Clear from cursor to end of screen */
 static __inline__ void
 scrn_clb(void)            scrn_puts("\033[1J")	/**< Clear from cursor to begining of screen */
 static __inline__ void
@@ -120,11 +120,11 @@ scrn_cls(void)            scrn_puts("\033[2J")	/**< Clear the screen, more curso
 static __inline__ void
 scrn_reverse(void)        scrn_puts("\033[7m")	/**< Start reverse video */
 static __inline__ void
-scrn_normal(void)     scrn_puts("\033[0m")	/**< Stop attribute like reverse and underscore */
+scrn_normal(void)         scrn_puts("\033[0m")	/**< Stop attribute like reverse and underscore */
 static __inline__ void
 scrn_scroll(int r)        scrn_puts("\033[%d;r", r)	/**< Scroll whole screen up r number of lines */
 static __inline__ void
-scrn_scroll_up(int r) scrn_puts("\033[%dS", r)		/**< Scroll whole screen up r number of lines */
+scrn_scroll_up(int r)     scrn_puts("\033[%dS", r)	/**< Scroll whole screen up r number of lines */
 static __inline__ void
 scrn_scroll_down(int r)   scrn_puts("\033[%dT", r)	/**< Scroll whole screen down r number of lines */
 static __inline__ void
@@ -246,7 +246,7 @@ scrn_fgbgcolor(color_e fg, color_e bg, attr_e attr) {
 	scrn_puts("\033[%d;%d;%dm", attr, fg + 30, bg + 40);
 }
 
-/** Main routine to set color for foreground and background nd attribute at the current position */
+/** Main routine to set color for foreground and background and attribute at the current position */
 static __inline__ void
 scrn_color(color_e fg, color_e bg, attr_e attr) {
 	if ( (fg != NO_CHANGE) && (bg != NO_CHANGE) )
@@ -268,8 +268,7 @@ extern scrn_t *scrn_init(int16_t nrows, int16_t ncols, int theme);
 
 extern void scrn_center(int16_t r, int16_t ncols, const char *fmt, ...);
 extern void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
-extern void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt,
-                            ...);
+extern void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 
 #define rte_printf_status(...)  scrn_fprintf(0, 0, stdout, __VA_ARGS__)
 

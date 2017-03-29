@@ -93,16 +93,16 @@ pktgen_packet_dump(struct rte_mbuf *m, int pid)
 		rte_free(info->dump_list[info->dump_tail].data);
 
 	info->dump_list[info->dump_tail].data = rte_malloc("Packet data",
-	                                                   plen,
-	                                                   0);
+							   plen,
+							   0);
 	info->dump_list[info->dump_tail].len = plen;
 
 	for (curr_data = info->dump_list[info->dump_tail].data, curr_mbuf = m;
 	     curr_mbuf != NULL;
 	     curr_data += curr_mbuf->data_len, curr_mbuf = curr_mbuf->next)
 		rte_memcpy(curr_data,
-		           (uint8_t *)curr_mbuf->buf_addr + m->data_off,
-		           curr_mbuf->data_len);
+			   (uint8_t *)curr_mbuf->buf_addr + m->data_off,
+			   curr_mbuf->data_len);
 
 	++info->dump_tail;
 }
@@ -176,7 +176,7 @@ pktgen_print_packet_dump(void)
 			plen = info->dump_list[info->dump_head].len;
 
 			snprintf(buff, sizeof(buff),
-			         "Port %d, packet with length %d:", pid, plen);
+				 "Port %d, packet with length %d:", pid, plen);
 
 			for (i = 0; i < plen; i += 16) {
 				strncatf(buff, "\n\t");
@@ -188,7 +188,7 @@ pktgen_print_packet_dump(void)
 					/* Hex. value of character */
 					if (i + j < plen)
 						strncatf(buff, "%02x ",
-						         pdata[i + j]);
+							 pdata[i + j]);
 					else
 						strncatf(buff, "   ");
 
@@ -203,10 +203,10 @@ pktgen_print_packet_dump(void)
 				for (j = 0; j < 16; ++j)
 					if (i + j < plen)
 						strncatf(buff, "%c",
-						         isprint(pdata[i +
-						                       j]) ?
-						         pdata[
-						                 i + j] : '.');
+							 isprint(pdata[i +
+								       j]) ?
+							 pdata[
+								 i + j] : '.');
 			}
 			pktgen_log_info("%s", buff);
 

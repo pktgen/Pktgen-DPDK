@@ -90,7 +90,7 @@ test_pktgen_rnd_bits_init(void)
 	int i;
 
 	lives_ok({ pktgen_rnd_bits_init(
-	                   &rnd); }, "pktgen_rnd_bits_init() must not crash");
+			   &rnd); }, "pktgen_rnd_bits_init() must not crash");
 	ok(rnd != NULL, "... and allocate memory");
 	cmp_ok(rnd->active_specs, "==", 0, "... and disable all specs");
 
@@ -131,9 +131,9 @@ test_pktgen_set_random_bitfield(void)
 	 *                                   123456789012345678901234567890123
 	 */
 	pktgen_set_random_bitfield(rnd,
-	                           0,
-	                           50,
-	                           "000000000000000000000000000000000");
+				   0,
+				   50,
+				   "000000000000000000000000000000000");
 	cmp_ok(rnd->active_specs,
 	       "==",
 	       0,
@@ -207,18 +207,18 @@ test_pktgen_rnd_bits_apply(void)
 	pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd);
 
 	cmp_mem(data_ptr,
-	        all_0x00,
-	        64,
-	        "Must not set bits when called with no bitmasks enabled");
+		all_0x00,
+		64,
+		"Must not set bits when called with no bitmasks enabled");
 
 	/* all 1's */
 	memset(mbuf->pkt.data, 0xff, 64);
 	pktgen_rnd_bits_apply(NULL, &mbuf, 1, rnd);
 
 	cmp_mem(data_ptr,
-	        all_0xff,
-	        64,
-	        "Must not clear bits when called with no bitmasks enabled");
+		all_0xff,
+		64,
+		"Must not clear bits when called with no bitmasks enabled");
 
 	/* Work correctly for all valid mask lengths and all mask values */
 	for (i = 1; i < MAX_BITFIELD_SIZE; ++i) {
@@ -252,25 +252,25 @@ test_pktgen_rnd_bits_apply(void)
 		 */
 		pktgen_set_random_bitfield(rnd, i, i, mask0);
 		cmp_ok(
-		        rnd->active_specs,
-		        "==",
-		        (1 << i),
-		        "Mask [%s] with length %d in position %d must be accepted",
-		        mask0,
-		        i,
-		        i);
+			rnd->active_specs,
+			"==",
+			(1 << i),
+			"Mask [%s] with length %d in position %d must be accepted",
+			mask0,
+			i,
+			i);
 		cmp_ok(rnd->specs[i].offset,
 		       "==",
 		       i,
 		       "... with the correct offset");
 		cmp_ok(rnd->specs[i].andMask, "==", htonl(
-		               ~(uint32_t)0 >> i),
+			       ~(uint32_t)0 >> i),
 		       "... and the correct AND bitmask");
 		cmp_ok(rnd->specs[i].orMask,  "==", htonl(
-		               0U),
+			       0U),
 		       "... and the correct OR bitmask");
 		cmp_ok(rnd->specs[i].rndMask, "==", htonl(
-		               0U),
+			       0U),
 		       "... and the correct random bitmask");
 
 		/* Set memory to all 0's and check if only bits at the specified offset
@@ -279,23 +279,22 @@ test_pktgen_rnd_bits_apply(void)
 		memset(mbuf->pkt.data, 0x00, 64);
 
 		lives_ok({ pktgen_rnd_bits_apply(NULL,
-		                                 &mbuf,
-		                                 1,
-		                                 rnd);
-			 }, "... and must be applied to all 0 bits");
+						 &mbuf,
+						 1,
+						 rnd); }, "... and must be applied to all 0 bits");
 		cmp_mem(data_ptr,
-		        all_0x00,
-		        i,
-		        "    ... without touching anything before the offset");
+			all_0x00,
+			i,
+			"    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *)&(data_ptr[i]),
 		       "==",
 		       0,
 		       "    ... and affecting the bits at the offset");
 		cmp_mem(
-		        data_ptr + i + 4,
-		        all_0x00 + i + 4,
-		        64 - (i + 4),
-		        "    ... and without touching anything after the offset");
+			data_ptr + i + 4,
+			all_0x00 + i + 4,
+			64 - (i + 4),
+			"    ... and without touching anything after the offset");
 
 		/* Set memory to all 1's and check if only bits at the specified offset
 		 * matching the mask are touched.
@@ -303,23 +302,22 @@ test_pktgen_rnd_bits_apply(void)
 		memset(mbuf->pkt.data, 0xff, 64);
 
 		lives_ok({ pktgen_rnd_bits_apply(NULL,
-		                                 &mbuf,
-		                                 1,
-		                                 rnd);
-			 }, "... and must be applied to all 1 bits");
+						 &mbuf,
+						 1,
+						 rnd); }, "... and must be applied to all 1 bits");
 		cmp_mem(data_ptr,
-		        all_0xff,
-		        i,
-		        "    ... without touching anything before the offset");
+			all_0xff,
+			i,
+			"    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *)&(data_ptr[i]), "==",
 		       htonl(
-		               ~(uint32_t)0 >> i),
+			       ~(uint32_t)0 >> i),
 		       "    ... and affecting the bits at the offset");
 		cmp_mem(
-		        data_ptr + i + 4,
-		        all_0xff + i + 4,
-		        64 - (i + 4),
-		        "    ... and without touching anything after the offset");
+			data_ptr + i + 4,
+			all_0xff + i + 4,
+			64 - (i + 4),
+			"    ... and without touching anything after the offset");
 
 		/* clean up for next test */
 		pktgen_set_random_bitfield(rnd, i, 0, "");
@@ -349,13 +347,13 @@ test_pktgen_rnd_bits_apply(void)
 		       i,
 		       "... with the correct offset");
 		cmp_ok(rnd->specs[i].andMask, "==", htonl(
-		               ~(uint32_t)0),
+			       ~(uint32_t)0),
 		       "... with the correct AND bitmask");
 		cmp_ok(rnd->specs[i].orMask,  "==",
 		       htonl(~(uint32_t)0 << (MAX_BITFIELD_SIZE - i)),
 		       "... and the correct OR bitmask");
 		cmp_ok(rnd->specs[i].rndMask, "==", htonl(
-		               0U),
+			       0U),
 		       "... and the correct random bitmask");
 
 		/* Set memory to all 0's and check if only bits at the specified offset
@@ -364,22 +362,21 @@ test_pktgen_rnd_bits_apply(void)
 		memset(mbuf->pkt.data, 0x00, 64);
 
 		lives_ok({ pktgen_rnd_bits_apply(NULL,
-		                                 &mbuf,
-		                                 1,
-		                                 rnd);
-			 }, "... and must be applied to all 0 bits");
+						 &mbuf,
+						 1,
+						 rnd); }, "... and must be applied to all 0 bits");
 		cmp_mem(data_ptr,
-		        all_0x00,
-		        i,
-		        "    ... without touching anything before the offset");
+			all_0x00,
+			i,
+			"    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *)&(data_ptr[i]), "==",
 		       htonl((~(uint32_t)0) << (MAX_BITFIELD_SIZE - i)),
 		       "    ... and affecting the bits at the offset");
 		cmp_mem(
-		        data_ptr + i + 4,
-		        all_0x00 + i + 4,
-		        64 - (i + 4),
-		        "    ... and without touching anything after the offset");
+			data_ptr + i + 4,
+			all_0x00 + i + 4,
+			64 - (i + 4),
+			"    ... and without touching anything after the offset");
 
 		/* Set memory to all 1's and check if only bits at the specified offset
 		 * matching the mask are touched.
@@ -387,21 +384,20 @@ test_pktgen_rnd_bits_apply(void)
 		memset(mbuf->pkt.data, 0xff, 64);
 
 		lives_ok({ pktgen_rnd_bits_apply(NULL,
-		                                 &mbuf,
-		                                 1,
-		                                 rnd);
-			 }, "... and must be applied to all 1 bits");
+						 &mbuf,
+						 1,
+						 rnd); }, "... and must be applied to all 1 bits");
 		cmp_mem(data_ptr,
-		        all_0xff,
-		        i,
-		        "    ... without touching anything before the offset");
+			all_0xff,
+			i,
+			"    ... without touching anything before the offset");
 		cmp_ok(*(uint32_t *)&(data_ptr[i]), "==", ~(uint32_t)0,
 		       "    ... and affecting the bits at the offset");
 		cmp_mem(
-		        data_ptr + i + 4,
-		        all_0xff + i + 4,
-		        64 - (i + 4),
-		        "    ... and without touching anything after the offset");
+			data_ptr + i + 4,
+			all_0xff + i + 4,
+			64 - (i + 4),
+			"    ... and without touching anything after the offset");
 
 		/* clean up for next test */
 		pktgen_set_random_bitfield(rnd, i, 0, "");
@@ -453,14 +449,13 @@ test_pktgen_rnd_bits_apply(void)
 		memset(mbuf->pkt.data, 0x00, 64);
 
 		lives_ok({ pktgen_rnd_bits_apply(NULL,
-		                                 &mbuf,
-		                                 1,
-		                                 rnd);
-			 }, "... and must be applied to all 0 bits");
+						 &mbuf,
+						 1,
+						 rnd); }, "... and must be applied to all 0 bits");
 		cmp_mem(data_ptr,
-		        all_0x00,
-		        64,
-		        "    ... without touching any bits");
+			all_0x00,
+			64,
+			"    ... without touching any bits");
 
 		/* Set memory to all 1's and check if only bits at the specified offset
 		 * matching the mask are touched.
@@ -468,14 +463,13 @@ test_pktgen_rnd_bits_apply(void)
 		memset(mbuf->pkt.data, 0xff, 64);
 
 		lives_ok({ pktgen_rnd_bits_apply(NULL,
-		                                 &mbuf,
-		                                 1,
-		                                 rnd);
-			 }, "... and must be applied to all 1 bits");
+						 &mbuf,
+						 1,
+						 rnd); }, "... and must be applied to all 1 bits");
 		cmp_mem(data_ptr,
-		        all_0xff,
-		        64,
-		        "    ... without touching any bits");
+			all_0xff,
+			64,
+			"    ... without touching any bits");
 
 		/* clean up for next test */
 		pktgen_set_random_bitfield(rnd, i, 0, "");
@@ -509,10 +503,10 @@ test_pktgen_rnd_bits_apply(void)
 		       i,
 		       "... with the correct offset");
 		cmp_ok(rnd->specs[i].andMask, "==", htonl(
-		               ~(uint32_t)0 >> i),
+			       ~(uint32_t)0 >> i),
 		       "... with the correct AND bitmask");
 		cmp_ok(rnd->specs[i].orMask,  "==", htonl(
-		               0U),
+			       0U),
 		       "... and the correct OR bitmask");
 		cmp_ok(rnd->specs[i].rndMask, "==",
 		       htonl(~(uint32_t)0 << (MAX_BITFIELD_SIZE - i)),
@@ -534,25 +528,24 @@ test_pktgen_rnd_bits_apply(void)
 			memset(mbuf->pkt.data, 0x00, 64);
 
 			lives_ok({ pktgen_rnd_bits_apply(NULL,
-			                                 &mbuf,
-			                                 1,
-			                                 rnd);
-				 }, "... and must be applied to all 0 bits");
+							 &mbuf,
+							 1,
+							 rnd); }, "... and must be applied to all 0 bits");
 			cmp_mem(
-			        data_ptr,
-			        all_0x00,
-			        i,
-			        "    ... without touching anything before the offset");
+				data_ptr,
+				all_0x00,
+				i,
+				"    ... without touching anything before the offset");
 			cmp_ok(*(uint32_t *)&(data_ptr[i]), "==",
 			       htonl((rnd_func ==
-			              0) ? 0 : (~(uint32_t)0 <<
-			                        (MAX_BITFIELD_SIZE - i))),
+				      0) ? 0 : (~(uint32_t)0 <<
+						(MAX_BITFIELD_SIZE - i))),
 			       "    ... and affecting the bits at the offset");
 			cmp_mem(
-			        data_ptr + i + 4,
-			        all_0x00 + i + 4,
-			        64 - (i + 4),
-			        "    ... and and without touching anything after the offset");
+				data_ptr + i + 4,
+				all_0x00 + i + 4,
+				64 - (i + 4),
+				"    ... and and without touching anything after the offset");
 
 			/* Set memory to all 1's and check if only bits at the specified offset
 			 * matching the mask are touched.
@@ -560,24 +553,23 @@ test_pktgen_rnd_bits_apply(void)
 			memset(mbuf->pkt.data, 0xff, 64);
 
 			lives_ok({ pktgen_rnd_bits_apply(NULL,
-			                                 &mbuf,
-			                                 1,
-			                                 rnd);
-				 }, "... and must be applied to all 1 bits");
+							 &mbuf,
+							 1,
+							 rnd); }, "... and must be applied to all 1 bits");
 			cmp_mem(
-			        data_ptr,
-			        all_0xff,
-			        i,
-			        "    ... without touching anything before the offset");
+				data_ptr,
+				all_0xff,
+				i,
+				"    ... without touching anything before the offset");
 			cmp_ok(*(uint32_t *)&(data_ptr[i]), "==",
 			       htonl((rnd_func ==
-			              0) ? (~(uint32_t)0 >> i) : ~(uint32_t)0),
+				      0) ? (~(uint32_t)0 >> i) : ~(uint32_t)0),
 			       "    ... and affecting the bits at the offset");
 			cmp_mem(
-			        data_ptr + i + 4,
-			        all_0xff + i + 4,
-			        64 - (i + 4),
-			        "    ... and without touching anything after the offset");
+				data_ptr + i + 4,
+				all_0xff + i + 4,
+				64 - (i + 4),
+				"    ... and without touching anything after the offset");
 		}
 
 		/* clean up for next test */
@@ -594,8 +586,8 @@ test_pktgen_rnd_bits_apply(void)
 
 	pktgen_set_random_bitfield(rnd, 4, 0, "");
 	cmp_ok(
-	        rnd->active_specs,
-	        "==",
-	        (1 << 2),
-	        "... and active_specs must be updated correctly when disabling 1 spec");
+		rnd->active_specs,
+		"==",
+		(1 << 2),
+		"... and active_specs must be updated correctly when disabling 1 spec");
 }

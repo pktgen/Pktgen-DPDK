@@ -72,6 +72,10 @@
 
 #include "pktgen-seq.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GTPu_VERSION 0x30
 
 /**************************************************************************//**
@@ -87,7 +91,11 @@
  */
 
 extern void pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt,
-                                 gtpuHdr_t *guip,
-                                 uint16_t ipProto);
+				 gtpuHdr_t *guip,
+				 uint16_t ipProto);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_GTPU_H_ */

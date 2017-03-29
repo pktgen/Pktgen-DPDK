@@ -76,6 +76,10 @@
 
 #include "pktgen-port-cfg.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct cap_hdr_s {
 	uint16_t pkt_len;
 	uint16_t data_len;
@@ -100,7 +104,11 @@ extern void pktgen_set_capture(port_info_t *info, uint32_t onOff);
 
 /* Perform capture of packets */
 extern void pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
-                                       uint32_t nb_dump,
-                                       capture_t *capture);
+				       uint32_t nb_dump,
+				       capture_t *capture);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_CAPTURE_H_ */

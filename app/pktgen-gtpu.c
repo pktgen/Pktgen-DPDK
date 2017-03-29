@@ -93,7 +93,7 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, gtpuHdr_t *guip, uint16_t ipProto)
 		l4HdrSize = sizeof(tcpHdr_t);
 
 	gtpuHdr_t *gtppHdr =
-	        (gtpuHdr_t *)(buffer + sizeof(ipHdr_t) + l4HdrSize);
+		(gtpuHdr_t *)(buffer + sizeof(ipHdr_t) + l4HdrSize);
 
 	/* Zero out the header space */
 	memset((char *)guip, 0, sizeof(gtpuHdr_t));
@@ -110,9 +110,9 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, gtpuHdr_t *guip, uint16_t ipProto)
 	 * (rest of the packet following the mandatory 8-byte GTP header). Includes the optional fields.
 	 */
 	gtppHdr->tot_len =
-	        htons(pkt->pktSize -
-	              (pkt->ether_hdr_size + sizeof(ipHdr_t) + l4HdrSize +
-	               sizeof(gtpuHdr_t)));
+		htons(pkt->pktSize -
+		      (pkt->ether_hdr_size + sizeof(ipHdr_t) + l4HdrSize +
+		       sizeof(gtpuHdr_t)));
 
 	/* Tunnel endpoint identifier (TEID)
 	 * A 32-bit(4-octet) field used to multiplex different connections in the same GTP tunnel.

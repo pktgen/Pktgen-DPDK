@@ -148,7 +148,7 @@ enable_stream_callback(GtkCellRendererToggle *cell,
 
 	info = &pktgen.info[pid];
 	pkt  = &info->seq_pkt[seq_id];
-	pkt->enabled = !active;
+	pkt->seq_enabled = !active;
 }
 
 /**************************************************************************//**

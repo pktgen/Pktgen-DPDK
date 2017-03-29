@@ -83,4 +83,6 @@ echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 
 # Restore the screen and keyboard to a sane state
+echo "[1;r" 
+echo "[99;1H"
 stty sane

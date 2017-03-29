@@ -443,7 +443,6 @@ static __inline__ void
 pg_stop_lcore(l2p_t *l2p, uint16_t lid)
 {
 	l2p->stop[lid] = 1;
-	rte_mb();
 }
 
 /**************************************************************************//**
@@ -454,7 +453,6 @@ static __inline__ void
 pg_start_lcore(l2p_t *l2p, uint16_t lid)
 {
 	l2p->stop[lid] = 0;
-	rte_mb();
 }
 
 /**************************************************************************//**
@@ -464,7 +462,6 @@ pg_start_lcore(l2p_t *l2p, uint16_t lid)
 static __inline__ int32_t
 pg_lcore_is_running(l2p_t *l2p, uint16_t lid)
 {
-	rte_mb();
 	return l2p->stop[lid] == 0;
 }
 
@@ -481,7 +478,7 @@ pg_dump_l2p(l2p_t *l2p)
 	pobj_t        *pobj;
 	uint16_t lid, pid, i;
 	const char    *types[] =
-		{ "Unknown", "RX-Only", "TX-Only", "RX-TX  ", NULL };
+	{ "Unknown", "RX-Only", "TX-Only", "RX-TX  ", NULL };
 
 	printf("Lcore:\n");
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {

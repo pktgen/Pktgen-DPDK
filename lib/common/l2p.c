@@ -95,11 +95,11 @@ enum { RX_IDX = 0, TX_IDX = 1, RXTX_CNT = 2 };
 
 /* Make sure to force sizes to multiples of 8 */
 typedef struct ls_s {
-	uint8_t ls[(RTE_MAX_LCORE+7) / 8];
+	uint8_t ls[(RTE_MAX_LCORE + 7) / 8];
 } ls_t;
 
 typedef struct ps_s {
-	uint8_t ps[(RTE_MAX_ETHPORTS+7) / 8];
+	uint8_t ps[(RTE_MAX_ETHPORTS + 7) / 8];
 } ps_t;
 
 typedef struct lcore_port_s {
@@ -348,7 +348,7 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 	k = pg_strparse(buff, ",", lcore_port, countof(lcore_port));
 	if (k <= 0) {
 		fprintf(stderr, "%s: could not parse (%s) string\n",
-		        __FUNCTION__, buff);
+			__FUNCTION__, buff);
 		return 0;
 	}
 
@@ -363,9 +363,9 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 		m = pg_strparse(lcore_port[i], ".", arr, 3);
 		if (m != 2) {
 			fprintf(stderr,
-			        "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
-			        __FUNCTION__,
-			        lcore_port[i]);
+				"%s: could not parse <lcore-list>.<port-list> (%s) string\n",
+				__FUNCTION__,
+				lcore_port[i]);
 			return 0;
 		}
 
@@ -373,17 +373,17 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 
 		if (pg_parse_lcore_list(arr[0], lp.lcores) ) {
 			fprintf(stderr,
-			        "%s: could not parse <lcore-list> (%s) string\n",
-			        __FUNCTION__,
-			        arr[0]);
+				"%s: could not parse <lcore-list> (%s) string\n",
+				__FUNCTION__,
+				arr[0]);
 			return 0;
 		}
 
 		if (pg_parse_port_list(arr[1], lp.ports) ) {
 			fprintf(stderr,
-			        "%s: could not parse <port-list> (%s) string\n",
-			        __FUNCTION__,
-			        arr[1]);
+				"%s: could not parse <port-list> (%s) string\n",
+				__FUNCTION__,
+				arr[1]);
 			return 0;
 		}
 
@@ -496,7 +496,7 @@ pg_port_matrix_dump(l2p_t *l2p)
 	}
 
 	printf(
-	        "\n    Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
-	        rte_get_master_lcore());
+		"\n    Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
+		rte_get_master_lcore());
 	fflush(stdout);
 }

@@ -70,6 +70,10 @@
 
 #include "pktgen.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************************//**
  *
  * pktgen_ipv6_ctor - IPv6 packet header constructor routine.
@@ -85,6 +89,10 @@
 extern void pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip);
 
 extern void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid,
-                                 uint32_t vlan);
+				 uint32_t vlan);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_IPV6_H_ */

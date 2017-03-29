@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,37 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <sys/stat.h>
@@ -265,8 +234,8 @@ pktgen_display_set_color(const char *elem) {
 	}
 
 	scrn_color(theme_color->fg_color,
-	              theme_color->bg_color,
-	              theme_color->attr);
+		   theme_color->bg_color,
+		   theme_color->attr);
 }
 
 /* String to use as prompt, with proper ANSI color codes */
@@ -285,19 +254,19 @@ __set_prompt(void)
 
 		if ( (def == NULL) || (prompt == NULL) )
 			pktgen_log_error(
-			        "Prompt and/or default color undefined");
+				"Prompt and/or default color undefined");
 
 		else
 			snprintf(prompt_str,
-			         sizeof(prompt_str),
-			         "\033[%d;%d;%dm%s>\033[%d;%d;%dm ",
-			         prompt->attr,
-			         30 + prompt->fg_color,
-			         40 + prompt->bg_color,
-			         PKTGEN_APP_NAME,
-			         def->attr,
-			         30 + def->fg_color,
-			         40 + def->bg_color);
+				 sizeof(prompt_str),
+				 "\033[%d;%d;%dm%s>\033[%d;%d;%dm ",
+				 prompt->attr,
+				 30 + prompt->fg_color,
+				 40 + prompt->bg_color,
+				 PKTGEN_APP_NAME,
+				 def->attr,
+				 30 + def->fg_color,
+				 40 + def->bg_color);
 	}
 
 	cmdline_set_prompt(pktgen.cl, prompt_str);
@@ -404,9 +373,9 @@ pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr)
 	if ( (fg == UNKNOWN_COLOR) || (bg == UNKNOWN_COLOR) ||
 	     (at == UNKNOWN_ATTR) ) {
 		pktgen_log_error("Unknown color or attribute (%s, %s, %s)\n",
-		                 fg_color,
-		                 bg_color,
-		                 attr);
+				 fg_color,
+				 bg_color,
+				 attr);
 		return;
 	}
 
@@ -429,12 +398,12 @@ pktgen_theme_save(char *filename)
 
 	for (i = 0; theme_color_map[i].name; i++)
 		fprintf(f, "theme %s %s %s %s\n",
-		        theme_color_map[i].name,
-		        get_name_by_color(theme_color_map[i].fg_color),
-		        get_name_by_color(theme_color_map[i].bg_color),
-		        get_name_by_attr(theme_color_map[i].attr));
+			theme_color_map[i].name,
+			get_name_by_color(theme_color_map[i].fg_color),
+			get_name_by_color(theme_color_map[i].bg_color),
+			get_name_by_attr(theme_color_map[i].attr));
 	fprintf(f, "cls\n");
 
-    fchmod(fileno(f), 0666);
+	fchmod(fileno(f), 0666);
 	fclose(f);
 }

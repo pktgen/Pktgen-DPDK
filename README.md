@@ -6,7 +6,11 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
- - 3.1.1   - Minor cleanup of top level directory.
+ - 3.1.2   - Convert spaces to tabs and add pktgen-cfg.[ch] page
+             Converting the spaces to tabs to allow for editing the code with tabs
+             set to 4 or 8 columns per tab. Changed to allow people who are stuck
+             on a tab=8 columns. We have modern computers tabs=4 columns seems reasonable.
+ - 3.1.1   - Minor cleanup of top level directory and code.
  - 3.1.0   - Rename functions and files.
              When files are written change the file modes to 0666 as they are owned by root.
              More general cleanup of the display refresh.
@@ -68,7 +72,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
  - 2.9.13  - Add max last seen RX/TX packets to display.
  - 2.9.12  - Was not able to set IP protocol type for range packets.
              New command range.proto <portlist> udp|tcp|icmp
-             Lua command is range_proto("all", "udp")
+             Lua command is pktgen.ip_proto("all", "udp")
  - 2.9.11  - Fix version string for new version style in DPDK.
  - 2.9.10  - Reformat the code and get ready for the next release of DPDK.
  - 2.9.9   - Update the init screen output to not screw up DPDK screen output.

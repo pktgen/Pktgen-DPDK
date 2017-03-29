@@ -70,6 +70,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Log levels. Each log level has an associated pktgen_log_<LEVEL>()
  * function. */
 #define LOG_LEVEL_ALL       0
@@ -96,64 +100,64 @@
  */
 #if LOG_LEVEL <= LOG_LEVEL_TRACE
 #define pktgen_log_trace(fmt, ...) pktgen_log(LOG_LEVEL_TRACE, \
-                                              __FILE__, \
-                                              __LINE__, \
-                                              __FUNCTION__, \
-                                              fmt, \
-                                              ## __VA_ARGS__)
+					      __FILE__,	\
+					      __LINE__,	\
+					      __FUNCTION__, \
+					      fmt, \
+					      ## __VA_ARGS__)
 #else
 #define pktgen_log_trace(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_DEBUG
 #define pktgen_log_debug(fmt, ...) pktgen_log(LOG_LEVEL_DEBUG, \
-                                              __FILE__, \
-                                              __LINE__, \
-                                              __FUNCTION__, \
-                                              fmt, \
-                                              ## __VA_ARGS__)
+					      __FILE__,	\
+					      __LINE__,	\
+					      __FUNCTION__, \
+					      fmt, \
+					      ## __VA_ARGS__)
 #else
 #define pktgen_log_debug(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_INFO
 #define pktgen_log_info(fmt, ...) pktgen_log(LOG_LEVEL_INFO, \
-                                             __FILE__, \
-                                             __LINE__, \
-                                             __FUNCTION__, \
-                                             fmt, \
-                                             ## __VA_ARGS__)
+					     __FILE__, \
+					     __LINE__, \
+					     __FUNCTION__, \
+					     fmt, \
+					     ## __VA_ARGS__)
 #else
 #define pktgen_log_info(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_WARNING
 #define pktgen_log_warning(fmt, ...) pktgen_log(LOG_LEVEL_WARNING, \
-                                                __FILE__, \
-                                                __LINE__, \
-                                                __FUNCTION__, \
-                                                fmt, \
-                                                ## __VA_ARGS__)
+						__FILE__, \
+						__LINE__, \
+						__FUNCTION__, \
+						fmt, \
+						## __VA_ARGS__)
 #else
 #define pktgen_log_warning(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_ERROR
 #define pktgen_log_error(fmt, ...) pktgen_log(LOG_LEVEL_ERROR, \
-                                              __FILE__, \
-                                              __LINE__, \
-                                              __FUNCTION__, \
-                                              fmt, \
-                                              ## __VA_ARGS__)
+					      __FILE__,	\
+					      __LINE__,	\
+					      __FUNCTION__, \
+					      fmt, \
+					      ## __VA_ARGS__)
 #else
 #define pktgen_log_error(fmt, ...)	/* no-op */
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_PANIC
-#define pktgen_log_panic(fmt, ...) do {                                        \
-		pktgen_log(LOG_LEVEL_PANIC, __FILE__, __LINE__, __FUNCTION__,          \
-		           fmt, ## __VA_ARGS__);                                           \
-		rte_panic(fmt, ## __VA_ARGS__);                                         \
+#define pktgen_log_panic(fmt, ...) do {					       \
+		pktgen_log(LOG_LEVEL_PANIC, __FILE__, __LINE__, __FUNCTION__,	       \
+			   fmt, ## __VA_ARGS__);					   \
+		rte_panic(fmt, ## __VA_ARGS__);						\
 } while (0)
 #else
 #define pktgen_log_panic(fmt, ...) rte_panic(fmt, ## __VA_ARGS__)
@@ -164,10 +168,10 @@
  * arguments. It formats the string and appends it to the existing string, while
  * avoiding possible buffer overruns.
  */
-#define strncatf(dest, fmt, ...) do {                                          \
-		char _buff[1024];                                                      \
-		snprintf(_buff, sizeof(_buff), fmt, ## __VA_ARGS__);                    \
-		strncat(dest, _buff, sizeof(dest) - strlen(dest) - 1);                 \
+#define strncatf(dest, fmt, ...) do {					       \
+		char _buff[1024];						       \
+		snprintf(_buff, sizeof(_buff), fmt, ## __VA_ARGS__);			\
+		strncat(dest, _buff, sizeof(dest) - strlen(dest) - 1);		       \
 } while (0)
 
 /* Initialize log data structures */
@@ -199,7 +203,7 @@ extern void pktgen_log_set_screen_level(int level);
  * SEE ALSO:
  */
 extern void pktgen_log(int level, const char *file, long line,
-                       const char *func, const char *fmt, ...);
+		       const char *func, const char *fmt, ...);
 
 /**************************************************************************//**
  *
@@ -227,5 +231,9 @@ extern void pktgen_log_set_file(const char *filename);
  * SEE ALSO:
  */
 extern void pktgen_page_log(uint32_t print_labels);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _PKTGEN_LOG_H_ */

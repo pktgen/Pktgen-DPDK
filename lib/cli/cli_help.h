@@ -80,12 +80,12 @@ cli_help_find_group(const char *group);
 /**
  * Show the map table entries
  *
- * @param h
- *   TThe cli_help pointer
+ * @param msg
+ *   Pointer to a message to print first.
  * @return
  *   0 on success or -1 on error
  */
-int cli_help_all(void);
+int cli_help_show_all(const char *msg);
 
 /**
  * Show the help message for the user.
@@ -95,7 +95,7 @@ int cli_help_all(void);
  * @param data
  *   Pointer to the cli_info structure.
  */
-int cli_help_show( const char *group);
+int cli_help_show_group( const char *group);
 
 /**
  * Add help string group to a help structure
@@ -130,24 +130,6 @@ is_help(int argc, char **argv)
 		return 0;
 
 	return !strcmp("-?", argv[argc - 1]) || !strcmp("?", argv[argc - 1]);
-}
-
-/**
- * Print out an arrays of pointers to strings.
- *
- * @param msg
- *   Pointer to array of strings to print.
- * @return
- *   -1 just to remove code having to return error anyway.
- */
-static inline int
-cli_help_show_all(const char **msg)
-{
-	for( ; msg && *msg; msg++) {
-		if (strcmp(*msg, CLI_HELP_PAUSE))
-			cli_printf("%s\n", *msg);
-	}
-	return -1;
 }
 
 #ifdef __cplusplus

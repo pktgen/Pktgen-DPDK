@@ -64,6 +64,7 @@
 /**********************************************************/
 static const char *title_help[] = {
 	"   *** Pktgen Help information ***",
+	"",
 	NULL,
 };
 
@@ -92,7 +93,7 @@ static const char *status_help[] = {
 	"       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'",
 	"       Color best seen on a black background for now",
 	"       To see a set of example Lua commands see the files in wr-examples/pktgen/test",
-	"",
+	CLI_HELP_PAUSE,
 	NULL
 };
 
@@ -506,7 +507,7 @@ theme_cmd(int argc, char **argv)
 	case 10: pktgen_theme_state(argv[1]); pktgen_clear_display(); break;
 	case 20: pktgen_set_theme_item(argv[1], argv[2], argv[3], argv[4]); break;
 	case 30: pktgen_theme_save(argv[2]); break;
-	default: return cli_help_show("Theme");
+	default: return cli_help_show_group("Theme");
 	}
 	return 0;
 }
@@ -572,7 +573,7 @@ en_dis_cmd(int argc, char **argv)
 
 	m = cli_mapping(enable_map, argc, argv);
 	if (!m)
-		return cli_help_show("Enable");
+		return cli_help_show_group("Enable");
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -841,7 +842,7 @@ seq_cmd(int argc, char **argv)
 
 	m = cli_mapping(seq_map, argc, argv);
 	if (!m) {
-		cli_help_show("Seq");
+		cli_help_show_group("Seq");
 		return -1;
 	}
 
@@ -1209,7 +1210,7 @@ help_cmd(int argc __rte_unused, char **argv __rte_unused)
 	scrn_cls();
 	scrn_pos(0, 0);
 
-	cli_help_all();
+	cli_help_show_all(NULL);
 
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);

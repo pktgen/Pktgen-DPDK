@@ -35,7 +35,8 @@ CLI stands for "Command Line Interface".
 
 This chapter describes the CLI sample application that is part of the
 Data Plane Development Kit (DPDK). The CLI is a workalike replacement for
-cmdline library in DPDK and has a simpler interface and programming model.
+cmdline library in DPDK and has a simpler programming interface and programming
+model.
 
 The primary goal of CLI is to allow the developer to create commands quickly
 and with very little compile or runtime configuration. Using standard Unix*
@@ -46,6 +47,32 @@ The CLI design uses a directory like design instead of a single level command
 line interface. Allowing the developer to use a directory style solution to
 controlling a DPDK application. The directory style design is nothing new, but
 it does have some advantages.
+
+One advantage allows the directory path for the command to be part of the
+information used in executing the command. The next advantage is creating
+directories to make a hierarchy of commands, plus allowing whole directroy
+trees to dynamicly come and go as required by the developer.
+
+Some of the advantages are:
+
+ * CLI has no global variable other then the single thread variable called *this_cli* which can only be accessed from the thread which created the CLI instance.
+ * CLI supports commands, files, aliases, directories.
+    - The alias command is just a string using a simple substitution support for other commands similar to the bash shell like alias commands.
+    - Files can be static or dynamic information, can be changed on the fly and saved for later. The file is backed with a simple function callback to allow the developer to update the content or not.
+ * Added support for color and cursor movement APIs similar to Pktgen if needed by the developer.
+ * It is a work alike replacement for cmdline library. Both cmdline and CLI can be used in the same application if care is taken.
+ * Uses a simple fake like directory layout for command and files. Allowing for command hierarchy as path to the command can allow for specific targets to be identified without having to state it on the command line.
+ * Has auto-complete for commands, similar to Unix/Linux autocomplete and provides support for command option help as well.
+ * Callback functions for commands are simply just argc/argv like functions.
+    - The CLI does not convert arguments for the user, it is up to the developer to decode the argv[] values.
+    - Most of the arguments converted in the current cmdline are difficult to use or not required as the developer just picks string type and does the conversion himself.
+ * Dynamically be able to add and remove commands, directories, files and aliases, does not need to be statically compiled into the application.
+ * No weird structures in the code and reduces the line count for testpmd from 12K to 4.5K lines. I convert testpmd to have both CMDLINE and CLI with a command line option.
+ * Two methods to parse command lines, first is the standard argc/argv method in the function.
+    - The second method is to use a map of strings with simple printf like formatting to detect which command line the user typed.
+    - An ID value it returned to the used to indicate which mapping string was found to make the command line to be used in a switch statement.
+ * Environment variable support using the **env** command or using an API.
+ * Central help support if needed (optional).
 
 Overview
 --------
@@ -75,9 +102,9 @@ commands for user development. The basic concept is for the developer to use
 standard Unix like designs. To add a command a developer needs to add an entry
 to the cli_tree_t structure and create a function using the following prototype:
 
-	.. code-block:: console
+.. code-block:: c
 
-	int user_cmd(int argc, char **argv);
+    int user_cmd(int argc, char **argv);
 
 The argc/argv is exactly like the standard usage in a Unix* system, which allows
 for using getopt() and other standard functions. The Cmdline structures and
@@ -113,62 +140,41 @@ The CLI screen code also supports basic color and many other VT100 commands.
 The application also shows how the CLI application can be extended to handle
 a list of commands and user input.
 
-The example presents a simple command prompt "DPKD-cli:/>" similar to a Unix*
+The example presents a simple command prompt **DPDK-cli:/>** similar to a Unix*
 shell command along with a directory like file system.
 
-Some of the basic commands contained under /sbin directory are:
+Some of the **default** commands contained under /sbin directory are:
 
-*   ls: list the current or provided directory files/commands.
-
-*   cd: Change directory command.
-
-*   pwd: print out the current working directory.
-
-*   history: List the current command line history if enabled.
-
-*   more: A simple command to page contents of files.
-
-*   help: display a the help screen.
-
-*   quit: exit the CLI application, also **Ctrl-x** will exit as well.
-
-*   mkdir: add a directory to the current directory.
-
-*   delay: wait for a given number of microseconds.
-
-*   sleep: wait for a given number of seconds.
-
-*   rm: remove a directory, file or command. Removing a file will delete the data.
-
-*   cls: clear the screen and redisplay the prompt.
-
-*   version: Display the current DPDK version being used.
-
-*   path: display the current search path for executable commands.
-
-*   cmap: Display the current system core and socket information.
-
-*   hugepages: Display the current hugepage information.
-
-*   sizes: a collection system structure and buffer sizes for debugging.
-
-*   copyright: a file containing DPDK copyright information.
-
-*   env: a command show/set/modify the environment variables.
+ * **ls**: list the current or provided directory files/commands.
+ * **cd**: Change directory command.
+ * **pwd**: print out the current working directory.
+ * **history**: List the current command line history if enabled.
+ * **more**: A simple command to page contents of files.
+ * **help**: display a the help screen.
+ * **quit**: exit the CLI application, also **Ctrl-x** will exit as well.
+ * **mkdir**: add a directory to the current directory.
+ * **delay**: wait for a given number of microseconds.
+ * **sleep**: wait for a given number of seconds.
+ * **rm**: remove a directory, file or command. Removing a file will delete the data.
+ * **cls**: clear the screen and redisplay the prompt.
+ * **version**: Display the current DPDK version being used.
+ * **path**: display the current search path for executable commands.
+ * **cmap**: Display the current system core and socket information.
+ * **hugepages**: Display the current hugepage information.
+ * **sizes**: a collection system structure and buffer sizes for debugging.
+ * **copyright**: a file containing DPDK copyright information.
+ * **env**: a command show/set/modify the environment variables.
 
 Some example commands under /bin directory are:
 
-*   ll: an alias command to display long ls listing **ls -l**
-
-*   h: alias command for **history**
-
-*   hello: a simple Hello World! command.
-
-*   show: has a number of commands using the map feature.
+ * **ll**: an alias command to display long ls listing **ls -l**
+ * **h**: alias command for **history**
+ * **hello**: a simple Hello World! command.
+ * **show**: has a number of commands using the map feature.
 
 Under the /data directory is:
 
-*   pci: a simple example file for displaying the **lspci** command in CLI.
+ * **pci**: a simple example file for displaying the **lspci** command in CLI.
 
 .. note::
 
@@ -200,14 +206,14 @@ Compiling the Application
 
 #.  Go to example directory:
 
-   .. code-block:: console
+.. code-block:: console
 
        export RTE_SDK=/path/to/rte_sdk
        cd ${RTE_SDK}/examples/cli
 
 #.  Set the target (a default target is used if not specified). For example:
 
-   .. code-block:: console
+.. code-block:: console
 
        export RTE_TARGET=x86_64-native-linuxapp-gcc
 
@@ -215,7 +221,7 @@ Compiling the Application
 
 #.  Build the application:
 
-   .. code-block:: console
+.. code-block:: console
 
        make
 
@@ -258,6 +264,7 @@ if required for the application.
                                /* 0 means do not use color themes */
            cli_destroy();
        }
+       ...
 
 The cli_start() function returns when the user types **Ctrl-x** or uses the
 quit command in this case, the application exits. The cli_create() call takes
@@ -320,6 +327,8 @@ The tree init routine is defined like:
 		/* Using NULL here to start at root directory */
 	    if (cli_add_tree(NULL, my_tree))
 	        return -1;
+
+		cli_help_add("Show", show_map, show_help);
 
 		return cli_add_bin_path("/bin");
 	}
@@ -400,11 +409,11 @@ Example:
 			if (node->file_data && (node->fflags & CLI_FREE_DATA))
 				free(node->file_data);
 
-	        node->file_data = malloc(32 * 1024);
+			node->file_data = malloc(32 * 1024);
 			if (!node->file_data)
 				return -1;
-	        node->file_size = 32 * 1024;
-	        node->fflags = CLI_DATA_RDONLY | CLI_FREE_DATA;
+			node->file_size = 32 * 1024;
+			node->fflags = CLI_DATA_RDONLY | CLI_FREE_DATA;
 
 			f = popen("lspci", "r");
 			if (!f)
@@ -434,8 +443,6 @@ Example:
 		NULL
 	};
 
-	CLI_INFO(Show, show_map, show_help);
-
 	static int
 	show_cmd(int argc, char **argv)
 	{
@@ -455,7 +462,8 @@ Example:
 			case 20:
 				rte_parse_portlist(argv[1], &portlist);
 				rte_ether_aton(argv[3], &mac);
-				cli_printf("   Show Portlist: %08x, MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+				cli_printf("   Show Portlist: %08x, MAC: "
+						"%02x:%02x:%02x:%02x:%02x:%02x\n",
 						   portlist,
 						   mac.addr_bytes[0],
 						   mac.addr_bytes[1],
@@ -467,7 +475,8 @@ Example:
 			case 30:
 				rte_parse_portlist(argv[1], &portlist);
 				rte_ether_aton(argv[5], &mac);
-				cli_printf("   Show Portlist: %08x vlan %d MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+				cli_printf("   Show Portlist: %08x vlan %d MAC: "
+						"%02x:%02x:%02x:%02x:%02x:%02x\n",
 						   portlist,
 						   atoi(argv[3]),
 						   mac.addr_bytes[0],
@@ -494,7 +503,7 @@ Example:
 					cli_printf("%d\n", 101);
 				break;
 			default:
-				cli_help_show(Show_info.help);
+				cli_help_show_group("Show");
 				return -1;
 		}
 		return 0;
@@ -502,13 +511,13 @@ Example:
 
 	static struct cli_tree my_tree[] = {
 		c_dir("/data"),
-	    c_file("pci",	pci_file, 	"display lspci information"),
-	    c_dir("/bin"),
-	    c_cmd("show",	show_cmd, 	"show mapping options"),
-	    c_cmd("hello",	hello_cmd, 	"Hello-World!!"),
-	    c_alias("h", 	"history", 	"display history commands"),
-	    c_alias("ll", 	"ls -l", 	"long directory listing alias"),
-	    c_end()
+		c_file("pci",	pci_file, 	"display lspci information"),
+		c_dir("/bin"),
+		c_cmd("show",	show_cmd, 	"show mapping options"),
+		c_cmd("hello",	hello_cmd, 	"Hello-World!!"),
+		c_alias("h", 	"history", 	"display history commands"),
+		c_alias("ll", 	"ls -l", 	"long directory listing alias"),
+		c_end()
 	};
 
 Here is the cli_tree for this example, note it has a lot more commands. The show_cmd
@@ -521,41 +530,38 @@ correct entry in the list. You will also notice another structure called pcap_he
 which is an array of strings giving a cleaner and longer help description of
 each of the commands.
 
-These two structure show_map/show_help can be included into another structure
-called cli_info. The cli_info structure contains pointers to each of the structures
-and a group name string. The CLI_INFO() macro is used to help create the
-cli_info structure called Show_info. Note the first argument in the macro is
-the name of the group and is used to create the Show_info structure name. The
-second and third arguments to the macro are the map and help structures.
+These two structure show_map/show_help can be added to the cli_help system
+to provide help for a command using a simple API.
 
-The reason for the cli_info structure called Show_info is to be used with the
-cli_map_help_all(struct cli_info **info); routine to use to display
-help information for autocomplete and the help command. The help_data[] is used
-in the help command to dump out the help strings. In this array of structure
-pointers I have included a number of cli_info structures not shown in this doc
-as an example. The only structure required is the struct cli_map show_map[]. The
-Show_info help_date[] structure and const char **show_help are not required.
+.. code-block::c
 
-The following is from Pktgen source code to show add more help to the global
+	cli_help_add("Show", show_map, show_help);
+
+	cli_help_show_group("Show");
+
+or we can use the cli_help_show_all() API to show all added help information.
+
+.. code-block:: c
+
+	cli_help_show_all(NULL);
+
+The following is from Pktgen source code to add more help to the global
 help for the system.
 
 .. code-block:: c
 
-	static struct cli_info *help_data[] = {
-		&Title_info,
-		&Page_info,
-		&Enable_info,
-		&Set_info,
-		&Range_info,
-		&Seq_info,
-		&PCAP_info,
-		&Start_info,
-		&Debug_info,
-		&Misc_info,
-		&Theme_info,
-		&Status_info,
-		NULL
-	};
+	cli_help_add("Title", NULL, title_help);
+	cli_help_add("Page", page_map, page_help);
+	cli_help_add("Enable", enable_map, enable_help);
+	cli_help_add("Set", set_map, set_help);
+	cli_help_add("Range", range_map, range_help);
+	cli_help_add("Sequence", seq_map, seq_help);
+	cli_help_add("PCAP", pcap_map, pcap_help);
+	cli_help_add("Start", start_map, start_help);
+	cli_help_add("Debug", debug_map, debug_help);
+	cli_help_add("Misc", misc_map, misc_help);
+	cli_help_add("Theme", theme_map, theme_help);
+	cli_help_add("Status", NULL, status_help);
 
 Understanding the CLI system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

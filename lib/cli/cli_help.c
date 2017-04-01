@@ -72,21 +72,22 @@ _show_help_lines(const char **h)
 		cli_printf("%s\n", h[j]);
 	}
 
-	cli_pause("   <Press Return to Continue or ESC>", NULL);
 	return 0;
 }
 
 int
-cli_help_all(void)
+cli_help_show_all(const char *msg)
 {
 	struct help_node *n;
+
+	if (msg)
+		cli_printf("%s\n", msg);
 
 	TAILQ_FOREACH(n, &this_cli->help_nodes, next) {
 		if (_show_help_lines(n->help_data))
 			return -1;
 	}
 
-	cli_pause("   <Press Return to Continue or ESC>", NULL);
 	return 0;
 }
 
@@ -104,27 +105,13 @@ cli_help_find_group(const char *group)
 }
 
 int
-cli_help_show(const char *group)
+cli_help_show_group(const char *group)
 {
-	int j;
-	char key;
-	const char *s;
 	struct help_node *n;
 
 	n = cli_help_find_group(group);
 	if (!n)
 		return -1;
 
-	for (j = 0; n->help_data[j] != NULL; j++) {
-		s = n->help_data[j];
-		if (!strcmp(s, CLI_HELP_PAUSE)) {
-			key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
-			if (key == vt100_escape)
-				return -1;
-			continue;
-		}
-		cli_printf("%s\n", s);
-	}
-	cli_pause("   <Press Return to Continue or ESC>", NULL);
-	return 0;
+	return _show_help_lines(n->help_data);
 }

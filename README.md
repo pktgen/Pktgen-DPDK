@@ -6,188 +6,188 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
- - 3.2.0   - Add support for decimal point rate values, like 10.1, 20.54, 90.6, ...
-             Convert over to use CLI interface instead of cmdline interface.
-             CLI is a directory like command line tool and please read the .rst file in the lib/cli directory
-             Many bug fixes.
- - 3.1.2   - Convert spaces to tabs and add pktgen-cfg.[ch] page
-             Converting the spaces to tabs to allow for editing the code with tabs
-             set to 4 or 8 columns per tab. Changed to allow people who are stuck
-             on a tab=8 columns. We have modern computers tabs=4 columns seems reasonable.
- - 3.1.1   - Minor cleanup of top level directory and code.
- - 3.1.0   - Rename functions and files.
-             When files are written change the file modes to 0666 as they are owned by root.
-             More general cleanup of the display refresh.
-             loading command or lua files is faster because of the screen updates fixed.
- - 3.0.17  - Fixed a formating issue on sequence page for port numbers.
-             Save of lua code wrong for pktgen.range() should be pktgen.set_range().
- - 3.0.16  - Add command line option to strip CRC in hardware one RX.
-             Option is '--crc-strip' which strips the CRC on RX for all ports.
- - 3.0.15  - Update Lua to 5.3.3 version
-             Change lua pktgen.range() to pktgen.set_range() plus added
-             the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
-             Still support the old commands for now.
-             Now polls the RX and TX queues to support eth_bond interfaces using
-             mode 4 or LACP.
- - 3.0.14  - Fix crash in saving configuration and random is not setup.
- - 3.0.13  - Fix seq only sending the first sequence packet and some cleanup.
- - 3.0.12  - Map port/queue pair stats to the correct lcore.
- - 3.0.11  - Fix compile problem with 16.04
- - 3.0.10  - Added the 'pdump <portlist>' command to hex dump the first packet to be
-             send on the given ports. Only the single packet mode is supported.
- - 3.0.09  - Add Fix for PCAP corruption.
- - 3.0.08  - Add Lua support for rnd and latency commands.
-             Now if latency is enable on a port then getting the stats will get
-             the latency values via lua table.
- - 3.0.07  - Fixed crash on exit when using more then one core per port.
- - 3.0.06  - Fix PCI null pointer when using virtual devices.
-             Removed the C11 constructs to compile on C99 compilers.
-             Fix the bug of old packets after changes for new run.
-             The problem is DPDK holds on to the mbufs in the TX done queue
-             and those can not be changed. With 16.07 we can find all of the mbufs
-             and changed them to correct format/sizes.
- - 3.0.05  - New Latency/Jitter page 'page latency'
-             Need to adjust the packet size to 96 to allow for latency timestamp.
-             type: page latency
-                   latency 0 on
-                   set 0 size 96
-                   start 0
- - 3.0.04  - Display reported the wrong rate in Mbits because the counters were not
-             including the FCS bytes in the value as it was before.
-             Minor cleanup of the code for formating.
- - 3.0.03  - General clean up of scripts
-             Add support for share library builds
-             Clean up formating
-             Add PCI info screen
-             GUI 1.0 support
- - 3.0.02  - Fix up the IPv6 address macros for musl libc support
-             Fix the missing pthread.h include in lua socket header.
-             Add the rnd lua support APIs
-             Fix the checksum issue with rnd changes.
- - 3.0.01  - Fixed the Range sequence and VLAN problem.
- - 3.0.00  - Fixed code to ifdef the imcasts counters that were deprecated.
- - 2.9.18  - Fix the range command to set IP proto value and be able to save that value.
- - 2.9.17  - Fix PCAP crash when using multiple tx queues.
- - 2.9.16  - Fix include problems with cmdline_parse.h file.
-             missing cmdline_parse_token_hdr_t define and looks like the header was not
-             included in the pktgen-seq.h file for DPDK v2.2.0 and pktgen-2.9.15
- - 2.9.15  - Update Lua to version 5.3.2
- - 2.9.14  - Fix compiler error for gcc-4.9 and inet_ntop() routine
- - 2.9.13  - Add max last seen RX/TX packets to display.
- - 2.9.12  - Was not able to set IP protocol type for range packets.
-             New command range.proto <portlist> udp|tcp|icmp
-             Lua command is pktgen.ip_proto("all", "udp")
- - 2.9.11  - Fix version string for new version style in DPDK.
- - 2.9.10  - Reformat the code and get ready for the next release of DPDK.
- - 2.9.9   - Update the init screen output to not screw up DPDK screen output.
- - 2.9.8   - Fixed the crash when using the sequence packets.
- - 2.9.7   - Changed all rte_zmalloc to rte_zmalloc_socket calls and change seq_pkt support.
-             The fix for multiple cores accessing seq_pkts was to allocate memory and copy
-             into a private area. This sometimes caused memory allocation problems, so I
-             removed the allocation and used spinlocks around the code. Most likely slower
-             in some areas but better then allocating memory.
- - 2.9.6   - Add support for different pattern types and a user patten string.
-             New commands are 'pattern <portlist> type'.
-             Types are abc, none, zero or user
-             New command 'user.pattern <portlist> <string>' The string can not contain a space
-             which is a limitation of the rte_cmdline code.
-             Added new Lua command for the above 'pattern(<portlist>, <type>)'
-             and 'userPatten(<portlist>, <string>)'
- - 2.9.5   - Fixed sequence packet race condition for multiple senders.
- - 2.9.4   - Fixed the ARP sends were not being flushed 
- - 2.9.3   - Remove change log and comment out the eth stop when done sending.
-             This will most likely screw up the pcap and others, but stopping the port is not good.
- - 2.9.1   - Fix up the sequeue help to remove vlan option with ipv4/ipv6
- - 2.9.0   - Update to DPDK 2.0.0 and Lua 5.3.0 with README update.
- - 2.8.6   - Fix argument for rte_mempool_create, which caused a crash.
- - 2.8.5   - Fix compat problem with latest Pktgen and DPDK 1.8.0
- - 2.8.4   - Minor updates for comments.
- - 2.8.3   - Updated the Makefiles to use rte.extXYZ.mk files.
-             Updated the code to build with DPDK 2.0.0-rc1 as some function prototype changed.
- - 2.8.2   - Fix bug in pktgen_main_receive routine not using the correct port number.
- - 2.8.1   - Add a new docs directory using Sphinx format and update version numbers.
- - 2.8.0   - Update to release 1.8.0 of DPDK.
- - 2.7.7   - Update Lua to 5.2.3 and fixed setting vlan ID on single ports plus added new Lua functions
+ - 3.2.0 - Add support for decimal point rate values, like 10.1, 20.54, 90.6, ...
+Convert over to use CLI interface instead of cmdline interface.
+CLI is a directory like command line tool and please read the .rst file in the lib/cli directory
+Many bug fixes.
+ - 3.1.2 - Convert spaces to tabs and add pktgen-cfg.[ch] page
+Converting the spaces to tabs to allow for editing the code with tabs
+set to 4 or 8 columns per tab. Changed to allow people who are stuck
+on a tab=8 columns. We have modern computers tabs=4 columns seems reasonable.
+ - 3.1.1 - Minor cleanup of top level directory and code.
+ - 3.1.0 - Rename functions and files.
+When files are written change the file modes to 0666 as they are owned by root.
+More general cleanup of the display refresh.
+loading command or lua files is faster because of the screen updates fixed.
+ - 3.0.17- Fixed a formating issue on sequence page for port numbers.
+Save of lua code wrong for pktgen.range() should be pktgen.set_range().
+ - 3.0.16- Add command line option to strip CRC in hardware one RX.
+Option is '--crc-strip' which strips the CRC on RX for all ports.
+ - 3.0.15- Update Lua to 5.3.3 version
+Change lua pktgen.range() to pktgen.set_range() plus added
+the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
+Still support the old commands for now.
+Now polls the RX and TX queues to support eth_bond interfaces using
+mode 4 or LACP.
+ - 3.0.14- Fix crash in saving configuration and random is not setup.
+ - 3.0.13- Fix seq only sending the first sequence packet and some cleanup.
+ - 3.0.12- Map port/queue pair stats to the correct lcore.
+ - 3.0.11- Fix compile problem with 16.04
+ - 3.0.10- Added the 'pdump <portlist>' command to hex dump the first packet to be
+send on the given ports. Only the single packet mode is supported.
+ - 3.0.09- Add Fix for PCAP corruption.
+ - 3.0.08- Add Lua support for rnd and latency commands.
+Now if latency is enable on a port then getting the stats will get
+the latency values via lua table.
+ - 3.0.07- Fixed crash on exit when using more then one core per port.
+ - 3.0.06- Fix PCI null pointer when using virtual devices.
+Removed the C11 constructs to compile on C99 compilers.
+Fix the bug of old packets after changes for new run.
+The problem is DPDK holds on to the mbufs in the TX done queue
+and those can not be changed. With 16.07 we can find all of the mbufs
+and changed them to correct format/sizes.
+ - 3.0.05- New Latency/Jitter page 'page latency'
+Need to adjust the packet size to 96 to allow for latency timestamp.
+type: page latency
+latency 0 on
+set 0 size 96
+start 0
+ - 3.0.04- Display reported the wrong rate in Mbits because the counters were not
+including the FCS bytes in the value as it was before.
+Minor cleanup of the code for formating.
+ - 3.0.03- General clean up of scripts
+Add support for share library builds
+Clean up formating
+Add PCI info screen
+GUI 1.0 support
+ - 3.0.02- Fix up the IPv6 address macros for musl libc support
+Fix the missing pthread.h include in lua socket header.
+Add the rnd lua support APIs
+Fix the checksum issue with rnd changes.
+ - 3.0.01- Fixed the Range sequence and VLAN problem.
+ - 3.0.00- Fixed code to ifdef the imcasts counters that were deprecated.
+ - 2.9.18- Fix the range command to set IP proto value and be able to save that value.
+ - 2.9.17- Fix PCAP crash when using multiple tx queues.
+ - 2.9.16- Fix include problems with cmdline_parse.h file.
+missing cmdline_parse_token_hdr_t define and looks like the header was not
+included in the pktgen-seq.h file for DPDK v2.2.0 and pktgen-2.9.15
+ - 2.9.15- Update Lua to version 5.3.2
+ - 2.9.14- Fix compiler error for gcc-4.9 and inet_ntop() routine
+ - 2.9.13- Add max last seen RX/TX packets to display.
+ - 2.9.12- Was not able to set IP protocol type for range packets.
+New command range.proto <portlist> udp|tcp|icmp
+Lua command is pktgen.ip_proto("all", "udp")
+ - 2.9.11- Fix version string for new version style in DPDK.
+ - 2.9.10- Reformat the code and get ready for the next release of DPDK.
+ - 2.9.9 - Update the init screen output to not screw up DPDK screen output.
+ - 2.9.8 - Fixed the crash when using the sequence packets.
+ - 2.9.7 - Changed all rte_zmalloc to rte_zmalloc_socket calls and change seq_pkt support.
+The fix for multiple cores accessing seq_pkts was to allocate memory and copy
+into a private area. This sometimes caused memory allocation problems, so I
+removed the allocation and used spinlocks around the code. Most likely slower
+in some areas but better then allocating memory.
+ - 2.9.6 - Add support for different pattern types and a user patten string.
+New commands are 'pattern <portlist> type'.
+Types are abc, none, zero or user
+New command 'user.pattern <portlist> <string>' The string can not contain a space
+which is a limitation of the rte_cmdline code.
+Added new Lua command for the above 'pattern(<portlist>, <type>)'
+and 'userPatten(<portlist>, <string>)'
+ - 2.9.5 - Fixed sequence packet race condition for multiple senders.
+ - 2.9.4 - Fixed the ARP sends were not being flushed
+ - 2.9.3 - Remove change log and comment out the eth stop when done sending.
+This will most likely screw up the pcap and others, but stopping the port is not good.
+ - 2.9.1 - Fix up the sequeue help to remove vlan option with ipv4/ipv6
+ - 2.9.0 - Update to DPDK 2.0.0 and Lua 5.3.0 with README update.
+ - 2.8.6 - Fix argument for rte_mempool_create, which caused a crash.
+ - 2.8.5 - Fix compat problem with latest Pktgen and DPDK 1.8.0
+ - 2.8.4 - Minor updates for comments.
+ - 2.8.3 - Updated the Makefiles to use rte.extXYZ.mk files.
+Updated the code to build with DPDK 2.0.0-rc1 as some function prototype changed.
+ - 2.8.2 - Fix bug in pktgen_main_receive routine not using the correct port number.
+ - 2.8.1 - Add a new docs directory using Sphinx format and update version numbers.
+ - 2.8.0 - Update to release 1.8.0 of DPDK.
+ - 2.7.7 - Update Lua to 5.2.3 and fixed setting vlan ID on single ports plus added new Lua functions
 			 New Lua functions are pktgen.portCount() and pktgen.totalPorts() portCount() is the number of
 			 port used by Pktgen and totalPorts() is the total number seen by DPDK.
- - 2.7.6   - Update code from dpdk.org version of Pktgen, which hopefull fixes the send foreve problem.
- - 2.7.5   - Update to latest dpdk.org and move scrn to lib directory with name changes.
- - 2.7.4   - Removed old printf_info() calls for printf_status() calls.
- - 2.7.3   - Fixed race condition with updating the TX count value with a small count.
- - 2.7.1   - Add a command line option '-T' to enable themes and set themes off by default.
- - 2.7.0   - Update to DPDK 1.7.0, Note: DPDK 1.7.0 changed how ports are detected and blacklisted,
-             which means the port index is now different. You will need to blacklist or whitelist ports
-             with the DPDK '-b' or '--pci-blacklist or --pci-whitelist' options. Pktgen does not blacklist
-             ports anymore.
-           - Moved pktgen to the examples directory plus removed the libwr_* from the lib directory
-           - Pktgen now supports ANSI color terminals only the main screen ATM, but more later.
-           - Best viewed on a black background display, unless you want to change it with the new theme commands.
-           - More supported generator types, checkout the help screens.
- - 2.6.8   - Fixed a transmit problem when count is set to one. Plus increase the link down delays.
- - 2.6.7   - Add more support for GRE packets, log support and more testing code.
- - 2.6.6   - Fix compile problem when not SSE4.2 instructions are not supported. Allowing QEMU and other
-             systems to build and run. Also added a patch to take into account huge reserved pages.
- - 2.6.5   - Added support for logging packet information.
- - 2.6.4   - It consists of 3 commits: improvements to the pktgen-random.c unit tests,
-             the real CentOS compilation fixes and a small update to tap.{c,h} so they
-             are identical to those from zorgnax/libtap on github.
- - 2.6.3   - Add a delay when traffic stops to make sure all packets are sent.
-             Remove the `rte_hash_crc.h` include in wr_pcap.c file.
- - 2.6.2   - Fixup GRE and ARP problems
- - 2.6.1   - Add random bits support and more cleanup
- - 2.6.0   - Split up the code for testing to be added later
- - 2.5.2   - Remove extra ethertypes.h file.
- - 2.5.1   - Added the following updates.
-           - Implement-Rx-packet-dump-functionality
-           - Add-packet-capture-functionality
-           - Add-MPLS-functionality
-           - Add-Q-in-Q-802.11ad-functionality
-           - Add-GRE-header-generation
-           - Fix-UDP-TCP-ICMP-protocol-selection
-           - Add-ARP-protocol
- - 2.5.0   - Update to DPDK 1.6.0 plus a few bug fixes.
- - 2.4.1   - Fixed a bug in range packets when 'inc' value is zero use start values.
- - 2.4.0   - Add support for TX tap packets. Change 'tap' command to rxtap and txtap.
- - 2.3.4   - Minor update to help eliminate RX errors and be able to receive at wire rate.
- - 2.3.3   - Update to minor release 1.5.2
- - 2.3.2   - Fixed VLAN detection problem in ARP and special GARP support.
- - 2.3.1   - Getting closer to line rate tx speed.
- - 2.3.0   - Now supports the VLAN encapsulated packets for ARP replies
-             Also added a special GARP processing to update the destination MAC
-             address to help support a special request for failover support.
-             Added support for DPDK 1.5.1
- - 2.2.7   - Updated the code to handle multiple TX queues per port.
- - 2.2.6   - Fixed a crash if the port is not up with link status
- - 2.2.5   - Remove the flow control code as some systems it does not work.
- - 2.2.4   - Fix the `inet_h64tom and inet_mtoh64` functions to account for endianness
- - 2.2.3   - range packet fixes for packet size and source/destination mac
- - 2.2.2   - Minor performance changes for receive packet performance.
- - 2.2.1   - Change MAC address from XXXX:XXXX:XXXX to XX:XX:XX:XX:XX:XX format
-             Fixed Pktgen to allow packet changes without having to restart the tool.
- - 2.2.0   - Update to DPDK 1.5.0
- 
+ - 2.7.6 - Update code from dpdk.org version of Pktgen, which hopefull fixes the send foreve problem.
+ - 2.7.5 - Update to latest dpdk.org and move scrn to lib directory with name changes.
+ - 2.7.4 - Removed old printf_info() calls for printf_status() calls.
+ - 2.7.3 - Fixed race condition with updating the TX count value with a small count.
+ - 2.7.1 - Add a command line option '-T' to enable themes and set themes off by default.
+ - 2.7.0 - Update to DPDK 1.7.0, Note: DPDK 1.7.0 changed how ports are detected and blacklisted,
+which means the port index is now different. You will need to blacklist or whitelist ports
+with the DPDK '-b' or '--pci-blacklist or --pci-whitelist' options. Pktgen does not blacklist
+ports anymore.
+- Moved pktgen to the examples directory plus removed the libwr_* from the lib directory
+- Pktgen now supports ANSI color terminals only the main screen ATM, but more later.
+- Best viewed on a black background display, unless you want to change it with the new theme commands.
+- More supported generator types, checkout the help screens.
+ - 2.6.8 - Fixed a transmit problem when count is set to one. Plus increase the link down delays.
+ - 2.6.7 - Add more support for GRE packets, log support and more testing code.
+ - 2.6.6 - Fix compile problem when not SSE4.2 instructions are not supported. Allowing QEMU and other
+systems to build and run. Also added a patch to take into account huge reserved pages.
+ - 2.6.5 - Added support for logging packet information.
+ - 2.6.4 - It consists of 3 commits: improvements to the pktgen-random.c unit tests,
+the real CentOS compilation fixes and a small update to tap.{c,h} so they
+are identical to those from zorgnax/libtap on github.
+ - 2.6.3 - Add a delay when traffic stops to make sure all packets are sent.
+Remove the `rte_hash_crc.h` include in wr_pcap.c file.
+ - 2.6.2 - Fixup GRE and ARP problems
+ - 2.6.1 - Add random bits support and more cleanup
+ - 2.6.0 - Split up the code for testing to be added later
+ - 2.5.2 - Remove extra ethertypes.h file.
+ - 2.5.1 - Added the following updates.
+- Implement-Rx-packet-dump-functionality
+- Add-packet-capture-functionality
+- Add-MPLS-functionality
+- Add-Q-in-Q-802.11ad-functionality
+- Add-GRE-header-generation
+- Fix-UDP-TCP-ICMP-protocol-selection
+- Add-ARP-protocol
+ - 2.5.0 - Update to DPDK 1.6.0 plus a few bug fixes.
+ - 2.4.1 - Fixed a bug in range packets when 'inc' value is zero use start values.
+ - 2.4.0 - Add support for TX tap packets. Change 'tap' command to rxtap and txtap.
+ - 2.3.4 - Minor update to help eliminate RX errors and be able to receive at wire rate.
+ - 2.3.3 - Update to minor release 1.5.2
+ - 2.3.2 - Fixed VLAN detection problem in ARP and special GARP support.
+ - 2.3.1 - Getting closer to line rate tx speed.
+ - 2.3.0 - Now supports the VLAN encapsulated packets for ARP replies
+Also added a special GARP processing to update the destination MAC
+address to help support a special request for failover support.
+Added support for DPDK 1.5.1
+ - 2.2.7 - Updated the code to handle multiple TX queues per port.
+ - 2.2.6 - Fixed a crash if the port is not up with link status
+ - 2.2.5 - Remove the flow control code as some systems it does not work.
+ - 2.2.4 - Fix the `inet_h64tom and inet_mtoh64` functions to account for endianness
+ - 2.2.3 - range packet fixes for packet size and source/destination mac
+ - 2.2.2 - Minor performance changes for receive packet performance.
+ - 2.2.1 - Change MAC address from XXXX:XXXX:XXXX to XX:XX:XX:XX:XX:XX format
+Fixed Pktgen to allow packet changes without having to restart the tool.
+ - 2.2.0 - Update to DPDK 1.5.0
+
 **=====================**
 
 Please look at the 3rd party PDF for license information.
 
 ---
-**Copyright &copy; \<2010-2016\>, Intel Corporation All rights reserved.**
- 
+**Copyright &copy; \<2010-2017\>, Intel Corporation All rights reserved.**
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
 
  - Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
+ notice, this list of conditions and the following disclaimer.
 
  - Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the
-   distribution.
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the
+ distribution.
 
  - Neither the name of Intel Corporation nor the names of its
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
+ contributors may be used to endorse or promote products derived
+ from this software without specific prior written permission.
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -202,58 +202,26 @@ Please look at the 3rd party PDF for license information.
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  OF THE POSSIBILITY OF SUCH DAMAGE.
 
----
-**Copyright &copy; \<2010-2014\>, Wind River Systems, Inc.**
-
- Redistribution and use in source and binary forms, with or without modification, are
- permitted provided that the following conditions are met:
-
- 1) Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
-
- 2) Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation and/or
-    other materials provided with the distribution.
-
- 3) Neither the name of Wind River Systems nor the names of its contributors may be
-    used to endorse or promote products derived from this software without specific
-    prior written permission.
-
- 4) The screens displayed by the application must contain the copyright notice as defined
-    above and can not be removed without specific prior written permission.
-
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
  Pktgen: Created 2010 by Keith Wiles @ windriver.com, now at Intel.com
  ---
 
 **======================== README.md file ==============================**
 
-                          *** Pktgen ****
-          Copyright &copy \<2015-2016\>, Intel Corporation.
-          Copyright &copy \<2010-2014\>, Wind River Systems, Inc.
+*** Pktgen ****
+Copyright &copy \<2015-2017\>, Intel Corporation.
 
-README for setting up Pktgen with DPDK on Ubuntu 10.04 to 13.10 desktop, it
+README for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
 
-*** Note: Tested with Ubuntu 13.10 and up to 14.04 kernel version
-    Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
+*** Note: Tested with Ubuntu 13.10 and up to 16.10 kernel versions
+Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
 
-I am using Ubuntu 13.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
+I am using Ubuntu 16.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
 Crownpass Dual socket board running at 2.4GHz with 32GB of ram 16GB per socket.
-The current kernel version is 3.5.0-25 (as of 2013-03-18) support, but should
+The current kernel version is 4.4.0-66-generic (as of 2017-04-01) support, but should
 work on just about any new Linux kernel version.
 
-Currently using as of 2016-02-10 Ubuntu 15.10 Kernel 4.2.0-27-generic system.
+Currently using as of 2017-04-01 Ubuntu 16.10 Kernel 4.4.0-66-generic system.
 
 To get hugeTLB page support your Linux kernel must be at least 2.6.33 and in the
 DPDK documents it talks about how you can upgrade your Linux kernel.
@@ -263,7 +231,7 @@ Ubuntu 10.04 is 2.6.32 by default so upgraded to kernel 2.6.34 using this HOWTO:
 http://usablesoftware.wordpress.com/2010/05/26/switch-to-a-newer-kernel-in-ubuntu-10-04/
 
 The pktgen output display needs 132 columns and about 42 lines to display
-correctly. I am using an xterm of 132x42, but you can have a larger display
+currentlyt. I am using an xterm of 132x42, but you can have a larger display
 and maybe a bit smaller. If you are displaying more then 4-6 ports then you
 will need a wider display. Pktgen allows you to view a set of ports if they
 do not all fit on the screen at one time via the 'page' command.
@@ -272,6 +240,12 @@ Type 'help' at the 'Pktgen>' prompt to see the complete Pktgen command line
 commands. Pktgen uses VT100 control codes or escape codes to display the screens,
 which means your terminal must support VT100. The Hyperterminal in windows is not
 going to work for Pktgen as it has a few problems with VT100 codes.
+
+Pktgen has a number of modes to send packets single, range, random, sequeue and
+PCAP modes. Each mode has its own set of packet buffers and you must configure
+each mode to work correctly. The single packet mode is the information displayed
+at startup screen or when using the 'page main or page 0' command. The other
+screens can be accessed using 'page seq|range|rnd|pcap|stats' command.
 
 The pktgen program as built can send up to 16 packets per port in a sequence
 and you can configure a port using the 'seq' pktgen command. A script file
@@ -282,9 +256,106 @@ In the BIOS make sure the HPET High Precision Event Timer is enabled. Also
 make sure hyper-threading is enabled.
 
 ** NOTE **
-  On a 10GB NIC if the transceivers are not attached the screen updates will go
-  very slow.
+On a 10GB NIC if the transceivers are not attached the screen updates will go
+very slow.
 
+*** Pktgen command line directory format ***
+
+```
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+
+
+
+Pktgen:/> ls
+[pktgen]        [sbin]          copyright
+Pktgen:/> ls pktgen/bin
+off             on              debug           set             pcap
+stp             str             stop            start           disable
+enable          range           theme           page            seq
+sequence        ping4           port            restart         rst
+reset           cls             redisplay       save            lua
+script          load            geom            geometry        clr
+clear.stats     help
+Pktgen:/>
+```
+-------------------------------------------------------------------------------
+```
+Pktgen:/> ls
+[pktgen]        [sbin]          copyright
+Pktgen:/> ls sbin
+env             dbg             path            hugepages       cmap
+sizes           more            history         quit            clear
+pwd             cd              ls              rm              mkdir
+chelp           sleep           delay
+Pktgen:/>
+```
+-------------------------------------------------------------------------------
+```
+Pktgen:/> cd sbin
+Pktgen:/sbin/>
+Pktgen:/sbin/> ls -l
+  env              Command : Set up environment variables
+  dbg              Command : debug commands
+  path             Command : display the command path list
+  hugepages        Command : hugepages # display hugepage info
+  cmap             Command : cmap # display the core mapping
+  sizes            Command : sizes # display some internal sizes
+  more             Command : more <file> # display a file content
+  history          Command : history # display the current history
+  quit             Command : quit # quit the application
+  clear            Command : clear # clear the screen
+  pwd              Command : pwd # display current working directory
+  cd               Command : cd <dir> # change working directory
+  ls               Command : ls [-lr] <dir> # list current directory
+  rm               Command : remove a file or directory
+  mkdir            Command : create a directory
+  chelp            Command : CLI help - display information for DPDK
+  sleep            Command : delay a number of seconds
+  delay            Command : delay a number of milliseconds
+
+Pktgen:/sbin/>
+Pktgen:/sbin/> cd ..
+Pktgen:/>
+```
+-------------------------------------------------------------------------------
+```
+Pktgen:/pktgen/> cd bin
+Pktgen:/pktgen/bin/> ls -l
+  off              Alias : disable screen
+  on               Alias : enable screen
+  debug            Command : debug commands
+  set              Command : set a number of options
+  pcap             Command : pcap commands
+  stp              Alias : stop all
+  str              Alias : start all
+  stop             Command : stop features
+  start            Command : start features
+  disable          Command : disable features
+  enable           Command : enable features
+  range            Command : Range commands
+  theme            Command : Set, save, show the theme
+  page             Command : change page displays
+  seq              Alias : sequence
+  sequence         Command : sequence command
+  ping4            Command : Send a ping packet for IPv4
+  port             Command : Switch between ports
+  restart          Command : restart port
+  rst              Alias : reset all
+  reset            Command : reset pktgen configuration
+  cls              Alias : redisplay
+  redisplay        Command : redisplay the screen
+  save             Command : save the current state
+  lua              Command : execute a Lua string
+  script           Command : run a Lua script
+  load             Command : load command file
+  geom             Alias : geometry
+  geometry         Command : set the screen geometry
+  clr              Alias : clear.stats all
+  clear.stats      Command : clear stats
+  help             Command : help command
+
+Pktgen:/pktgen/bin/>
+```
 Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
 ```
 # cd <InstallDir>
@@ -295,23 +366,23 @@ Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
 # git clone git://dpdk.org/pktgen-dpdk.git
 ```
 ** Note **
-  The site dpdk.org you must also pull down DPDK repo as well. git://dpdk.org/dpdk
+The site dpdk.org you must also pull down DPDK repo as well. git://dpdk.org/dpdk
 
 Will create a directory called Pktgen-DPDK in the current directory location. Using
-this clone command you will get DPDK and pktgen source files.
+the above clone commands you will get DPDK and pktgen source files.
 
 Make sure you have HUGE TLB support in the kernel with the following commands:
 ```
-# grep -i huge /boot/config-2.6.35-24-generic 
+# grep -i huge /boot/config-2.6.35-24-generic
 CONFIG_HUGETLBFS=y
 CONFIG_HUGETLB_PAGE=y
 
 # grep -i huge /proc/meminfo
-HugePages_Total:      128
-HugePages_Free:       128
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-Hugepagesize:       2048 kB
+HugePages_Total:128
+HugePages_Free: 128
+HugePages_Rsvd:0
+HugePages_Surp:0
+Hugepagesize: 2048 kB
 ```
 NOTE: The values in Total and Free maybe different until you reboot the machine.
 
@@ -319,7 +390,7 @@ Two files in /etc must be setup to support huge TLBs. If you do not have
 hugeTLB support then you most likely need a newer kernel.
 ```
 # vi /etc/sysctl.conf
-Add to the bottom of the file:
+Add to the bottom of the file for 2M hugepages:
 vm.nr_hugepages=256
 ```
 If you need more or less hugeTLB pages then you can change the value to a
@@ -337,23 +408,24 @@ huge /mnt/huge hugetlbfs defaults 0 0
 # chmod 777 /mnt/huge
 ```
 Reboot your machine as the huge pages must be setup just after boot to make
-sure you have contiguous memory for the 2Meg pages.
+sure you have contiguous memory for the 2Meg pages, setting up 1G pages can
+also be done.
 
 ** Note: If you startup Eclipse or WR Workbench before starting pktgen the first
-   time after reboot, pktgen will fail to load because it can not get all of the
-   huge pages as eclipse has consumed some of the huge pages. If you did start eclipse
-   or WR Workbench then you need to close that application first. 
+ time after reboot, pktgen will fail to load because it can not get all of the
+ huge pages as eclipse has consumed some of the huge pages. If you did start eclipse
+ or WR Workbench then you need to close that application first.
 
-This is my current machine you will have a few different numbers depending on 
+This is my current machine you will have a few different numbers depending on
 how your system was booted and if you had hugeTLB support enabled.
 
-At the ${RTE_SDK}/examples/pktgen level directory we have the 'setup.sh' script,
+At the pktgen-DPDK level directory we have the 'tools/setup.sh' script,
 which needs to be run as root once per boot. The script contains a commands to setup
 the environment.
 
-Make sure you run the setup script as root via 'sudo -E ./tools/setup.sh'. The setup
-script is a bash script and tries to setup the system correctly, but you may have to 
-change the script to match your number of huge pages you configured above.
+Make sure you run the setup script as root via './tools/setup.sh'. The setup
+script is a bash script and tries to setup the system correctly, but you may have to
+change the script to match your number of huge pages you configured above and ports.
 
 The modprobe uio command, in the setup script, loads the UIO support module into the
 kernel plus it loads the igb-uio.ko module into the kernel. The two echo commands,
@@ -371,7 +443,7 @@ SDK directory.
 Make sure you have the Linux kernel headers installed as DPDK requires them to build
 the kernel modules. On Ubuntu I run the following:
 
-`# sudo apt-get install linux-headers-3.5.0-32-generic`
+`# sudo apt-get install linux-headers-`uname -r``
 
 You will need to adjust the version number to match your current kernel version.
 If you upgrade your system or kernel version you will need to install the correct
@@ -388,7 +460,7 @@ export RTE_TARGET=x86_64-native-linuxapp-clang
 Create the DPDK build tree:
 ```
 # cd $RTE_SDK
-# make install T=x86_64-native-linuxapp-gcc
+# make install T=x86_64-native-linuxapp-gcc -j
 ```
 This above command will create the x86_64-native-linuxapp-gcc directory in the
 top level of the current-dkdp directory. The above command will build the basic
@@ -403,7 +475,7 @@ You should now have pktgen built and to run pktgen type 'sudo -E ./tools/run.sh'
 to help with the command line options of pktgen. You may need to modify this script for
 your system and configuration.
 ```
-# cat tools/run.sh
+# cat ./tools/run.sh
 #!/bin/bash
 
 #rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
@@ -420,20 +492,20 @@ your system and configuration.
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
-./app/app/${target}/pktgen -l 4-16 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
 fi
 ```
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
-   The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
-   case). Do not use the '-m NNN' and '--socket-mem NN,NN' commands on the same command
-   line.
-   
+ The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
+ case). Do not use the '-m NNN' and '--socket-mem NN,NN' commands on the same command
+ line.
+
 The pktgen program follows the same format as a standard DPDK linuxapp, meaning
 the first set of arguments '-l 0-4' are the standard DPDK arguments. This option
 defines the number of logical cores to be used by pktgen. The 1f states 5 lcores
 are used and the '3c' is just a bit array for each lcore to be used. The '-P' enables
 promiscuous mode on all ports if you need that support. The '-m "..."' sets up the
-port to lcore mapping for pktgen. 
+port to lcore mapping for pktgen.
 
 The second half of the command line followed by the '--' is pktgen specific
 options.
@@ -458,55 +530,80 @@ The '-n 2' is a required argument for DPDK and denotes the number of memory chan
 ```
 Usage: ./app/pktgen -l CORELIST -n NUM [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
-EAL options:                                                                                                                        
-  -c COREMASK  : A hexadecimal bitmask of cores to run on                                                                           
-  -l CORELIST  : A list of cores to use use -c or -l option
-  -n NUM       : Number of memory channels                                                                                          
-  -v           : Display version information on startup                                                                             
-  -d LIB.so    : add driver (can be used multiple times)                                                                            
-  -m MB        : memory to allocate (see also --socket-mem)                                                                         
-  -r NUM       : force number of memory ranks (don't detect)                                                                        
-  --xen-dom0 : support application running on Xen Domain0 without hugetlbfs                                                         
-  --syslog     : set syslog facility                                                                                                
-  --socket-mem : memory to allocate on specific                                                                                     
-                 sockets (use comma separated values)                                                                               
-  --huge-dir   : directory where hugetlbfs is mounted                                                                               
-  --proc-type  : type of this process                                                                                               
-  --file-prefix: prefix for hugepage filenames                                                                                      
-  --pci-blacklist, -b: add a PCI device in black list.                                                                              
-               Prevent EAL from using this PCI device. The argument                                                                 
-               format is `<domain:bus:devid.func>`.                                                                                   
-  --pci-whitelist, -w: add a PCI device in white list.                                                                              
-               Only use the specified PCI devices. The argument format                                                              
-               is <[domain:]bus:devid.func>. This option can be present                                                             
-               several times (once per device).                                                                                     
-               [NOTE: PCI whitelist cannot be used with -b option]                                                                  
-  --vdev: add a virtual device.                                                                                                     
-               The argument format is `<driver><id>[,key=val,...]`                                                                    
-               (ex: --vdev=eth_pcap0,iface=eth2).                                                                                   
-  --vmware-tsc-map: use VMware TSC map instead of native RDTSC                                                                      
-  --base-virtaddr: specify base virtual address                                                                                     
-  --vfio-intr: specify desired interrupt mode for VFIO (legacy|msi|msix)                                                            
-  --create-uio-dev: create /dev/uioX (usually done by hotplug)                                                                      
+Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by Intel® DPDK
+./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
+EAL: Detected 72 lcore(s)
+./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
 
-EAL options for DEBUG use only:                                                                                                     
-  --no-huge  : use malloc instead of hugetlbfs                                                                                      
-  --no-pci   : disable pci                                                                                                          
-  --no-hpet  : disable hpet                                                                                                         
-  --no-shconf: no shared config (mmap'd files)
+Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [options]
+
+EAL common options:
+  -c COREMASK         Hexadecimal bitmask of cores to run on
+  -l CORELIST         List of cores to run on
+                      The argument format is <c1>[-c2][,c3[-c4],...]
+                      where c1, c2, etc are core indexes between 0 and 128
+  --lcores COREMAP    Map lcore set to physical cpu set
+                      The argument format is
+                            '<lcores[@cpus]>[<,lcores[@cpus]>...]'
+                      lcores and cpus list are grouped by '(' and ')'
+                      Within the group, '-' is used for range separator,
+                      ',' is used for single number separator.
+                      '( )' can be omitted for single element group,
+                      '@' can be omitted if cpus and lcores have the same value
+  --master-lcore ID   Core ID that is used as master
+  -n CHANNELS         Number of memory channels
+  -m MB               Memory to allocate (see also --socket-mem)
+  -r RANKS            Force number of memory ranks (don't detect)
+  -b, --pci-blacklist Add a PCI device in black list.
+                      Prevent EAL from using this PCI device. The argument
+                      format is <domain:bus:devid.func>.
+  -w, --pci-whitelist Add a PCI device in white list.
+                      Only use the specified PCI devices. The argument format
+                      is <[domain:]bus:devid.func>. This option can be present
+                      several times (once per device).
+                      [NOTE: PCI whitelist cannot be used with -b option]
+  --vdev              Add a virtual device.
+                      The argument format is <driver><id>[,key=val,...]
+                      (ex: --vdev=net_pcap0,iface=eth2).
+  -d LIB.so|DIR       Add a driver or driver directory
+                      (can be used multiple times)
+  --vmware-tsc-map    Use VMware TSC map instead of native RDTSC
+  --proc-type         Type of this process (primary|secondary|auto)
+  --syslog            Set syslog facility
+  --log-level         Set default log level
+  -v                  Display version information on startup
+  -h, --help          This help
+
+EAL options for DEBUG use only:
+  --huge-unlink       Unlink hugepage files after init
+  --no-huge           Use malloc instead of hugetlbfs
+  --no-pci            Disable PCI
+  --no-hpet           Disable HPET
+  --no-shconf         No shared config (mmap'd files)
+
+EAL Linux options:
+  --socket-mem        Memory to allocate on sockets (comma separated values)
+  --huge-dir          Directory where hugetlbfs is mounted
+  --file-prefix       Prefix for hugepage filenames
+  --base-virtaddr     Base virtual address
+  --create-uio-dev    Create /dev/uioX (usually done by hotplug)
+  --vfio-intr         Interrupt mode for VFIO (legacy|msi|msix)
+  --xen-dom0          Support running on Xen dom0 without hugetlbfs
 
 ===== Application Usage =====
 
-Usage: ./app/pktgen [EAL options] -- [-h] [-P] [-G] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
+Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
   -s P:file    PCAP packet stream file, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename
+  -I           use CLI
   -P           Enable PROMISCUOUS mode on all ports
   -g address   Optional IP address and port number default is (localhost:0x5606)
                If -g is used that enable socket support as a server application
-  -G           Enable socket support using default server values localhost:0x5606 
+  -G           Enable socket support using default server values localhost:0x5606
   -N           Enable NUMA support
-  --crc-strip  Strip CRC via HW on all RX ports.
+  -T           Enable the color output
+  --crc-strip  Strip CRC on all ports
   -m <string>  matrix for mapping ports to logical cores
       BNF: (or kind of BNF)
       <matrix-string>   := """ <lcore-port> { "," <lcore-port>} """
@@ -540,11 +637,6 @@ Usage: ./app/pktgen [EAL options] -- [-h] [-P] [-G] [-f cmd_file] [-l log_file] 
                                       core 3 handles port 1 rx & core 4 handles port 0-7 tx
       BTW: you can use "{}" instead of "[]" as it does not matter to the syntax.
   -h           Display the help information
-** Note: To determine the Ethernet ports in your system use 'lspci | grep Ethernet' to 
-   get a list of all ports in the system. Some ports may not be useable by DPDK/Pktgen.
-   The first port listed is bit 0 or least signification bit in the '-c' mask.
-   Another method is to compile the test_pmd example and run './test_pmd -l 0,1 -n 2'
-   command to list out the ports DPDK is able to use.
 ```
 A new feature for pktgen and DPDK is to run multiple instances of pktgen. This
 allows the developer to share ports on the same machine.
@@ -554,24 +646,24 @@ allows the developer to share ports on the same machine.
 #!/bin/bash
 
 # Normal setup
-#   different cores for each port.
+# different cores for each port.
 
 name=`uname -n`
 
-# Use 'sudo -E ./tools/setup.sh' to include environment variables
+# Use './tools/setup.sh' to include environment variables
 
 if [ -z ${RTE_SDK} ] ; then
-    echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
+echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
 	export RTE_TARGET=x86_64-native-linuxapp-clang
 fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
-    echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
-    target=x86_64-pktgen-linuxapp-gcc
+echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
+target=x86_64-pktgen-linuxapp-gcc
 else
-    target=${RTE_TARGET}
+target=${RTE_TARGET}
 fi
 
 
@@ -608,11 +700,11 @@ fi
 ```
 #!/bin/bash
 
-# Use 'sudo -E ./tools/setup.sh' to include environment variables
+# Use './tools/setup.sh' to include environment variables
 
 if [ -z ${RTE_SDK} ] ; then
 	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
-	echo "    Using "${RTE_SDK}
+	echo "Using "${RTE_SDK}
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
 	export RTE_TARGET=x86_64-native-linuxapp-clang
 fi
@@ -628,15 +720,15 @@ fi
 echo "Using directory: "$sdk"/"$target
 
 function nr_hugepages_fn {
-    echo /sys/devices/system/node/node${1}/hugepages/hugepages-2048kB/nr_hugepages
+echo /sys/devices/system/node/node${1}/hugepages/hugepages-2048kB/nr_hugepages
 }
 
 function num_cpu_sockets {
-    local sockets=0
-    while [ -f $(nr_hugepages_fn $sockets) ]; do
+local sockets=0
+while [ -f $(nr_hugepages_fn $sockets) ]; do
 		sockets=$(( $sockets + 1 ))
-    done
-    echo $sockets
+done
+echo $sockets
 	if [ $sockets -eq 0 ]; then
 		echo "Huge TLB support not found make sure you are using a kernel >= 2.6.34" >&2
 		exit 1
@@ -644,8 +736,8 @@ function num_cpu_sockets {
 }
 
 if [ $UID -ne 0 ]; then
-    echo "You must run this script as root" >&2
-    exit 1
+echo "You must run this script as root" >&2
+exit 1
 fi
 
 rm -fr /mnt/huge/*
@@ -653,7 +745,7 @@ rm -fr /mnt/huge/*
 NR_HUGEPAGES=$(( `sysctl -n vm.nr_hugepages` / $(num_cpu_sockets) ))
 echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages."
 for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
-    echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
+echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
 done
 
 grep -i huge /proc/meminfo
@@ -683,384 +775,450 @@ running the new version.
 Running the run.sh script produces output as follows, but maybe different on your
 system configuration.
 ```
-[22:20][keithw@keithw-S5520HC:pktgen(master)]$ sudo -E ./tools/run.sh
-------------------------------------------------------------------------
------------------------
-  
-     BSD LICENSE
-  
-     Copyright(c) 2010-2016 Intel Corporation. All rights reserved.
-     All rights reserved.
-  
-     Redistribution and use in source and binary forms, with or without
-     modification, are permitted provided that the following conditions
-     are met:
-  
-       * Redistributions of source code must retain the above copyright
-         notice, this list of conditions and the following disclaimer.
-       * Redistributions in binary form must reproduce the above copyright
-         notice, this list of conditions and the following disclaimer in
-         the documentation and/or other materials provided with the
-         distribution.
-       * Neither the name of Intel Corporation nor the names of its
-         contributors may be used to endorse or promote products derived
-         from this software without specific prior written permission.
-  
-     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-     "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-     LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-     A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-     OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-     LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
------------------------
-    Copyright (c) <2010-2014>, Wind River Systems, Inc.
+rkwiles@rkwiles-DESK1 (dev):~/.../intel/pktgen$ ./tools/run.sh
+./app/app/x86_64-dnet-linuxapp-gcc/pktgen -l 1,2-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 --file-prefix pg --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3 -b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0 -- -I -T -P --crc-strip -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8 -f themes/black-yellow.theme
 
-     Redistribution and use in source and binary forms, with or without modification, are
-     permitted provided that the following conditions are met:
-  
-       1) Redistributions of source code must retain the above copyright notice,
-          this list of conditions and the following disclaimer.
-  
-       2) Redistributions in binary form must reproduce the above copyright notice,
-          this list of conditions and the following disclaimer in the documentation and/or
-          other materials provided with the distribution.
-  
-       3) Neither the name of Wind River Systems nor the names of its contributors may be
-          used to endorse or promote products derived from this software without specific
-          prior written permission.
-  
-       4) The screens displayed by the application must contain the copyright notice as defined
-          above and can not be removed without specific prior written permission.
-  
-     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-     IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-     ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-     LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-     DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-     SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-     CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
-     USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
-  Pktgen created by: Keith Wiles -- >>> Powered by IntelÂ® DPDK <<<
------------------------
+Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by Intel® DPDK
 EAL: Detected lcore 0 as core 0 on socket 0
-EAL: Detected lcore 1 as core 1 on socket 0                                                                                         
-EAL: Detected lcore 2 as core 2 on socket 0                                                                                         
-EAL: Detected lcore 3 as core 3 on socket 0                                                                                         
-EAL: Detected lcore 4 as core 4 on socket 0                                                                                         
-EAL: Detected lcore 5 as core 8 on socket 0                                                                                         
-EAL: Detected lcore 6 as core 9 on socket 0                                                                                         
-EAL: Detected lcore 7 as core 10 on socket 0                                                                                        
-EAL: Detected lcore 8 as core 11 on socket 0                                                                                        
-EAL: Detected lcore 9 as core 12 on socket 0                                                                                        
-EAL: Detected lcore 10 as core 0 on socket 1                                                                                        
-EAL: Detected lcore 11 as core 1 on socket 1                                                                                        
-EAL: Detected lcore 12 as core 2 on socket 1                                                                                        
-EAL: Detected lcore 13 as core 3 on socket 1                                                                                        
-EAL: Detected lcore 14 as core 4 on socket 1                                                                                        
-EAL: Detected lcore 15 as core 8 on socket 1                                                                                        
-EAL: Detected lcore 16 as core 9 on socket 1                                                                                        
-EAL: Detected lcore 17 as core 10 on socket 1                                                                                       
-EAL: Detected lcore 18 as core 11 on socket 1                                                                                       
-EAL: Detected lcore 19 as core 12 on socket 1                                                                                       
-EAL: Detected lcore 20 as core 0 on socket 0                                                                                        
-EAL: Detected lcore 21 as core 1 on socket 0                                                                                        
-EAL: Detected lcore 22 as core 2 on socket 0                                                                                        
-EAL: Detected lcore 23 as core 3 on socket 0                                                                                        
-EAL: Detected lcore 24 as core 4 on socket 0                                                                                        
-EAL: Detected lcore 25 as core 8 on socket 0                                                                                        
-EAL: Detected lcore 26 as core 9 on socket 0                                                                                        
-EAL: Detected lcore 27 as core 10 on socket 0                                                                                       
-EAL: Detected lcore 28 as core 11 on socket 0                                                                                       
-EAL: Detected lcore 29 as core 12 on socket 0                                                                                       
-EAL: Detected lcore 30 as core 0 on socket 1                                                                                        
-EAL: Detected lcore 31 as core 1 on socket 1                                                                                        
-EAL: Detected lcore 32 as core 2 on socket 1                                                                                        
-EAL: Detected lcore 33 as core 3 on socket 1                                                                                        
-EAL: Detected lcore 34 as core 4 on socket 1                                                                                        
-EAL: Detected lcore 35 as core 8 on socket 1                                                                                        
-EAL: Detected lcore 36 as core 9 on socket 1                                                                                        
-EAL: Detected lcore 37 as core 10 on socket 1                                                                                       
-EAL: Detected lcore 38 as core 11 on socket 1                                                                                       
-EAL: Detected lcore 39 as core 12 on socket 1                                                                                       
-EAL: Support maximum 64 logical core(s) by configuration.                                                                           
-EAL: Detected 40 lcore(s)                                                                                                           
-EAL: Auto-detected process type: PRIMARY                                                                                            
-EAL:   cannot open VFIO container, error 2 (No such file or directory)                                                              
-EAL: VFIO support could not be initialized                                                                                          
-EAL: Setting up memory...                                                                                                           
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c8600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c8200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c7e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c7a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c7600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c7200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c6e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c6800000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c6200000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3c5e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0xe200000 bytes                                                                                          
-EAL: Virtual area found at 0x7fa3b7a00000 (size = 0xe200000)                                                                        
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3b7600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3b7200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa3b6e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x2f800000 bytes                                                                                         
-EAL: Virtual area found at 0x7fa387400000 (size = 0x2f800000)                                                                       
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa386e00000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa386a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x600000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa386200000 (size = 0x600000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa385e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa385a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa385600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa385200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa384e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa384a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa384600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa384000000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa383a00000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa383600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa383200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa382e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                               
-EAL: Virtual area found at 0x7fa382a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa382600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa382200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa381e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa381a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa381400000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa381000000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa380c00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa380800000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa380400000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa380000000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x400000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37fa00000 (size = 0x400000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37f600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37f200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37ee00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37ea00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37e600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37e200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37de00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37da00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37d600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37d200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0xa00000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa37c600000 (size = 0xa00000)                                                                         
-EAL: Ask a virtual area of 0x47a00000 bytes                                                                                         
-EAL: Virtual area found at 0x7fa334a00000 (size = 0x47a00000)                                                                       
-EAL: Ask a virtual area of 0xf600000 bytes                                                                                          
-EAL: Virtual area found at 0x7fa325200000 (size = 0xf600000)                                                                        
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa324e00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa324a00000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa324600000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa324200000 (size = 0x200000)                                                                         
-EAL: Ask a virtual area of 0x200000 bytes                                                                                           
-EAL: Virtual area found at 0x7fa323e00000 (size = 0x200000)                                                                         
-EAL: Requesting 128 pages of size 2MB from socket 0                                                                                 
-EAL: Requesting 128 pages of size 2MB from socket 1                                                                                 
-EAL: TSC frequency is ~2793266 KHz                                                                                                  
-EAL: Master core 0 is ready (tid=c9f8c880)                                                                                          
-EAL: Core 4 is ready (tid=b4dfb700)                                                                                                 
-EAL: Core 3 is ready (tid=b55fc700)                                                                                                 
-EAL: Core 2 is ready (tid=b5dfd700)                                                                                                 
-EAL: Core 1 is ready (tid=b65fe700)                                                                                                 
-EAL: PCI device 0000:03:00.0 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   Device is blacklisted, not initializing                                                                                      
-EAL: PCI device 0000:03:00.1 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   Device is blacklisted, not initializing                                                                                      
-EAL: PCI device 0000:07:00.0 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:1521 rte_igb_pmd                                                                                          
-EAL:   0000:07:00.0 not managed by UIO driver, skipping                                                                             
-EAL: PCI device 0000:07:00.1 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:1521 rte_igb_pmd                                                                                          
-EAL:   0000:07:00.1 not managed by UIO driver, skipping                                                                             
-EAL: PCI device 0000:83:00.0 on NUMA socket 1                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   PCI memory mapped at 0x7fa3c9ed6000                                                                                          
-EAL:   PCI memory mapped at 0x7fa3c9fac000                                                                                          
-EAL: PCI device 0000:83:00.1 on NUMA socket 1                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   PCI memory mapped at 0x7fa3c9e56000                                                                                          
-EAL:   PCI memory mapped at 0x7fa3c9fa8000                                                                                          
-EAL: PCI device 0000:85:00.0 on NUMA socket 1                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   PCI memory mapped at 0x7fa3c9dd6000                                                                                          
-EAL:   PCI memory mapped at 0x7fa3c9fa4000                                                                                          
-EAL: PCI device 0000:85:00.1 on NUMA socket 1                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   PCI memory mapped at 0x7fa3c8de1000                                                                                          
-EAL:   PCI memory mapped at 0x7fa3c9fa0000                                                                                          
-EAL: PCI device 0000:88:00.0 on NUMA socket 1                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   PCI memory mapped at 0x7fa3c8d61000                                                                                          
-EAL:   PCI memory mapped at 0x7fa3c9f9c000                                                                                          
-EAL: PCI device 0000:88:00.1 on NUMA socket 1                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   PCI memory mapped at 0x7fa3c8ce1000                                                                                          
-EAL:   PCI memory mapped at 0x7fa3c9f98000                                                                                          
-[1:3].0          = lcores(rx 0000000000000002, tx 0000000000000008) ports(rx 0000000000000001, tx 0000000000000001)                 
-[2:4].1          = lcores(rx 0000000000000004, tx 0000000000000010) ports(rx 0000000000000002, tx 0000000000000002)                 
-EAL: PCI device 0000:03:00.0 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   Device is blacklisted, not initializing                                                                                      
-EAL: PCI device 0000:03:00.1 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:10fb rte_ixgbe_pmd                                                                                        
-EAL:   Device is blacklisted, not initializing                                                                                      
-EAL: PCI device 0000:07:00.0 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:1521 rte_igb_pmd                                                                                          
-EAL:   0000:07:00.0 not managed by UIO driver, skipping                                                                             
-EAL: PCI device 0000:07:00.1 on NUMA socket 0                                                                                       
-EAL:   probe driver: 8086:1521 rte_igb_pmd                                                                                          
-EAL:   0000:07:00.1 not managed by UIO driver, skipping                                                                             
-Lua 5.2.1  Copyright (C) 1994-2012 Lua.org, PUC-Rio                                                                                 
->>> Packet Burst 16, RX Desc 256, TX Desc 256, mbufs/port 2048, mbuf cache 256                                                      
+EAL: Detected lcore 1 as core 1 on socket 0
+EAL: Detected lcore 2 as core 2 on socket 0
+EAL: Detected lcore 3 as core 3 on socket 0
+EAL: Detected lcore 4 as core 4 on socket 0
+EAL: Detected lcore 5 as core 8 on socket 0
+EAL: Detected lcore 6 as core 9 on socket 0
+EAL: Detected lcore 7 as core 10 on socket 0
+EAL: Detected lcore 8 as core 11 on socket 0
+EAL: Detected lcore 9 as core 16 on socket 0
+EAL: Detected lcore 10 as core 17 on socket 0
+EAL: Detected lcore 11 as core 18 on socket 0
+EAL: Detected lcore 12 as core 19 on socket 0
+EAL: Detected lcore 13 as core 20 on socket 0
+EAL: Detected lcore 14 as core 24 on socket 0
+EAL: Detected lcore 15 as core 25 on socket 0
+EAL: Detected lcore 16 as core 26 on socket 0
+EAL: Detected lcore 17 as core 27 on socket 0
+EAL: Detected lcore 18 as core 0 on socket 1
+EAL: Detected lcore 19 as core 1 on socket 1
+EAL: Detected lcore 20 as core 2 on socket 1
+EAL: Detected lcore 21 as core 3 on socket 1
+EAL: Detected lcore 22 as core 4 on socket 1
+EAL: Detected lcore 23 as core 8 on socket 1
+EAL: Detected lcore 24 as core 9 on socket 1
+EAL: Detected lcore 25 as core 10 on socket 1
+EAL: Detected lcore 26 as core 11 on socket 1
+EAL: Detected lcore 27 as core 16 on socket 1
+EAL: Detected lcore 28 as core 17 on socket 1
+EAL: Detected lcore 29 as core 18 on socket 1
+EAL: Detected lcore 30 as core 19 on socket 1
+EAL: Detected lcore 31 as core 20 on socket 1
+EAL: Detected lcore 32 as core 24 on socket 1
+EAL: Detected lcore 33 as core 25 on socket 1
+EAL: Detected lcore 34 as core 26 on socket 1
+EAL: Detected lcore 35 as core 27 on socket 1
+EAL: Detected lcore 36 as core 0 on socket 0
+EAL: Detected lcore 37 as core 1 on socket 0
+EAL: Detected lcore 38 as core 2 on socket 0
+EAL: Detected lcore 39 as core 3 on socket 0
+EAL: Detected lcore 40 as core 4 on socket 0
+EAL: Detected lcore 41 as core 8 on socket 0
+EAL: Detected lcore 42 as core 9 on socket 0
+EAL: Detected lcore 43 as core 10 on socket 0
+EAL: Detected lcore 44 as core 11 on socket 0
+EAL: Detected lcore 45 as core 16 on socket 0
+EAL: Detected lcore 46 as core 17 on socket 0
+EAL: Detected lcore 47 as core 18 on socket 0
+EAL: Detected lcore 48 as core 19 on socket 0
+EAL: Detected lcore 49 as core 20 on socket 0
+EAL: Detected lcore 50 as core 24 on socket 0
+EAL: Detected lcore 51 as core 25 on socket 0
+EAL: Detected lcore 52 as core 26 on socket 0
+EAL: Detected lcore 53 as core 27 on socket 0
+EAL: Detected lcore 54 as core 0 on socket 1
+EAL: Detected lcore 55 as core 1 on socket 1
+EAL: Detected lcore 56 as core 2 on socket 1
+EAL: Detected lcore 57 as core 3 on socket 1
+EAL: Detected lcore 58 as core 4 on socket 1
+EAL: Detected lcore 59 as core 8 on socket 1
+EAL: Detected lcore 60 as core 9 on socket 1
+EAL: Detected lcore 61 as core 10 on socket 1
+EAL: Detected lcore 62 as core 11 on socket 1
+EAL: Detected lcore 63 as core 16 on socket 1
+EAL: Detected lcore 64 as core 17 on socket 1
+EAL: Detected lcore 65 as core 18 on socket 1
+EAL: Detected lcore 66 as core 19 on socket 1
+EAL: Detected lcore 67 as core 20 on socket 1
+EAL: Detected lcore 68 as core 24 on socket 1
+EAL: Detected lcore 69 as core 25 on socket 1
+EAL: Detected lcore 70 as core 26 on socket 1
+EAL: Detected lcore 71 as core 27 on socket 1
+EAL: Support maximum 128 logical core(s) by configuration.
+EAL: Detected 72 lcore(s)
+EAL: Auto-detected process type: PRIMARY
+EAL: No free hugepages reported in hugepages-1048576kB
+EAL: Probing VFIO support...
+EAL: Module /sys/module/vfio_pci not found! error 2 (No such file or directory)
+EAL: VFIO modules not loaded, skipping VFIO support...
+EAL: Module /sys/module/vfio_pci not found! error 2 (No such file or directory)
+EAL: Setting up physically contiguous memory...
+EAL: Ask a virtual area of 0x2fc00000 bytes
+EAL: Virtual area found at 0x7fa7c3600000 (size = 0x2fc00000)
+EAL: Ask a virtual area of 0x3cc00000 bytes
+EAL: Virtual area found at 0x7fa786800000 (size = 0x3cc00000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7fa786400000 (size = 0x200000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7fa786000000 (size = 0x200000)
+EAL: Ask a virtual area of 0x28f400000 bytes
+EAL: Virtual area found at 0x7fa4f6a00000 (size = 0x28f400000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7fa4f6600000 (size = 0x200000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7fa4f6200000 (size = 0x200000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7fa4f5e00000 (size = 0x200000)
+EAL: Ask a virtual area of 0x2fc000000 bytes
+EAL: Virtual area found at 0x7fa1f9c00000 (size = 0x2fc000000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7fa1f9800000 (size = 0x200000)
+EAL: Requesting 5120 pages of size 2MB from socket 0
+EAL: Requesting 1024 pages of size 2MB from socket 1
+EAL: TSC frequency is ~2299980 KHz
+EAL: Master lcore 1 is ready (tid=f855a8c0;cpuset=[1])
+EAL: lcore 7 is ready (tid=f4200700;cpuset=[7])
+EAL: lcore 5 is ready (tid=f5202700;cpuset=[5])
+EAL: lcore 2 is ready (tid=f6a05700;cpuset=[2])
+EAL: lcore 3 is ready (tid=f6204700;cpuset=[3])
+EAL: lcore 19 is ready (tid=847fc700;cpuset=[19])
+EAL: lcore 6 is ready (tid=f4a01700;cpuset=[6])
+EAL: lcore 9 is ready (tid=857fe700;cpuset=[9])
+EAL: lcore 18 is ready (tid=84ffd700;cpuset=[18])
+EAL: lcore 4 is ready (tid=f5a03700;cpuset=[4])
+EAL: lcore 8 is ready (tid=85fff700;cpuset=[8])
+EAL: PCI device 0000:04:00.0 on NUMA socket 0
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa7f3200000
+EAL:   PCI memory mapped at 0x7fa7f8588000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:04:00.1 on NUMA socket 0
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa7837fc000
+EAL:   PCI memory mapped at 0x7fa7f8580000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:04:00.2 on NUMA socket 0
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa782ffc000
+EAL:   PCI memory mapped at 0x7fa7f8578000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:04:00.3 on NUMA socket 0
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa7827fc000
+EAL:   PCI memory mapped at 0x7fa7f8570000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:05:00.0 on NUMA socket 0
+EAL:   Device is blacklisted, not initializing
+EAL: PCI device 0000:05:00.1 on NUMA socket 0
+EAL:   Device is blacklisted, not initializing
+EAL: PCI device 0000:81:00.0 on NUMA socket 1
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa781ffc000
+EAL:   PCI memory mapped at 0x7fa7f8568000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:81:00.1 on NUMA socket 1
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa7817fc000
+EAL:   PCI memory mapped at 0x7fa7f8560000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:81:00.2 on NUMA socket 1
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa780ffc000
+EAL:   PCI memory mapped at 0x7fa7f841f000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:81:00.3 on NUMA socket 1
+EAL:   probe driver: 8086:1572 net_i40e
+EAL:   PCI memory mapped at 0x7fa7807fc000
+EAL:   PCI memory mapped at 0x7fa7f8417000
+PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL: PCI device 0000:82:00.0 on NUMA socket 1
+EAL:   Device is blacklisted, not initializing
+EAL: PCI device 0000:83:00.0 on NUMA socket 1
+EAL:   Device is blacklisted, not initializing
+EAL: Initializing pmd_bond for net_bonding1
+PMD: Using mode 4, it is necessary to do TX burst and RX burst at least every 100ms.
+EAL: Create bonded device net_bonding1 on port 8 in mode 4 on socket 0.
 
-=== port to lcore mapping table (# lcores 5) ===                                                                                    
-   lcore:     0     1     2     3     4                                                                                             
-port   0:  D: T  1: 0  0: 0  0: 1  0: 0 =  1: 1                                                                                     
-port   1:  D: T  0: 0  1: 0  0: 0  0: 1 =  1: 1                                                                                     
-Total   :  0: 0  1: 0  1: 0  0: 1  0: 1                                                                                             
-    Display and Timer on lcore 0, rx:tx counts per port/lcore                                                                       
+   Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
+   Pktgen created by: Keith Wiles -- >>> Powered by Intel® DPDK <<<
 
-Configuring 6 ports, MBUF Size 1984, MBUF Cache Size 256                                                                            
-Lcore:                                                                                                                              
-    1, type  RX , rx_cnt  1, tx_cnt  0 private (nil), RX (pid:qid): ( 0: 0) , TX (pid:qid):                                         
-    2, type  RX , rx_cnt  1, tx_cnt  0 private (nil), RX (pid:qid): ( 1: 0) , TX (pid:qid):                                         
-    3, type  TX , rx_cnt  0, tx_cnt  1 private (nil), RX (pid:qid): , TX (pid:qid): ( 0: 0)                                         
-    4, type  TX , rx_cnt  0, tx_cnt  1 private (nil), RX (pid:qid): , TX (pid:qid): ( 1: 0)                                         
+Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
+>>> Packet Burst 32, RX Desc 512, TX Desc 1024, mbufs/port 8192, mbuf cache 1024
 
-Port :                                                                                                                              
-    0, nb_lcores  2, private 0x7d08d8, lcores:  1  3                                                                                
-    1, nb_lcores  2, private 0x7d1c48, lcores:  2  4                                                                                
+=== port to lcore mapping table (# lcores 11) ===
+   lcore:    1       2       3       4       5       6       7       8       9      10      11      12      13      14      15      16      17      18      19      Total
+port   0: ( D: T) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
+port   1: ( D: T) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
+port   2: ( D: T) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
+port   3: ( D: T) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
+port   8: ( D: T) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) = ( 1: 1)
+Total   : ( 0: 0) ( 1: 0) ( 0: 1) ( 1: 0) ( 0: 1) ( 1: 0) ( 0: 1) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1)
+  Display and Timer on lcore 1, rx:tx counts per port/lcore
+
+Configuring 9 ports, MBUF Size 1920, MBUF Cache Size 1024
+Lcore:
+    2, RX-Only
+                RX_cnt( 1): (pid= 0:qid= 0)
+    3, TX-Only
+                TX_cnt( 1): (pid= 0:qid= 0)
+    4, RX-Only
+                RX_cnt( 1): (pid= 1:qid= 0)
+    5, TX-Only
+                TX_cnt( 1): (pid= 1:qid= 0)
+    6, RX-Only
+                RX_cnt( 1): (pid= 2:qid= 0)
+    7, TX-Only
+                TX_cnt( 1): (pid= 2:qid= 0)
+    8, RX-Only
+                RX_cnt( 1): (pid= 3:qid= 0)
+    9, TX-Only
+                TX_cnt( 1): (pid= 3:qid= 0)
+   18, RX-Only
+                RX_cnt( 1): (pid= 8:qid= 0)
+   19, TX-Only
+                TX_cnt( 1): (pid= 8:qid= 0)
+
+Port :
+    0, nb_lcores  2, private 0x9a54c0, lcores:  2  3
+    1, nb_lcores  2, private 0x9a7820, lcores:  4  5
+    2, nb_lcores  2, private 0x9a9b80, lcores:  6  7
+    3, nb_lcores  2, private 0x9abee0, lcores:  8  9
+    8, nb_lcores  2, private 0x9b6fc0, lcores: 18 19
 
 
-Initialize Port 0 -- TxQ 1, RxQ 1,  Src MAC 90:e2:ba:5a:f7:90                                                                       
-    Create: Default RX  0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
 
-    Create: Default TX  0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-    Create: Range TX    0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-    Create: Sequence TX 0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-    Create: Special TX  0:0  - Memory used (MBUFs   64 x (size 1984 + Hdr 64)) + 790720 =    901 KB                                 
+** Default Info (0000:04:00.0, if_index:0) **
+   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
+   max_rx_queues  : 192, max_tx_queues     : 192
+   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
+   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
+   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
+** RX Conf **
+   pthresh        :   8, hthresh          :   8, wthresh        :     0
+   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
+** TX Conf **
+   pthresh        :  32, hthresh          :   0, wthresh        :     0
+   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
 
-                                                                       Port memory used =  20373 KB                                 
-Initialize Port 1 -- TxQ 1, RxQ 1,  Src MAC 90:e2:ba:5a:f7:91                                                                       
-    Create: Default RX  1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-
-    Create: Default TX  1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-    Create: Range TX    1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-    Create: Sequence TX 1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB                                 
-    Create: Special TX  1:0  - Memory used (MBUFs   64 x (size 1984 + Hdr 64)) + 790720 =    901 KB                                 
-
-                                                                       Port memory used =  20373 KB                                 
-                                                                      Total memory used =  40746 KB                                 
-Port  0: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>                                                         
-Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>                                                         
+    Create: Default RX  0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=0, queue=0.
+      Set RX queue stats mapping pid 0, q 0, lcore 2
 
 
-=== Display processing on lcore 0                                                                                                   
-=== RX processing on lcore  1, rxcnt 1, port/qid, 0/0                                                                               
-=== RX processing on lcore  2, rxcnt 1, port/qid, 1/0                                                                               
-=== TX processing on lcore  3, txcnt 1, port/qid, 0/0                                                                               
-=== TX processing on lcore  4, txcnt 1, port/qid, 1/0
+    Create: Default TX  0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Range TX    0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Sequence TX 0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Special TX  0:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
+PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
 
-               Pktgen created by Keith Wiles -- >>> Powered by IntelÂ® DPDK <<<
+                                                                       Port memory used =  65665 KB
+Initialize Port 0 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:d8
+
+** Default Info (0000:04:00.1, if_index:0) **
+   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
+   max_rx_queues  : 192, max_tx_queues     : 192
+   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
+   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
+   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
+** RX Conf **
+   pthresh        :   8, hthresh          :   8, wthresh        :     0
+   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
+** TX Conf **
+   pthresh        :  32, hthresh          :   0, wthresh        :     0
+   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
+
+    Create: Default RX  1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=1, queue=0.
+      Set RX queue stats mapping pid 1, q 0, lcore 4
+
+
+    Create: Default TX  1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Range TX    1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Sequence TX 1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Special TX  1:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
+PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
+
+                                                                       Port memory used =  65665 KB
+Initialize Port 1 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:d9
+
+** Default Info (0000:04:00.2, if_index:0) **
+   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
+   max_rx_queues  : 192, max_tx_queues     : 192
+   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
+   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
+   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
+** RX Conf **
+   pthresh        :   8, hthresh          :   8, wthresh        :     0
+   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
+** TX Conf **
+   pthresh        :  32, hthresh          :   0, wthresh        :     0
+   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
+
+    Create: Default RX  2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=2, queue=0.
+      Set RX queue stats mapping pid 2, q 0, lcore 6
+
+
+    Create: Default TX  2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Range TX    2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Sequence TX 2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Special TX  2:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
+PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
+
+                                                                       Port memory used =  65665 KB
+Initialize Port 2 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:da
+
+** Default Info (0000:04:00.3, if_index:0) **
+   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
+   max_rx_queues  : 192, max_tx_queues     : 192
+   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
+   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
+   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
+** RX Conf **
+   pthresh        :   8, hthresh          :   8, wthresh        :     0
+   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
+** TX Conf **
+   pthresh        :  32, hthresh          :   0, wthresh        :     0
+   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
+
+    Create: Default RX  3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=3, queue=0.
+      Set RX queue stats mapping pid 3, q 0, lcore 8
+
+
+    Create: Default TX  3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Range TX    3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Sequence TX 3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Special TX  3:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
+PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
+
+                                                                       Port memory used =  65665 KB
+Initialize Port 3 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:db
+
+** Default Info (net_bonding1, if_index:0) **
+   max_vfs        :   0, min_rx_bufsize    :   0, max_rx_pktlen :  2048
+   max_rx_queues  : 128, max_tx_queues     : 512
+   max_mac_addrs  :   1, max_hash_mac_addrs:   0, max_vmdq_pools:     0
+   rx_offload_capa:   0, tx_offload_capa   :   0, reta_size     :     0, flow_type_rss_offloads:00000000003ffffc
+   vmdq_queue_base:   0, vmdq_queue_num    :   0, vmdq_pool_base:     0
+** RX Conf **
+   pthresh        :   0, hthresh          :   0, wthresh        :     0
+   Free Thresh    :   0, Drop Enable      :   0, Deferred Start :     0
+** TX Conf **
+   pthresh        :   0, hthresh          :   0, wthresh        :     0
+   Free Thresh    :   0, RS Thresh        :   0, Deferred Start :     0, TXQ Flags:00000000
+
+    Create: Default RX  8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+      Set RX queue stats mapping pid 8, q 0, lcore 18
+
+
+    Create: Default TX  8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Range TX    8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Sequence TX 8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
+    Create: Special TX  8:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
+
+                                                                       Port memory used =  65665 KB
+Initialize Port 8 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:b8
+                                                                      Total memory used = 328325 KB
+PMD: i40e_set_tx_function(): Vector tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=0).
+PMD: i40e_set_tx_function(): Vector tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=1).
+PMD: i40e_set_tx_function(): Vector tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=2).
+PMD: i40e_set_tx_function(): Vector tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=3).
+**** nb_rx_queues 2
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=4, queue=0.
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=4, queue=1.
+PMD: i40e_set_tx_function(): Xmit tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=4).
+**** nb_rx_queues 2
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=5, queue=0.
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=5, queue=1.
+PMD: i40e_set_tx_function(): Xmit tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=5).
+**** nb_rx_queues 2
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=6, queue=0.
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=6, queue=1.
+PMD: i40e_set_tx_function(): Xmit tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=6).
+**** nb_rx_queues 2
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=7, queue=0.
+PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=7, queue=1.
+PMD: i40e_set_tx_function(): Xmit tx finally be used.
+PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=7).
+Port  0: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
+Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
+Port  2: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
+Port  3: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
+Port  8: Link Up - speed 40000 Mbps - full-duplex <Enable promiscuous mode>
+
+
+=== Display processing on lcore 1
+  RX processing lcore:   2 rx:  1 tx:  0
+For RX found 1 port(s) for lcore 2
+  TX processing lcore:   3 rx:  0 tx:  1
+For TX found 1 port(s) for lcore 3
+  RX processing lcore:   4 rx:  1 tx:  0
+For RX found 1 port(s) for lcore 4
+  TX processing lcore:   5 rx:  0 tx:  1
+For TX found 1 port(s) for lcore 5
+  RX processing lcore:   6 rx:  1 tx:  0
+For RX found 1 port(s) for lcore 6
+  TX processing lcore:   7 rx:  0 tx:  1
+For TX found 1 port(s) for lcore 7
+  RX processing lcore:   8 rx:  1 tx:  0
+For RX found 1 port(s) for lcore 8
+  TX processing lcore:   9 rx:  0 tx:  1
+For TX found 1 port(s) for lcore 9
+  RX processing lcore:  18 rx:  1 tx:  0
+For RX found 1 port(s) for lcore 18
+  TX processing lcore:  19 rx:  0 tx:  1
+For TX found 1 port(s) for lcore 19
 ```
 ------------------
-```
-- Ports 0-3 of 6   ** Main Page **  Copyright (c) <2010-2016>, Intel Corporation. Powered by IntelÂ® DPDK
-  Flags:Port    :   P-------------:0   P-------------:1
-Link State      :      <UP-10000-FD>      <UP-10000-FD>                                          ---TotalRate---
-Pkts/s  Rx      :                  0                  0                                                        0
-        Tx      :                  0                  0                                                        0
-MBits/s Rx/Tx   :                0/0                0/0                                                      0/0
-Broadcast       :                  0                  0
-Multicast       :                  0                  0
-  64 Bytes      :                  0                  0
-  65-127        :                  0                  0
-  128-255       :                  0                  0
-  256-511       :                  0                  0
-  512-1023      :                  0                  0
-  1024-1518     :                  0                  0
-Runts/Jumbos    :                0/0                0/0
-Errors Rx/Tx    :                0/0                0/0
-Total Rx Pkts   :                  0                  0
-      Tx Pkts   :                  0                  0
-      Rx MBs    :                  0                  0
-      Tx MBs    :                  0                  0
-ARP/ICMP Pkts   :                0/0                0/0
-                :
-Tx Count/% Rate :       Forever/100%       Forever/100%
-PktSize/Tx Burst:              64/16              64/16
-Src/Dest Port   :          1234/5678          1234/5678
-Pkt Type:VLAN ID:      IPv4/TCP:0001      IPv4/TCP:0001
-Dst  IP Address :        192.168.1.1        192.168.0.1
-Src  IP Address :     192.168.0.1/24     192.168.1.1/24
-Dst MAC Address :  90:e2:ba:5a:f7:91  90:e2:ba:5a:f7:90
-Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
--- Pktgen Ver:3.2.x(DPDK-17.02) -------------------------------------------------------------------------------------
+/ Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2016>, Intel Corporation
+  Flags:Port      :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
+Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
+Pkts/s Max/Rx     :                 3/1                 3/1                 3/1                 3/1                  12/4
+       Max/Tx     :                 0/0                 0/0                 0/0                 0/0                  12/4
+MBits/s Rx/Tx     :                 0/0                 0/0                 0/0                 0/0                   0/0
+Broadcast         :                   0                   0                   0                   0
+Multicast         :                   0                   0                   0                   0
+  64 Bytes        :                   0                   0                   0                   0
+  65-127          :                   0                   0                   0                   0
+  128-255         :                  22                  22                  22                  22
+  256-511         :                   0                   0                   0                   0
+  512-1023        :                   0                   0                   0                   0
+  1024-1518       :                   0                   0                   0                   0
+Runts/Jumbos      :                 0/0                 0/0                 0/0                 0/0
+Errors Rx/Tx      :                 0/0                 0/0                 0/0                 0/0
+Total Rx Pkts     :                  21                  21                  21                  21
+      Tx Pkts     :                   0                   0                   0                   0
+      Rx MBs      :                   0                   0                   0                   0
+      Tx MBs      :                   0                   0                   0                   0
+ARP/ICMP Pkts     :                 0/0                 0/0                 0/0                 0/0
+                  :
+Pattern Type      :             abcd...             abcd...             abcd...             abcd...
+Tx Count/% Rate   :       Forever /100%       Forever /100%       Forever /100%       Forever /100%
+PktSize/Tx Burst  :           64 /   32           64 /   32           64 /   32           64 /   32
+Src/Dest Port     :         1234 / 5678         1234 / 5678         1234 / 5678         1234 / 5678
+Pkt Type:VLAN ID  :     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001
+Dst  IP Address   :         192.168.1.1         192.168.0.1         192.168.3.1         192.168.2.1
+Src  IP Address   :      192.168.0.1/24      192.168.1.1/24      192.168.2.1/24      192.168.3.1/24
+Dst MAC Address   :   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:db   3c:fd:fe:9c:5c:da
+Src MAC Address   :   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:da   3c:fd:fe:9c:5c:db
+VendID/PCI Addr   :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2   8086:1572/04:00.3
+
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
 
 
 
@@ -1076,12 +1234,13 @@ Src MAC Address :  90:e2:ba:5a:f7:90  90:e2:ba:5a:f7:91
 
 
 
-Pktgen> quit
+Pktgen:/> quit
 $
 ```
 ------------------------------------------------------------------------
 ```
    *** Pktgen Help information ***
+
 page <pages>                       - Show the port pages or configuration or sequence page
      [0-7]                         - Page of different ports
      main                          - Display page zero
@@ -1098,7 +1257,7 @@ page <pages>                       - Show the port pages or configuration or seq
      latency                       - Display the latency page
      stats                         - Display physical ports stats for all ports
 
-enable|disable <portlist> <features>   
+enable|disable <portlist> <features>
     Feature - process              - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
               mpls                 - Enable/disable sending MPLS entry in packets
               qinq                 - Enable/disable sending Q-in-Q header in packets
@@ -1159,7 +1318,7 @@ set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted pack
                                        .: bit will be ignored (original value is retained)
                                        X: bit will get random value
 
-  -- Setup the packet range values --  
+  -- Setup the packet range values --
                  - SMMI = Start|Min|Max|Inc (Start, Minimum, Maximum, Increment)
 range <portlist> mac [dst|src] <etheraddr>    - Set destination/source MAC address
 range <portlist> ip [src|dst] <SMMI> <ipaddr> - Set source IP start address
@@ -1181,7 +1340,7 @@ pcap show                          - Show PCAP information
 pcap index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file
 pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive
 
-                                      
+
 start <portlist>                   - Start transmitting packets
 stop <portlist>                    - Stop transmitting packets
 stp                                - Stop all ports from transmitting
@@ -1240,36 +1399,13 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
 ```
 ---------------------------------------------------------------------------
 ```
-\  Port 0 of 4    ** PCAP Page **   Copyright (c) <2010-2016>, Intel Corporation, Powered by Intel® DPDK
-Port: 0, PCAP Count: 0 of 9716, skipped 0
-  Seq            Dst MAC           Src MAC            Dst IP              Src IP    Port S/D  Protocol:VLAN Size-FCS
-    0:    0014:2273:0a68    000f:ea34:177e    192.168.119.23     192.168.117.213    43934/53  IPv4/UDP:   0   73
-    1:    000f:ea34:177e    0014:2273:0a68   192.168.117.213      192.168.119.23    53/43934  IPv4/UDP:   0  445
-    2:    0013:720b:515b    000f:ea34:177e    209.131.36.158     192.168.117.213    34918/80  IPv4/UDP:   0   74
-    3:    000f:ea34:177e    0013:720b:515b   192.168.117.213      209.131.36.158    80/34918  IPv4/UDP:   0   78
-    4:    0013:720b:515b    000f:ea34:177e    209.131.36.158     192.168.117.213    34918/80  IPv4/UDP:   0   66
-    5:    0013:720b:515b    000f:ea34:177e    209.131.36.158     192.168.117.213    34918/80  IPv4/UDP:   0  842
-    6:    000f:ea34:177e    0013:720b:515b   192.168.117.213      209.131.36.158    80/34918  IPv4/UDP:   0   66
-    7:    000f:ea34:177e    0013:720b:515b   192.168.117.213      209.131.36.158    80/34918  IPv4/UDP:   0 1155
-    8:    0013:720b:515b    000f:ea34:177e    209.131.36.158     192.168.117.213    34918/80  IPv4/UDP:   0   66
-    9:    0014:2273:0a68    000f:ea34:177e    192.168.119.23     192.168.117.213    47919/53  IPv4/UDP:   0   72
-   10:    0013:720b:515b    000f:ea34:177e    209.131.36.158     192.168.117.213    34918/80  IPv4/UDP:   0   66
-   11:    000f:ea34:177e    0013:720b:515b   192.168.117.213      209.131.36.158    80/34918  IPv4/UDP:   0   66
-   12:    000f:ea34:177e    0013:720b:515b   192.168.117.213      209.131.36.158    80/34918  IPv4/UDP:   0 1090
-   13:    0013:720b:515b    000f:ea34:177e    209.131.36.158     192.168.117.213    34918/80  IPv4/UDP:   0   54
-   14:    000f:ea34:177e    0014:2273:0a68   192.168.117.213      192.168.119.23    53/47919  IPv4/UDP:   0  352
-   15:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   74
-   16:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0   78
-   17:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
-   18:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0  846
-   19:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0   66
-   20:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1486
-   21:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
-   22:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0  104
-   23:    0013:720b:515b    000f:ea34:177e     203.84.217.32     192.168.117.213    40202/80  IPv4/UDP:   0   66
-   24:    000f:ea34:177e    0013:720b:515b   192.168.117.213       203.84.217.32    80/40202  IPv4/UDP:   0 1466
-
-- Pktgen Ver:3.2.x(DPDK-17.02) --------------------------------------------------------------------------------------
+\                  <Sequence Page>  Copyright (c) <2010-2016>, Intel Corporation
+Port:  0, Sequence Count:  4 of 16                                                                             GTPu
+  Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
+*   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
+*   1:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
+*   2:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
+*   3:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
 
 
 
@@ -1280,9 +1416,88 @@ Port: 0, PCAP Count: 0 of 9716, skipped 0
 
 
 
-pktgen> quit
+
+
+
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Pktgen:/> set all seq_cnt 4
+Pktgen:/>
 ```
-------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------
+```
+| Port 0           <Random bitfield Page>  Copyright (c) <2010-2016>, Intel Corporation
+   Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
+       0        0      No   00000000 00000000 00000000 00000000
+       1        0      No   00000000 00000000 00000000 00000000
+       2        0      No   00000000 00000000 00000000 00000000
+       3        0      No   00000000 00000000 00000000 00000000
+       4        0      No   00000000 00000000 00000000 00000000
+       5        0      No   00000000 00000000 00000000 00000000
+       6        0      No   00000000 00000000 00000000 00000000
+       7        0      No   00000000 00000000 00000000 00000000
+       8        0      No   00000000 00000000 00000000 00000000
+       9        0      No   00000000 00000000 00000000 00000000
+      10        0      No   00000000 00000000 00000000 00000000
+      11        0      No   00000000 00000000 00000000 00000000
+      12        0      No   00000000 00000000 00000000 00000000
+      13        0      No   00000000 00000000 00000000 00000000
+      14        0      No   00000000 00000000 00000000 00000000
+      15        0      No   00000000 00000000 00000000 00000000
+      16        0      No   00000000 00000000 00000000 00000000
+      17        0      No   00000000 00000000 00000000 00000000
+      18        0      No   00000000 00000000 00000000 00000000
+      19        0      No   00000000 00000000 00000000 00000000
+      20        0      No   00000000 00000000 00000000 00000000
+      21        0      No   00000000 00000000 00000000 00000000
+      22        0      No   00000000 00000000 00000000 00000000
+      23        0      No   00000000 00000000 00000000 00000000
+      24        0      No   00000000 00000000 00000000 00000000
+      25        0      No   00000000 00000000 00000000 00000000
+      26        0      No   00000000 00000000 00000000 00000000
+      27        0      No   00000000 00000000 00000000 00000000
+      28        0      No   00000000 00000000 00000000 00000000
+      29        0      No   00000000 00000000 00000000 00000000
+      30        0      No   00000000 00000000 00000000 00000000
+      31        0      No   00000000 00000000 00000000 00000000
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+
+
+
+
+
+
+
+
+
+
+
+Pktgen:/>
+```
+---------------------------------------------------------------------------
 -- Example command lines.
 ```
 ./app/pktgen -l 0-8 -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
@@ -1296,7 +1511,7 @@ A command line passing in a pktgen/test/set_seq.pkt file to help initialize pktg
 default values and configurations. You can also replace the filename using the '-f' command
 with a Lua script file ending in .lua instead of .pkt. BTW, if the filename ends in anything
 other then .lua it is treated as a .pkt file.
- 
+
 `./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
 
 -- test/set_seq.pkt
@@ -1316,17 +1531,17 @@ use that one instead of set_seq.pkt file.
 
 -- The '--' is a comment in Lua
 local seq_table = {			-- entries can be in any order
-    ["eth_dst_addr"] = "0011:4455:6677",
-    ["eth_src_addr"] = "0011:1234:5678",
-    ["ip_dst_addr"] = "10.12.0.1",
-    ["ip_src_addr"] = "10.12.0.1/16",	-- the 16 is the size of the mask value
-    ["sport"] = 9,			-- Standard port numbers
-    ["dport"] = 10,			-- Standard port numbers
-    ["ethType"] = "ipv4",	-- ipv4|ipv6
-    ["ipProto"] = "udp",	-- udp|tcp|icmp
-    ["vlanid"] = 1,			-- 1 - 4095
-    ["pktSize"] = 128		-- 64 - 1518
-  };
+["eth_dst_addr"] = "0011:4455:6677",
+["eth_src_addr"] = "0011:1234:5678",
+["ip_dst_addr"] = "10.12.0.1",
+["ip_src_addr"] = "10.12.0.1/16",	-- the 16 is the size of the mask value
+["sport"] = 9,			-- Standard port numbers
+["dport"] = 10,			-- Standard port numbers
+["ethType"] = "ipv4",	-- ipv4|ipv6
+["ipProto"] = "udp",	-- udp|tcp|icmp
+["vlanid"] = 1,			-- 1 - 4095
+["pktSize"] = 128		-- 64 - 1518
+};
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );
 pktgen.set("all", "seqCnt", 1);
@@ -1361,25 +1576,25 @@ To exit this command type Control-D to exit and close the connection.
 You can also just send Pktgen a script file and display the ouptut.
 
 ---------
-$ socat - TCP4:localhost:22022 < test/hello-world.lua 
+$ socat - TCP4:localhost:22022 < test/hello-world.lua
 
-Lua Vesrion      : Lua 5.2
-Pktgen Version   : 2.9.x
+Lua Vesrion: Lua 5.2
+Pktgen Version : 2.9.x
 Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
-Pktgen Authors   : Keith Wiles @ Intel Corporation
+Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 --------
 
 Here is the program I sent Pktgen:
 
-$ cat test/hello-world.lua 
+$ cat test/hello-world.lua
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
-printf("Lua Vesrion      : %s\n", pktgen.info.Lua_Version);
-printf("Pktgen Version   : %s\n", pktgen.info.Pktgen_Version);
+printf("Lua Vesrion: %s\n", pktgen.info.Lua_Version);
+printf("Pktgen Version : %s\n", pktgen.info.Pktgen_Version);
 printf("Pktgen Copyright : %s\n", pktgen.info.Pktgen_Copyright);
-printf("Pktgen Authors   : %s\n", pktgen.info.Pktgen_Authors);
+printf("Pktgen Authors : %s\n", pktgen.info.Pktgen_Authors);
 
 printf("\nHello World!!!!\n");
 -----------
@@ -1391,10 +1606,10 @@ disk where Pktgen is running and then we execute the file with 'f()'.
 $ socat READLINE TCP4:172.25.40.163:22022
 f,e = loadfile("test/hello-world.lua")
 f()
-Lua Version      : Lua 5.2
-Pktgen Version   : 2.9.x
+Lua Version: Lua 5.2
+Pktgen Version : 2.9.x
 Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
-Pktgen Authors   : Keith Wiles @ Intel Corporation
+Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 <Control-D>
@@ -1404,10 +1619,10 @@ You can also just send it commands via echo.
 
 -----------------
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
-Lua Version      : Lua 5.2
-Pktgen Version   : 2.9.x
+Lua Version: Lua 5.2
+Pktgen Version : 2.9.x
 Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
-Pktgen Authors   : Keith Wiles @ Intel Corporation
+Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 ----------------------

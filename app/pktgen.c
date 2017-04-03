@@ -1309,7 +1309,7 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 			pid = get_tx_pid(pktgen.l2p, lid, idx);
 
 		if ((infos[idx] = get_port_private(pktgen.l2p, pid)) == NULL)
-			continue;
+			rte_panic("Config error: No port %d found at %d lcore\n", pid, lid);
 
 		if (qids)
 			qids[idx] = get_txque(pktgen.l2p, lid, pid);
@@ -1349,6 +1349,24 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	tx_next_cycle   = rte_rdtsc() + infos[0]->tx_cycles;
 
 	pg_start_lcore(pktgen.l2p, lid);
+
+	if (rxcnt == 0)
+		rte_panic("No ports found for %d lcore\n", lid);
+
+	printf("For RX found %d port(s) for lcore %d\n", rxcnt, lid);
+	for(idx = 0; idx < rxcnt; idx++) {
+		if (infos[idx] == NULL)
+			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
+	}
+
+	if (txcnt == 0)
+		rte_panic("No ports found for %d lcore\n", lid);
+
+	printf("For TX found %d port(s) for lcore %d\n", rxcnt, lid);
+	for(idx = 0; idx < txcnt; idx++) {
+		if (infos[idx] == NULL)
+			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
+	}
 
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		for (idx = 0; idx < rxcnt; idx++)	/* Read Packets */
@@ -1401,7 +1419,16 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	pg_start_lcore(pktgen.l2p, lid);
 
-	idx = 0;
+	if (txcnt == 0)
+		rte_panic("No ports found for %d lcore\n", lid);
+
+	printf("For TX found %d port(s) for lcore %d\n", txcnt, lid);
+	for(idx = 0;idx < txcnt; idx++) {
+		if (infos[idx] == NULL)
+			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
+	}
+
+		idx = 0;
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_rdtsc();
 
@@ -1445,6 +1472,15 @@ pktgen_main_rx_loop(uint8_t lid)
 	port_map_info(lid, infos, NULL, NULL, &rxcnt, "RX");
 
 	pg_start_lcore(pktgen.l2p, lid);
+
+	if (rxcnt == 0)
+		rte_panic("No ports found for %d lcore\n", lid);
+
+	printf("For RX found %d port(s) for lcore %d\n", rxcnt, lid);
+	for(idx = 0; idx < rxcnt; idx++) {
+		if (infos[idx] == NULL)
+			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
+	}
 
 	while (pg_lcore_is_running(pktgen.l2p, lid))
 		for (idx = 0; idx < rxcnt; idx++)	/* Read packet */

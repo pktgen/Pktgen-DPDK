@@ -7,6 +7,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 
 **=== Modifications ===**
  - 3.2.2 - fix the clear stats command.
+           fix range commands to match help text.
  - 3.2.1 - Update the readme file.
  - 3.2.0 - Add support for decimal point rate values, like 10.1, 20.54, 90.6, ...
            Convert over to use CLI interface instead of cmdline interface.

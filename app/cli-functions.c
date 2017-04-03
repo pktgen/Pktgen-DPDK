@@ -922,7 +922,7 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 }
 
 static struct cli_map misc_map[] = {
-	{ 10, "clear_stats %P" },
+	{ 10, "clear %P stats" },
 	{ 20, "geometry %s" },
 	{ 21, "geometry" },
 	{ 30, "load %s" },
@@ -947,7 +947,7 @@ static const char *misc_help[] = {
 	"script <filename>                  - Execute the Lua script code in file (www.lua.org).",
 	"lua 'lua string'                   - Execute the Lua code in the string needs quotes",
 	"geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
-	"clear_stats <portlist>             - Clear the statistics",
+	"clear <portlist> stats             - Clear the statistics",
 	"clr                                - Clear all Statistices",
 	"reset <portlist>                   - Reset the configuration the ports to the default",
 	"rst                                - Reset the configuration for all ports",
@@ -1089,8 +1089,8 @@ static struct cli_tree default_tree[] = {
 	c_dir("/pktgen/bin"),
 	c_cmd("help",		help_cmd, 		"help command"),
 
-	c_cmd("clear.stats",misc_cmd,		"clear stats"),
-	c_alias("clr",		"clear.stats all",	"clear all port stats"),
+	c_cmd("clear",		misc_cmd,		"clear stats, ..."),
+	c_alias("clr",		"clear all stats",	"clear all port stats"),
 	c_cmd("geometry",	misc_cmd, 		"set the screen geometry"),
 	c_alias("geom",		"geometry",		"set or show screen geometry"),
 	c_cmd("load",		misc_cmd, 		"load command file"),

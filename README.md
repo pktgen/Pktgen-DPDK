@@ -7,103 +7,103 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 
 **=== Modifications ===**
  - 3.2.0 - Add support for decimal point rate values, like 10.1, 20.54, 90.6, ...
-Convert over to use CLI interface instead of cmdline interface.
-CLI is a directory like command line tool and please read the .rst file in the lib/cli directory
-Many bug fixes.
+           Convert over to use CLI interface instead of cmdline interface.
+           CLI is a directory like command line tool and please read the .rst file in the lib/cli directory
+           Many bug fixes.
  - 3.1.2 - Convert spaces to tabs and add pktgen-cfg.[ch] page
-Converting the spaces to tabs to allow for editing the code with tabs
-set to 4 or 8 columns per tab. Changed to allow people who are stuck
-on a tab=8 columns. We have modern computers tabs=4 columns seems reasonable.
+           Converting the spaces to tabs to allow for editing the code with tabs
+           set to 4 or 8 columns per tab. Changed to allow people who are stuck
+           on a tab=8 columns. We have modern computers tabs=4 columns seems reasonable.
  - 3.1.1 - Minor cleanup of top level directory and code.
  - 3.1.0 - Rename functions and files.
-When files are written change the file modes to 0666 as they are owned by root.
-More general cleanup of the display refresh.
-loading command or lua files is faster because of the screen updates fixed.
+           When files are written change the file modes to 0666 as they are owned by root.
+           More general cleanup of the display refresh.
+           loading command or lua files is faster because of the screen updates fixed.
  - 3.0.17- Fixed a formating issue on sequence page for port numbers.
-Save of lua code wrong for pktgen.range() should be pktgen.set_range().
+           Save of lua code wrong for pktgen.range() should be pktgen.set_range().
  - 3.0.16- Add command line option to strip CRC in hardware one RX.
-Option is '--crc-strip' which strips the CRC on RX for all ports.
+           Option is '--crc-strip' which strips the CRC on RX for all ports.
  - 3.0.15- Update Lua to 5.3.3 version
-Change lua pktgen.range() to pktgen.set_range() plus added
-the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
-Still support the old commands for now.
-Now polls the RX and TX queues to support eth_bond interfaces using
-mode 4 or LACP.
+           Change lua pktgen.range() to pktgen.set_range() plus added
+           the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
+           Still support the old commands for now.
+           Now polls the RX and TX queues to support eth_bond interfaces using
+           mode 4 or LACP.
  - 3.0.14- Fix crash in saving configuration and random is not setup.
  - 3.0.13- Fix seq only sending the first sequence packet and some cleanup.
  - 3.0.12- Map port/queue pair stats to the correct lcore.
  - 3.0.11- Fix compile problem with 16.04
  - 3.0.10- Added the 'pdump <portlist>' command to hex dump the first packet to be
-send on the given ports. Only the single packet mode is supported.
+           send on the given ports. Only the single packet mode is supported.
  - 3.0.09- Add Fix for PCAP corruption.
  - 3.0.08- Add Lua support for rnd and latency commands.
-Now if latency is enable on a port then getting the stats will get
-the latency values via lua table.
+           Now if latency is enable on a port then getting the stats will get
+           the latency values via lua table.
  - 3.0.07- Fixed crash on exit when using more then one core per port.
  - 3.0.06- Fix PCI null pointer when using virtual devices.
-Removed the C11 constructs to compile on C99 compilers.
-Fix the bug of old packets after changes for new run.
-The problem is DPDK holds on to the mbufs in the TX done queue
-and those can not be changed. With 16.07 we can find all of the mbufs
-and changed them to correct format/sizes.
+           Removed the C11 constructs to compile on C99 compilers.
+           Fix the bug of old packets after changes for new run.
+           The problem is DPDK holds on to the mbufs in the TX done queue
+           and those can not be changed. With 16.07 we can find all of the mbufs
+           and changed them to correct format/sizes.
  - 3.0.05- New Latency/Jitter page 'page latency'
-Need to adjust the packet size to 96 to allow for latency timestamp.
-type: page latency
-latency 0 on
-set 0 size 96
-start 0
+           Need to adjust the packet size to 96 to allow for latency timestamp.
+           type: page latency
+           latency 0 on
+           set 0 size 96
+           start 0
  - 3.0.04- Display reported the wrong rate in Mbits because the counters were not
-including the FCS bytes in the value as it was before.
-Minor cleanup of the code for formating.
+           including the FCS bytes in the value as it was before.
+           Minor cleanup of the code for formating.
  - 3.0.03- General clean up of scripts
-Add support for share library builds
-Clean up formating
-Add PCI info screen
-GUI 1.0 support
+           Add support for share library builds
+           Clean up formating
+           Add PCI info screen
+           GUI 1.0 support
  - 3.0.02- Fix up the IPv6 address macros for musl libc support
-Fix the missing pthread.h include in lua socket header.
-Add the rnd lua support APIs
-Fix the checksum issue with rnd changes.
+           Fix the missing pthread.h include in lua socket header.
+           Add the rnd lua support APIs
+           Fix the checksum issue with rnd changes.
  - 3.0.01- Fixed the Range sequence and VLAN problem.
  - 3.0.00- Fixed code to ifdef the imcasts counters that were deprecated.
  - 2.9.18- Fix the range command to set IP proto value and be able to save that value.
  - 2.9.17- Fix PCAP crash when using multiple tx queues.
  - 2.9.16- Fix include problems with cmdline_parse.h file.
-missing cmdline_parse_token_hdr_t define and looks like the header was not
-included in the pktgen-seq.h file for DPDK v2.2.0 and pktgen-2.9.15
+           missing cmdline_parse_token_hdr_t define and looks like the header was not
+           included in the pktgen-seq.h file for DPDK v2.2.0 and pktgen-2.9.15
  - 2.9.15- Update Lua to version 5.3.2
  - 2.9.14- Fix compiler error for gcc-4.9 and inet_ntop() routine
  - 2.9.13- Add max last seen RX/TX packets to display.
  - 2.9.12- Was not able to set IP protocol type for range packets.
-New command range.proto <portlist> udp|tcp|icmp
-Lua command is pktgen.ip_proto("all", "udp")
+           New command range.proto <portlist> udp|tcp|icmp
+           Lua command is pktgen.ip_proto("all", "udp")
  - 2.9.11- Fix version string for new version style in DPDK.
  - 2.9.10- Reformat the code and get ready for the next release of DPDK.
  - 2.9.9 - Update the init screen output to not screw up DPDK screen output.
  - 2.9.8 - Fixed the crash when using the sequence packets.
  - 2.9.7 - Changed all rte_zmalloc to rte_zmalloc_socket calls and change seq_pkt support.
-The fix for multiple cores accessing seq_pkts was to allocate memory and copy
-into a private area. This sometimes caused memory allocation problems, so I
-removed the allocation and used spinlocks around the code. Most likely slower
-in some areas but better then allocating memory.
+           The fix for multiple cores accessing seq_pkts was to allocate memory and copy
+           into a private area. This sometimes caused memory allocation problems, so I
+           removed the allocation and used spinlocks around the code. Most likely slower
+           in some areas but better then allocating memory.
  - 2.9.6 - Add support for different pattern types and a user patten string.
-New commands are 'pattern <portlist> type'.
-Types are abc, none, zero or user
-New command 'user.pattern <portlist> <string>' The string can not contain a space
-which is a limitation of the rte_cmdline code.
-Added new Lua command for the above 'pattern(<portlist>, <type>)'
-and 'userPatten(<portlist>, <string>)'
+           New commands are 'pattern <portlist> type'.
+           Types are abc, none, zero or user
+           New command 'user.pattern <portlist> <string>' The string can not contain a space
+           which is a limitation of the rte_cmdline code.
+           Added new Lua command for the above 'pattern(<portlist>, <type>)'
+           and 'userPatten(<portlist>, <string>)'
  - 2.9.5 - Fixed sequence packet race condition for multiple senders.
  - 2.9.4 - Fixed the ARP sends were not being flushed
  - 2.9.3 - Remove change log and comment out the eth stop when done sending.
-This will most likely screw up the pcap and others, but stopping the port is not good.
+           This will most likely screw up the pcap and others, but stopping the port is not good.
  - 2.9.1 - Fix up the sequeue help to remove vlan option with ipv4/ipv6
  - 2.9.0 - Update to DPDK 2.0.0 and Lua 5.3.0 with README update.
  - 2.8.6 - Fix argument for rte_mempool_create, which caused a crash.
  - 2.8.5 - Fix compat problem with latest Pktgen and DPDK 1.8.0
  - 2.8.4 - Minor updates for comments.
  - 2.8.3 - Updated the Makefiles to use rte.extXYZ.mk files.
-Updated the code to build with DPDK 2.0.0-rc1 as some function prototype changed.
+           Updated the code to build with DPDK 2.0.0-rc1 as some function prototype changed.
  - 2.8.2 - Fix bug in pktgen_main_receive routine not using the correct port number.
  - 2.8.1 - Add a new docs directory using Sphinx format and update version numbers.
  - 2.8.0 - Update to release 1.8.0 of DPDK.
@@ -116,35 +116,35 @@ Updated the code to build with DPDK 2.0.0-rc1 as some function prototype changed
  - 2.7.3 - Fixed race condition with updating the TX count value with a small count.
  - 2.7.1 - Add a command line option '-T' to enable themes and set themes off by default.
  - 2.7.0 - Update to DPDK 1.7.0, Note: DPDK 1.7.0 changed how ports are detected and blacklisted,
-which means the port index is now different. You will need to blacklist or whitelist ports
-with the DPDK '-b' or '--pci-blacklist or --pci-whitelist' options. Pktgen does not blacklist
-ports anymore.
-- Moved pktgen to the examples directory plus removed the libwr_* from the lib directory
-- Pktgen now supports ANSI color terminals only the main screen ATM, but more later.
-- Best viewed on a black background display, unless you want to change it with the new theme commands.
-- More supported generator types, checkout the help screens.
+           which means the port index is now different. You will need to blacklist or whitelist ports
+           with the DPDK '-b' or '--pci-blacklist or --pci-whitelist' options. Pktgen does not blacklist
+           ports anymore.
+           - Moved pktgen to the examples directory plus removed the libwr_* from the lib directory
+           - Pktgen now supports ANSI color terminals only the main screen ATM, but more later.
+           - Best viewed on a black background display, unless you want to change it with the new theme commands.
+           - More supported generator types, checkout the help screens.
  - 2.6.8 - Fixed a transmit problem when count is set to one. Plus increase the link down delays.
  - 2.6.7 - Add more support for GRE packets, log support and more testing code.
  - 2.6.6 - Fix compile problem when not SSE4.2 instructions are not supported. Allowing QEMU and other
-systems to build and run. Also added a patch to take into account huge reserved pages.
+           systems to build and run. Also added a patch to take into account huge reserved pages.
  - 2.6.5 - Added support for logging packet information.
  - 2.6.4 - It consists of 3 commits: improvements to the pktgen-random.c unit tests,
-the real CentOS compilation fixes and a small update to tap.{c,h} so they
-are identical to those from zorgnax/libtap on github.
+           the real CentOS compilation fixes and a small update to tap.{c,h} so they
+           are identical to those from zorgnax/libtap on github.
  - 2.6.3 - Add a delay when traffic stops to make sure all packets are sent.
-Remove the `rte_hash_crc.h` include in wr_pcap.c file.
+           Remove the `rte_hash_crc.h` include in wr_pcap.c file.
  - 2.6.2 - Fixup GRE and ARP problems
  - 2.6.1 - Add random bits support and more cleanup
  - 2.6.0 - Split up the code for testing to be added later
  - 2.5.2 - Remove extra ethertypes.h file.
  - 2.5.1 - Added the following updates.
-- Implement-Rx-packet-dump-functionality
-- Add-packet-capture-functionality
-- Add-MPLS-functionality
-- Add-Q-in-Q-802.11ad-functionality
-- Add-GRE-header-generation
-- Fix-UDP-TCP-ICMP-protocol-selection
-- Add-ARP-protocol
+           - Implement-Rx-packet-dump-functionality
+           - Add-packet-capture-functionality
+           - Add-MPLS-functionality
+           - Add-Q-in-Q-802.11ad-functionality
+           - Add-GRE-header-generation
+           - Fix-UDP-TCP-ICMP-protocol-selection
+           - Add-ARP-protocol
  - 2.5.0 - Update to DPDK 1.6.0 plus a few bug fixes.
  - 2.4.1 - Fixed a bug in range packets when 'inc' value is zero use start values.
  - 2.4.0 - Add support for TX tap packets. Change 'tap' command to rxtap and txtap.
@@ -153,9 +153,9 @@ Remove the `rte_hash_crc.h` include in wr_pcap.c file.
  - 2.3.2 - Fixed VLAN detection problem in ARP and special GARP support.
  - 2.3.1 - Getting closer to line rate tx speed.
  - 2.3.0 - Now supports the VLAN encapsulated packets for ARP replies
-Also added a special GARP processing to update the destination MAC
-address to help support a special request for failover support.
-Added support for DPDK 1.5.1
+           Also added a special GARP processing to update the destination MAC
+           address to help support a special request for failover support.
+           Added support for DPDK 1.5.1
  - 2.2.7 - Updated the code to handle multiple TX queues per port.
  - 2.2.6 - Fixed a crash if the port is not up with link status
  - 2.2.5 - Remove the flow control code as some systems it does not work.
@@ -163,7 +163,7 @@ Added support for DPDK 1.5.1
  - 2.2.3 - range packet fixes for packet size and source/destination mac
  - 2.2.2 - Minor performance changes for receive packet performance.
  - 2.2.1 - Change MAC address from XXXX:XXXX:XXXX to XX:XX:XX:XX:XX:XX format
-Fixed Pktgen to allow packet changes without having to restart the tool.
+           Fixed Pktgen to allow packet changes without having to restart the tool.
  - 2.2.0 - Update to DPDK 1.5.0
 
 **=====================**
@@ -736,7 +736,7 @@ echo $sockets
 }
 
 if [ $UID -ne 0 ]; then
-echo "You must run this script as root" >&2
+	echo "You must run this script as root" >&2
 exit 1
 fi
 
@@ -745,7 +745,7 @@ rm -fr /mnt/huge/*
 NR_HUGEPAGES=$(( `sysctl -n vm.nr_hugepages` / $(num_cpu_sockets) ))
 echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages."
 for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
-echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
+	echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
 done
 
 grep -i huge /proc/meminfo
@@ -759,10 +759,10 @@ insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 name=`uname -n`
 if [ $name == "rkwiles-supermicro" ]; then
-$sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
+	$sdk/tools/dpdk_nic_bind.py -b igb_uio 06:00.0 06:00.1 08:00.0 08:00.1 87:00.0 87:00.1 89:00.0 89:00.1
 fi
 if [ $name == "rkwilesmini-i7" ]; then
-$sdk/tools/dpdk_nic_bind.py -b igb_uio 01:00.1 01:00.2 01:00.3 01:00.4
+	$sdk/tools/dpdk_nic_bind.py -b igb_uio 01:00.1 01:00.2 01:00.3 01:00.4
 fi
 $sdk/tools/dpdk_nic_bind.py --status
 lspci |grep Ether

@@ -98,13 +98,13 @@ static const char *status_help[] = {
 };
 
 static struct cli_map range_map[] = {
-	{ 20, "range %P mac dst %|start|min|max|inc %m" },
-	{ 21, "range %P mac src %|start|min|max|inc %m" },
-	{ 30, "range %P ip dst %|start|min|max|inc %4" },
-	{ 31, "range %P ip src %|start|min|max|inc %4" },
+	{ 20, "range %P dst mac %|start|min|max|inc %m" },
+	{ 21, "range %P src mac %|start|min|max|inc %m" },
+	{ 30, "range %P dst ip %|start|min|max|inc %4" },
+	{ 31, "range %P src ip %|start|min|max|inc %4" },
 	{ 40, "range %P proto %|start|min|max|inc %d" },
-	{ 50, "range %P port dst %|start|min|max|inc %d" },
-	{ 51, "range %P port src %|start|min|max|inc %d" },
+	{ 50, "range %P dst port %|start|min|max|inc %d" },
+	{ 51, "range %P src port %|start|min|max|inc %d" },
 	{ 60, "range %P vlan %|start|min|max|inc %d" },
 	{ 70, "range %P size %|start|min|max|inc %d" },
 	{ 80, "range %P mpls entry %x" },
@@ -115,17 +115,17 @@ static struct cli_map range_map[] = {
 
 static const char *range_help[] = {
 	"  -- Setup the packet range values --",
-	"                 - SMMI = Start|Min|Max|Inc (Start, Minimum, Maximum, Increment)",
-	"range <portlist> mac [dst|src] <etheraddr>    - Set destination/source MAC address",
-	"range <portlist> ip [src|dst] <SMMI> <ipaddr> - Set source IP start address",
+	"range <portlist> [dst|src] mac <etheraddr>    - Set destination/source MAC address",
+	"range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address",
 	"range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)",
-	"range <portlist> [sport|dport] <SMMI> <value> - Set source port start address",
+	"range <portlist> [src|dst] port <SMMI> <value>- Set UDP/TCP source/dest port number",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
 	"range <portlist> size <SMMI> <value>          - Set pkt size start address",
 	"range <portlist> teid <SMMI> <value>          - Set TEID value",
 	"range <portlist> mpls entry <hex-value>       - Set MPLS entry value",
 	"range <portlist> qinq index <val1> <val2>     - Set QinQ index values",
 	"range <portlist> gre key <value>              - Set GRE key value",
+	"                 - SMMI = start|min|max|inc (start, minimum, maximum, increment)",
 	CLI_HELP_PAUSE,
 	NULL
 };

@@ -57,16 +57,18 @@ cli_help_add(const char *group, struct cli_map *map, const char **help_data)
 }
 
 static int
-_show_help_lines(const char **h)
+_show_help_lines(const char **h, int allow_pause)
 {
 	int j;
 	char key;
 
 	for (j = 0; h[j] != NULL; j++) {
 		if (!strcmp(h[j], CLI_HELP_PAUSE)) {
-			key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
-			if (key == vt100_escape)
-				return -1;
+			if (allow_pause) {
+				key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
+				if (key == vt100_escape)
+					return -1;
+			}
 			continue;
 		}
 		cli_printf("%s\n", h[j]);
@@ -84,7 +86,7 @@ cli_help_show_all(const char *msg)
 		cli_printf("%s\n", msg);
 
 	TAILQ_FOREACH(n, &this_cli->help_nodes, next) {
-		if (_show_help_lines(n->help_data))
+		if (_show_help_lines(n->help_data, 1))
 			return -1;
 	}
 
@@ -113,5 +115,5 @@ cli_help_show_group(const char *group)
 	if (!n)
 		return -1;
 
-	return _show_help_lines(n->help_data);
+	return _show_help_lines(n->help_data, 0);
 }

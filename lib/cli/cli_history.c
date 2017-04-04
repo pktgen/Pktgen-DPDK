@@ -242,7 +242,7 @@ cli_set_history(uint32_t nb_hist)
 void
 cli_history_reset(void)
 {
-	this_cli->curr_hist = CIRCLEQ_LAST(&this_cli->hd_hist);
+	this_cli->curr_hist = CIRCLEQ_FIRST(&this_cli->hd_hist);
 }
 
 void

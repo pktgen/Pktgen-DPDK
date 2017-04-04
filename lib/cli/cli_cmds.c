@@ -265,7 +265,7 @@ ls_cmd(int argc, char **argv)
 }
 
 static int
-clear_cmd(int argc __rte_unused, char **argv __rte_unused)
+scrn_cmd(int argc __rte_unused, char **argv __rte_unused)
 {
 	cli_clear_screen();
 	return 0;
@@ -632,7 +632,7 @@ static struct cli_tree cli_default_tree[] = {
 	c_cmd("ls",         ls_cmd,     "ls [-lr] <dir> # list current directory"),
 	c_cmd("cd",         cd_cmd,     "cd <dir> # change working directory"),
 	c_cmd("pwd",        pwd_cmd,    "pwd # display current working directory"),
-	c_cmd("clear",      clear_cmd,  "clear # clear the screen"),
+	c_cmd("screen.clear", scrn_cmd, "screen.clear # clear the screen"),
 	c_cmd("quit",       quit_cmd,   "quit # quit the application"),
 	c_cmd("history",    hist_cmd,   "history # display the current history"),
 	c_cmd("more",       more_cmd,   "more <file> # display a file content"),

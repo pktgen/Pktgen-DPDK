@@ -1309,7 +1309,7 @@ set <portlist> pattern <type>      - Set the fill pattern type
             zero                   - Fill of zero bytes
             user                   - User supplied string of max 16 bytes
 set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
-set <portlist> ip src|dst ipaddr   - Set IP addresses
+set <portlist> [src|dst] ip ipaddr - Set IP addresses
 set ports_per_page <value>         - Set ports per page value 1 - 6
 set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
 set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
@@ -1322,17 +1322,17 @@ set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted pack
                                        X: bit will get random value
 
   -- Setup the packet range values --
-                 - SMMI = Start|Min|Max|Inc (Start, Minimum, Maximum, Increment)
-range <portlist> mac [dst|src] <etheraddr>    - Set destination/source MAC address
-range <portlist> ip [src|dst] <SMMI> <ipaddr> - Set source IP start address
+range <portlist> [dst|src] mac <SMMI> <etheraddr> - Set destination/source MAC address
+range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address
 range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)
-range <portlist> [sport|dport] <SMMI> <value> - Set source port start address
+range <portlist> [src|dst] port <SMMI> <value> - Set UDP/TCP source/dest port number
 range <portlist> vlan <SMMI> <value>          - Set vlan id start address
 range <portlist> size <SMMI> <value>          - Set pkt size start address
 range <portlist> teid <SMMI> <value>          - Set TEID value
 range <portlist> mpls entry <hex-value>       - Set MPLS entry value
 range <portlist> qinq index <val1> <val2>     - Set QinQ index values
 range <portlist> gre key <value>              - Set GRE key value
+                 - SMMI = start|min|max|inc (start, minimum, maximum, increment)
 
 sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]
 sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
@@ -1362,7 +1362,7 @@ load <path-to-file>                - Load a command/script file from the given p
 script <filename>                  - Execute the Lua script code in file (www.lua.org).
 lua 'lua string'                   - Execute the Lua code in the string needs quotes
 geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)
-clear_stats <portlist>             - Clear the statistics
+clear <portlist> stats             - Clear the statistics
 clr                                - Clear all Statistices
 reset <portlist>                   - Reset the configuration the ports to the default
 rst                                - Reset the configuration for all ports
@@ -1398,7 +1398,6 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Color best seen on a black background for now
        To see a set of example Lua commands see the files in wr-examples/pktgen/test
-
 ```
 ---------------------------------------------------------------------------
 ```

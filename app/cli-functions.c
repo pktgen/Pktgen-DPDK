@@ -68,6 +68,22 @@ static const char *title_help[] = {
 	NULL,
 };
 
+static inline int
+command_error(const char * msg, const char *group, int argc, char **argv)
+{
+	int n;
+
+	if (group)
+		cli_help_show_group(group);
+	if (msg)
+		cli_printf("%s:\n", msg);
+	cli_printf("  Invalid line: <");
+	for(n = 0; n < argc; n++)
+		cli_printf("%s ", argv[n]);
+	cli_printf(">\n");
+	return -1;
+}
+
 static const char *status_help[] = {
 	"       Flags: P---------------- - Promiscuous mode enabled",
 	"               E                - ICMP Echo enabled",
@@ -104,8 +120,8 @@ static struct cli_map range_map[] = {
 	{ 30, "range %P dst ip "SMMI" %4" },
 	{ 31, "range %P src ip "SMMI" %4" },
 	{ 40, "range %P proto "SMMI" %d" },
-	{ 50, "range %P dst %|port|portid "SMMI" %d" },
-	{ 51, "range %P src %|port|portid "SMMI" %d" },
+	{ 50, "range %P dst port "SMMI" %d" },
+	{ 51, "range %P src port "SMMI" %d" },
 	{ 60, "range %P vlan "SMMI" %d" },
 	{ 70, "range %P size "SMMI" %d" },
 	{ 80, "range %P mpls entry %x" },
@@ -116,10 +132,10 @@ static struct cli_map range_map[] = {
 
 static const char *range_help[] = {
 	"  -- Setup the packet range values --",
-	"range <portlist> [dst|src] mac <etheraddr>    - Set destination/source MAC address",
+	"range <portlist> [dst|src] mac <SMMI> <etheraddr> - Set destination/source MAC address",
 	"range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address",
 	"range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)",
-	"range <portlist> [src|dst] [port|portid] <SMMI> <value>- Set UDP/TCP source/dest port number",
+	"range <portlist> [src|dst] port <SMMI> <value> - Set UDP/TCP source/dest port number",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
 	"range <portlist> size <SMMI> <value>          - Set pkt size start address",
 	"range <portlist> teid <SMMI> <value>          - Set TEID value",
@@ -142,7 +158,7 @@ range_cmd(int argc, char **argv)
 
 	m = cli_mapping(range_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Range command error", "Range", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -226,7 +242,7 @@ static struct cli_map set_map[] = {
 	{ 22, "set %P mac %|dst|src %m" },
 	{ 23, "set %P pattern %|abc|none|user|zero" },
 	{ 24, "set %P user pattern %s" },
-	{ 30, "set %P ip %|src|dst %4" },
+	{ 30, "set %P %|src|dst ip %4" },
 	{ 40, "set ports_per_page %d" },
 	{ 50, "set %P qinqids %d %d" },
 	{ 60, "set %P rnd %d %d %s" },
@@ -260,7 +276,7 @@ static const char *set_help[] = {
 	"            zero                   - Fill of zero bytes",
 	"            user                   - User supplied string of max 16 bytes",
 	"set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command",
-	"set <portlist> ip src|dst ipaddr   - Set IP addresses",
+	"set <portlist> [src|dst] ip ipaddr - Set IP addresses",
 	"set ports_per_page <value>         - Set ports per page value 1 - 6",
 	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
 	"set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist",
@@ -287,7 +303,7 @@ set_cmd(int argc, char **argv)
 
 	m = cli_mapping(set_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Set command is invalid", "Set", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -340,7 +356,7 @@ set_cmd(int argc, char **argv)
 				     pattern_set_user_pattern(info, argv[3]));
 			break;
 		case 30:
-			rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+			rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, argv[3][0], &ip));
 			break;
 		case 40:
@@ -385,7 +401,7 @@ pcap_cmd(int argc, char **argv)
 
 	m = cli_mapping(pcap_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("PCAP command invalid", "PCAP", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -451,7 +467,7 @@ start_stop_cmd(int argc, char **argv)
 
 	m = cli_mapping(start_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Start/Stop command invalid", "Start", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -503,7 +519,7 @@ theme_cmd(int argc, char **argv)
 
 	m = cli_mapping(theme_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Theme command invalid", "Theme", argc, argv);
 
 	switch(m->index) {
 	case 0:  pktgen_theme_show(); break;
@@ -576,7 +592,7 @@ en_dis_cmd(int argc, char **argv)
 
 	m = cli_mapping(enable_map, argc, argv);
 	if (!m)
-		return cli_help_show_group("Enable");
+		return command_error("Enable/Disable invalid command", "Enable", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -689,7 +705,7 @@ debug_cmd(int argc, char **argv)
 
 	m = cli_mapping(debug_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Debug invalid command", "Debug", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -844,10 +860,8 @@ seq_cmd(int argc, char **argv)
 	struct cli_map *m;
 
 	m = cli_mapping(seq_map, argc, argv);
-	if (!m) {
-		cli_help_show_group("Seq");
-		return -1;
-	}
+	if (!m)
+		return command_error("Sequence invalid command", "Seq", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -975,7 +989,7 @@ misc_cmd(int argc, char **argv)
 
 	m = cli_mapping(misc_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Misc invalid command", "Misc", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -1071,7 +1085,7 @@ page_cmd(int argc, char **argv)
 
 	m = cli_mapping(page_map, argc, argv);
 	if (!m)
-		return -1;
+		return command_error("Page invalid command", "Page", argc, argv);
 
 	switch(m->index) {
 		case 10:

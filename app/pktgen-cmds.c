@@ -285,30 +285,30 @@ pktgen_script_save(char *path)
 				  inet_h64tom(range->dst_mac_inc, &eaddr)));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "range %d ip src start %s\n", i,
+		fprintf(fd, "range %d src ip start %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip),
 				   0xFFFFFFFF));
-		fprintf(fd, "range %d ip src min %s\n", i,
+		fprintf(fd, "range %d src ip min %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_min),
 				   0xFFFFFFFF));
-		fprintf(fd, "range %d ip src max %s\n", i,
+		fprintf(fd, "range %d src ip max %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "range %d ip src inc %s\n", i,
+		fprintf(fd, "range %d src ip inc %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_inc),
 				   0xFFFFFFFF));
 
 		fprintf(fd, "\n");
-		fprintf(fd, "range %d ip dst start %s\n", i,
+		fprintf(fd, "range %d dst ip start %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip),
 				   0xFFFFFFFF));
-		fprintf(fd, "range %d ip dst min %s\n", i,
+		fprintf(fd, "range %d dst ip min %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_min),
 				   0xFFFFFFFF));
-		fprintf(fd, "range %d ip dst max %s\n", i,
+		fprintf(fd, "range %d dst ip max %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "range %d ip dst inc %s\n", i,
+		fprintf(fd, "range %d dst ip inc %s\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_inc),
 				   0xFFFFFFFF));
 

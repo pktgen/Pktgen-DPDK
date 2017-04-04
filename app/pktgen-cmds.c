@@ -2592,11 +2592,11 @@ range_set_dest_mac(port_info_t *info,
 		    const char *what,
 		    struct ether_addr *mac)
 {
-	if (!strcmp(what, "min") )
+	if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 		inet_mtoh64(mac, &info->range.dst_mac_min);
-	else if (!strcmp(what, "max") )
+	else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 		inet_mtoh64(mac, &info->range.dst_mac_max);
-	else if (!strcmp(what, "inc") )
+	else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
 		inet_mtoh64(mac, &info->range.dst_mac_inc);
 	else if (!strcmp(what, "start") ) {
 		inet_mtoh64(mac, &info->range.dst_mac);
@@ -2621,11 +2621,11 @@ void
 range_set_src_mac(port_info_t *info, const char *what,
 		   struct ether_addr *mac)
 {
-	if (!strcmp(what, "min") )
+	if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 		inet_mtoh64(mac, &info->range.src_mac_min);
-	else if (!strcmp(what, "max") )
+	else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 		inet_mtoh64(mac, &info->range.src_mac_max);
-	else if (!strcmp(what, "inc") )
+	else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
 		inet_mtoh64(mac, &info->range.src_mac_inc);
 	else if (!strcmp(what, "start") ) {
 		inet_mtoh64(mac, &info->range.src_mac);
@@ -2649,11 +2649,11 @@ range_set_src_mac(port_info_t *info, const char *what,
 void
 range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
-	if (!strcmp(what, "min") )
+	if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 		info->range.src_ip_min = ntohl(ip->ipv4.s_addr);
-	else if (!strcmp(what, "max") )
+	else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 		info->range.src_ip_max = ntohl(ip->ipv4.s_addr);
-	else if (!strcmp(what, "inc") )
+	else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
 		info->range.src_ip_inc = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "start") )
 		info->range.src_ip = ntohl(ip->ipv4.s_addr);
@@ -2674,11 +2674,11 @@ range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 void
 range_set_dst_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
-	if (!strcmp(what, "min") )
+	if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 		info->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
-	else if (!strcmp(what, "max") )
+	else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 		info->range.dst_ip_max = ntohl(ip->ipv4.s_addr);
-	else if (!strcmp(what, "inc") )
+	else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
 		info->range.dst_ip_inc = ntohl(ip->ipv4.s_addr);
 	else if (!strcmp(what, "start") )
 		info->range.dst_ip = ntohl(ip->ipv4.s_addr);
@@ -2699,14 +2699,14 @@ range_set_dst_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 void
 range_set_src_port(port_info_t *info, char *what, uint16_t port)
 {
-	if (!strcmp(what, "inc") ) {
+	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
 		if (port > 64)
 			port = 64;
 		info->range.src_port_inc = port;
 	} else {
-		if (!strcmp(what, "min") )
+		if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.src_port_min = port;
-		else if (!strcmp(what, "max") )
+		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 			info->range.src_port_max = port;
 		else if (!strcmp(what, "start") )
 			info->range.src_port = port;
@@ -2728,13 +2728,13 @@ range_set_src_port(port_info_t *info, char *what, uint16_t port)
 void
 range_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid)
 {
-	if (!strcmp(what, "inc") ) {
+	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
 		if (teid != 0)
 			info->range.gtpu_teid_inc = teid;
 	} else {
-		if (!strcmp(what, "min") )
+		if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.gtpu_teid_min = teid;
-		else if (!strcmp(what, "max") )
+		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 			info->range.gtpu_teid_max = teid;
 		else if (!strcmp(what, "start") ) {
 			info->range.gtpu_teid = teid;
@@ -2758,14 +2758,14 @@ range_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid)
 void
 range_set_dst_port(port_info_t *info, char *what, uint16_t port)
 {
-	if (!strcmp(what, "inc") ) {
+	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
 		if (port > 64)
 			port = 64;
 		info->range.dst_port_inc = port;
 	} else {
-		if (!strcmp(what, "min") )
+		if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.dst_port_min = port;
-		else if (!strcmp(what, "max") )
+		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 			info->range.dst_port_max = port;
 		else if (!strcmp(what, "start") )
 			info->range.dst_port = port;
@@ -2787,7 +2787,7 @@ range_set_dst_port(port_info_t *info, char *what, uint16_t port)
 void
 range_set_vlan_id(port_info_t *info, char *what, uint16_t id)
 {
-	if (!strcmp(what, "inc") ) {
+	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
 		if (id > 64)
 			id = 64;
 		info->range.vlan_id_inc = id;
@@ -2795,9 +2795,9 @@ range_set_vlan_id(port_info_t *info, char *what, uint16_t id)
 		if ( (id < MIN_VLAN_ID) || (id > MAX_VLAN_ID) )
 			id = MIN_VLAN_ID;
 
-		if (!strcmp(what, "min") )
+		if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.vlan_id_min = id;
-		else if (!strcmp(what, "max") )
+		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 			info->range.vlan_id_max = id;
 		else if (!strcmp(what, "start") )
 			info->range.vlan_id = id;
@@ -2819,7 +2819,7 @@ range_set_vlan_id(port_info_t *info, char *what, uint16_t id)
 void
 range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
 {
-	if (!strcmp(what, "inc") ) {
+	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
 		if (size > ETHER_MIN_LEN)
 			size = ETHER_MIN_LEN;
 
@@ -2834,9 +2834,9 @@ range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
 
 		if (!strcmp(what, "start") )
 			info->range.pkt_size = size;
-		else if (!strcmp(what, "min") )
+		else if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.pkt_size_min = size;
-		else if (!strcmp(what, "max") )
+		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
 			info->range.pkt_size_max = size;
 	}
 }

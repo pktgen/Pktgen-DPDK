@@ -97,16 +97,17 @@ static const char *status_help[] = {
 	NULL
 };
 
+#define SMMI	"%|start|minimum|maximum|increment|min|max|inc"
 static struct cli_map range_map[] = {
-	{ 20, "range %P dst mac %|start|min|max|inc %m" },
-	{ 21, "range %P src mac %|start|min|max|inc %m" },
-	{ 30, "range %P dst ip %|start|min|max|inc %4" },
-	{ 31, "range %P src ip %|start|min|max|inc %4" },
-	{ 40, "range %P proto %|start|min|max|inc %d" },
-	{ 50, "range %P dst port %|start|min|max|inc %d" },
-	{ 51, "range %P src port %|start|min|max|inc %d" },
-	{ 60, "range %P vlan %|start|min|max|inc %d" },
-	{ 70, "range %P size %|start|min|max|inc %d" },
+	{ 20, "range %P dst mac "SMMI" %m" },
+	{ 21, "range %P src mac "SMMI" %m" },
+	{ 30, "range %P dst ip "SMMI" %4" },
+	{ 31, "range %P src ip "SMMI" %4" },
+	{ 40, "range %P proto "SMMI" %d" },
+	{ 50, "range %P dst %|port|portid "SMMI" %d" },
+	{ 51, "range %P src %|port|portid "SMMI" %d" },
+	{ 60, "range %P vlan "SMMI" %d" },
+	{ 70, "range %P size "SMMI" %d" },
 	{ 80, "range %P mpls entry %x" },
 	{ 85, "range %P qinq index %d %d" },
 	{ 90, "range %P gre key %d" },
@@ -118,7 +119,7 @@ static const char *range_help[] = {
 	"range <portlist> [dst|src] mac <etheraddr>    - Set destination/source MAC address",
 	"range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address",
 	"range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)",
-	"range <portlist> [src|dst] port <SMMI> <value>- Set UDP/TCP source/dest port number",
+	"range <portlist> [src|dst] [port|portid] <SMMI> <value>- Set UDP/TCP source/dest port number",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
 	"range <portlist> size <SMMI> <value>          - Set pkt size start address",
 	"range <portlist> teid <SMMI> <value>          - Set TEID value",
@@ -136,6 +137,8 @@ range_cmd(int argc, char **argv)
 	struct cli_map *m;
 	uint32_t portlist;
 	struct pg_ipaddr ip;
+	char *what;
+	const char *val;
 
 	m = cli_mapping(range_map, argc, argv);
 	if (!m)
@@ -143,58 +146,58 @@ range_cmd(int argc, char **argv)
 
 	rte_parse_portlist(argv[1], &portlist);
 
+	what = argv[4];
+	val = (const char*)argv[5];
 	switch(m->index) {
 		case 20:
 			foreach_port(portlist,
-			     range_set_dest_mac(info, argv[4],
-								rte_ether_aton((const char *)argv[5], NULL)));
+			     range_set_dest_mac(info, what, rte_ether_aton(val, NULL)));
 			break;
 		case 21:
 			foreach_port(portlist,
-			     range_set_src_mac(info, argv[4],
-								rte_ether_aton((const char *)argv[5], NULL)));
+			     range_set_src_mac(info, what, rte_ether_aton(val, NULL)));
 			break;
 		case 30:
-			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+			rte_atoip(val, PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
-			     range_set_dst_ip(info, argv[4], &ip));
+			     range_set_dst_ip(info, what, &ip));
 			break;
 		case 31:
 			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
-			     range_set_src_ip(info, argv[4], &ip));
+			     range_set_src_ip(info, what, &ip));
 			break;
 		case 40:
 			foreach_port(portlist,
-				range_set_proto(info, argv[4]) );
+				range_set_proto(info, what) );
 			break;
 		case 50:
 			foreach_port(portlist,
-				range_set_dst_port(info, argv[4], atoi(argv[5])) );
+				range_set_dst_port(info, what, atoi(val)) );
 			break;
 		case 51:
 			foreach_port(portlist,
-				range_set_src_port(info, argv[4], atoi(argv[5])) );
+				range_set_src_port(info, what, atoi(val)) );
 			break;
 		case 60:
 			foreach_port(portlist,
-				range_set_vlan_id(info, argv[3], atoi(argv[4])) );
+				range_set_vlan_id(info, argv[3], atoi(what)) );
 			break;
 		case 70:
 			foreach_port(portlist,
-				range_set_pkt_size(info, argv[3], atoi(argv[4])) );
+				range_set_pkt_size(info, argv[3], atoi(what)) );
 			break;
 		case 80:
 			foreach_port(portlist,
-				range_set_mpls_entry(info, strtoul(argv[4], NULL, 16)) );
+				range_set_mpls_entry(info, strtoul(what, NULL, 16)) );
 			break;
 		case 85:
 			foreach_port(portlist,
-				range_set_qinqids(info, atoi(argv[4]), atoi(argv[5])) );
+				range_set_qinqids(info, atoi(what), atoi(val)) );
 			break;
 		case 90:
 			foreach_port(portlist,
-				range_set_gre_key(info, strtoul(argv[4], NULL, 10)) );
+				range_set_gre_key(info, strtoul(what, NULL, 10)) );
 			break;
 		default:
 			return -1;

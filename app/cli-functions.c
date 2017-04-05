@@ -240,10 +240,12 @@ static struct cli_map set_map[] = {
 	{ 11, "set %P jitter %D" },
 	{ 20, "set %P type %|arp|ip4|ip6" },
 	{ 21, "set %P proto %|udp|tcp|icmp" },
-	{ 22, "set %P %|src|dst mac %m" },
-	{ 23, "set %P pattern %|abc|none|user|zero" },
-	{ 24, "set %P user pattern %s" },
-	{ 30, "set %P %|src|dst ip %4" },
+	{ 22, "set %P src mac %m" },
+	{ 23, "set %P dst mac %m" },
+	{ 24, "set %P pattern %|abc|none|user|zero" },
+	{ 25, "set %P user pattern %s" },
+	{ 30, "set %P src ip %4" },
+	{ 31, "set %P dst ip %4" },
 	{ 40, "set ports_per_page %d" },
 	{ 50, "set %P qinqids %d %d" },
 	{ 60, "set %P rnd %d %d %s" },
@@ -342,23 +344,27 @@ set_cmd(int argc, char **argv)
 			foreach_port(portlist, single_set_proto(info, argv[3]));
 			break;
 		case 22:
-			if (argv[3][0] == 'd')
-				foreach_port(portlist,
-					single_set_dst_mac(info, rte_ether_aton(argv[4], NULL)));
-			else
-				foreach_port(portlist,
-					single_set_src_mac(info, rte_ether_aton(argv[4], NULL)));
+			foreach_port(portlist,
+				single_set_src_mac(info, rte_ether_aton(argv[4], NULL)));
 			break;
 		case 23:
-			foreach_port(portlist, pattern_set_type(info, argv[3]));
+			foreach_port(portlist,
+				single_set_dst_mac(info, rte_ether_aton(argv[4], NULL)));
 			break;
 		case 24:
+			foreach_port(portlist, pattern_set_type(info, argv[3]));
+			break;
+		case 25:
 			foreach_port(portlist,
 				     pattern_set_user_pattern(info, argv[3]));
 			break;
 		case 30:
 			rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-			foreach_port(portlist, single_set_ipaddr(info, argv[3][0], &ip));
+			foreach_port(portlist, single_set_ipaddr(info, 's', &ip));
+			break;
+		case 31:
+			rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			foreach_port(portlist, single_set_ipaddr(info, 'd', &ip));
 			break;
 		case 40:
 			pktgen_set_page_size(atoi(argv[2]));

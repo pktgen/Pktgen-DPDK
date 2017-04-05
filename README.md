@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.2.4 - Fix setting of MAC and IP addresses in single mode.
  - 3.2.3 - Allow pktgen to build on DPDK 14.04
            fix the new commands to use the correct syntax
  - 3.2.2 - fix the clear stats command.

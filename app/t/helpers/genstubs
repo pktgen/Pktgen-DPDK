@@ -58,7 +58,7 @@ my @cpp_output = `$cpp_cmd`;
 chomp @cpp_output;
 
 # Add .. as first include search directory
-my @cc_inc_path = ( '..' );
+my @cc_inc_path = ( '..', '../../lib/common', '../../lib/lua/src', '../../lib/cli');
 
 my $paths_found;
 my $start_delim = '#include <...> search starts here:';
@@ -258,6 +258,7 @@ for my $source (@source) {
         $full_source_fn = $inc_dir . '/' . $source;
         last;
     }
+    print STDOUT "Include Path: $cc_inc_path\n";
     die "Could not find $source in include path (SOURCE directive in $src_fn)\n" unless $full_source_fn;
 
     (my $src_header = $source) =~ s/\.c$/.h/;

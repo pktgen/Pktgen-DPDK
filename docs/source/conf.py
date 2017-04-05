@@ -5,9 +5,9 @@ from pygments.formatters.latex import LatexFormatter
 
 
 project = 'Pktgen'
-copyright = '2015, Keith Wiles'
+copyright = '2017, Keith Wiles'
 
-version = '2.7.7'
+version = '3.2.4'
 release = version
 
 source_suffix = '.rst'

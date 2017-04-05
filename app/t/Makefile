@@ -9,13 +9,13 @@ ifeq ($(RTE_SDK),)
 $(error "Please define RTE_SDK environment variable")
 endif
 
-ifeq ($(wildcard ../build/app/pktgen),)
-$(error "Please compile Pktgen first")
+ifeq ($(RTE_TARGET),)
+RTE_TARGET := x86_64-native-linuxapp-gcc
+$(warning "RTE_TARGET is not defined, using default value $(RTE_TARGET)")
 endif
 
-ifeq ($(RTE_TARGET),)
-RTE_TARGET := x86_64-wr-linuxapp-gcc
-$(warning "RTE_TARGET is not defined, using default value $(RTE_TARGET)")
+ifeq ($(wildcard ../app/$(RTE_TARGET)/pktgen),)
+$(error "Please compile Pktgen first")
 endif
 
 # build/ holds the .o files from our tests.
@@ -97,7 +97,7 @@ cover: $(C_TESTS) lcov/coverage-base.info
 	@echo "  COVER     parse data"
 	$(Q)lcov $(LCOV_OPTS) -c --base-directory ./ --derive-func-data -d build/app/ -o lcov/coverage-test.info
 	$(Q)lcov $(LCOV_OPTS) --base-directory ./ --derive-func-data -o lcov/coverage-total.info -a lcov/coverage-base.info -a lcov/coverage-test.info
-	$(Q)lcov $(LCOV_OPTS) -o lcov/coverage-filtered.info -e lcov/coverage-total.info "$$RTE_SDK/wr-examples/pktgen/*"
+	$(Q)lcov $(LCOV_OPTS) -o lcov/coverage-filtered.info -e lcov/coverage-total.info "$$RTE_SDK/../pktgen/*"
 
 	@echo "  HTML      `pwd`/lcov/html/index.html"
 	$(Q)genhtml $(LCOV_OPTS) -o lcov/html/ -s --legend lcov/coverage-filtered.info

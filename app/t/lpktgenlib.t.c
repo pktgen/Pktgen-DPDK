@@ -1,6 +1,6 @@
 /*
  * SOURCE: lpktgenlib.c
- * STUB: pktgen-cmds.h commands.h rte_cycles.h cmdline_parse_etheraddr.h
+ * STUB: pktgen-cmds.h cli-functions.h rte_cycles.h cmdline_parse_etheraddr.h
  * STUB: cmdline_parse_ipaddr.h cmdline_parse_portlist.h rte_timer.h
  * STUB: copyright_info.h
  *

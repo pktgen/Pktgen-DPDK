@@ -1,5 +1,5 @@
 /*
- * SOURCE: commands.c
+ * SOURCE: cli-functions.c
  * STUB: pktgen-cmds.h pktgen-main.h pktgen-capture.h lpktgenlib.h
  * STUB: pktgen-random.h rte_debug.h rte_cycles.h rte_timer.h cmdline.h
  * STUB: copyright_info.h rte_pci.h pcap.h cmdline_socket.h

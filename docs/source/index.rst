@@ -38,6 +38,8 @@ Pktgen was created 2010 by Keith Wiles @ windriver.com, now at intel.com
    usage_eal.rst
    usage_pktgen.rst
    commands.rst
+   cli.rst
+   cli_lib.rst
    scripts.rst
    lua.rst
    socket.rst

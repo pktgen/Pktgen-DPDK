@@ -29,7 +29,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
            Save of lua code wrong for pktgen.range() should be pktgen.set_range().
  - 3.0.16- Add command line option to strip CRC in hardware one RX.
            Option is '--crc-strip' which strips the CRC on RX for all ports.
- - 3.0.15- Update Lua to 5.3.3 version
+ - 3.0.15- Update Lua to 5.3.3 version187
            Change lua pktgen.range() to pktgen.set_range() plus added
            the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().
            Still support the old commands for now.
@@ -184,16 +184,16 @@ Please look at the 3rd party PDF for license information.
  are met:
 
  - Redistributions of source code must retain the above copyright
- notice, this list of conditions and the following disclaimer.
+   notice, this list of conditions and the following disclaimer.
 
  - Redistributions in binary form must reproduce the above copyright
- notice, this list of conditions and the following disclaimer in
- the documentation and/or other materials provided with the
- distribution.
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
 
  - Neither the name of Intel Corporation nor the names of its
- contributors may be used to endorse or promote products derived
- from this software without specific prior written permission.
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -213,13 +213,13 @@ Please look at the 3rd party PDF for license information.
 
 **======================== README.md file ==============================**
 
-*** Pktgen ****
+*** Pktgen ***
 Copyright &copy \<2015-2017\>, Intel Corporation.
 
 README for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
 
-*** Note: Tested with Ubuntu 13.10 and up to 16.10 kernel versions
+Note: Tested with Ubuntu 13.10 and up to 16.10 kernel versions
 Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
 
 I am using Ubuntu 16.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
@@ -267,7 +267,7 @@ very slow.
 
 *** Pktgen command line directory format ***
 
-```
+``
 -- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
 
 
@@ -283,9 +283,9 @@ reset           cls             redisplay       save            lua
 script          load            geom            geometry        clr
 clear.stats     help
 Pktgen:/>
-```
+``
 -------------------------------------------------------------------------------
-```
+``
 Pktgen:/> ls
 [pktgen]        [sbin]          copyright
 Pktgen:/> ls sbin
@@ -294,9 +294,9 @@ sizes           more            history         quit            clear
 pwd             cd              ls              rm              mkdir
 chelp           sleep           delay
 Pktgen:/>
-```
+``
 -------------------------------------------------------------------------------
-```
+``
 Pktgen:/> cd sbin
 Pktgen:/sbin/>
 Pktgen:/sbin/> ls -l
@@ -322,9 +322,9 @@ Pktgen:/sbin/> ls -l
 Pktgen:/sbin/>
 Pktgen:/sbin/> cd ..
 Pktgen:/>
-```
+``
 -------------------------------------------------------------------------------
-```
+``
 Pktgen:/pktgen/> cd bin
 Pktgen:/pktgen/bin/> ls -l
   off              Alias : disable screen
@@ -361,16 +361,16 @@ Pktgen:/pktgen/bin/> ls -l
   help             Command : help command
 
 Pktgen:/pktgen/bin/>
-```
+``
 Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
-```
+``
 # cd <InstallDir>
 # git clone git://dpdk.org/dpdk.git
-```
-```
+``
+``
 # cd <InstallDir>
 # git clone git://dpdk.org/pktgen-dpdk.git
-```
+``
 ** Note **
 The site dpdk.org you must also pull down DPDK repo as well. git://dpdk.org/dpdk
 
@@ -378,7 +378,7 @@ Will create a directory called Pktgen-DPDK in the current directory location. Us
 the above clone commands you will get DPDK and pktgen source files.
 
 Make sure you have HUGE TLB support in the kernel with the following commands:
-```
+``
 # grep -i huge /boot/config-2.6.35-24-generic
 CONFIG_HUGETLBFS=y
 CONFIG_HUGETLB_PAGE=y
@@ -389,21 +389,21 @@ HugePages_Free: 128
 HugePages_Rsvd:0
 HugePages_Surp:0
 Hugepagesize: 2048 kB
-```
+``
 NOTE: The values in Total and Free maybe different until you reboot the machine.
 
 Two files in /etc must be setup to support huge TLBs. If you do not have
 hugeTLB support then you most likely need a newer kernel.
-```
+``
 # vi /etc/sysctl.conf
 Add to the bottom of the file for 2M hugepages:
 vm.nr_hugepages=256
-```
+``
 If you need more or less hugeTLB pages then you can change the value to a
 number you need it to be. In some cases pktgen needs a fair number of pages
 and making it too small will effect performance or pktgen will terminate on
 startup looking for more pages.
-```
+``
 # On Ubuntu 15.10 I noticed mounting /mnt/huge is not required as /dev/hugepages
 # is already mounted. Check your system and verify that /mnt/huge is required.
 # vi /etc/fstab
@@ -412,7 +412,7 @@ huge /mnt/huge hugetlbfs defaults 0 0
 
 # mkdir /mnt/huge
 # chmod 777 /mnt/huge
-```
+``
 Reboot your machine as the huge pages must be setup just after boot to make
 sure you have contiguous memory for the 2Meg pages, setting up 1G pages can
 also be done.
@@ -455,32 +455,32 @@ You will need to adjust the version number to match your current kernel version.
 If you upgrade your system or kernel version you will need to install the correct
 headers and rebuild the RTE_TARGET directory.
 
-```
+``
 # sudo apt-get install libpcap-dev
 
 export RTE_SDK=<DPDKinstallDir>
 export RTE_TARGET=x86_64-native-linuxapp-gcc
 or use clang if you have it installed
 export RTE_TARGET=x86_64-native-linuxapp-clang
-```
+``
 Create the DPDK build tree:
-```
+``
 # cd $RTE_SDK
 # make install T=x86_64-native-linuxapp-gcc -j
-```
+``
 This above command will create the x86_64-native-linuxapp-gcc directory in the
 top level of the current-dkdp directory. The above command will build the basic
 DPDK libraries and build tree.
 
 Next we build pktgen:
-```
+``
 # cd <PktgenInstallDir>
 # make
-```
+``
 You should now have pktgen built and to run pktgen type 'sudo -E ./tools/run.sh', which is a script
 to help with the command line options of pktgen. You may need to modify this script for
 your system and configuration.
-```
+``
 # cat ./tools/run.sh
 #!/bin/bash
 
@@ -500,7 +500,7 @@ your system and configuration.
 if [ $name == "rkwiles-supermicro" ]; then
 ./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
 fi
-```
+``
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
  The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
  case). Do not use the '-m NNN' and '--socket-mem NN,NN' commands on the same command
@@ -533,7 +533,7 @@ single physical core will be trying to do both Rx/Tx functions.
 
 The '-n 2' is a required argument for DPDK and denotes the number of memory channels.
 
-```
+``
 Usage: ./app/pktgen -l CORELIST -n NUM [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
 Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by Intel® DPDK
@@ -643,12 +643,12 @@ Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-P] [-G]
                                       core 3 handles port 1 rx & core 4 handles port 0-7 tx
       BTW: you can use "{}" instead of "[]" as it does not matter to the syntax.
   -h           Display the help information
-```
+``
 A new feature for pktgen and DPDK is to run multiple instances of pktgen. This
 allows the developer to share ports on the same machine.
 
 ------------- run.sh script ----------------
-```
+``
 #!/bin/bash
 
 # Normal setup
@@ -699,11 +699,11 @@ fi
 if [ $name == "rkwiles-mini-i7" ]; then
 ./app/app/${target}/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 512 --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
 fi
-```
+``
 ------------- run.sh script ----------------
 
 ------------- setup.sh script ----------------
-```
+``
 #!/bin/bash
 
 # Use './tools/setup.sh' to include environment variables
@@ -772,7 +772,7 @@ if [ $name == "rkwilesmini-i7" ]; then
 fi
 $sdk/tools/dpdk_nic_bind.py --status
 lspci |grep Ether
-```
+``
 ------------- setup script ----------------
 
 If you have run pktgen before then remove the files in /mnt/huge/* before
@@ -780,7 +780,7 @@ running the new version.
 
 Running the run.sh script produces output as follows, but maybe different on your
 system configuration.
-```
+``
 rkwiles@rkwiles-DESK1 (dev):~/.../intel/pktgen$ ./tools/run.sh
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen -l 1,2-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 --file-prefix pg --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3 -b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0 -- -I -T -P --crc-strip -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8 -f themes/black-yellow.theme
 
@@ -1189,7 +1189,7 @@ For TX found 1 port(s) for lcore 9
 For RX found 1 port(s) for lcore 18
   TX processing lcore:  19 rx:  0 tx:  1
 For TX found 1 port(s) for lcore 19
-```
+``
 ------------------
 / Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2016>, Intel Corporation
   Flags:Port      :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
@@ -1242,9 +1242,9 @@ VendID/PCI Addr   :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2 
 
 Pktgen:/> quit
 $
-```
+``
 ------------------------------------------------------------------------
-```
+``
    *** Pktgen Help information ***
 
 page <pages>                       - Show the port pages or configuration or sequence page
@@ -1401,9 +1401,9 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Color best seen on a black background for now
        To see a set of example Lua commands see the files in wr-examples/pktgen/test
-```
+``
 ---------------------------------------------------------------------------
-```
+``
 \                  <Sequence Page>  Copyright (c) <2010-2016>, Intel Corporation
 Port:  0, Sequence Count:  4 of 16                                                                             GTPu
   Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
@@ -1451,9 +1451,9 @@ Port:  0, Sequence Count:  4 of 16                                              
 
 Pktgen:/> set all seq_cnt 4
 Pktgen:/>
-```
+``
 ---------------------------------------------------------------------------
-```
+``
 | Port 0           <Random bitfield Page>  Copyright (c) <2010-2016>, Intel Corporation
    Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
@@ -1501,16 +1501,16 @@ Pktgen:/>
 
 
 Pktgen:/>
-```
+``
 ---------------------------------------------------------------------------
 -- Example command lines.
-```
+``
 ./app/pktgen -l 0-8 -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
 ./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
 ./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
 ./app/pktgen -l 1-3 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "2.0, 3.1"
 ./app/pktgen -l 0-8 -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3"
-```
+``
 
 A command line passing in a pktgen/test/set_seq.pkt file to help initialize pktgen with some
 default values and configurations. You can also replace the filename using the '-f' command
@@ -1520,10 +1520,10 @@ other then .lua it is treated as a .pkt file.
 `./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
 
 -- test/set_seq.pkt
-```
+``
 seq 0 all 0000:4455:6677 0000:1234:5678 10.11.0.1 10.10.0.1/16 5 6 ipv4 udp 1 128
 set all seqCnt 1
-```
+``
 The set_seq.pkt command file can also be one of the files in pktgen/test directory,
 which are Lua based scripts instead of command line scripts as in set_seq.pkt file.
 
@@ -1531,7 +1531,7 @@ which are Lua based scripts instead of command line scripts as in set_seq.pkt fi
 The Lua version is easier to remember the layout of the agruments if you want to
 use that one instead of set_seq.pkt file.
 
-```
+``
 ./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.lua`
 
 -- The '--' is a comment in Lua
@@ -1550,7 +1550,7 @@ local seq_table = {			-- entries can be in any order
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );
 pktgen.set("all", "seqCnt", 1);
-```
+``
 ------------------------------------------------------------------------------------------
 -- Two Pktgens running on the same machine with connected via a loopback ports
 

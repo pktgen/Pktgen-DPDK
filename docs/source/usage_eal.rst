@@ -9,15 +9,17 @@ arguments for the DPDK Environmental Abstraction Layer (EAL) and arguments for
 the application itself. The two sets of arguments are separated using the
 standard convention of ``--``::
 
-   ./app/pktgen -c 0x1f -n 3 -- -P -m "[1:3].0, [2:4].1
+Pktgen executable is located at ``./app/app/${RTE_TARGET}/pktgen``
+
+   pktgen -l 0-4 -n 3 -- -P -m "[1:3].0, [2:4].1
 
 The usual EAL commandline usage for ``pktgen`` is::
 
-   ./app/pktgen -c COREMASK -n NUM \
+   pktgen -c COREMASK -n NUM \
                 [-m NB] \
                 [-r NUM] \
                 [-b <domain:bus:devid.func>] \
-                [--proc-type primary|secondary|auto]
+                [--proc-type primary|secondary|auto] -- [pktgen options]
 
 The full list of EAL arguments are::
 
@@ -75,7 +77,7 @@ use the first lcore in the coremask bitmap.
 
 A more typical commandline to start a ``pktgen`` instance would be::
 
-   ./app/pktgen -c 0x1f -n 3 --proc-type auto --socket-mem 256,256
+   pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 256,256
                 -b 0000:03:00.0 -b 0000:03:00.1 \
                  --file-prefix pg \
                 -- -P -m "[1:3].0, [2:4].1

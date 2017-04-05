@@ -13,7 +13,7 @@ commands and options in Lua syntax.
 
 For example here is a ``pktgen`` instance that read a ``.pkt`` file::
 
-   ./app/pktgen -c 0x1f -n 3 --proc-type auto --socket-mem 128,128 -- \
+   pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 -- \
                 -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt
 
 Where the ``test/set_seq.pkt`` (included in the ``pktgen`` repository) is as

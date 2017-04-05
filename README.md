@@ -6,6 +6,8 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.2.3 - Allow pktgen to build on DPDK 14.04
+           fix the new commands to use the correct syntax
  - 3.2.2 - fix the clear stats command.
            fix range commands to match help text.
  - 3.2.1 - Update the readme file.

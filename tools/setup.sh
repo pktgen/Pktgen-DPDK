@@ -51,8 +51,13 @@ ${Sudo} insmod $sdk/$target/kmod/igb_uio.ko
 #${Sudo} rmmod rte_kni
 #${Sudo} insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
+if [ -e $sdk/usertools/dpdk-devbind.py ]; then
+	nic_bind=${sdk}/usertools/dpdk-devbind.py 
+else
+	nic_bind=${sdk}/tools/dpdk_nic_bind.py
+fi
 name=`uname -n`
 if [ $name == "rkwiles-DESK1.intel.com" ]; then
-	${Sudo} -E $sdk/usertools/dpdk-devbind.py -b igb_uio 04:00.0 04:00.1 04:00.2 04:00.3 81:00.0 81:00.1 81:00.2 81:00.3 82:00.0 83:00.0
+	${Sudo} -E ${nic_bind} -b igb_uio 04:00.0 04:00.1 04:00.2 04:00.3 81:00.0 81:00.1 81:00.2 81:00.3 82:00.0 83:00.0
 fi
-$sdk/usertools/dpdk-devbind.py --status
+${nic_bind} --status

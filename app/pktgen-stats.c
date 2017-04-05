@@ -34,6 +34,8 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <stdio.h>
+
 #include "pktgen-cmds.h"
 #include "pktgen-display.h"
 
@@ -234,7 +236,11 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait) {
 		rte_delay_us(250000);
 	}
 	/* Setup a few default values to prevent problems later. */
+#if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 	info->link.link_speed   = ETH_SPEED_NUM_10G;
+#else
+	info->link.link_speed   = 10000;
+#endif
 	info->link.link_duplex  = ETH_LINK_FULL_DUPLEX;
 }
 

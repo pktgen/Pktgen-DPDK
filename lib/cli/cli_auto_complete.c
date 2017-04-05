@@ -204,7 +204,6 @@ cli_auto_complete(void)
 	char *line;
 	int argc, size, ret;
 
-	RTE_ASSERT(cli != NULL);
 	memset(argv, '\0', sizeof(argv));
 
 	size = gb_data_size(this_cli->gb);

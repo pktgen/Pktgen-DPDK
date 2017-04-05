@@ -34,6 +34,8 @@
 
 /* Created 2016 by Keith Wiles @ intel.com */
 
+#include <stdio.h>
+
 #include "pktgen-cmds.h"
 #include "pktgen-display.h"
 

@@ -31,11 +31,15 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
+
 #include <rte_version.h>
 #include <rte_cycles.h>
 #include <rte_timer.h>
 #include <rte_devargs.h>
 #include <rte_pci.h>
+#include <rte_debug.h>
+#include <rte_log.h>
 
 #include "cli.h"
 #include "cli_cmds.h"
@@ -76,7 +80,6 @@ chelp_cmd(int argc, char **argv)
 	char *search = NULL;
 	int i, opt, all = 0;
 
-	RTE_ASSERT(cli != NULL);
 	optind = 0;
 	while ((opt = getopt(argc, argv, "a?")) != -1) {
 		switch (opt) {
@@ -165,7 +168,6 @@ __list_long_dir(struct cli_node *node,
 	uint16_t flags = args->arg1.u16[3];
 	uint16_t spc = args->arg2.u16[0];
 
-	RTE_ASSERT(cli != NULL);
 	if (is_alias(node))
 		cli_printf("  %*s%-16s %s : %s\n", spc, "",
 			   node->name, cli_node_type(node), node->alias_str);
@@ -195,7 +197,6 @@ __list_dir(struct cli_node *node, uint32_t flag __rte_unused, args_t *args)
 	uint16_t col = args->arg1.u16[2];
 	uint16_t flags = args->arg1.u16[3];
 
-	RTE_ASSERT(cli != NULL);
 	if (!node)
 		return -1;
 

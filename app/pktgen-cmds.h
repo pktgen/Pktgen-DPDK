@@ -37,8 +37,11 @@
 #define _PKTGEN_CMDS_H_
 
 #include <inttypes.h>
+#include <rte_version.h>
 
+#if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_net.h>
+#endif
 
 #include "pktgen.h"
 #ifdef RTE_LIBRTE_CLI

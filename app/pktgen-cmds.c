@@ -44,7 +44,11 @@
 
 #include "pktgen-display.h"
 
+#include <rte_version.h>
+
+#if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_net.h>
+#endif
 
 static char hash_line[] = "#######################################################################";
 
@@ -195,16 +199,18 @@ pktgen_script_save(char *path)
 		fprintf(fd, "set %d proto %s\n", i,
 			(pkt->ipProto == PG_IPPROTO_TCP) ? "tcp" :
 			(pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp");
-		fprintf(fd, "set %d ip dst %s\n", i,
+		fprintf(fd, "set %d dst ip %s\n", i,
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 				   0xFFFFFFFF));
-		fprintf(fd, "set %d ip src %s\n", i,
+		fprintf(fd, "set %d src ip %s\n", i,
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
-		fprintf(fd, "set %d mac %s\n", info->pid,
+		fprintf(fd, "set %d dst mac %s\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
+		fprintf(fd, "set %d src mac %s\n", info->pid,
+			inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		fprintf(fd, "set %d vlanid %d\n\n", i, pkt->vlanid);
 
 		fprintf(fd, "set %d pattern %s\n", i,

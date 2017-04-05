@@ -51,7 +51,7 @@ it does have some advantages.
 One advantage allows the directory path for the command to be part of the
 information used in executing the command. The next advantage is creating
 directories to make a hierarchy of commands, plus allowing whole directroy
-trees to dynamicly come and go as required by the developer.
+trees to dynamically come and go as required by the developer.
 
 Some of the advantages are:
 
@@ -81,18 +81,18 @@ The CLI sample application is a simple application that demonstrates the
 use of the command line interface in the DPDK. This application is a
 readline-like interface that can be used to control a DPDK application.
 
-One of the big advantages of CLI over Cmdline is it is dynamic, which means
+One of the advantages of CLI over Cmdline is it is dynamic, which means
 nodes or items can be added and removed on the fly. Which allows adding
 new directories, file or commands as needed or removing these items at runtime.
 The CLI has no global modifiable variable as the one global pointer is a
 thread based variable. Which allows the developer to have multiple CLI
 commands per thread if needed.
 
-Another big advantage is the calling of the backend function to support a
+Another advantage is the calling of the backend function to support a
 command is very familar to developers as it is basically just a argc/argv
 style command and the developer gets the complete command line.
 
-One other big advantage is the use of MAP structures, to help identify commands
+One other advantage is the use of MAP structures, to help identify commands
 quickly plus allowing the developer to define new versions of commands and
 be able to identify these new versions using a simple identifier value. Look at
 the sample application to see a simple usage.
@@ -132,7 +132,7 @@ The CLI sample application supports some of the features of the Cmdline
 library such as, completion, cut/paste and some other special bindings that
 make configuration and debug faster and easier.
 
-The CLI desin uses some very simple VT100 control strings for displaying data
+The CLI design uses some very simple VT100 control strings for displaying data
 and accepting input from the user. Some of the control strings are used to
 clear the screen or line and position the cursor on a VT100 compatible terminal.
 The CLI screen code also supports basic color and many other VT100 commands.
@@ -336,7 +336,7 @@ The tree init routine is defined like:
 
 The above structure is used to create the tree structure at initialization
 time. The struct cli_tree or cli_tree_t typedef can be used to setup a new
-directory tree or agument the default tree.
+directory tree or argument the default tree.
 
 The elements are using a set of macros c_dir, c_file, c_cmd, c_alias and c_end.
 These macros help fill out the cli_tree_t structure for the given type of item.
@@ -567,7 +567,7 @@ Understanding the CLI system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The command line interface is defined as a fake directory tree with executables,
-directorys and files. The user uses shell like standard commands to move about
+directories and files. The user uses shell like standard commands to move about
 the directory and execute commands. The CLI is not a powerful as the
 Bash shell, but has a number of similar concepts.
 

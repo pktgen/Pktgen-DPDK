@@ -31,10 +31,12 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
 #include <poll.h>
 
 #include <rte_version.h>
 #include <rte_timer.h>
+#include <rte_log.h>
 
 #include "cli.h"
 
@@ -680,10 +682,8 @@ cli_start(const char *msg, int use_timers)
 struct cli_node *
 cli_create_root(const char *dirname)
 {
-    struct cli_node *root;
-    cli_funcs_t funcs;
-
-	RTE_ASSERT(cli != NULL);
+	struct cli_node *root;
+	cli_funcs_t funcs;
 
 	funcs.cfunc = NULL;
 

@@ -55,6 +55,10 @@
 extern "C" {
 #endif
 
+#ifndef RTE_ASSERT
+#define RTE_ASSERT	RTE_VERIFY
+#endif
+
 /**
  * CLI printf like routine to write on the console.
  *

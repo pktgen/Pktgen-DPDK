@@ -41,6 +41,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <rte_version.h>
 #include <rte_atomic.h>
 #include <rte_devargs.h>
 
@@ -132,7 +133,7 @@ static struct cli_map range_map[] = {
 
 static const char *range_help[] = {
 	"  -- Setup the packet range values --",
-	"range <portlist> [dst|src] mac <SMMI> <etheraddr> - Set destination/source MAC address",
+	"range <portlist> [src|dst] mac <SMMI> <etheraddr> - Set destination/source MAC address",
 	"range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address",
 	"range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)",
 	"range <portlist> [src|dst] port <SMMI> <value> - Set UDP/TCP source/dest port number",
@@ -239,7 +240,7 @@ static struct cli_map set_map[] = {
 	{ 11, "set %P jitter %D" },
 	{ 20, "set %P type %|arp|ip4|ip6" },
 	{ 21, "set %P proto %|udp|tcp|icmp" },
-	{ 22, "set %P mac %|dst|src %m" },
+	{ 22, "set %P %|src|dst mac %m" },
 	{ 23, "set %P pattern %|abc|none|user|zero" },
 	{ 24, "set %P user pattern %s" },
 	{ 30, "set %P %|src|dst ip %4" },
@@ -265,7 +266,7 @@ static const char *set_help[] = {
 	"                 jitter            - Set the jitter threshold in micro-seconds",
 	"                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)",
 	"                 gre_key           - Set the GRE key",
-	"                 mac dst|src <etheraddr> - Set MAC addresses 00:11:22:33:44:55",
+	"                 src|dst mac <etheraddr> - Set MAC addresses 00:11:22:33:44:55",
 	"                                     You can use 0011:2233:4455 format as well",
 	"set <portlist> jitter <value>      - Set the jitter value",
 	"set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
@@ -276,7 +277,7 @@ static const char *set_help[] = {
 	"            zero                   - Fill of zero bytes",
 	"            user                   - User supplied string of max 16 bytes",
 	"set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command",
-	"set <portlist> [src|dst] ip ipaddr - Set IP addresses",
+	"set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24",
 	"set ports_per_page <value>         - Set ports per page value 1 - 6",
 	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
 	"set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist",

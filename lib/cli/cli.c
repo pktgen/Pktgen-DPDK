@@ -897,6 +897,10 @@ cli_execute_cmdfile(const char *filename)
 
 #ifdef RTE_CLI_INCLUDE_LUA
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
+		if (!this_cli->user_state) {
+			printf(">>> User State for CLI is not set for Lua\n");
+			return -1;
+		}
 		/* Execute the Lua script file. */
 		if (luaL_dofile(this_cli->user_state, filename) != 0) {
 			printf("%s", lua_tostring(this_cli->user_state, -1));

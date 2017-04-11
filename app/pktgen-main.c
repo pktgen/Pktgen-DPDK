@@ -343,6 +343,15 @@ main(int argc, char **argv)
 	if (pktgen_cli_create())
 		return -1;
 
+	lua_newlib_add(_lua_openlib);
+
+	/* Open the Lua script handler. */
+	if ( (pktgen.L = lua_create_instance()) == NULL) {
+		pktgen_log_error("Failed to open Lua pktgen support library");
+		return -1;
+	}
+	cli_set_user_state(pktgen.L);
+
 	/* parse application arguments (after the EAL ones) */
 	ret = pktgen_parse_args(argc, argv);
 	if (ret < 0)
@@ -355,14 +364,6 @@ main(int argc, char **argv)
 	rte_delay_ms(100);	/* Wait a bit for things to settle. */
 
 	print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
-
-	lua_newlib_add(_lua_openlib);
-
-	/* Open the Lua script handler. */
-	if ( (pktgen.L = lua_create_instance()) == NULL) {
-		pktgen_log_error("Failed to open Lua pktgen support library");
-		return -1;
-	}
 
 	pktgen_log_info(
 		">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",

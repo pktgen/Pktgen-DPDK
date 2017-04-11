@@ -622,6 +622,20 @@ env_cmd(int argc, char **argv)
 	return 0;
 }
 
+static int
+script_cmd(int argc, char **argv)
+{
+	int i;
+
+	if (argc <= 1)
+		return -1;
+
+	for(i = 1; i < argc; i++)
+		if (cli_execute_cmdfile(argv[1]))
+			return -1;
+	return 0;
+}
+
 static struct cli_tree cli_default_tree[] = {
 	c_file("copyright", copyright_file, "DPDK copyright information"),
 	c_dir("/sbin"),
@@ -643,6 +657,7 @@ static struct cli_tree cli_default_tree[] = {
 	c_cmd("path",       path_cmd,   "display the command path list"),
 	c_cmd("dbg",        dbg_cmd,    "debug commands"),
 	c_cmd("env",        env_cmd,    "Set up environment variables"),
+	c_cmd("script",		script_cmd,	"load and process cli command files"),
     c_str("SHELL",      NULL,       "DNET CLI shell"),
     c_str("DPDK_VER",   ver_cmd,	""),
 	c_end()

@@ -263,6 +263,8 @@ pktgen_set(lua_State *L) {
 				     single_set_port_value(info, what[0], value);
 			     else if (!strcasecmp(what, "dport"))
 				     single_set_port_value(info, what[0], value);
+			     else if (!strcasecmp(what, "seq_cnt"))
+				     pktgen_set_port_seqCnt(info, value);
 			     else if (!strcasecmp(what, "seqCnt"))
 				     pktgen_set_port_seqCnt(info, value);
 			     else if (!strcasecmp(what, "prime"))

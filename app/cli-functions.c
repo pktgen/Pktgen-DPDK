@@ -233,7 +233,8 @@ range_cmd(int argc, char **argv)
 					"seq_cnt|"		/*  7 */ \
 					"prime|"		/*  8 */ \
 					"dump|"			/*  9 */ \
-					"vlan_id"		/* 10 */
+					"vlan_id|"		/* 10 */ \
+					"seqCnt"		/* 11 */
 
 static struct cli_map set_map[] = {
 	{ 10, "set %P %|" set_types " %d" },
@@ -329,6 +330,7 @@ set_cmd(int argc, char **argv)
 					case 8: pktgen_set_port_prime(info, value); break;
 					case 9: debug_set_port_dump(info, value); break;
 					case 10: single_set_vlan_id(info, value); break;
+					case 11: pktgen_set_port_seqCnt(info, value); break;
 					default:
 						return -1;
 				}) );

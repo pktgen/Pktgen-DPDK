@@ -80,7 +80,7 @@ black_list="-b 05:00.0 -b 05:00.1"
 #black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
 black_list="${black_list} -b 82:00.0 -b 83:00.0"
 
-load_file="-f themes/black-yellow.theme"
+load_file="-f themes/black-yellow.theme -f test/set_gtpu_seq.lua"
 
 echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}

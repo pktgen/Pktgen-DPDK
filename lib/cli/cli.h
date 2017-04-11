@@ -253,6 +253,12 @@ struct cli_tree {
  */
 void cli_write(const void * msg, int len);
 
+static inline void
+cli_set_user_state(void *val)
+{
+	this_cli->user_state = val;
+}
+
 /**
  * CLI root directory node.
  *

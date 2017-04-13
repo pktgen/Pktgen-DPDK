@@ -2910,7 +2910,7 @@ pktgen_set_page(char *str)
 	} else if (_cp("cpu")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= CPU_PAGE_FLAG;
-	} else if (_cp("page")) {
+	} else if (_cp("pcap")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= PCAP_PAGE_FLAG;
 		if (pktgen.info[pktgen.portNum].pcap)

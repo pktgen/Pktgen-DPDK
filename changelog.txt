@@ -6,6 +6,8 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.2.6 - Fix the pcap page not displaying.
+           Fix standalone builds to include Lua headers.
  - 3.2.5 - Fix setting of the seq_cnt in lua. Now you can use seqCnt or seq_cnt strings
            for setting the sequeuce count value.
  - 3.2.4 - Fix setting of MAC and IP addresses in single mode.

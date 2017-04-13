@@ -511,7 +511,7 @@ sleep_cmd(int argc __rte_unused, char **argv)
 	int cnt = (atoi(argv[1]) * 4);
 
 	while (cnt--) {
-		if (this_cli->flags & CLI_USE_TIMERS)
+		if (cli_use_timers())
 			rte_timer_manage();
 		rte_delay_ms(250);
 	}
@@ -525,7 +525,7 @@ delay_cmd(int argc __rte_unused, char **argv)
 	int cnt = (ms / 1000) * 4;
 
 	while (cnt--) {
-		if (this_cli->flags & CLI_USE_TIMERS)
+		if (cli_use_timers())
 			rte_timer_manage();
 		rte_delay_ms(250);
 		ms -= 250;

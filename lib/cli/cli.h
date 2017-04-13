@@ -64,6 +64,10 @@
 extern "C" {
 #endif
 
+#define CLI_USE_TIMERS          0x0001	/**< call rte_timer_manager() on input */
+#define CLI_NODES_UNLIMITED     0x0002	/**< Allocate nodes with no limit */
+#define CLI_YIELD_IO            0x0004
+
 #define CLI_ROOT_NAME   "/"
 #define CLI_BIN_NAME    "bin"
 
@@ -182,10 +186,6 @@ struct cli {
 
 RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define this_cli		RTE_PER_LCORE(cli)
-
-#define CLI_NO_TIMERS			0x0000  /**< Do not enable timers */
-#define CLI_USE_TIMERS			0x0001	/**< call rte_timer_manager() on input */
-#define CLI_NODES_UNLIMITED		0x0002	/**< Allocate nodes with no limit */
 
 typedef union {
     cli_cfunc_t cfunc;              /**< Function pointer for commands */
@@ -877,7 +877,20 @@ void cli_destroy(void);
  * @return
  *   N/A
  */
-void cli_start(const char *msg, int use_timers);
+void cli_start(const char *msg);
+
+/**
+ * Start the CLI running and use timerss
+ *
+ * @note Uses thread variable this_cli.
+ *
+ * @param msg
+ *   User message to be displayed on startup
+ * @return
+ *   N/A
+ */
+void
+cli_start_with_timers(const char *msg);
 
 /**
  * Execute command line string in cli->input
@@ -1131,6 +1144,36 @@ int cli_execute_cmdfiles(void);
  *   0 on OK and -1 on error
  */
 int cli_remove_node(struct cli_node *node);
+
+/**
+ * return true if timers are enabled.
+ *
+ * @note Uses thread variable this_cli.
+ *
+ * @return
+ *   non-zero if true else 0
+ */
+int cli_use_timers(void);
+
+/**
+ * return true if allocating unlimited nodes are enabled.
+ *
+ * @note Uses thread variable this_cli.
+ *
+ * @return
+ *   non-zero if true else 0
+ */
+int cli_nodes_unlimited(void);
+
+/**
+ * return true if calling yield should are enabled.
+ *
+ * @note Uses thread variable this_cli.
+ *
+ * @return
+ *   non-zero if true else 0
+ */
+int cli_yield_io(void);
 
 #ifdef __cplusplus
 }

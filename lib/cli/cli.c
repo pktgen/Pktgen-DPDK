@@ -41,11 +41,40 @@
 #include "cli.h"
 
 #ifdef RTE_CLI_INCLUDE_LUA
+#ifdef CLI_STANDALONE
 #include "lua.h"
 #include "lauxlib.h"
+#else
+#include <lua/lua.h>
+#include <lua/lauxlib.h>
+#endif
 #endif
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
+
+int
+cli_use_timers(void)
+{
+	if (!this_cli)
+		return 1;
+	return this_cli->flags & CLI_USE_TIMERS;
+}
+
+int
+cli_nodes_unlimited(void)
+{
+	if (!this_cli)
+		return 0;
+	return this_cli->flags & CLI_NODES_UNLIMITED;
+}
+
+int
+cli_yield_io(void)
+{
+	if (!this_cli)
+		return 1;
+	return this_cli->flags & CLI_YIELD_IO;
+}
 
 /* The CLI write routine, using write() call */
 void
@@ -74,7 +103,7 @@ cli_alloc(void)
 	node = (struct cli_node *)TAILQ_FIRST(&cli->free_nodes);
 	if (node)
 		TAILQ_REMOVE(&cli->free_nodes, node, next);
-	else if (cli->flags & CLI_NODES_UNLIMITED) {
+	else if (cli_nodes_unlimited()) {
 		struct cli_node *orig = cli->node_mem;
 		size_t size;
 
@@ -609,7 +638,7 @@ cli_poll(char *c)
 	fds.events  = POLLIN;
 	fds.revents = 0;
 
-	if (this_cli->flags & CLI_USE_TIMERS)
+	if (cli_use_timers())
 		rte_timer_manage();
 
 	if (poll(&fds, 1, 0)) {
@@ -656,18 +685,17 @@ cli_pause(const char *msg, const char *keys)
 
 /* Main entry point into the CLI system to start accepting user input */
 void
-cli_start(const char *msg, int use_timers)
+cli_start(const char *msg)
 {
 	char c;
 
+	RTE_ASSERT(this_cli != NULL);
+
 	cli_printf("\n** Version: %s, %s with%s timers\n", rte_version(),
 		   (msg == NULL) ? "Command Line Interface" : msg,
-		   (use_timers) ? "" : "out");
+		   (this_cli->flags & CLI_USE_TIMERS) ? "" : "out");
 
 	this_cli->prompt(0);
-
-	if (use_timers)
-		this_cli->flags |= CLI_USE_TIMERS;
 
 	cli_execute_cmdfiles();
 
@@ -676,6 +704,16 @@ cli_start(const char *msg, int use_timers)
 			cli_input(&c, 1);
 
 	cli_printf("\n");
+}
+
+void
+cli_start_with_timers(const char *msg)
+{
+	RTE_ASSERT(this_cli != NULL);
+
+	this_cli->flags |= CLI_USE_TIMERS;
+
+	cli_start(msg);
 }
 
 /* Create a CLI root node for the tree */

@@ -41,8 +41,13 @@
 #include "cli.h"
 
 #ifdef RTE_CLI_INCLUDE_LUA
+#ifdef CLI_STANDALONE
+#include "lua.h"
+#include "lauxlib.h"
+#else
 #include <lua/lua.h>
 #include <lua/lauxlib.h>
+#endif
 #endif
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
@@ -50,18 +55,24 @@ RTE_DEFINE_PER_LCORE(struct cli *, cli);
 int
 cli_use_timers(void)
 {
+	if (!this_cli)
+		return 1;
 	return this_cli->flags & CLI_USE_TIMERS;
 }
 
 int
 cli_nodes_unlimited(void)
 {
+	if (!this_cli)
+		return 0;
 	return this_cli->flags & CLI_NODES_UNLIMITED;
 }
 
 int
 cli_yield_io(void)
 {
+	if (!this_cli)
+		return 1;
 	return this_cli->flags & CLI_YIELD_IO;
 }
 

@@ -1689,6 +1689,8 @@ single_set_pkt_type(port_info_t *info, const char *type)
 		(type[0] == 'a') ? ETHER_TYPE_ARP  :
 		(type[3] == '4') ? ETHER_TYPE_IPv4 :
 		(type[3] == '6') ? ETHER_TYPE_IPv6 :
+		(type[2] == '4') ? ETHER_TYPE_IPv4 :
+		(type[2] == '6') ? ETHER_TYPE_IPv6 :
 		/* TODO print error: unknown type */ ETHER_TYPE_IPv4;
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);

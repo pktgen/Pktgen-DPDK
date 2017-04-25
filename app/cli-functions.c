@@ -239,7 +239,7 @@ range_cmd(int argc, char **argv)
 static struct cli_map set_map[] = {
 	{ 10, "set %P %|" set_types " %d" },
 	{ 11, "set %P jitter %D" },
-	{ 20, "set %P type %|arp|ip4|ip6" },
+	{ 20, "set %P type %|arp|ipv4|ipv6|ip4|ip6" },
 	{ 21, "set %P proto %|udp|tcp|icmp" },
 	{ 22, "set %P src mac %m" },
 	{ 23, "set %P dst mac %m" },

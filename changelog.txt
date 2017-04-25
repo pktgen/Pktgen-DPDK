@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.2.8 - fixed 'set <portlist> type ipv4|ipv6' used ip4|ip6 instead.
  - 3.2.7 - Fix pktgen.seq() lua function Ethertype and protocol were swapped doc is correct.
  - 3.2.6 - Fix the pcap page not displaying.
            Fix standalone builds to include Lua headers.

@@ -786,8 +786,8 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 		     pktgen_set_seq(info, seqnum,
 				    &dmac, &smac,
 				    &dst, &src,
-				    atoi(argv[7]), atoi(argv[8]), eth[3],
-				    proto[0],
+				    atoi(argv[7]), atoi(argv[8]),
+					eth[3], proto[0],
 				    atoi(argv[11]), atoi(argv[12]),
 				    teid) );
 

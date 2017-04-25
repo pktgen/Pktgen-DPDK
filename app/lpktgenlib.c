@@ -308,8 +308,11 @@ set_seq(lua_State *L, uint32_t seqnum)
 	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
 	rte_ether_aton(luaL_checkstring(L, 3), &daddr);
 	rte_ether_aton(luaL_checkstring(L, 4), &saddr);
+
+	sport   = luaL_checkinteger(L, 7);
+	dport   = luaL_checkinteger(L, 8);
 	/* Determine if we are IPv4 or IPv6 packets */
-	ip      = (char *)luaL_checkstring(L, 10);
+	ip      = (char *)luaL_checkstring(L, 9);
 	if (ip[3] == '6') {
 		rte_atoip(luaL_checkstring(L, 5), PG_IPADDR_V6,
 				  &ip_daddr, sizeof(struct pg_ipaddr));
@@ -323,9 +326,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 				  PG_IPADDR_NETWORK | PG_IPADDR_V4,
 				  &ip_saddr, sizeof(struct pg_ipaddr));
 	}
-	sport   = luaL_checkinteger(L, 7);
-	dport   = luaL_checkinteger(L, 8);
-	proto   = (char *)luaL_checkstring(L, 9);
+	proto   = (char *)luaL_checkstring(L, 10);
 	vlanid  = luaL_checkinteger(L, 11);
 	pktsize = luaL_checkinteger(L, 12);
 	if (lua_gettop(L) == 13)

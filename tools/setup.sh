@@ -39,17 +39,18 @@ ${Sudo} rm -fr /mnt/huge/*
 NR_HUGEPAGES=$(( `sysctl -n vm.nr_hugepages` / $(num_cpu_sockets) ))
 echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages."
 for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
-    ${Sudo} echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)
+	echo "Set $(nr_hugepages_fn $socket) = $NR_HUGEPAGES"
+	if [ -e  $(nr_hugepages_fn $socket) ]; then 
+		str="echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)"
+		${Sudo} sh -c eval $str
+	fi
 done
 
 grep -i huge /proc/meminfo
 ${Sudo} modprobe uio
-echo "trying to remove old igb_uio module and may get an error message, ignore it"
-${Sudo} rmmod igb_uio
+#echo "trying to remove old igb_uio module and may get an error message, ignore it"
+${Sudo} rmmod igb_uio 2> /dev/null
 ${Sudo} insmod $sdk/$target/kmod/igb_uio.ko
-#echo "trying to remove old rte_kni module and may get an error message, ignore it"
-#${Sudo} rmmod rte_kni
-#${Sudo} insmod $sdk/$target/kmod/rte_kni.ko "lo_mode=lo_mode_ring"
 
 if [ -e $sdk/usertools/dpdk-devbind.py ]; then
 	nic_bind=${sdk}/usertools/dpdk-devbind.py 

@@ -31,7 +31,12 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <rte_string_fns.h>
+
 #include "cli.h"
+#ifndef RTE_LIBRTE_CLI
+#include "cli_string_fns.h"
+#endif
 
 static int
 __count_nodes(struct cli_node *node,
@@ -204,7 +209,7 @@ cli_search_dir(struct cli_node *dir, const char *name, uint32_t type)
 		return dir;
 
 	TAILQ_FOREACH(node, &dir->items, next) {
-		if (is_match(node->name, name) && (node->type & type))
+		if (rte_strmatch(node->name, name) && (node->type & type))
 			return node;
 	}
 

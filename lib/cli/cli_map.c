@@ -31,7 +31,12 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <rte_string_fns.h>
+
 #include "cli.h"
+#ifndef RTE_LIBRTE_CLI
+#include "cli_string_fns.h"
+#endif
 
 int
 cli_map_list_search(const char *fmt, char *item, int index)
@@ -131,7 +136,7 @@ cli_mapping(struct cli_map *maps, int argc, char **argv)
 				if (!is_map_valid(map[j], argv[j]))
 					ok = 0;
 				/* a constant string match valid */
-			} else if (!is_match(map[j], argv[j]))
+			} else if (!rte_strmatch(map[j], argv[j]))
 				ok = 0;
 		}
 

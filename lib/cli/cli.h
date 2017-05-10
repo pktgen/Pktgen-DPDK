@@ -58,7 +58,7 @@
 #include <cli_file.h>
 #include <cli_help.h>
 
-#include <cli_string_fns.h>
+#include <rte_string_fns.h>
 
 #ifdef __cplusplus
 extern "C" {

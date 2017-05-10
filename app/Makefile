@@ -48,13 +48,8 @@ CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
-CFLAGS += -I$(RTE_SRCDIR)/../lib/lua/src
-CFLAGS += -I$(RTE_SRCDIR)/../lib/cli
 
-LUA_LIB    := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src/$(RTE_TARGET)/lib
-COMMON_LIB := $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/lib
-GUI_LIB    := $(RTE_SRCDIR)/../gui/gui/$(RTE_TARGET)/lib
-CLI_LIB    := $(RTE_SRCDIR)/../lib/cli/lib/cli/$(RTE_TARGET)/lib
+COMMON_LIB := $(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)
 
 # all source are stored in SRCS-y
 SRCS-y := \
@@ -66,18 +61,32 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
 	pktgen-latency.c pktgen-help.c
 
-MYLIB_PATH := -L$(LUA_LIB) -L$(COMMON_LIB)
-MYLIBS := -llua -lcommon
+MYLIB_PATH := -L$(COMMON_LIB)
+MYLIBS := -lcommon
+
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
+LUA_LIB    := $(RTE_SRCDIR)/../lib/lua/src/$(RTE_TARGET)
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
+else
+LUA_LIB    := $(RTE_SDK)/$(RTE_TARGET)/lib
+endif
+
+LUA_NAME   := librte_lua.a
+MYLIBS     += -lrte_lua
+MYLIB_PATH += -L$(LUA_LIB) 
 
 ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
-MYLIB_PATH += -L$(CLI_LIB)
-MYLIBS += -lcli
+CLI_LIB    := $(RTE_SRCDIR)/../lib/cli/$(RTE_TARGET)
+CLI_NAME   := libcli.a
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
+MYLIBS     += -lcli
 else
-ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
+CLI_LIB    := $(RTE_SDK)/$(RTE_TARGET)/lib
+CLI_NAME   := librte_cli.a
+MYLIBS     += -lrte_cli
+endif
+
 MYLIB_PATH += -L$(CLI_LIB)
-MYLIBS += -lcli
-endif
-endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe
@@ -88,12 +97,11 @@ endif
 ifeq ($(GUI),true)
 	CFLAGS += -DGUI
 
-	GTK_LIB = -L/usr/lib64/gtk-2.0/ \
+	GUI_LIB    := $(RTE_SRCDIR)/../gui/$(RTE_TARGET)
+	MYLIB_PATH += -L$(GUI_LIB) -L/usr/lib64/gtk-2.0
+	MYLIBS += -lgui \
 		$(shell pkg-config --libs glib-2.0) \
 		$(shell pkg-config --libs gtk+-2.0)
-
-	MYLIB_PATH += -L$(GUI_LIB)
-	MYLIBS += -lgui
 
 	ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 		RPATHS += -rpath=$(GUI_LIB)
@@ -102,11 +110,16 @@ ifeq ($(GUI),true)
 	DEPDIRS-y += ../gui
 endif
 
-pktgen: $(COMMON_LIB)/libcommon.a $(LUA_LIB)/liblua.a $(CLI_LIB)/libcli.a
+# $(info $(CLI_LIB)/$(CLI_NAME))
+# $(info $(MYLIB_PATH))
 
-LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) $(GTK_LIB) -lm
+pktgen: $(COMMON_LIB)/libcommon.a $(LUA_LIB)/$(LUA_NAME) $(CLI_LIB)/$(CLI_NAME)
 
-DEPDIRS-y += ../lib/common ../lib/lua
+LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) -lm
+
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),n)
+DEPDIRS += ../lib/lua
+endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
 DEPDIRS += ../lib/cli

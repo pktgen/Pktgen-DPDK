@@ -45,6 +45,9 @@
 
 #include "pktgen.h"
 #ifdef RTE_LIBRTE_CLI
+#include <rte_string_fns.h>
+#else
+#include <rte_string_fns.h>
 #include <cli_string_fns.h>
 #endif
 

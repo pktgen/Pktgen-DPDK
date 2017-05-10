@@ -78,6 +78,7 @@ cli_printf(const char *fmt, ...)
     va_start(vaList, fmt);
     vfprintf(this_scrn->fd_out, fmt, vaList);
     va_end(vaList);
+
     fflush(this_scrn->fd_out);
 }
 

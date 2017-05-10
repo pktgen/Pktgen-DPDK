@@ -258,7 +258,6 @@ LUALIB_API void (luaL_openlib) (lua_State *L, const char *libname,
 /* }============================================================ */
 
 
-
 #endif
 
 

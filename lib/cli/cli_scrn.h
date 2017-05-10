@@ -119,7 +119,7 @@ scrn_puts(const char *fmt, ...)
     fflush(f);
 }
 
-void scrn_center(int16_t r, int16_t ncols, const char *fmt, ...);
+void scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...);
 void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
 void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 

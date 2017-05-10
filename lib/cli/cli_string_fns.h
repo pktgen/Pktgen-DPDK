@@ -37,8 +37,8 @@
  * String-related functions as replacement for libc equivalents
  */
 
-#ifndef _STRING_FNS_H_
-#define _STRING_FNS_H_
+#ifndef _CLI_STRING_FNS_H_
+#define _CLI_STRING_FNS_H_
 
 #include <netinet/in.h>
 
@@ -155,6 +155,34 @@ int rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
  */
 int rte_stropt(const char *list, char *str, const char *delim);
 
+#ifndef _STRINGS_FNS_H_
+/**
+ * Helper routine to compare two strings exactly
+ *
+ * @param s1
+ *   Pointer to first string.
+ * @param s2
+ *   Pointer to second string.
+ * @return
+ *   0 failed to compare and 1 is equal.
+ */
+static inline int
+rte_strmatch(const char * s1, const char * s2)
+{
+    if (!s1 || !s2)
+        return 0;
+
+    while((*s1 != '\0') && (*s2 != '\0')) {
+        if (*s1++ != *s2++)
+            return 0;
+    }
+    if (*s1 != *s2)
+        return 0;
+
+    return 1;
+}
+#endif
+
 /**
  * Count the number of <c> characters in a string <s>
  *
@@ -209,4 +237,4 @@ int rte_parse_portlist(const char *str, portlist_t *portlist);
 }
 #endif
 
-#endif /* _STRING_FNS_H */
+#endif /* _CLI_STRING_FNS_H */

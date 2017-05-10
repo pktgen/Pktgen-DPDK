@@ -44,12 +44,15 @@
 #include <rte_version.h>
 #include <rte_atomic.h>
 #include <rte_devargs.h>
+#include <rte_string_fns.h>
+#ifndef RTE_LIBRTE_CLI
+#include <cli_string_fns.h>
+#endif
 
 #include "pktgen.h"
 
 #include <cli.h>
 #include <cli_map.h>
-#include <cli_string_fns.h>
 
 #include "copyright_info.h"
 #include "pktgen-cmds.h"
@@ -885,7 +888,7 @@ seq_cmd(int argc, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_script_parsed - Command to execute a script.
+ * script_cmd - Command to execute a script.
  *
  * DESCRIPTION
  * Load the script file and execute the commands.
@@ -931,6 +934,9 @@ static int
 exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 {
 	lua_State *L = pktgen.L;
+	char buff[512], *p;
+	int i;
+	size_t n, sz;
 
 	if (L == NULL) {
 		pktgen_log_error("Lua is not initialized!");
@@ -942,7 +948,18 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 		return 0;
 	}
 
-	if (luaL_dostring(L, this_cli->gb->buf) != 0)
+	memset(buff, 0, sizeof(buff));
+	sz = sizeof(buff) - 1;
+	n = 0;
+	for(i = 1, p = buff; i < argc; i++) {
+		if ((strlen(argv[i]) + 1) > (sz - n)) {
+			cli_printf("Input line too long > 512 bytes\n");
+			return -1;
+		}
+		n += snprintf(&p[n], sz - n, "%s ", argv[i]);
+	}
+
+	if (luaL_dostring(L, buff) != 0)
 		pktgen_log_error("%s", lua_tostring(L, -1));
 	return 0;
 }
@@ -1126,7 +1143,7 @@ static struct cli_tree default_tree[] = {
 	c_cmd("redisplay",	misc_cmd,		"redisplay the screen"),
 	c_alias("cls",		"redisplay",	"redraw screen"),
 	c_cmd("reset",		misc_cmd,		"reset pktgen configuration"),
-	c_alias("rst",      "reset all",    "reset all ports"),
+	c_alias("rst",          "reset all",    "reset all ports"),
 	c_cmd("restart", 	misc_cmd,		"restart port"),
 	c_cmd("port", 		misc_cmd, 		"Switch between ports"),
 	c_cmd("ping4", 		misc_cmd, 		"Send a ping packet for IPv4"),
@@ -1148,7 +1165,7 @@ static struct cli_tree default_tree[] = {
 	c_alias("stp",		"stop all",		"stop all ports sending packets"),
 	c_cmd("pcap",		pcap_cmd, 		"pcap commands"),
 	c_cmd("set", 		set_cmd, 		"set a number of options"),
-	c_cmd("debug",      debug_cmd,		"debug commands"),
+	c_cmd("debug",          debug_cmd,		"debug commands"),
 
 	c_alias("on",       "enable screen","Enable screen updates"),
 	c_alias("off",      "disable screen", "Disable screen updates"),
@@ -1160,12 +1177,12 @@ static int
 init_tree(void)
 {
 	/* Add the system default commands in /sbin directory */
-    if (cli_default_tree_init())
-        return -1;
+	if (cli_default_tree_init())
+		return -1;
 
 	/* Add the Pktgen directory tree */
-    if (cli_add_tree(cli_root_node(), default_tree))
-        return -1;
+	if (cli_add_tree(cli_root_node(), default_tree))
+	        return -1;
 
 	cli_help_add("Title", NULL, title_help);
 	cli_help_add("Page", page_map, page_help);
@@ -1181,8 +1198,8 @@ init_tree(void)
 	cli_help_add("Status", NULL, status_help);
 
 	/* Make sure the pktgen commands are executable an in search path */
-    if (cli_add_bin_path("/pktgen/bin"))
-        return -1;
+	if (cli_add_bin_path("/pktgen/bin"))
+		return -1;
 
 	return 0;
 }
@@ -1234,9 +1251,9 @@ help_cmd(int argc __rte_unused, char **argv __rte_unused)
 
 	scrn_setw(1);
 	scrn_cls();
-	scrn_pos(0, 0);
+	scrn_pos(1, 1);
 
-	cli_help_show_all(NULL);
+	cli_help_show_all("** Pktgen Help Information **");
 
 	if (!paused) {
 		scrn_setw(pktgen.last_row + 1);

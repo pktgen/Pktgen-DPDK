@@ -63,7 +63,7 @@ scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 }
 
 void
-scrn_center(int16_t r, int16_t ncols, const char *fmt, ...)
+scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...)
 {
 	va_list vaList;
 	char str[512];

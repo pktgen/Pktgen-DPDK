@@ -49,9 +49,6 @@ endif
 
 export GUI
 
-DEPDIRS-y += lib/libcommon lib/lua
-
-
 .PHONY: docs
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk

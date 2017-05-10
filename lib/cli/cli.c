@@ -37,16 +37,20 @@
 #include <rte_version.h>
 #include <rte_timer.h>
 #include <rte_log.h>
+#include <rte_string_fns.h>
 
 #include "cli.h"
+#ifndef RTE_LIBRTE_CLI
+#include "cli_string_fns.h"
+#endif
 
-#ifdef RTE_CLI_INCLUDE_LUA
+#ifdef RTE_LIBRTE_LUA
 #ifdef CLI_STANDALONE
 #include "lua.h"
 #include "lauxlib.h"
 #else
-#include <lua/lua.h>
-#include <lua/lauxlib.h>
+#include <lua.h>
+#include <lauxlib.h>
 #endif
 #endif
 
@@ -153,7 +157,7 @@ cli_add_bin(struct cli_node *dir)
 	return -1;
 }
 
-/* Remove a direcrtory from the executable path */
+/* Remove a directory from the executable path */
 int
 cli_del_bin(struct cli_node *dir)
 {
@@ -274,7 +278,7 @@ __add_node(const char *name, struct cli_node *parent,
 
 	node = cli_alloc();
 	if (node == NULL) {
-		printf("%s: No nodes left\n", __func__);
+		cli_printf("%s: No nodes left\n", __func__);
 		return NULL;
 	}
 
@@ -370,7 +374,7 @@ cli_add_cmd(const char * name,
             struct cli_node *dir, cli_cfunc_t func,
             const char *short_desc)
 {
-    cli_funcs_t funcs;
+	cli_funcs_t funcs;
 
 	funcs.cfunc = func;
 	return __add_node(name, dir, CLI_CMD_NODE, funcs, short_desc);
@@ -382,8 +386,8 @@ cli_add_alias(const char *name,
               struct cli_node *dir,
               const char *line, const char *short_desc)
 {
-    struct cli_node *alias;
-    cli_funcs_t funcs;
+	struct cli_node *alias;
+	cli_funcs_t funcs;
 
 	funcs.cfunc = NULL;
 	alias = __add_node(name, dir, CLI_ALIAS_NODE, funcs, short_desc);
@@ -398,7 +402,7 @@ cli_add_file(const char * name,
              struct cli_node *dir, cli_ffunc_t func,
              const char *short_desc)
 {
-    cli_funcs_t funcs;
+	cli_funcs_t funcs;
 
 	funcs.ffunc = func;
 	return __add_node(name, dir, CLI_FILE_NODE, funcs, short_desc);
@@ -435,8 +439,11 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 		case CLI_DIR_NODE:
 			d = &t->dir;
 
-			if (!(n = cli_add_dir(d->name, parent)))
+			if (!(n = cli_add_dir(d->name, parent))) {
+				RTE_LOG(INFO, EAL,
+					"Add directory %s failed\n", d->name);
 				return -1;
+			}
 
 			parent = n;
 			break;
@@ -444,32 +451,45 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 		case CLI_CMD_NODE:
 			c = &t->cmd;
 			if (!cli_add_cmd(c->name, parent,
-					 c->cfunc, c->short_desc))
+					 c->cfunc, c->short_desc)) {
+				RTE_LOG(INFO, EAL,
+					"Add command %s failed\n", c->name);
 				return -1;
+			}
 			break;
 
 		case CLI_FILE_NODE:
 			f = &t->file;
 			if (!cli_add_file(f->name, parent,
-					  f->ffunc, f->short_desc))
+					  f->ffunc, f->short_desc)) {
+				RTE_LOG(INFO, EAL,
+					"Add file %s failed\n", f->name);
 				return -1;
+			}
 			break;
 
 		case CLI_ALIAS_NODE:
 			a = &t->alias;
 			if (!cli_add_alias(a->name, parent,
-					   a->alias_atr, a->short_desc))
+					   a->alias_atr, a->short_desc)) {
+				RTE_LOG(INFO, EAL,
+					"Add alias %s failed\n", a->name);
 				return -1;
+			}
 			break;
 
 		case CLI_STR_NODE:
 			s = &t->str;
-			if (cli_add_str(s->name, s->sfunc, s->string))
+			if (cli_add_str(s->name, s->sfunc, s->string)) {
+				RTE_LOG(INFO, EAL,
+					"Add string %s failed\n", s->name);
 				return -1;
+			}
 			break;
 
 		case CLI_UNK_NODE:
 		default:
+			RTE_LOG(INFO, EAL, "Unknown Node type %d\n", t->type);
 			return 0;
 		}
 	}
@@ -933,20 +953,21 @@ cli_execute_cmdfile(const char *filename)
 
 	gb_reset_buf(this_cli->gb);
 
-#ifdef RTE_CLI_INCLUDE_LUA
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
+#ifdef RTE_LIBRTE_LUA
 		if (!this_cli->user_state) {
-			printf(">>> User State for CLI is not set for Lua\n");
+			cli_printf(">>> User State for CLI is not set for Lua\n");
 			return -1;
 		}
 		/* Execute the Lua script file. */
 		if (luaL_dofile(this_cli->user_state, filename) != 0) {
-			printf("%s", lua_tostring(this_cli->user_state, -1));
+			cli_printf("%s", lua_tostring(this_cli->user_state, -1));
 			return -1;
 		}
-	} else
+#else
+		cli_printf(">>> Lua is not enabled in configuration!\n");
 #endif
-	{
+	} else {
 		FILE    *fd;
 		char buff[256];
 

@@ -71,6 +71,10 @@
 #include "lua.h"
 #include "lauxlib.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define IO_PREFIX       "_IO_"
 #define IOPREF_LEN      (sizeof(IO_PREFIX)/sizeof(char) - 1)
 #define IO_INPUT        (IO_PREFIX "input")
@@ -90,5 +94,9 @@ LUA_API void * (lua_getprivate) (lua_State * L);
 
 void createstdfile (lua_State *L, FILE *f, const char *k,
                            const char *fname);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LUA_SHELL_H_ */

@@ -72,7 +72,7 @@ pktgen_print_pcap(uint16_t pid)
 	row = PORT_STATE_ROW;
 	col = 1;
 	if (pcap == NULL) {
-		scrn_center(10,
+		scrn_cprintf(10,
 		               this_scrn->ncols,
 		               "** Port does not have a PCAP file assigned **");
 		row = 28;

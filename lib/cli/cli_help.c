@@ -66,7 +66,8 @@ _show_help_lines(const char **h, int allow_pause)
 		if (!strcmp(h[j], CLI_HELP_PAUSE)) {
 			if (allow_pause) {
 				key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
-				if (key == vt100_escape)
+				if ((key == vt100_escape) ||
+				    (key == 'q') || (key == 'Q'))
 					return -1;
 			}
 			continue;
@@ -77,17 +78,27 @@ _show_help_lines(const char **h, int allow_pause)
 	return 0;
 }
 
+static void
+_cli_help_title(const char *msg)
+{
+	scrn_pos(1,1);
+	scrn_cls();
+
+	if (msg)
+		scrn_cprintf(1, -1, "%s\n", msg);
+}
+
 int
 cli_help_show_all(const char *msg)
 {
 	struct help_node *n;
 
-	if (msg)
-		cli_printf("%s\n", msg);
+	_cli_help_title(msg);
 
 	TAILQ_FOREACH(n, &this_cli->help_nodes, next) {
 		if (_show_help_lines(n->help_data, 1))
 			return -1;
+		_cli_help_title(msg);
 	}
 
 	return 0;

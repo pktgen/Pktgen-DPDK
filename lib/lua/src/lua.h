@@ -437,6 +437,9 @@ LUA_API lua_Hook (lua_gethook) (lua_State *L);
 LUA_API int (lua_gethookmask) (lua_State *L);
 LUA_API int (lua_gethookcount) (lua_State *L);
 
+LUA_API void (lua_setprivate) (lua_State * L, void * val) ;
+LUA_API void * (lua_getprivate) (lua_State * L);
+
 
 struct lua_Debug {
   int event;
@@ -482,5 +485,6 @@ struct lua_Debug {
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 
+extern void lua_callback_routine(char *);
 
 #endif

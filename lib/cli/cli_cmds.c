@@ -40,13 +40,16 @@
 #include <rte_pci.h>
 #include <rte_debug.h>
 #include <rte_log.h>
+#include <rte_string_fns.h>
 
 #include "cli.h"
 #include "cli_cmds.h"
 #include "cli_cmap.h"
 #include "cli_map.h"
 #include "cli_file.h"
+#ifndef RTE_LIBRTE_CLI
 #include "cli_string_fns.h"
+#endif
 
 static int
 __print_help(struct cli_node *node, char *search)
@@ -550,7 +553,7 @@ dbg_cmd(int argc, char **argv)
 	if (!m)
 		return -1;
 	switch (m->index) {
-	case 10: rte_eal_pci_dump(stdout);  break;
+	case 10: rte_pci_dump(stdout);  break;
 	case 20: rte_eal_devargs_dump(stdout); break;
 	default:
 		return -1;
@@ -636,6 +639,17 @@ script_cmd(int argc, char **argv)
 	return 0;
 }
 
+static int
+echo_cmd(int argc, char **argv)
+{
+	int i;
+
+	for(i = 1; i < argc; i++)
+		cli_printf("%s ",argv[i]);
+	cli_printf("\n");
+	return 0;
+}
+
 static struct cli_tree cli_default_tree[] = {
 	c_file("copyright", copyright_file, "DPDK copyright information"),
 	c_dir("/sbin"),
@@ -657,9 +671,10 @@ static struct cli_tree cli_default_tree[] = {
 	c_cmd("path",       path_cmd,   "display the command path list"),
 	c_cmd("dbg",        dbg_cmd,    "debug commands"),
 	c_cmd("env",        env_cmd,    "Set up environment variables"),
-	c_cmd("script",		script_cmd,	"load and process cli command files"),
-    c_str("SHELL",      NULL,       "DNET CLI shell"),
-    c_str("DPDK_VER",   ver_cmd,	""),
+	c_cmd("script",     script_cmd,	"load and process cli command files"),
+	c_cmd("echo",       echo_cmd,   "echo a string to the screen"),
+	c_str("SHELL",      NULL,       "DNET CLI shell"),
+	c_str("DPDK_VER",   ver_cmd,	""),
 	c_end()
 };
 

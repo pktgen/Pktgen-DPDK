@@ -85,7 +85,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <libgen.h>
-#include <linux/if_tun.h>
+//#include <linux/if_tun.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <assert.h>
@@ -126,6 +126,10 @@
 
 #include "lua-socket.h"
 #include "lua_shell.h"
+
+static lua_State * lstate;
+
+lua_State * lua_state_pointer(void) { return lstate; }
 
 extern void * lua_get_private(void * L);
 extern void lua_shell(void *);
@@ -407,6 +411,8 @@ lua_create_instance(void)
 	lua_writeline();
 
 	lua_newlibs_init(L);
+
+	lstate = L;
 
     return L;
 }

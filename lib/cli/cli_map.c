@@ -68,7 +68,7 @@ is_map_valid(const char *fmt, char *arg)
 	if (strchr("dDhHsn46mk|lCP", fmt[1]) == NULL)
 		return ret;
 
-	/* validate all of the characters match the format */
+	/* validate all of the characters matching the format */
 	do {
 		ret = 0;
 		switch (fmt[1]) {
@@ -106,9 +106,9 @@ is_map_valid(const char *fmt, char *arg)
 struct cli_map *
 cli_mapping(struct cli_map *maps, int argc, char **argv)
 {
-    int nb_args, i, j, ok;
-    const char *m;
-    char line[CLI_MAX_PATH_LENGTH + 1], *map[CLI_MAX_ARGVS], *p;
+	int nb_args, i, j, ok;
+	const char *m;
+	char line[CLI_MAX_PATH_LENGTH + 1], *map[CLI_MAX_ARGVS], *p;
 
 	memset(line, '\0', sizeof(line));
 	memset(map, '\0', sizeof(map));

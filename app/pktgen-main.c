@@ -357,6 +357,13 @@ main(int argc, char **argv)
 	if (ret < 0)
 		return -1;
 
+	i = rte_get_master_lcore();
+	if (get_lcore_rxcnt(pktgen.l2p, i) || get_lcore_txcnt(pktgen.l2p, i)) {
+		cli_printf("*** Error can not use master lcore for a port\n");
+		cli_printf("    The master lcore is %d\n", rte_get_master_lcore());
+		exit(-1);
+	}
+
 	pktgen.hz = rte_get_timer_hz();	/* Get the starting HZ value. */
 
 	scrn_create_with_defaults(pktgen.flags & ENABLE_THEME_FLAG);

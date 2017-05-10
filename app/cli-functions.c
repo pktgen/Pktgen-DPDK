@@ -157,7 +157,7 @@ range_cmd(int argc, char **argv)
 	struct cli_map *m;
 	uint32_t portlist;
 	struct pg_ipaddr ip;
-	char *what;
+	char *what, *p;
 	const char *val;
 
 	m = cli_mapping(range_map, argc, argv);
@@ -178,11 +178,19 @@ range_cmd(int argc, char **argv)
 			     range_set_src_mac(info, what, rte_ether_aton(val, NULL)));
 			break;
 		case 30:
+			/* Remove the /XX mask value is supplied */
+			p = strchr(argv[4], '\\');
+			if (p)
+				*p = '\0';
 			rte_atoip(val, PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_dst_ip(info, what, &ip));
 			break;
 		case 31:
+			/* Remove the /XX mask value is supplied */
+			p = strchr(argv[4], '\\');
+			if (p)
+				*p = '\0';
 			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_src_ip(info, what, &ip));
@@ -302,7 +310,7 @@ static int
 set_cmd(int argc, char **argv)
 {
 	uint32_t portlist;
-	char *what;
+	char *what, *p;
 	int value, n;
 	struct cli_map *m;
 	struct pg_ipaddr ip;
@@ -364,11 +372,20 @@ set_cmd(int argc, char **argv)
 				     pattern_set_user_pattern(info, argv[3]));
 			break;
 		case 30:
+			p = strchr(argv[4], '\\');
+			if (!p) {
+				cli_printf("No \\XX subnet mask not found\n");
+				return -1;
+			}
 			rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, 's', &ip));
 			break;
 		case 31:
-			rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			/* Remove the /XX mask value is supplied */
+			p = strchr(argv[4], '\\');
+			if (p)
+				*p = '\0';
+			rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, 'd', &ip));
 			break;
 		case 40:

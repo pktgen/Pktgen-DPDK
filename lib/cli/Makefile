@@ -58,6 +58,8 @@ SRCS-y +=  cli_vt100_keys.c
 SRCS-y +=  cli_scrn.c
 SRCS-y +=  cli_string_fns.c
 
+CFLAGS += -D_GNU_SOURCE
+
 # install includes
 SYMLINK-y-include += cli.h
 SYMLINK-y-include += cli_common.h

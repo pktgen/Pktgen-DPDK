@@ -553,7 +553,11 @@ dbg_cmd(int argc, char **argv)
 	if (!m)
 		return -1;
 	switch (m->index) {
+#if RTE_VERSION < RTE_VERSION_NUM(17, 5, 0, 0)
+	case 10: rte_eal_pci_dump(stdout);  break;
+#else
 	case 10: rte_pci_dump(stdout);  break;
+#endif
 	case 20: rte_eal_devargs_dump(stdout); break;
 	default:
 		return -1;

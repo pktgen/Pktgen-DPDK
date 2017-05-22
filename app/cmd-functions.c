@@ -1163,7 +1163,11 @@ cmd_pci_parsed(void *parsed_result __rte_unused,
 	       struct cmdline *cl __rte_unused,
 	       void *data __rte_unused)
 {
+#if RTE_VERSION < RTE_VERSION_NUM(17, 5, 0, 0)
 	rte_eal_pci_dump(stdout);
+#else
+	rte_pci_dump(stdout);
+#endif
 }
 
 cmdline_parse_token_string_t cmd_pci_cmds =

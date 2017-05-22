@@ -49,9 +49,35 @@ CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 
-COMMON_LIB := $(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)
+v17 := $(wildcard  $(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)/lib*.a)
+v16 := $(wildcard  $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/libcommon.a)
 
-# all source are stored in SRCS-y
+#$(info v17=$(v17))
+#$(info v16=$(v16))
+
+ifeq ($(v17),)
+BUILD_TYPE := v16
+else
+BUILD_TYPE := v17
+endif
+
+ifeq ($(BUILD_TYPE),v17)
+COMMON_PRE := $(RTE_SRCDIR)/../lib/common
+LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src
+CLI_PRE := $(RTE_SRCDIR)/../lib/cli
+GUI_PRE := $(RTE_SRCDIR)/../gui/gui
+else
+COMMON_PRE := $(RTE_SRCDIR)/../lib/common/lib/common
+LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src
+CLI_PRE := $(RTE_SRCDIR)/../lib/cli/lib/cli
+GUI_PRE := $(RTE_SRCDIR)/../gui
+endif
+
+COMMON_LIB := $(COMMON_PRE)/$(RTE_TARGET)
+LUA_LIB    := $(LUA_PRE)/$(RTE_TARGET)
+CLI_LIB    := $(CLI_PRE)/$(RTE_TARGET)
+GUI_LIB    := $(GUI_PRE)/$(RTE_TARGET)
+
 SRCS-y := \
 	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
 	pktgen-main.c pktgen-pcap.c pktgen-range.c pktgen-cpu.c \
@@ -64,29 +90,22 @@ SRCS-y := \
 MYLIB_PATH := -L$(COMMON_LIB)
 MYLIBS := -lcommon
 
-ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
-LUA_LIB    := $(RTE_SRCDIR)/../lib/lua/src/$(RTE_TARGET)
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
-else
-LUA_LIB    := $(RTE_SDK)/$(RTE_TARGET)/lib
-endif
-
 LUA_NAME   := librte_lua.a
 MYLIBS     += -lrte_lua
 MYLIB_PATH += -L$(LUA_LIB) 
 
 ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
-CLI_LIB    := $(RTE_SRCDIR)/../lib/cli/$(RTE_TARGET)
 CLI_NAME   := libcli.a
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
 MYLIBS     += -lcli
 else
-CLI_LIB    := $(RTE_SDK)/$(RTE_TARGET)/lib
 CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli
 endif
 
 MYLIB_PATH += -L$(CLI_LIB)
+
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe
@@ -97,7 +116,6 @@ endif
 ifeq ($(GUI),true)
 	CFLAGS += -DGUI
 
-	GUI_LIB    := $(RTE_SRCDIR)/../gui/$(RTE_TARGET)
 	MYLIB_PATH += -L$(GUI_LIB) -L/usr/lib64/gtk-2.0
 	MYLIBS += -lgui \
 		$(shell pkg-config --libs glib-2.0) \

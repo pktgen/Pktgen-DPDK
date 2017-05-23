@@ -94,22 +94,25 @@ LUA_NAME   := librte_lua.a
 MYLIBS     += -lrte_lua
 MYLIB_PATH += -L$(LUA_LIB) 
 
-ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
-CLI_NAME   := libcli.a
-MYLIBS     += -lcli
-else
 CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli
-endif
-
 MYLIB_PATH += -L$(CLI_LIB)
 
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
+LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+endif
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
+CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
+endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe
-	RPATHS += -rpath=$(LUA_LIB) -rpath=$(COMMON_LIB)
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
+	RPATHS += -rpath=$(LUA_LIB)
+endif
+	RPATHS += -rpath=$(COMMON_LIB)
 endif
 
 # GUI support is a work in progress
@@ -131,7 +134,7 @@ endif
 # $(info $(CLI_LIB)/$(CLI_NAME))
 # $(info $(MYLIB_PATH))
 
-pktgen: $(COMMON_LIB)/libcommon.a $(LUA_LIB)/$(LUA_NAME) $(CLI_LIB)/$(CLI_NAME)
+pktgen: $(COMMON_LIB)/libcommon.a $(LUA_DEP) $(CLI_DEP)
 
 LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) -lm
 

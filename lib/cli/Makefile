@@ -33,7 +33,7 @@ include $(RTE_SDK)/$(RTE_TARGET)/.config
 include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
-LIB = libcli.a
+LIB = librte_cli.a
 
 CFLAGS += -O3 -D_GNU_SOURCE $(WERROR_FLAGS) -I$(SRCDIR)
 CFLAGS += -DRTE_CLI_HOST_COMMANDS

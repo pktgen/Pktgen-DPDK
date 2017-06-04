@@ -61,23 +61,21 @@ cmd=./app/${target}/pktgen
 #Core 27 [17, 53]        [35, 71]        
 #
 
-dpdk_opts="-l 1,2-9 -n 4 --proc-type auto --log-level 7 --socket-mem 2048,2048 --file-prefix pg"
+dpdk_opts="-l 1,2-3,18-19 -n 4 --proc-type auto --log-level 7 --socket-mem 12288,4096 --file-prefix pg"
 #dpdk_opts="-l 1,2-5 -n 4 --proc-type auto --log-level 8 --socket-mem 2048,2048 --file-prefix pg"
 #dpdk_opts="-l 1-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 2048,2048 --file-prefix pg"
 #dpdk_opts="-l 1-3 -n 4 --proc-type auto --log-level 8 --socket-mem 512 --file-prefix pg"
 #dpdk_opts="${dpdk_opts} --vdev=net_tap0 --vdev=net_tap1"
-#dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
-#dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding0,mode=4,xmit_policy=l23,slave=0000:04:00.0,slave=0000:04:00.1,slave=0000:04:00.2,slave=0000:04:00.3"
+dpdk_opts="${dpdk_opts} --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3"
 
-pktgen_opts="-I -T -P --crc-strip"
-pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
+pktgen_opts="-T -P --crc-strip"
+pktgen_opts="${pktgen_opts} -m [2:3].8 -m [18:19].9"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
 #pktgen_opts="${pktgen_opts} -m [18:19].4 -m [20:21].5 -m [22:23].6 -m [24:25].7"
 #pktgen_opts="${pktgen_opts} -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3"
 
 black_list="-b 05:00.0 -b 05:00.1"
-black_list="${black_list} -b 04:00.2 -b 04:00.3"
-black_list="${black_list} -b 81:00.2 -b 81:00.3"
 #black_list="${black_list} -b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3"
 #black_list="${black_list} -b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3"
 black_list="${black_list} -b 82:00.0 -b 83:00.0"

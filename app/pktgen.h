@@ -336,7 +336,6 @@ enum {						/* Pktgen flags bits */
 	FAKE_PORTS_FLAG         = (1 << 9),	/**< Fake ports enabled */
 	BLINK_PORTS_FLAG        = (1 << 10),	/**< Blink the port leds */
 	ENABLE_THEME_FLAG       = (1 << 11),	/**< Enable theme or color support */
-	USE_CLI					= (1 << 12),	/**< Use the CLI commands */
 
 	CONFIG_PAGE_FLAG        = (1 << 16),	/**< Display the configure page */
 	SEQUENCE_PAGE_FLAG      = (1 << 17),	/**< Display the Packet sequence page */

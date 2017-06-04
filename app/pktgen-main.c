@@ -185,7 +185,7 @@ pktgen_parse_args(int argc, char **argv)
 	for (opt = 0; opt < argc; opt++)
 		pktgen.argv[opt] = strdup(argv[opt]);
 
-	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hIPNGT",
+	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGT",
 				  lgopts, &option_index)) != EOF)
 		switch (opt) {
 		case 'p':
@@ -220,11 +220,6 @@ pktgen_parse_args(int argc, char **argv)
 				pktgen_usage(prgname);
 				return -1;
 			}
-			break;
-		case 'I':	/* Enable CLI prompt */
-#ifdef RTE_LIBRTE_CLI
-			pktgen.flags |= USE_CLI;
-#endif
 			break;
 		case 'P':	/* Enable promiscuous mode on the ports */
 			pktgen.flags    |= PROMISCUOUS_ON_FLAG;

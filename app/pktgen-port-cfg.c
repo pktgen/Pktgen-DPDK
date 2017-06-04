@@ -41,6 +41,8 @@
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
 
+#include <rte_eth_bond_8023ad.h>
+
 enum {
 	RX_PTHRESH              = 8,	/**< Default values of RX prefetch threshold reg. */
 	RX_HTHRESH              = 8,	/**< Default values of RX host threshold reg. */

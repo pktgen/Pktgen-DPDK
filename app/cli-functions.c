@@ -179,7 +179,7 @@ range_cmd(int argc, char **argv)
 			break;
 		case 30:
 			/* Remove the /XX mask value is supplied */
-			p = strchr(argv[4], '\\');
+			p = strchr(argv[4], '/');
 			if (p)
 				*p = '\0';
 			rte_atoip(val, PG_IPADDR_V4, &ip, sizeof(ip));
@@ -188,7 +188,7 @@ range_cmd(int argc, char **argv)
 			break;
 		case 31:
 			/* Remove the /XX mask value is supplied */
-			p = strchr(argv[4], '\\');
+			p = strchr(argv[4], '/');
 			if (p)
 				*p = '\0';
 			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
@@ -372,19 +372,23 @@ set_cmd(int argc, char **argv)
 				     pattern_set_user_pattern(info, argv[3]));
 			break;
 		case 30:
-			p = strchr(argv[4], '\\');
+			p = strchr(argv[4], '/');
 			if (!p) {
-				cli_printf("No \\XX subnet mask not found\n");
-				return -1;
-			}
-			rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+				char buf[32];
+				snprintf(buf, sizeof(buf), "%s/32", argv[4]);
+				cli_printf("src IP address should contain /NN subnet value, default /32\n");
+				rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			} else
+				rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, 's', &ip));
 			break;
 		case 31:
-			/* Remove the /XX mask value is supplied */
-			p = strchr(argv[4], '\\');
-			if (p)
+			/* Remove the /XX mask value if supplied */
+			p = strchr(argv[4], '/');
+			if (p) {
+				cli_printf("Subnet mask not required, removing subnet mask value\n");
 				*p = '\0';
+			}
 			rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, 'd', &ip));
 			break;
@@ -780,7 +784,7 @@ debug_cmd(int argc, char **argv)
 static int
 seq_1_set_cmd(int argc __rte_unused, char **argv)
 {
-	char *proto = argv[10];
+	char *proto = argv[10], *p;
 	char *eth = argv[9];
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
@@ -797,8 +801,18 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 
 	teid = (argc == 11)? strtoul(argv[13], NULL, 10) : 0;
+	p = strchr(argv[5], '/'); /* remove subnet if found */
+	if (p)
+		*p = '\0';
 	rte_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
-	rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+	p = strchr(argv[6], '/');
+	if (!p) {
+		char buf[32];
+		cli_printf("src IP address should contain /NN subnet value, default /32\n");
+		snprintf(buf, sizeof(buf), "%s/32", argv[6]);
+		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+	} else
+		rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
     rte_ether_aton(argv[3], &dmac);
 	rte_ether_aton(argv[4], &smac);
@@ -831,7 +845,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 static int
 seq_2_set_cmd(int argc __rte_unused, char **argv)
 {
-	char *proto = argv[16];
+	char *proto = argv[16], *p;
 	char *eth = argv[15];
 	int seqnum = atoi(argv[1]);
 	uint32_t portlist;
@@ -848,8 +862,18 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 
 	teid = (argc == 23)? strtoul(argv[22], NULL, 10) : 0;
+	p = strchr(argv[8], '/'); /* remove subnet if found */
+	if (p)
+		*p = '\0';
 	rte_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
-	rte_atoip(argv[10], PG_IPADDR_V4, &src, sizeof(src));
+	p = strchr(argv[10], '/');
+	if (p == NULL) {
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%s/32", argv[10]);
+		cli_printf("src IP address should contain /NN subnet value, default /32");
+		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+	} else
+		rte_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
     rte_ether_aton(argv[3], &dmac);
 	rte_ether_aton(argv[4], &smac);
@@ -990,7 +1014,7 @@ static struct cli_map misc_map[] = {
 	{ 50, "lua %l" },
 	{ 60, "save %s" },
 	{ 70, "redisplay" },
-	{ 100, "reset" },
+	{ 100, "reset %P" },
 	{ 110, "restart" },
 	{ 130, "port %d" },
 	{ 135, "ports per page %d" },

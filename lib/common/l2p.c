@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2013>, Intel Corporation
+ * Copyright (c) <2010-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,37 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Copyright (c) <2010-2014>, Wind River Systems, Inc. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
- *
- * 1) Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * 2) Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * 3) Neither the name of Wind River Systems nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
- *
- * 4) The screens displayed by the application must contain the copyright notice as defined
- * above and can not be removed without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 /* Created 2012 by Keith Wiles @ intel.com */
 
 #include <stdio.h>
@@ -355,24 +324,24 @@ pg_dump_port_map(const char *t, uint8_t *m)
  *		<num>			:= <digit>+
  *		<digit>			:= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
  *
- *	1.0, 2.1, 3.2                                   - core 1 handles port 0 rx/tx,
- *									  core 2 handles port 1 rx/tx
- *	1.[0-2], 2.3, ...				- core 1 handle ports 0,1,2 rx/tx,
- *									  core 2 handle port 3 rx/tx
- *	[0-1].0, [2/4-5].1, ...			- cores 0-1 handle port 0 rx/tx,
- *									  cores 2,4,5 handle port 1 rx/tx
- *	[1:2].0, [4:6].1, ...			- core 1 handles port 0 rx,
- *									  core 2 handles port 0 tx,
+ *	1.0, 2.1, 3.2                   - core 1 handles port 0 rx/tx,
+ *					  core 2 handles port 1 rx/tx
+ *	1.[0-2], 2.3, ...		- core 1 handle ports 0,1,2 rx/tx,
+ *					  core 2 handle port 3 rx/tx
+ *	[0-1].0, [2/4-5].1, ...		- cores 0-1 handle port 0 rx/tx,
+ *					  cores 2,4,5 handle port 1 rx/tx
+ *	[1:2].0, [4:6].1, ...		- core 1 handles port 0 rx,
+ *					  core 2 handles port 0 tx,
  *	[1:2].[0-1], [4:6].[2/3], ...	- core 1 handles port 0 & 1 rx,
- *									  core 2 handles port  0 & 1 tx
- *	[1:2-3].0, [4:5-6].1, ...		- core 1 handles port 1 rx, cores 2,3 handle port 0 tx
- *									  core 4 handles port 1 rx & core 5,6 handles port 1 tx
- *	[1-2:3].0, [4-5:6].1, ...		- core 1,2 handles port 0 rx, core 3 handles port 0 tx
- *									  core 4,5 handles port 1 rx & core 6 handles port 1 tx
+ *					  core 2 handles port  0 & 1 tx
+ *	[1:2-3].0, [4:5-6].1, ...	- core 1 handles port 1 rx, cores 2,3 handle port 0 tx
+ *					  core 4 handles port 1 rx & core 5,6 handles port 1 tx
+ *	[1-2:3].0, [4-5:6].1, ...	- core 1,2 handles port 0 rx, core 3 handles port 0 tx
+ *					  core 4,5 handles port 1 rx & core 6 handles port 1 tx
  *	[1-2:3-5].0, [4-5:6/8].1, ...	- core 1,2 handles port 0 rx, core 3,4,5 handles port 0 tx
- *									  core 4,5 handles port 1 rx & core 6,8 handles port 1 tx
+ *					  core 4,5 handles port 1 rx & core 6,8 handles port 1 tx
  *	[1:2].[0:0-7], [3:4].[1:0-7],   - core 1 handles port 0 rx, core 2 handles ports 0-7 tx
- *									  core 3 handles port 1 rx & core 4 handles port 0-7 tx
+ *					  core 3 handles port 1 rx & core 4 handles port 0-7 tx
  *	BTW: you can use "{}" instead of "[]" as it does not matter to the syntax.
  *
  * RETURNS: N/A

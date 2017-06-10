@@ -10,4 +10,5 @@ _postbuild
 _postclean
 lib/common/common/
 docs/build/
-
+.project
+.pydevproject

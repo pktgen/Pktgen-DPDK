@@ -151,7 +151,7 @@ def load_cfg():
     global cfg
     cfg = imp.load_source('cfg', '', f)
     f.close()
-    
+    os.unlink('c')
     
 def run_cfg():
     ''' Run the configuration '''
@@ -169,10 +169,14 @@ def run_cfg():
     for a in cfg.run['misc']:
         args.extend(a.split(' '))
 
+    str = ""
+    for a in args:
+        str = str + "%s " % a
+    print(str)
     subprocess.call(args)
 
-    subprocess.call(['echo', '%c[1;r' % 0x1b])
-    subprocess.call(['echo', '%c[99;H' % 0x1b])
+    #subprocess.call(['echo', '%c[1;r' % 0x1b])
+    #subprocess.call(['echo', '%c[99;H' % 0x1b])
     subprocess.call(['stty', 'sane'])
 
 def num_sockets():

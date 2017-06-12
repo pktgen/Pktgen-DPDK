@@ -195,6 +195,7 @@ def setup_cfg():
     print("hugepages per socket %d" % nb_hugepages)
 
     subprocess.call(['sudo', 'rmmod', 'igb_uio'])
+    subprocess.call(['sudo', 'modprobe', "uio"])
     subprocess.call(['sudo', 'insmod', "%s/%s/kmod/igb_uio.ko" % (sdk, target)])
     
     for i in range(0, nb_sockets):

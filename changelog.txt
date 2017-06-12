@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.3.0 - Add new run configs and run.py script to setup and run pktgen
  - 3.2.12- Rework the src/dst IP address again and fix the reset command
  - 3.2.11- Fixed location of libs for per v17.05 releases
  - 3.2.10- Fixed the problem with set <portlist> src/dst ip <addr> needing /XX for subnet

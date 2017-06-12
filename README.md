@@ -363,6 +363,67 @@ single physical core will be trying to do both Rx/Tx functions.
 
 The '-n 2' is a required argument for DPDK and denotes the number of memory channels.
 
+*** New setup and run python script with config files ***
+
+Using the new tools/run.py script to setup and run pktgen with different configurations. The configuration files are located in the cfg directory with filenames ending in .cfg.
+
+To use a configuration file;
+``
+$ ./tools/run.py -s default  # to setup the ports and attach them to DPDK (only needed once per boot)
+
+$ ./tools/run.py default     # Run the default configuration
+``
+The configuration files are python scritps or a set of variables that run.py uses to initialize and run pktgen.
+Here is an example of the default.cfg file:
+
+``
+# Setup configuration
+setup = {
+	'devices': [
+		'04:00.0 04:00.1 04:00.2 04:00.3',
+		'81:00.0 81:00.1 81:00.2 81:00.3',
+		'82:00.0 83:00.0'
+		],
+		
+	'opts': [
+		'-b igb_uio'
+		]
+	}
+
+# Run command and options
+run = {
+	'dpdk': [
+		'-l 8,9-16',
+		'-n 4',
+		'--proc-type auto',
+		'--log-level 7',
+		'--socket-mem 2048,2048',
+		'--file-prefix pg'
+		],
+	
+	'blacklist': [
+		'-b 05:00.0 -b 05:00.1',
+		'-b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3',
+		#'-b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3',
+		'-b 82:00.0 -b 83:00.0'
+		],
+		
+	'pktgen': [
+		'-T',
+		'-P',
+		'--crc-strip',
+		'-m [9:10].0',
+		'-m [11:12].1',
+		'-m [13:14].2',
+		'-m [15:16].3'
+		],
+	
+	'misc': [
+		'-f themes/black-yellow.theme'
+		]
+	}
+``
+
 ``
 Usage: ./app/pktgen -l CORELIST -n NUM [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 

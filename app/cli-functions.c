@@ -121,13 +121,21 @@ static const char *status_help[] = {
 static struct cli_map range_map[] = {
 	{ 20, "range %P dst mac "SMMI" %m" },
 	{ 21, "range %P src mac "SMMI" %m" },
+	{ 22, "range %P dst mac %m %m %m %m" },
+	{ 23, "range %P src mac %m %m %m %m" },
 	{ 30, "range %P dst ip "SMMI" %4" },
 	{ 31, "range %P src ip "SMMI" %4" },
-	{ 40, "range %P proto "SMMI" %d" },
+	{ 32, "range %P dst ip %4 %4 %4 %4" },
+	{ 33, "range %P src ip %4 %4 %4 %4" },
+	{ 40, "range %P proto tcp|udp" },
 	{ 50, "range %P dst port "SMMI" %d" },
 	{ 51, "range %P src port "SMMI" %d" },
+	{ 52, "range %P dst port %d %d %d %d" },
+	{ 53, "range %P src port %d %d %d %d" },
 	{ 60, "range %P vlan "SMMI" %d" },
+	{ 61, "range %P vlan %d %d %d %d" },
 	{ 70, "range %P size "SMMI" %d" },
+	{ 71, "range %P size %d %d %d %d" },
 	{ 80, "range %P mpls entry %x" },
 	{ 85, "range %P qinq index %d %d" },
 	{ 90, "range %P gre key %d" },
@@ -136,17 +144,32 @@ static struct cli_map range_map[] = {
 
 static const char *range_help[] = {
 	"  -- Setup the packet range values --",
-	"range <portlist> [src|dst] mac <SMMI> <etheraddr> - Set destination/source MAC address",
-	"range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address",
-	"range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)",
-	"range <portlist> [src|dst] port <SMMI> <value> - Set UDP/TCP source/dest port number",
+	"   note: SMMI = start|min|max|inc (start, minimum, maximum, increment)",
+	"range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address",
+	"            e.g: range 0 mac start 00:00:00:00:00:00",
+	"            e.g: range 0 mac max 00:12:34:56:78:90",
+	"range <portlist> src|dst ip <SMMI> <ipaddr>   - Set source IP start address",
+	"            e.g: range 0 dst ip start 0.0.0.0",
+	"                 range 0 dst ip min 0.0.0.0",
+	"                 range 0 dst ip max 1.2.3.4",
+	"                 range 0 dst ip inc 0.0.1.0",
+	"range <portlist> proto tcp|udp                - Set the IP protocol type (alias range.proto)",
+	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
 	"range <portlist> size <SMMI> <value>          - Set pkt size start address",
 	"range <portlist> teid <SMMI> <value>          - Set TEID value",
 	"range <portlist> mpls entry <hex-value>       - Set MPLS entry value",
 	"range <portlist> qinq index <val1> <val2>     - Set QinQ index values",
 	"range <portlist> gre key <value>              - Set GRE key value",
-	"                 - SMMI = start|min|max|inc (start, minimum, maximum, increment)",
+	"",
+	"  Compact commands for the above",
+    "                                  Start               Min                Max              Inc",
+    "range <portlist> dst|src mac 00:00:00:00:00:00 00:00:00:00:00:00 00:00:00:00:00:55 00:00:00:00:00:01",
+	"range <portlist> src|dst ip 0.0.0.0 0.0.0.0 0.0.99.99 0.0.0.1",
+	"range <portlist> src|dst port 0 0 99 1",
+	"range <portlist> vlan 0 0 99 1",
+	"range <portlist> size 64 64 1024 1",
+	"range <portlist> teid 0 0 9 1",
 	CLI_HELP_PAUSE,
 	NULL
 };
@@ -177,6 +200,22 @@ range_cmd(int argc, char **argv)
 			foreach_port(portlist,
 			     range_set_src_mac(info, what, rte_ether_aton(val, NULL)));
 			break;
+		case 22:
+			foreach_port(portlist,
+			     range_set_dest_mac(info, "start", rte_ether_aton((const char *)argv[4], NULL));
+			     range_set_dest_mac(info, "min", rte_ether_aton((const char *)argv[5], NULL));
+			     range_set_dest_mac(info, "max", rte_ether_aton((const char *)argv[6], NULL));
+			     range_set_dest_mac(info, "inc", rte_ether_aton((const char *)argv[7], NULL))
+				);
+			break;
+		case 23:
+			foreach_port(portlist,
+			     range_set_src_mac(info, "start", rte_ether_aton((const char *)argv[4], NULL));
+			     range_set_src_mac(info, "min", rte_ether_aton((const char *)argv[5], NULL));
+			     range_set_src_mac(info, "max", rte_ether_aton((const char *)argv[6], NULL));
+			     range_set_src_mac(info, "inc", rte_ether_aton((const char *)argv[7], NULL))
+				);
+			break;
 		case 30:
 			/* Remove the /XX mask value is supplied */
 			p = strchr(argv[4], '/');
@@ -195,6 +234,30 @@ range_cmd(int argc, char **argv)
 			foreach_port(portlist,
 			     range_set_src_ip(info, what, &ip));
 			break;
+		case 32:
+			foreach_port(portlist,
+				rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"start", &ip);
+				rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"min", &ip);
+				rte_atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"max", &ip);
+				rte_atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"inc", &ip)
+				);
+			break;
+		case 33:
+			foreach_port(portlist,
+				rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"start", &ip);
+				rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"min", &ip);
+				rte_atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"max", &ip);
+				rte_atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"inc", &ip)
+				);
+			break;
 		case 40:
 			foreach_port(portlist,
 				range_set_proto(info, what) );
@@ -207,13 +270,45 @@ range_cmd(int argc, char **argv)
 			foreach_port(portlist,
 				range_set_src_port(info, what, atoi(val)) );
 			break;
+		case 52:
+			foreach_port(portlist,
+					range_set_dst_port(info, (char *)(uintptr_t)"start", atoi(argv[4]));
+					range_set_dst_port(info, (char *)(uintptr_t)"min", atoi(argv[5]));
+					range_set_dst_port(info, (char *)(uintptr_t)"max", atoi(argv[6]));
+					range_set_dst_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
+					);
+			break;
+		case 53:
+			foreach_port(portlist,
+					range_set_src_port(info, (char *)(uintptr_t)"start", atoi(argv[4]));
+					range_set_src_port(info, (char *)(uintptr_t)"min", atoi(argv[5]));
+					range_set_src_port(info, (char *)(uintptr_t)"max", atoi(argv[6]));
+					range_set_src_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
+					);
+			break;
 		case 60:
 			foreach_port(portlist,
 				range_set_vlan_id(info, argv[3], atoi(what)) );
 			break;
+		case 61:
+			foreach_port(portlist,
+				range_set_vlan_id(info, (char *)(uintptr_t)"start", atoi(argv[3]));
+				range_set_vlan_id(info, (char *)(uintptr_t)"min", atoi(argv[4]));
+				range_set_vlan_id(info, (char *)(uintptr_t)"max", atoi(argv[5]));
+				range_set_vlan_id(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
+				);
+			break;
 		case 70:
 			foreach_port(portlist,
 				range_set_pkt_size(info, argv[3], atoi(what)) );
+			break;
+		case 71:
+			foreach_port(portlist,
+				range_set_pkt_size(info, (char *)(uintptr_t)"start", atoi(argv[3]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"min", atoi(argv[4]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"max", atoi(argv[5]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"inc", atoi(argv[6]));
+				);
 			break;
 		case 80:
 			foreach_port(portlist,

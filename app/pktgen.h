@@ -245,6 +245,7 @@ enum {
 	FCS_SIZE                = 4,	/**< in bytes */
 	MIN_PKT_SIZE            = (ETHER_MIN_LEN - FCS_SIZE),
 	MAX_PKT_SIZE            = (ETHER_MAX_LEN - FCS_SIZE),
+	MIN_v6_PKT_SIZE         = (78 - FCS_SIZE),
 
 	MAX_RX_QUEUES           = 16,	/**< RX Queues per port */
 	MAX_TX_QUEUES           = 16,	/**< TX Queues per port */

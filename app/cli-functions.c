@@ -65,6 +65,24 @@
 #include "pg_ether.h"
 #endif
 
+static inline uint16_t
+valid_pkt_size(char *val)
+{
+	uint16_t pkt_size;
+
+	if (!val)
+		return (MIN_PKT_SIZE + FCS_SIZE);
+
+	pkt_size = atoi(val);
+	if (pkt_size < (MIN_PKT_SIZE + FCS_SIZE))
+		pkt_size = (MIN_PKT_SIZE + FCS_SIZE);
+
+	if (pkt_size > (MAX_PKT_SIZE + FCS_SIZE))
+		pkt_size = MAX_PKT_SIZE + FCS_SIZE;
+
+	return pkt_size;
+}
+
 /**********************************************************/
 static const char *title_help[] = {
 	"   *** Pktgen Help information ***",
@@ -147,29 +165,26 @@ static const char *range_help[] = {
 	"   note: SMMI = start|min|max|inc (start, minimum, maximum, increment)",
 	"range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address",
 	"            e.g: range 0 mac start 00:00:00:00:00:00",
-	"            e.g: range 0 mac max 00:12:34:56:78:90",
+	"                 range 0 mac max 00:12:34:56:78:90",
+	"             or  range 0 mac 00:00:00:00:00:00 00:00:00:00:00:00 00:12:34:56:78:90 00:00:00:01:01:01",
 	"range <portlist> src|dst ip <SMMI> <ipaddr>   - Set source IP start address",
 	"            e.g: range 0 dst ip start 0.0.0.0",
 	"                 range 0 dst ip min 0.0.0.0",
 	"                 range 0 dst ip max 1.2.3.4",
 	"                 range 0 dst ip inc 0.0.1.0",
+    "             or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
 	"range <portlist> proto tcp|udp                - Set the IP protocol type (alias range.proto)",
 	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
+	"   or  range <portlist> src|dst port <start> <min> <max> <inc>",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
+	"   or  range <portlist> vlan <start> <min> <max> <inc>",
 	"range <portlist> size <SMMI> <value>          - Set pkt size start address",
+	"   or  range <portlist> size <start> <min> <max> <inc>",
 	"range <portlist> teid <SMMI> <value>          - Set TEID value",
+	"   or  range <portlist> teid <start> <min> <max> <inc>",
 	"range <portlist> mpls entry <hex-value>       - Set MPLS entry value",
 	"range <portlist> qinq index <val1> <val2>     - Set QinQ index values",
 	"range <portlist> gre key <value>              - Set GRE key value",
-	"",
-	"  Compact commands for the above",
-    "                                  Start               Min                Max              Inc",
-    "range <portlist> dst|src mac 00:00:00:00:00:00 00:00:00:00:00:00 00:00:00:00:00:55 00:00:00:00:00:01",
-	"range <portlist> src|dst ip 0.0.0.0 0.0.0.0 0.0.99.99 0.0.0.1",
-	"range <portlist> src|dst port 0 0 99 1",
-	"range <portlist> vlan 0 0 99 1",
-	"range <portlist> size 64 64 1024 1",
-	"range <portlist> teid 0 0 9 1",
 	CLI_HELP_PAUSE,
 	NULL
 };
@@ -300,14 +315,14 @@ range_cmd(int argc, char **argv)
 			break;
 		case 70:
 			foreach_port(portlist,
-				range_set_pkt_size(info, argv[3], atoi(what)) );
+				range_set_pkt_size(info, argv[3], valid_pkt_size(what)));
 			break;
 		case 71:
 			foreach_port(portlist,
-				range_set_pkt_size(info, (char *)(uintptr_t)"start", atoi(argv[3]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"min", atoi(argv[4]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"max", atoi(argv[5]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"inc", atoi(argv[6]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"start", valid_pkt_size(argv[3]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"min", valid_pkt_size(argv[4]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"max", valid_pkt_size(argv[5]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"inc", valid_pkt_size(argv[6]));
 				);
 			break;
 		case 80:
@@ -339,13 +354,13 @@ range_cmd(int argc, char **argv)
 					"seq_cnt|"		/*  7 */ \
 					"prime|"		/*  8 */ \
 					"dump|"			/*  9 */ \
-					"vlan_id|"		/* 10 */ \
+					"vlan|"			/* 10 */ \
 					"seqCnt"		/* 11 */
 
 static struct cli_map set_map[] = {
 	{ 10, "set %P %|" set_types " %d" },
 	{ 11, "set %P jitter %D" },
-	{ 20, "set %P type %|arp|ipv4|ipv6|ip4|ip6" },
+	{ 20, "set %P type %|arp|ipv4|ipv6|ip4|ip6|vlan" },
 	{ 21, "set %P proto %|udp|tcp|icmp" },
 	{ 22, "set %P src mac %m" },
 	{ 23, "set %P dst mac %m" },
@@ -371,7 +386,7 @@ static const char *set_help[] = {
 	"                 prime             - Set the number of packets to send on prime command",
 	"                 seq_cnt           - Set the number of packet in the sequence to send",
 	"                 dump              - Dump the next <value> received packets to the screen",
-	"                 vlanid            - Set the VLAN ID value for the portlist",
+	"                 vlan              - Set the VLAN ID value for the portlist",
 	"                 jitter            - Set the jitter threshold in micro-seconds",
 	"                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)",
 	"                 gre_key           - Set the GRE key",
@@ -426,7 +441,7 @@ set_cmd(int argc, char **argv)
 			foreach_port(portlist, _do(
 				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
-					case 1: single_set_pkt_size(info, value); break;
+					case 1: single_set_pkt_size(info, valid_pkt_size(argv[3])); break;
 					case 2: single_set_tx_rate(info, argv[3]); break;
 					case 3: single_set_tx_burst(info, value); break;
 					case 4: debug_set_tx_cycles(info, value); break;
@@ -464,7 +479,7 @@ set_cmd(int argc, char **argv)
 			break;
 		case 25:
 			foreach_port(portlist,
-				     pattern_set_user_pattern(info, argv[3]));
+				 pattern_set_user_pattern(info, argv[3]));
 			break;
 		case 30:
 			p = strchr(argv[4], '/');

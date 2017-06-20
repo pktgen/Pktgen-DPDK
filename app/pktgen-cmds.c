@@ -1685,13 +1685,25 @@ range_set_pkt_type(port_info_t *info, const char *type)
 void
 single_set_pkt_type(port_info_t *info, const char *type)
 {
-	info->seq_pkt[SINGLE_PKT].ethType =
+	pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
+	uint16_t ethtype = pkt->ethType;
+
+	pkt->ethType =
 		(type[0] == 'a') ? ETHER_TYPE_ARP  :
 		(type[3] == '4') ? ETHER_TYPE_IPv4 :
 		(type[3] == '6') ? ETHER_TYPE_IPv6 :
 		(type[2] == '4') ? ETHER_TYPE_IPv4 :
 		(type[2] == '6') ? ETHER_TYPE_IPv6 :
 		/* TODO print error: unknown type */ ETHER_TYPE_IPv4;
+
+	if ((ethtype == ETHER_TYPE_IPv6) && (pkt->ethType == ETHER_TYPE_IPv4)) {
+		if (pkt->pktSize >= MIN_v6_PKT_SIZE)
+			pkt->pktSize = MIN_PKT_SIZE + (pkt->pktSize - MIN_v6_PKT_SIZE);
+	}
+	if ((ethtype == ETHER_TYPE_IPv4) && (pkt->ethType == ETHER_TYPE_IPv6)) {
+		if (pkt->pktSize < MIN_v6_PKT_SIZE)
+			pkt->pktSize = MIN_v6_PKT_SIZE + (pkt->pktSize - MIN_PKT_SIZE);
+	}
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
@@ -2339,13 +2351,23 @@ debug_set_tx_cycles(port_info_t *info, uint32_t cycles)
  */
 
 void
-single_set_pkt_size(port_info_t *info, uint32_t size)
+single_set_pkt_size(port_info_t *info, uint16_t size)
 {
+	pkt_seq_t * pkt = &info->seq_pkt[SINGLE_PKT];
+
+	if (size <= FCS_SIZE)
+		size = FCS_SIZE;
+
 	if ( (size - FCS_SIZE) < MIN_PKT_SIZE)
 		size = (MIN_PKT_SIZE + FCS_SIZE);
 	else if ( (size - FCS_SIZE) > MAX_PKT_SIZE)
 		size = MAX_PKT_SIZE + FCS_SIZE;
-	info->seq_pkt[SINGLE_PKT].pktSize = (size - FCS_SIZE);
+
+	if ((pkt->ethType == ETHER_TYPE_IPv6) && (size < (MIN_v6_PKT_SIZE + FCS_SIZE)))
+		size = MIN_v6_PKT_SIZE + FCS_SIZE;
+
+	pkt->pktSize = (size - FCS_SIZE);
+
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 	pktgen_packet_rate(info);
 }

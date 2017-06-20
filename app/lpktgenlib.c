@@ -2817,7 +2817,6 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 			    (p->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp"));
 
 	setf_integer(L, "pktSize", p->pktSize + FCS_SIZE);
-	setf_integer(L, "tlen", p->tlen);
 	setf_integer(L, "gtpu_teid", p->gtpu_teid);
 
 	/* Now set the table as an array with pid as the index. */

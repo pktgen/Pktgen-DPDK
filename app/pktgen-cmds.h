@@ -106,7 +106,7 @@ void single_set_src_mac(port_info_t *info, struct ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);
 void single_set_tx_count(port_info_t *info, uint32_t cnt);
 void single_set_tx_burst(port_info_t *info, uint32_t burst);
-void single_set_pkt_size(port_info_t *info, uint32_t size);
+void single_set_pkt_size(port_info_t *info, uint16_t size);
 void single_set_tx_rate(port_info_t *info, const char *rate);
 void single_set_jitter(port_info_t *info, uint64_t threshold);
 void single_set_port_value(port_info_t *info,

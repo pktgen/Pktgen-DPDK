@@ -47,6 +47,9 @@
 extern "C" {
 #endif
 
+__extension__
+typedef void    *MARKER[0];   /**< generic marker for a point in a structure */
+
 typedef struct pkt_seq_s {
 	/* Packet type and information */
 	struct ether_addr eth_dst_addr;	/**< Destination Ethernet address */
@@ -69,13 +72,14 @@ typedef struct pkt_seq_s {
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t pktSize;	/**< Size of packet in bytes not counting FCS */
-	uint16_t tlen;		/**< Total length of packet data */
+	uint16_t pad0;
 	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
 	uint8_t seq_enabled;	/**< Enable or disable this sequence through GUI */
-	pkt_hdr_t hdr;	/**< Packet header data */
+
+	pkt_hdr_t hdr __rte_cache_aligned;	/**< Packet header data */
 	/* 2048 - sizeof(pkt_hdr_t) */
-	uint8_t pad[DEFAULT_BUFF_SIZE - sizeof(pkt_hdr_t)] __rte_cache_aligned;
-} pkt_seq_t;
+	uint8_t pad[DEFAULT_BUFF_SIZE - sizeof(pkt_hdr_t)];
+} pkt_seq_t __rte_cache_aligned;
 
 struct port_info_s;
 

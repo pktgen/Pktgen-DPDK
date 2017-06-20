@@ -51,30 +51,64 @@
  */
 
 void
-pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type __rte_unused)
+pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 {
 	uint16_t tlen;
 
-	/* Zero out the header space */
-	memset((char *)uip, 0, sizeof(udpip_t));
+	if (type == ETHER_TYPE_IPv4) {
+		udpip_t *uip = (udpip_t *)hdr;
 
-	/* Create the UDP header */
-	uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-	uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-	tlen                = pkt->pktSize -
-		(pkt->ether_hdr_size + sizeof(ipHdr_t));
+		/* Zero out the header space */
+		memset((char *)uip, 0, sizeof(udpip_t));
 
-	uip->ip.len         = htons(tlen);
-	uip->ip.proto       = pkt->ipProto;
+		/* Create the UDP header */
+		uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+		uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+		tlen                = pkt->pktSize -
+			(pkt->ether_hdr_size + sizeof(ipHdr_t));
 
-	uip->udp.len        = htons(tlen);
-	uip->udp.sport      = htons(pkt->sport);
-	uip->udp.dport      = htons(pkt->dport);
+		uip->ip.len         = htons(tlen);
+		uip->ip.proto       = pkt->ipProto;
 
-	/* Includes the pseudo header information */
-	tlen                = pkt->pktSize - pkt->ether_hdr_size;
+		uip->udp.len        = htons(tlen);
+		uip->udp.sport      = htons(pkt->sport);
+		uip->udp.dport      = htons(pkt->dport);
 
-	uip->udp.cksum      = cksum(uip, tlen, 0);
-	if (uip->udp.cksum == 0)
-		uip->udp.cksum = 0xFFFF;
+		/* Includes the pseudo header information */
+		tlen                = pkt->pktSize - pkt->ether_hdr_size;
+
+		uip->udp.cksum      = cksum(uip, tlen, 0);
+		if (uip->udp.cksum == 0)
+			uip->udp.cksum = 0xFFFF;
+	} else {
+		uint32_t addr;
+		udpipv6_t *uip = (udpipv6_t *)hdr;
+
+		/* Zero out the header space */
+		memset((char *)uip, 0, sizeof(udpipv6_t));
+
+		/* Create the pseudo header and TCP information */
+		addr                = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+		(void)rte_memcpy(&uip->ip.daddr[8], &addr,
+				 sizeof(uint32_t));
+		addr                = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+		(void)rte_memcpy(&uip->ip.saddr[8], &addr,
+				 sizeof(uint32_t));
+
+		tlen                = sizeof(udpHdr_t) +
+			(pkt->pktSize - pkt->ether_hdr_size -
+			 sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
+		uip->ip.tcp_length  = htonl(tlen);
+		uip->ip.next_header = pkt->ipProto;
+
+		uip->udp.sport      = htons(pkt->sport);
+		uip->udp.dport      = htons(pkt->dport);
+
+		tlen                = sizeof(udpipv6_t) +
+			(pkt->pktSize - pkt->ether_hdr_size -
+			 sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
+		uip->udp.cksum      = cksum(uip, tlen, 0);
+		if (uip->udp.cksum == 0)
+			uip->udp.cksum = 0xFFFF;
+	}
 }

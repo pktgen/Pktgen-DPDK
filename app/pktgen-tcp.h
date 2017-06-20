@@ -56,8 +56,7 @@ extern "C" {
  * SEE ALSO:
  */
 
-extern void pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, tcpip_t * tip, __attribute__ (
-					(unused)) int type);
+void pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, void *hdr, int type);
 
 #ifdef __cplusplus
 }

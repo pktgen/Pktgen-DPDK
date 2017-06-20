@@ -56,7 +56,7 @@ extern "C" {
  * SEE ALSO:
  */
 
-extern void pktgen_udp_hdr_ctor(pkt_seq_t *pkt, udpip_t *uip, int type);
+void pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type);
 
 #ifdef __cplusplus
 }

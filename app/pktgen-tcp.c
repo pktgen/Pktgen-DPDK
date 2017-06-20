@@ -51,32 +51,68 @@
  */
 
 void
-pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, tcpip_t *tip, int type __rte_unused)
+pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 {
 	uint16_t tlen;
 
-	/* Zero out the header space */
-	memset((char *)tip, 0, sizeof(tcpip_t));
+	if (type == ETHER_TYPE_IPv4) {
+		tcpip_t *tip = (tcpip_t *)hdr;
 
-	/* Create the TCP header */
-	tip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-	tip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-	tlen                = pkt->pktSize -
-		(pkt->ether_hdr_size + sizeof(ipHdr_t));
+		/* Zero out the header space */
+		memset((char *)tip, 0, sizeof(tcpip_t));
 
-	tip->ip.len         = htons(tlen);
-	tip->ip.proto       = pkt->ipProto;
+		/* Create the TCP header */
+		tip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+		tip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+		tlen                = pkt->pktSize -
+			(pkt->ether_hdr_size + sizeof(ipHdr_t));
 
-	tip->tcp.sport      = htons(pkt->sport);
-	tip->tcp.dport      = htons(pkt->dport);
-	tip->tcp.seq        = htonl(DEFAULT_PKT_NUMBER);
-	tip->tcp.ack        = htonl(DEFAULT_ACK_NUMBER);
-	tip->tcp.offset     = ((sizeof(tcpHdr_t) / sizeof(uint32_t)) << 4);	/* Offset in words */
-	tip->tcp.flags      = ACK_FLAG;						/* ACK */
-	tip->tcp.window     = htons(DEFAULT_WND_SIZE);
-	tip->tcp.urgent     = 0;
+		tip->ip.len         = htons(tlen);
+		tip->ip.proto       = pkt->ipProto;
 
-	tlen                = pkt->pktSize - pkt->ether_hdr_size;
+		tip->tcp.sport      = htons(pkt->sport);
+		tip->tcp.dport      = htons(pkt->dport);
+		tip->tcp.seq        = htonl(DEFAULT_PKT_NUMBER);
+		tip->tcp.ack        = htonl(DEFAULT_ACK_NUMBER);
+		tip->tcp.offset     = ((sizeof(tcpHdr_t) / sizeof(uint32_t)) << 4);	/* Offset in words */
+		tip->tcp.flags      = ACK_FLAG;						/* ACK */
+		tip->tcp.window     = htons(DEFAULT_WND_SIZE);
+		tip->tcp.urgent     = 0;
 
-	tip->tcp.cksum      = cksum(tip, tlen, 0);
+		tlen                = pkt->pktSize - pkt->ether_hdr_size;
+
+		tip->tcp.cksum      = cksum(tip, tlen, 0);
+	} else {
+		tcpipv6_t *tip = (tcpipv6_t *)hdr;
+
+		/* Zero out the header space */
+		memset((char *)tip, 0, sizeof(tcpipv6_t));
+
+		/* Create the pseudo header and TCP information */
+		(void)rte_memcpy(tip->ip.daddr, &pkt->ip_dst_addr.addr.ipv4.s_addr,
+				 sizeof(struct in6_addr));
+		(void)rte_memcpy(tip->ip.saddr, &pkt->ip_src_addr.addr.ipv4.s_addr,
+				 sizeof(struct in6_addr));
+
+		tlen                = sizeof(tcpHdr_t) +
+			(pkt->pktSize - pkt->ether_hdr_size -
+			 sizeof(ipv6Hdr_t) - sizeof(tcpHdr_t));
+		tip->ip.tcp_length  = htonl(tlen);
+		tip->ip.next_header = pkt->ipProto;
+
+		tip->tcp.sport      = htons(pkt->sport);
+		tip->tcp.dport      = htons(pkt->dport);
+		tip->tcp.seq        = htonl(DEFAULT_PKT_NUMBER);
+		tip->tcp.ack        = htonl(DEFAULT_ACK_NUMBER);
+		tip->tcp.offset     =
+			((sizeof(tcpHdr_t) / sizeof(uint32_t)) << 4);   /* Offset in words */
+		tip->tcp.window     = htons(DEFAULT_WND_SIZE);
+		tip->tcp.urgent     = 0;
+		tip->tcp.flags      = ACK_FLAG; /* ACK */
+
+		tlen                = sizeof(tcpipv6_t) +
+			(pkt->pktSize - pkt->ether_hdr_size - sizeof(ipv6Hdr_t) - sizeof(tcpHdr_t));
+
+		tip->tcp.cksum      = cksum(tip, tlen, 0);
+	}
 }

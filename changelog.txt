@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.3.2 - Fix set pkt types and fix setting the pkt size for IPv6
  - 3.3.1 - Update the help for range and add compact commands for range
  - 3.3.0 - Add new run configs and run.py script to setup and run pktgen
  - 3.2.12- Rework the src/dst IP address again and fix the reset command

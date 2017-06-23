@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.3.3 - Make sure the mbuf data size is at least 2K in size
  - 3.3.2 - Fix set pkt types and fix setting the pkt size for IPv6
  - 3.3.1 - Update the help for range and add compact commands for range
  - 3.3.0 - Add new run configs and run.py script to setup and run pktgen

@@ -193,7 +193,7 @@ static int
 range_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 	struct pg_ipaddr ip;
 	char *what, *p;
 	const char *val;
@@ -419,7 +419,7 @@ static const char *set_help[] = {
 static int
 set_cmd(int argc, char **argv)
 {
-	uint32_t portlist;
+	portlist_t portlist;
 	char *what, *p;
 	int value, n;
 	struct cli_map *m;
@@ -540,7 +540,7 @@ pcap_cmd(int argc, char **argv)
 	pcap_info_t   *pcap;
 	uint32_t max_cnt;
 	uint32_t value;
-	uint32_t portlist;
+	portlist_t portlist;
 
 	m = cli_mapping(pcap_map, argc, argv);
 	if (!m)
@@ -606,7 +606,7 @@ static int
 start_stop_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 
 	m = cli_mapping(start_map, argc, argv);
 	if (!m)
@@ -844,7 +844,7 @@ static int
 debug_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 
 	m = cli_mapping(debug_map, argc, argv);
 	if (!m)
@@ -897,7 +897,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	char *proto = argv[10], *p;
 	char *eth = argv[9];
 	int seqnum = atoi(argv[1]);
-	uint32_t portlist;
+	portlist_t portlist;
 	struct pg_ipaddr dst, src;
 	struct ether_addr dmac, smac;
 	uint32_t teid;
@@ -958,7 +958,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	char *proto = argv[16], *p;
 	char *eth = argv[15];
 	int seqnum = atoi(argv[1]);
-	uint32_t portlist;
+	portlist_t portlist;
 	struct pg_ipaddr dst, src;
 	struct ether_addr dmac, smac;
 	uint32_t teid;
@@ -1160,7 +1160,7 @@ static int
 misc_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 	uint16_t rows, cols;
 	char *p;
 

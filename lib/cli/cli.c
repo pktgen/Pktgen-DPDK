@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <poll.h>
+#include <string.h>
 
 #include <rte_version.h>
 #include <rte_timer.h>
@@ -124,7 +125,7 @@ cli_alloc(void)
 			for (i = 0; i < CLI_DEFAULT_NB_NODES; i++, node++)
 				TAILQ_INSERT_TAIL(&cli->free_nodes, node, next);
 			cli->nb_nodes += CLI_DEFAULT_NB_NODES;
-		} else	/* TODO: Add support for different memory returned */
+		} else
 			return NULL;
 	}
 
@@ -391,7 +392,7 @@ cli_add_alias(const char *name,
 
 	funcs.cfunc = NULL;
 	alias = __add_node(name, dir, CLI_ALIAS_NODE, funcs, short_desc);
-	alias->alias_str = strdup(line);
+	alias->alias_str = (const char *)strdup(line);
 
 	return alias;
 }

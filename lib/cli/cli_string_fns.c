@@ -37,6 +37,8 @@
 #include "cli_search.h"
 #include "cli_string_fns.h"
 
+#define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
+
 char *
 rte_strtrimset(char *str, const char *set)
 {
@@ -191,40 +193,53 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 	return argc;
 }
 
+#ifdef RTE_LIBRTE_CLI
 int
-rte_split(char *str, int stringlen,
-	  char **tokens, int maxtokens, char delim)
+rte_strsplit(char *string, int stringlen,
+             char **tokens, int maxtokens, char delim)
 {
-	char delims[2] = { delim, '\0' };
+	char *s, d[3];
 
-	if (stringlen == 0)
+	if (stringlen <= 0)
 		return 0;
 
-	str[stringlen] = '\0';	/* Force a null terminated string */
-	return rte_strtok(str, delims, tokens, maxtokens);
+	s = alloca(stringlen + 1);
+	if (s) {
+		memset(s, 0, stringlen + 1);
+		memcpy(s, string, stringlen);
+
+		snprintf(d, sizeof(d), "%c", delim);
+
+		return rte_strtok(s, d, tokens, maxtokens);
+	}
+
+        errno = EINVAL;
+        return -1;
 }
+#endif
 
 int
 rte_stropt(const char *list, char *str, const char *delim)
 {
 	int i = 0, n;
 	char *buf;
-	char *argv[CLI_MAX_ARGVS + 1];
+	char *argv[STR_MAX_ARGVS + 1];
 
-	if ((list[0] == '%') && (list[1] == '#'))
+	if ((list[0] == '%') && (list[1] == '|'))
 		list += 2;
 
-	buf = alloca(strlen(list) + 1);
-	if (!buf)
-		return -1;
+	n = strlen(list) + 1;
+	buf = alloca(n);
+	if (buf) {
+		snprintf(buf, n - 1, "%s", list);
 
-	strcpy(buf, list);
+		n = rte_strtok(buf, delim, argv, STR_MAX_ARGVS);
+		for (i = 0; i < n; i++)
+			if (rte_strmatch(argv[i], str))
+				return i;
+	}
 
-	n = rte_strtok(buf, delim, argv, CLI_MAX_ARGVS);
-	for (i = 0; i < n; i++)
-		if (is_match(argv[i], str))
-			return i;
-
+	errno = EINVAL;
 	return -1;
 }
 
@@ -242,6 +257,7 @@ rte_parse_list(char *str, const char *item_name, uint32_t max_items,
 	value = 0;
 	nb_item = 0;
 	value_ok = 0;
+
 	for (i = 0; i < strnlen(str, STR_TOKEN_SIZE); i++) {
 		c = str[i];
 		if ((c >= '0') && (c <= '9')) {
@@ -264,17 +280,19 @@ rte_parse_list(char *str, const char *item_name, uint32_t max_items,
 		}
 		nb_item++;
 	}
+
 	if (nb_item >= max_items) {
 		printf("Number of %s = %u > %u (maximum items)\n",
 		       item_name, nb_item + 1, max_items);
 		return 0;
 	}
+
 	parsed_items[nb_item++] = value;
 	if (!check_unique_values)
 		return nb_item;
 
 	/*
-	 * Then, check that all values in the list are differents.
+	 * Then, check that all values in the list are different.
 	 * No optimization here...
 	 */
 	for (i = 0; i < nb_item; i++) {
@@ -306,9 +324,9 @@ rte_parse_portlist(const char *str, portlist_t *portlist)
 
 	if (!strcmp(str, "all")) {
 		if (portlist) {
-			int i;
-			for (i = 0; i < rte_eth_dev_count(); i++)
-				*portlist |= (1 << i);
+			uint32_t i;
+			for (i = 0; i < SIZE_OF_PORTLIST; i++)
+				*portlist |= (1LL << i);
 		}
 		return 0;
 	}

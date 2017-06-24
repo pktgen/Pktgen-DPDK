@@ -40,43 +40,43 @@
 #ifndef _CLI_STRING_FNS_H_
 #define _CLI_STRING_FNS_H_
 
+#include <stdio.h>
 #include <netinet/in.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define STR_TOKEN_SIZE 128
+enum {
+	STR_MAX_ARGVS = 64,             /**< Max number of args to support */
+	STR_TOKEN_SIZE = 128,
+};
 
-typedef unsigned int	portlist_t;
+typedef uint64_t	portlist_t;
 
 /**
- * Takes string "string" parameter and splits it at character "delim"
- * up to maxtokens-1 times - to give "maxtokens" resulting tokens. Like
+ * Takes string <string> parameter and splits it at character <delim>
+ * up to maxtokens-1 times - to give <maxtokens> resulting tokens. Like
  * strtok or strsep functions, this modifies its input string, by replacing
- * instances of "delim" with '\\0'. All resultant tokens are returned in the
- * "tokens" array which must have enough entries to hold "maxtokens".
+ * instances of <delim> with '\\0'. All resultant tokens are returned in the
+ * <tokens> array which must have enough entries to hold <maxtokens>.
  *
  * @param string
  *   The input string to be split into tokens
- *
  * @param stringlen
  *   The max length of the input buffer
- *
  * @param tokens
  *   The array to hold the pointers to the tokens in the string
- *
  * @param maxtokens
- *   The number of elements in the tokens array. At most, maxtokens-1 splits
+ *   The number of elements in the tokens array. At most, <maxtokens>-1 splits
  *   of the string will be done.
- *
  * @param delim
  *   The character on which the split of the data will be done
- *
  * @return
- *   The number of tokens in the tokens array.
+ *   The number of tokens in the array.
  */
-int rte_split(char *string, int stringlen,
+int
+rte_strsplit(char *string, int stringlen,
              char **tokens, int maxtokens, char delim);
 
 /**
@@ -87,9 +87,8 @@ int rte_split(char *string, int stringlen,
  * @param set
  *   The <set> string is a set of two character values to be removed from the
  *   <str>. Removes only one set at a time, if you have more then one set to
- *   remove then you must call the routine for each set.
- *
- *   The <set> string must be two characters and can be any characters you
+ *   remove then you must call the routine for each set. The <set> string must
+ *   be two characters and can be any characters you
  *   want to call a set.
  * @return
  *   Pointer to the trimmed string or NULL on error
@@ -108,11 +107,11 @@ char *rte_strtrimset(char *str, const char *set);
 char *rte_strtrim(char *str);
 
 /**
- * Parse a string in a argc/argv list using a set of delimiters, but does
- * not handle quoted strings within the string being parsed
+ * Parse a string into a argc/argv list using a set of delimiters, but does
+ * not handle quoted strings within the string being parsed.
  *
  * @param str
- *   String to be tokenized and will be modified, null terminated
+ *   String to be tokenized and will be modified, must be null terminated
  * @param delim
  *   A null terminated list of delimitors
  * @param entries
@@ -125,7 +124,7 @@ char *rte_strtrim(char *str);
 int rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
 
 /**
- * Parse a string in a argc/argv list using a set of delimiters, but does
+ * Parse a string into a argc/argv list using a set of delimiters, but does
  * handle quoted strings within the string being parsed
  *
  * @param str
@@ -164,7 +163,7 @@ int rte_stropt(const char *list, char *str, const char *delim);
  * @param s2
  *   Pointer to second string.
  * @return
- *   0 failed to compare and 1 is equal.
+ *   0 failed to compare and 1 strings are equal.
  */
 static inline int
 rte_strmatch(const char * s1, const char * s2)
@@ -205,11 +204,11 @@ rte_strcnt(char *s, char c)
  * Parse a list of values into a bitmap output like coremask or portlist.
  *
  * @param str
- *   string to search for a given item_name.
+ *   String to search for a given <item_name>.
  * @param item_name
- *   The name of the item to look for in str.
+ *   The name of the item to look for in <str>.
  * @param max_items
- *   Max number if items in the parsed_items list
+ *   Max number if items in the <parsed_items> list
  * @param parsed_items
  *   The return bitmap or list value.
  * @param check_unique_values
@@ -222,12 +221,12 @@ rte_parse_list(char* str, const char* item_name, uint32_t max_items,
 			   uint32_t *parsed_items, int check_unique_values);
 
 /**
- * Parse a posrtlist string into a mask or bitmap value.
+ * Parse a portlist string into a mask or bitmap value.
  *
  * @param str
  *   String to parse
  * @param portlist
- *   Pointer to uint32_t value for returned bitmap
+ *   Pointer to uint64_t value for returned bitmap
  * @return
  *   -1 on error or 0 on success.
  */

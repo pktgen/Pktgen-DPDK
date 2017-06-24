@@ -1,0 +1,4 @@
+The run.sh and setup.sh scripts have be rewritten into the run.py script
+using configuration files in the cfg directory. These have been left
+here for backward compatibility reasons only. All new work will be with
+the run.py python script and the cfg/*.cfg files.

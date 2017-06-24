@@ -186,16 +186,83 @@ Pktgen can then be built as follows::
 Setting up your environment
 ---------------------------
 
-In the ``PktgenInstallDir`` level directory there is ``setup.sh`` script,
-which should be run once per boot. The script contains the commands required
-to set up the environment::
+In the ``PktgenInstallDir``/tools level directory there is ``run.py`` script,
+which should be run once per boot with the -s option to setup the ports. The
+same configuration file is also used to run pktgen by removing the -s option.
 
-   $ cd <PktgenInstallDir>
-   $ sudo ./setup.sh
+Note::
+   The run.py script will do the sudo to root internally,
+   which means the ``sudo`` is not required.
 
-The setup script is a bash script and tries to configure the system to run a
-DPDK application. You will probably have to change the script to match your
+The script contains the commands required to set up the environment::
+
+   $ cd <PktgenInstallDir>/tools
+   $ ./run.py -s default  # setup system using the cfg/default.cfg file
+
+The run.py script is a python script and tries to configure the system to run a
+DPDK application. You will probably have to change the configuration files to match your
 system.
+
+To run pktgen with the default.cfg configuration::
+
+   $ cd <PktgenInstallDir>/tools
+   $ run.py default
+
+The ``run.py`` command use python data files to configure setup and run pktgen.
+The configuration files are located in the ``PktgenInstallDir``/cfg directory. These
+files allow for setup and running pktgen and can be configured to match you system
+or new configuration files can be created.
+
+Here is the default.cfg file::
+
+   # Setup configuration
+   setup = {
+    'devices': [
+        '81:00.0 81:00.1 81:00.2 81:00.3',
+        '85:00.0 85:00.1 85:00.2 85:00.3',
+        '83:00.0'
+        ],
+        
+    'opts': [
+        '-b igb_uio'
+        ]
+    }
+   
+   # Run command and options
+   run = {
+    'dpdk': [
+        '-l 1,1-5,10-13',
+        '-n 4',
+        '--proc-type auto',
+        '--log-level 7',
+        '--socket-mem 2048,2048',
+        '--file-prefix pg'
+        ],
+    
+    'blacklist': [
+        #'-b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3',
+        #'-b 85:00.0 -b 85:00.1 -b 85:00.2 -b 85:00.3',
+        '-b 81:00.0 -b 81:00.1',
+        '-b 85:00.0 -b 85:00.1',
+        '-b 83:00.0'
+        ],
+        
+    'pktgen': [
+        '-T',
+        '-P',
+        '--crc-strip',
+        '-m [2:3].0',
+        '-m [4:5].1',
+        '-m [10:11].2',
+        '-m [12:13].3',
+        ],
+    
+    'misc': [
+        '-f themes/black-yellow.theme'
+       ]
+   }
+
+We have two sections one for setup and the other for running pktgen.
 
 The ``modprobe uio`` command, in the setup script, loads the UIO support
 module into the kernel as well as loafing the igb-uio.ko module.

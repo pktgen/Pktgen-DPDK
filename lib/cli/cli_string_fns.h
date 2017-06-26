@@ -201,26 +201,6 @@ rte_strcnt(char *s, char c)
 }
 
 /**
- * Parse a list of values into a bitmap output like coremask or portlist.
- *
- * @param str
- *   String to search for a given <item_name>.
- * @param item_name
- *   The name of the item to look for in <str>.
- * @param max_items
- *   Max number if items in the <parsed_items> list
- * @param parsed_items
- *   The return bitmap or list value.
- * @param check_unique_values
- *   Check for unique values in the items list.
- * @return
- *   Number of items found or -1 on error.
- */
-uint32_t
-rte_parse_list(char* str, const char* item_name, uint32_t max_items,
-			   uint32_t *parsed_items, int check_unique_values);
-
-/**
  * Parse a portlist string into a mask or bitmap value.
  *
  * @param str

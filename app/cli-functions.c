@@ -1128,9 +1128,9 @@ static struct cli_map misc_map[] = {
 	{ 110, "restart" },
 	{ 130, "port %d" },
 	{ 135, "ports per page %d" },
-	{ 140, "ping4 %P %4" },
+	{ 140, "ping4 %P" },
 #ifdef INCLUDE_PING6
-	{ 141, "ping6 %P %6" },
+	{ 141, "ping6 %P" },
 #endif
 	{ -1, NULL }
 };

@@ -96,7 +96,7 @@ def find_file(arg, t):
     for f in file_list('.', t):
         if os.path.basename(f) == fn:
             return f
-    return "" 
+    return None 
 
 def parse_args():
     ''' Parse the command arguments '''
@@ -118,7 +118,7 @@ def parse_args():
         print("Run '%s --usage' for further information" % sys.argv[0])
         sys.exit(1)
 
-    for opt, arg in opts:
+    for opt, _ in opts:
         if opt == "--help" or opt == "-h" or opt == "--usage" or opt == "-u":
             usage()
             sys.exit(0)
@@ -128,13 +128,12 @@ def parse_args():
         if opt == "--setup" or opt == "-s":
             run_flag = False
     
-    arg = sys.argv[1:]
-    if arg == "":
+    if not args or len(args) > 1:
         usage()
         sys.exit(1)
 
-    fn = find_file(arg[0], cfg_ext)
-    if fn != "":
+    fn = find_file(args[0], cfg_ext)
+    if fn:
         cfg_file = fn
 
 def load_cfg():

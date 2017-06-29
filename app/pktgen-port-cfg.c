@@ -112,7 +112,6 @@ pktgen_set_hw_strip_crc(uint8_t val)
  *
  * SEE ALSO:
  */
-
 static struct rte_mempool *
 pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 			uint32_t nb_mbufs, int socket_id, int cache_size){

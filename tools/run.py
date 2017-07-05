@@ -56,7 +56,7 @@ Usage:
      %(argv0)s [options] config_file
 
 where config_file is the one of the defined configuration files if no config
-file is listed then the config_default file will be used.
+file is listed then the cfg/default.cfg file will be used.
 
 Options:
     --help, --usage:

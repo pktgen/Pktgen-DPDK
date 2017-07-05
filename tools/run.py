@@ -88,6 +88,8 @@ def file_list(d, t):
 
 def show_configs():
     ''' Show run/init configuration files '''
+    print("=== List of Configuration files ===")
+    print("   %-16s - %s" % ("Name", "Description"))
     for fname in file_list('.', cfg_ext):
 		base = os.path.splitext(os.path.basename(fname))[0]
 		if base != "call_Uncrustify":
@@ -106,53 +108,8 @@ def show_configs():
 			print("   %-16s - %s" % (base, desc.description))
 			desc.description = None
     
-def find_file(arg, t):
-    ''' Find the first file matching the arg value '''
-    fn = arg + cfg_ext
-    for f in file_list('.', t):
-        if os.path.basename(f) == fn:
-            return f
-    return None 
-
-def parse_args():
-    ''' Parse the command arguments '''
-    global run_flag
-    global cfg_file
-    
-    run_flag = True
-    cfg_file = "./cfg/default" + cfg_ext
-    
-    if len(sys.argv) <= 1:
-        usage()
-        sys.exit(0)
-    
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "huls",
-                                   ["help", "usage", "list", "setup", ])
-    except getopt.GetoptError as error:
-        print(str(error))
-        print("Run '%s --usage' for further information" % sys.argv[0])
-        sys.exit(1)
-
-    for opt, _ in opts:
-        if opt == "--help" or opt == "-h" or opt == "--usage" or opt == "-u":
-            usage()
-            sys.exit(0)
-        if opt == "--list" or opt == "-l":
-            show_configs()
-            sys.exit(0)
-        if opt == "--setup" or opt == "-s":
-            run_flag = False
-    
-    if not args or len(args) > 1:
-        usage()
-        sys.exit(1)
-
-    fn = find_file(args[0], cfg_ext)
-    if fn:
-        cfg_file = fn
-
 def load_cfg():
+    print("Opening %s file\n" % cfg_file)
     if not os.path.exists(cfg_file):
         print("Run file %s does not exists\n" % cfg_file)
         sys.exit(1)
@@ -236,7 +193,57 @@ def setup_cfg():
     print("Bind devices to DPDK:")
     print("   %s" % cfg.setup['devices'])
     subprocess.call(args)
+
+def find_file(arg, t):
+    ''' Find the first file matching the arg value '''
+    fn = arg + cfg_ext
+    for f in file_list('.', t):
+        if os.path.basename(f) == fn:
+            return f
+    return None 
+
+def parse_args():
+    ''' Parse the command arguments '''
+    global run_flag
+    global cfg_file
     
+    run_flag = True
+    cfg_file = "./cfg/default" + cfg_ext
+    
+    if len(sys.argv) <= 1:
+        usage()
+        sys.exit(0)
+    
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "huls",
+                                   ["help", "usage", "list", "setup", ])
+    except getopt.GetoptError as error:
+        print(str(error))
+        print("Run '%s --usage' for further information" % sys.argv[0])
+        sys.exit(1)
+
+    for opt, _ in opts:
+        if opt == "--help" or opt == "-h" or opt == "--usage" or opt == "-u":
+            usage()
+            sys.exit(0)
+        if opt == "--list" or opt == "-l":
+            show_configs()
+            sys.exit(0)
+        if opt == "--setup" or opt == "-s":
+            run_flag = False
+    
+    if not args or len(args) > 1:
+        usage()
+        sys.exit(1)
+
+    fn = find_file(args[0], cfg_ext)
+    if not fn:
+        print("*** Config file '%s' not found" % args[0])
+        show_configs()
+        sys.exit(1)
+    else:
+        cfg_file = fn
+
 def main():
     '''program main function'''
     if sdk == "":

@@ -387,9 +387,7 @@ main(int argc, char **argv)
 			continue;
 		ret = rte_eal_remote_launch(pktgen_launch_one_lcore, NULL, i);
 		if (ret != 0)
-			pktgen_log_error("Failed to start lcore %d, return %d",
-					 i,
-					 ret);
+			pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
 	}
 	rte_delay_ms(1000);	/* Wait for the lcores to start up. */
 
@@ -426,6 +424,7 @@ main(int argc, char **argv)
 	pktgen_cli_start();
 
 	execute_lua_close(pktgen.L);
+
 	pktgen_stop_running();
 
 	scrn_pause();

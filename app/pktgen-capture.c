@@ -47,6 +47,8 @@
 #include "pktgen-log.h"
 #include "pktgen-display.h"
 
+#define CAPTURE_BUFF_SIZE	(4 * (1024 * 1024))
+
 /**************************************************************************//**
  *
  * pktgen_packet_capture_init - Initialize memory and data structures for packet
@@ -78,11 +80,9 @@ pktgen_packet_capture_init(capture_t *capture, int socket_id)
 
 	snprintf(memzone_name, sizeof(memzone_name), "Capture_MZ_%d",
 		 socket_id);
-	capture->mz = rte_memzone_reserve(memzone_name,
-					  0,
-					  socket_id,
-					  RTE_MEMZONE_1GB |
-					  RTE_MEMZONE_SIZE_HINT_ONLY);
+	capture->mz = rte_memzone_reserve(memzone_name, CAPTURE_BUFF_SIZE,
+			socket_id, RTE_MEMZONE_1GB | RTE_MEMZONE_SIZE_HINT_ONLY);
+printf("%s: mz->len %lu\n", __func__, capture->mz->len);
 }
 
 /**************************************************************************//**
@@ -143,20 +143,21 @@ found_rx_lid:
 
 		/* Get socket of the selected lcore and check if capturing is possible */
 		uint16_t sid = pktgen.core_info[lid].s.socket_id;
-		if (pktgen.capture[sid].mz == NULL) {
-			pktgen_log_warning(
-				"No memory allocated for capturing on socket %d, are hugepages allocated on this socket?",
-				sid);
-			return;
-		}
 
 		cap = &pktgen.capture[sid];
 
+		if (cap->mz == NULL) {
+			pktgen_log_warning(
+				"No memory allocated for capturing on socket %d, are hugepages"
+					" allocated on this socket?", sid);
+			return;
+		}
+
 		if (cap->lcore != RTE_MAX_LCORE) {
 			pktgen_log_warning(
-				"Lcore %d is already capturing on socket %d and only 1 lcore can capture on a socket.\nDisable capturing on the port associated with this lcore first.",
-				cap->lcore,
-				sid);
+				"Lcore %d is already capturing on socket %d and only 1 lcore "
+					"can capture on a socket.\nDisable capturing on the port "
+					"associated with this lcore first.", cap->lcore, sid);
 			return;
 		}
 
@@ -165,8 +166,7 @@ found_rx_lid:
 		cap->lcore  = lid;
 		cap->port   = info->pid;
 		cap->tail   = (cap_hdr_t *)cap->mz->addr;
-		cap->end    =
-			(cap_hdr_t *)((char *)cap->mz->addr +
+		cap->end    = (cap_hdr_t *)((char *)cap->mz->addr +
 				      (cap->mz->len - sizeof(cap_hdr_t)));
 
 		/* Write end-of-data sentinel to start of capture memory. This */
@@ -177,7 +177,8 @@ found_rx_lid:
 		pktgen_set_port_flags(info, CAPTURE_PKTS);
 
 		pktgen_log_info(
-			"Capturing on port %d, lcore %d, socket %d; buffer size: %.2f MB (~%.2f seconds for 64 byte packets at line rate)",
+			"Capturing on port %d, lcore %d, socket %d; buffer size: %.2f MB "
+				"(~%.2f seconds for 64 byte packets at line rate)",
 			info->pid,
 			lid,
 			sid,

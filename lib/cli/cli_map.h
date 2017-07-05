@@ -69,7 +69,6 @@ struct cli_map {
  *   %k - kvargs list of <key>=<value>[,...] strings
  *   %l - list format, if constains space then quote the string first
  *   %|<fixed-list> - Fixed list of valid strings
- *          using '|' or '#' as delimiter
  * @param argc
  *   Number of arguments in <argv>
  * @param argv

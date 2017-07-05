@@ -37,6 +37,8 @@
 
 #include <stdint.h>
 
+#define MAX_LINE_SIZE	4096
+
 #define PROC_CPUINFO "/proc/cpuinfo"
 
 typedef union {

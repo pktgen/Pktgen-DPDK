@@ -37,31 +37,27 @@
 #include "cli_search.h"
 #include "cli_string_fns.h"
 
+#define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
+
 char *
 rte_strtrimset(char *str, const char *set)
 {
-	char *p;
-	size_t size;
 
-	if (!str || !set || (strlen(set) != 2))
+	if (!str || !*str || !set || (strlen(set) != 2))
 		return NULL;
-
-	if ((size = strlen(str)) == 0)
-		return str;
 
 	/* Find the beginning set character, while trimming white space */
 	while ((*str == set[0]) || isspace(*str))
 		str++;
 
-	if ((size = strlen(str)) == 0)
-		return str;
+	if (*str) {
+		char *p = &str[strlen(str) - 1];
 
-	/* find and trim the closing character */
-	p = &str[size - 1];
-	while (p >= str && (isspace(*p) || (*p == set[1])))
-		p--;
+		while ((p >= str) && (isspace(*p) || (*p == set[1])))
+			p--;
 
-	p[1] = '\0';
+		p[1] = '\0';
+	}
 
 	return str;
 }
@@ -69,27 +65,23 @@ rte_strtrimset(char *str, const char *set)
 char *
 rte_strtrim(char *str)
 {
-	char *p;
-	size_t size;
-
-	if (!str || (size = strlen(str)) == 0)
+	if (!str || !*str)
 		return str;
 
 	/* trim white space characters at the front */
-	while (isspace(*str))
+	while(isspace(*str))
 		str++;
 
 	/* Make sure the string is not empty */
-	if ((size = strlen(str)) == 0)
-		return str;
+	if (*str) {
+		char *p = &str[strlen(str) - 1];
 
-	/* trim trailing white space characters, start at the end */
-	p = &str[size - 1];
-	while ((p >= str) && isspace(*p))
-		p--;
+		/* trim trailing white space characters */
+		while((p >= str) && isspace(*p))
+			p--;
 
-	p[1] = '\0';
-
+		p[1] = '\0';
+	}
 	return str;
 }
 
@@ -100,19 +92,12 @@ rte_strtok(char *str, const char *delim, char **entries, int maxtokens)
 	char *saved;
 
 	if (!str || !delim || !entries || !maxtokens)
-		return i;
+		return -1;
 
-	entries[i] = rte_strtrim(strtok_r(str, delim, &saved));
-	if (entries[i] == NULL)
-		return 0;
-
-	for (i++; i < (maxtokens - 1); i++) {
-		entries[i] = rte_strtrim(strtok_r(NULL, delim, &saved));
-
-		if (!entries[i])/* Are we done yet */
-			break;
-	}
-	entries[i] = NULL;
+	do {
+		entries[i] = rte_strtrim(strtok_r(str, delim, &saved));
+		str = NULL;
+	} while(entries[i] && (++i < maxtokens));
 
 	return i;
 }
@@ -125,18 +110,20 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 	enum { INIT, WORD, STRING_QUOTE, STRING_TICK } state = WORD;
 
 	if (!str || !delim || !argv || maxtokens == 0)
-		return 0;
+		return -1;
 
 	/* Remove white space from start and end of string */
 	s = rte_strtrim(str);
 
 	start_of_word = s;
-	for (p = s; argc < (maxtokens - 1) && *p != '\0'; p++) {
+	for (p = s; (argc < maxtokens) && (*p != '\0'); p++) {
 		c = (unsigned char)*p;
+
 		if (c == '\\') {
 			start_of_word = ++p;
 			continue;
 		}
+
 		switch (state) {
 		case INIT:
 			if (c == '"') {
@@ -181,166 +168,130 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 		}
 	}
 
-	if (state != INIT && argc < (maxtokens - 1))
+	if ((state != INIT) && (argc < maxtokens))
 		argv[argc++] = start_of_word;
-	if (argc == 0 && p != str)
-		argv[argc++] = str;
 
-	argv[argc] = NULL;
+	if ((argc == 0) && (p != str))
+		argv[argc++] = str;
 
 	return argc;
 }
 
+#ifdef RTE_LIBRTE_CLI
 int
-rte_split(char *str, int stringlen,
-	  char **tokens, int maxtokens, char delim)
+rte_strsplit(char *string, int stringlen,
+             char **tokens, int maxtokens, char delim)
 {
-	char delims[2] = { delim, '\0' };
+	char *s, d[3];
 
-	if (stringlen == 0)
+	if (stringlen <= 0)
 		return 0;
 
-	str[stringlen] = '\0';	/* Force a null terminated string */
-	return rte_strtok(str, delims, tokens, maxtokens);
+	s = alloca(stringlen + 1);
+	if (s) {
+		memcpy(s, string, stringlen);
+		s[stringlen] = '\0';
+
+		snprintf(d, sizeof(d), "%c", delim);
+
+		return rte_strtok(s, d, tokens, maxtokens);
+	}
+	return -1;
 }
+#endif
 
 int
 rte_stropt(const char *list, char *str, const char *delim)
 {
-	int i = 0, n;
-	char *buf;
-	char *argv[CLI_MAX_ARGVS + 1];
+	char *argv[STR_MAX_ARGVS + 1], *buf;
+	size_t n, i;
 
-	if ((list[0] == '%') && (list[1] == '#'))
-		list += 2;
-
-	buf = alloca(strlen(list) + 1);
-	if (!buf)
+	if (!list || !str || !delim)
 		return -1;
 
-	strcpy(buf, list);
+	if ((list[0] == '%') && (list[1] == '|'))
+		list += 2;
 
-	n = rte_strtok(buf, delim, argv, CLI_MAX_ARGVS);
-	for (i = 0; i < n; i++)
-		if (is_match(argv[i], str))
-			return i;
+	if (!*list)
+		return -1;
+
+	n = strlen(list) + 1;
+
+	buf = alloca(n);
+	if (buf) {
+		snprintf(buf, n - 1, "%s", list);
+
+		n = rte_strtok(buf, delim, argv, STR_MAX_ARGVS);
+
+		for (i = 0; i < n; i++)
+			if (rte_strmatch(argv[i], str))
+				return i;
+	}
 
 	return -1;
 }
 
-uint32_t
-rte_parse_list(char *str, const char *item_name, uint32_t max_items,
-	       uint32_t *parsed_items, int check_unique_values)
-{
-	uint32_t nb_item, value, i, j;
-	int value_ok;
-	char c;
-
-	/*
-	 * First parse all items in the list and store their value.
-	 */
-	value = 0;
-	nb_item = 0;
-	value_ok = 0;
-	for (i = 0; i < strnlen(str, STR_TOKEN_SIZE); i++) {
-		c = str[i];
-		if ((c >= '0') && (c <= '9')) {
-			value = (unsigned int)(value * 10 + (c - '0'));
-			value_ok = 1;
-			continue;
-		}
-		if (c != ',') {
-			printf("character %c is not a decimal digit\n", c);
-			return 0;
-		}
-		if (!value_ok) {
-			printf("No valid value before comma\n");
-			return 0;
-		}
-		if (nb_item < max_items) {
-			parsed_items[nb_item] = value;
-			value_ok = 0;
-			value = 0;
-		}
-		nb_item++;
-	}
-	if (nb_item >= max_items) {
-		printf("Number of %s = %u > %u (maximum items)\n",
-		       item_name, nb_item + 1, max_items);
-		return 0;
-	}
-	parsed_items[nb_item++] = value;
-	if (!check_unique_values)
-		return nb_item;
-
-	/*
-	 * Then, check that all values in the list are differents.
-	 * No optimization here...
-	 */
-	for (i = 0; i < nb_item; i++) {
-		for (j = i + 1; j < nb_item; j++)
-			if (parsed_items[j] == parsed_items[i]) {
-				printf("duplicated %s %u at index %u and %u\n",
-				       item_name, parsed_items[i], i, j);
-				return 0;
-			}
-	}
-	return nb_item;
-}
-
 static inline void
-parse_set_list(uint32_t *map, size_t low, size_t high)
+parse_set_list(size_t low, size_t high, uint64_t *map)
 {
-	do
-		*map |= (1 << low++);
-	while (low <= high);
+	do {
+		*map |= (1LL << low++);
+	} while (low <= high);
 }
 
+#define MAX_SPLIT	64
+/* portlist = N,N,N-M,N, ... */
 int
 rte_parse_portlist(const char *str, portlist_t *portlist)
 {
-	size_t ps, pe;
-	const char *first, *last;
-	char *end;
-	uint32_t map = 0;
+	size_t ps, pe, n, i;
+	char *split[MAX_SPLIT], *s, *p;
+	uint64_t map = 0;
+
+	if (!str || !*str)
+		return -1;
 
 	if (!strcmp(str, "all")) {
 		if (portlist) {
-			int i;
-			for (i = 0; i < rte_eth_dev_count(); i++)
-				*portlist |= (1 << i);
+			uint32_t i;
+			for (i = 0; i < SIZE_OF_PORTLIST; i++)
+				*portlist |= (1LL << i);
 		}
 		return 0;
 	}
-	for (first = str, last = first;
-	     first != NULL && last != NULL;
-	     first = last + 1) {
-		last = strchr(first, ',');
 
-		errno = 0;
-		ps = strtoul(first, &end, 10);
-		if (errno != 0 || end == first ||
-		    (end[0] != '-' && end[0] != 0 && end != last))
-			return -1;
+	n = strlen(str);
+	s = alloca(n + 1);
+	if (!s)
+		return -1;
 
-		/* Support for N-M portlist format */
-		if (end[0] == '-') {
-			errno = 0;
-			first = end + 1;
-			pe = strtoul(first, &end, 10);
-			if (errno != 0 || end == first ||
-			    (end[0] != 0 && end != last))
-				return -1;
-		} else
+	memcpy(s, str, n);
+	s[n] = '\0';
+
+	n = rte_strtok(s, ",", split, MAX_SPLIT);
+	if (!n)
+		return 0;
+
+	for(i = 0; i < n; i++) {
+		p = strchr(split[i], '-');
+
+		if (!p) {
+			ps = strtoul(split[i], NULL, 10);
 			pe = ps;
+		} else {
+			*p++ = '\0';
+			ps = strtoul(split[i], NULL, 10);
+			pe = strtoul(p, NULL, 10);
+		}
 
-		if (ps > pe || pe >= sizeof(map) * 8)
+		if ((ps > pe) || (pe >= (sizeof(map) * 8)))
 			return -1;
 
-		parse_set_list(&map, ps, pe);
+		parse_set_list(ps, pe, &map);
 	}
 
 	if (portlist)
 		*portlist = map;
+
 	return 0;
 }

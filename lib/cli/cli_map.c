@@ -57,7 +57,7 @@ cli_map_list_search(const char *fmt, char *item, int index)
 	rte_strtok(buf, " ", opts, CLI_MAX_ARGVS);
 
 	/* Skip the %| in the string options */
-	return rte_stropt(&opts[index][2], item, "|#");
+	return rte_stropt(&opts[index][2], item, "|");
 }
 
 static int
@@ -90,9 +90,8 @@ is_map_valid(const char *fmt, char *arg)
 					/* list of ports or cores or the word all */
 		case 'P': if (isdigit(*arg) || (*arg == 'a')) ret = 1; break;
 		case 'C': if (isdigit(*arg) || (*arg == 'a')) ret = 1; break;
-		case '#':
 		case '|':
-			return (rte_stropt(&fmt[1], arg, "|#") == -1) ? 0 : 1;
+			return (rte_stropt(&fmt[1], arg, "|") == -1) ? 0 : 1;
 		case 'l': ret = 1; break;
 		default:
 			return 0;

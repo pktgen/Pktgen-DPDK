@@ -37,7 +37,6 @@
 #define LUA_LIB
 #define lua_c
 
-#include <portlist.h>
 #ifndef RTE_LIBRTE_CLI
 #include <pg_ether.h>
 #include <pg_inet.h>
@@ -57,7 +56,6 @@
 #include <lualib.h>
 
 #include "pktgen-cmds.h"
-#include "cmd-functions.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"
@@ -2838,7 +2836,7 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 static int
 pktgen_decompile(lua_State *L)
 {
-	uint32_t portlist;
+	portlist_t portlist;
 	uint32_t seqnum, n;
 
 	switch (lua_gettop(L) ) {

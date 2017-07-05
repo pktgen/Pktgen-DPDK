@@ -190,7 +190,8 @@ In the ``PktgenInstallDir``/tools level directory there is ``run.py`` script,
 which should be run once per boot with the -s option to setup the ports. The
 same configuration file is also used to run pktgen by removing the -s option.
 
-Note::
+.. Note::
+
    The run.py script will do the sudo to root internally,
    which means the ``sudo`` is not required.
 

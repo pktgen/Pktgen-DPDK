@@ -173,7 +173,7 @@ static const char *range_help[] = {
 	"                 range 0 dst ip max 1.2.3.4",
 	"                 range 0 dst ip inc 0.0.1.0",
     "             or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
-	"range <portlist> proto tcp|udp                - Set the IP protocol type (alias range.proto)",
+	"range <portlist> proto tcp|udp                - Set the IP protocol type",
 	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
 	"   or  range <portlist> src|dst port <start> <min> <max> <inc>",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
@@ -193,7 +193,7 @@ static int
 range_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 	struct pg_ipaddr ip;
 	char *what, *p;
 	const char *val;
@@ -419,7 +419,7 @@ static const char *set_help[] = {
 static int
 set_cmd(int argc, char **argv)
 {
-	uint32_t portlist;
+	portlist_t portlist;
 	char *what, *p;
 	int value, n;
 	struct cli_map *m;
@@ -540,7 +540,7 @@ pcap_cmd(int argc, char **argv)
 	pcap_info_t   *pcap;
 	uint32_t max_cnt;
 	uint32_t value;
-	uint32_t portlist;
+	portlist_t portlist;
 
 	m = cli_mapping(pcap_map, argc, argv);
 	if (!m)
@@ -606,7 +606,7 @@ static int
 start_stop_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 
 	m = cli_mapping(start_map, argc, argv);
 	if (!m)
@@ -844,7 +844,7 @@ static int
 debug_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 
 	m = cli_mapping(debug_map, argc, argv);
 	if (!m)
@@ -897,7 +897,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	char *proto = argv[10], *p;
 	char *eth = argv[9];
 	int seqnum = atoi(argv[1]);
-	uint32_t portlist;
+	portlist_t portlist;
 	struct pg_ipaddr dst, src;
 	struct ether_addr dmac, smac;
 	uint32_t teid;
@@ -958,7 +958,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	char *proto = argv[16], *p;
 	char *eth = argv[15];
 	int seqnum = atoi(argv[1]);
-	uint32_t portlist;
+	portlist_t portlist;
 	struct pg_ipaddr dst, src;
 	struct ether_addr dmac, smac;
 	uint32_t teid;
@@ -1128,9 +1128,9 @@ static struct cli_map misc_map[] = {
 	{ 110, "restart" },
 	{ 130, "port %d" },
 	{ 135, "ports per page %d" },
-	{ 140, "ping4 %P %4" },
+	{ 140, "ping4 %P" },
 #ifdef INCLUDE_PING6
-	{ 141, "ping6 %P %6" },
+	{ 141, "ping6 %P" },
 #endif
 	{ -1, NULL }
 };
@@ -1160,7 +1160,7 @@ static int
 misc_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
-	uint32_t portlist;
+	portlist_t portlist;
 	uint16_t rows, cols;
 	char *p;
 

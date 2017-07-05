@@ -48,6 +48,6 @@ SRCS-y := copyright_info.c port_config.c core_info.c cmdline_parse_args.c \
 
 SYMLINK-y-include := cksum.h copyright_info.h core_info.h coremap.h \
 	cmdline_parse_args.h cycles.h pg_ether.h pg_inet.h l2p.h lscpu.h mbuf.h _pcap.h \
-	port_config.h utils.h portlist.h 
+	port_config.h utils.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

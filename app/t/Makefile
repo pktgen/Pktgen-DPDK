@@ -14,7 +14,7 @@ RTE_TARGET := x86_64-native-linuxapp-gcc
 $(warning "RTE_TARGET is not defined, using default value $(RTE_TARGET)")
 endif
 
-ifeq ($(wildcard ../app/$(RTE_TARGET)/pktgen),)
+ifeq ($(wildcard ../../app/$(RTE_TARGET)/pktgen),)
 $(error "Please compile Pktgen first")
 endif
 
@@ -33,7 +33,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 
 
 ### Extra flags for test compilation and linking
-TEST_CFLAGS  := -DTESTING -include libtap/tap.h -include helpers/test_helpers.h -I.. -Wall -Werror
+TEST_CFLAGS  := -DTESTING -include libtap/tap.h -include helpers/test_helpers.h -I.. -I../../lib/common -Wall -Werror
 TEST_LDFLAGS := -Wall -Werror
 
 ### Extra flags for application source files

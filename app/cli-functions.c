@@ -173,7 +173,7 @@ static const char *range_help[] = {
 	"                 range 0 dst ip max 1.2.3.4",
 	"                 range 0 dst ip inc 0.0.1.0",
     "             or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
-	"range <portlist> proto tcp|udp                - Set the IP protocol type (alias range.proto)",
+	"range <portlist> proto tcp|udp                - Set the IP protocol type",
 	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
 	"   or  range <portlist> src|dst port <start> <min> <max> <inc>",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",

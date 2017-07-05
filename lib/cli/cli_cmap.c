@@ -240,7 +240,7 @@ my_getline(char **line, size_t *line_sz, int fd)
 
 	if (*line == NULL) {
 		if (*line_sz == 0)
-			*line_sz = 4096;
+			*line_sz = MAX_LINE_SIZE;
 		l = malloc(*line_sz);
 		if (l == NULL)
 			return -1;

@@ -40,44 +40,68 @@ import glob
 from os.path import exists, abspath, dirname, basename
 import imp
 
-sdk = os.getenv("RTE_SDK", "")
-target = os.getenv("RTE_TARGET", "x86_64-native-linux-gcc")
-cfg_ext = '.cfg'
-hugepage_path = "/sys/devices/system/node/node%d/hugepages/hugepages-2048kB/nr_hugepages"
-
-
 def usage():
     '''Print usage information for the program'''
     argv0 = basename(sys.argv[0])
     print("""
 Usage:
 ------
+  %(argv0)s [options] [config_name]
 
-     %(argv0)s [options] config_file
+  Where config_name is the one of the defined configuration files if no config
+  file is listed then the ./default.cfg file will be used. If a cfg directory
+  is located in the current directory then it will be searched for a match.
 
-where config_file is the one of the defined configuration files if no config
-file is listed then the cfg/default.cfg file will be used.
+  The config_name is the name of the file without path and .cfg extention.
 
 Options:
-    --help, --usage:
+--------
+    -h, --help, -u, --usage:
         Display usage information and quit
 
     -l, --list:
         Print a list of known configuration files
-
+    
+    -v, --verbose
+        Print out more information
 
 Examples:
 ---------
-
-To display current list of configuration files:
+  To display current list of configuration files:
         %(argv0)s --list
 
-To run a config file:
+  To run a config file:
         %(argv0)s default
+
     The configuration file name is always suffixed by .cfg as in default.cfg.
     The search location of the configuration files is .:./cfg
 
     """ % locals())  # replace items from local variables
+    sys.exit(0)
+    
+def err_exit(str):
+    print(str)
+    sys.exit(1)
+
+def find_file(arg, t):
+    ''' Find the first file matching the arg value '''
+    fn = arg + '.cfg'
+    for f in file_list('.', t):
+        if os.path.basename(f) == fn:
+            return f
+    return None
+
+def add_run_options(s, arg_list):
+    ''' Append options to arg list '''
+    if s in cfg.run:
+        for a in cfg.run[s]:
+            arg_list.extend(a.split(' '))
+
+def add_setup_options(s, arg_list):
+    ''' Append options to arg list '''
+    if s in cfg.setup:
+        for a in cfg.setup[s]:
+            arg_list.extend(a.split(' '))
 
 def file_list(d, t):
     ''' Return list of configuration files '''
@@ -86,178 +110,239 @@ def file_list(d, t):
         	for f in files)
     return (f for f in fileiter if os.path.splitext(f)[1] == t)
 
-def show_configs():
-    ''' Show run/init configuration files '''
-    print("=== List of Configuration files ===")
-    print("   %-16s - %s" % ("Name", "Description"))
-    for fname in file_list('.', cfg_ext):
-		base = os.path.splitext(os.path.basename(fname))[0]
-		if base != "call_Uncrustify":
-			try:
-				f = open(fname)
-			except:
-				print("Error: unable to open file %s\n" % fname)
-				sys.exit(1)
-				
-			desc = imp.load_source('cfg', '', f)
-			f.close()
-			os.unlink('c')
+def load_cfg(fname):
+    ''' Load the configuration or .cfg file as a python data file '''
 
-			if not desc.description:
-				desc.description = ""
-			print("   %-16s - %s" % (base, desc.description))
-			desc.description = None
-    
-def load_cfg():
-    print("Opening %s file\n" % cfg_file)
-    if not os.path.exists(cfg_file):
-        print("Run file %s does not exists\n" % cfg_file)
-        sys.exit(1)
-        
+    if not os.path.exists(fname):
+        err_exit("Config file %s does not exists\n" % fname)
+
     try:
-        f = open(cfg_file)
+        f = open(fname)
     except:
-        print("Error: unable to open file %s\n" % cfg_file)
-        sys.exit(1)
-        
+        err_exit("Error: unable to open file %s\n" % fname)
+
     global cfg
     cfg = imp.load_source('cfg', '', f)
+
     f.close()
     os.unlink('c')
-    
-def run_cfg():
-    ''' Run the configuration '''
-    args = []
-    args.extend(["sudo"])
-    args.extend(["./app/%s/pktgen" % target])
-    
-    for a in cfg.run['dpdk']:
-        args.extend(a.split(' '))
-    for a in cfg.run['blacklist']:
-        args.extend(a.split(' '))
-    args.extend(["--"])
-    for a in cfg.run['pktgen']:
-        args.extend(a.split(' '))
-    for a in cfg.run['misc']:
-        args.extend(a.split(' '))
 
+    return cfg
+
+def show_configs():
+    ''' Show configuration files '''
+
+    print("Configurations:")
+    print("   %-16s - %s" % ("Name", "Description"))
+    print("   %-16s   %s" % ("----", "-----------"))
+
+    for fname in file_list('.', '.cfg'):
+        base = os.path.splitext(os.path.basename(fname))[0]
+
+        cfg = load_cfg(fname)
+
+        if not cfg.description:
+			cfg.description = ""
+        print("   %-16s - %s" % (base, cfg.description))
+        
+        # reset the descriptoin to empty, for next loop/file
+        cfg.description = ""
+    sys.exit(0)
+
+def run_cfg(cfg_file):
+    ''' Run the configuration in the .cfg file '''
+    
+    cfg = load_cfg(cfg_file)
+
+    args = []
+    add_run_options('exec', args)
+    
+    if not 'app_path' in cfg.run:
+        err_exit("'app_path' variable is missing from cfg.run in config file")
+    
+    if not 'app_name' in cfg.run:
+        err_exit("'app_name' variable is missing from cfg.run in config file")
+    
+    # convert the cfg.run['app_name'] into a global variable used in
+    # the creation of the applicaiton/path. app_name must be a global variable.
+    global app_name
+    app_name = cfg.run['app_name']
+    
+    # Try all of the different path versions till we find one.
+    fname = None
+    for app in cfg.run['app_path']:
+        fn = app % globals()
+        if os.path.exists(fn):
+            fname = fn
+            break
+
+    if not fname:
+        err_exit("Error: Unable to locate application %s" % cfg.run['app_name'])
+    
+    args.extend([fname])
+
+    add_run_options('dpdk', args)
+    add_run_options('blacklist', args)
+    add_run_options('whitelist', args)
+    args.extend(["--"])
+    add_run_options('app', args)
+    add_run_options('misc', args)
+
+    # Convert the args list to a single string with spaces.
     str = ""
     for a in args:
         str = str + "%s " % a
     print(str)
+
     subprocess.call(args)
 
-    #subprocess.call(['echo', '%c[1;r' % 0x1b])
-    #subprocess.call(['echo', '%c[99;H' % 0x1b])
     subprocess.call(['stty', 'sane'])
 
-def num_sockets():
+def num_sockets(hpath):
+    ''' Count the number of sockets in the system '''
+
     sockets = 0
     for i in range(0, 8):
-        if os.path.exists(hugepage_path % i):
+        if os.path.exists(hpath % i):
             sockets = sockets + 1
+
     return sockets
 
-def setup_cfg():
-    ''' Setup the initial system '''
+def setup_cfg(cfg_file):
+    ''' Setup the system by adding modules and ports to dpdk control '''
 
-    nb_sockets = int(num_sockets())
-    p = subprocess.Popen(['sysctl', '-n', 'vm.nr_hugepages'], stdout=subprocess.PIPE)
-    nb_hugepages = int(p.communicate()[0]) / 2
-    print("hugepages per socket %d" % nb_hugepages)
+    cfg = load_cfg(cfg_file)
 
-    subprocess.call(['sudo', 'rmmod', 'igb_uio'])
-    subprocess.call(['sudo', 'modprobe', "uio"])
-    subprocess.call(['sudo', 'insmod', "%s/%s/kmod/igb_uio.ko" % (sdk, target)])
+    print("Setup DPDK to run '%s' application from %s file" % 
+           (cfg.run['app_name'], cfg_file))
+
+    sys_node = '/sys/devices/system/node/node%d/hugepages'
+    hugepage_path = sys_node + '/hugepages-2048kB/nr_hugepages'
+
+    # calculate the number of sockets in the system.
+    nb_sockets = int(num_sockets(hugepage_path))
+    if nb_sockets == 0:
+        nb_sockets = 1
+
+    p = subprocess.Popen(['sysctl', '-n', 'vm.nr_hugepages'],
+                         stdout=subprocess.PIPE)
     
+    # split the number of hugepages between the sockets
+    nb_hugepages = int(p.communicate()[0]) / nb_sockets
+    
+    if verbose:
+        print("  Hugepages per socket %d" % nb_hugepages)
+
+    if verbose:
+        print("  modprobe the 'uio' required module")
+    subprocess.call(['sudo', 'modprobe', "uio"])
+    
+    if verbose:
+        print("  Remove igb_uio if already installed")
+
+    ret = subprocess.call(['sudo', 'rmmod', 'igb_uio'])
+    if ret > 0:
+        print("  Remove of igb_uio, displayed an error ignore it")
+    
+    igb_uio = ("%s/%s/kmod/igb_uio.ko" % (sdk, target))
+    if verbose:
+        print("  insmode the %s module" % igb_uio)
+    subprocess.call(['sudo', 'insmod', igb_uio])
+
     for i in range(0, nb_sockets):
         fn = (hugepage_path % i)
-        print("Set %s to %d" % (fn, nb_hugepages))
-        subprocess.call(['sudo', 'sh', '-c', 'eval', 'echo %s > %s' % (nb_hugepages, fn)])
-        
+        if verbose:
+            print("  Set %d socket to %d hugepages" % (i, nb_hugepages))
+        subprocess.call(['sudo', '-E', 'sh', '-c', 'eval',
+                         'echo %s > %s' % (nb_hugepages, fn)])
+
+    # locate the binding tool
     if os.path.exists("%s/usertools/dpdk-devbind.py" % sdk):
-        nic_bind = "%s/usertools/dpdk-devbind.py" % sdk
+        script = "%s/usertools/dpdk-devbind.py" % sdk
+    elif os.path.exits("%s/tools/dpdk_nic_bind.py" % sdk):
+        script = "%s/tools/dpdk_nic_bind.py" % sdk
     else:
-        nic_bind = "%s/tools/dpdk_nic_bind.py" % sdk
+        err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")
 
+    # build up the system command line to be executed
     args = []
-    args.extend(['sudo'])
-    args.extend(['-E'])
-    args.extend([nic_bind])
-    
-    for a in cfg.setup['opts']:
-        args.extend(a.split(' '))
-    for a in cfg.setup['devices']:
-        args.extend(a.split(' '))
-    
-    print("Bind devices to DPDK:")
-    print("   %s" % cfg.setup['devices'])
-    subprocess.call(args)
+    add_setup_options('exec', args)
 
-def find_file(arg, t):
-    ''' Find the first file matching the arg value '''
-    fn = arg + cfg_ext
-    for f in file_list('.', t):
-        if os.path.basename(f) == fn:
-            return f
-    return None 
+    args.extend([script])
+
+    add_setup_options('opts', args)
+    add_setup_options('devices', args)
+
+    if verbose:
+        print("  Bind following devices to DPDK:")
+        for a in cfg.setup['devices']:
+            print("     %s" % a)
+
+    subprocess.call(args)
 
 def parse_args():
     ''' Parse the command arguments '''
-    global run_flag
-    global cfg_file
+
+    global run_flag, verbose
     
     run_flag = True
-    cfg_file = "./cfg/default" + cfg_ext
-    
+    verbose = False
+
+    cfg_file = "./cfg/default.cfg"
+
     if len(sys.argv) <= 1:
-        usage()
-        sys.exit(0)
-    
+        print("*** Pick one of the following config files\n")
+        show_configs()
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "huls",
-                                   ["help", "usage", "list", "setup", ])
+        opts, args = getopt.getopt(sys.argv[1:], "hulsv",
+                ["help", "usage", "list", "setup", "verbose", ])
+
     except getopt.GetoptError as error:
         print(str(error))
-        print("Run '%s --usage' for further information" % sys.argv[0])
-        sys.exit(1)
+        usage()
 
     for opt, _ in opts:
-        if opt == "--help" or opt == "-h" or opt == "--usage" or opt == "-u":
+        if opt == "--help" or opt == "-h":
             usage()
-            sys.exit(0)
+        if opt == "--usage" or opt == "-u":
+            usage()
         if opt == "--list" or opt == "-l":
             show_configs()
-            sys.exit(0)
         if opt == "--setup" or opt == "-s":
             run_flag = False
-    
+        if opt == "--verbose" or opt == "-v":
+            verbose = True
+
     if not args or len(args) > 1:
         usage()
-        sys.exit(1)
 
-    fn = find_file(args[0], cfg_ext)
+    fn = find_file(args[0], '.cfg')
     if not fn:
         print("*** Config file '%s' not found" % args[0])
         show_configs()
-        sys.exit(1)
     else:
         cfg_file = fn
 
+    return cfg_file
+
 def main():
     '''program main function'''
-    if sdk == "":
-        print("Set RTE_SDK environment variable")
-        sys.exit(0)
 
-    parse_args()
+    global sdk, target
 
-    load_cfg()
+    sdk = os.getenv('RTE_SDK', os.path.curdir)
+    if sdk == '':
+        err_exit("Set RTE_SDK environment variable")
 
+    target = os.getenv('RTE_TARGET', 'x86_64-native-linuxapp-gcc')
+
+    cfg_file = parse_args()
+    
     if run_flag:
-        run_cfg()
+        run_cfg(cfg_file)
     else:
-        setup_cfg()
-        
+        setup_cfg(cfg_file)
+
 if __name__ == "__main__":
     main()

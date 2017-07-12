@@ -48,6 +48,7 @@
 #ifndef RTE_LIBRTE_CLI
 #include <cli_string_fns.h>
 #endif
+#include <rte_hexdump.h>
 
 #include "pktgen.h"
 
@@ -154,7 +155,7 @@ static struct cli_map range_map[] = {
 	{ 61, "range %P vlan %d %d %d %d" },
 	{ 70, "range %P size "SMMI" %d" },
 	{ 71, "range %P size %d %d %d %d" },
-	{ 80, "range %P mpls entry %x" },
+	{ 80, "range %P mpls entry %h" },
 	{ 85, "range %P qinq index %d %d" },
 	{ 90, "range %P gre key %d" },
     { -1, NULL }
@@ -828,6 +829,9 @@ static struct cli_map debug_map[] = {
 	{ 20, "debug tx_debug" },
 	{ 30, "debug mempool %P %s" },
 	{ 40, "debug pdump %P" },
+	{ 50, "debug dump memzone" },
+	{ 60, "debug hexdump %H %d" },
+	{ 61, "debug hexdump %H" },
     { -1, NULL }
 };
 
@@ -836,6 +840,8 @@ static const char *debug_help[] = {
 	"debug tx_debug                     - Enable tx debug output",
 	"debug mempool <portlist> <type>    - Dump out the mempool info for a given type",
 	"debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
+	"debug dump memzone                 - List all of the current memzones",
+	"debug hexdump <addr> <len>         - hex dump memory at given address",
 	"",
 	NULL
 };
@@ -845,6 +851,8 @@ debug_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	portlist_t portlist;
+	unsigned int len;
+	const void *addr;
 
 	m = cli_mapping(debug_map, argc, argv);
 	if (!m)
@@ -871,6 +879,18 @@ debug_cmd(int argc, char **argv)
 			rte_parse_portlist(argv[2], &portlist);
 			foreach_port(portlist, debug_pdump(info));
 			pktgen_update_display();
+			break;
+		case 50:
+			rte_memzone_dump(stdout);
+			break;
+		case 60:
+		case 61:
+			addr = (void *)strtoull(argv[2], NULL, 0);
+			if (argc == 3)
+				len = 64;
+			else
+				len = strtoul(argv[3], NULL, 0);
+			rte_hexdump(stdout, "", addr, len);
 			break;
 		default:
 			return -1;

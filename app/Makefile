@@ -131,6 +131,8 @@ ifeq ($(GUI),true)
 	ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 		RPATHS += -rpath=$(GUI_LIB)
 	endif
+
+	DEPDIRS-y += ../gui
 endif
 
 # $(info $(CLI_LIB)/$(CLI_NAME))

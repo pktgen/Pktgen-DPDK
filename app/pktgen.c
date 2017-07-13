@@ -296,27 +296,21 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 	struct rte_mbuf **pkts;
 	uint32_t ret, cnt;
 
-	cnt = mtab->len;
-	mtab->len = 0;
+	cnt  = mtab->len;
+	pkts = mtab->m_table;
 
-	pkts    = mtab->m_table;
+	ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+	if (ret == 0)
+		return;
 
 	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
-		while (cnt > 0) {
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+		pktgen_do_tx_tap(info, pkts, ret);
 
-			pktgen_do_tx_tap(info, pkts, ret);
+	cnt -= ret;
+	if (cnt)
+		memmove(pkts, &pkts[ret], (cnt * sizeof(void *)));
 
-			pkts += ret;
-			cnt -= ret;
-		}
-	else
-		while (cnt > 0) {
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-			pkts += ret;
-			cnt -= ret;
-		}
+	mtab->len = cnt;
 }
 
 /**************************************************************************//**
@@ -335,34 +329,10 @@ static __inline__ void
 _send_burst_random(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
-	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, flags;
 
-	cnt         = mtab->len;
-	mtab->len   = 0;
-	pkts        = mtab->m_table;
+	pktgen_rnd_bits_apply(info, mtab->m_table, mtab->len, NULL);
 
-	flags   = rte_atomic32_read(&info->port_flags);
-	if (unlikely(flags & PROCESS_TX_TAP_PKTS))
-		while (cnt) {
-			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
-
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-			pktgen_do_tx_tap(info, pkts, ret);
-
-			pkts += ret;
-			cnt -= ret;
-		}
-	else
-		while (cnt) {
-			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
-
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-			pkts += ret;
-			cnt -= ret;
-		}
+	_send_burst_fast(info, qid);
 }
 
 /**************************************************************************//**
@@ -381,20 +351,10 @@ static __inline__ void
 _send_burst_latency(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
-	struct rte_mbuf **pkts;
-	uint32_t ret, cnt;
 
-	cnt         = mtab->len;
-	mtab->len   = 0;
-	pkts        = mtab->m_table;
-	while (cnt) {
-		pktgen_latency_apply(info, pkts, cnt);
+	pktgen_latency_apply(info, mtab->m_table, mtab->len);
 
-		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-		pkts += ret;
-		cnt -= ret;
-	}
+	_send_burst_fast(info, qid);
 }
 
 static __inline__ void

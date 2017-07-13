@@ -829,7 +829,7 @@ static struct cli_map debug_map[] = {
 	{ 20, "debug tx_debug" },
 	{ 30, "debug mempool %P %s" },
 	{ 40, "debug pdump %P" },
-	{ 50, "debug dump memzone" },
+	{ 50, "debug memzone" },
 	{ 60, "debug hexdump %H %d" },
 	{ 61, "debug hexdump %H" },
     { -1, NULL }

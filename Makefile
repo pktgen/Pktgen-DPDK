@@ -58,6 +58,10 @@ realclean:
 	@rm -fr lib/common/lib
 	@rm -fr lib/cli/lib
 	@rm -fr lib/lua/src/lib
+	@rm -fr app/$(RTE_TARGET)
+	@rm -fr lib/common/$(RTE_TARGET)
+	@rm -fr lib/cli/$(RTE_TARGET)
+	@rm -fr lib/lua/src/$(RTE_TARGET)
 
 docs:
 	@make -C docs html

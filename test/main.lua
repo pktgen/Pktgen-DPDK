@@ -125,7 +125,7 @@ pktgen.pause("Wait a second, then go back to main page\n", 2000);
 
 pktgen.page("0");
 pktgen.pause("About to do range\n", 1000);
-pktgen.range("all", "on");
+pktgen.set_range("all", "on");
 
 pktgen.port(2);
 pktgen.process("all", "on");

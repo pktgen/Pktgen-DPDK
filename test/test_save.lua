@@ -54,7 +54,7 @@ pktgen.gre_key('0', 0);
 -- Port flag values:
 pktgen.icmp_echo('0', 'disable');
 pktgen.pcap('0', 'disable');
-pktgen.range('0', 'disable');
+pktgen.set_range('0', 'disable');
 pktgen.latency('0', 'disable');
 pktgen.process('0', 'disable');
 pktgen.capture('0', 'disable');
@@ -210,7 +210,7 @@ pktgen.gre_key('1', 0);
 -- Port flag values:
 pktgen.icmp_echo('1', 'disable');
 pktgen.pcap('1', 'disable');
-pktgen.range('1', 'disable');
+pktgen.set_range('1', 'disable');
 pktgen.latency('1', 'disable');
 pktgen.process('1', 'disable');
 pktgen.capture('1', 'disable');

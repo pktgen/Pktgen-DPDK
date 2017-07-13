@@ -90,7 +90,7 @@ pktgen.pkt_size("all", "inc", 2);
 pktgen.pkt_size("all", "min", 64);
 pktgen.pkt_size("all", "max", 1518);
 
-pktgen.range("all", "on");
+pktgen.set_range("all", "on");
 pktgen.vlan("all", "on");
 
 pktgen.pause("Wait a second, then go back to main page\n", 1000);

@@ -65,7 +65,7 @@ is_map_valid(const char *fmt, char *arg)
 {
 	int ret = 0;
 
-	if (strchr("dDhHsn46mk|lCP", fmt[1]) == NULL)
+	if (strchr("%dDhHsn46mkPC|l", fmt[1]) == NULL)
 		return ret;
 
 	/* validate all of the characters matching the format */

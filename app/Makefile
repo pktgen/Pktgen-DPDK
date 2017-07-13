@@ -49,28 +49,28 @@ CFLAGS_pktgen-log.o := -Wno-format-nonliteral
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 
-v17 := $(wildcard  $(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)/lib*.a)
-v16 := $(wildcard  $(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET)/libcommon.a)
+dpdk_ver := $(RTE_SDK)/xusertools/dpdk-version.sh
+pktgen_ver := $(RTE_SRCDIR)/../tools/dpdk-version.sh
+ver_cmd := $(if $(wildcard $(dpdk_ver)),$(dpdk_ver),$(pktgen_ver))
+# $(info ver_cmd=$(ver_cmd))
 
-#$(info v17=$(v17))
-#$(info v16=$(v16))
+yy := $(shell $(ver_cmd) -yy)
+# mm := $(shell $(ver_cmd) -mm)
 
-ifeq ($(v17),)
-BUILD_TYPE := v16
-else
-BUILD_TYPE := v17
-endif
+# $(info yy=$(yy))
 
-ifeq ($(BUILD_TYPE),v17)
+ifeq ($(yy),17)
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common
 LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui/gui
 else
+ifeq ($(yy),16)
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common/lib/common
 LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli/lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui
+endif
 endif
 
 COMMON_LIB := $(COMMON_PRE)/$(RTE_TARGET)
@@ -87,8 +87,9 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
 	pktgen-latency.c pktgen-help.c
 
-MYLIB_PATH := -L$(COMMON_LIB)
-MYLIBS := -lcommon
+COMMON_NAME := libcommon.a
+MYLIBS     += -lcommon
+MYLIB_PATH += -L$(COMMON_LIB) 
 
 LUA_NAME   := librte_lua.a
 MYLIBS     += -lrte_lua
@@ -97,6 +98,9 @@ MYLIB_PATH += -L$(LUA_LIB)
 CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli
 MYLIB_PATH += -L$(CLI_LIB)
+
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/common
+COMMON_DEP := $(COMMON_LIB)/$(COMMON_NAME)
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
@@ -134,16 +138,8 @@ endif
 # $(info $(CLI_LIB)/$(CLI_NAME))
 # $(info $(MYLIB_PATH))
 
-pktgen: $(COMMON_LIB)/libcommon.a $(LUA_DEP) $(CLI_DEP)
+pktgen: $(COMMON_DEP) $(LUA_DEP) $(CLI_DEP)
 
 LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) -lm
-
-ifeq ($(CONFIG_RTE_LIBRTE_LUA),n)
-DEPDIRS += ../lib/lua
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_CLI),n)
-DEPDIRS += ../lib/cli
-endif
 
 include $(RTE_SDK)/mk/rte.extapp.mk

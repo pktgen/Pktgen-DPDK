@@ -47,6 +47,8 @@ else
 DIRS-y += lib app
 endif
 
+DEPDIRS-app += lib gui
+
 export GUI
 
 .PHONY: docs

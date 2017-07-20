@@ -34,6 +34,7 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <execinfo.h>
 #include <signal.h>
 
 #include "pktgen-main.h"
@@ -282,20 +283,40 @@ pktgen_parse_args(int argc, char **argv)
 	return ret;
 }
 
+#define MAX_BACKTRACE	32
+
 static void
 sig_handler(int v __rte_unused)
 {
+	void *array[MAX_BACKTRACE];
+	size_t size;
+	char **strings;
+	size_t i;
+
 	scrn_setw(1);	/* Reset the window size, from possible crash run. */
 	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
+	printf("\n======");
 	if (v == SIGSEGV)
-		printf("Pktgen got a Segment Fault\n");
+		printf(" Pktgen got a Segment Fault\n");
 	else if (v == SIGHUP)
-		printf("Pktgen received a SIGHUP\n");
+		printf(" Pktgen received a SIGHUP\n");
 	else
-		printf("Pktgen received signal %d\n", v);
+		printf(" Pktgen received signal %d\n", v);
 
-	exit(0);
+	printf("\n");
+
+	size = backtrace(array, MAX_BACKTRACE);
+	strings = backtrace_symbols (array, size);
+
+	printf ("Obtained %zd stack frames.\n", size);
+
+	for (i = 0; i < size; i++)
+		printf ("%s\n", strings[i]);
+
+	free (strings);
+
+	abort();
 }
 
 /**************************************************************************//**

@@ -830,6 +830,7 @@ static struct cli_map debug_map[] = {
 	{ 30, "debug mempool %P %s" },
 	{ 40, "debug pdump %P" },
 	{ 50, "debug memzone" },
+	{ 51, "debug memseg" },
 	{ 60, "debug hexdump %H %d" },
 	{ 61, "debug hexdump %H" },
     { -1, NULL }
@@ -840,7 +841,8 @@ static const char *debug_help[] = {
 	"debug tx_debug                     - Enable tx debug output",
 	"debug mempool <portlist> <type>    - Dump out the mempool info for a given type",
 	"debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
-	"debug dump memzone                 - List all of the current memzones",
+	"debug memzone                      - List all of the current memzones",
+	"debug memseg                       - List all of the current memsegs",
 	"debug hexdump <addr> <len>         - hex dump memory at given address",
 	"",
 	NULL
@@ -882,6 +884,9 @@ debug_cmd(int argc, char **argv)
 			break;
 		case 50:
 			rte_memzone_dump(stdout);
+			break;
+		case 51:
+			rte_dump_physmem_layout(stdout);
 			break;
 		case 60:
 		case 61:

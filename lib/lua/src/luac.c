@@ -211,14 +211,10 @@ int main(int argc, char* argv[])
 ** See Copyright Notice in lua.h
 */
 
-#include <ctype.h>
-#include <stdio.h>
-
 #define luac_c
 #define LUA_CORE
 
 #include "ldebug.h"
-#include "lobject.h"
 #include "lopcodes.h"
 
 #define VOID(p)		((const void*)(p))

@@ -42,7 +42,6 @@
  */
 #if defined(LUA_USE_READLINE)
 
-#include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #define lua_readline(L,b)	((void)L, ((b)=readline(NULL)) != NULL)

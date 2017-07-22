@@ -62,6 +62,9 @@ Options:
     -l, --list:
 	    Print a list of known configuration files
 
+	-n, --norun
+        Just create the command line and outpuyt the line with no-running.
+
     -v, --verbose
 	    Print out more information
 
@@ -80,6 +83,7 @@ Examples:
 	sys.exit(0)
 
 def err_exit(str):
+	''' print the error string and exit '''
 	print(str)
 	sys.exit(1)
 
@@ -91,16 +95,34 @@ def find_file(arg, t):
 			return f
 	return None
 
+def mk_tuple(lst, s):
+	''' Convert a string to a tuple if needed '''
+	t = {}
+
+	if type(lst[s]) != tuple:
+		if verbose:
+			print('Not a Tuple', type(lst[s]), lst[s])
+		t[s] = tuple([lst[s],])
+	else:
+		if verbose:
+			print('A tuple', type(lst[s]), lst[s])
+		t[s] = lst[s]
+
+	if verbose:
+		print('New t[s]', type(t[s]), t[s])
+
+	return t[s]
+
 def add_run_options(s, arg_list):
 	''' Append options to arg list '''
 	if s in cfg.run:
-		for a in cfg.run[s]:
+		for a in mk_tuple(cfg.run, s):
 			arg_list.extend(a.split(' '))
 
 def add_setup_options(s, arg_list):
 	''' Append options to arg list '''
 	if s in cfg.setup:
-		for a in cfg.setup[s]:
+		for a in mk_tuple(cfg.setup, s):
 			arg_list.extend(a.split(' '))
 
 def file_list(d, t):
@@ -199,6 +221,9 @@ def run_cfg(cfg_file):
 
 	# Output the command line
 	print(str)
+	if norun:
+		return
+
 	if verbose:
 		print("Command line as a set:")
 		print(args)
@@ -286,16 +311,18 @@ def setup_cfg(cfg_file):
 		print("  Bind following devices to DPDK:")
 		for a in cfg.setup['devices']:
 			print("		%s" % a)
+		print(args)
 
 	subprocess.call(args)
 
 def parse_args():
 	''' Parse the command arguments '''
 
-	global run_flag, verbose
+	global run_flag, verbose, norun
 
 	run_flag = True
 	verbose = False
+	norun = False
 
 	cfg_file = "./cfg/default.cfg"
 
@@ -304,8 +331,8 @@ def parse_args():
 		show_configs()
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "hulsv",
-				["help", "usage", "list", "setup", "verbose", ])
+		opts, args = getopt.getopt(sys.argv[1:], "hulsvn",
+				["help", "usage", "list", "setup", "verbose", "norun", ])
 
 	except getopt.GetoptError as error:
 		print(str(error))
@@ -322,6 +349,8 @@ def parse_args():
 			run_flag = False
 		if opt == "--verbose" or opt == "-v":
 			verbose = True
+		if opt == "--norun" or opt == "-n":
+			norun = True
 
 	if not args or len(args) > 1:
 		usage()

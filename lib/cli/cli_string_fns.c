@@ -215,11 +215,11 @@ rte_stropt(const char *list, char *str, const char *delim)
 	if (!*list)
 		return -1;
 
-	n = strlen(list) + 1;
+	n = strlen(list) + 2;
 
 	buf = alloca(n);
 	if (buf) {
-		snprintf(buf, n - 1, "%s", list);
+		snprintf(buf, n, "%s", list);
 
 		n = rte_strtok(buf, delim, argv, STR_MAX_ARGVS);
 
@@ -232,7 +232,7 @@ rte_stropt(const char *list, char *str, const char *delim)
 }
 
 static inline void
-parse_set_list(size_t low, size_t high, uint64_t *map)
+set_portlist_bits(size_t low, size_t high, uint64_t *map)
 {
 	do {
 		*map |= (1LL << low++);
@@ -287,7 +287,7 @@ rte_parse_portlist(const char *str, portlist_t *portlist)
 		if ((ps > pe) || (pe >= (sizeof(map) * 8)))
 			return -1;
 
-		parse_set_list(ps, pe, &map);
+		set_portlist_bits(ps, pe, &map);
 	}
 
 	if (portlist)

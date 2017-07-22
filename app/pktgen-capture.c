@@ -82,7 +82,6 @@ pktgen_packet_capture_init(capture_t *capture, int socket_id)
 		 socket_id);
 	capture->mz = rte_memzone_reserve(memzone_name, CAPTURE_BUFF_SIZE,
 			socket_id, RTE_MEMZONE_1GB | RTE_MEMZONE_SIZE_HINT_ONLY);
-printf("%s: mz->len %lu\n", __func__, capture->mz->len);
 }
 
 /**************************************************************************//**

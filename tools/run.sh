@@ -4,7 +4,9 @@ name=`uname -n`
 
 # Use 'sudo -E ./setup.sh' to include environment variables
 
-if [ -z ${RTE_SDK} ] ; then echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'" export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
+if [ -z ${RTE_SDK} ] ; then
+	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
+	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
 	export RTE_TARGET=x86_64-native-linuxapp-clang
 fi
 sdk=${RTE_SDK}

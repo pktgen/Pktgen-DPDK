@@ -41,6 +41,7 @@
 #include <rte_version.h>
 #include <rte_atomic.h>
 #include <rte_spinlock.h>
+#include <rte_pci.h>
 
 #undef BPF_MAJOR_VERSION
 #include <pcap/pcap.h>

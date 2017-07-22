@@ -81,7 +81,6 @@
 #include <rte_cycles.h>
 #include <rte_prefetch.h>
 #include <rte_lcore.h>
-#include <rte_per_lcore.h>
 #include <rte_branch_prediction.h>
 #include <rte_pci.h>
 #include <rte_random.h>
@@ -123,7 +122,7 @@
 extern "C" {
 #endif
 
-#define PKTGEN_VERSION          "3.3.4"
+#define PKTGEN_VERSION          "3.3.5"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 

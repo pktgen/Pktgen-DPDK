@@ -161,6 +161,14 @@ free_portdesc(uint8_t **portdesc, uint32_t num)
 	}
 }
 
+#ifndef RTE_DEVTYPE_BLACKLISTED_PCI
+#define RTE_DEVTYPE_BLACKLISTED_PCI RTE_DEVTYPE_BLACKLISTED
+#endif
+
+#ifndef RTE_DEVTYPE_WHITELISTED_PCI
+#define RTE_DEVTYPE_WHITELISTED_PCI RTE_DEVTYPE_WHITELISTED
+#endif
+
 /**************************************************************************//**
  *
  * create_blacklist - Create a port blacklist.

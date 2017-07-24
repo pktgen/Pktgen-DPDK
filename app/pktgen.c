@@ -1266,9 +1266,15 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-		} else if (curr_tsc >= (tx_next_cycle / 8))
-			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
-				rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
+		} else if (curr_tsc >= (tx_next_cycle / 8)) {
+			uint32_t flags;
+			for (idx = 0; idx < txcnt; idx++) {	/* Transmit zero pkts for Bonding PMD */
+				flags = rte_atomic32_read(&infos[idx]->port_flags);
+				if (flags & BONDING_TX_PACKETS) {
+					rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
+				}
+			}
+		}
 	}
 
 	pktgen_log_debug("Exit %d", lid);
@@ -1314,7 +1320,7 @@ pktgen_main_tx_loop(uint8_t lid)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
 	}
 
-		idx = 0;
+	idx = 0;
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_rdtsc();
 
@@ -1324,9 +1330,15 @@ pktgen_main_tx_loop(uint8_t lid)
 
 			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-		} else if (curr_tsc >= (tx_next_cycle / 8))
-			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
-				rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
+		} else if (curr_tsc >= (tx_next_cycle / 8)) {
+			uint32_t flags;
+			for (idx = 0; idx < txcnt; idx++) {	/* Transmit zero pkts for Bonding PMD */
+				flags = rte_atomic32_read(&infos[idx]->port_flags);
+				if (flags & BONDING_TX_PACKETS) {
+					rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
+				}
+			}
+		}
 	}
 
 	pktgen_log_debug("Exit %d", lid);

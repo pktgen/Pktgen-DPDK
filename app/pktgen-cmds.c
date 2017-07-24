@@ -1628,6 +1628,27 @@ enable_capture(port_info_t *info, uint32_t state)
 
 /**************************************************************************//**
  *
+ * enable_bonding - Enable or disable bonding TX zero packet processing.
+ *
+ * DESCRIPTION
+ * Enable or disable calling TX with zero packets for bonding PMD
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+enable_bonding(port_info_t *info, uint32_t state)
+{
+	if (state == ENABLE_STATE)
+		pktgen_set_port_flags(info, BONDING_TX_PACKETS);
+	else
+		pktgen_clr_port_flags(info, BONDING_TX_PACKETS);
+}
+
+/**************************************************************************//**
+ *
  * enable_garp - Enable or disable GARP packet processing.
  *
  * DESCRIPTION

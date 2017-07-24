@@ -100,6 +100,7 @@ enum {						/* Per port flag bits */
 	SEND_RANDOM_PKTS        = 0x00020000,	/**< Send random bitfields in packets */
 	SEND_GRE_ETHER_HEADER   = 0x00040000,	/**< Encapsulate Ethernet frame in GRE */
 	SEND_LATENCY_PKTS       = 0x00080000,	/**< Send latency packets */
+	BONDING_TX_PACKETS		= 0x00100000,	/**< Bonding driver send zero pkts */
 	SENDING_PACKETS         = 0x40000000,	/**< sending packets on this port */
 	SEND_FOREVER            = 0x80000000,	/**< Send packets forever */
 	SEND_ARP_PING_REQUESTS  =

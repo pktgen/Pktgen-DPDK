@@ -2210,6 +2210,37 @@ pktgen_capture(lua_State *L)
 
 /**************************************************************************//**
  *
+ * pktgen_bonding - Enable or Disable bonding to send zero packets
+ *
+ * DESCRIPTION
+ * Enable or disable bonding packet processing.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_bonding(lua_State *L)
+{
+	portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "bonding, wrong number of arguments");
+	case 2:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist,
+	     enable_bonding(info, estate((const char *)luaL_checkstring(L, 2))) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
  * pktgen_rxtap - Enable or Disable rxtap packet processing.
  *
  * DESCRIPTION
@@ -3189,6 +3220,7 @@ static const char *lua_help_info[] = {
 	"port           - select a different port number used for sequence and range pages.\n",
 	"process        - Enable or disable input packet processing on a port\n",
 	"capture        - Enable or disable capture packet processing on a port\n",
+    "bonding        - Enable or disable bonding support for sending zero packets\n",
 	"garp           - Enable or disable GARP packet processing on a port\n",
 	"blink          - Blink an led on a port\n",
 	"help           - Return the help text\n",
@@ -3365,6 +3397,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"port",          pktgen_port},			/* select a different port number used for sequence and range pages. */
 	{"process",       pktgen_process},		/* Enable or disable input packet processing on a port */
 	{"capture",       pktgen_capture},		/* Enable or disable capture on a port */
+	{"bonding",       pktgen_bonding},		/* Enable or disable bonding on a port */
 	{"garp",          pktgen_garp},			/* Enable or disable GARP packet processing on a port */
 	{"blink",         pktgen_blink},		/* Blink an led on a port */
 	{"help",          pktgen_help},			/* Return the help text */

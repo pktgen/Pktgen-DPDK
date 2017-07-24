@@ -293,6 +293,9 @@ sig_handler(int v __rte_unused)
 	char **strings;
 	size_t i;
 
+	if (v == SIGINT)
+		return;
+
 	scrn_setw(1);	/* Reset the window size, from possible crash run. */
 	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
 
@@ -339,6 +342,7 @@ main(int argc, char **argv)
 
 	signal(SIGSEGV, sig_handler);
 	signal(SIGHUP, sig_handler);
+	signal(SIGINT, sig_handler);
 
 	scrn_setw(1);	/* Reset the window size, from possible crash run. */
 	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */

@@ -139,6 +139,7 @@ void enable_garp(port_info_t *info, uint32_t state);
 void enable_mac_from_arp(uint32_t state);
 void enable_process(port_info_t *info, int state);
 void enable_capture(port_info_t *info, uint32_t state);
+void enable_bonding(port_info_t *info, uint32_t state);
 void enable_range(port_info_t *info, uint32_t state);
 void enable_pcap(port_info_t *info, uint32_t state);
 

@@ -84,7 +84,7 @@
 
 #define COPYRIGHT_MSG \
 	"Copyright (c) <2010-2017>, Intel Corporation. All rights reserved."
-#define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2016>, Intel Corporation"
+#define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2017>, Intel Corporation"
 #define POWERED_BY_DPDK         "Powered by Intel® DPDK"
 
 #ifdef ENABLE_COPYRIGHT_OUTPUT

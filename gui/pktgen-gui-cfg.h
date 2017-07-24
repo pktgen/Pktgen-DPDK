@@ -82,7 +82,7 @@ const char intel_copyright[] = {
 	"\n"
 	"   BSD LICENSE\n"
 	"\n"
-	"   Copyright(c) 2010-2016 Intel Corporation. All rights reserved.\n"
+	"   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.\n"
 	"   All rights reserved.\n"
 	"\n"
 	"   Redistribution and use in source and binary forms, with or without\n"
@@ -120,7 +120,7 @@ const gchar *authors[] = {"Created by:\n"
 
 #define GUI_VERSION         " Version 1.0.0 "
 #define COPYRIGHT_MSG \
-        "Copyright (c) <2010-2016>, Wind River Systems, Inc. All rights reserved."
+        "Copyright (c) <2010-2017>, Intel Corporation. All rights reserved."
 #define POWERED_BY_DPDK     "GUI" GUI_VERSION "\n Powered by Intel® DPDK"
 #define PKTGEN_GUI_APP_NAME ("Pktgen GUI" GUI_VERSION)
 

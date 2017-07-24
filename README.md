@@ -1082,7 +1082,7 @@ For RX found 1 port(s) for lcore 18
 For TX found 1 port(s) for lcore 19
 ``
 ------------------
-/ Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2016>, Intel Corporation
+/ Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2017>, Intel Corporation
   Flags:Port      :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
 Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 Pkts/s Max/Rx     :                 3/1                 3/1                 3/1                 3/1                  12/4
@@ -1295,7 +1295,7 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
 ``
 ---------------------------------------------------------------------------
 ``
-\                  <Sequence Page>  Copyright (c) <2010-2016>, Intel Corporation
+\                  <Sequence Page>  Copyright (c) <2010-2017>, Intel Corporation
 Port:  0, Sequence Count:  4 of 16                                                                             GTPu
   Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -1345,7 +1345,7 @@ Pktgen:/>
 ``
 ---------------------------------------------------------------------------
 ``
-| Port 0           <Random bitfield Page>  Copyright (c) <2010-2016>, Intel Corporation
+| Port 0           <Random bitfield Page>  Copyright (c) <2010-2017>, Intel Corporation
    Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -1476,7 +1476,7 @@ $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
 Lua Vesrion: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2017>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1504,7 +1504,7 @@ f,e = loadfile("test/hello-world.lua")
 f()
 Lua Version: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2017>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1517,7 +1517,7 @@ You can also just send it commands via echo.
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
 Lua Version: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2016>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2017>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!

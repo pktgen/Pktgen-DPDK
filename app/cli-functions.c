@@ -40,6 +40,8 @@
 #include <termios.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <signal.h>
 
 #include <rte_version.h>
 #include <rte_atomic.h>
@@ -49,6 +51,7 @@
 #include <cli_string_fns.h>
 #endif
 #include <rte_hexdump.h>
+#include <rte_rbuf.h>
 
 #include "pktgen.h"
 
@@ -690,7 +693,8 @@ theme_cmd(int argc, char **argv)
 				"tx_tap|"		/* 12 */	\
 				"icmp|"			/* 13 */	\
 				"range|"		/* 14 */	\
-				"capture"		/* 15 */
+				"capture|"		/* 15 */	\
+				"bonding"		/* 16 */
 
 static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
@@ -718,6 +722,7 @@ static const char *enable_help[] = {
 	"              icmp                 - Enable/Disable sending ICMP packets",
 	"              range                - Enable or Disable the given portlist for sending a range of packets",
 	"              capture              - Enable/disable packet capturing on a portlist",
+    "              bonding              - Enable call TX wiht zero packets for bonding driver",
 	"",
 	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
 	"               mac_from_arp        - Enable/disable MAC address from ARP packet",
@@ -801,6 +806,9 @@ en_dis_cmd(int argc, char **argv)
 				case 15:
 					foreach_port(portlist, pktgen_set_capture(info, state));
 					break;
+				case 16:
+					foreach_port(portlist, enable_bonding(info, state));
+					break;
 				default:
 					cli_printf("Invalid option %s\n", ed_type);
 					return -1;
@@ -833,6 +841,8 @@ static struct cli_map debug_map[] = {
 	{ 51, "debug memseg" },
 	{ 60, "debug hexdump %H %d" },
 	{ 61, "debug hexdump %H" },
+	{ 70, "debug rbuf" },
+	{ 80, "debug break" },
     { -1, NULL }
 };
 
@@ -844,6 +854,8 @@ static const char *debug_help[] = {
 	"debug memzone                      - List all of the current memzones",
 	"debug memseg                       - List all of the current memsegs",
 	"debug hexdump <addr> <len>         - hex dump memory at given address",
+	"debug rbuf                         - dump out the RBUF structure",
+	"debug break                        - break into the debugger",
 	"",
 	NULL
 };
@@ -896,6 +908,12 @@ debug_cmd(int argc, char **argv)
 			else
 				len = strtoul(argv[3], NULL, 0);
 			rte_hexdump(stdout, "", addr, len);
+			break;
+		case 70:
+			rte_rbuf_dump(stdout);
+			break;
+		case 80:
+			kill(getpid(), SIGINT);
 			break;
 		default:
 			return -1;

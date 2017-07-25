@@ -99,6 +99,7 @@ pktgen_log_set_screen_level(int level)
 
 /* Log the provided message to the log screen and optionally a file. */
 void
+__attribute__((format(printf, 5, 6)))
 pktgen_log(int level, const char *file, long line,
 	   const char *func, const char *fmt, ...)
 {

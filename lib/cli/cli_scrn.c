@@ -50,6 +50,7 @@
 RTE_DEFINE_PER_LCORE(struct cli_scrn *, scrn);
 
 void
+__attribute__((format(printf, 3, 4)))
 scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 {
 	va_list vaList;
@@ -63,6 +64,7 @@ scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 }
 
 void
+__attribute__((format(printf, 3, 4)))
 scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...)
 {
 	va_list vaList;
@@ -80,6 +82,7 @@ scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...)
 }
 
 void
+__attribute__((format(printf, 4, 5)))
 scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...)
 {
 	va_list vaList;

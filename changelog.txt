@@ -1,11 +1,12 @@
-Pktgen - Traffic Generator powered by Intel's DPDK
+Pktgen - Traffic Generator powered by DPDK
 =====================================================
 
-**Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
+**Pktgen is a traffic generator powered by DPDK at wire rate traffic with 64 byte frames.**
 
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.3.7 - Fix BLACKLIST and WHITELIST macro change for 17.08 DPDK
  - 3.3.6 - Add flag to enable bonding PMD to do TX calls with zero packets.
            New command 'enable|disable bonding'
            Cleanup some of the copyright dates to use 2017

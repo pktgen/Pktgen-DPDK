@@ -1,7 +1,7 @@
-Pktgen - Traffic Generator powered by Intel's DPDK
+Pktgen - Traffic Generator powered by DPDK
 =====================================================
 
-**Pktgen is a traffic generator powered by Intel's DPDK at wire rate traffic with 64 byte frames.**
+**Pktgen is a traffic generator powered by DPDK at wire rate traffic with 64 byte frames.**
 
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
@@ -38,7 +38,7 @@ Pktgen - Traffic Generator powered by Intel's DPDK
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  OF THE POSSIBILITY OF SUCH DAMAGE.
 
- Pktgen: Created 2010 by Keith Wiles @ windriver.com, now at Intel.com
+ Pktgen: Created 2010-2017 by Keith Wiles @ Intel.com
  ---
 
 **======================== README.md file ==============================**
@@ -98,7 +98,7 @@ very slow.
 *** Pktgen command line directory format ***
 
 ``
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
 
 
 
@@ -427,7 +427,7 @@ run = {
 ``
 Usage: ./app/pktgen -l CORELIST -n NUM [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
-Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by Intel® DPDK
+Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by DPDK
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
 EAL: Detected 72 lcore(s)
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
@@ -675,7 +675,7 @@ system configuration.
 rkwiles@rkwiles-DESK1 (dev):~/.../intel/pktgen$ ./tools/run.sh
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen -l 1,2-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 --file-prefix pg --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3 -b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0 -- -I -T -P --crc-strip -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8 -f themes/black-yellow.theme
 
-Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by Intel® DPDK
+Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by DPDK
 EAL: Detected lcore 0 as core 0 on socket 0
 EAL: Detected lcore 1 as core 1 on socket 0
 EAL: Detected lcore 2 as core 2 on socket 0
@@ -844,7 +844,7 @@ PMD: Using mode 4, it is necessary to do TX burst and RX burst at least every 10
 EAL: Create bonded device net_bonding1 on port 8 in mode 4 on socket 0.
 
    Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
-   Pktgen created by: Keith Wiles -- >>> Powered by Intel® DPDK <<<
+   Pktgen created by: Keith Wiles -- >>> Powered by DPDK <<<
 
 Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
 >>> Packet Burst 32, RX Desc 512, TX Desc 1024, mbufs/port 8192, mbuf cache 1024
@@ -1115,7 +1115,7 @@ Dst MAC Address   :   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:db 
 Src MAC Address   :   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:da   3c:fd:fe:9c:5c:db
 VendID/PCI Addr   :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2   8086:1572/04:00.3
 
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
 
 
 
@@ -1315,7 +1315,7 @@ Port:  0, Sequence Count:  4 of 16                                              
 
 
 
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
 
 
 
@@ -1379,7 +1379,7 @@ Pktgen:/>
       29        0      No   00000000 00000000 00000000 00000000
       30        0      No   00000000 00000000 00000000 00000000
       31        0      No   00000000 00000000 00000000 00000000
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+-- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
 
 
 

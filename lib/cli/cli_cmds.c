@@ -423,9 +423,9 @@ sizes_cmd(int argc, char **argv)
 		return 0;
 	}
 
-	cli_printf("  sizeof(struct cli)      %lu\n", sizeof(struct cli));
-	cli_printf("  sizeof(struct cli_node) %lu\n", sizeof(struct cli_node));
-	cli_printf("  sizeof(args_t)          %lu\n", sizeof(args_t));
+	cli_printf("  sizeof(struct cli)      %zu\n", sizeof(struct cli));
+	cli_printf("  sizeof(struct cli_node) %zu\n", sizeof(struct cli_node));
+	cli_printf("  sizeof(args_t)          %zu\n", sizeof(args_t));
 	cli_printf("  Total number of Nodes   %d\n", this_cli->nb_nodes);
 	cli_printf("  Number History lines    %d\n", this_cli->nb_hist);
 	cli_printf("  CLI_DEFAULT_NB_NODES    %d\n", CLI_DEFAULT_NB_NODES);

@@ -121,7 +121,7 @@ Once ``pktgen`` is running you will see an output like the following::
 	Src MAC Address   :   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:da   3c:fd:fe:9c:5c:db
 	VendID/PCI Addr   :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2   8086:1572/04:00.3
 
-	-- Pktgen Ver: 3.2.4 (DPDK 17.05.0-rc0)  Powered by Intel® DPDK ---------------
+	-- Pktgen Ver: 3.2.4 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
 
 	Pktgen:/>
 

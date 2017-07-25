@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016>, Intel Corporation
+ * Copyright (c) <2016-2017>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,7 +121,7 @@ const gchar *authors[] = {"Created by:\n"
 #define GUI_VERSION         " Version 1.0.0 "
 #define COPYRIGHT_MSG \
         "Copyright (c) <2010-2017>, Intel Corporation. All rights reserved."
-#define POWERED_BY_DPDK     "GUI" GUI_VERSION "\n Powered by Intel® DPDK"
+#define POWERED_BY_DPDK     "GUI" GUI_VERSION "\n Powered by DPDK"
 #define PKTGEN_GUI_APP_NAME ("Pktgen GUI" GUI_VERSION)
 
 #endif

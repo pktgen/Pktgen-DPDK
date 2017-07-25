@@ -160,7 +160,7 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
 	scrn->nrows = nrows;
 	scrn->ncols = ncols;
 	scrn->theme = theme;
-	scrn_type   = scrn_type;
+	scrn->type  = scrn_type;
 
 	if (scrn_type == SCRN_STDIN_TYPE) {
 		if (scrn_stdin_setup()) {

@@ -908,7 +908,7 @@ debug_cmd(int argc, char **argv)
 			break;
 		case 60:
 		case 61:
-			addr = (void *)strtoull(argv[2], NULL, 0);
+			addr = (void *)(uintptr_t)strtoull(argv[2], NULL, 0);
 			if (argc == 3)
 				len = 64;
 			else

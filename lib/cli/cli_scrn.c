@@ -50,6 +50,7 @@
 RTE_DEFINE_PER_LCORE(struct cli_scrn *, scrn);
 
 void
+__attribute__((format(printf, 3, 4)))
 scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 {
 	va_list vaList;
@@ -63,6 +64,7 @@ scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 }
 
 void
+__attribute__((format(printf, 3, 4)))
 scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...)
 {
 	va_list vaList;
@@ -80,6 +82,7 @@ scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...)
 }
 
 void
+__attribute__((format(printf, 4, 5)))
 scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...)
 {
 	va_list vaList;
@@ -160,7 +163,7 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
 	scrn->nrows = nrows;
 	scrn->ncols = ncols;
 	scrn->theme = theme;
-	scrn_type   = scrn_type;
+	scrn->type  = scrn_type;
 
 	if (scrn_type == SCRN_STDIN_TYPE) {
 		if (scrn_stdin_setup()) {

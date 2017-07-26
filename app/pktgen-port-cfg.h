@@ -339,7 +339,7 @@ pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint
 		di->max_vmdq_pools);
 	fprintf(
 		f,
-		"   rx_offload_capa:%4d, tx_offload_capa   :%4d, reta_size     :%6d, flow_type_rss_offloads:%016lx\n",
+		"   rx_offload_capa:%4d, tx_offload_capa   :%4d, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
 		di->rx_offload_capa,
 		di->tx_offload_capa,
 		di->reta_size,

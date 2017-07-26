@@ -296,21 +296,27 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 	struct rte_mbuf **pkts;
 	uint32_t ret, cnt;
 
-	cnt  = mtab->len;
-	pkts = mtab->m_table;
+	cnt = mtab->len;
+	mtab->len = 0;
 
-	ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-	if (ret == 0)
-		return;
+	pkts    = mtab->m_table;
 
 	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
-		pktgen_do_tx_tap(info, pkts, ret);
+		while (cnt > 0) {
+			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
-	cnt -= ret;
-	if (cnt)
-		memmove(pkts, &pkts[ret], (cnt * sizeof(void *)));
+			pktgen_do_tx_tap(info, pkts, ret);
 
-	mtab->len = cnt;
+			pkts += ret;
+			cnt -= ret;
+		}
+	else
+		while (cnt > 0) {
+			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+			pkts += ret;
+			cnt -= ret;
+		}
 }
 
 /**************************************************************************//**
@@ -810,17 +816,18 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 static __inline__ void
 pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
 {
-	int j;
+	int j, i;
 
 	/* Prefetch first packets */
 	for (j = 0; j < PREFETCH_OFFSET && j < nb_rx; j++)
 		rte_prefetch0(rte_pktmbuf_mtod(pkts[j], void *));
 
 	/* Prefetch and handle already prefetched packets */
-	for (j = 0; j < (nb_rx - PREFETCH_OFFSET); j++) {
-		rte_prefetch0(rte_pktmbuf_mtod(pkts[j + PREFETCH_OFFSET],
-					       void *));
-		pktgen_packet_classify(pkts[j], pid);
+	for (i = 0; i < (nb_rx - PREFETCH_OFFSET); i++) {
+		rte_prefetch0(rte_pktmbuf_mtod(pkts[j], void *));
+		j++;
+
+		pktgen_packet_classify(pkts[i], pid);
 	}
 
 	/* Handle remaining prefetched packets */

@@ -710,21 +710,21 @@ static const char *enable_help[] = {
 	"enable|disable <portlist> <features>",
 	"    Feature - process              - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
 	"              mpls                 - Enable/disable sending MPLS entry in packets",
-    "              qinq                 - Enable/disable sending Q-in-Q header in packets",
+	"              qinq                 - Enable/disable sending Q-in-Q header in packets",
 	"              gre                  - Enable/disable GRE support",
 	"              gre_eth              - Enable/disable GRE with Ethernet frame payload",
 	"              vlan                 - Enable/disable VLAN tagging",
 	"              garp                 - Enable or Disable GARP packet processing and update MAC address",
 	"              random               - Enable/disable Random packet support",
 	"              latency              - Enable/disable latency testing",
-    "              pcap                 - Enable or Disable sending pcap packets on a portlist",
+	"              pcap                 - Enable or Disable sending pcap packets on a portlist",
 	"              blink                - Blink LED on port(s)",
 	"              rx_tap               - Enable/Disable RX Tap support",
 	"              tx_tap               - Enable/Disable TX Tap support",
 	"              icmp                 - Enable/Disable sending ICMP packets",
 	"              range                - Enable or Disable the given portlist for sending a range of packets",
 	"              capture              - Enable/disable packet capturing on a portlist",
-    "              bonding              - Enable call TX wiht zero packets for bonding driver",
+	"              bonding              - Enable call TX wiht zero packets for bonding driver",
 	"",
 	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
 	"               mac_from_arp        - Enable/disable MAC address from ARP packet",
@@ -908,7 +908,7 @@ debug_cmd(int argc, char **argv)
 			break;
 		case 60:
 		case 61:
-			addr = (void *)strtoull(argv[2], NULL, 0);
+			addr = (void *)(uintptr_t)strtoull(argv[2], NULL, 0);
 			if (argc == 3)
 				len = 64;
 			else

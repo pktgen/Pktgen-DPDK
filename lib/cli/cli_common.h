@@ -71,6 +71,7 @@ extern "C" {
  */
 
 static inline void
+__attribute__((format(printf, 1, 2)))
 cli_printf(const char *fmt, ...)
 {
     va_list vaList;

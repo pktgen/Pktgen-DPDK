@@ -339,13 +339,15 @@ pktgen_page_stats(void)
 
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_ipackets, rate->ipackets);
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			info->max_ipackets, rate->ipackets);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_opackets, rate->opackets);
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			info->max_opackets, rate->opackets);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu/%lu",
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
 		         iBitsTotal(info->rate_stats) / Million,
 		         oBitsTotal(info->rate_stats) / Million);
 		scrn_printf(row++,  col, "%*s", COLUMN_WIDTH_1, buff);
@@ -360,12 +362,14 @@ pktgen_page_stats(void)
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._256_511);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._512_1023);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._1024_1518);
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->sizes.runt, info->sizes.jumbo);
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			info->sizes.runt, info->sizes.jumbo);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		/* Rx/Tx Errors */
 		row = PKT_TOTALS_ROW;
-		snprintf(buff, sizeof(buff), "%lu/%lu", prev->ierrors, prev->oerrors);
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			prev->ierrors, prev->oerrors);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		/* Total Rx/Tx */
@@ -375,20 +379,22 @@ pktgen_page_stats(void)
 		/* Total Rx/Tx mbits */
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->prev_stats) / Million);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->prev_stats) / Million);
-
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->stats.arp_pkts, info->stats.echo_pkts);
+ 
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			info->stats.arp_pkts, info->stats.echo_pkts);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		if (pktgen.flags & TX_DEBUG_FLAG) {
-			snprintf(buff, sizeof(buff), "%lu", info->stats.tx_failed);
+			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-			snprintf(buff, sizeof(buff), "%lu/%lu", info->tx_pps, info->tx_cycles);
+			snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+				info->tx_pps, info->tx_cycles);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-			snprintf(buff, sizeof(buff), "%lu", info->stats.imissed);
+			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.imissed);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadcrc);
+			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.ibadcrc);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 			snprintf(buff, sizeof(buff), "%lu", info->stats.ibadlen);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -399,7 +405,7 @@ pktgen_page_stats(void)
 #else
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
 #endif
-			snprintf(buff, sizeof(buff), "%lu", info->stats.rx_nombuf);
+			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.rx_nombuf);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
 		display_cnt++;
@@ -408,15 +414,15 @@ pktgen_page_stats(void)
 	/* Display the total pkts/s for all ports */
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	row = LINK_STATE_ROW + 1;
-	snprintf(buff, sizeof(buff), "%lu/%lu",
+	snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
 	         pktgen.max_total_ipackets, cumm->ipackets);
 	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	scrn_eol();
-	snprintf(buff, sizeof(buff), "%lu/%lu",
+	snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
 	         pktgen.max_total_opackets, cumm->opackets);
 	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	scrn_eol();
-	snprintf(buff, sizeof(buff), "%lu/%lu",
+	snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
 	         iBitsTotal(pktgen.cumm_rate_totals) / Million,
 	         oBitsTotal(pktgen.cumm_rate_totals) / Million);
 	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);

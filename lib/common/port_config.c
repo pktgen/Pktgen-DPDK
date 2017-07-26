@@ -186,7 +186,7 @@ create_blacklist(uint64_t portmask,
 		return 0;
 
 	fprintf(stdout,
-		"Ports: Port Mask: %016lx blacklisted = --, not-blacklisted = ++\n",
+		"Ports: Port Mask: %016" PRIx64 " blacklisted = --, not-blacklisted = ++\n",
 		portmask);
 	idx = 0;
 	for (i = 0; i < port_cnt; i++) {

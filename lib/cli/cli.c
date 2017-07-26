@@ -696,7 +696,7 @@ cli_pause(const char *msg, const char *keys)
 		if (cli_poll(&c))
 			if (strchr(keys, c)) {
 				/* clear the line of the prompt */
-				cli_printf("\r%*s\r", strlen(prompt), " ");
+				cli_printf("\r%*s\r", (int)strlen(prompt), " ");
 				return c;
 			}
 	} while (this_cli->quit_flag == 0);

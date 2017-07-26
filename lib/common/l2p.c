@@ -79,14 +79,6 @@ typedef struct lcore_port_s {
 
 static lp_t lp_data, *lp = &lp_data;
 
-static inline uint8_t
-_bget(uint8_t *p, uint16_t idx)
-{
-	int32_t c = (idx / 8);
-
-	return p[c] & (1 << (idx - (c * 8)));
-}
-
 static inline int
 _btst(uint8_t *p, uint16_t idx)
 {
@@ -277,32 +269,6 @@ pg_parse_port_list(char *list, ps_t *ps)
 			return 1;
 	}
 	return 0;
-}
-
-static inline void
-pg_dump_lcore_map(const char *t, uint8_t *m)
-{
-	int i;
-
-	fprintf(stderr, "%s( ", t);
-
-	for (i = 0; i < RTE_MAX_LCORE; i++)
-		if (_btst(m, i) )
-			fprintf(stderr, "%d ", i);
-	fprintf(stderr, ")");
-}
-
-static inline void
-pg_dump_port_map(const char *t, uint8_t *m)
-{
-	int i;
-
-	fprintf(stderr, "%s( ", t);
-
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++)
-		if (_btst(m, i) )
-			fprintf(stderr, "%d ", i);
-	fprintf(stderr, ")");
 }
 
 /**************************************************************************//**

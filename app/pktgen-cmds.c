@@ -116,7 +116,7 @@ pktgen_script_save(char *path)
 
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
 	fprintf(fd, "# Command line arguments: (DPDK args are defaults)\n");
-	fprintf(fd, "# %s -c %lx -n 3 -m 512 --proc-type %s -- ",
+	fprintf(fd, "# %s -c %" PRIx64 " -n 3 -m 512 --proc-type %s -- ",
 		pktgen.argv[0],
 		lcore,
 		(rte_eal_process_type() ==
@@ -171,7 +171,7 @@ pktgen_script_save(char *path)
 		if (rte_atomic64_read(&info->transmit_count) == 0)
 			strcpy(buff, "Forever");
 		else
-			snprintf(buff, sizeof(buff), "%ld",
+			snprintf(buff, sizeof(buff), "%" PRIu64,
 				 rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "#\n");
 		flags = rte_atomic32_read(&info->port_flags);
@@ -183,7 +183,7 @@ pktgen_script_save(char *path)
 		fprintf(fd, "Link: %s\n", buff);
 
 		fprintf(fd, "#\n# Set up the primary port information:\n");
-		fprintf(fd, "set %d count %ld\n", info->pid,
+		fprintf(fd, "set %d count %" PRIu64 "\n", info->pid,
 			rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "set %d size %d\n", info->pid, pkt->pktSize + FCS_SIZE);
 		fprintf(fd, "set %d rate %g\n", info->pid, info->tx_rate);
@@ -226,7 +226,7 @@ pktgen_script_save(char *path)
 		}
 		fprintf(fd, "\n");
 
-		fprintf(fd, "set %d jitter %lu\n", i, info->jitter_threshold);
+		fprintf(fd, "set %d jitter %" PRIu64 "\n", i, info->jitter_threshold);
 		fprintf(fd, "%sable %d mpls\n",
 			(flags & SEND_MPLS_LABEL) ? "en" : "dis", i);
 		sprintf(buff, "%x", pkt->mpls_entry);
@@ -454,7 +454,7 @@ pktgen_lua_save(char *path)
 
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
 	fprintf(fd, "-- Command line arguments: (DPDK args are defaults)\n");
-	fprintf(fd, "-- %s -c %lx -n 3 -m 512 --proc-type %s -- ",
+	fprintf(fd, "-- %s -c %" PRIx64 " -n 3 -m 512 --proc-type %s -- ",
 		pktgen.argv[0],
 		lcore,
 		(rte_eal_process_type() ==
@@ -497,7 +497,7 @@ pktgen_lua_save(char *path)
 		if (rte_atomic64_read(&info->transmit_count) == 0)
 			strcpy(buff, "Forever");
 		else
-			snprintf(buff, sizeof(buff), "%ld",
+			snprintf(buff, sizeof(buff), "%" PRIu64,
 				 rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "-- \n");
 		flags = rte_atomic32_read(&info->port_flags);
@@ -509,7 +509,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "Link: %s\n", buff);
 
 		fprintf(fd, "--\n-- Set up the primary port information:\n");
-		fprintf(fd, "pktgen.set('%d', 'count', %ld);\n", info->pid,
+		fprintf(fd, "pktgen.set('%d', 'count', %" PRIu64 ");\n", info->pid,
 			rte_atomic64_read(&info->transmit_count));
 		fprintf(fd, "pktgen.set('%d', 'size', %d);\n", info->pid, pkt->pktSize + FCS_SIZE);
 		fprintf(fd, "pktgen.set('%d', 'rate', %g);\n", info->pid, info->tx_rate);
@@ -871,7 +871,7 @@ pktgen_transmit_count_rate(int port, char *buff, int len)
 	if (rte_atomic64_read(&info->transmit_count) == 0)
 		snprintf(buff, len, "Forever /%g%%", info->tx_rate);
 	else
-		snprintf(buff, len, "%ld /%g%%",
+		snprintf(buff, len, "%" PRIu64 " /%g%%",
 			 rte_atomic64_read(&info->transmit_count),
 			 info->tx_rate);
 

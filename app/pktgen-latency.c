@@ -238,13 +238,15 @@ pktgen_page_latency(void)
 
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_ipackets, info->rate_stats.ipackets);
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			info->max_ipackets, info->rate_stats.ipackets);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu/%lu", info->max_opackets, info->rate_stats.opackets);
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+			info->max_opackets, info->rate_stats.opackets);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu/%lu",
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
 		         iBitsTotal(info->rate_stats) / Million,
 		         oBitsTotal(info->rate_stats) / Million);
 		scrn_printf(row++,  col, "%*s", COLUMN_WIDTH_1, buff);
@@ -285,24 +287,24 @@ pktgen_page_latency(void)
 			info->latency_nb_pkts = 0;
 			info->avg_latency     = 0;
 		}
-		snprintf(buff, sizeof(buff), "%lu", avg_lat);
+		snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu", info->jitter_threshold);
+		snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu", info->jitter_count);
+		snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_count);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%lu", info->prev_stats.ipackets);
+		snprintf(buff, sizeof(buff), "%" PRIu64, info->prev_stats.ipackets);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		avg_lat = 0;
 		if (info->prev_stats.ipackets)
-			snprintf(buff, sizeof(buff), "%lu",
+			snprintf(buff, sizeof(buff), "%" PRIu64,
 				 (info->jitter_count * 100) / info->prev_stats.ipackets);
 		else
-			snprintf(buff, sizeof(buff), "%lu", avg_lat);
+			snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 

@@ -106,6 +106,7 @@ typedef enum {
 typedef uint8_t cli_rgb_t;
 
 static inline void
+__attribute__((format(printf, 1, 2)))
 scrn_puts(const char *fmt, ...)
 {
 	struct cli_scrn *scrn = this_scrn;

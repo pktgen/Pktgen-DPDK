@@ -43,9 +43,6 @@ include $(RTE_SDK)/mk/rte.vars.mk
 # binary name
 APP = pktgen
 
-CFLAGS_commands.o := -Wno-format-nonliteral
-CFLAGS_pktgen-log.o := -Wno-format-nonliteral
-
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 

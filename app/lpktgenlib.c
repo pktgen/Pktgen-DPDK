@@ -82,6 +82,7 @@ setf_integer(lua_State *L, const char *name, lua_Integer value)
 	lua_setfield(L, -2, name);
 }
 
+#if 0 /* not used */
 /**************************************************************************//**
  *
  * setf_integer - Helper routine to set Lua variables.
@@ -100,6 +101,7 @@ setf_function(lua_State *L, const char *name, lua_CFunction fn)
 	lua_pushcclosure(L, fn, 0);
 	lua_setfield(L, -2, name);
 }
+#endif
 
 /**************************************************************************//**
  *
@@ -205,16 +207,6 @@ getf_string(lua_State *L, const char *field)
 	lua_pop(L, 1);
 
 	return value;
-}
-
-static inline void
-parse_portlist(const char *buf, void *pl)
-{
-#if (RTE_VERSION >= RTE_VERSION_NUM(2, 0, 0, 0))
-	rte_parse_portlist((char *)(uintptr_t)buf, pl);
-#else
-	cmdline_parse_portlist(NULL, buf, pl, PORTLIST_TOKEN_SIZE);
-#endif
 }
 
 /**************************************************************************//**

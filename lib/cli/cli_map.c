@@ -162,7 +162,7 @@ decode_map(const char *fmt)
 	}
 
 	switch (fmt[1]) {
-	case '%': cli_printf("% "); break;
+	case '%': cli_printf("%% "); break;
 	case 'd': cli_printf("<32bit number> "); break;
 	case 'D': cli_printf("<64bit number> "); break;
 	case 'h': cli_printf("<32bit hex> "); break;

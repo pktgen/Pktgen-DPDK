@@ -296,21 +296,27 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 	struct rte_mbuf **pkts;
 	uint32_t ret, cnt;
 
-	cnt  = mtab->len;
-	pkts = mtab->m_table;
+	cnt = mtab->len;
+	mtab->len = 0;
 
-	ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-	if (ret == 0)
-		return;
+	pkts    = mtab->m_table;
 
 	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
-		pktgen_do_tx_tap(info, pkts, ret);
+		while (cnt > 0) {
+			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
-	cnt -= ret;
-	if (cnt)
-		memmove(pkts, &pkts[ret], (cnt * sizeof(void *)));
+			pktgen_do_tx_tap(info, pkts, ret);
 
-	mtab->len = cnt;
+			pkts += ret;
+			cnt -= ret;
+		}
+	else
+		while (cnt > 0) {
+			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+			pkts += ret;
+			cnt -= ret;
+		}
 }
 
 /**************************************************************************//**

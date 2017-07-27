@@ -96,12 +96,12 @@
 #include "lua-socket.h"
 #include "lua_shell.h"
 
-extern void * lua_get_private(void * L);
-extern void lua_shell(void *);
-extern void lua_set_stdfiles(lua_State * L, FILE * in, FILE * out, FILE * err);
-extern void lua_reset_stdfiles(lua_State * L);
-extern int execute_lua_string(lua_State * L, char * str);
-extern void execute_lua_close(lua_State * L);
+void * lua_get_private(void * L);
+void lua_shell(void *);
+void lua_set_stdfiles(lua_State * L, FILE * in, FILE * out, FILE * err);
+void lua_reset_stdfiles(lua_State * L);
+int execute_lua_string(lua_State * L, char * str);
+void execute_lua_close(lua_State * L);
 
 static void
 _socket_open(luaServer_t * pServer)

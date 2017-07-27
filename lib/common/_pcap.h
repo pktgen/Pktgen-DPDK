@@ -98,17 +98,17 @@ _pcap_convert(pcap_info_t *pcap, pcaprec_hdr_t *pHdr)
 	}
 }
 
-extern pcap_info_t *_pcap_open(char *filename, uint16_t port);
-extern int _pcap_valid(char *filename);
-extern void _pcap_close(pcap_info_t *pcap);
-extern void _pcap_rewind(pcap_info_t *pcap);
-extern void _pcap_skip(pcap_info_t *pcap, uint32_t skip);
-extern void _pcap_info(pcap_info_t *pcap, uint16_t port, int flag);
-extern size_t _pcap_read(pcap_info_t *pcap,
+pcap_info_t *_pcap_open(char *filename, uint16_t port);
+int _pcap_valid(char *filename);
+void _pcap_close(pcap_info_t *pcap);
+void _pcap_rewind(pcap_info_t *pcap);
+void _pcap_skip(pcap_info_t *pcap, uint32_t skip);
+void _pcap_info(pcap_info_t *pcap, uint16_t port, int flag);
+size_t _pcap_read(pcap_info_t *pcap,
 			 pcaprec_hdr_t *pHdr,
 			 char *pktBuff,
 			 uint32_t bufLen);
-extern int _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
+int _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 			       unsigned int *length);
 
 #endif /* _PCAP_H_ */

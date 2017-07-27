@@ -60,8 +60,8 @@
 #endif
 
 /* Defined in lua_shell.c */
-extern int execute_lua_string(lua_State *L, char *str);
-extern int dolibrary(lua_State *L, const char *name);
+int execute_lua_string(lua_State *L, char *str);
+int dolibrary(lua_State *L, const char *name);
 
 /**************************************************************************//**
  *

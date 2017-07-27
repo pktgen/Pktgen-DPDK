@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 /* Initialize screen data structures */
-extern void pktgen_init_screen(int theme);
+void pktgen_init_screen(int theme);
 
 /**************************************************************************//**
  *
@@ -62,7 +62,7 @@ extern void pktgen_init_screen(int theme);
  *
  * SEE ALSO:
  */
-extern void display_topline(const char *msg);
+void display_topline(const char *msg);
 
 /**************************************************************************//**
  *
@@ -75,7 +75,7 @@ extern void display_topline(const char *msg);
  *
  * SEE ALSO:
  */
-extern void display_dashline(int last_row);
+void display_dashline(int last_row);
 
 /**************************************************************************//**
  *
@@ -88,7 +88,7 @@ extern void display_dashline(int last_row);
  *
  * SEE ALSO:
  */
-extern void pktgen_display_set_geometry(uint16_t rows, uint16_t cols);
+void pktgen_display_set_geometry(uint16_t rows, uint16_t cols);
 
 /**************************************************************************//**
  *
@@ -101,7 +101,7 @@ extern void pktgen_display_set_geometry(uint16_t rows, uint16_t cols);
  *
  * SEE ALSO:
  */
-extern void pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols);
+void pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols);
 
 /**************************************************************************//**
  *
@@ -114,7 +114,7 @@ extern void pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols);
  *
  * SEE ALSO:
  */
-extern void pktgen_display_set_color(const char *elem);
+void pktgen_display_set_color(const char *elem);
 
 /**************************************************************************//**
  *
@@ -129,7 +129,7 @@ extern void pktgen_display_set_color(const char *elem);
  *
  * SEE ALSO:
  */
-extern void pktgen_set_prompt(void);
+void pktgen_set_prompt(void);
 
 /**************************************************************************//**
  *
@@ -142,7 +142,7 @@ extern void pktgen_set_prompt(void);
  *
  * SEE ALSO:
  */
-extern void pktgen_show_theme(void);
+void pktgen_show_theme(void);
 
 /**************************************************************************//**
  *
@@ -155,7 +155,7 @@ extern void pktgen_show_theme(void);
  *
  * SEE ALSO:
  */
-extern void pktgen_set_theme_item(char *item,
+void pktgen_set_theme_item(char *item,
 				  char *fg_color,
 				  char *bg_color,
 				  char *attr);
@@ -171,7 +171,7 @@ extern void pktgen_set_theme_item(char *item,
  *
  * SEE ALSO:
  */
-extern void pktgen_theme_save(char *filename);
+void pktgen_theme_save(char *filename);
 
 /**************************************************************************//**
  *
@@ -184,7 +184,7 @@ extern void pktgen_theme_save(char *filename);
  *
  * SEE ALSO:
  */
-extern void pktgen_theme_state(const char *state);
+void pktgen_theme_state(const char *state);
 
 /**************************************************************************//**
  *
@@ -197,7 +197,7 @@ extern void pktgen_theme_state(const char *state);
  *
  * SEE ALSO:
  */
-extern void pktgen_theme_show(void);
+void pktgen_theme_show(void);
 
 #ifdef __cplusplus
 }

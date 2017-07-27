@@ -52,7 +52,7 @@ extern "C" {
  * SEE ALSO:
  */
 
-extern void pktgen_cpu_init(void);
+void pktgen_cpu_init(void);
 
 /**************************************************************************//**
  *
@@ -66,7 +66,7 @@ extern void pktgen_cpu_init(void);
  * SEE ALSO:
  */
 
-extern void pktgen_page_cpu(void);
+void pktgen_page_cpu(void);
 
 static inline uint8_t
 sct(uint8_t s, uint8_t c, uint8_t t) {

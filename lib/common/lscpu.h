@@ -64,6 +64,6 @@ typedef struct {
 #define LSCPU_PATH      "/usr/bin/lscpu"
 #define CPU_PROC_PATH   "cat /proc/cpuinfo"
 
-extern lscpu_t *lscpu_info(const char *lscpu_path, const char *proc_path);
+lscpu_t *lscpu_info(const char *lscpu_path, const char *proc_path);
 
 #endif

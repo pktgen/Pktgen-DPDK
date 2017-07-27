@@ -48,9 +48,9 @@ extern "C" {
 #define PKTGEN_SHORTCUTS    "Pktgen"
 
 LUALIB_API int luaopen_pktgen(lua_State *L);
-extern void pktgen_lua_openlib(lua_State *L);
+void pktgen_lua_openlib(lua_State *L);
 
-extern void _lua_openlib(lua_State *L);
+void _lua_openlib(lua_State *L);
 
 #ifdef __cplusplus
 }

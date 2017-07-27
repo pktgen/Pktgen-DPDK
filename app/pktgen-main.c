@@ -50,9 +50,9 @@
 #include "cli-functions.h"
 
 /* Defined in examples/pktgen/lib/lua/lua_shell.c */
-extern void execute_lua_close(lua_State *L);
+void execute_lua_close(lua_State *L);
 #ifdef GUI
-extern int pktgen_gui_main(int argc, char *argv[]);
+int pktgen_gui_main(int argc, char *argv[]);
 #endif
 
 /**************************************************************************//**

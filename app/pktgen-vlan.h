@@ -44,7 +44,7 @@
 extern "C" {
 #endif
 
-extern void pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid);
+void pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid);
 
 #ifdef __cplusplus
 }

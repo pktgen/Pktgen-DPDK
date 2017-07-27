@@ -44,13 +44,13 @@
 extern "C" {
 #endif
 
-extern void pktgen_l2p_dump(void);
+void pktgen_l2p_dump(void);
 
-extern void pktgen_interact(void);
+void pktgen_interact(void);
 
-extern void *pktgen_get_lua(void);
+void *pktgen_get_lua(void);
 
-extern void pktgen_stop_running(void);
+void pktgen_stop_running(void);
 
 /**************************************************************************//**
  *
@@ -64,7 +64,7 @@ extern void pktgen_stop_running(void);
  * SEE ALSO:
  */
 
-extern void *pktgen_get_lua(void);
+void *pktgen_get_lua(void);
 
 #ifdef __cplusplus
 }

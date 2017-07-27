@@ -82,9 +82,9 @@ typedef struct pkt_seq_s {
 
 struct port_info_s;
 
-extern void pktgen_send_seq_pkt(struct port_info_s *info, uint32_t seq_idx);
+void pktgen_send_seq_pkt(struct port_info_s *info, uint32_t seq_idx);
 
-extern void pktgen_page_seq(uint32_t pid);
+void pktgen_page_seq(uint32_t pid);
 
 #ifdef __cplusplus
 }

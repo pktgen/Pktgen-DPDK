@@ -51,7 +51,7 @@ typedef struct {
 #define LATENCY_MAGIC   (('L' << 8) + 'y')
 #define DEFAULT_JITTER_THRESHOLD    (50)	/**< usec */
 
-extern void pktgen_page_latency(void);
+void pktgen_page_latency(void);
 
 #ifdef __cplusplus
 }

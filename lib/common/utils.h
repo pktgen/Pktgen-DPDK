@@ -78,11 +78,11 @@ pg_strtrimset(char *str, const char *set)
 	return str;
 }
 
-extern uint32_t pg_strparse(char *s,
+uint32_t pg_strparse(char *s,
 			    const char *delim,
 			    char **entries,
 			    uint32_t max_entries);
-extern char *pg_strtrim(char *line);
-extern char *pg_strccpy(char *t, char *f, const char *str);
+char *pg_strtrim(char *line);
+char *pg_strccpy(char *t, char *f, const char *str);
 
 #endif /* _UTILS_H_ */

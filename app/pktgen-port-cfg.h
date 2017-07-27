@@ -101,6 +101,7 @@ enum {						/* Per port flag bits */
 	SEND_GRE_ETHER_HEADER   = 0x00040000,	/**< Encapsulate Ethernet frame in GRE */
 	SEND_LATENCY_PKTS       = 0x00080000,	/**< Send latency packets */
 	BONDING_TX_PACKETS		= 0x00100000,	/**< Bonding driver send zero pkts */
+	SEND_SHORT_PACKETS		= 0x00200000,	/**< Allow port to send short packets */
 	SENDING_PACKETS         = 0x40000000,	/**< sending packets on this port */
 	SEND_FOREVER            = 0x80000000,	/**< Send packets forever */
 	SEND_ARP_PING_REQUESTS  =
@@ -250,7 +251,7 @@ typedef struct port_info_s {
 	fill_t fill_pattern_type;		/**< Type of pattern to fill with */
 } port_info_t;
 
-extern void pktgen_config_ports(void);
+void pktgen_config_ports(void);
 
 /**
  * Atomically subtract a 64-bit value from the tx counter.
@@ -360,7 +361,7 @@ pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint
 	fprintf(f, "\n");
 }
 
-extern void pktgen_set_hw_strip_crc(uint8_t val);
+void pktgen_set_hw_strip_crc(uint8_t val);
 
 #ifdef __cplusplus
 }

@@ -35,9 +35,9 @@
 #ifndef _COPYRIGHT_INFO_H
 #define _COPYRIGHT_INFO_H
 
-extern void print_copyright(const char *appname, const char *created_by);
-extern void logo(int row, int col, const char *appname);
-extern void splash_screen(int row,
+void print_copyright(const char *appname, const char *created_by);
+void logo(int row, int col, const char *appname);
+void splash_screen(int row,
 			  int col,
 			  const char *appname,
 			  const char *created_by);

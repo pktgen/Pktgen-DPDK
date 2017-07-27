@@ -63,6 +63,6 @@ lcore_mask(uint16_t *first, uint16_t *last) {
 	return cnt;
 }
 
-extern uint32_t sct_convert(char *sct[]);
+uint32_t sct_convert(char *sct[]);
 
 #endif /* _CORE_INFO_H */

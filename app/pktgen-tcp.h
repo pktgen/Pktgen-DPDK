@@ -51,12 +51,12 @@ extern "C" {
  * DESCRIPTION
  * Construct a TCP header in the packet buffer provided.
  *
- * RETURNS: N/A
+ * RETURNS: Next header location
  *
  * SEE ALSO:
  */
 
-void pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, void *hdr, int type);
+void* pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, void *hdr, int type);
 
 #ifdef __cplusplus
 }

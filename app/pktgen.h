@@ -363,22 +363,22 @@ enum {						/* Pktgen flags bits */
 
 extern pktgen_t pktgen;
 
-extern void pktgen_page_display(struct rte_timer *tim, void *arg);
+void pktgen_page_display(struct rte_timer *tim, void *arg);
 
-extern void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx,
+void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx,
 			       int32_t type);
-extern void pktgen_packet_rate(port_info_t *info);
+void pktgen_packet_rate(port_info_t *info);
 
-extern void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
+void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
 
-extern pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
-extern pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
+pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
+pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
-extern int pktgen_launch_one_lcore(void *arg);
-extern uint64_t pktgen_wire_size(port_info_t *info);
-extern void pktgen_input_start(void);
+int pktgen_launch_one_lcore(void *arg);
+uint64_t pktgen_wire_size(port_info_t *info);
+void pktgen_input_start(void);
 
-extern void rte_timer_setup(void);
+void rte_timer_setup(void);
 
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags) {

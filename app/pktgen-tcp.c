@@ -50,7 +50,7 @@
  * SEE ALSO:
  */
 
-void
+void *
 pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 {
 	uint16_t tlen;
@@ -115,4 +115,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 
 		tip->tcp.cksum      = cksum(tip, tlen, 0);
 	}
+
+	/* In this case we return the original value to allow IP ctor to work */
+	return hdr;
 }

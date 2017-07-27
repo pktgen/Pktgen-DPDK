@@ -51,7 +51,7 @@
  * SEE ALSO:
  */
 
-void
+void *
 pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip)
 {
 	uint16_t tlen;
@@ -73,6 +73,7 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip)
 	rte_memcpy(&ip->saddr[8],
 		   pkt->ip_dst_addr.addr.ipv6.s6_addr,
 		   sizeof(struct in6_addr));
+	return (void *)&ip[1];
 }
 
 /**************************************************************************//**

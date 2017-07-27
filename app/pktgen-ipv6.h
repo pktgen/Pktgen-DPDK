@@ -54,9 +54,9 @@ extern "C" {
  * SEE ALSO:
  */
 
-extern void pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip);
+void *pktgen_ipv6_ctor(pkt_seq_t *pkt, ipv6Hdr_t *ip);
 
-extern void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid,
+void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid,
 				 uint32_t vlan);
 
 #ifdef __cplusplus

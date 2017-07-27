@@ -53,9 +53,10 @@
  * SEE ALSO:
  */
 
-void
-pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip)
+void *
+pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
 {
+	ipHdr_t *ip = hdr;
 	uint16_t tlen;
 
 	/* IPv4 Header constructor */
@@ -77,6 +78,8 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, ipHdr_t *ip)
 	ip->src             = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 	ip->dst             = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	ip->cksum           = cksum(ip, sizeof(ipHdr_t), 0);
+
+	return (void *)&ip[1];
 }
 
 /**************************************************************************//**

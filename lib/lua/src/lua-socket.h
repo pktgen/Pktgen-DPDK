@@ -51,14 +51,14 @@ typedef struct luaServer_s {
 	char		data[MAX_LUA_BUFFER_SIZE];
 } luaServer_t;
 
-extern void _lua_openlib(lua_State *L);
-extern void * _get_stdout(void * arg);
-extern void * _get_stdin(void * arg);
-extern void * _get_stderr(void * arg);
-extern void _set_stdfiles(lua_State * L, luaServer_t * pServer);
-extern void _reset_stdfiles(lua_State * L);
+void _lua_openlib(lua_State *L);
+void * _get_stdout(void * arg);
+void * _get_stdin(void * arg);
+void * _get_stderr(void * arg);
+void _set_stdfiles(lua_State * L, luaServer_t * pServer);
+void _reset_stdfiles(lua_State * L);
 
-extern int lua_init_socket(lua_State * L, pthread_t * pthread, char * hostname, int port);
-extern void * lua_create_instance(void);
+int lua_init_socket(lua_State * L, pthread_t * pthread, char * hostname, int port);
+void * lua_create_instance(void);
 
 #endif /* _LUA_SOCKET_H_ */

@@ -507,8 +507,8 @@ pg_dump_l2p(l2p_t *l2p)
 	printf("\n\n");
 }
 
-extern void pg_port_matrix_dump(l2p_t *l2p);
-extern int pg_parse_matrix(l2p_t *l2p, char *str);
-extern uint32_t pg_parse_portmask(const char *portmask);
+void pg_port_matrix_dump(l2p_t *l2p);
+int pg_parse_matrix(l2p_t *l2p, char *str);
+uint32_t pg_parse_portmask(const char *portmask);
 
 #endif /* __WR_L2P_H */

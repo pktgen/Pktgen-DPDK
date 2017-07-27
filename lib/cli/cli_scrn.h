@@ -221,7 +221,7 @@ scrn_eol_pos(int r, int c)
     scrn_eol();
 }
 
-extern void __set_prompt(void);
+void __set_prompt(void);
 
 /** Stop screen from updating until resumed later */
 static __inline__ void

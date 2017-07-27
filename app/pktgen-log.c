@@ -91,7 +91,7 @@ pktgen_init_log(void)
 }
 
 /* Set minimum message level for printing to screen */
-extern void
+void
 pktgen_log_set_screen_level(int level)
 {
 	log_level_screen = level;

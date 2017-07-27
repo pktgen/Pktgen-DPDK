@@ -65,13 +65,13 @@ typedef struct capture_s {
 } capture_t;
 
 /* Capture initialization */
-extern void pktgen_packet_capture_init(capture_t *capture, int socket_id);
+void pktgen_packet_capture_init(capture_t *capture, int socket_id);
 
 /* Enable/disable capture for port */
-extern void pktgen_set_capture(port_info_t *info, uint32_t onOff);
+void pktgen_set_capture(port_info_t *info, uint32_t onOff);
 
 /* Perform capture of packets */
-extern void pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
+void pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
 				       uint32_t nb_dump,
 				       capture_t *capture);
 

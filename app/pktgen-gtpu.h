@@ -44,8 +44,6 @@
 extern "C" {
 #endif
 
-#define GTPu_VERSION 0x30
-
 /**************************************************************************//**
  *
  * pktgen_gtpu_hdr_ctor - GTP-U header constructor routine.
@@ -58,9 +56,10 @@ extern "C" {
  * SEE ALSO:
  */
 
-extern void pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt,
-				 gtpuHdr_t *guip,
-				 uint16_t ipProto);
+void *
+pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
+		uint8_t flags, uint16_t seq_no, uint8_t npdu_no,
+		uint8_t next_ext_hdr_type);
 
 #ifdef __cplusplus
 }

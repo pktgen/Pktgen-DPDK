@@ -75,7 +75,7 @@ int cmdline_get_help_args(cmdline_parse_token_hdr_t *tk,
 		},							\
 	}
 
-extern void cmdline_args_free(int argc, char **argv);
+void cmdline_args_free(int argc, char **argv);
 
 #ifdef __cplusplus
 }

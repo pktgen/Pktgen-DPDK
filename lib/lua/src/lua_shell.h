@@ -52,8 +52,8 @@ extern "C" {
 #define MAX_NEW_LIBS	16
 typedef void (*newlib_t)(lua_State * L);
 
-extern int lua_newlib_add(newlib_t n);
-extern void lua_newlibs_init(lua_State * L);
+int lua_newlib_add(newlib_t n);
+void lua_newlibs_init(lua_State * L);
 
 LUALIB_API int luaL_setprivate(lua_State * L, void * val);
 LUALIB_API void * luaL_getprivate(lua_State * L);

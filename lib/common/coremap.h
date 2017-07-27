@@ -51,11 +51,11 @@ typedef union {
 	uint32_t word;
 } lc_info_t;
 
-extern int coremap(const char *opt,
+int coremap(const char *opt,
 		   lc_info_t *get,
 		   int cnt,
 		   const char *proc_cpuinfo);
-extern unsigned coremap_cnt(const lc_info_t *lc, unsigned max_cnt,
+unsigned coremap_cnt(const lc_info_t *lc, unsigned max_cnt,
 			    unsigned t);
 
 #endif  /*_COREMAP_H */

@@ -72,7 +72,7 @@
 #endif
 
 static inline uint16_t
-valid_pkt_size(char *val)
+valid_pkt_size(port_info_t *info, char *val)
 {
 	uint16_t pkt_size;
 
@@ -80,8 +80,12 @@ valid_pkt_size(char *val)
 		return (MIN_PKT_SIZE + FCS_SIZE);
 
 	pkt_size = atoi(val);
-	if (pkt_size < (MIN_PKT_SIZE + FCS_SIZE))
-		pkt_size = (MIN_PKT_SIZE + FCS_SIZE);
+	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
+printf("Force size\n");
+		if (pkt_size < (MIN_PKT_SIZE + FCS_SIZE))
+			pkt_size = (MIN_PKT_SIZE + FCS_SIZE);
+	} else
+		printf("size %d\n", pkt_size);
 
 	if (pkt_size > (MAX_PKT_SIZE + FCS_SIZE))
 		pkt_size = MAX_PKT_SIZE + FCS_SIZE;
@@ -321,14 +325,14 @@ range_cmd(int argc, char **argv)
 			break;
 		case 70:
 			foreach_port(portlist,
-				range_set_pkt_size(info, argv[3], valid_pkt_size(what)));
+				range_set_pkt_size(info, argv[3], valid_pkt_size(info, what)));
 			break;
 		case 71:
 			foreach_port(portlist,
-				range_set_pkt_size(info, (char *)(uintptr_t)"start", valid_pkt_size(argv[3]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"min", valid_pkt_size(argv[4]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"max", valid_pkt_size(argv[5]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"inc", valid_pkt_size(argv[6]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"start", valid_pkt_size(info, argv[3]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"min", valid_pkt_size(info, argv[4]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"max", valid_pkt_size(info, argv[5]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"inc", valid_pkt_size(info, argv[6]));
 				);
 			break;
 		case 80:
@@ -447,7 +451,7 @@ set_cmd(int argc, char **argv)
 			foreach_port(portlist, _do(
 				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
-					case 1: single_set_pkt_size(info, valid_pkt_size(argv[3])); break;
+					case 1: single_set_pkt_size(info, valid_pkt_size(info, argv[3])); break;
 					case 2: single_set_tx_rate(info, argv[3]); break;
 					case 3: single_set_tx_burst(info, value); break;
 					case 4: debug_set_tx_cycles(info, value); break;
@@ -696,7 +700,8 @@ theme_cmd(int argc, char **argv)
 				"icmp|"			/* 13 */	\
 				"range|"		/* 14 */	\
 				"capture|"		/* 15 */	\
-				"bonding"		/* 16 */
+				"bonding|"		/* 16 */	\
+				"short"			/* 17 */
 
 static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
@@ -725,6 +730,7 @@ static const char *enable_help[] = {
 	"              range                - Enable or Disable the given portlist for sending a range of packets",
 	"              capture              - Enable/disable packet capturing on a portlist",
 	"              bonding              - Enable call TX wiht zero packets for bonding driver",
+	"              short                - Allow shorter then 64 byte frames to be sent",
 	"",
 	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
 	"               mac_from_arp        - Enable/disable MAC address from ARP packet",
@@ -810,6 +816,9 @@ en_dis_cmd(int argc, char **argv)
 					break;
 				case 16:
 					foreach_port(portlist, enable_bonding(info, state));
+					break;
+				case 17:
+					foreach_port(portlist, enable_short_pkts(info, state));
 					break;
 				default:
 					cli_printf("Invalid option %s\n", ed_type);
@@ -917,7 +926,7 @@ debug_cmd(int argc, char **argv)
 			break;
 #ifdef RTE_LIBRTE_RBUF
 		case 70:
-			rte_rbuf_dump(stdout);
+			rte_rbuf_list_dump(stdout);
 			break;
 #endif
 		case 80:

@@ -143,7 +143,7 @@ extern "C" {
 } while (0)
 
 /* Initialize log data structures */
-extern void pktgen_init_log(void);
+void pktgen_init_log(void);
 
 /**************************************************************************//**
  *
@@ -157,7 +157,7 @@ extern void pktgen_init_log(void);
  *
  * SEE ALSO:
  */
-extern void pktgen_log_set_screen_level(int level);
+void pktgen_log_set_screen_level(int level);
 
 /**************************************************************************//**
  *
@@ -170,7 +170,7 @@ extern void pktgen_log_set_screen_level(int level);
  *
  * SEE ALSO:
  */
-extern void pktgen_log(int level, const char *file, long line,
+void pktgen_log(int level, const char *file, long line,
 		       const char *func, const char *fmt, ...);
 
 /**************************************************************************//**
@@ -185,7 +185,7 @@ extern void pktgen_log(int level, const char *file, long line,
  *
  * SEE ALSO:
  */
-extern void pktgen_log_set_file(const char *filename);
+void pktgen_log_set_file(const char *filename);
 
 /**************************************************************************//**
  *
@@ -198,7 +198,7 @@ extern void pktgen_log_set_file(const char *filename);
  *
  * SEE ALSO:
  */
-extern void pktgen_page_log(uint32_t print_labels);
+void pktgen_page_log(uint32_t print_labels);
 
 #ifdef __cplusplus
 }

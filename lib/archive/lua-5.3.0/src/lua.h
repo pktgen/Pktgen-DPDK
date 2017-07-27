@@ -484,6 +484,6 @@ struct lua_Debug {
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 
-extern void lua_callback_routine(char *);
+void lua_callback_routine(char *);
 
 #endif

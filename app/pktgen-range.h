@@ -96,10 +96,9 @@ typedef struct range_info_s {
 
 struct port_info_s;
 
-extern void pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt);
-extern void pktgen_range_setup(struct port_info_s *info);
-
-extern void pktgen_page_range(void);
+void pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt);
+void pktgen_range_setup(struct port_info_s *info);
+void pktgen_page_range(void);
 
 #ifdef __cplusplus
 }

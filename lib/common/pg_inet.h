@@ -191,7 +191,7 @@ typedef struct ipv6Hdr_s {
  * GTP -U Header
  *
  * +---+----+-+-+-+-+--+------------+-----------------+------------------+
- * |   |0-2 |3|4|5|6|7 |  8-15      |    16-23        |    24-31         |
+ * |   |8-6 |5|4|3|2|1 |  8-15      |    16-23        |    24-31         |
  * +---+----+-+-+-+-+--+------------+-----------------+------------------+
  * |0  |Veri|P|*|E|S|PN| Message    |                                    |
  * |   |son | | | | |  |  Type      |        Total length                |
@@ -204,14 +204,20 @@ typedef struct ipv6Hdr_s {
  * +---+----------------------------+-----------------+------------------+
  ***************************************************************************/
 
+#define GTPu_VERSION	0x20
+#define GTPu_PT_FLAG	0x10
+#define GTPu_E_FLAG		0x04
+#define GTPu_S_FLAG		0x02
+#define GTPu_PN_FLAG	0x01
+
 typedef struct gtpuHdr_s {
 	uint8_t version_flags;
 	uint8_t msg_type;
 	uint16_t tot_len;
 	uint32_t teid;
-	uint16_t seq_no;
-	uint8_t npdu_no;
-	uint8_t next_ext_hdr_type;
+//	uint16_t seq_no;		/**< Optional fields if E, S or PN flags set */
+//	uint8_t npdu_no;
+//	uint8_t next_ext_hdr_type;
 } __attribute__((__packed__)) gtpuHdr_t;
 
 /* IP overlay header for the pseudo header */

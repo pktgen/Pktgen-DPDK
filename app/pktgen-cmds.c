@@ -1649,6 +1649,27 @@ enable_bonding(port_info_t *info, uint32_t state)
 
 /**************************************************************************//**
  *
+ * enable_short_pkts - Enable or disable sending short packets.
+ *
+ * DESCRIPTION
+ * Enable or disable sending short packets
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+enable_short_pkts(port_info_t *info, uint32_t state)
+{
+	if (state == ENABLE_STATE)
+		pktgen_set_port_flags(info, SEND_SHORT_PACKETS);
+	else
+		pktgen_clr_port_flags(info, SEND_SHORT_PACKETS);
+}
+
+/**************************************************************************//**
+ *
  * enable_garp - Enable or disable GARP packet processing.
  *
  * DESCRIPTION
@@ -2376,12 +2397,14 @@ single_set_pkt_size(port_info_t *info, uint16_t size)
 {
 	pkt_seq_t * pkt = &info->seq_pkt[SINGLE_PKT];
 
-	if (size <= FCS_SIZE)
+	if (size < FCS_SIZE)
 		size = FCS_SIZE;
 
-	if ( (size - FCS_SIZE) < MIN_PKT_SIZE)
-		size = (MIN_PKT_SIZE + FCS_SIZE);
-	else if ( (size - FCS_SIZE) > MAX_PKT_SIZE)
+	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
+		if ( (size - FCS_SIZE) < MIN_PKT_SIZE)
+			size = (MIN_PKT_SIZE + FCS_SIZE);
+	}
+	if ( (size - FCS_SIZE) > MAX_PKT_SIZE)
 		size = MAX_PKT_SIZE + FCS_SIZE;
 
 	if ((pkt->ethType == ETHER_TYPE_IPv6) && (size < (MIN_v6_PKT_SIZE + FCS_SIZE)))

@@ -70,22 +70,22 @@ typedef struct rnd_bits_s {
 } rnd_bits_t;
 
 /* Data structure initialization */
-extern void pktgen_rnd_bits_init(struct rnd_bits_s **rnd_bits);
+void pktgen_rnd_bits_init(struct rnd_bits_s **rnd_bits);
 
 /* Set random bitfield */
-extern uint32_t pktgen_set_random_bitfield(struct rnd_bits_s *rnd_bits,
+uint32_t pktgen_set_random_bitfield(struct rnd_bits_s *rnd_bits,
 					   uint8_t idx,
 					   uint8_t offset,
 					   const char *mask);
 
 /* Apply random bitfields description to packet contents */
-extern void pktgen_rnd_bits_apply(struct port_info_s *info,
+void pktgen_rnd_bits_apply(struct port_info_s *info,
 				  struct rte_mbuf **pkt,
 				  size_t cnt,
 				  struct rnd_bits_s *rbits);
 
 /* Display page with random bitfield settings */
-extern void pktgen_page_random_bitfields(uint32_t print_labels,
+void pktgen_page_random_bitfields(uint32_t print_labels,
 					 uint16_t pid,
 					 struct rnd_bits_s *rnd_bits);
 

@@ -43,7 +43,7 @@
 #define MAX_NEW_LIBS	16
 typedef void (*newlib_t)(lua_State * L);
 
-extern int lua_newlib_add(newlib_t n);
-extern void lua_newlibs_init(lua_State * L);
+int lua_newlib_add(newlib_t n);
+void lua_newlibs_init(lua_State * L);
 
 #endif /* LUA_SHELL_H_ */

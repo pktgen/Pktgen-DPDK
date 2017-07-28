@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 #
 #   BSD LICENSE
 #
@@ -42,7 +42,7 @@
 
 fname=rte_version.h
 
-function usage() {
+usage() {
 	cat <<EOM
   Usage: dpdk-version.sh
 

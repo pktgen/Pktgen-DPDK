@@ -87,14 +87,18 @@ EOM
 	exit 1
 }
 
-if [ -z ${RTE_SDK} ] ; then
-	echo "*** RTE_SDK is not set, using "${PWD}
-	sdk=${PWD}
+if [ -n ${RTE_INCLUDE} ] ; then
+	fpath=${RTE_INCLUDE}/${fname}
 else
-	sdk=${RTE_SDK}
-fi
+	if [ -z ${RTE_SDK} ] ; then
+		echo "*** RTE_SDK is not set, using "${PWD}
+		sdk=${PWD}
+	else
+		sdk=${RTE_SDK}
+	fi
 
-fpath=${sdk}/lib/librte_eal/common/include/${fname}
+	fpath=${sdk}/lib/librte_eal/common/include/${fname}
+fi
 
 if [ ! -e ${fpath} ]; then
 	echo "File not found @ "${fpath}

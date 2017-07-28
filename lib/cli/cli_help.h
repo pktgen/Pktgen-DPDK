@@ -131,6 +131,18 @@ is_help(int argc, char **argv)
 	return !strcmp("-?", argv[argc - 1]) || !strcmp("?", argv[argc - 1]);
 }
 
+/**
+ * Iterate over the help messages calling a given function.
+ *
+ * @param func
+ *   A function to call for all help lines.
+ * @param arg
+ *   Argument pointer for function call.
+ * @return
+ *   N/A
+ */
+void cli_help_foreach(void (*func)(void *arg, const char **h), void *arg);
+
 #ifdef __cplusplus
 }
 #endif

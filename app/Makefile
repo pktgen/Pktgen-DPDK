@@ -82,7 +82,7 @@ SRCS-y := \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
-	pktgen-latency.c pktgen-help.c
+	pktgen-latency.c
 
 COMMON_NAME := libcommon.a
 MYLIBS     += -lcommon

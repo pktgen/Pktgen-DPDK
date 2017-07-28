@@ -335,10 +335,34 @@ static __inline__ void
 _send_burst_random(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
+	struct rte_mbuf **pkts;
+	uint32_t ret, cnt, flags;
 
-	pktgen_rnd_bits_apply(info, mtab->m_table, mtab->len, NULL);
+	cnt         = mtab->len;
+	mtab->len   = 0;
+	pkts        = mtab->m_table;
 
-	_send_burst_fast(info, qid);
+	flags   = rte_atomic32_read(&info->port_flags);
+	if (unlikely(flags & PROCESS_TX_TAP_PKTS))
+		while (cnt) {
+			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
+
+			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+			pktgen_do_tx_tap(info, pkts, ret);
+
+			pkts += ret;
+			cnt -= ret;
+		}
+	else
+		while (cnt) {
+			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
+
+			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+			pkts += ret;
+			cnt -= ret;
+		}
 }
 
 /**************************************************************************//**
@@ -357,10 +381,20 @@ static __inline__ void
 _send_burst_latency(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
+	struct rte_mbuf **pkts;
+	uint32_t ret, cnt;
 
-	pktgen_latency_apply(info, mtab->m_table, mtab->len);
+	cnt         = mtab->len;
+	mtab->len   = 0;
+	pkts        = mtab->m_table;
+	while (cnt) {
+		pktgen_latency_apply(info, pkts, cnt);
 
-	_send_burst_fast(info, qid);
+		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+		pkts += ret;
+		cnt -= ret;
+	}
 }
 
 static __inline__ void
@@ -499,7 +533,6 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 {
 	pkt_seq_t         *pkt = &info->seq_pkt[seq_idx];
 	struct ether_hdr  *eth = (struct ether_hdr *)&pkt->hdr.eth;
-	void *hdr;
 	char *l3_hdr = NULL;
 	uint16_t tlen;
 
@@ -520,38 +553,38 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		if (likely(pkt->ipProto == PG_IPPROTO_TCP)) {
 			if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
 				/* Construct the TCP header */
-				hdr = pktgen_tcp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
+				pktgen_tcp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
-				hdr = pktgen_ipv4_ctor(pkt, hdr);
+				pktgen_ipv4_ctor(pkt, l3_hdr);
 			} else {
+				/* Construct the GTP-U header */
+				pktgen_gtpu_hdr_ctor(pkt, l3_hdr, pkt->ipProto,
+						GTPu_VERSION | GTPu_PT_FLAG, 0, 0, 0);
+
 				/* Construct the TCP header */
-				hdr = pktgen_tcp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
+				pktgen_tcp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
-				hdr = pktgen_ipv4_ctor(pkt, hdr);
-
-				/* Construct the GTP-U header */
-				hdr = pktgen_gtpu_hdr_ctor(pkt, hdr, pkt->ipProto,
-						GTPu_VERSION | GTPu_PT_FLAG, 0, 0, 0);
+				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
 			if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
 				/* Construct the UDP header */
-				hdr = pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
-				pktgen_ipv4_ctor(pkt, hdr);
+				pktgen_ipv4_ctor(pkt, l3_hdr);
 			} else {
+				/* Construct the GTP-U header */
+				pktgen_gtpu_hdr_ctor(pkt, l3_hdr, pkt->ipProto,
+						GTPu_VERSION | GTPu_PT_FLAG, 0, 0, 0);
+
 				/* Construct the UDP header */
-				hdr = pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
-				hdr = pktgen_ipv4_ctor(pkt, hdr);
-
-				/* Construct the GTP-U header */
-				hdr= pktgen_gtpu_hdr_ctor(pkt, hdr, pkt->ipProto,
-						GTPu_VERSION | GTPu_PT_FLAG, 0, 0, 0);
+				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_ICMP) {
 			udpip_t           *uip;
@@ -563,8 +596,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			/* Create the ICMP header */
 			uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 			uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-			tlen                = pkt->pktSize -
-				(pkt->ether_hdr_size + sizeof(ipHdr_t));
+			tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
 			uip->ip.len         = htons(tlen);
 			uip->ip.proto       = pkt->ipProto;
 
@@ -585,28 +617,28 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				icmp->data.echo.data            = 0;
 			}
 			icmp->cksum     = 0;
-			tlen            = pkt->pktSize -
-				(pkt->ether_hdr_size + sizeof(ipHdr_t));/* ICMP4_TIMESTAMP_SIZE */
+			/* ICMP4_TIMESTAMP_SIZE */
+			tlen            = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
 			icmp->cksum     = cksum(icmp, tlen, 0);
 			if (icmp->cksum == 0)
 				icmp->cksum = 0xFFFF;
 
 			/* IPv4 Header constructor */
-			hdr = pktgen_ipv4_ctor(pkt, uip);
+			pktgen_ipv4_ctor(pkt, l3_hdr);
 		}
 	} else if (pkt->ethType == ETHER_TYPE_IPv6) {
 		if (pkt->ipProto == PG_IPPROTO_TCP) {
 			/* Construct the TCP header */
-			hdr = pktgen_tcp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv6);
+			pktgen_tcp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv6);
 
 			/* IPv6 Header constructor */
-			hdr = pktgen_ipv6_ctor(pkt, hdr);
+			pktgen_ipv6_ctor(pkt, l3_hdr);
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
 			/* Construct the UDP header */
-			hdr = pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv6);
+			pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv6);
 
 			/* IPv6 Header constructor */
-			hdr = pktgen_ipv6_ctor(pkt, hdr);
+			pktgen_ipv6_ctor(pkt, l3_hdr);
 		}
 	} else if (pkt->ethType == ETHER_TYPE_ARP) {
 		/* Start from Ethernet header */
@@ -627,8 +659,6 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		ether_addr_copy(&pkt->eth_dst_addr,
 				(struct ether_addr *)&arp->tha);
 		arp->tpa._32 = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-
-		hdr = RTE_PTR_ADD(hdr, sizeof(arpPkt_t));
 	} else
 		pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
 }

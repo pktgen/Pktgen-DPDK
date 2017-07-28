@@ -114,7 +114,6 @@
 #include "pktgen-log.h"
 #include "pktgen-latency.h"
 #include "pktgen-seq.h"
-#include "pktgen-help.h"
 
 #include <cli.h>
 

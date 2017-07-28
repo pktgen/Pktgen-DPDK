@@ -81,11 +81,9 @@ valid_pkt_size(port_info_t *info, char *val)
 
 	pkt_size = atoi(val);
 	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
-printf("Force size\n");
 		if (pkt_size < (MIN_PKT_SIZE + FCS_SIZE))
 			pkt_size = (MIN_PKT_SIZE + FCS_SIZE);
-	} else
-		printf("size %d\n", pkt_size);
+	}
 
 	if (pkt_size > (MAX_PKT_SIZE + FCS_SIZE))
 		pkt_size = MAX_PKT_SIZE + FCS_SIZE;
@@ -728,7 +726,7 @@ static const char *enable_help[] = {
 	"              tx_tap               - Enable/Disable TX Tap support",
 	"              icmp                 - Enable/Disable sending ICMP packets",
 	"              range                - Enable or Disable the given portlist for sending a range of packets",
-	"              capture              - Enable/disable packet capturing on a portlist",
+	"              capture              - Enable/disable packet capturing on a portlist, disable to save capture",
 	"              bonding              - Enable call TX wiht zero packets for bonding driver",
 	"              short                - Allow shorter then 64 byte frames to be sent",
 	"",

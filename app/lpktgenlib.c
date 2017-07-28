@@ -55,6 +55,8 @@
 #include <lua-socket.h>
 #include <lualib.h>
 
+#include <cli_help.h>
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
@@ -2720,6 +2722,20 @@ pktgen_portStats(lua_State *L)
 	return 1;
 }
 
+static void
+_pktgen_push_line(void *arg, const char **h)
+{
+	lua_State *L = arg;
+	int j;
+
+	for(j = 0; h[j] != NULL; j++) {
+		if (strcmp(h[j], CLI_HELP_PAUSE)) {
+			lua_pushstring(L, h[j]);
+			lua_concat(L, 2);
+		}
+	}
+}
+
 /**************************************************************************//**
  *
  * pktgen_help - Display the current help information.
@@ -2735,14 +2751,9 @@ pktgen_portStats(lua_State *L)
 static int
 pktgen_help(lua_State *L)
 {
-	int i;
-
 	lua_concat(L, 0);
-	for (i = 1; help_info[i] != NULL; i++)
-		if (strcmp(help_info[i], "<<PageBreak>>") != 0) {
-			lua_pushstring(L, help_info[i]);
-			lua_concat(L, 2);
-		}
+
+	cli_help_foreach(_pktgen_push_line, L);
 
 	return 1;
 }

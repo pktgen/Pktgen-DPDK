@@ -51,9 +51,10 @@
  * SEE ALSO:
  */
 
-void *
+void
 pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
-		uint8_t flags, uint16_t seq_no, uint8_t npdu_no, uint8_t next_ext_hdr_type)
+		uint8_t flags, uint16_t seq_no, uint8_t npdu_no,
+		uint8_t next_ext_hdr_type)
 {
 	unsigned int l4HdrSize;
 	unsigned int options = 0;
@@ -79,7 +80,8 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 	gtppHdr->msg_type = 0xff;
 
 	/* Tunnel endpoint identifier (TEID)
-	 * A 32-bit(4-octet) field used to multiplex different connections in the same GTP tunnel.
+	 * A 32-bit(4-octet) field used to multiplex different connections in the
+	 * same GTP tunnel.
 	 */
 	gtppHdr->teid = htonl(pkt->gtpu_teid);
 
@@ -87,7 +89,8 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 
 	if (gtppHdr->version_flags & GTPu_S_FLAG) {
 		/* Sequence number an (optional) 16-bit field.
-		 * This field exists if any of the E, S, or PN bits are on. The field must be interpreted only if the S bit is on.
+		 * This field exists if any of the E, S, or PN bits are on. The field
+		 * must be interpreted only if the S bit is on.
 		 */
 		*(uint16_t *)p = seq_no;
 		p = RTE_PTR_ADD(p, 2);
@@ -96,7 +99,8 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 	}
 
 	if (gtppHdr->version_flags & GTPu_PN_FLAG) {
-		/* N-PDU number an (optional) 8-bit field. This field exists if any of the E, S, or PN bits are on.
+		/* N-PDU number an (optional) 8-bit field. This field exists if any of
+		 * the E, S, or PN bits are on.
 		 * The field must be interpreted only if the PN bit is on.
 		 */
 		*(uint8_t *)p = npdu_no;
@@ -106,7 +110,8 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 	}
 
 	if (gtppHdr->version_flags & GTPu_E_FLAG) {
-		/* Next extension header type an (optional) 8-bit field. This field exists if any of the E, S, or PN bits are on.
+		/* Next extension header type an (optional) 8-bit field. This field
+		 * exists if any of the E, S, or PN bits are on.
 		 * The field must be interpreted only if the E bit is on.
 		 */
 		*(uint8_t *)p = next_ext_hdr_type;
@@ -115,11 +120,10 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 		options++;
 	}
 
-	/* Message Length - a 16-bit field that indicates the length of the payload in bytes
-	 * (rest of the packet following the mandatory 8-byte GTP header). Includes the optional fields.
+	/* Message Length - a 16-bit field that indicates the length of the payload
+	 * in bytes (rest of the packet following the mandatory 8-byte GTP header).
+	 * Includes the optional fields.
 	 */
 	gtppHdr->tot_len = htons(pkt->pktSize - (l4HdrSize + sizeof(gtpuHdr_t) +
 			pkt->ether_hdr_size));
-
-	return p;
 }

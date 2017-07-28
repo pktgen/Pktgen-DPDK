@@ -56,7 +56,7 @@ extern "C" {
  * SEE ALSO:
  */
 
-void *
+void
 pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 		uint8_t flags, uint16_t seq_no, uint8_t npdu_no,
 		uint8_t next_ext_hdr_type);

@@ -194,8 +194,7 @@ def run_cfg(cfg_file):
 	fname = None
 	for app in cfg.run['app_path']:
 		fn = app % globals()
-		if verbose:
-			print("Trying %s" % fn)
+		print("   Trying %s" % fn)
 		if os.path.exists(fn):
 			fname = fn
 			if verbose:

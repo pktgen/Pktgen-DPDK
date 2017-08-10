@@ -12,3 +12,4 @@ lib/common/common/
 docs/build/
 .project
 .pydevproject
+node_modules

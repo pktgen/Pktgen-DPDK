@@ -6,6 +6,9 @@ Pktgen - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.3.9 - PCI Whitelist and Blacklist should be the original defines and
+           does not require a ifdef for the version.
+           Convert the run.py to dpdk-run.py script and convert the scripts to /bin/sh.
  - 3.3.8 - reverse change causing TX to stop sending traffic.
  - 3.3.7 - Fix BLACKLIST and WHITELIST macro change for 17.08 DPDK
  - 3.3.6 - Add flag to enable bonding PMD to do TX calls with zero packets.

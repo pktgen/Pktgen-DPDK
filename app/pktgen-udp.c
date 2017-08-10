@@ -50,7 +50,7 @@
  * SEE ALSO:
  */
 
-void
+void *
 pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 {
 	uint16_t tlen;
@@ -111,4 +111,7 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		if (uip->udp.cksum == 0)
 			uip->udp.cksum = 0xFFFF;
 	}
+
+	/* Return the original pointer for IP ctor */
+	return hdr;
 }

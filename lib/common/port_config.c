@@ -194,23 +194,13 @@ create_blacklist(uint64_t portmask,
 		if ( (portmask & (1ULL << i)) == 0) {
 			fprintf(stdout, "-- %s\n", desc[i]);
 			strncpy(pci_addr_str, (void *)desc[i], 12);
-#if RTE_VERSION < RTE_VERSION_NUM(17, 8, 0, 0)
-			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED,
-					    pci_addr_str);
-#else
 			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI,
 					    pci_addr_str);
-#endif
 			idx++;
 		} else {
 			strncpy(pci_addr_str, (void *)desc[i], 12);
-#if RTE_VERSION < RTE_VERSION_NUM(17, 8, 0, 0)
-			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED,
-					    pci_addr_str);
-#else
 			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI,
 					    pci_addr_str);
-#endif
 			fprintf(stdout, "++ %s\n", desc[i]);
 		}
 	}

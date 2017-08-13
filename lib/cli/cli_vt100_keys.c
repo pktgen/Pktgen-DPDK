@@ -201,7 +201,6 @@ static inline void
 key_ctrl_d(void)
 {
 	gb_dump(this_cli->gb, NULL);
-	cli_display_line();
 }
 
 static inline void

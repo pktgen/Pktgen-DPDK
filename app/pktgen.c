@@ -1230,13 +1230,16 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	uint8_t idx, txcnt, rxcnt;
 	uint64_t curr_tsc;
 	uint64_t tx_next_cycle;	/**< Next cycle to send a burst of traffic */
+	uint64_t tx_bond_cycle;
+	uint32_t flags;
 
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
 
 	port_map_info(lid, infos, qids, &txcnt, &rxcnt, "RX/TX");
 
-	tx_next_cycle   = rte_rdtsc() + infos[0]->tx_cycles;
+	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
+	tx_bond_cycle = rte_get_tsc_cycles() + rte_get_timer_hz()/10;
 
 	pg_start_lcore(pktgen.l2p, lid);
 
@@ -1262,7 +1265,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 		for (idx = 0; idx < rxcnt; idx++)	/* Read Packets */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
 
-		curr_tsc = rte_rdtsc();
+		curr_tsc = rte_get_tsc_cycles();
 
 		/* Determine when is the next time to send packets */
 		if (curr_tsc >= tx_next_cycle) {
@@ -1270,8 +1273,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-		} else if (curr_tsc >= (tx_next_cycle / 8)) {
-			uint32_t flags;
+		} else if (curr_tsc >= tx_bond_cycle) {
+			tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
 			for (idx = 0; idx < txcnt; idx++) {	/* Transmit zero pkts for Bonding PMD */
 				flags = rte_atomic32_read(&infos[idx]->port_flags);
 				if (flags & BONDING_TX_PACKETS) {
@@ -1306,12 +1309,15 @@ pktgen_main_tx_loop(uint8_t lid)
 	uint8_t qids[RTE_MAX_ETHPORTS];
 	uint64_t curr_tsc;
 	uint64_t tx_next_cycle;	/**< Next cycle to send a burst of traffic */
+	uint64_t tx_bond_cycle;
+	uint32_t flags;
 
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
 	port_map_info(lid, infos, qids, &txcnt, NULL, "TX");
 
-	tx_next_cycle   = rte_rdtsc() + infos[0]->tx_cycles;
+	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
+	tx_bond_cycle = rte_get_tsc_cycles() + rte_get_timer_hz()/10;
 
 	pg_start_lcore(pktgen.l2p, lid);
 
@@ -1326,7 +1332,7 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	idx = 0;
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
-		curr_tsc = rte_rdtsc();
+		curr_tsc = rte_get_tsc_cycles();
 
 		/* Determine when is the next time to send packets */
 		if (curr_tsc >= tx_next_cycle) {
@@ -1334,8 +1340,8 @@ pktgen_main_tx_loop(uint8_t lid)
 
 			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-		} else if (curr_tsc >= (tx_next_cycle / 8)) {
-			uint32_t flags;
+		} else if (curr_tsc >= tx_bond_cycle) {
+			tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
 			for (idx = 0; idx < txcnt; idx++) {	/* Transmit zero pkts for Bonding PMD */
 				flags = rte_atomic32_read(&infos[idx]->port_flags);
 				if (flags & BONDING_TX_PACKETS) {

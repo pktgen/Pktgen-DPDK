@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ 0 3.4.0 - Fix bonding polling and other minor changes.
  - 3.3.9 - PCI Whitelist and Blacklist should be the original defines and
            does not require a ifdef for the version.
            Convert the run.py to dpdk-run.py script and convert the scripts to /bin/sh.

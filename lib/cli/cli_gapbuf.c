@@ -134,6 +134,7 @@ gb_destroy(struct gapbuf *gb)
 void
 gb_dump(struct gapbuf *gb, const char *msg)
 {
+#ifdef CLI_DEBUG_ENABLED
 	char *p;
 	uint32_t i;
 
@@ -172,4 +173,9 @@ gb_dump(struct gapbuf *gb, const char *msg)
 	for (p = gb->buf; p <= gb->ebuf; p++)
 		fprintf(stderr, "%c", (p == gb->point) ? '^' : ' ');
 	fprintf(stderr, "\n");
+	cli_display_line();
+#else
+	(void)gb;
+	(void)msg;
+#endif
 }

@@ -297,7 +297,8 @@ sig_handler(int v __rte_unused)
 		return;
 
 	scrn_setw(1);	/* Reset the window size, from possible crash run. */
-	scrn_pos(100, 1);	/* Move the cursor to the bottom of the screen again */
+	scrn_printf(100, 1, "\n");	/* Move the cursor to the bottom of the screen again */
+	scrn_destroy();
 
 	printf("\n======");
 	if (v == SIGSEGV)
@@ -477,6 +478,7 @@ main(int argc, char **argv)
 
 	scrn_setw(1);
 	scrn_printf(100, 1, "\n");	/* Put the cursor on the last row and do a newline. */
+	scrn_destroy();
 
 	/* Wait for all of the cores to stop running and exit. */
 	rte_eal_mp_wait_lcore();

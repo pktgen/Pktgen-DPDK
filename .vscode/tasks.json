@@ -10,7 +10,7 @@
 		}
 	},
 	"tasks": [{
-			"taskName": "build",
+			"taskName": "default",
 			"type": "shell",
 			"group": {
 				"kind": "build",
@@ -18,7 +18,7 @@
 			}
 		},
 		{
-			"taskName": "debug",
+			"taskName": "debug-build",
 			"type": "shell",
 			"group": {
 				"kind": "test",

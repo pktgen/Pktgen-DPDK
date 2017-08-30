@@ -34,9 +34,7 @@
 #include <rte_string_fns.h>
 
 #include "cli.h"
-#ifndef RTE_LIBRTE_CLI
 #include "cli_string_fns.h"
-#endif
 
 static int
 __count_nodes(struct cli_node *node,

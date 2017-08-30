@@ -39,9 +39,7 @@
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
 #include <rte_string_fns.h>
-#ifndef RTE_LIBRTE_CLI
 #include <cli_string_fns.h>
-#endif
 
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"

@@ -46,13 +46,12 @@
 #include <rte_version.h>
 #include <rte_atomic.h>
 #include <rte_devargs.h>
+#include <rte_ether.h>
 #include <rte_string_fns.h>
-#ifndef RTE_LIBRTE_CLI
 #include <cli_string_fns.h>
-#endif
 #include <rte_hexdump.h>
-#ifdef RTE_LIBRTE_RBUF
-#include <rte_rbuf.h>
+#ifdef RTE_LIBRTE_SMEM
+#include <rte_smem.h>
 #endif
 
 #include "pktgen.h"
@@ -67,9 +66,7 @@
 #include "pktgen-display.h"
 #include "pktgen-random.h"
 #include "pktgen-log.h"
-#ifndef RTE_LIBRTE_CLI
 #include "pg_ether.h"
-#endif
 
 static inline uint16_t
 valid_pkt_size(port_info_t *info, char *val)

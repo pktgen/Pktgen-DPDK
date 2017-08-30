@@ -34,9 +34,7 @@
 #include <rte_string_fns.h>
 
 #include "cli.h"
-#ifndef RTE_LIBRTE_CLI
 #include "cli_string_fns.h"
-#endif
 
 int
 cli_map_list_search(const char *fmt, char *item, int index)

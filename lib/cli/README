@@ -1,1 +1,3 @@
-The cli directory is a simple command line interface
+The cli directory is a simple command line interface.
+
+Please read the cli.rst and libcli.rst files for more details.

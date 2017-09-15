@@ -37,20 +37,16 @@
 #define LUA_LIB
 #define lua_c
 
-#ifndef RTE_LIBRTE_CLI
 #include <pg_ether.h>
 #include <pg_inet.h>
-#endif
 #include "lpktgenlib.h"
 
 #include <stdint.h>
 #include <netinet/in.h>
 
 #include "pktgen-cmds.h"
-#ifdef RTE_LIBRTE_CLI
 #include <cli.h>
 #include <rte_net.h>
-#endif
 #include <luaconf.h>
 #include <lua-socket.h>
 #include <lualib.h>

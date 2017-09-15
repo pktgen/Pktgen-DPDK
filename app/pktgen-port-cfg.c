@@ -41,7 +41,9 @@
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
 
+#ifdef RTE_LIBRTE_BONDING_PMD
 #include <rte_eth_bond_8023ad.h>
+#endif
 
 enum {
 	RX_PTHRESH              = 8,	/**< Default values of RX prefetch threshold reg. */
@@ -131,11 +133,16 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 		   sizeof(struct rte_mempool))) + 1023) / 1024,
 		RTE_PKTMBUF_HEADROOM,
 		RTE_MBUF_DEFAULT_BUF_SIZE);
-	pktgen.mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
-	pktgen.total_mem_used += ((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) + sizeof(struct rte_mempool)));
+	pktgen.mem_used += ((nb_mbufs *
+		(MBUF_SIZE + sizeof(struct rte_mbuf)) +
+		sizeof(struct rte_mempool)));
+	pktgen.total_mem_used += ((nb_mbufs *
+		(MBUF_SIZE + sizeof(struct rte_mbuf)) +
+		sizeof(struct rte_mempool)));
 
 	/* create the mbuf pool */
-	mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE, MBUF_SIZE, socket_id);
+	mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size,
+		DEFAULT_PRIV_SIZE, MBUF_SIZE, socket_id);
 	if (mp == NULL)
 		pktgen_log_panic(
 			"Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, socket_id %d: %s",

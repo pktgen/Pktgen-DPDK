@@ -45,10 +45,7 @@
 
 #include "pktgen.h"
 #include <rte_string_fns.h>
-#ifndef RTE_LIBRTE_CLI
-#include <rte_string_fns.h>
 #include <cli_string_fns.h>
-#endif
 
 #ifdef __cplusplus
 "C" {

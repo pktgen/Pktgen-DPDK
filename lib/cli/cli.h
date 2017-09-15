@@ -39,6 +39,7 @@
  * RTE Command line interface
  *
  */
+#include <libgen.h>
 #include <sys/queue.h>
 
 #include <rte_common.h>

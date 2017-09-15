@@ -40,6 +40,9 @@ CFLAGS += -DRTE_CLI_HOST_COMMANDS
 CFLAGS += -DRTE_LIBRTE_LUA -DCLI_STANDALONE
 CFLAGS += -I$(RTE_SRCDIR)/../lua/src
 
+EXPORT_MAP := rte_cli_version.map
+
+LIBABIVER := 1
 
 # all source are stored in SRCS-y
 SRCS-y +=  cli.c

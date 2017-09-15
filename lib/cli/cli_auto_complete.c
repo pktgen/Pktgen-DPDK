@@ -37,9 +37,7 @@
 
 #include "cli.h"
 #include "cli_auto_complete.h"
-#ifndef RTE_LIBRTE_CLI
 #include "cli_string_fns.h"
-#endif
 
 static uint32_t
 _column_count(struct cli_node **nodes, uint32_t node_cnt, uint32_t *len)

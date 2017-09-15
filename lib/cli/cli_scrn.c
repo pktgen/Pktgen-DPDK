@@ -123,12 +123,19 @@ scrn_stdin_setup(void)
 
 	scrn_set_io(stdin, stdout);
 
-	tcgetattr(fileno(scrn->fd_in), &scrn->oldterm);
-	memcpy(&term, &scrn->oldterm, sizeof(term));
+	memset(&scrn->oldterm, 0, sizeof(term));
+	if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm) ||
+		tcgetattr(fileno(scrn->fd_in), &term)) {
+		printf("%s: setup failed for tty\n", __func__);
+		return -1;
+	}
 
-	term.c_lflag &= ~(ICANON | ECHO | ISIG);
-	tcsetattr(0, TCSANOW, &term);
-	setbuf(scrn->fd_in, NULL);
+	term.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
+
+	if (tcsetattr(fileno(scrn->fd_in), TCSANOW, &term)) {
+		printf("%s: failed to set tty\n", __func__);
+		return -1;
+	}
 
 	return 0;
 }
@@ -138,10 +145,14 @@ scrn_stdin_restore(void)
 {
 	struct cli_scrn *scrn = this_scrn;
 
-	if (!scrn || !scrn->fd_in)
+	if (!scrn)
 		return;
 
-	tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm);
+	if (tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm))
+		printf("%s: failed to set tty\n", __func__);
+
+	if (system("stty sane"))
+		printf("%s: system command failed\n", __func__);
 }
 
 int
@@ -186,8 +197,8 @@ int
 scrn_create_with_defaults(int theme)
 {
 	return scrn_create(SCRN_STDIN_TYPE,
-					   SCRN_DEFAULT_ROWS, SCRN_DEFAULT_COLS,
-					   (theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
+			SCRN_DEFAULT_ROWS, SCRN_DEFAULT_COLS,
+			(theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
 }
 
 void

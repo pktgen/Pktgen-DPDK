@@ -44,6 +44,7 @@
 extern "C" {
 #endif
 #include <rte_ether.h>
+#if 0
 /**
  * Convert a string Ethernet MAC address to the binary form
  *
@@ -101,6 +102,7 @@ rte_ether_aton(const char *a, struct ether_addr *e)
 
     return e;
 }
+#endif
 
 #ifdef __cplusplus
 }

@@ -41,9 +41,7 @@
 #include <rte_string_fns.h>
 
 #include "cli.h"
-#ifndef RTE_LIBRTE_CLI
 #include "cli_string_fns.h"
-#endif
 
 #ifdef RTE_LIBRTE_LUA
 #ifdef CLI_STANDALONE

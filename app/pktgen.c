@@ -828,8 +828,8 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
 	}
 
 	/* Handle remaining prefetched packets */
-	for (; j < nb_rx; j++)
-		pktgen_packet_classify(pkts[j], pid);
+	for (; i < nb_rx; i++)
+		pktgen_packet_classify(pkts[i], pid);
 }
 
 /**************************************************************************//**

@@ -47,9 +47,7 @@
 #include "cli_cmap.h"
 #include "cli_map.h"
 #include "cli_file.h"
-#ifndef RTE_LIBRTE_CLI
 #include "cli_string_fns.h"
-#endif
 
 static int
 __print_help(struct cli_node *node, char *search)

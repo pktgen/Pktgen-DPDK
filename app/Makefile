@@ -103,10 +103,8 @@ ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
 LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
 endif
-ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
 CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
-endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe

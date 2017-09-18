@@ -99,12 +99,13 @@ MYLIB_PATH += -L$(CLI_LIB)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/common
 COMMON_DEP := $(COMMON_LIB)/$(COMMON_NAME)
 
-ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
-LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
-endif
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
 CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
+endif
+
+LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe

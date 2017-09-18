@@ -1,7 +1,6 @@
 *.o
 *.a
 *.d
-*.map
 *~
 _install
 _postinstall

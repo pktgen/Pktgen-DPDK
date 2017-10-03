@@ -10,7 +10,10 @@ local seq_table = {			-- entries can be in any order
     ["ethType"] = "ipv4",	-- ipv4|ipv6|vlan
     ["ipProto"] = "udp",	-- udp|tcp|icmp
     ["vlanid"] = 1,			-- 1 - 4095
-    ["pktSize"] = 128		-- 64 - 1518
+    ["pktSize"] = 128,		-- 64 - 1518
+    ["teid"] = 3,
+    ["cos"] = 5,
+    ["tos"] = 6
   };
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );

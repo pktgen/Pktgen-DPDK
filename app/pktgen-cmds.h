@@ -212,6 +212,9 @@ void pktgen_compile_pkt(port_info_t *info,
 			       uint16_t vlanid,
 			       uint32_t pktsize,
 			       uint32_t gtpu_teid);
+void pktgen_add_cos_tos(port_info_t *info, uint32_t seqnum,
+		uint32_t cos, uint32_t tos);
+
 
 /* Pattern */
 void pattern_set_type(port_info_t *info, char *str);

@@ -1122,7 +1122,7 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 
 	cos = strtoul(argv[4], NULL, 10);
-	cos = strtoul(argv[6], NULL, 10);
+	tos = strtoul(argv[6], NULL, 10);
 
 	rte_parse_portlist(argv[2], &portlist);
 

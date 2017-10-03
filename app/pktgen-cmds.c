@@ -3189,7 +3189,7 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	       struct ether_addr *daddr, struct ether_addr *saddr,
 	       struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
 	       uint32_t sport, uint32_t dport, char type, char proto,
-	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid, uint8_t cos, uint8_t tos)
+	       uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -3221,8 +3221,6 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	pkt->ethType        = (type == '6') ? ETHER_TYPE_IPv6 : ETHER_TYPE_IPv4;
 	pkt->vlanid         = vlanid;
 	pkt->gtpu_teid      = gtpu_teid;
-	pkt->cos            = cos;
-	pkt->tos            = tos;
 	pktgen_packet_ctor(info, seqnum, -1);
 }
 
@@ -3254,8 +3252,7 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 		   struct ether_addr *daddr, struct ether_addr *saddr,
 		   struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
 		   uint32_t sport, uint32_t dport, char type, char proto,
-		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid,
-		   uint8_t cos, uint8_t tos)
+		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
 {
 	pkt_seq_t     *pkt;
 
@@ -3282,8 +3279,21 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 		(type == 'n') ? ETHER_TYPE_VLAN : ETHER_TYPE_IPv4;
 	pkt->vlanid         = vlanid;
 	pkt->gtpu_teid          = gtpu_teid;
-	pkt->cos        	= cos;
-	pkt->tos        	= tos;
+	pktgen_packet_ctor(info, seqnum, -1);
+}
+
+void
+pktgen_add_cos_tos(port_info_t *info, uint32_t seqnum, uint32_t cos, uint32_t tos)
+{
+	pkt_seq_t     *pkt;
+
+	if (seqnum >= NUM_EXTRA_TX_PKTS)
+		return;
+
+	pkt = &info->seq_pkt[seqnum + EXTRA_TX_PKT];
+
+	pkt->cos          = cos;
+	pkt->tos          = tos;
 	pktgen_packet_ctor(info, seqnum, -1);
 }
 

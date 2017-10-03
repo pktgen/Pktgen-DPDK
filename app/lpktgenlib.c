@@ -333,7 +333,8 @@ set_seq(lua_State *L, uint32_t seqnum)
 	             pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr,
 	                            &ip_saddr,
 	                            sport, dport, ip[3], proto[0], vlanid,
-	                            pktsize, gtpu_teid, cos, tos) );
+	                            pktsize, gtpu_teid);
+			pktgen_set_cos_tos_seq(info, seqnum, cos, tos));
 
 	pktgen_update_display();
 
@@ -427,7 +428,8 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	             pktgen_set_seq(info, seqnum, &daddr, &saddr, &ip_daddr,
 	                            &ip_saddr,
 	                            sport, dport, ethType[3], ipProto[0],
-	                            vlanid, pktSize, gtpu_teid, cos, tos) );
+	                            vlanid, pktSize, gtpu_teid);
+			pktgen_set_cos_tos_seq(info, seqnum, cos, tos) );
 
 	pktgen_update_display();
 

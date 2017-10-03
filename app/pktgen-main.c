@@ -43,6 +43,7 @@
 #include "lpktgenlib.h"
 #include "lua_shell.h"
 #include "lua-socket.h"
+#include "lauxlib.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
 #include "pktgen-display.h"
@@ -326,6 +327,12 @@ sig_handler(int v __rte_unused)
 	abort();
 }
 
+static int
+pktgen_lua_dofile(void * L, const char * filename)
+{
+	return luaL_dofile(L, filename);
+}
+
 /**************************************************************************//**
  *
  * main - Main routine to setup pktgen.
@@ -390,6 +397,7 @@ main(int argc, char **argv)
 		return -1;
 
 	lua_newlib_add(_lua_openlib);
+	cli_set_lua_callback(pktgen_lua_dofile);
 
 	/* Open the Lua script handler. */
 	if ( (pktgen.L = lua_create_instance()) == NULL) {

@@ -56,24 +56,22 @@ yy := $(shell $(ver_cmd) -yy)
 
 # $(info yy=$(yy))
 
-ifeq ($(yy),17)
-COMMON_PRE := $(RTE_SRCDIR)/../lib/common
-LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src
-CLI_PRE := $(RTE_SRCDIR)/../lib/cli
-GUI_PRE := $(RTE_SRCDIR)/../gui/gui
-else
 ifeq ($(yy),16)
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common/lib/common
 LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli/lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui
-endif
+else
+COMMON_PRE := $(RTE_SRCDIR)/../lib/common
+LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src
+CLI_PRE := $(RTE_SRCDIR)/../lib/cli
+GUI_PRE := $(RTE_SRCDIR)/../gui/gui
 endif
 
-COMMON_LIB := $(COMMON_PRE)/$(RTE_TARGET)
-LUA_LIB    := $(LUA_PRE)/$(RTE_TARGET)
-CLI_LIB    := $(CLI_PRE)/$(RTE_TARGET)
-GUI_LIB    := $(GUI_PRE)/$(RTE_TARGET)
+COMMON_LIB := $(COMMON_PRE)/$(RTE_TARGET)/lib
+LUA_LIB    := $(LUA_PRE)/$(RTE_TARGET)/lib
+CLI_LIB    := $(CLI_PRE)/$(RTE_TARGET)/lib
+GUI_LIB    := $(GUI_PRE)/$(RTE_TARGET)/lib
 
 SRCS-y := \
 	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \

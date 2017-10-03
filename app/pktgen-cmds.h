@@ -190,10 +190,10 @@ void pktgen_set_seq(port_info_t *info,
 			   char proto,
 			   uint16_t vlanid,
 			   uint32_t pktsize,
-			   uint32_t gtpu_teid,
-			   uint8_t cos,
-			   uint8_t tos
-			);
+			   uint32_t gtpu_teid);
+void pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum,
+				uint32_t cos, uint32_t tos);
+
 
 /* Packet */
 void pktgen_send_pkt(port_info_t *info, uint32_t seqnum);
@@ -211,9 +211,7 @@ void pktgen_compile_pkt(port_info_t *info,
 			       char proto,
 			       uint16_t vlanid,
 			       uint32_t pktsize,
-			       uint32_t gtpu_teid,
-			       uint8_t cos,
-			       uint8_t tos );
+			       uint32_t gtpu_teid);
 
 /* Pattern */
 void pattern_set_type(port_info_t *info, char *str);

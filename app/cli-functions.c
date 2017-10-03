@@ -978,7 +978,7 @@ debug_cmd(int argc, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
+ * Set a sequence config for given port and slot.
  *
  * DESCRIPTION
  * Set up the sequence packets for a given port and slot.
@@ -1022,7 +1022,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	} else
 		rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
-    rte_ether_aton(argv[3], &dmac);
+	rte_ether_aton(argv[3], &dmac);
 	rte_ether_aton(argv[4], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
@@ -1031,7 +1031,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 				    atoi(argv[7]), atoi(argv[8]),
 					eth[3], proto[0],
 				    atoi(argv[11]), atoi(argv[12]),
-				    teid, 0, 0) );
+				    teid) );
 
 	pktgen_update_display();
 	return 0;
@@ -1039,7 +1039,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
+ * Set a sequence config for given port and slot.
  *
  * DESCRIPTION
  * Set up the sequence packets for a given port and slot.
@@ -1083,7 +1083,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	} else
 		rte_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
-    rte_ether_aton(argv[4], &dmac);
+	rte_ether_aton(argv[4], &dmac);
 	rte_ether_aton(argv[6], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
@@ -1092,94 +1092,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 				    atoi(argv[12]), atoi(argv[14]), eth[3],
 				    proto[0],
 				    atoi(argv[18]), atoi(argv[20]),
-				    teid, 0, 0) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-
-/**************************************************************************//**
- *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
- *
- * DESCRIPTION
- * Set up the sequence packets for a given port and slot.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
-	{ 20, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d cos %d" },
-	{ 21, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d cos %d" },
-	{ 22, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d tos %d" },
-	{ 23, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d tos %d" },
- */
-
-static int
-seq_11_set_cmd(int argc __rte_unused, char **argv)
-{
-	char *proto = argv[10], *p;
-	char *eth = argv[9];
-	char *mark;
-
-	int seqnum = atoi(argv[1]);
-	portlist_t portlist;
-	struct pg_ipaddr dst, src;
-	struct ether_addr dmac, smac;
-	uint32_t teid;
-	uint8_t cos = 0;
-	uint16_t tos = 0;
-
-	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf("Must use IPv4 with ICMP type packets\n");
-		return -1;
-	}
-
-	if (seqnum >= NUM_SEQ_PKTS)
-		return -1;
-
-	teid = (argc == 16)? strtoul(argv[13], NULL, 10) : 0;
-	mark = (argc == 16)? argv[14] : argv[13];
-
-
-	if (mark[0] == 'c') {
-        cos = (argc == 16)? strtoul(argv[15], NULL, 10) : strtoul(argv[14], NULL, 10);
-	} else
-        tos = (argc == 16)? strtoul(argv[15], NULL, 10) : strtoul(argv[14], NULL, 10);
-
-	if (cos > MAX_COS) {
-		 cli_printf("CoS value must be in {0-7} \n");
-		 return -1;
-	}
-	if ( tos > MAX_TOS ) {
-		 cli_printf("ToS value must be in {0-255} \n");
-		 return -1;
-	}
-
-	p = strchr(argv[5], '/'); /* remove subnet if found */
-	if (p)
-		*p = '\0';
-	rte_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
-	p = strchr(argv[6], '/');
-	if (!p) {
-		char buf[32];
-		cli_printf("src IP address should contain /NN subnet value, default /32\n");
-		snprintf(buf, sizeof(buf), "%s/32", argv[6]);
-		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	} else
-		rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	rte_parse_portlist(argv[2], &portlist);
-   rte_ether_aton(argv[3], &dmac);
-	rte_ether_aton(argv[4], &smac);
-	foreach_port(portlist,
-		     pktgen_set_seq(info, seqnum,
-				    &dmac, &smac,
-				    &dst, &src,
-				    atoi(argv[7]), atoi(argv[8]),
-					eth[3], proto[0],
-					atoi(argv[11]), atoi(argv[12]),
-					teid,
-					cos, (uint8_t)tos) );
+				    teid) );
 
 	pktgen_update_display();
 	return 0;
@@ -1187,7 +1100,7 @@ seq_11_set_cmd(int argc __rte_unused, char **argv)
 
 /**************************************************************************//**
  *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
+ * Set a sequence config for given port and slot.
  *
  * DESCRIPTION
  * Set up the sequence packets for a given port and slot.
@@ -1195,263 +1108,44 @@ seq_11_set_cmd(int argc __rte_unused, char **argv)
  * RETURNS: N/A
  *
  * SEE ALSO:
-	{ 24, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d cos %d tos %d" },
-	{ 25, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d cos %d tos %d" },
+ * 	"%|seq|sequence %d %P cos %d tos %d"
  */
 
 static int
-seq_12_set_cmd(int argc __rte_unused, char **argv)
+seq_3_set_cmd(int argc __rte_unused, char **argv)
 {
-	char *proto = argv[10], *p;
-	char *eth = argv[9];
 	int seqnum = atoi(argv[1]);
 	portlist_t portlist;
-	struct pg_ipaddr dst, src;
-	struct ether_addr dmac, smac;
-	uint32_t teid;
-	uint8_t cos = 0;
-	uint16_t tos = 0;
-
-	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf("Must use IPv4 with ICMP type packets\n");
-		return -1;
-	}
+	uint32_t cos, tos;
 
 	if (seqnum >= NUM_SEQ_PKTS)
 		return -1;
 
+	cos = strtoul(argv[4], NULL, 10);
+	cos = strtoul(argv[6], NULL, 10);
 
-	teid = (argc == 18)? strtoul(argv[13], NULL, 10) : 0;
-	cos = (argc == 18)? strtoul(argv[15], NULL, 10) : strtoul(argv[14], NULL, 10);
-	tos = (argc == 18)? strtoul(argv[17], NULL, 10) : strtoul(argv[16], NULL, 10);
-
-	if (cos > MAX_COS) {
-        cli_printf("CoS value must be in {0-7} \n");
-		return -1;
-	}
-	if (tos > MAX_TOS) {
-	    cli_printf("ToS value must be in {0-255} \n");
-		return -1;
-	}
-
-
-	p = strchr(argv[5], '/'); /* remove subnet if found */
-	if (p)
-		*p = '\0';
-	rte_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
-	p = strchr(argv[6], '/');
-	if (!p) {
-		char buf[32];
-		cli_printf("src IP address should contain /NN subnet value, default /32\n");
-		snprintf(buf, sizeof(buf), "%s/32", argv[6]);
-		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	} else
-		rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
-   rte_ether_aton(argv[3], &dmac);
-	rte_ether_aton(argv[4], &smac);
+
 	foreach_port(portlist,
-		     pktgen_set_seq(info, seqnum,
-				    &dmac, &smac,
-				    &dst, &src,
-				    atoi(argv[7]), atoi(argv[8]),
-					eth[3], proto[0],
-					atoi(argv[11]), atoi(argv[12]),
-					teid,
-					cos, (uint8_t)tos) );
+		     pktgen_set_cos_tos_seq(info, seqnum, cos, tos) );
 
 	pktgen_update_display();
 	return 0;
 }
-
-/**************************************************************************//**
- *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
- *
- * DESCRIPTION
- * Set up the sequence packets for a given port and slot.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
-   { 26, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d cos %d" },
-	{ 27, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d cos %d" },
-	{ 28, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d tos %d" },
-	{ 29, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d tos %d" },
- */
-
-static int
-seq_13_set_cmd(int argc __rte_unused, char **argv)
-{
-	char *proto = argv[16], *p;
-	char *eth = argv[15];
-	int seqnum = atoi(argv[1]);
-	portlist_t portlist;
-	struct pg_ipaddr dst, src;
-	struct ether_addr dmac, smac;
-	uint32_t teid;
-	char *mark = argv[23];
-	uint8_t cos = 0;
-	uint16_t tos = 0;
-
-	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf("Must use IPv4 with ICMP type packets\n");
-		return -1;
-	}
-
-	if (seqnum >= NUM_SEQ_PKTS)
-		return -1;
-
-	teid = (argc == 25)? strtoul(argv[22], NULL, 10) : 0;
-	mark = (argc == 25)? argv[23] : argv[21];
-
-
-	if (mark[0] == 'c') {
-		cos = (argc == 25)? strtoul(argv[24], NULL, 10) : strtoul(argv[22], NULL, 10);
-	} else
-		tos = (argc == 25)? strtoul(argv[24], NULL, 10) : strtoul(argv[22], NULL, 10);
-
-    if (cos > MAX_COS) {
-        cli_printf("CoS value must be in {0-7} \n");
-		return -1;
-	}
-	if (tos > MAX_TOS) {
-	    cli_printf("ToS value must be in {0-255} \n");
-		return -1;
-	}
-
-	p = strchr(argv[8], '/'); /* remove subnet if found */
-	if (p)
-		*p = '\0';
-	rte_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
-	p = strchr(argv[10], '/');
-	if (p == NULL) {
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%s/32", argv[10]);
-		cli_printf("src IP address should contain /NN subnet value, default /32");
-		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	} else
-		rte_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	rte_parse_portlist(argv[2], &portlist);
-	rte_ether_aton(argv[4], &dmac);
-	rte_ether_aton(argv[6], &smac);
-	foreach_port(portlist,
-				pktgen_set_seq(info, seqnum,
-					&dmac, &smac,
-					&dst, &src,
-					atoi(argv[12]), atoi(argv[14]), eth[3],
-					proto[0],
-					atoi(argv[18]), atoi(argv[20]),
-					teid,
-					cos, (uint8_t)tos) );
-
-	pktgen_update_display();
-	return 0;
-}
-
-/**************************************************************************//**
-  *
- * cmd_set_seq_parsed - Set a sequence config for given port and slot.
- *
- * DESCRIPTION
- * Set up the sequence packets for a given port and slot.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- * { 30, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d cos %d tos %d" },
- * { 31, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d cos %d tos %d" },
- */
-
-static int
-seq_14_set_cmd(int argc __rte_unused, char **argv)
-{
-	char *proto = argv[16], *p;
-	char *eth = argv[15];
-	int seqnum = atoi(argv[1]);
-	portlist_t portlist;
-	struct pg_ipaddr dst, src;
-	struct ether_addr dmac, smac;
-	uint32_t teid;
-	uint8_t cos = 0;
-	uint16_t tos = 0;
-
-
-	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
-		cli_printf("Must use IPv4 with ICMP type packets\n");
-		return -1;
-	}
-
-	if (seqnum >= NUM_SEQ_PKTS)
-		return -1;
-
-	teid = (argc == 27)? strtoul(argv[22], NULL, 10) : 0;
-	cos = (argc == 27)? strtoul(argv[24], NULL, 10) : strtoul(argv[22], NULL, 10);
-	tos = (argc == 27)? strtoul(argv[26], NULL, 10) : strtoul(argv[24], NULL, 10);
-
-	if (cos > MAX_COS) {
-	    cli_printf("CoS value must be in {0-7} \n");
-		return -1;
-	}
-    if (tos > MAX_TOS) {
-	    cli_printf("ToS value must be in {0-255} \n");
-		return -1;
-	}
-
-
-	p = strchr(argv[8], '/'); /* remove subnet if found */
-	if (p)
-		*p = '\0';
-	rte_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
-	p = strchr(argv[10], '/');
-	if (p == NULL) {
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%s/32", argv[10]);
-		cli_printf("src IP address should contain /NN subnet value, default /32");
-		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	} else
-		rte_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	rte_parse_portlist(argv[2], &portlist);
-   rte_ether_aton(argv[4], &dmac);
-	rte_ether_aton(argv[6], &smac);
-	foreach_port(portlist,
-		     pktgen_set_seq(info, seqnum,
-				    &dmac, &smac,
-				    &dst, &src,
-				    atoi(argv[12]), atoi(argv[14]),
-					eth[3], proto[0],
-					atoi(argv[18]), atoi(argv[20]),
-					teid,
-					cos, (uint8_t)tos) );
-
-	pktgen_update_display();
-	return 0;
-}
-
 
 static struct cli_map seq_map[] = {
 	{ 10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d" },
 	{ 11, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d" },
 	{ 12, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d" },
 	{ 13, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
-	{ 20, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d cos %d" },
-	{ 21, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d cos %d" },
-	{ 22, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d tos %d" },
-	{ 23, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d tos %d" },
-	{ 24, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d cos %d tos %d" },
-	{ 25, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d cos %d tos %d" },
-	{ 26, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d cos %d" },
-	{ 27, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d cos %d" },
-	{ 28, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d tos %d" },
-	{ 29, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d tos %d" },
-	{ 30, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d cos %d tos %d" },
-	{ 31, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d cos %d tos %d" },
+	{ 15, "%|seq|sequence %d %P cos %d tos %d" },
 	{ -1, NULL }
 };
 
 static const char *seq_help[] = {
-	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>] [cos <val>] [tos <val>]",
-	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>] [cos <cos>] [tos <tos>]",
+	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]",
+	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]",
+	"sequence <seq#> <portlist> cos <cos> tos <tos>",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
 	"",
@@ -1472,18 +1166,7 @@ seq_cmd(int argc, char **argv)
 		case 11: seq_1_set_cmd(argc, argv); break;
 		case 12:
 		case 13: seq_2_set_cmd(argc, argv); break;
-		case 20:
-		case 21:
-		case 22:
-		case 23: seq_11_set_cmd(argc, argv); break;
-		case 24:
-		case 25: seq_12_set_cmd(argc, argv); break;
-		case 26:
-		case 27:
-		case 28:
-		case 29: seq_13_set_cmd(argc, argv); break;
-		case 30:
-		case 31: seq_14_set_cmd(argc, argv); break;
+		case 15: seq_3_set_cmd(argc, argv); break;
 		default:
 			return -1;
 	}

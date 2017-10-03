@@ -57,7 +57,7 @@ extern "C" {
 #define CLI_HELP_NAME_LEN	32
 
 struct help_node {
-    TAILQ_ENTRY(help_node) next;     /**< link list of help nodes */
+	TAILQ_ENTRY(help_node) next;     /**< link list of help nodes */
 	char group[CLI_HELP_NAME_LEN];
 	struct cli_map	*map;
 	const char **help_data;

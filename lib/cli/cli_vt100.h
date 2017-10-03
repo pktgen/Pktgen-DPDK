@@ -112,34 +112,34 @@ extern "C" {
 /* Result of parsing : it must be synchronized with
  * vt100_commands[] in vt100_keys.c */
 enum {
-    VT100_INVALID_KEY = 0,
-    VT100_KEY_UP_ARR,
-    VT100_KEY_DOWN_ARR,
-    VT100_KEY_RIGHT_ARR,
-    VT100_KEY_LEFT_ARR,
-    VT100_KEY_BKSPACE,
-    VT100_KEY_RETURN,
-    VT100_KEY_CTRL_A,
-    VT100_KEY_CTRL_E,
-    VT100_KEY_CTRL_K,
-    VT100_KEY_CTRL_Y,
-    VT100_KEY_CTRL_C,
-    VT100_KEY_CTRL_F,
-    VT100_KEY_CTRL_B,
-    VT100_KEY_SUPPR,
-    VT100_KEY_TAB,
-    VT100_KEY_CTRL_D,
-    VT100_KEY_CTRL_L,
-    VT100_KEY_RETURN2,
-    VT100_KEY_META_BKSPACE,
-    VT100_KEY_WLEFT,
-    VT100_KEY_WRIGHT,
-    VT100_KEY_CTRL_W,
-    VT100_KEY_CTRL_P,
-    VT100_KEY_CTRL_N,
-    VT100_KEY_META_D,
-    VT100_KEY_CTRL_X,
-    VT100_MAX_KEYS
+	VT100_INVALID_KEY = 0,
+	VT100_KEY_UP_ARR,
+	VT100_KEY_DOWN_ARR,
+	VT100_KEY_RIGHT_ARR,
+	VT100_KEY_LEFT_ARR,
+	VT100_KEY_BKSPACE,
+	VT100_KEY_RETURN,
+	VT100_KEY_CTRL_A,
+	VT100_KEY_CTRL_E,
+	VT100_KEY_CTRL_K,
+	VT100_KEY_CTRL_Y,
+	VT100_KEY_CTRL_C,
+	VT100_KEY_CTRL_F,
+	VT100_KEY_CTRL_B,
+	VT100_KEY_SUPPR,
+	VT100_KEY_TAB,
+	VT100_KEY_CTRL_D,
+	VT100_KEY_CTRL_L,
+	VT100_KEY_RETURN2,
+	VT100_KEY_META_BKSPACE,
+	VT100_KEY_WLEFT,
+	VT100_KEY_WRIGHT,
+	VT100_KEY_CTRL_W,
+	VT100_KEY_CTRL_P,
+	VT100_KEY_CTRL_N,
+	VT100_KEY_META_D,
+	VT100_KEY_CTRL_X,
+	VT100_MAX_KEYS
 };
 
 extern const char *vt100_commands[];
@@ -148,8 +148,8 @@ enum vt100_parse_state {
 	VT100_INIT,
 	VT100_ESCAPE,
 	VT100_ESCAPE_CSI,
-    VT100_DONE = -1,
-    VT100_CONTINUE = -2
+	VT100_DONE = -1,
+	VT100_CONTINUE = -2
 };
 
 #define VT100_BUF_SIZE 8
@@ -167,20 +167,23 @@ typedef uint8_t scrn_rgb_t;
 
 /** Set the foreground color + attribute at the current cursor position */
 static __inline__ void
-vt100_fgcolor(scrn_color_e color, scrn_attr_e attr) {
-    cli_puts("\033[%d;%dm", attr, color + 30);
+vt100_fgcolor(scrn_color_e color, scrn_attr_e attr)
+{
+	cli_puts("\033[%d;%dm", attr, color + 30);
 }
 
 /** Set the background color + attribute at the current cursor position */
 static __inline__ void
-vt100_bgcolor(scrn_color_e color, scrn_attr_e attr) {
-    cli_puts("\033[%d;%dm", attr, color + 40);
+vt100_bgcolor(scrn_color_e color, scrn_attr_e attr)
+{
+	cli_puts("\033[%d;%dm", attr, color + 40);
 }
 
 /** Set the foreground/background color + attribute at the current cursor position */
 static __inline__ void
-vt100_fgbgcolor(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr) {
-    cli_puts("\033[%d;%d;%dm", attr, fg + 30, bg + 40);
+vt100_fgbgcolor(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
+{
+	cli_puts("\033[%d;%d;%dm", attr, fg + 30, bg + 40);
 }
 
 /**
@@ -188,37 +191,42 @@ vt100_fgbgcolor(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr) {
  * the current position.
  */
 static __inline__ void
-vt100_color(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr) {
-    if ( (fg != SCRN_NO_CHANGE) && (bg != SCRN_NO_CHANGE))
-        vt100_fgbgcolor(fg, bg, attr);
-    else if (fg == SCRN_NO_CHANGE)
-        vt100_bgcolor(bg, attr);
-    else if (bg == SCRN_NO_CHANGE)
-        vt100_fgcolor(fg, attr);
+vt100_color(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
+{
+	if ( (fg != SCRN_NO_CHANGE) && (bg != SCRN_NO_CHANGE))
+		vt100_fgbgcolor(fg, bg, attr);
+	else if (fg == SCRN_NO_CHANGE)
+		vt100_bgcolor(bg, attr);
+	else if (bg == SCRN_NO_CHANGE)
+		vt100_fgcolor(fg, attr);
 }
 
 /** Setup for 256 RGB color methods. A routine to output RGB color codes if supported */
 static __inline__ void
-vt100_rgb(uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b) {
-    cli_puts("\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
+vt100_rgb(uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b)
+{
+	cli_puts("\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
 }
 
 /** Set the foreground color + attribute at the current cursor position */
 static __inline__ int
-vt100_fgcolor_str(char *str, scrn_color_e color, scrn_attr_e attr) {
-    return snprintf(str, 16, "\033[%d;%dm", attr, color + 30);
+vt100_fgcolor_str(char *str, scrn_color_e color, scrn_attr_e attr)
+{
+	return snprintf(str, 16, "\033[%d;%dm", attr, color + 30);
 }
 
 /** Set the background color + attribute at the current cursor position */
 static __inline__ int
-vt100_bgcolor_str(char *str, scrn_color_e color, scrn_attr_e attr) {
+vt100_bgcolor_str(char *str, scrn_color_e color, scrn_attr_e attr)
+{
 	return snprintf(str, 16, "\033[%d;%dm", attr, color + 40);
 }
 
 /** Set the foreground/background color + attribute at the current cursor position */
 static __inline__ int
-vt100_fgbgcolor_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr) {
-    return snprintf(str, 16, "\033[%d;%d;%dm", attr, fg + 30, bg + 40);
+vt100_fgbgcolor_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
+{
+	return snprintf(str, 16, "\033[%d;%d;%dm", attr, fg + 30, bg + 40);
 }
 
 /**
@@ -226,21 +234,23 @@ vt100_fgbgcolor_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e att
  * the current position.
  */
 static __inline__ int
-vt100_color_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr) {
-    if ( (fg != SCRN_NO_CHANGE) && (bg != SCRN_NO_CHANGE))
-        return vt100_fgbgcolor_str(str, fg, bg, attr);
-    else if (fg == SCRN_NO_CHANGE)
-        return vt100_bgcolor_str(str, bg, attr);
-    else if (bg == SCRN_NO_CHANGE)
-        return vt100_fgcolor_str(str, fg, attr);
+vt100_color_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
+{
+	if ( (fg != SCRN_NO_CHANGE) && (bg != SCRN_NO_CHANGE))
+		return vt100_fgbgcolor_str(str, fg, bg, attr);
+	else if (fg == SCRN_NO_CHANGE)
+		return vt100_bgcolor_str(str, bg, attr);
+	else if (bg == SCRN_NO_CHANGE)
+		return vt100_fgcolor_str(str, fg, attr);
 	else
 		return 0;
 }
 
 /** Setup for 256 RGB color methods. A routine to output RGB color codes if supported */
 static __inline__ int
-vt100_rgb_str(char *str, uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b) {
-    return snprintf(str, 16, "\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
+vt100_rgb_str(char *str, uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b)
+{
+	return snprintf(str, 16, "\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
 }
 
 /**

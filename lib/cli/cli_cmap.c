@@ -281,7 +281,8 @@ cmap_create(void)
 		return NULL;
 
 	if ( (fd = open(PROC_CPUINFO, O_RDONLY)) < 0) {
-		fprintf(stderr, "Cannot open %s on this system\n", PROC_CPUINFO);
+		fprintf(stderr, "Cannot open %s on this system\n",
+			PROC_CPUINFO);
 		free(cmap);
 		return NULL;
 	}
@@ -316,8 +317,8 @@ cmap_free(struct cmap *cmap)
 
 /* Helper for building log strings.
  * The macro takes an existing string, a printf-like format string and optional
- * arguments. It formats the string and appends it to the existing string, while
- * avoiding possible buffer overruns.
+ * arguments. It formats the string and appends it to the existing string,
+ * while avoiding possible buffer overruns.
  */
 #define strncatf(dest, fmt, ...) do {					\
 		char _buff[1024];					\

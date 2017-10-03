@@ -50,22 +50,22 @@ extern "C" {
 
 enum {
 	/* File operations opt */
-    CLI_FILE_RD     = 0x0001,       /** Do a read on a file */
-    CLI_FILE_WR     = 0x0002,       /** Do a write on a file */
-    CLI_FILE_APPEND = 0x0004,       /** Append to a file */
-    CLI_FILE_OPEN   = 0x0008,       /** Open a file */
-    CLI_FILE_CLOSE  = 0x0010,       /** Close a file */
-    CLI_FILE_CREATE = 0x0020,       /** Create a file */
+	CLI_FILE_RD     = 0x0001,       /** Do a read on a file */
+	CLI_FILE_WR     = 0x0002,       /** Do a write on a file */
+	CLI_FILE_APPEND = 0x0004,       /** Append to a file */
+	CLI_FILE_OPEN   = 0x0008,       /** Open a file */
+	CLI_FILE_CLOSE  = 0x0010,       /** Close a file */
+	CLI_FILE_CREATE = 0x0020,       /** Create a file */
 
 	/* File seek operations */
 	CLI_SEEK_SET    = 0x0100,       /** Set file pointer to a given offset */
-    CLI_SEEK_CUR    = 0x0200,       /** Seek from current file pointer */
-    CLI_SEEK_END    = 0x0400,       /** Seek from end of file */
+	CLI_SEEK_CUR    = 0x0200,       /** Seek from current file pointer */
+	CLI_SEEK_END    = 0x0400,       /** Seek from end of file */
 
 	/* File information in cli_node.fflags */
 	CLI_DATA_RDONLY = 0x1000,       /** file is read only */
-    CLI_FREE_DATA   = 0x2000,       /** File data needs to be freed */
-    CLI_DATA_EXPAND = 0x4000		/** File is expandable */
+	CLI_FREE_DATA   = 0x2000,       /** File data needs to be freed */
+	CLI_DATA_EXPAND = 0x4000		/** File is expandable */
 };
 
 #define file_set(f, v)		do { (f) |= (v); } while((0))
@@ -248,7 +248,7 @@ struct cli_node *cli_file_create(const char *path, const char *type);
  *   Number of bytes read not including the newline
  */
 int cli_file_handler(struct cli_node *node,
-                  char *buff, int len, uint32_t opt);
+                     char *buff, int len, uint32_t opt);
 
 /**
  * Generic file function for basic file handling

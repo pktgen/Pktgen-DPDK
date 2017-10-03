@@ -189,17 +189,17 @@ int rte_stropt(const char *list, char *str, const char *delim);
 static inline int
 rte_strmatch(const char * s1, const char * s2)
 {
-    if (!s1 || !s2)
-        return 0;
+	if (!s1 || !s2)
+		return 0;
 
-    while((*s1 != '\0') && (*s2 != '\0')) {
-        if (*s1++ != *s2++)
-            return 0;
-    }
-    if (*s1 != *s2)
-        return 0;
+	while((*s1 != '\0') && (*s2 != '\0')) {
+		if (*s1++ != *s2++)
+			return 0;
+	}
+	if (*s1 != *s2)
+		return 0;
 
-    return 1;
+	return 1;
 }
 
 /**
@@ -215,9 +215,9 @@ rte_strmatch(const char * s1, const char * s2)
 static inline int
 rte_strcnt(char *s, char c)
 {
-    return (s == NULL || *s == '\0')
-              ? 0
-              : rte_strcnt(s + 1, c) + (*s == c);
+	return (s == NULL || *s == '\0')
+	       ? 0
+	       : rte_strcnt(s + 1, c) + (*s == c);
 }
 
 /**
@@ -244,51 +244,51 @@ int rte_parse_portlist(const char *str, portlist_t *portlist);
  * @return
  *   Pointer to the struct ether_addr structure;
  */
- static inline struct ether_addr *
- rte_ether_aton(const char *a, struct ether_addr *e)
- {
-     int i;
-     char *end;
-     unsigned long o[ETHER_ADDR_LEN];
-     static struct ether_addr ether_addr;
+static inline struct ether_addr *
+rte_ether_aton(const char *a, struct ether_addr *e)
+{
+	int i;
+	char *end;
+	unsigned long o[ETHER_ADDR_LEN];
+	static struct ether_addr ether_addr;
 
-     if (!e)
-	 e = &ether_addr;
+	if (!e)
+		e = &ether_addr;
 
-     i = 0;
-     do {
-	 errno = 0;
-	 o[i] = strtoul(a, &end, 16);
-	 if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
-	     return NULL;
-	 a = end + 1;
-     } while (++i != sizeof (o) / sizeof (o[0]) && end[0] != 0);
+	i = 0;
+	do {
+		errno = 0;
+		o[i] = strtoul(a, &end, 16);
+		if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
+			return NULL;
+		a = end + 1;
+	} while (++i != sizeof (o) / sizeof (o[0]) && end[0] != 0);
 
-     /* Junk at the end of line */
-     if (end[0] != 0)
-	 return NULL;
+	/* Junk at the end of line */
+	if (end[0] != 0)
+		return NULL;
 
-     /* Support the format XX:XX:XX:XX:XX:XX */
-     if (i == ETHER_ADDR_LEN) {
-	 while (i-- != 0) {
-	     if (o[i] > UINT8_MAX)
-		 return NULL;
-	     e->addr_bytes[i] = (uint8_t)o[i];
-	 }
-     /* Support the format XXXX:XXXX:XXXX */
-     } else if (i == ETHER_ADDR_LEN / 2) {
-	 while (i-- != 0) {
-	     if (o[i] > UINT16_MAX)
-		 return NULL;
-	     e->addr_bytes[i * 2] = (uint8_t)(o[i] >> 8);
-	     e->addr_bytes[i * 2 + 1] = (uint8_t)(o[i] & 0xff);
-	 }
-     /* unknown format */
-     } else
-	 return NULL;
+	/* Support the format XX:XX:XX:XX:XX:XX */
+	if (i == ETHER_ADDR_LEN) {
+		while (i-- != 0) {
+			if (o[i] > UINT8_MAX)
+				return NULL;
+			e->addr_bytes[i] = (uint8_t)o[i];
+		}
+		/* Support the format XXXX:XXXX:XXXX */
+	} else if (i == ETHER_ADDR_LEN / 2) {
+		while (i-- != 0) {
+			if (o[i] > UINT16_MAX)
+				return NULL;
+			e->addr_bytes[i * 2] = (uint8_t)(o[i] >> 8);
+			e->addr_bytes[i * 2 + 1] = (uint8_t)(o[i] & 0xff);
+		}
+		/* unknown format */
+	} else
+		return NULL;
 
-     return e;
- }
+	return e;
+}
 
 
 /**

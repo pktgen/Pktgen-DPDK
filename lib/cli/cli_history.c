@@ -120,9 +120,9 @@ cli_history_line(int lineno)
 
 	if (!CIRCLEQ_EMPTY(&cli->hd_hist))
 		CIRCLEQ_FOREACH(h, &cli->hd_hist, next) {
-			if (i++ == lineno)
-				return h->line;
-		}
+		if (i++ == lineno)
+			return h->line;
+	}
 	return NULL;
 }
 

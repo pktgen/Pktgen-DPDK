@@ -38,7 +38,7 @@
 
 static int
 __count_nodes(struct cli_node *node,
-	      uint32_t flags, args_t *args)
+              uint32_t flags, args_t *args)
 {
 	if (flags & node->type)
 		args->arg1.u32[0]++;
@@ -155,7 +155,7 @@ cli_node_list_free(void *nodes)
 
 int
 cli_scan_directory(struct cli_node *dir,
-		   cli_scan_t func, uint32_t flags, args_t *args)
+                   cli_scan_t func, uint32_t flags, args_t *args)
 {
 	struct cli_node *node;
 	int ret = 0;
@@ -190,7 +190,7 @@ cli_scan_path(const char *path, cli_scan_t func, uint32_t flags, args_t *args)
 struct cli_node *
 cli_search_dir(struct cli_node *dir, const char *name, uint32_t type)
 {
-    struct cli_node *node;
+	struct cli_node *node;
 
 	if (!name || (*name == '\0'))
 		return NULL;
@@ -269,10 +269,10 @@ _leave:
 struct cli_node *
 cli_last_node_in_path(const char *path)
 {
-    struct cli_node *node, *dir;
-    char *my_path = NULL;
-    char *argv[CLI_MAX_ARGVS+1];
-    int n, i;
+	struct cli_node *node, *dir;
+	char *my_path = NULL;
+	char *argv[CLI_MAX_ARGVS+1];
+	int n, i;
 
 	if (!path || (*path == '\0'))
 		return get_cwd();
@@ -315,8 +315,8 @@ cli_last_node_in_path(const char *path)
 struct cli_node *
 cli_find_cmd(const char *path)
 {
-    struct cli_node *cmd, *dir;
-    int i;
+	struct cli_node *cmd, *dir;
+	int i;
 
 	if (cli_find_node(path, &cmd))
 		return cmd;

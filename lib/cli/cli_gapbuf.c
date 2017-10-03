@@ -107,7 +107,7 @@ gb_init_buf(struct gapbuf *gb, int size)
 struct gapbuf *
 gb_create(void)
 {
-    struct gapbuf *gb;
+	struct gapbuf *gb;
 
 	gb = malloc(sizeof(struct gapbuf));
 	if (!gb)
@@ -140,10 +140,10 @@ gb_dump(struct gapbuf *gb, const char *msg)
 
 	if (msg)
 		fprintf(stderr, "\n%s Gap: buf_size %u, gap_size %u\n",
-			msg, gb_buf_size(gb), gb_gap_size(gb));
+		        msg, gb_buf_size(gb), gb_gap_size(gb));
 	else
 		fprintf(stderr, "\nGap: buf_size %u, gap_size %u\n",
-			gb_buf_size(gb), gb_gap_size(gb));
+		        gb_buf_size(gb), gb_gap_size(gb));
 
 	fprintf(stderr, "     buf   %p, ", gb->buf);
 	fprintf(stderr, "gap   %p, ", gb->gap);

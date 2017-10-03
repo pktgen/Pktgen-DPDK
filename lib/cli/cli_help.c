@@ -63,16 +63,16 @@ _show_help_lines(const char **h, int allow_pause)
 	char key;
 
 	for (j = 0; h[j] != NULL; j++) {
-		if (!strcmp(h[j], CLI_HELP_PAUSE)) {
-			if (allow_pause) {
-				key = cli_pause("\n   <Press Return to Continue or ESC>", NULL);
-				if ((key == vt100_escape) ||
-				    (key == 'q') || (key == 'Q'))
-					return -1;
-			}
+		if (strcmp(h[j], CLI_HELP_PAUSE)) {
+			cli_printf("%s\n", h[j]);
 			continue;
 		}
-		cli_printf("%s\n", h[j]);
+		if (allow_pause) {
+			key = cli_pause("\n  Return to Continue or ESC:", NULL);
+			if ((key == vt100_escape) ||
+			    (key == 'q') || (key == 'Q'))
+				return -1;
+		}
 	}
 
 	return 0;

@@ -146,7 +146,7 @@ key_ctrl_k(void)
 	free(cli->kill);
 	if (gb_right_data_size(cli->gb))
 		cli->kill = strndup(gb_end_of_gap(cli->gb),
-				    gb_right_data_size(cli->gb) + 1);
+		                    gb_right_data_size(cli->gb) + 1);
 	gb_del(cli->gb, gb_right_data_size(cli->gb));
 }
 

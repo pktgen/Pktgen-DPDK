@@ -57,10 +57,10 @@ yy := $(shell $(ver_cmd) -yy)
 # $(info yy=$(yy))
 
 ifeq ($(yy),17)
-COMMON_PRE := $(RTE_SRCDIR)/../lib/common
-LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src
-CLI_PRE := $(RTE_SRCDIR)/../lib/cli
-GUI_PRE := $(RTE_SRCDIR)/../gui/gui
+COMMON_PRE := $(RTE_OUTPUT)/../../lib/common
+LUA_PRE := $(RTE_OUTPUT)/../../lib/lua/src
+CLI_PRE := $(RTE_OUTPUT)/../../lib/cli
+GUI_PRE := $(RTE_OUTPUT)/../../gui/gui
 else
 ifeq ($(yy),16)
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common/lib/common

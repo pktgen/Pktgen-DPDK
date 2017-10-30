@@ -51,7 +51,7 @@
 #include <cli_string_fns.h>
 #include <rte_hexdump.h>
 #ifdef RTE_LIBRTE_SMEM
-#include <rte_smem.h>
+#include <smem.h>
 #endif
 
 #include "pktgen.h"
@@ -1419,10 +1419,11 @@ my_prompt(int cont __rte_unused)
 int
 pktgen_cli_create(void)
 {
-    return cli_create(my_prompt,      /* my local prompt routine */
-                     init_tree,
-                     CLI_DEFAULT_NODES,
-                     CLI_DEFAULT_HISTORY);
+    if (cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HISTORY))
+	return -1;
+
+    return cli_setup(my_prompt,      /* my local prompt routine */
+                     init_tree);
 }
 
 void

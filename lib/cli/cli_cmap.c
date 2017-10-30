@@ -281,7 +281,8 @@ cmap_create(void)
 		return NULL;
 
 	if ( (fd = open(PROC_CPUINFO, O_RDONLY)) < 0) {
-		fprintf(stderr, "Cannot open %s on this system\n", PROC_CPUINFO);
+		fprintf(stderr, "Cannot open %s on this system\n",
+			PROC_CPUINFO);
 		free(cmap);
 		return NULL;
 	}
@@ -316,8 +317,8 @@ cmap_free(struct cmap *cmap)
 
 /* Helper for building log strings.
  * The macro takes an existing string, a printf-like format string and optional
- * arguments. It formats the string and appends it to the existing string, while
- * avoiding possible buffer overruns.
+ * arguments. It formats the string and appends it to the existing string,
+ * while avoiding possible buffer overruns.
  */
 #define strncatf(dest, fmt, ...) do {					\
 		char _buff[1024];					\
@@ -335,42 +336,4 @@ sct(struct cmap *cm, uint8_t s, uint8_t c, uint8_t t) {
 			return lc->lid;
 
 	return 0;
-}
-
-void
-cmap_dump(FILE *f)
-{
-	struct cmap *c = cmap_create();
-	int i;
-
-	if (!f)
-		f = stdout;
-
-	fprintf(f, "CPU : %s", c->model);
-	fprintf(f, "      %d lcores, %u socket%s, %u core%s per socket and "
-		   "%u thread%s per core\n",
-		c->num_cores,
-		c->sid_cnt, c->sid_cnt > 1 ? "s" : "",
-		c->cid_cnt, c->cid_cnt > 1 ? "s" : "",
-		c->tid_cnt, c->tid_cnt > 1 ? "s" : "");
-
-	fprintf(f, "Socket     : ");
-	for (i = 0; i < c->sid_cnt; i++)
-		fprintf(f, "%4d      ", i);
-
-	for (i = 0; i < c->cid_cnt; i++) {
-		fprintf(f, "  Core %3d : [%2d,%2d]   ", i,
-			sct(c, 0, i, 0), sct(c, 0, i, 1));
-		if (c->sid_cnt > 1)
-			fprintf(f, "[%2d,%2d]   ",
-				sct(c, 1, i, 0), sct(c, 1, i, 1));
-		if (c->sid_cnt > 2)
-			fprintf(f, "[%2d,%2d]   ",
-				sct(c, 2, i, 0), sct(c, 2, i, 1));
-		if (c->sid_cnt > 3)
-			fprintf(f, "[%2d,%2d]   ",
-				sct(c, 3, i, 0), sct(c, 3, i, 1));
-		fprintf(f, "\n");
-	}
-	cmap_free(c);
 }

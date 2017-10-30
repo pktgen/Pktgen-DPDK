@@ -60,7 +60,7 @@ _column_count(struct cli_node **nodes, uint32_t node_cnt, uint32_t *len)
 
 static int
 _print_nodes(struct cli_node **nodes, uint32_t node_cnt,
-	     uint32_t dir_only, char *match, struct cli_node **ret)
+             uint32_t dir_only, char *match, struct cli_node **ret)
 {
 	struct cli_node *n;
 	uint32_t i, cnt = 0, ccnt, found = 0, slen, csize;
@@ -151,16 +151,18 @@ complete_args(int argc, char **argv, uint32_t types)
 			}
 		}
 
-		stype = CLI_ALL_TYPE;			/* search for all nodes */
+		stype = CLI_ALL_TYPE;		/* search for all nodes */
 		if (argc > 1)
-			stype = CLI_OTHER_TYPE;		/* search for non-exe nodes */
+			stype = CLI_OTHER_TYPE;	/* search for non-exe nodes */
 
-		node_cnt = cli_node_list_with_type(node, stype, (void * *)&nodes);
+		node_cnt = cli_node_list_with_type(node, stype,
+			(void * *)&nodes);
 		p = strrchr(match, '/');
 		if (p)
 			match = ++p;
 	} else
-		node_cnt = cli_node_list_with_type(NULL, types, (void * *)&nodes);
+		node_cnt = cli_node_list_with_type(NULL, types,
+			(void * *)&nodes);
 
 	if (node_cnt) {
 		struct cli_node *mnode = NULL;
@@ -186,7 +188,7 @@ complete_args(int argc, char **argv, uint32_t types)
 			slen = strlen(match);
 			nlen = (strlen(node->name) - slen);
 
-			if (nlen > 0)	/* Add the rest of the matching command */
+			if (nlen > 0) /* Add the rest of the matching command */
 				gb_str_insert(gb, &node->name[slen], nlen);
 
 			if (is_directory(node))
@@ -234,8 +236,9 @@ cli_auto_complete(void)
 	if (gb_get_prev(this_cli->gb) != ' ') {
 		if (argc == 1)	/* Only one word then look for a command */
 			ret = complete_args(argc, argv, CLI_ALL_TYPE);
-		else		/* If more then one word then look for file/dir */
-			ret = complete_args(argc, argv, CLI_FILE_NODE | CLI_DIR_NODE);
+		else	/* If more then one word then look for file/dir */
+			ret = complete_args(argc, argv,
+				CLI_FILE_NODE | CLI_DIR_NODE);
 
 		/* if we get an error then redisplay the line */
 		if (ret)
@@ -248,7 +251,7 @@ cli_auto_complete(void)
 
 		memset(save, '\0', size + 1);
 
-		/* Call function to print out help text, plus save a copy of line */
+		/* Call function to print out help text, plus save a copy */
 		gb_copy_to_buf(this_cli->gb, save, size);
 
 		/* Add the -? to the command */

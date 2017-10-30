@@ -47,8 +47,8 @@ extern "C" {
 #endif
 
 struct cli_map {
-    int index;
-    const char *fmt;
+	int index;
+	const char *fmt;
 };
 
 /**
@@ -77,7 +77,7 @@ struct cli_map {
  *   return pointer map entry or NULL if not found
  */
 struct cli_map *cli_mapping(struct cli_map *maps,
-							int argc, char **argv);
+                            int argc, char **argv);
 
 /**
  * Dump out the map entry

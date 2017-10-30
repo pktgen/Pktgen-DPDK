@@ -37,8 +37,8 @@
 struct cli_node *
 cli_file_open(const char *path, const char *type)
 {
-    struct cli_node *node;
-    uint32_t flags = 0;
+	struct cli_node *node;
+	uint32_t flags = 0;
 
 	if (!path)
 		return NULL;
@@ -174,15 +174,17 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 		if (node->foffset > node->file_size) {
 			if (!(node->fflags & CLI_FILE_APPEND)) {
 				node->foffset = saved;
-				if (node->fflags & (CLI_FREE_DATA | CLI_DATA_EXPAND)) {
+				if (node->fflags & (CLI_FREE_DATA |
+							CLI_DATA_EXPAND)) {
 					char *data;
-					data = realloc(node->file_data, node->foffset);
+					data = realloc(node->file_data,
+						node->foffset);
 					if (!data)
 						return -1;
 					node->file_data = data;
 					node->file_size = node->foffset;
-				} else
-					return -1;	/* TODO: add code to expand the file */
+				} else /* TODO: add code to expand the file */
+					return -1;
 			} else {
 				node->foffset = saved;
 				return -1;
@@ -238,7 +240,8 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 }
 
 struct cli_node *
-cli_file_create(const char *path, const char *type){
+cli_file_create(const char *path, const char *type)
+{
 	struct cli_node *node, *parent;
 	char *file, *mypath;
 	char *data = NULL;

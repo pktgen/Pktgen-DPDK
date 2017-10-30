@@ -40,7 +40,6 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-#include <rte_config.h>
 #include <rte_atomic.h>
 #include <rte_malloc.h>
 #include <rte_spinlock.h>
@@ -125,7 +124,7 @@ scrn_stdin_setup(void)
 
 	memset(&scrn->oldterm, 0, sizeof(term));
 	if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm) ||
-		tcgetattr(fileno(scrn->fd_in), &term)) {
+	    tcgetattr(fileno(scrn->fd_in), &term)) {
 		printf("%s: setup failed for tty\n", __func__);
 		return -1;
 	}
@@ -197,8 +196,8 @@ int
 scrn_create_with_defaults(int theme)
 {
 	return scrn_create(SCRN_STDIN_TYPE,
-			SCRN_DEFAULT_ROWS, SCRN_DEFAULT_COLS,
-			(theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
+	                   SCRN_DEFAULT_ROWS, SCRN_DEFAULT_COLS,
+	                   (theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
 }
 
 void

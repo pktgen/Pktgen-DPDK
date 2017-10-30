@@ -47,8 +47,8 @@ extern "C" {
 #endif
 
 struct vt100_cmds {
-    const char *str;
-    void (*func)(void);
+	const char *str;
+	void (*func)(void);
 };
 
 extern struct vt100_cmds vt100_cmd_list[];

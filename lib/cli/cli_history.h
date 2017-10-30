@@ -48,13 +48,13 @@ extern "C" {
 #endif
 
 enum {
-    CLI_DEFAULT_HISTORY = -1,       /** Use the default history count */
-    CLI_NO_HISTORY = 0,             /** No history */
+	CLI_DEFAULT_HISTORY = -1,       /** Use the default history count */
+	CLI_NO_HISTORY = 0,             /** No history */
 };
 
 struct cli_hist {
-    CIRCLEQ_ENTRY(cli_hist) next;   /** link list of history lines */
-    char *line;                     /** line is strdup of original line */
+	CIRCLEQ_ENTRY(cli_hist) next;   /** link list of history lines */
+	char *line;                     /** line is strdup of original line */
 };
 
 struct cli;

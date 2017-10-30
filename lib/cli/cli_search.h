@@ -53,18 +53,18 @@ extern "C" {
 #endif
 
 typedef union {
-    void *voidp;                    /** void * value */
-    char chr[8];                    /** 8 characters */
-    uint64_t u64;                   /** 64bit value */
-    uint32_t u32[2];                /** 2 32bit value */
-    uint16_t u16[4];                /** 4 16bit values */
+	void *voidp;                    /** void * value */
+	char chr[8];                    /** 8 characters */
+	uint64_t u64;                   /** 64bit value */
+	uint32_t u32[2];                /** 2 32bit value */
+	uint16_t u16[4];                /** 4 16bit values */
 } arg_u;                            /** Union for argument word */
 
 typedef struct {
-    arg_u   arg1;                   /* Argument Word 1 */
-    arg_u   arg2;                   /* Argument Word 2 */
-    arg_u   arg3;                   /* Argument Word 3 */
-    arg_u   arg4;                   /* Argument Word 4 */
+	arg_u   arg1;                   /* Argument Word 1 */
+	arg_u   arg2;                   /* Argument Word 2 */
+	arg_u   arg3;                   /* Argument Word 3 */
+	arg_u   arg4;                   /* Argument Word 4 */
 } args_t;                           /* 32 bytes of arguments */
 
 struct cli;
@@ -72,7 +72,7 @@ struct cli_node;
 
 typedef int (*cli_scan_t)(struct cli_node *node,
                           uint32_t flags, args_t *args);
-    /** typedef of function passed in cli_scan_directory() */
+/** typedef of function passed in cli_scan_directory() */
 
 /**
 * Scan a directory and call the func with the node found.
@@ -156,7 +156,7 @@ uint32_t cli_path_cmd_count(void);
 *   Number of nodes found of this type in the directory
 */
 uint32_t cli_node_list_with_type(struct cli_node *node,
-								 uint32_t flags, void **ret);
+                                 uint32_t flags, void **ret);
 
 /**
 * Free a node back to the free list

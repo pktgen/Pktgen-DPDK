@@ -130,7 +130,7 @@ cli_env_set(struct cli_env *env, const char *var, const char *val)
 
 int
 cli_env_string(struct cli_env *env, const char *var,
-			   cli_sfunc_t sfunc, const char *val)
+               cli_sfunc_t sfunc, const char *val)
 {
 	struct env_node *n;
 
@@ -159,6 +159,7 @@ cli_env_del(struct cli_env *env, const char *var)
 	return env_free(env, find_env(env, var));
 }
 
+/* strings to be substituted are of the form ${foo} or $(foo) */
 void
 cli_env_substitution(struct cli_env *env, char *line, int sz)
 {
@@ -168,30 +169,46 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
 	if (!env || !line || sz <= 0)
 		return;
 
+	/* Allocate string space on the stack */
 	tmp = alloca(sz + 1);
 	if (!tmp)
 		return;
+
 	memset(tmp, '\0', sz + 1);
 
+	/* Determine the end of the string */
 	e = line + sz;
-	for (p = line, t = tmp; (p[0] != '\0') || (p < e); p++) {
-		if ((p[0] == '$') && ((p[1] == '{') || (p[1] == '('))) {
-			s = strchr(p, (p[1] == '{') ? '}' : ')');
-			if (s) {
-				*s++ = '\0';
-				v = cli_env_get(env, &p[2]);
-				if (v) {
-					int n = strlen(v);
-					memcpy(t, v, n);
-					t += n;
-					continue;
-				}
-				p = s;
-			}
-		}
+
+	for (p = line, t = tmp; (p[0] != '\0') && (p < e); p++) {
+		/* Look for the '$' then the open bracket */
+		if (p[0] != '$')
+			goto next;
+
+		/* find opening bracket */
+		if ((p[1] != '{') && (p[1] != '('))
+			goto next;
+
+		/* find closing bracket */
+		s = strchr(p, (p[1] == '{') ? '}' : ')');
+		if (!s)
+			goto next;
+
+		/* terminate the variable string */
+		*s = '\0';
+
+		v = cli_env_get(env, &p[2]);
+		if (!v)
+			v = "oops!";
+
+		memcpy(t, v, strlen(v));
+		t += strlen(v);
+		p = s;		/* Point 'p' past the variable */
+		continue;
+next:
 		*t++ = *p;
 	}
 	*t = '\0';
+
 	snprintf(line, sz, "%s", tmp);
 }
 
@@ -220,8 +237,10 @@ cli_env_show(struct cli_env *env)
 
 	TAILQ_FOREACH(node, &env->head, next) {
 		if (node->sfunc)
-			cli_printf("  \"%s\" = \"%s\"\n", node->var, node->sfunc(node->val));
+			cli_printf("  \"%s\" = \"%s\"\n",
+			           node->var, node->sfunc(node->val));
 		else
-			cli_printf("  \"%s\" = \"%s\"\n", node->var, node->val);
+			cli_printf("  \"%s\" = \"%s\"\n",
+			           node->var, node->val);
 	}
 }

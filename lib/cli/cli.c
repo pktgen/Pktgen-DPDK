@@ -874,7 +874,9 @@ error_exit:
 int
 cli_create_with_defaults(void)
 {
-	return cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HIST_LINES);
+	if (cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HIST_LINES) == 0)
+		return cli_setup_with_defaults();
+	return -1;
 }
 
 /* Cleanup the CLI allocation of memory */

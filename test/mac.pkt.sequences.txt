@@ -1,0 +1,66 @@
+# mac.pkt
+# -------
+# Note that DPDK cannot use default Nehalem cpu flavor extra spec, because it needs special SSE instructions
+#
+# Contributed by gkenaley
+#
+# /home/demo/Projects/pktgen-2.8.6/pktgen -c 0xee --master-lcore 1 -n 2 -m 1024 --proc-type auto --file-prefix pg -- -p 0x6 -m "[6:3].0,[7:2].1" -f ./mac.pkt.sequences
+#   OR
+#./app/app/${target}/pktgen -c 0xff --master-lcore 1 -n 4 -m 1024 --proc-type auto --file-prefix pg -- -P -T -p 0x3 -m "[6:3].0,[7:2].1" -f ./themes/black-yellow.theme -f ./mac.pkt.sequences
+
+# seq   <seq#>   <portlist>  dst-Mac  src-Mac  dst-IP    src-IP/nm    sport   dport   ipv4|ipv6   udp|tcp|icmp   vid   pktsize
+
+vlanid 0 681
+vlanid 1 581
+vlan 0,1 on
+proto udp 0,1
+
+# Packet size is the critical variable
+set 0,1 size 512
+
+set 0,1 rate 1
+# see http://www.subnet-calculator.com/
+
+seq 0 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2040 2040 ipv4 udp 681 512
+seq 1 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2041 2041 ipv4 udp 681 512
+seq 2 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2042 2042 ipv4 udp 681 512
+seq 3 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2043 2043 ipv4 udp 681 512
+seq 0 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2044 2044 ipv4 udp 681 512
+seq 5 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2045 2045 ipv4 udp 681 512
+seq 6 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2046 2046 ipv4 udp 681 512
+seq 7 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2047 2047 ipv4 udp 681 512
+seq 8 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2048 2048 ipv4 udp 681 512
+seq 9 0 fa:16:3e:b3:aa:f5 fa:16:3e:d2:a6:b1 192.168.20.3 192.168.30.3/24 2049 2049 ipv4 udp 681 512
+
+seq 0 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3040 3040 ipv4 udp 581 512
+seq 1 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3041 3041 ipv4 udp 581 512
+seq 2 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3042 3042 ipv4 udp 581 512
+seq 3 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3043 3043 ipv4 udp 581 512
+seq 4 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3044 3044 ipv4 udp 581 512
+seq 5 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3045 3045 ipv4 udp 581 512
+seq 6 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3046 3046 ipv4 udp 581 512
+seq 7 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3047 3047 ipv4 udp 581 512
+seq 8 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3048 3048 ipv4 udp 581 512
+seq 9 1 fa:16:3e:d2:a6:b1 fa:16:3e:b3:aa:f5 192.168.30.3 192.168.20.3/24 3049 3049 ipv4 udp 581 512
+
+process 0,1 enable
+delay 2000
+
+#The next line is what activates sequences. If there are no sequences above, no traffic occurs (unless the next line is commented out).
+set 0,1 seqCnt 10
+
+start 0,1
+
+# Ramp up throughput over 10 seconds, as is commonly done on Ixia/Spirent
+# Percentage rates are apparently relative to 40G when the NIC is 40G capable.
+# Note that some switches require up to 30 seconds to learn before bi-directional traffic starts!
+delay 5000
+set 0,1 rate 5
+delay 3000
+set 0,1 rate 10
+delay 3000
+set 0,1 rate 13
+delay 3000
+set 0,1 rate 20
+delay 3000
+set 0,1 rate 23

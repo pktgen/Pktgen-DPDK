@@ -965,7 +965,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	if (seqnum >= NUM_SEQ_PKTS)
 		return -1;
 
-	teid = (argc == 11)? strtoul(argv[13], NULL, 10) : 0;
+	teid = (argc == 14)? strtoul(argv[13], NULL, 10) : 0;
 	p = strchr(argv[5], '/'); /* remove subnet if found */
 	if (p)
 		*p = '\0';
@@ -979,7 +979,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	} else
 		rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
-    rte_ether_aton(argv[3], &dmac);
+	rte_ether_aton(argv[3], &dmac);
 	rte_ether_aton(argv[4], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
@@ -1040,8 +1040,8 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	} else
 		rte_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	rte_parse_portlist(argv[2], &portlist);
-    rte_ether_aton(argv[3], &dmac);
-	rte_ether_aton(argv[4], &smac);
+	rte_ether_aton(argv[4], &dmac);
+	rte_ether_aton(argv[6], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
 				    &dmac, &smac,
@@ -1064,7 +1064,7 @@ static struct cli_map seq_map[] = {
 };
 
 static const char *seq_help[] = {
-	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]",
+	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]",
 	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",

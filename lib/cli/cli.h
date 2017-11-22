@@ -233,30 +233,12 @@ struct cli_tree {
 	};
 }; /**< Used to help create a directory tree */
 
-#define c_dir(n)                                                               \
-  {                                                                            \
-    CLI_DIR_NODE, .dir = {(n) }                                                \
-  }
-#define c_cmd(n, f, h)                                                         \
-  {                                                                            \
-    CLI_CMD_NODE, .cmd = {(n), (f), (h) }                                      \
-  }
-#define c_file(n, rw, h)                                                       \
-  {                                                                            \
-    CLI_FILE_NODE, .file = {(n), (rw), (h) }                                   \
-  }
-#define c_alias(n, l, h)                                                       \
-  {                                                                            \
-    CLI_ALIAS_NODE, .alias = {(n), (l), (h) }                                  \
-  }
-#define c_str(n, f, s)                                                         \
-  {                                                                            \
-    CLI_STR_NODE, .str = {(n), (f), (s) }                                      \
-  }
-#define c_end()                                                                \
-  {                                                                            \
-    CLI_UNK_NODE, .dir = { NULL }                                              \
-  }
+#define c_dir(n)         { CLI_DIR_NODE, .dir = {(n)}}
+#define c_cmd(n, f, h)   { CLI_CMD_NODE, .cmd = {(n), (f), (h)}}
+#define c_file(n, rw, h) { CLI_FILE_NODE, .file = {(n), (rw), (h)}}
+#define c_alias(n, l, h) { CLI_ALIAS_NODE, .alias = {(n), (l), (h)}}
+#define c_str(n, f, s)   { CLI_STR_NODE, .str = {(n), (f), (s)}}
+#define c_end()          { CLI_UNK_NODE, .dir = {NULL}}
 
 /**
  * The CLI write routine, using write() call
@@ -272,7 +254,8 @@ struct cli_tree {
  */
 void cli_write(const void *msg, int len);
 
-static inline void cli_set_user_state(void *val)
+static inline void
+cli_set_user_state(void *val)
 {
 	this_cli->user_state = val;
 }
@@ -285,7 +268,8 @@ static inline void cli_set_user_state(void *val)
  * @return
  *   Pointer to current working directory.
  */
-static inline struct cli_node *get_root(void)
+static inline struct cli_node *
+get_root(void)
 {
 	RTE_ASSERT(this_cli != NULL);
 	return this_cli->root.tqh_first;
@@ -299,7 +283,8 @@ static inline struct cli_node *get_root(void)
  * @return
  *   Pointer to current working directory.
  */
-static inline struct cli_node *get_cwd(void)
+static inline struct cli_node *
+get_cwd(void)
 {
 	RTE_ASSERT(this_cli != NULL);
 	return this_cli->bins[0];
@@ -315,7 +300,8 @@ static inline struct cli_node *get_cwd(void)
  * @return
  *   None
  */
-static inline void set_cwd(struct cli_node *node)
+static inline void
+set_cwd(struct cli_node * node)
 {
 	RTE_ASSERT(this_cli != NULL);
 	this_cli->bins[0] = node;
@@ -327,7 +313,8 @@ static inline void set_cwd(struct cli_node *node)
  * @return
  *    1 if true else 0
  */
-static inline int is_cli_valid(void)
+static inline int
+is_cli_valid(void)
 {
 	return (this_cli) ? 1 : 0;
 }
@@ -342,7 +329,8 @@ static inline int is_cli_valid(void)
  * @return
  *   0 failed to compare and 1 is equal.
  */
-static inline int is_match(const char *s1, const char *s2)
+static inline int
+is_match(const char *s1, const char *s2)
 {
 	if (!s1 || !s2)
 		return 0;
@@ -365,7 +353,8 @@ static inline int is_match(const char *s1, const char *s2)
  * @return
  *   True if node is one of the types given
  */
-static inline int is_node(struct cli_node *node, uint32_t types)
+static inline int
+is_node(struct cli_node *node, uint32_t types)
 {
 	return node->type & types;
 }
@@ -378,7 +367,8 @@ static inline int is_node(struct cli_node *node, uint32_t types)
  * @return
  *   True if command else false if not
  */
-static inline int is_command(struct cli_node *node)
+static inline int
+is_command(struct cli_node *node)
 {
 	return is_node(node, CLI_CMD_NODE);
 }
@@ -391,7 +381,8 @@ static inline int is_command(struct cli_node *node)
  * @return
  *   True if alias else false if not
  */
-static inline int is_alias(struct cli_node *node)
+static inline int
+is_alias(struct cli_node *node)
 {
 	return is_node(node, CLI_ALIAS_NODE);
 }
@@ -404,7 +395,8 @@ static inline int is_alias(struct cli_node *node)
  * @return
  *   True if a file else false if not
  */
-static inline int is_file(struct cli_node *node)
+static inline int
+is_file(struct cli_node *node)
 {
 	return is_node(node, CLI_FILE_NODE);
 }
@@ -417,7 +409,8 @@ static inline int is_file(struct cli_node *node)
  * @return
  *   True if directory else false if not
  */
-static inline int is_directory(struct cli_node *node)
+static inline int
+is_directory(struct cli_node *node)
 {
 	return is_node(node, CLI_DIR_NODE);
 }
@@ -430,7 +423,8 @@ static inline int is_directory(struct cli_node *node)
  * @return
  *   True if executable else false if not
  */
-static inline int is_executable(struct cli_node *node)
+static inline int
+is_executable(struct cli_node *node)
 {
 	return is_command(node) || is_alias(node);
 }
@@ -443,7 +437,8 @@ static inline int is_executable(struct cli_node *node)
  * @return
  *   -1 just to remove code having to return error anyway.
  */
-static inline int cli_usage(void)
+static inline int
+cli_usage(void)
 {
 	if (this_cli && this_cli->exe_node) {
 		const char *p = this_cli->exe_node->short_desc;
@@ -461,7 +456,8 @@ static inline int cli_usage(void)
  * @return
  *   String for the node type.
  */
-static inline const char *cli_node_type(struct cli_node *node)
+static inline const char *
+cli_node_type(struct cli_node *node)
 {
 	const char *node_str[] = CLI_NODE_TYPES;
 	switch (node->type) {
@@ -493,7 +489,8 @@ static inline const char *cli_node_type(struct cli_node *node)
  * @return
  *   Return the pointer to the cli->scratch buffer or buf with path string.
  */
-static inline char *cli_path_string(struct cli_node *node, char *path)
+static inline char *
+cli_path_string(struct cli_node *node, char *path)
 {
 	if (!path)
 		path = this_cli->scratch;
@@ -521,7 +518,8 @@ static inline char *cli_path_string(struct cli_node *node, char *path)
  * @return
  *   N/A
  */
-static inline char *cli_cwd_path(void)
+static inline char *
+cli_cwd_path(void)
 {
 	return cli_path_string(get_cwd(), NULL);
 }
@@ -537,7 +535,8 @@ static inline char *cli_cwd_path(void)
  * @return
  *   N/A.
  */
-static inline void cli_pwd(struct cli_node *node)
+static inline void
+cli_pwd(struct cli_node *node)
 {
 	cli_printf("%s", cli_path_string(node, NULL));
 }
@@ -550,7 +549,8 @@ static inline void cli_pwd(struct cli_node *node)
  * @return
  *   N/A
  */
-static inline void cli_cursor_left(void)
+static inline void
+cli_cursor_left(void)
 {
 	cli_write(vt100_left_arr, -1);
 }
@@ -563,7 +563,8 @@ static inline void cli_cursor_left(void)
  * @return
  *   N/A
  */
-static inline void cli_cursor_right(void)
+static inline void
+cli_cursor_right(void)
 {
 	cli_write(vt100_right_arr, -1);
 }
@@ -576,7 +577,8 @@ static inline void cli_cursor_right(void)
  * @return
  *   N/A
  */
-static inline void cli_save_cursor(void)
+static inline void
+cli_save_cursor(void)
 {
 	cli_write(vt100_save_cursor, -1);
 }
@@ -589,7 +591,8 @@ static inline void cli_save_cursor(void)
  * @return
  *   N/A
  */
-static inline void cli_restore_cursor(void)
+static inline void
+cli_restore_cursor(void)
 {
 	cli_write(vt100_restore_cursor, -1);
 }
@@ -602,7 +605,8 @@ static inline void cli_restore_cursor(void)
  * @return
  *   N/A
  */
-static inline void cli_display_left(void)
+static inline void
+cli_display_left(void)
 {
 	if (gb_left_data_size(this_cli->gb))
 		cli_write(gb_start_of_buf(this_cli->gb),
@@ -617,7 +621,8 @@ static inline void cli_display_left(void)
  * @return
  *   N/A
  */
-static inline void cli_display_right(void)
+static inline void
+cli_display_right(void)
 {
 	if (gb_right_data_size(this_cli->gb))
 		cli_write(gb_end_of_gap(this_cli->gb),
@@ -632,7 +637,8 @@ static inline void cli_display_right(void)
  * @return
  *   N/A
  */
-static inline void cli_display_line(void)
+static inline void
+cli_display_line(void)
 {
 	uint32_t i;
 
@@ -657,7 +663,8 @@ static inline void cli_display_line(void)
  * @return
  *   N/A
  */
-static inline void cli_clear_screen(void)
+static inline void
+cli_clear_screen(void)
 {
 	cli_write(vt100_clear_screen, -1);
 }
@@ -670,7 +677,8 @@ static inline void cli_clear_screen(void)
  * @return
  *   N/A
  */
-static inline void cli_clear_to_eol(void)
+static inline void
+cli_clear_to_eol(void)
 {
 	cli_write(vt100_clear_right, -1);
 }
@@ -685,7 +693,8 @@ static inline void cli_clear_to_eol(void)
  * @return
  *   N/A
  */
-static inline void cli_clear_line(int lineno)
+static inline void
+cli_clear_line(int lineno)
 {
 	if (lineno > 0)
 		cli_printf(vt100_pos_cursor, lineno, 0);
@@ -705,7 +714,8 @@ static inline void cli_clear_line(int lineno)
  * @return
  *   N/A
  */
-static inline void cli_move_cursor_up(int lineno)
+static inline void
+cli_move_cursor_up(int lineno)
 {
 	while (lineno--)
 		cli_printf(vt100_up_arr);
@@ -721,7 +731,8 @@ static inline void cli_move_cursor_up(int lineno)
  * @return
  *   zero on success or -1 on error
  */
-static inline int cli_set_history_size(uint32_t nb_hist)
+static inline int
+cli_set_history_size(uint32_t nb_hist)
 {
 	return cli_set_history(nb_hist);
 }
@@ -734,7 +745,8 @@ static inline int cli_set_history_size(uint32_t nb_hist)
  * @return
  *   total number of line for history
  */
-static inline uint32_t cli_get_history_size(void)
+static inline uint32_t
+cli_get_history_size(void)
 {
 	return this_cli->nb_hist;
 }
@@ -747,7 +759,8 @@ static inline uint32_t cli_get_history_size(void)
  * @return
  *   N/A
  */
-static inline void cli_history_list(void)
+static inline void
+cli_history_list(void)
 {
 	cli_history_dump();
 }
@@ -758,7 +771,8 @@ static inline void cli_history_list(void)
  * @return
  *   Pointer to root node.
  */
-static inline struct cli_node *cli_root_node(void)
+static inline struct cli_node *
+cli_root_node(void)
 {
 	return this_cli->root.tqh_first;
 }
@@ -794,8 +808,17 @@ void cli_input(char *str, int n);
  * @return
  *   0 on success or -1
  */
-int cli_create(cli_prompt_t prompt_func, cli_tree_t tree_func, int nb_entries,
-               uint32_t nb_hist);
+int cli_create(int nb_entries, uint32_t nb_hist);
+
+/**
+ * Create the CLI engine with defaults
+ *
+ * @return
+ *   0 on success or -1
+ */
+int cli_create_with_defaults(void);
+
+int cli_setup(cli_prompt_t prompt, cli_tree_t default_func);
 
 /**
  * Create the CLI engine using system defaults.
@@ -803,7 +826,7 @@ int cli_create(cli_prompt_t prompt_func, cli_tree_t tree_func, int nb_entries,
  * @return
  *   0 on success or -1
  */
-int cli_create_with_defaults(void);
+int cli_setup_with_defaults(void);
 
 /**
  * Create the CLI engine using system defaults and supplied tree init function.
@@ -814,7 +837,7 @@ int cli_create_with_defaults(void);
  * @return
  *   0 on success or -1
  */
-int cli_create_with_tree(cli_tree_t tree);
+int cli_setup_with_tree(cli_tree_t tree);
 
 /**
  * Set the CLI prompt function pointer
@@ -1029,7 +1052,8 @@ int cli_add_str(const char *name, cli_sfunc_t func, const char *str);
  * @return
  *   -1 on error or 0 for OK
  */
-int cli_add_tree(struct cli_node *dir, struct cli_tree *tree);
+int cli_add_tree(struct cli_node *dir,
+                 struct cli_tree *tree);
 
 /**
  * Set the I/O file descriptors
@@ -1085,7 +1109,8 @@ char cli_pause(const char *msg, const char *keys);
  * @return
  *    0 is OK and -1 if error
  */
-static inline int cli_add_cmdfile(const char *filename)
+static inline int
+cli_add_cmdfile(const char *filename)
 {
 	if (this_cli->cmd_files.idx >= MAX_CMD_FILES)
 		return -1;

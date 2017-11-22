@@ -228,41 +228,40 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 {
 	struct rte_mbuf *m = _m;
 
-#if RTE_VERSION < RTE_VERSION_NUM(16, 7, 0, 0)
-	uint32_t buf_len = mp->elt_size - sizeof(struct rte_mbuf);
-#else
+#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	uint32_t buf_len, mbuf_size, priv_size;
+#else
+	uint32_t buf_len = mp->elt_size - sizeof(struct rte_mbuf);
 #endif
 	pcaprec_hdr_t hdr;
 	ssize_t len = -1;
 	char buffer[2048];
 	pcap_info_t *pcap = (pcap_info_t *)opaque_arg;
 
-#ifdef RTE_ASSERT
-	RTE_ASSERT(mp->elt_size >= sizeof(struct rte_mbuf));
-#else
-	RTE_VERIFY(mp->elt_size >= sizeof(struct rte_mbuf));
-#endif
-
-#if RTE_VERSION < RTE_VERSION_NUM(16, 7, 0, 0)
-#else
+#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	priv_size = rte_pktmbuf_priv_size(mp);
 	mbuf_size = sizeof(struct rte_mbuf) + priv_size;
 	buf_len = rte_pktmbuf_data_room_size(mp);
 #endif
-	memset(m, 0, mp->elt_size);
+	memset(m, 0, mbuf_size);
 
-#if RTE_VERSION < RTE_VERSION_NUM(16, 7, 0, 0)
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 	/* start of buffer is just after mbuf structure */
-	m->buf_addr     = (char *)m + sizeof(struct rte_mbuf);
-	m->buf_physaddr = rte_mempool_virt2phy(mp, m->buf_addr);
+	m->priv_size    = priv_size;
+	m->buf_addr     = (char *)m + mbuf_size;
+	m->buf_iova     = rte_mempool_virt2iova(m) + mbuf_size;
 	m->buf_len      = (uint16_t)buf_len;
-#else
+#elif RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	/* start of buffer is after mbuf structure and priv data */
 	m->priv_size = priv_size;
 	m->buf_addr = (char *)m + mbuf_size;
 	m->buf_physaddr = rte_mempool_virt2phy(mp, m) + mbuf_size;
 	m->buf_len = (uint16_t)buf_len;
+#else
+	/* start of buffer is just after mbuf structure */
+	m->buf_addr     = (char *)m + sizeof(struct rte_mbuf);
+	m->buf_physaddr = rte_mempool_virt2phy(mp, m->buf_addr);
+	m->buf_len      = (uint16_t)buf_len;
 #endif
 
 	/* keep some headroom between start of buffer and data */
@@ -271,8 +270,9 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	/* init some constant fields */
 	m->pool         = mp;
 	m->nb_segs      = 1;
-	m->port         = 0xff;
-	m->ol_flags     = 0;
+	m->port         = MBUF_INVALID_PORT;
+	rte_mbuf_refcnt_set(m, 1);
+	m->next		= NULL;
 
 	for (;; ) {
 		if ( (i & 0x3ff) == 0) {

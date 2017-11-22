@@ -196,12 +196,4 @@ cmap_cnt(lcore_t *lc, getter_fn get)
 	return cnt + 1;
 }
 
-/**
- * Dump out the CMAP data
- *
- * @param f
- *   The file descriptor for output
- */
-void cmap_dump(FILE *f);
-
 #endif  /*_CLI_CMAP_H */

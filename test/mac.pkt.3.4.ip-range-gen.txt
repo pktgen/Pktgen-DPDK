@@ -1,0 +1,54 @@
+# mac.pkt
+#
+# Contributed by gkenaley
+
+# /home/demo/Projects/pktgen-2.8.6/pktgen -c 0xee --master-lcore 1 -n 2 -m 1024 --proc-type auto --file-prefix pg -- -p 0x6 -m "[6:3].0,[7:2].1" -f ./mac.pkt.3.4.ip-range-gen
+#   OR
+#./app/app/${target}/pktgen -c 0xff --master-lcore 1 -n 4 -m 1024 --proc-type auto --file-prefix pg -- -P -T -p 0x3 -m "[6:3].0,[7:2].1" -f ./themes/black-yellow.theme -f ./mac.pkt.3.4.ip-range-gen
+
+# seq   <seq#>   <portlist>  dst-Mac  src-Mac  dst-IP    src-IP/nm    sport   dport   ipv4|ipv6   udp|tcp|icmp   vid   pktsize
+
+set 0,1 type vlan
+set 0 vlan 623
+set 1 vlan 570
+enable 0,1 vlan
+
+set 0,1 proto udp
+
+set 0,1 rate 1
+set 0,1 size 512
+
+# Here is the new and improved (pktgen 3.4+) syntax for generating a range of flows with varying IP src/dst
+set 0 dst ip 192.168.20.3
+range 0 dst ip 192.168.20.3 192.168.20.3 192.168.20.50 0.0.0.1
+
+set 0 src ip 192.168.30.3/24
+range 0 src ip 192.168.30.3 192.168.30.3 192.168.30.50 0.0.0.1
+
+set 0 dst ip 192.168.30.3
+range 0 dst ip 192.168.30.3 192.168.30.3 192.168.30.50 0.0.0.1
+
+set 0 src ip 192.168.20.3/24
+range 0 src ip 192.168.20.3 192.168.20.3 192.168.20.50 0.0.0.1
+
+enable 0,1 process
+
+enable 0,1 garp
+start 0,1 arp gratuitous
+delay 5000
+stop 0,1
+disable 0,1 garp
+
+start 0,1
+
+# Ramp up throughput over 10 seconds, as is commonly done on Ixia/Spirent
+# Percentage rates are apparently relative to 40G on 40G capable cards (even 4x10G)
+# Note that some switches require up to 30 seconds to learn before bi-directional traffic starts!
+
+set 0,1 rate 5
+delay 3000
+set 0,1 rate 10
+delay 3000
+set 0,1 rate 15
+delay 3000
+set 0,1 rate 16

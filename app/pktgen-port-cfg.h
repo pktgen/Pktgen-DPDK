@@ -323,12 +323,14 @@ static inline void
 pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint32_t pid) {
 	fprintf(f, "\n** %s (%s, if_index:%d) **\n",
 		(msg) ? msg : "Device Info", rte_eth_devices[pid].data->name, di->if_index);
+#if RTE_VERSION < RTE_VERSION_NUM(17, 5, 0, 0)
 	fprintf(
 		f,
 		"   max_vfs        :%4d, min_rx_bufsize    :%4d, max_rx_pktlen :%6d\n",
 		di->pci_dev ? di->pci_dev->max_vfs : 0,
 		di->min_rx_bufsize,
 		di->max_rx_pktlen);
+#endif
 	fprintf(
 		f,
 		"   max_rx_queues  :%4d, max_tx_queues     :%4d\n",
@@ -342,7 +344,7 @@ pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint
 		di->max_vmdq_pools);
 	fprintf(
 		f,
-		"   rx_offload_capa:%4d, tx_offload_capa   :%4d, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
+		"   rx_offload_capa:%4lu, tx_offload_capa   :%4lu, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
 		di->rx_offload_capa,
 		di->tx_offload_capa,
 		di->reta_size,

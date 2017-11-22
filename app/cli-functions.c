@@ -51,7 +51,7 @@
 #include <cli_string_fns.h>
 #include <rte_hexdump.h>
 #ifdef RTE_LIBRTE_SMEM
-#include <rte_smem.h>
+#include <smem.h>
 #endif
 
 #include "pktgen.h"
@@ -150,7 +150,7 @@ static struct cli_map range_map[] = {
 	{ 31, "range %P src ip "SMMI" %4" },
 	{ 32, "range %P dst ip %4 %4 %4 %4" },
 	{ 33, "range %P src ip %4 %4 %4 %4" },
-	{ 40, "range %P proto tcp|udp" },
+	{ 40, "range %P proto %|tcp|udp" },
 	{ 50, "range %P dst port "SMMI" %d" },
 	{ 51, "range %P src port "SMMI" %d" },
 	{ 52, "range %P dst port %d %d %d %d" },
@@ -287,7 +287,7 @@ range_cmd(int argc, char **argv)
 			break;
 		case 40:
 			foreach_port(portlist,
-				range_set_proto(info, what) );
+				range_set_proto(info, argv[3]) );
 			break;
 		case 50:
 			foreach_port(portlist,
@@ -1143,7 +1143,7 @@ static struct cli_map seq_map[] = {
 };
 
 static const char *seq_help[] = {
-	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]",
+	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]",
 	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]",
 	"sequence <seq#> <portlist> cos <cos> tos <tos>",
 	"                                   - Set the sequence packet information, make sure the src-IP",
@@ -1500,10 +1500,11 @@ my_prompt(int cont __rte_unused)
 int
 pktgen_cli_create(void)
 {
-    return cli_create(my_prompt,      /* my local prompt routine */
-                     init_tree,
-                     CLI_DEFAULT_NODES,
-                     CLI_DEFAULT_HISTORY);
+    if (cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HISTORY))
+	return -1;
+
+    return cli_setup(my_prompt,      /* my local prompt routine */
+                     init_tree);
 }
 
 void

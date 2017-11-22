@@ -41,6 +41,9 @@
 #include <rte_debug.h>
 #include <rte_log.h>
 #include <rte_string_fns.h>
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
+#include <rte_bus_pci.h>
+#endif
 
 #include "cli.h"
 #include "cli_cmds.h"
@@ -388,6 +391,7 @@ core_cmd(int argc __rte_unused, char **argv __rte_unused)
 	cli_printf("Socket     : ");
 	for (i = 0; i < c->sid_cnt; i++)
 		cli_printf("%4d      ", i);
+	cli_printf("\n");
 
 	for (i = 0; i < c->cid_cnt; i++) {
 		cli_printf("  Core %3d : [%2d,%2d]   ", i,

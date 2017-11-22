@@ -761,9 +761,9 @@ __default_prompt(int cont)
 	if (strlen(str) > 1)	/* trim the trailing '/' from string */
 		str[strlen(str) - 1] = '\0';
 
-	vt100_color(SCRN_GREEN, SCRN_NO_CHANGE, SCRN_BOLD);
+	vt100_color(SCRN_GREEN, SCRN_NO_CHANGE, SCRN_OFF);
 	cli_printf("%s:", (cont) ? " >> " : "DPDK-cli");
-	vt100_color(SCRN_BLUE, SCRN_NO_CHANGE, SCRN_BOLD);
+	vt100_color(SCRN_CYAN, SCRN_NO_CHANGE, SCRN_OFF);
 	cli_printf("%s", str);
 	vt100_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 	cli_printf("> ");
@@ -771,8 +771,7 @@ __default_prompt(int cont)
 
 /* Main entry point to create a CLI system */
 int
-cli_create(cli_prompt_t prompt, cli_tree_t default_func,
-           int nb_entries, uint32_t nb_hist)
+cli_create(int nb_entries, uint32_t nb_hist)
 {
 	int i;
 	size_t size;
@@ -788,6 +787,8 @@ cli_create(cli_prompt_t prompt, cli_tree_t default_func,
 	memset(cli, '\0', sizeof(struct cli));
 
 	this_cli = cli;
+
+	cli->prompt = __default_prompt;
 
 	if (nb_entries == 0)
 		nb_entries = CLI_DEFAULT_NB_NODES;
@@ -832,9 +833,6 @@ cli_create(cli_prompt_t prompt, cli_tree_t default_func,
 	if (!cli->argv)
 		goto error_exit;
 
-	/* Set the user or default prompt routine */
-	cli->prompt = (prompt == NULL) ? __default_prompt : prompt;
-
 	/* Create the pool for the number of nodes */
 	node = cli->node_mem;
 	for (i = 0; i < nb_entries; i++, node++)
@@ -866,18 +864,18 @@ cli_create(cli_prompt_t prompt, cli_tree_t default_func,
 	if (!cli->env)
 		goto error_exit;
 
-	/* when null call our default tree setup routine */
-	if (default_func == NULL)
-		default_func = cli_default_tree_init;
-
-	/* now call the user supplied func or ours if default_func was NULL */
-	if (default_func())
-		goto error_exit;
-
 	return 0;
 
 error_exit:
 	cli_destroy();
+	return -1;
+}
+
+int
+cli_create_with_defaults(void)
+{
+	if (cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HIST_LINES) == 0)
+		return cli_setup_with_defaults();
 	return -1;
 }
 
@@ -905,20 +903,35 @@ cli_destroy(void)
 	this_cli = NULL;
 }
 
-/* Helper routine around the cli_create() routine */
 int
-cli_create_with_defaults(void)
+cli_setup(cli_prompt_t prompt, cli_tree_t default_func)
 {
-	return cli_create(NULL, NULL, CLI_DEFAULT_NODES,
-	                  CLI_DEFAULT_HIST_LINES);
+	if (!this_cli)
+		return -1;
+
+	/* Set the user or default prompt routine */
+	this_cli->prompt = (prompt == NULL) ? __default_prompt : prompt;
+
+	/* when null call our default tree setup routine */
+	if (default_func == NULL)
+		default_func = cli_default_tree_init;
+
+	/* now call the user supplied func or ours if default_func was NULL */
+	return default_func();
 }
 
 /* Helper routine around the cli_create() routine */
 int
-cli_create_with_tree(cli_tree_t tree)
+cli_setup_with_defaults(void)
 {
-	return cli_create(NULL, tree, CLI_DEFAULT_NODES,
-	                  CLI_DEFAULT_HIST_LINES);
+	return cli_setup(NULL, NULL);
+}
+
+/* Helper routine around the cli_create() routine */
+int
+cli_setup_with_tree(cli_tree_t tree)
+{
+	return cli_setup(NULL, tree);
 }
 
 /* Add a new prompt routine to the CLI system */

@@ -41,6 +41,10 @@
 
 #include "pktgen.h"
 
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
+#include <rte_bus_pci.h>
+#endif
+
 /**************************************************************************//**
  *
  * pktgen_print_static_data - Display the static data on the screen.

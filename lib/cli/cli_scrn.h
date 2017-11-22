@@ -262,21 +262,9 @@ scrn_center_col(int16_t ncols, const char *msg)
 static __inline__ void
 scrn_erase(int16_t nrows)
 {
-	int16_t     i, cnt;
-	const char  *nl = "\n\n\n\n\n\n\n\n";
 
-	scrn_setw(1);       /* Clear the window to full */
-	/* screen. */
+	scrn_setw(1);       /* Clear the window to full screen. */
 	scrn_pos(nrows + 1, 1);     /* Put cursor on the last row. */
-
-	/* Scroll the screen to clear the screen and keep the previous information */
-	/* in scrollbar. */
-	for (i = 0, cnt = 0; i < (nrows / (int16_t)strlen(nl)); i++, cnt += strlen(nl))
-		scrn_printf(0, 0, "%s", nl);
-
-	/* Scroll the last set of rows. */
-	for (i = cnt; i < nrows; i++)
-		scrn_printf(0, 0, "\n");
 }
 
 /** Output a string at a row/column for a number of times */

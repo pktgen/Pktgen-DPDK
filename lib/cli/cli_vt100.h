@@ -1,7 +1,7 @@
 /*-
  *   BSD LICENSE
  *
- *   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
+ *   Copyright(c) 2016-2017 Intel Corporation. All rights reserved.
  *   All rights reserved.
  *
  *   Redistribution and use in source and binary forms, with or without
@@ -31,40 +31,16 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Copyright (c) 2009, Olivier MATZ <zer0@droids-corp.org>
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+#ifndef _CLI_VT100_KEYS_H_
+#define _CLI_VT100_KEYS_H_
+
+/**
+ * @file
+ * RTE Command line interface
  *
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the University of California, Berkeley nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _VT100_H_
-#define _VT100_H_
-
-#include <stdio.h>
-#include <stdint.h>
-
-#include <cli_scrn.h>
+#include "cli.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -159,31 +135,30 @@ struct cli_vt100 {
 	enum vt100_parse_state state;   /** current cli_vt100 parser state */
 };
 
-/** A single byte to hold port of a Red/Green/Blue color value */
-typedef uint8_t scrn_rgb_t;
-
-/** Macro to reduce typing and screen clutter */
-#define cli_puts(...)   scrn_puts(__VA_ARGS__)
+struct vt100_cmds {
+	const char *str;
+	void (*func)(void);
+};
 
 /** Set the foreground color + attribute at the current cursor position */
 static __inline__ void
 vt100_fgcolor(scrn_color_e color, scrn_attr_e attr)
 {
-	cli_puts("\033[%d;%dm", attr, color + 30);
+	scrn_puts("\033[%d;%dm", attr, color + 30);
 }
 
 /** Set the background color + attribute at the current cursor position */
 static __inline__ void
 vt100_bgcolor(scrn_color_e color, scrn_attr_e attr)
 {
-	cli_puts("\033[%d;%dm", attr, color + 40);
+	scrn_puts("\033[%d;%dm", attr, color + 40);
 }
 
 /** Set the foreground/background color + attribute at the current cursor position */
 static __inline__ void
 vt100_fgbgcolor(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
 {
-	cli_puts("\033[%d;%d;%dm", attr, fg + 30, bg + 40);
+	scrn_puts("\033[%d;%d;%dm", attr, fg + 30, bg + 40);
 }
 
 /**
@@ -205,7 +180,7 @@ vt100_color(scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
 static __inline__ void
 vt100_rgb(uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b)
 {
-	cli_puts("\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
+	scrn_puts("\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
 }
 
 /** Set the foreground color + attribute at the current cursor position */
@@ -283,8 +258,11 @@ void vt100_destroy(struct cli_vt100 *vt);
  */
 int vt100_parse_input(struct cli_vt100 *vt, uint8_t c);
 
+void vt100_do_cmd(int idx);
+struct vt100_cmds *vt100_get_cmds(void);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _VT100_H_ */
+#endif /* _CLI_VT100_KEYS_H_ */

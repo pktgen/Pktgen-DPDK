@@ -39,12 +39,16 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/ioctl.h>
 
 #include <rte_atomic.h>
 #include <rte_malloc.h>
 #include <rte_spinlock.h>
 
+#include <cli.h>
 #include "cli_scrn.h"
+#include "cli_input.h"
 
 RTE_DEFINE_PER_LCORE(struct cli_scrn *, scrn);
 
@@ -154,10 +158,35 @@ scrn_stdin_restore(void)
 		printf("%s: system command failed\n", __func__);
 }
 
-int
-scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
+static void
+handle_winch(int sig)
 {
+	struct winsize w;
+
+	if (sig != SIGWINCH)
+		return;
+
+	ioctl(0, TIOCGWINSZ, &w);
+
+	this_scrn->nrows = w.ws_row;
+	this_scrn->ncols = w.ws_col;
+
+	/* Need to refreash the screen */
+	//cli_clear_screen();
+	cli_clear_line(-1);
+	cli_redisplay_line();
+}
+
+int
+scrn_create(int scrn_type, int theme)
+{
+	struct winsize w;
 	struct cli_scrn *scrn = this_scrn;
+	struct sigaction sa;
+
+	memset(&sa, 0, sizeof(struct sigaction));
+	sa.sa_handler = handle_winch;
+	sigaction(SIGWINCH, &sa, NULL);
 
 	if (!scrn) {
 		scrn = malloc(sizeof(struct cli_scrn));
@@ -170,8 +199,10 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
 
 	rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
 
-	scrn->nrows = nrows;
-	scrn->ncols = ncols;
+	ioctl(0, TIOCGWINSZ, &w);
+
+	scrn->nrows = w.ws_row;
+	scrn->ncols = w.ws_col;
 	scrn->theme = theme;
 	scrn->type  = scrn_type;
 
@@ -187,8 +218,6 @@ scrn_create(int scrn_type, int16_t nrows, int16_t ncols, int theme)
 
 	scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 
-	scrn_erase(nrows);
-
 	return 0;
 }
 
@@ -196,7 +225,6 @@ int
 scrn_create_with_defaults(int theme)
 {
 	return scrn_create(SCRN_STDIN_TYPE,
-	                   SCRN_DEFAULT_ROWS, SCRN_DEFAULT_COLS,
 	                   (theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
 }
 

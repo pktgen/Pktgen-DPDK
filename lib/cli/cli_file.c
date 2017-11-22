@@ -32,6 +32,7 @@
  */
 
 #include "cli.h"
+#include "cli_input.h"
 #include "cli_file.h"
 
 struct cli_node *

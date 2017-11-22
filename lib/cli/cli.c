@@ -41,6 +41,7 @@
 #include <rte_string_fns.h>
 
 #include "cli.h"
+#include "cli_input.h"
 #include "cli_string_fns.h"
 
 int (*lua_dofile)(void *, const char *);
@@ -61,31 +62,6 @@ cli_nodes_unlimited(void)
 	if (!this_cli)
 		return 0;
 	return this_cli->flags & CLI_NODES_UNLIMITED;
-}
-
-int
-cli_yield_io(void)
-{
-	if (!this_cli)
-		return 1;
-	return this_cli->flags & CLI_YIELD_IO;
-}
-
-/* The CLI write routine, using write() call */
-void
-cli_write(const void *msg, int len)
-{
-	if (!msg)
-		return;
-
-	if (len <= 0) {
-		len = strlen(msg);
-		if (!len)
-			return;
-	}
-
-	if (write(fileno(this_scrn->fd_out), msg, len) != len)
-		cli_printf("write() in cli_write() failed\n");
 }
 
 /* Allocate a node from the CLI node pool */
@@ -433,7 +409,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 			d = &t->dir;
 
 			if (!(n = cli_add_dir(d->name, parent))) {
-				RTE_LOG(INFO, EAL,
+				RTE_LOG(ERR, EAL,
 				        "Add directory %s failed\n", d->name);
 				return -1;
 			}
@@ -445,7 +421,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 			c = &t->cmd;
 			if (!cli_add_cmd(c->name, parent,
 			                 c->cfunc, c->short_desc)) {
-				RTE_LOG(INFO, EAL,
+				RTE_LOG(ERR, EAL,
 				        "Add command %s failed\n", c->name);
 				return -1;
 			}
@@ -455,7 +431,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 			f = &t->file;
 			if (!cli_add_file(f->name, parent,
 			                  f->ffunc, f->short_desc)) {
-				RTE_LOG(INFO, EAL,
+				RTE_LOG(ERR, EAL,
 				        "Add file %s failed\n", f->name);
 				return -1;
 			}
@@ -465,7 +441,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 			a = &t->alias;
 			if (!cli_add_alias(a->name, parent,
 			                   a->alias_atr, a->short_desc)) {
-				RTE_LOG(INFO, EAL,
+				RTE_LOG(ERR, EAL,
 				        "Add alias %s failed\n", a->name);
 				return -1;
 			}
@@ -474,7 +450,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 		case CLI_STR_NODE:
 			s = &t->str;
 			if (cli_add_str(s->name, s->sfunc, s->string)) {
-				RTE_LOG(INFO, EAL,
+				RTE_LOG(ERR, EAL,
 				        "Add string %s failed\n", s->name);
 				return -1;
 			}
@@ -482,7 +458,7 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 
 		case CLI_UNK_NODE:
 		default:
-			RTE_LOG(INFO, EAL, "Unknown Node type %d\n", t->type);
+			RTE_LOG(ERR, EAL, "Unknown Node type %d\n", t->type);
 			return 0;
 		}
 	}
@@ -606,97 +582,6 @@ cli_execute(void)
 	return ret;
 }
 
-/* Process the input for the CLI from the user */
-void
-cli_input(char *str, int n)
-{
-	char c;
-	int ret;
-
-	RTE_ASSERT(this_cli->gb != NULL);
-	RTE_ASSERT(str != NULL);
-
-	while (n--) {
-		c = *str++;
-
-		ret = vt100_parse_input(this_cli->vt, c);
-
-		if (ret < 0) {
-			if (ret == VT100_DONE)
-				if ((c >= ' ') && (c <= '~')) {
-					/* Output the character typed */
-					cli_write(&c, 1);
-
-					/* Add the character to the buffer */
-					gb_insert(this_cli->gb, c);
-
-					/* Display the rest on insert */
-					cli_save_cursor();
-					cli_display_right();
-					cli_restore_cursor();
-				}
-		} else if (ret != 0)
-			/* Found a vt100 key sequence, execute function */
-			if (ret < VT100_MAX_KEYS)
-				vt100_cmd_list[ret].func();
-	}
-}
-
-/* Poll the I/O routine for characters */
-static int
-cli_poll(char *c)
-{
-	struct pollfd fds;
-
-	fds.fd      = fileno(this_scrn->fd_in);
-	fds.events  = POLLIN;
-	fds.revents = 0;
-
-	if (cli_use_timers())
-		rte_timer_manage();
-
-	if (poll(&fds, 1, 0)) {
-		if ((fds.revents & (POLLERR | POLLNVAL)) == 0) {
-			if ((fds.revents & POLLHUP))
-				this_cli->quit_flag = 1;
-			else if ((fds.revents & POLLIN))
-				if (read(fds.fd, c, 1) > 0)
-					return 1;
-		} else
-			cli_quit();
-	}
-	return 0;
-}
-
-/* Display a prompt and wait for a key press */
-char
-cli_pause(const char *msg, const char *keys)
-{
-	char prompt[128], c;
-
-	prompt[0] = '\0';
-
-	if (msg) {
-		strcpy(prompt, msg);
-		strcat(prompt, ": ");
-		cli_printf("%s", prompt);
-	}
-
-	if (!keys)
-		keys = " qQ\n\r" vt100_q_escape;
-
-	do {
-		if (cli_poll(&c))
-			if (strchr(keys, c)) {
-				/* clear the line of the prompt */
-				cli_printf("\r%*s\r", (int)strlen(prompt), " ");
-				return c;
-			}
-	} while (this_cli->quit_flag == 0);
-
-	return '\0';
-}
-
 /* Main entry point into the CLI system to start accepting user input */
 void
 cli_start(const char *msg)
@@ -709,7 +594,7 @@ cli_start(const char *msg)
 	           (msg == NULL) ? "Command Line Interface" : msg,
 	           (this_cli->flags & CLI_USE_TIMERS) ? "" : "out");
 
-	this_cli->prompt(0);
+	this_cli->plen = this_cli->prompt(0);
 
 	cli_execute_cmdfiles();
 
@@ -753,25 +638,28 @@ cli_create_root(const char *dirname)
 }
 
 /* Default CLI prompt routine */
-static void
+static int
 __default_prompt(int cont)
 {
 	char *str = cli_cwd_path();
+	int len = 0;
 
 	if (strlen(str) > 1)	/* trim the trailing '/' from string */
 		str[strlen(str) - 1] = '\0';
 
 	vt100_color(SCRN_GREEN, SCRN_NO_CHANGE, SCRN_OFF);
-	cli_printf("%s:", (cont) ? " >> " : "DPDK-cli");
+	len += cli_printf("%s:", (cont) ? " >> " : "DPDK-cli");
 	vt100_color(SCRN_CYAN, SCRN_NO_CHANGE, SCRN_OFF);
-	cli_printf("%s", str);
+	len += cli_printf("%s", str);
 	vt100_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
-	cli_printf("> ");
+	len += cli_printf("> ");
+
+	return len;
 }
 
 /* Main entry point to create a CLI system */
 int
-cli_create(int nb_entries, uint32_t nb_hist)
+cli_init(int nb_entries, uint32_t nb_hist)
 {
 	int i;
 	size_t size;
@@ -872,9 +760,15 @@ error_exit:
 }
 
 int
+cli_create(void)
+{
+	return cli_init(CLI_DEFAULT_NODES, CLI_DEFAULT_HIST_LINES);
+}
+
+int
 cli_create_with_defaults(void)
 {
-	if (cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HIST_LINES) == 0)
+	if (cli_init(CLI_DEFAULT_NODES, CLI_DEFAULT_HIST_LINES) == 0)
 		return cli_setup_with_defaults();
 	return -1;
 }

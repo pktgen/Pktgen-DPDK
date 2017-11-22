@@ -32,9 +32,11 @@
  */
 
 #include "cli.h"
+#include "cli_input.h"
 
 int
-cli_help_add(const char *group, struct cli_map *map, const char **help_data)
+cli_help_add(const
+char *group, struct cli_map *map, const char **help_data)
 {
 	struct help_node *node;
 

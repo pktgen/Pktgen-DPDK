@@ -173,7 +173,7 @@ gb_dump(struct gapbuf *gb, const char *msg)
 	for (p = gb->buf; p <= gb->ebuf; p++)
 		fprintf(stderr, "%c", (p == gb->point) ? '^' : ' ');
 	fprintf(stderr, "\n");
-	cli_display_line();
+	cli_redisplay_line();
 #else
 	(void)gb;
 	(void)msg;

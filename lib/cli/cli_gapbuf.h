@@ -631,17 +631,24 @@ gb_del(struct gapbuf *gb, int cnt)
  * @return
  *   N/AS
  */
-static inline void
+static inline uint32_t
 gb_str_insert(struct gapbuf *gb, char *str, uint32_t size)
 {
+	int len;
+
+	if (size == 0)
+		size = strlen(str);
 	gb_move_gap_to_point(gb);
 
 	if (size > gb_gap_size(gb))
 		gb_expand_gap(gb, size);
 
+	len = size;
 	do {
 		gb_putc(gb, *str++);
 	} while(--size);
+
+	return len;
 }
 
 /********************************************************/

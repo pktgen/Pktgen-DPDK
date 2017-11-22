@@ -46,6 +46,7 @@ LIBABIVER := 1
 
 # all source are stored in SRCS-y
 SRCS-y +=  cli.c
+SRCS-y +=  cli_input.c
 SRCS-y +=  cli_cmds.c
 SRCS-y +=  cli_map.c
 SRCS-y +=  cli_gapbuf.c
@@ -57,7 +58,6 @@ SRCS-y +=  cli_history.c
 SRCS-y +=  cli_search.c
 SRCS-y +=  cli_cmap.c
 SRCS-y +=  cli_vt100.c
-SRCS-y +=  cli_vt100_keys.c
 SRCS-y +=  cli_scrn.c
 SRCS-y +=  cli_string_fns.c
 
@@ -65,6 +65,7 @@ CFLAGS += -D_GNU_SOURCE
 
 # install includes
 SYMLINK-y-include += cli.h
+SYMLINK-y-include += cli_input.h
 SYMLINK-y-include += cli_common.h
 SYMLINK-y-include += cli_map.h
 SYMLINK-y-include += cli_gapbuf.h
@@ -74,7 +75,6 @@ SYMLINK-y-include += cli_search.h
 SYMLINK-y-include += cli_help.h
 SYMLINK-y-include += cli_history.h
 SYMLINK-y-include += cli_vt100.h
-SYMLINK-y-include += cli_vt100_keys.h
 SYMLINK-y-include += cli_scrn.h
 SYMLINK-y-include += cli_string_fns.h
 

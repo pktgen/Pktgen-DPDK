@@ -70,17 +70,20 @@ extern "C" {
  *   N/A
  */
 
-static inline void
+static inline int
 __attribute__((format(printf, 1, 2)))
 cli_printf(const char *fmt, ...)
 {
     va_list vaList;
+    int n;
 
     va_start(vaList, fmt);
-    vfprintf(this_scrn->fd_out, fmt, vaList);
+    n = vfprintf(this_scrn->fd_out, fmt, vaList);
     va_end(vaList);
 
     fflush(this_scrn->fd_out);
+
+    return n;
 }
 
 #ifdef __cplusplus

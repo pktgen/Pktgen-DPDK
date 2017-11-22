@@ -1477,20 +1477,24 @@ init_tree(void)
 	return 0;
 }
 
-static void
+static int
 my_prompt(int cont __rte_unused)
 {
-    cli_printf("Pktgen:%s> ", cli_path_string(NULL, NULL));
+    return cli_printf("Pktgen:%s> ", cli_path_string(NULL, NULL));
 }
 
 int
 pktgen_cli_create(void)
 {
-    if (cli_create(CLI_DEFAULT_NODES, CLI_DEFAULT_HISTORY))
-	return -1;
+    int ret = -1;
 
-    return cli_setup(my_prompt,      /* my local prompt routine */
-                     init_tree);
+    if (!cli_create()) {
+	if (!cli_setup_with_tree(init_tree)) {
+		cli_set_prompt(my_prompt);
+		ret = 0;
+	}
+    }
+    return ret;
 }
 
 void

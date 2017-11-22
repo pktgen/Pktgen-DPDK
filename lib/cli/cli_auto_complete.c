@@ -36,6 +36,7 @@
 #include <rte_string_fns.h>
 
 #include "cli.h"
+#include "cli_input.h"
 #include "cli_auto_complete.h"
 #include "cli_string_fns.h"
 
@@ -228,7 +229,7 @@ cli_auto_complete(void)
 		ret = complete_args(argc, argv, CLI_ALL_TYPE);
 
 		if (ret)
-			cli_display_line();
+			cli_redisplay_line();
 		return;
 	}
 
@@ -242,7 +243,7 @@ cli_auto_complete(void)
 
 		/* if we get an error then redisplay the line */
 		if (ret)
-			cli_display_line();
+			cli_redisplay_line();
 	} else {
 		char *save = alloca(size + 1);
 
@@ -265,6 +266,6 @@ cli_auto_complete(void)
 		/* insert the saved string back to the input buffer */
 		gb_str_insert(this_cli->gb, save, size);
 
-		cli_display_line();
+		cli_redisplay_line();
 	}
 }

@@ -57,7 +57,6 @@
 #include <cli_history.h>
 #include <cli_map.h>
 #include <cli_vt100.h>
-#include <cli_vt100_keys.h>
 
 #include <rte_string_fns.h>
 
@@ -117,8 +116,7 @@ typedef int (*cli_ffunc_t)(struct cli_node *node, char *buff, int len,
                            uint32_t opt);
 /**< CLI function pointer type for a file type node  */
 
-typedef void (*cli_prompt_t)(int continuation);
-/**< CLI prompt routine */
+typedef int (*cli_prompt_t)(int continuation); /**< CLI prompt routine */
 typedef int (*cli_tree_t)(void);
 /**< CLI function pointer type for user initialization */
 
@@ -158,6 +156,8 @@ struct cli {
 
 	uint16_t flags;              /**< Flags about CLI */
 	volatile uint16_t quit_flag; /**< When set to non-zero quit */
+	uint16_t plen;	     /**< Length of current prompt */
+	uint16_t pad0;
 	uint32_t nb_nodes;           /**< total number of nodes */
 
 	uint32_t nb_hist;           /**< total number of history lines */
@@ -231,28 +231,15 @@ struct cli_tree {
 		struct cli_alias alias; /**< alias nodes */
 		struct cli_str str;     /**< string node */
 	};
-}; /**< Used to help create a directory tree */
+};
 
-#define c_dir(n)         { CLI_DIR_NODE, .dir = {(n)}}
-#define c_cmd(n, f, h)   { CLI_CMD_NODE, .cmd = {(n), (f), (h)}}
-#define c_file(n, rw, h) { CLI_FILE_NODE, .file = {(n), (rw), (h)}}
-#define c_alias(n, l, h) { CLI_ALIAS_NODE, .alias = {(n), (l), (h)}}
-#define c_str(n, f, s)   { CLI_STR_NODE, .str = {(n), (f), (s)}}
-#define c_end()          { CLI_UNK_NODE, .dir = {NULL}}
-
-/**
- * The CLI write routine, using write() call
- *
- * @note Uses thread variable this_cli.
- *
- * @param msg
- *   The string to be written
- * @param len
- *   Number of bytes to write or if -1 then strlen(msg) is used.
- * @return
- *   N/A
- */
-void cli_write(const void *msg, int len);
+/**< Used to help create a directory tree */
+#define c_dir(n)		{ CLI_DIR_NODE,   .dir = {(n)} }
+#define c_cmd(n, f, h)		{ CLI_CMD_NODE,   .cmd = {(n), (f), (h)} }
+#define c_file(n, rw, h)	{ CLI_FILE_NODE,  .file = {(n), (rw), (h)} }
+#define c_alias(n, l, h)	{ CLI_ALIAS_NODE, .alias = {(n), (l), (h)} }
+#define c_str(n, f, s)		{ CLI_STR_NODE,   .str = {(n), (f), (s)} }
+#define c_end()			{ CLI_UNK_NODE,   .dir = { NULL } }
 
 static inline void
 cli_set_user_state(void *val)
@@ -301,7 +288,7 @@ get_cwd(void)
  *   None
  */
 static inline void
-set_cwd(struct cli_node * node)
+set_cwd(struct cli_node *node)
 {
 	RTE_ASSERT(this_cli != NULL);
 	this_cli->bins[0] = node;
@@ -541,185 +528,6 @@ cli_pwd(struct cli_node *node)
 	cli_printf("%s", cli_path_string(node, NULL));
 }
 
-/**
- * Move the vt100 cursor to the left one character
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_cursor_left(void)
-{
-	cli_write(vt100_left_arr, -1);
-}
-
-/**
- * Move the vt100 cursor to the right one character
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_cursor_right(void)
-{
-	cli_write(vt100_right_arr, -1);
-}
-
-/**
- * Save the vt100 cursor location
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_save_cursor(void)
-{
-	cli_write(vt100_save_cursor, -1);
-}
-
-/**
- * Restore the cursor to the saved location on the console
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_restore_cursor(void)
-{
-	cli_write(vt100_restore_cursor, -1);
-}
-
-/**
- * Print out the left side of the input in the Gap Buffer.
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_display_left(void)
-{
-	if (gb_left_data_size(this_cli->gb))
-		cli_write(gb_start_of_buf(this_cli->gb),
-		          gb_left_data_size(this_cli->gb));
-}
-
-/**
- * Print out the right side of the input in the Gap Buffer.
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_display_right(void)
-{
-	if (gb_right_data_size(this_cli->gb))
-		cli_write(gb_end_of_gap(this_cli->gb),
-		          gb_right_data_size(this_cli->gb));
-}
-
-/**
- * Print out the complete line in the Gap Buffer.
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_display_line(void)
-{
-	uint32_t i;
-
-	this_cli->prompt(0);
-
-	cli_display_left();
-	cli_display_right();
-
-	gb_move_gap_to_point(this_cli->gb);
-
-	for (i = 0;
-	     i < (gb_data_size(this_cli->gb) - gb_point_offset(this_cli->gb));
-	     i++)
-		cli_cursor_left();
-}
-
-/**
- * Clear the console screen
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_clear_screen(void)
-{
-	cli_write(vt100_clear_screen, -1);
-}
-
-/**
- * clear from cursor to end of line
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-static inline void
-cli_clear_to_eol(void)
-{
-	cli_write(vt100_clear_right, -1);
-}
-
-/**
- * Clear the current line or the line given
- *
- * @note Uses thread variable this_cli.
- *
- * @param lineno
- *   if lineno is -1 then clear the current line else the lineno given.
- * @return
- *   N/A
- */
-static inline void
-cli_clear_line(int lineno)
-{
-	if (lineno > 0)
-		cli_printf(vt100_pos_cursor, lineno, 0);
-	else
-		cli_write("\r", 1);
-
-	cli_write(vt100_clear_line, -1);
-}
-
-/**
- * Move the cursor up by the number of lines given
- *
- * @note Uses thread variable this_cli.
- *
- * @param lineno
- *   Number of lines to move the cursor
- * @return
- *   N/A
- */
-static inline void
-cli_move_cursor_up(int lineno)
-{
-	while (lineno--)
-		cli_printf(vt100_up_arr);
-}
 
 /**
  * Set the number of lines in history
@@ -778,27 +586,8 @@ cli_root_node(void)
 }
 
 /**
- * Add a input text string the cli input parser
- *
- * @note Uses thread variable this_cli.
- *
- * @param str
- *   Pointer to string to insert
- * @param n
- *   Number of bytes in string
- * @return
- *   N/A
- */
-void cli_input(char *str, int n);
-
-/**
  * Create the CLI engine
  *
- * @param prompt_func
- *   Function pointer to call for displaying the prompt.
- * @param tree_func
- *   The user supplied function to init the tree or can be NULL. If NULL then
- *   a default tree is initialized with basic commands.
  * @param nb_entries
  *   Total number of commands, files, aliases and directories. If 0 then use
  *   the default number of nodes. If -1 then unlimited number of nodes.
@@ -808,7 +597,7 @@ void cli_input(char *str, int n);
  * @return
  *   0 on success or -1
  */
-int cli_create(int nb_entries, uint32_t nb_hist);
+int cli_init(int nb_entries, uint32_t nb_hist);
 
 /**
  * Create the CLI engine with defaults
@@ -817,6 +606,8 @@ int cli_create(int nb_entries, uint32_t nb_hist);
  *   0 on success or -1
  */
 int cli_create_with_defaults(void);
+
+int cli_create(void);
 
 int cli_setup(cli_prompt_t prompt, cli_tree_t default_func);
 
@@ -1052,54 +843,7 @@ int cli_add_str(const char *name, cli_sfunc_t func, const char *str);
  * @return
  *   -1 on error or 0 for OK
  */
-int cli_add_tree(struct cli_node *dir,
-                 struct cli_tree *tree);
-
-/**
- * Set the I/O file descriptors
- *
- * @note Uses thread variable this_cli.
- *
- * @param in
- *   File descriptor for input
- * @param out
- *   File descriptor for output
- * @return
- *   N/A
- */
-void cli_set_io(FILE *in, FILE *out);
-
-/**
- * Set the I/O to use stdin/stdout
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   0 on success or non-0 on error
- */
-int cli_stdin_setup(void);
-
-/**
- * Restore the stdin/stdout tty params from setup
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   N/A
- */
-void cli_stdin_restore(void);
-
-/**
- * Pause and wait for input character
- *
- * @note Uses thread variable this_cli.
- *
- * @param keys
- *   List of keys to force return, if NULL defaults to ESC and q/Q
- * @return
- *   character that terminated the pause or zero.
- */
-char cli_pause(const char *msg, const char *keys);
+int cli_add_tree(struct cli_node *dir, struct cli_tree *tree);
 
 /**
  * Add filenames to the CLI command list.
@@ -1174,16 +918,6 @@ int cli_use_timers(void);
  *   non-zero if true else 0
  */
 int cli_nodes_unlimited(void);
-
-/**
- * return true if calling yield should are enabled.
- *
- * @note Uses thread variable this_cli.
- *
- * @return
- *   non-zero if true else 0
- */
-int cli_yield_io(void);
 
 /**
  * shutdown the CLI command interface.

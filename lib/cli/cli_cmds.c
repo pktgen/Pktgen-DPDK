@@ -46,6 +46,7 @@
 #endif
 
 #include "cli.h"
+#include "cli_input.h"
 #include "cli_cmds.h"
 #include "cli_cmap.h"
 #include "cli_map.h"
@@ -572,36 +573,6 @@ delay_cmd(int argc __rte_unused, char **argv)
 	return 0;
 }
 
-static struct cli_map cli_debug_map[] = {
-	{ 10, "debug pci" },
-	{ 20, "debug dev" },
-	{ -1, NULL }
-};
-
-static int
-dbg_cmd(int argc, char **argv)
-{
-	struct cli_map *m;
-
-	m = cli_mapping(cli_debug_map, argc, argv);
-	if (!m)
-		return -1;
-	switch (m->index) {
-	case 10:
-#if RTE_VERSION < RTE_VERSION_NUM(17, 5, 0, 0)
-		rte_eal_pci_dump(stdout);
-#else
-		rte_pci_dump(stdout);
-#endif
-		break;
-	case 20: rte_eal_devargs_dump(stdout); break;
-	default:
-		cli_help_show_group("debug");
-		return -1;
-	}
-	return 0;
-}
-
 static int
 mkdir_cmd(int argc, char **argv)
 {
@@ -725,7 +696,6 @@ c_cmd("sizes",      sizes_cmd,  "sizes # display some internal sizes"),
 c_cmd("cmap",       core_cmd,   "cmap # display the core mapping"),
 c_cmd("hugepages",  huge_cmd,   "hugepages # display hugepage info"),
 c_cmd("path",       path_cmd,   "display the execution path for commands"),
-c_cmd("debug",      dbg_cmd,    "debug commands for pci and dev"),
 c_cmd("env",        env_cmd,    "Show/del/get/set environment variables"),
 c_cmd("script",     script_cmd,	"load and process cli command files"),
 c_cmd("echo",       echo_cmd,   "simple echo a string to the screen"),

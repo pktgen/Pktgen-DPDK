@@ -50,9 +50,6 @@
 #include <rte_string_fns.h>
 #include <cli_string_fns.h>
 #include <rte_hexdump.h>
-#ifdef RTE_LIBRTE_SMEM
-#include <smem.h>
-#endif
 
 #include "pktgen.h"
 
@@ -890,9 +887,6 @@ static struct cli_map debug_map[] = {
 	{ 51, "debug memseg" },
 	{ 60, "debug hexdump %H %d" },
 	{ 61, "debug hexdump %H" },
-#ifdef RTE_LIBRTE_RBUF
-	{ 70, "debug rbuf" },
-#endif
 	{ 80, "debug break" },
     { -1, NULL }
 };
@@ -905,9 +899,6 @@ static const char *debug_help[] = {
 	"debug memzone                      - List all of the current memzones",
 	"debug memseg                       - List all of the current memsegs",
 	"debug hexdump <addr> <len>         - hex dump memory at given address",
-#ifdef RTE_LIBRTE_RBUF
-	"debug rbuf                         - dump out the RBUF structure",
-#endif
 	"debug break                        - break into the debugger",
 	"",
 	NULL
@@ -962,11 +953,6 @@ debug_cmd(int argc, char **argv)
 				len = strtoul(argv[3], NULL, 0);
 			rte_hexdump(stdout, "", addr, len);
 			break;
-#ifdef RTE_LIBRTE_RBUF
-		case 70:
-			rte_rbuf_list_dump(stdout);
-			break;
-#endif
 		case 80:
 			kill(getpid(), SIGINT);
 			break;

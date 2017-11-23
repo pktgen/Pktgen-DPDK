@@ -895,6 +895,7 @@ static const char *debug_help[] = {
 	"debug l2p                          - Dump out internal lcore to port mapping",
 	"debug tx_debug                     - Enable tx debug output",
 	"debug mempool <portlist> <type>    - Dump out the mempool info for a given type",
+	"                                     type = rx, tx, range, seq, arp, pcap",
 	"debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
 	"debug memzone                      - List all of the current memzones",
 	"debug memseg                       - List all of the current memsegs",
@@ -929,9 +930,8 @@ debug_cmd(int argc, char **argv)
 			break;
 		case 30:
 			rte_parse_portlist(argv[2], &portlist);
-			if (!strcmp(argv[1], "dump") )
-				foreach_port(portlist,
-					     debug_mempool_dump(info, argv[3]) );
+			foreach_port(portlist,
+				debug_mempool_dump(info, argv[3]) );
 			break;
 		case 40:
 			rte_parse_portlist(argv[2], &portlist);

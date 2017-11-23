@@ -1387,9 +1387,7 @@ debug_mempool_dump(port_info_t *info, char *name)
 		if (all || !strcmp(name, "rx") )
 			rte_mempool_dump(stdout, info->q[q].rx_mp);
 	for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++) {
-		if (all ||
-		    (!strcmp(name,
-			     "tx") &&
+		if (all || (!strcmp(name,"tx") &&
 		     (q < get_port_txcnt(pktgen.l2p, info->pid))) )
 			__mempool_dump(stdout, info->q[q].tx_mp);
 		if (all || !strcmp(name, "range") )

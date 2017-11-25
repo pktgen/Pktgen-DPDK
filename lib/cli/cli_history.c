@@ -44,8 +44,7 @@ cli_hist_alloc(void)
 
 	if (!CIRCLEQ_EMPTY(&cli->free_hist)) {
 		hist = (struct cli_hist *)CIRCLEQ_FIRST(&cli->free_hist);
-		if (hist)
-			CIRCLEQ_REMOVE(&cli->free_hist, hist, next);
+		CIRCLEQ_REMOVE(&cli->free_hist, hist, next);
 	}
 	return hist;
 }
@@ -118,10 +117,11 @@ cli_history_line(int lineno)
 	if (!cli || !cli->hist_mem)
 		return NULL;
 
-	if (!CIRCLEQ_EMPTY(&cli->hd_hist))
+	if (!CIRCLEQ_EMPTY(&cli->hd_hist)) {
 		CIRCLEQ_FOREACH(h, &cli->hd_hist, next) {
-		if (i++ == lineno)
-			return h->line;
+			if (i++ == lineno)
+				return h->line;
+		}
 	}
 	return NULL;
 }
@@ -137,8 +137,13 @@ cli_history_prev(void)
 	if (!CIRCLEQ_EMPTY(&cli->hd_hist)) {
 		struct cli_hist *hist;
 
-		if (!cli->curr_hist)
-			cli->curr_hist = CIRCLEQ_FIRST(&cli->hd_hist);
+		if (!cli->curr_hist) {
+			cli->curr_hist = CIRCLEQ_LAST(&cli->hd_hist);
+			return cli->curr_hist->line;
+		}
+
+		if (cli->curr_hist == CIRCLEQ_FIRST(&cli->hd_hist))
+			return cli->curr_hist->line;
 
 		hist = CIRCLEQ_LOOP_PREV(&cli->hd_hist, cli->curr_hist, next);
 		cli->curr_hist = hist;
@@ -160,7 +165,10 @@ cli_history_next(void)
 		struct cli_hist *hist;
 
 		if (!cli->curr_hist)
-			cli->curr_hist = CIRCLEQ_LAST(&cli->hd_hist);
+			return NULL;
+
+		if (cli->curr_hist == CIRCLEQ_LAST(&cli->hd_hist))
+			return (char *)(uintptr_t)"";
 
 		hist = CIRCLEQ_LOOP_NEXT(&cli->hd_hist, cli->curr_hist, next);
 		cli->curr_hist = hist;
@@ -210,17 +218,20 @@ cli_set_history(uint32_t nb_hist)
 	if (!cli)
 		return -1;
 
-	size = nb_hist * sizeof(struct cli_hist);
-
 	if (nb_hist == 0) {
 		cli_history_delete();
 		return 0;
 	}
 
-	if (nb_hist != cli->nb_hist)
+	if (cli->hist_mem && (nb_hist == cli->nb_hist))
+		return 0;
+
+	if (cli->hist_mem)
 		cli_history_delete();
 
 	cli->nb_hist = nb_hist;
+
+	size = nb_hist * sizeof(struct cli_hist);
 
 	cli->hist_mem = malloc(size);
 	if (cli->hist_mem) {

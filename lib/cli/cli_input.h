@@ -271,43 +271,65 @@ cli_move_cursor_up(int lineno)
 		cli_printf(vt100_up_arr);
 }
 
+static inline void
+cli_display_prompt(int t)
+{
+	cli_write("\r", 1);
+	this_cli->plen = this_cli->prompt(t);
+	cli_clear_to_eol();
+}
+
 /* display all or part of the command line, while allowing the line to scroll */
 static inline void
 cli_display_line(void)
 {
 	struct gapbuf *gb = this_cli->gb;
-	char buf[gb_data_size(gb) + 16], *b;
-	int row, col, len;
-	uint32_t point = gb_point_offset(gb);
+	char buf[gb_data_size(gb) + 16];
+	int point = gb_point_offset(gb);
+	int len = gb_copy_to_buf(gb, buf, gb_data_size(gb));
+	int window = (this_scrn->ncols - this_cli->plen) - 1;
+	int wstart, wend;
 
-	cli_save_cursor();
-
-	cli_get_cursor(&row, &col);
-
-	len = gb_copy_to_buf(gb, buf, sizeof(buf));
-
-	scrn_pos(row, this_cli->plen + 1);
-
-	b = buf;
-
-	while((this_cli->plen+point) >= this_scrn->ncols) {
-		b++;
-		len--;
-		point--;
+	if (cli_tst_flag(DELETE_CHAR)) {
+		cli_clr_flag(DELETE_CHAR);
+		cli_write(" \b", 2);
+		cli_set_flag(DISPLAY_LINE | CLEAR_TO_EOL);
 	}
-	while ((this_cli->plen+len) >= this_scrn->ncols)
-		len--;
+	if (cli_tst_flag(CLEAR_LINE)) {
+		cli_clr_flag(CLEAR_LINE);
+		scrn_bol();
+		cli_clear_to_eol();
+		cli_set_flag(DISPLAY_LINE | DISPLAY_PROMPT);
+	}
+	if (cli_tst_flag(CLEAR_TO_EOL)) {
+		cli_clr_flag(CLEAR_TO_EOL);
+		cli_clear_to_eol();
+	}
+	if (cli_tst_flag(DISPLAY_PROMPT)) {
+		cli_clr_flag(DISPLAY_PROMPT | PROMPT_CONTINUE);
+		cli_display_prompt(0);
+	}
 
-	cli_write(b, len);
+	if (point < window) {
+		wstart = 0;
+		if (len < window)
+			wend = point + (len - point);
+		else
+			wend = point + (window - point);
+	} else {
+		wstart = point - window;
+		wend = wstart + window;
+	}
+
+	scrn_bol();
+	scrn_cnright(this_cli->plen);
+
+	cli_write(&buf[wstart], wend - wstart);
 
 	cli_clear_to_eol();
 
-	cli_restore_cursor();
-
-	if (gb_point_offset(gb) >= (this_scrn->ncols - (this_cli->plen + 1)))
-		scrn_pos(row, col + 1);
-	else
-		scrn_pos(row, col);
+	scrn_bol();
+	scrn_cnright(this_cli->plen + point);
 }
 
 /**
@@ -323,7 +345,7 @@ cli_redisplay_line(void)
 {
 	uint32_t i;
 
-	this_cli->plen = this_cli->prompt(0);
+	this_cli->flags |= DISPLAY_PROMPT;
 
 	cli_display_line();
 

@@ -56,7 +56,6 @@
 #include <cli_help.h>
 #include <cli_history.h>
 #include <cli_map.h>
-#include <cli_vt100.h>
 
 #include <rte_string_fns.h>
 
@@ -154,11 +153,11 @@ struct cli {
 	TAILQ_HEAD(, cli_node) root;      /**< head of node entries or root */
 	CIRCLEQ_HEAD(, cli_hist) hd_hist; /**< History circular queue */
 
-	uint16_t flags;              /**< Flags about CLI */
-	volatile uint16_t quit_flag; /**< When set to non-zero quit */
-	uint16_t plen;	     /**< Length of current prompt */
-	uint16_t pad0;
+	uint32_t flags;              /**< Flags about CLI */
 	uint32_t nb_nodes;           /**< total number of nodes */
+	volatile uint16_t quit_flag; /**< When set to non-zero quit */
+
+	uint16_t plen;	     /**< Length of current prompt */
 
 	uint32_t nb_hist;           /**< total number of history lines */
 	cli_files_t cmd_files;      /**< array of command filename pointers  */
@@ -187,6 +186,32 @@ struct cli {
 
 RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define this_cli RTE_PER_LCORE(cli)
+
+/* cli.flags */
+#define DISPLAY_LINE		(1 << 0)
+#define CLEAR_TO_EOL		(1 << 1)
+#define DISPLAY_PROMPT		(1 << 2)
+#define PROMPT_CONTINUE		(1 << 3)
+#define DELETE_CHAR		(1 << 4)
+#define CLEAR_LINE		(1 << 5)
+
+static inline void
+cli_set_flag(uint32_t x)
+{
+	this_cli->flags |= x;
+}
+
+static inline void
+cli_clr_flag(uint32_t x)
+{
+	this_cli->flags &= ~x;
+}
+
+static inline int
+cli_tst_flag(uint32_t x)
+{
+	return this_cli->flags & x;
+}
 
 typedef union {
 	cli_cfunc_t cfunc; /**< Function pointer for commands */

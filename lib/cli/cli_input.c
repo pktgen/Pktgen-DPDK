@@ -77,6 +77,10 @@ handle_input_display(char c)
 
 		/* Add the character to the buffer */
 		gb_insert(this_cli->gb, c);
+		if (!gb_point_at_end(this_cli->gb))
+			cli_set_flag(DISPLAY_LINE);
+		else if (!gb_point_at_start(this_cli->gb))
+			cli_set_flag(DISPLAY_LINE);
 	}
 	cli_display_line();
 }
@@ -85,16 +89,13 @@ handle_input_display(char c)
 void
 cli_input(char *str, int n)
 {
-	char c;
-	int ret;
-
 	RTE_ASSERT(this_cli->gb != NULL);
 	RTE_ASSERT(str != NULL);
 
 	while (n--) {
-		c = *str++;
+		char c = *str++;
 
-		ret = vt100_parse_input(this_cli->vt, c);
+		int ret = vt100_parse_input(this_cli->vt, c);
 
 		if (ret > 0) {	/* Found a vt100 key sequence */
 			vt100_do_cmd(ret);
@@ -121,9 +122,11 @@ cli_poll(char *c)
 		if ((fds.revents & (POLLERR | POLLNVAL)) == 0) {
 			if ((fds.revents & POLLHUP))
 				this_cli->quit_flag = 1;
-			else if ((fds.revents & POLLIN))
-				if (read(fds.fd, c, 1) > 0)
+			else if ((fds.revents & POLLIN)) {
+				int n = read(fds.fd, c, 1);
+				if (n > 0)
 					return 1;
+			}
 		} else
 			cli_quit();
 	}
@@ -145,7 +148,7 @@ cli_pause(const char *msg, const char *keys)
 	}
 
 	if (!keys)
-		keys = " qQ\n\r" vt100_q_escape;
+		keys = " qQ\n\r" ESC;
 
 	do {
 		if (cli_poll(&c))

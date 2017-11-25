@@ -56,6 +56,109 @@ extern "C" {
 #include <rte_atomic.h>
 #include <rte_per_lcore.h>
 
+#define VT100_INITIALIZE        -1
+
+#define vt100_open_square       '['
+#define vt100_escape            0x1b
+#define vt100_del               0x7f
+#define ESC			"\033"
+
+/* Key codes */
+#define vt100_word_left         ESC "b"
+#define vt100_word_right        ESC "f"
+#define vt100_suppr             ESC "[3~"
+#define vt100_tab               "\011"
+
+/* Action codes for cli_vt100 */
+#define vt100_bell              "\007"
+#define vt100_bs                "\010"
+#define vt100_bs_clear          "\b \b"
+
+/* cursor codes */
+#define vt100_cursor_off	ESC "[?25l"
+#define vt100_cursor_on		ESC "[?25h"
+#define vt100_save_cursor       ESC "7"
+#define vt100_restore_cursor    ESC "8"
+#define vt100_line_feed		ESC "D"
+#define vt100_crnl		ESC "E"
+#define vt100_reverse_line_feed	ESC "M"
+#define vt100_up_arr            ESC "[A"
+#define vt100_down_arr          ESC "[B"
+#define vt100_right_arr         ESC "[C"
+#define vt100_left_arr          ESC "[D"
+#define vt100_up_lines          ESC "[%dA"
+#define vt100_down_lines        ESC "[%dB"
+#define vt100_right_columns     ESC "[%dC"
+#define vt100_left_columns      ESC "[%dD"
+#define vt100_home              ESC "[H"
+
+#define vt100_pos               ESC "[%d;%dH"
+#define vt100_setw              ESC "[%d;r"
+#define vt100_clear_right       ESC "[0K"
+#define vt100_clear_left        ESC "[1K"
+#define vt100_clear_down        ESC "[0J"
+#define vt100_clear_up          ESC "[1J"
+#define vt100_clear_line        ESC "[2K"
+#define vt100_clear_screen      ESC "[2J"
+#define vt100_pos_cursor        ESC "[%d;%dH"
+#define vt100_multi_right       ESC "\133%uC"
+#define vt100_multi_left        ESC "\133%uD"
+
+/* Result of parsing : it must be synchronized with
+ * vt100_commands[] in vt100_keys.c */
+enum {
+	VT100_INVALID_KEY = 0,
+	VT100_KEY_UP_ARR,
+	VT100_KEY_DOWN_ARR,
+	VT100_KEY_RIGHT_ARR,
+	VT100_KEY_LEFT_ARR,
+	VT100_KEY_BKSPACE,
+	VT100_KEY_RETURN,
+	VT100_KEY_CTRL_A,
+	VT100_KEY_CTRL_E,
+	VT100_KEY_CTRL_K,
+	VT100_KEY_CTRL_Y,
+	VT100_KEY_CTRL_C,
+	VT100_KEY_CTRL_F,
+	VT100_KEY_CTRL_B,
+	VT100_KEY_SUPPR,
+	VT100_KEY_TAB,
+	VT100_KEY_CTRL_D,
+	VT100_KEY_CTRL_L,
+	VT100_KEY_RETURN2,
+	VT100_KEY_META_BKSPACE,
+	VT100_KEY_WLEFT,
+	VT100_KEY_WRIGHT,
+	VT100_KEY_CTRL_W,
+	VT100_KEY_CTRL_P,
+	VT100_KEY_CTRL_N,
+	VT100_KEY_META_D,
+	VT100_KEY_CTRL_X,
+	VT100_MAX_KEYS
+};
+
+extern const char *vt100_commands[];
+
+enum vt100_parse_state {
+	VT100_INIT,
+	VT100_ESCAPE,
+	VT100_ESCAPE_CSI,
+	VT100_DONE = -1,
+	VT100_CONTINUE = -2
+};
+
+#define VT100_BUF_SIZE 8
+struct cli_vt100 {
+	int bufpos;                     /** Current offset into buffer */
+	char buf[VT100_BUF_SIZE];       /** cli_vt100 command buffer */
+	enum vt100_parse_state state;   /** current cli_vt100 parser state */
+};
+
+struct vt100_cmds {
+	const char *str;
+	void (*func)(void);
+};
+
 /** scrn version number */
 #define SCRN_VERSION    "2.0.0"
 
@@ -153,7 +256,7 @@ void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 #define _s(_x, _y)	static __inline__ void _x { _y; }
 
 /** position cursor to row and column */
-_s(scrn_pos(int r, int c),  scrn_puts("\033[%d;%dH", r, c))
+_s(scrn_pos(int r, int c),  scrn_puts(vt100_pos, r, c))
 
 /** Move cursor to the top left of the screen */
 _s(scrn_top(void), scrn_puts("\033H"))
@@ -221,6 +324,23 @@ _s(scrn_setw(int t), scrn_puts("\033[%d;r", t))
 /** Cursor postion report */
 _s(scrn_cpos(void), scrn_puts("\033[6n"))
 
+/** Cursor move right <n> characters */
+_s(scrn_cnright(int n), scrn_puts("\033[%dC", n))
+
+/** Cursor move left <n> characters */
+_s(scrn_cnleft(int n), scrn_puts("\033[%dD", n))
+
+/** New line */
+_s(scrn_newline(void), scrn_puts("\033[20h"))
+
+/** Move one character right */
+_s(scrn_cright(void), scrn_puts("\033[C"))
+
+/** Move one character left */
+_s(scrn_cleft(void), scrn_puts("\033[D"))
+
+/** Move cursor to begining of line */
+_s(scrn_bol(void), scrn_puts("\r"))
 
 /** Return the version string */
 static __inline__ const char *
@@ -357,11 +477,89 @@ scrn_rgb(uint8_t fg_bg, cli_rgb_t r, cli_rgb_t g, cli_rgb_t b)
 	scrn_puts("\033[%d;2;%d;%d;%dm", fg_bg, r, g, b);
 }
 
+/** Set the foreground color + attribute at the current cursor position */
+static __inline__ int
+scrn_fgcolor_str(char *str, scrn_color_e color, scrn_attr_e attr)
+{
+	return snprintf(str, 16, ESC "[%d;%dm", attr, color + 30);
+}
+
+/** Set the background color + attribute at the current cursor position */
+static __inline__ int
+scrn_bgcolor_str(char *str, scrn_color_e color, scrn_attr_e attr)
+{
+	return snprintf(str, 16, ESC "[%d;%dm", attr, color + 40);
+}
+
+/** Set the foreground/background color + attribute at the current cursor position */
+static __inline__ int
+scrn_fgbgcolor_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
+{
+	return snprintf(str, 16, ESC "[%d;%d;%dm", attr, fg + 30, bg + 40);
+}
+
+/**
+ * Main routine to set color for foreground and background and attribute at
+ * the current position.
+ */
+static __inline__ int
+scrn_color_str(char *str, scrn_color_e fg, scrn_color_e bg, scrn_attr_e attr)
+{
+	if ( (fg != SCRN_NO_CHANGE) && (bg != SCRN_NO_CHANGE))
+		return scrn_fgbgcolor_str(str, fg, bg, attr);
+	else if (fg == SCRN_NO_CHANGE)
+		return scrn_bgcolor_str(str, bg, attr);
+	else if (bg == SCRN_NO_CHANGE)
+		return scrn_fgcolor_str(str, fg, attr);
+	else
+		return 0;
+}
+
+/** Setup for 256 RGB color methods. A routine to output RGB color codes if supported */
+static __inline__ int
+scrn_rgb_str(char *str, uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b)
+{
+	return snprintf(str, 16, ESC "[%d;2;%d;%d;%dm", fg_bg, r, g, b);
+}
+
 /** External functions used for positioning the cursor and outputing a string
    like printf */
 int scrn_create(int scrn_type, int theme);
 int scrn_create_with_defaults(int theme);
 void scrn_destroy(void);
+
+/**
+ * Create the cli_vt100 structure
+ *
+ * @return
+ * Pointer to cli_vt100 structure or NULL on error
+ */
+struct cli_vt100 *vt100_setup(void);
+
+/**
+ * Destroy the cli_vt100 structure
+ *
+ * @param
+ *  The pointer to the cli_vt100 structure.
+ */
+void vt100_free(struct cli_vt100 *vt);
+
+/**
+ * Input a new character.
+ *
+ * @param vt
+ *   The pointer to the cli_vt100 structure
+ * @param c
+ *   The character to parse for cli_vt100 commands
+ * @return
+ *   -1 if the character is not part of a control sequence
+ *   -2 if c is not the last char of a control sequence
+ *   Else the index in vt100_commands[]
+ */
+int vt100_parse_input(struct cli_vt100 *vt, uint8_t c);
+
+void vt100_do_cmd(int idx);
+struct vt100_cmds *vt100_get_cmds(void);
 
 #ifdef __cplusplus
 }

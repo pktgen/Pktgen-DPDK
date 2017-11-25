@@ -33,56 +33,56 @@
 
 #include "cli.h"
 #include "cli_input.h"
-#include "cli_vt100.h"
+#include "cli_scrn.h"
 #include "cli_auto_complete.h"
-
-static inline void
-key_ctrl_x(void)
-{
-	this_cli->quit_flag = 1;
-}
 
 static inline void
 key_up_arr(void)
 {
+	struct gapbuf *gb = this_cli->gb;
 	char *line;
 
 	line = cli_history_prev();
 	if (line) {
-		gb_reset_buf(this_cli->gb);
-		gb_set_point(this_cli->gb,
-			gb_str_insert(this_cli->gb, line, 0));
+		gb_reset_buf(gb);
+		gb_set_point(gb, gb_str_insert(gb, line, 0));
+		cli_set_flag(DISPLAY_LINE | CLEAR_LINE);
 	}
 }
 
 static inline void
 key_down_arr(void)
 {
+	struct gapbuf *gb = this_cli->gb;
 	char *line;
 
 	line = cli_history_next();
 	if (line) {
-		gb_reset_buf(this_cli->gb);
-		gb_set_point(this_cli->gb,
-			gb_str_insert(this_cli->gb, line, 0));
+		gb_reset_buf(gb);
+		gb_set_point(gb, gb_str_insert(gb, line, 0));
+		cli_set_flag(DISPLAY_LINE | CLEAR_LINE);
 	}
 }
 
 static inline void
 key_right_arr(void)
 {
-	if (!gb_eof(this_cli->gb)) {
+	struct gapbuf *gb = this_cli->gb;
+
+	if (!gb_eof(gb)) {
 		scrn_write(vt100_right_arr, 0);
-		gb_move_right(this_cli->gb);
+		gb_move_right(gb);
 	}
 }
 
 static inline void
 key_left_arr(void)
 {
-	if (!gb_point_at_start(this_cli->gb)) {
+	struct gapbuf *gb = this_cli->gb;
+
+	if (!gb_point_at_start(gb)) {
 		scrn_write(vt100_left_arr, 0);
-		gb_move_left(this_cli->gb);
+		gb_move_left(gb);
 	}
 }
 
@@ -97,6 +97,8 @@ key_backspace(void)
 		gb_move_left(gb);
 
 		gb_del(gb, 1);
+
+		cli_set_flag(DELETE_CHAR);
 	}
 }
 
@@ -110,9 +112,10 @@ key_return(void)
 	/* Init buffer must be after execute of command */
 	gb_reset_buf(this_cli->gb);
 
-	/* Found quit command */
+	/* If not quit command then print prompt */
 	if (!this_cli->quit_flag)
-		this_cli->plen = this_cli->prompt(0);
+		this_cli->flags |= DISPLAY_PROMPT;
+	this_cli->curr_hist = NULL;
 }
 
 static inline void
@@ -162,6 +165,7 @@ key_ctrl_c(void)
 	gb_reset_buf(this_cli->gb);
 	cli_clear_line(-1);
 	this_cli->plen = this_cli->prompt(0);
+	this_cli->curr_hist = NULL;
 }
 
 static inline void
@@ -257,6 +261,12 @@ key_ctrl_n(void)
 static inline void
 key_meta_d(void)
 {
+}
+
+static inline void
+key_ctrl_x(void)
+{
+	this_cli->quit_flag = 1;
 }
 
 static inline void
@@ -376,7 +386,7 @@ vt100_parse_input(struct cli_vt100 *vt, uint8_t c)
 }
 
 struct cli_vt100 *
-vt100_create(void)
+vt100_setup(void)
 {
 	struct cli_vt100 *vt;
 
@@ -390,7 +400,7 @@ vt100_create(void)
 }
 
 void
-vt100_destroy(struct cli_vt100 *vt)
+vt100_free(struct cli_vt100 *vt)
 {
 	if (vt)
 		free(vt);

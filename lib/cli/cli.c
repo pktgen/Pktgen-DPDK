@@ -647,11 +647,11 @@ __default_prompt(int cont)
 	if (strlen(str) > 1)	/* trim the trailing '/' from string */
 		str[strlen(str) - 1] = '\0';
 
-	vt100_color(SCRN_GREEN, SCRN_NO_CHANGE, SCRN_OFF);
+	scrn_color(SCRN_GREEN, SCRN_NO_CHANGE, SCRN_OFF);
 	len += cli_printf("%s:", (cont) ? " >> " : "DPDK-cli");
-	vt100_color(SCRN_CYAN, SCRN_NO_CHANGE, SCRN_OFF);
+	scrn_color(SCRN_CYAN, SCRN_NO_CHANGE, SCRN_OFF);
 	len += cli_printf("%s", str);
-	vt100_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
+	scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 	len += cli_printf("> ");
 
 	return len;
@@ -709,7 +709,7 @@ cli_init(int nb_entries, uint32_t nb_hist)
 	if (scrn_create_with_defaults(SCRN_THEME_ON))
 		goto error_exit;
 
-	cli->vt = vt100_create();
+	cli->vt = vt100_setup();
 	if (!cli->vt)
 		goto error_exit;
 
@@ -783,7 +783,7 @@ cli_destroy(void)
 		return;
 
 	gb_destroy(cli->gb);
-	vt100_destroy(cli->vt);
+	vt100_free(cli->vt);
 	scrn_destroy();
 	cli_history_delete();
 
@@ -897,11 +897,11 @@ int
 cli_execute_cmdfiles(void)
 {
 	int i, cnt;
-	const char *path;
 
 	cnt = this_cli->cmd_files.idx;
 
 	for (i = 0; i < cnt; i++) {
+		const char *path;
 		if ((path = this_cli->cmd_files.filename[i]) == NULL)
 			continue;
 

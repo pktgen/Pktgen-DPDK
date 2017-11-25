@@ -627,9 +627,9 @@ gb_del(struct gapbuf *gb, int cnt)
  * @param str
  *   String to put at point
  * @param
- *   Size of the string to insert at point
+ *   Size of the string to insert at point, if zero use strlen() to find length
  * @return
- *   N/AS
+ *   Number of bytes inserted
  */
 static inline uint32_t
 gb_str_insert(struct gapbuf *gb, char *str, uint32_t size)
@@ -638,6 +638,9 @@ gb_str_insert(struct gapbuf *gb, char *str, uint32_t size)
 
 	if (size == 0)
 		size = strlen(str);
+	if (size == 0)
+		return 0;
+
 	gb_move_gap_to_point(gb);
 
 	if (size > gb_gap_size(gb))

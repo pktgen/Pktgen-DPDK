@@ -74,7 +74,6 @@ SYMLINK-y-include += cli_env.h
 SYMLINK-y-include += cli_search.h
 SYMLINK-y-include += cli_help.h
 SYMLINK-y-include += cli_history.h
-SYMLINK-y-include += cli_vt100.h
 SYMLINK-y-include += cli_scrn.h
 SYMLINK-y-include += cli_string_fns.h
 

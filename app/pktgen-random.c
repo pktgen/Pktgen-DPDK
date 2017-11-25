@@ -45,7 +45,7 @@
 #include "pktgen-display.h"
 #include "pktgen-log.h"
 
-#include "xorshift128plus.h"	/* PRNG function */
+#include "xorshift64star.h"	/* PRNG function */
 
 /* Allow PRNG function to be changed at runtime for testing*/
 #ifdef TESTING
@@ -62,10 +62,6 @@ static void pktgen_init_default_rnd(void);
  * DESCRIPTION
  * Default function to use for generating random values. This function is used
  * when no external random function is set using pktgen_set_rnd_func();
- * The random function used is ISAAC: see
- * http://www.burtleburtle.net/bob/rand/isaacafa.html for information.
- *
- *
  *
  * RETURNS: 32-bit random value.
  *
@@ -74,7 +70,7 @@ static void pktgen_init_default_rnd(void);
 static __inline__ uint32_t
 pktgen_default_rnd_func(void)
 {
-	return xor_next();
+	return (uint32_t)xorshift64star();
 }
 
 /**************************************************************************//**
@@ -362,7 +358,7 @@ pktgen_init_default_rnd(void)
 	}
 
 	/* Use contents of /dev/urandom as seed for ISAAC */
-	if (fread(xor_seed, sizeof(xor_seed[0]), 2, dev_random) != 2) {
+	if (fread(xor_state, sizeof(xor_state[0]), 1, dev_random) != 2) {
 		pktgen_log_error(
 			"Could not read enough random data for PRNG seed");
 		return;

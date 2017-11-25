@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2012 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,18 @@
 #   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
-include $(RTE_SDK)/mk/rte.vars.mk
+lua_version := 5.3.4
+tarball := lua-$(lua_version).tar.gz
 
-DIRS-y += src
+all: get_tarball
+	(cd lua-5.3.4; patch -p1 < ../lua-5.3.4.patch)
+	make -C lua-$(lua_version)
 
-include $(RTE_SDK)/mk/rte.extsubdir.mk
+get_tarball:
+	wget https://www.lua.org/ftp/lua-5.3.4.tar.gz
+	tar xf $(tarball)
+
+clean:
+	rm -fr lua-$(lua_version)

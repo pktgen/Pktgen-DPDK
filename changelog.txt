@@ -6,6 +6,7 @@ Pktgen - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.4.4 - Fixed the long line problem in CLI and improved the performance.
  - 3.4.3 - Fix compile problem with DPKD 17.11 and a number of bugs.
  - 3.4.2 - Fix a build problem with older DPDK versions.
  - 3.4.1 - Fix ARP packet processing and a fe minor cfg file changes.

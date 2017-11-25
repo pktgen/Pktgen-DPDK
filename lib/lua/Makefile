@@ -34,12 +34,16 @@ lua_version := 5.3.4
 tarball := lua-$(lua_version).tar.gz
 
 all: get_tarball
-	(cd lua-5.3.4; patch -p1 < ../lua-5.3.4.patch)
 	make -C lua-$(lua_version)
 
 get_tarball:
-	wget https://www.lua.org/ftp/lua-5.3.4.tar.gz
-	tar xf $(tarball)
+	if [ ! -f $(tarball) ]; then \
+		wget https://www.lua.org/ftp/lua-5.3.4.tar.gz; \
+	fi
+	if [ ! -d lua-$(lua_version) ]; then \
+		tar xf $(tarball); \
+		(cd lua-5.3.4; patch -p1 < ../lua-5.3.4.patch); \
+	fi
 
 clean:
 	rm -fr lua-$(lua_version)

@@ -111,6 +111,7 @@ endif
 
 LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/lua-5.3.4/src
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe

@@ -1,7 +1,7 @@
-diff -ruN lua-5.3.4/Makefile lua-pktgen/Makefile
+diff -ruN lua-5.3.4/Makefile lua-patched/Makefile
 --- lua-5.3.4/Makefile	2016-12-20 10:26:08.000000000 -0600
-+++ lua-pktgen/Makefile	2017-07-28 18:08:04.687969711 -0500
-@@ -1,114 +1,36 @@
++++ lua-patched/Makefile	2017-11-27 16:04:23.579925619 -0600
+@@ -1,114 +1,11 @@
 -# Makefile for installing Lua
 -# See doc/readme.html for installation and customization instructions.
 -
@@ -27,7 +27,6 @@ diff -ruN lua-5.3.4/Makefile lua-pktgen/Makefile
 -INSTALL= install -p
 -INSTALL_EXEC= $(INSTALL) -m 0755
 -INSTALL_DATA= $(INSTALL) -m 0644
-+#   BSD LICENSE
  #
 -# If you don't have "install" you can use "cp" instead.
 -# INSTALL= cp -p
@@ -106,33 +105,9 @@ diff -ruN lua-5.3.4/Makefile lua-pktgen/Makefile
 -	@echo "INSTALL_EXEC= $(INSTALL_EXEC)"
 -	@echo "INSTALL_DATA= $(INSTALL_DATA)"
 +#   Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
-+#   All rights reserved.
 +#
-+#   Redistribution and use in source and binary forms, with or without
-+#   modification, are permitted provided that the following conditions
-+#   are met:
++#   SPDX-License-Indentifier: BSD-3-Clause
 +#
-+#     * Redistributions of source code must retain the above copyright
-+#       notice, this list of conditions and the following disclaimer.
-+#     * Redistributions in binary form must reproduce the above copyright
-+#       notice, this list of conditions and the following disclaimer in
-+#       the documentation and/or other materials provided with the
-+#       distribution.
-+#     * Neither the name of Intel Corporation nor the names of its
-+#       contributors may be used to endorse or promote products derived
-+#       from this software without specific prior written permission.
-+#
-+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+#   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+#   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+#   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+#   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+#   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+#   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+#   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+#   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+#   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+#   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
 -# echo pkg-config data
 -pc:
@@ -148,9 +123,9 @@ diff -ruN lua-5.3.4/Makefile lua-pktgen/Makefile
  
 -# (end of Makefile)
 +include $(RTE_SDK)/mk/rte.extsubdir.mk
-diff -ruN lua-5.3.4/Makefile.lua lua-pktgen/Makefile.lua
+diff -ruN lua-5.3.4/Makefile.lua lua-patched/Makefile.lua
 --- lua-5.3.4/Makefile.lua	1969-12-31 18:00:00.000000000 -0600
-+++ lua-pktgen/Makefile.lua	2017-07-28 18:08:04.687969711 -0500
++++ lua-patched/Makefile.lua	2017-11-27 16:00:11.153613168 -0600
 @@ -0,0 +1,114 @@
 +# Makefile for installing Lua
 +# See doc/readme.html for installation and customization instructions.
@@ -266,17 +241,17 @@ diff -ruN lua-5.3.4/Makefile.lua lua-pktgen/Makefile.lua
 +.PHONY: all $(PLATS) clean test install local none dummy echo pecho lecho
 +
 +# (end of Makefile)
-diff -ruN lua-5.3.4/src/lauxlib.c lua-pktgen/src/lauxlib.c
+diff -ruN lua-5.3.4/src/lauxlib.c lua-patched/src/lauxlib.c
 --- lua-5.3.4/src/lauxlib.c	2016-12-20 12:37:00.000000000 -0600
-+++ lua-pktgen/src/lauxlib.c	2017-07-28 18:08:04.691969723 -0500
++++ lua-patched/src/lauxlib.c	2017-11-27 16:00:11.157613141 -0600
 @@ -1040,4 +1040,3 @@
      luaL_error(L, "version mismatch: app. needs %f, Lua core provides %f",
                    (LUAI_UACNUMBER)ver, (LUAI_UACNUMBER)*v);
  }
 -
-diff -ruN lua-5.3.4/src/lauxlib.h lua-pktgen/src/lauxlib.h
+diff -ruN lua-5.3.4/src/lauxlib.h lua-patched/src/lauxlib.h
 --- lua-5.3.4/src/lauxlib.h	2016-12-06 08:54:31.000000000 -0600
-+++ lua-pktgen/src/lauxlib.h	2017-07-28 18:08:04.691969723 -0500
++++ lua-patched/src/lauxlib.h	2017-11-27 16:00:11.157613141 -0600
 @@ -258,7 +258,6 @@
  /* }============================================================ */
  
@@ -285,9 +260,9 @@ diff -ruN lua-5.3.4/src/lauxlib.h lua-pktgen/src/lauxlib.h
  #endif
  
  
-diff -ruN lua-5.3.4/src/liolib.c lua-pktgen/src/liolib.c
+diff -ruN lua-5.3.4/src/liolib.c lua-patched/src/liolib.c
 --- lua-5.3.4/src/liolib.c	2016-12-20 12:37:00.000000000 -0600
-+++ lua-pktgen/src/liolib.c	2017-07-28 18:08:04.695969734 -0500
++++ lua-patched/src/liolib.c	2017-11-27 16:00:11.157613141 -0600
 @@ -746,7 +746,7 @@
  }
  
@@ -297,9 +272,9 @@ diff -ruN lua-5.3.4/src/liolib.c lua-pktgen/src/liolib.c
                             const char *fname) {
    LStream *p = newprefile(L);
    p->f = f;
-diff -ruN lua-5.3.4/src/lstate.h lua-pktgen/src/lstate.h
+diff -ruN lua-5.3.4/src/lstate.h lua-patched/src/lstate.h
 --- lua-5.3.4/src/lstate.h	2016-12-22 07:08:50.000000000 -0600
-+++ lua-pktgen/src/lstate.h	2017-07-28 18:08:04.699969745 -0500
++++ lua-patched/src/lstate.h	2017-11-27 16:00:11.157613141 -0600
 @@ -181,6 +181,8 @@
    unsigned short nCcalls;  /* number of nested C calls */
    l_signalT hookmask;
@@ -309,9 +284,9 @@ diff -ruN lua-5.3.4/src/lstate.h lua-pktgen/src/lstate.h
  };
  
  
-diff -ruN lua-5.3.4/src/luac.c lua-pktgen/src/luac.c
+diff -ruN lua-5.3.4/src/luac.c lua-patched/src/luac.c
 --- lua-5.3.4/src/luac.c	2015-03-11 20:58:27.000000000 -0500
-+++ lua-pktgen/src/luac.c	2017-07-28 18:08:04.703969757 -0500
++++ lua-patched/src/luac.c	2017-11-27 16:00:11.157613141 -0600
 @@ -211,14 +211,10 @@
  ** See Copyright Notice in lua.h
  */
@@ -327,9 +302,9 @@ diff -ruN lua-5.3.4/src/luac.c lua-pktgen/src/luac.c
  #include "lopcodes.h"
  
  #define VOID(p)		((const void*)(p))
-diff -ruN lua-5.3.4/src/luaconf.h lua-pktgen/src/luaconf.h
+diff -ruN lua-5.3.4/src/luaconf.h lua-patched/src/luaconf.h
 --- lua-5.3.4/src/luaconf.h	2016-12-22 07:08:50.000000000 -0600
-+++ lua-pktgen/src/luaconf.h	2017-07-28 18:08:04.703969757 -0500
++++ lua-patched/src/luaconf.h	2017-11-27 16:00:11.157613141 -0600
 @@ -61,7 +61,7 @@
  #if defined(LUA_USE_LINUX)
  #define LUA_USE_POSIX
@@ -366,9 +341,9 @@ diff -ruN lua-5.3.4/src/luaconf.h lua-pktgen/src/luaconf.h
  
  
  #endif
-diff -ruN lua-5.3.4/src/lua.h lua-pktgen/src/lua.h
+diff -ruN lua-5.3.4/src/lua.h lua-patched/src/lua.h
 --- lua-5.3.4/src/lua.h	2016-12-22 09:51:20.000000000 -0600
-+++ lua-pktgen/src/lua.h	2017-07-28 18:08:04.699969745 -0500
++++ lua-patched/src/lua.h	2017-11-27 16:00:11.157613141 -0600
 @@ -437,6 +437,9 @@
  LUA_API int (lua_gethookmask) (lua_State *L);
  LUA_API int (lua_gethookcount) (lua_State *L);
@@ -386,9 +361,9 @@ diff -ruN lua-5.3.4/src/lua.h lua-pktgen/src/lua.h
 +void lua_callback_routine(char *);
  
  #endif
-diff -ruN lua-5.3.4/src/lua_shell.c lua-pktgen/src/lua_shell.c
+diff -ruN lua-5.3.4/src/lua_shell.c lua-patched/src/lua_shell.c
 --- lua-5.3.4/src/lua_shell.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-pktgen/src/lua_shell.c	2017-07-28 18:08:04.703969757 -0500
++++ lua-patched/src/lua_shell.c	2017-11-27 16:00:11.157613141 -0600
 @@ -0,0 +1,419 @@
 +/*
 + ** $Id: lua.c,v 1.205 2012/05/23 15:37:09 roberto Exp $
@@ -809,42 +784,14 @@ diff -ruN lua-5.3.4/src/lua_shell.c lua-pktgen/src/lua_shell.c
 +	createstdfile(L, stderr, NULL, "stderr");
 +}
 +
-diff -ruN lua-5.3.4/src/lua_shell.h lua-pktgen/src/lua_shell.h
+diff -ruN lua-5.3.4/src/lua_shell.h lua-patched/src/lua_shell.h
 --- lua-5.3.4/src/lua_shell.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-pktgen/src/lua_shell.h	2017-07-28 18:08:04.703969757 -0500
-@@ -0,0 +1,71 @@
++++ lua-patched/src/lua_shell.h	2017-11-27 16:02:13.380794642 -0600
+@@ -0,0 +1,43 @@
 +/*-
-+ * Copyright (c) <2010-2017>, Intel Corporation
-+ * All rights reserved.
++ * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
 + *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * - Redistributions of source code must retain the above copyright
-+ *   notice, this list of conditions and the following disclaimer.
-+ *
-+ * - Redistributions in binary form must reproduce the above copyright
-+ *   notice, this list of conditions and the following disclaimer in
-+ *   the documentation and/or other materials provided with the
-+ *   distribution.
-+ *
-+ * - Neither the name of Intel Corporation nor the names of its
-+ *   contributors may be used to endorse or promote products derived
-+ *   from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ * SPDX-License-Indentifier: BSD-3-Clause
 + */
 +/* Created 2011 by Keith Wiles @ intel.com */
 +
@@ -884,42 +831,14 @@ diff -ruN lua-5.3.4/src/lua_shell.h lua-pktgen/src/lua_shell.h
 +#endif
 +
 +#endif /* LUA_SHELL_H_ */
-diff -ruN lua-5.3.4/src/lua-socket.c lua-pktgen/src/lua-socket.c
+diff -ruN lua-5.3.4/src/lua-socket.c lua-patched/src/lua-socket.c
 --- lua-5.3.4/src/lua-socket.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-pktgen/src/lua-socket.c	2017-07-28 18:08:04.699969745 -0500
-@@ -0,0 +1,385 @@
++++ lua-patched/src/lua-socket.c	2017-11-27 16:02:51.804537902 -0600
+@@ -0,0 +1,357 @@
 +/*-
-+ * Copyright (c) <2010-2017>, Intel Corporation
-+ * All rights reserved.
++ * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
 + *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * - Redistributions of source code must retain the above copyright
-+ *   notice, this list of conditions and the following disclaimer.
-+ *
-+ * - Redistributions in binary form must reproduce the above copyright
-+ *   notice, this list of conditions and the following disclaimer in
-+ *   the documentation and/or other materials provided with the
-+ *   distribution.
-+ *
-+ * - Neither the name of Intel Corporation nor the names of its
-+ *   contributors may be used to endorse or promote products derived
-+ *   from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ * SPDX-License-Indentifier: BSD-3-Clause
 + */
 +
 +/* Created 2010 by Keith Wiles @ intel.com */
@@ -1273,42 +1192,14 @@ diff -ruN lua-5.3.4/src/lua-socket.c lua-pktgen/src/lua-socket.c
 +
 +    return L;
 +}
-diff -ruN lua-5.3.4/src/lua-socket.h lua-pktgen/src/lua-socket.h
+diff -ruN lua-5.3.4/src/lua-socket.h lua-patched/src/lua-socket.h
 --- lua-5.3.4/src/lua-socket.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-pktgen/src/lua-socket.h	2017-07-28 18:08:04.699969745 -0500
-@@ -0,0 +1,64 @@
++++ lua-patched/src/lua-socket.h	2017-11-27 16:03:51.060142434 -0600
+@@ -0,0 +1,36 @@
 +/*-
-+ * Copyright (c) <2010-2017>, Intel Corporation
-+ * All rights reserved.
++ * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
 + *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * - Redistributions of source code must retain the above copyright
-+ *   notice, this list of conditions and the following disclaimer.
-+ *
-+ * - Redistributions in binary form must reproduce the above copyright
-+ *   notice, this list of conditions and the following disclaimer in
-+ *   the documentation and/or other materials provided with the
-+ *   distribution.
-+ *
-+ * - Neither the name of Intel Corporation nor the names of its
-+ *   contributors may be used to endorse or promote products derived
-+ *   from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ * SPDX-License-Indentifier: BSD-3-Clause
 + */
 +
 +/* Created 2010 by Keith Wiles @ intel.com */
@@ -1341,42 +1232,17 @@ diff -ruN lua-5.3.4/src/lua-socket.h lua-pktgen/src/lua-socket.h
 +void * lua_create_instance(void);
 +
 +#endif /* _LUA_SOCKET_H_ */
-diff -ruN lua-5.3.4/src/Makefile lua-pktgen/src/Makefile
+diff -ruN lua-5.3.4/src/Makefile lua-patched/src/Makefile
 --- lua-5.3.4/src/Makefile	2015-05-27 06:10:11.000000000 -0500
-+++ lua-pktgen/src/Makefile	2017-07-28 18:08:04.691969723 -0500
-@@ -1,197 +1,71 @@
++++ lua-patched/src/Makefile	2017-11-27 16:03:23.524326138 -0600
+@@ -1,197 +1,46 @@
 -# Makefile for building Lua
 -# See ../doc/readme.html for installation and customization instructions.
-+#   BSD LICENSE
 +#
 +#   Copyright(c) 2015-2016 Intel Corporation. All rights reserved.
-+#   All rights reserved.
 +#
-+#   Redistribution and use in source and binary forms, with or without
-+#   modification, are permitted provided that the following conditions
-+#   are met:
-+#
-+#     * Redistributions of source code must retain the above copyright
-+#       notice, this list of conditions and the following disclaimer.
-+#     * Redistributions in binary form must reproduce the above copyright
-+#       notice, this list of conditions and the following disclaimer in
-+#       the documentation and/or other materials provided with the
-+#       distribution.
-+#     * Neither the name of Intel Corporation nor the names of its
-+#       contributors may be used to endorse or promote products derived
-+#       from this software without specific prior written permission.
-+#
-+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+#   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+#   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+#   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+#   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+#   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+#   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+#   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+#   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+#   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+#   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++#   SPDX-License-Indentifier: BSD-3-Clause
++
 +#
 +
 +include $(RTE_SDK)/mk/rte.vars.mk
@@ -1612,9 +1478,9 @@ diff -ruN lua-5.3.4/src/Makefile lua-pktgen/src/Makefile
 -
 -# (end of Makefile)
 +include $(RTE_SDK)/mk/rte.extlib.mk
-diff -ruN lua-5.3.4/src/Makefile.lua lua-pktgen/src/Makefile.lua
+diff -ruN lua-5.3.4/src/Makefile.lua lua-patched/src/Makefile.lua
 --- lua-5.3.4/src/Makefile.lua	1969-12-31 18:00:00.000000000 -0600
-+++ lua-pktgen/src/Makefile.lua	2017-07-28 18:08:04.691969723 -0500
++++ lua-patched/src/Makefile.lua	2017-11-27 16:00:11.157613141 -0600
 @@ -0,0 +1,197 @@
 +# Makefile for building Lua
 +# See ../doc/readme.html for installation and customization instructions.

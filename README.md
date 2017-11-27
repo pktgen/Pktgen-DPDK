@@ -38,6 +38,8 @@ Pktgen - Traffic Generator powered by DPDK
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  OF THE POSSIBILITY OF SUCH DAMAGE.
 
+ SPDX-License-Identifier: BSD-3-Clause
+
  Pktgen: Created 2010-2017 by Keith Wiles @ Intel.com
  ---
 
@@ -384,7 +386,7 @@ setup = {
 		'81:00.0 81:00.1 81:00.2 81:00.3',
 		'82:00.0 83:00.0'
 		],
-		
+
 	'opts': [
 		'-b igb_uio'
 		]
@@ -400,14 +402,14 @@ run = {
 		'--socket-mem 2048,2048',
 		'--file-prefix pg'
 		],
-	
+
 	'blacklist': [
 		'-b 05:00.0 -b 05:00.1',
 		'-b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3',
 		#'-b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3',
 		'-b 82:00.0 -b 83:00.0'
 		],
-		
+
 	'pktgen': [
 		'-T',
 		'-P',
@@ -417,7 +419,7 @@ run = {
 		'-m [13:14].2',
 		'-m [15:16].3'
 		],
-	
+
 	'misc': [
 		'-f themes/black-yellow.theme'
 		]

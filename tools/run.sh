@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: BSD-3-Clause
+#
 
 name=`uname -n`
 
@@ -32,7 +34,7 @@ cmd=./app/${target}/pktgen
 # 81:00.3 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)
 # 82:00.0 Ethernet controller: Intel Corporation Ethernet Controller XL710 for 40GbE QSFP+ (rev 02)
 # 83:00.0 Ethernet controller: Intel Corporation Ethernet Controller XL710 for 40GbE QSFP+ (rev 02)
-# 
+#
 
 #============================================================
 #Core and Socket Information (as reported by '/proc/cpuinfo')
@@ -41,26 +43,26 @@ cmd=./app/${target}/pktgen
 #cores =  [0, 1, 2, 3, 4, 8, 9, 10, 11, 16, 17, 18, 19, 20, 24, 25, 26, 27]
 #sockets =  [0, 1]
 #
-#        Socket 0        Socket 1        
-#        --------        --------        
-#Core 0  [0, 36]         [18, 54]        
-#Core 1  [1, 37]         [19, 55]        
-#Core 2  [2, 38]         [20, 56]        
-#Core 3  [3, 39]         [21, 57]        
-#Core 4  [4, 40]         [22, 58]        
-#Core 8  [5, 41]         [23, 59]        
-#Core 9  [6, 42]         [24, 60]        
-#Core 10 [7, 43]         [25, 61]        
-#Core 11 [8, 44]         [26, 62]        
-#Core 16 [9, 45]         [27, 63]        
-#Core 17 [10, 46]        [28, 64]        
-#Core 18 [11, 47]        [29, 65]        
-#Core 19 [12, 48]        [30, 66]        
-#Core 20 [13, 49]        [31, 67]        
-#Core 24 [14, 50]        [32, 68]        
-#Core 25 [15, 51]        [33, 69]        
-#Core 26 [16, 52]        [34, 70]        
-#Core 27 [17, 53]        [35, 71]        
+#        Socket 0        Socket 1
+#        --------        --------
+#Core 0  [0, 36]         [18, 54]
+#Core 1  [1, 37]         [19, 55]
+#Core 2  [2, 38]         [20, 56]
+#Core 3  [3, 39]         [21, 57]
+#Core 4  [4, 40]         [22, 58]
+#Core 8  [5, 41]         [23, 59]
+#Core 9  [6, 42]         [24, 60]
+#Core 10 [7, 43]         [25, 61]
+#Core 11 [8, 44]         [26, 62]
+#Core 16 [9, 45]         [27, 63]
+#Core 17 [10, 46]        [28, 64]
+#Core 18 [11, 47]        [29, 65]
+#Core 19 [12, 48]        [30, 66]
+#Core 20 [13, 49]        [31, 67]
+#Core 24 [14, 50]        [32, 68]
+#Core 25 [15, 51]        [33, 69]
+#Core 26 [16, 52]        [34, 70]
+#Core 27 [17, 53]        [35, 71]
 #
 
 dpdk_opts="-l 8,9-16 -n 4 --proc-type auto --log-level 7 --socket-mem 2048,2048 --file-prefix pg"
@@ -88,6 +90,6 @@ echo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 sudo ${cmd} ${dpdk_opts} ${black_list} -- ${pktgen_opts} ${load_file}
 
 # Restore the screen and keyboard to a sane state
-echo "[1;r" 
+echo "[1;r"
 echo "[99;1H"
 stty sane

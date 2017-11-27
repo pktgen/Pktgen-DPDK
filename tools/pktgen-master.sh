@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: BSD-3-Clause
+#
 
 # Normal setup
 #   different cores for each port.

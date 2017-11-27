@@ -1,5 +1,7 @@
 -- CGCS Demo script
 --
+-- SPDX-License-Identifier: BSD-3-Clause
+
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;../?.lua"
 
 require "Pktgen";
@@ -16,7 +18,7 @@ local netmask = "/24";
 total_time = 0;
 
 -- Take two lists and create one table with a merged value of the tables.
--- Return a set or table = { { timo, rate }, ... } 
+-- Return a set or table = { { timo, rate }, ... }
 function Set(step, list)
 	local	set = { };		-- Must have a empty set first.
 
@@ -25,13 +27,13 @@ function Set(step, list)
 	end
 
 	return set;
-end 
+end
 
 function main()
 	local sending = 0;
 	local trlst = Set(time_step, pcnt_rate);
 
-	-- Stop the port sending and reset to 
+	-- Stop the port sending and reset to
 	pktgen.stop(sendport);
 	sleep(2);					-- Wait for stop to happen (not really needed)
 

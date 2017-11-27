@@ -1,5 +1,6 @@
 -- RFC2544 Throughput Test
 -- as defined by https://www.ietf.org/rfc/rfc2544.txt
+--  SPDX-License-Identifier: BSD-3-Clause
 
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;../?.lua"
 
@@ -71,7 +72,7 @@ local function runThroughputTest(pkt_size)
 	min_rate = 1;
 	trial_rate = initialRate;
 	for count=1, 10, 1
-	do		
+	do
 		num_dropped = runTrial(pkt_size, trial_rate, duration, count);
 		if num_dropped == 0
 		then

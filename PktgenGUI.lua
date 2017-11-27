@@ -1,6 +1,8 @@
 --
 -- PktgenGUI.lua
 --
+-- SPDX-License-Identifier: BSD-3-Clause
+
 
 gui = {}
 
@@ -14,14 +16,14 @@ function gui.dumpStats(func, name, portlist)
 	stats = func(portlist);
 	printf("%s={ ", name);
 	st = stats[0];
-	for k,v in pairs(st) do 
+	for k,v in pairs(st) do
 		printf("%s ", k);
 	end
 	printf("},");
 	for i = 0, (stats.n - 1) do
 		st = stats[i];
 		printf("%d={ ", i);
-		for k,v in pairs(st) do 
+		for k,v in pairs(st) do
 			printf("%d ", v);
 		end
 		if ( i == (stats.n - 1) ) then
@@ -36,14 +38,14 @@ function gui.dumpInfo(func, name, portlist)
 	stats = func(portlist);
 	printf("%s={ ", name);
 	st = stats[0];
-	for k,v in pairs(st) do 
+	for k,v in pairs(st) do
 		printf("%s ", k);
 	end
 	printf("},");
 	for i = 0, (stats.n - 1) do
 		st = stats[i];
 		printf("%d={ ", i);
-		for k,v in pairs(st) do 
+		for k,v in pairs(st) do
 			printf("%s ", v);
 		end
 		if ( i == (stats.n - 1) ) then

@@ -1,5 +1,7 @@
 -- RFC-2544 throughput testing.
 --
+-- SPDX-License-Identifier: BSD-3-Clause
+
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;../?.lua"
 
 require "Pktgen";

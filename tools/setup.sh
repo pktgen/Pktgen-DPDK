@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: BSD-3-Clause
+#
 
 # Use 'sudo -E ./setup.sh' to include environment variables
 Sudo="sudo -E"
@@ -40,7 +42,7 @@ NR_HUGEPAGES=$(( `sysctl -n vm.nr_hugepages` / $(num_cpu_sockets) ))
 echo "Setup "$(num_cpu_sockets)" socket(s) with "$NR_HUGEPAGES" pages."
 for socket in $(seq 0 $(( $(num_cpu_sockets) - 1 )) ); do
 	echo "Set $(nr_hugepages_fn $socket) = $NR_HUGEPAGES"
-	if [ -e  $(nr_hugepages_fn $socket) ]; then 
+	if [ -e  $(nr_hugepages_fn $socket) ]; then
 		str="echo $NR_HUGEPAGES > $(nr_hugepages_fn $socket)"
 		${Sudo} sh -c eval $str
 	fi
@@ -53,7 +55,7 @@ ${Sudo} rmmod igb_uio 2> /dev/null
 ${Sudo} insmod $sdk/$target/kmod/igb_uio.ko
 
 if [ -e $sdk/usertools/dpdk-devbind.py ]; then
-	nic_bind=${sdk}/usertools/dpdk-devbind.py 
+	nic_bind=${sdk}/usertools/dpdk-devbind.py
 else
 	nic_bind=${sdk}/tools/dpdk_nic_bind.py
 fi

@@ -1,3 +1,5 @@
+-- SPDX-License-Identifier: BSD-3-Clause
+
 -- Create some short cuts to the real functions.
 gsub		    = string.gsub
 gmatch          = string.gmatch
@@ -84,16 +86,16 @@ function getn( t )
 end
 
 -- ===========================================================================
--- returns the 'basename' and the 'basedir' 
+-- returns the 'basename' and the 'basedir'
 --
-function basename(filename) 
+function basename(filename)
     local   fn, dn;
 
     -- Convert the '\' to '/' in the path name.
     filename = d2u(filename);
 
-    fn = gsub(filename, "(.*/)(.*)", "%2") or filename; 
-    dn = gsub(filename, "(.*/)(.*)", "%1") 
+    fn = gsub(filename, "(.*/)(.*)", "%2") or filename;
+    dn = gsub(filename, "(.*/)(.*)", "%1")
 
     dn = strsub(dn, 1, -2);
 
@@ -123,7 +125,7 @@ function syscmd( cmd, funcPtr )
     local tmpFile = "syscmd_tmp";
 
     system( cmd .. " > " .. tmpFile );
- 
+
     funcPtr = funcPtr or __doRead;
 
     return funcPtr(tmpFile);    -- tmpFile is removed by the function.
@@ -226,16 +228,16 @@ local function doSerialize(k, o, v, saved, tab)
 
 	if (t == "table") then
         if ( saved[v] ~= nil ) then
-            return strfmt("%s[%s] = %s,\n", space(tab), serializeIt(o), saved[v]); 
+            return strfmt("%s[%s] = %s,\n", space(tab), serializeIt(o), saved[v]);
         else
             local   kk, vv, mt;
 
             saved[v] = k;
 
             if ( tab == 0 ) then
-                s = strfmt("%s%s = {\n", space(tab), tostring(k)); 
+                s = strfmt("%s%s = {\n", space(tab), tostring(k));
             else
-                s = strfmt("%s[%s] = {\n", space(tab), serializeIt(o)); 
+                s = strfmt("%s[%s] = {\n", space(tab), serializeIt(o));
             end
             for kk,vv in pairs(v) do
                 local fn = strfmt("%s[%s]", tostring(k), serializeIt(kk));
@@ -258,7 +260,7 @@ end
 -- serialize - For a given key serialize the global variable.
 --    k is a string for display and t is the table to display.
 --    e.g. printf(serialize("foo", { ["bar"] = "foobar" } ));
---              
+--
 function serialize(k, t)
 
     if ( k == nil ) then

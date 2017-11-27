@@ -139,3 +139,19 @@ cli_help_show_group(const char *group)
 
 	return _show_help_lines(n->help_data, 0);
 }
+
+int
+cli_cmd_error(const char * msg, const char *group, int argc, char **argv)
+{
+        int n;
+
+        if (group)
+                cli_help_show_group(group);
+        if (msg)
+                cli_printf("%s:\n", msg);
+        cli_printf("  Invalid line: <");
+        for(n = 0; n < argc; n++)
+                cli_printf("%s ", argv[n]);
+        cli_printf(">\n");
+        return -1;
+}

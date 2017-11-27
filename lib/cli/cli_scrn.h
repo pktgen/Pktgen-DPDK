@@ -194,17 +194,25 @@ enum { SCRN_THEME_OFF = 0, SCRN_THEME_ON = 1 };
    background color code */
 typedef enum {
 	SCRN_BLACK = 0, SCRN_RED = 1, SCRN_GREEN = 2, SCRN_YELLOW = 3,
-	SCRN_BLUE = 4, SCRN_MAGENTA = 5, SCRN_CYAN = 6,SCRN_WHITE = 7,
+	SCRN_BLUE = 4, SCRN_MAGENTA = 5, SCRN_CYAN = 6, SCRN_WHITE = 7,
 	SCRN_RGB = 8, SCRN_DEFAULT_FG = 9, SCRN_DEFAULT_BG = 9,
 	SCRN_NO_CHANGE = 98, SCRN_UNKNOWN_COLOR    = 99
 } scrn_color_e;
 
 /** ANSI color codes zero based for attributes per color */
 typedef enum {
-	SCRN_OFF = 0, SCRN_BOLD = 1, SCRN_UNDERSCORE = 4, SCRN_BLINK = 5,
-	SCRN_REVERSE = 7, SCRN_CONCEALED = 8, SCRN_NO_ATTR = 98,
-	SCRN_UNKNOWN_ATTR = 99
+	SCRN_OFF = 0, SCRN_BOLD = 1, SCRN_FAINT = 2, SCRN_ITALIC = 3,
+	SCRN_UNDERSCORE = 4, SCRN_SLOW_BLINK = 5, SCRN_FAST_BLINK = 6,
+	SCRN_REVERSE = 7, SCRN_CONCEALED = 8, SCRN_CROSSOUT = 9,
+	SCRN_DEFAULT_FONT = 10, SCRN_UNDERLINE_OFF = 24, SCRN_BLINK_OFF = 25,
+	SCRN_INVERSE_OFF = 27, SCRN_REVEAL = 28, SCRN_NOT_CROSSED_OUT = 29,
+	/* 30-39 and 40-49 Foreground and Background colors */
+	SCRN_FRAMED = 51, SCRN_ENCIRCLED = 52, SCRN_OVERLINED = 53,
+	SCRN_NOT_FRAMED = 54, SCRN_NOT_OVERLINED = 55,
+	SCRN_NO_ATTR = 98, SCRN_UNKNOWN_ATTR = 99
 } scrn_attr_e;
+
+#define SCRN_BLINK	SCRN_SLOW_BLINK
 
 /** A single byte to hold port of a Red/Green/Blue color value */
 typedef uint8_t cli_rgb_t;

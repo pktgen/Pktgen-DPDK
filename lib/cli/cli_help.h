@@ -143,6 +143,8 @@ is_help(int argc, char **argv)
  */
 void cli_help_foreach(void (*func)(void *arg, const char **h), void *arg);
 
+int cli_cmd_error(const char * msg, const char *group, int argc, char **argv);
+
 #ifdef __cplusplus
 }
 #endif

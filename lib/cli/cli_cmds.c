@@ -48,6 +48,7 @@
 #include "cli_cmap.h"
 #include "cli_map.h"
 #include "cli_file.h"
+#include "cli_help.h"
 #include "cli_string_fns.h"
 
 static int
@@ -615,6 +616,14 @@ static struct cli_map cli_env_map[] = {
 	{ -1, NULL }
 };
 
+static const char *cli_env_help[] = {
+	"env                       - Display current evironment variables",
+	"env get <string>          - Get the requested variable",
+	"env set <string> <string> - Set the given variable to string",
+	"env del <string>          - Delete the given variable",
+	NULL
+};
+
 static int
 env_cmd(int argc, char **argv)
 {
@@ -622,7 +631,7 @@ env_cmd(int argc, char **argv)
 
 	m = cli_mapping(cli_env_map, argc, argv);
 	if (!m)
-		return -1;
+		cli_cmd_error("Environment command error:", "Env", argc, argv);
 	switch (m->index) {
 	case 10: cli_env_show(this_cli->env); break;
 	case 20:
@@ -710,8 +719,10 @@ cli_default_tree_init(void)
 	int ret = 0;
 
 	/* Add the list of commands/dirs in cli_cmds.c file */
-	if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0)
+	if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0) {
+		cli_help_add("Env", cli_env_map, cli_env_help);
 		ret = cli_add_bin_path("/sbin");
+	}
 
 	if (ret)
 		RTE_LOG(ERR, EAL, "Unable to add commands or directoies\n");

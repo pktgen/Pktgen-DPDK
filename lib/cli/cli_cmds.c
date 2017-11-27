@@ -1,8 +1,5 @@
 /*-
- *   BSD LICENSE
- *
- *   Copyright(c) 2016-2017 Intel Corporation.
- *   All rights reserved.
+ * Copyright(c) 2016-2017 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -449,7 +446,6 @@ static const char *copyright =
 "   BSD LICENSE\n"
 "\n"
 "   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.\n"
-"   All rights reserved.\n"
 "\n"
 "   Redistribution and use in source and binary forms, with or without\n"
 "   modification, are permitted provided that the following conditions\n"
@@ -475,7 +471,9 @@ static const char *copyright =
 "   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
 "   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
 "   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
-"   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n";
+"   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
+"\n"
+"   SPDX-License-Identifier: BSD-3-Clause\n";
 
 static int
 copyright_file(struct cli_node *node, char *buff, int len, uint32_t flags)

@@ -1,6 +1,5 @@
 /*-
- * Copyright (c) <2016-2017>, Intel Corporation
- * All rights reserved.
+ * Copyright (c) <2016-2017>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -56,7 +55,6 @@ const char intel_copyright[] = {
 	"   BSD LICENSE\n"
 	"\n"
 	"   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.\n"
-	"   All rights reserved.\n"
 	"\n"
 	"   Redistribution and use in source and binary forms, with or without\n"
 	"   modification, are permitted provided that the following conditions\n"

@@ -7,7 +7,7 @@ Pktgen - Traffic Generator powered by DPDK
 
 
 ---
-**Copyright &copy; \<2010-2017\>, Intel Corporation All rights reserved.**
+**Copyright &copy; \<2010-2017\>, Intel Corporation. All rights reserved.**
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions

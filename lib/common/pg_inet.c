@@ -1,8 +1,7 @@
 /*-
  *   BSD LICENSE
  *
- *   Copyright 2016 6WIND S.A.
- *   All rights reserved.
+ *   Copyright 2016 6WIND S.A. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */

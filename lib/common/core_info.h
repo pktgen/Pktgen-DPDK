@@ -1,7 +1,7 @@
 /*-
- * Copyright (c) <2010-2017>, Intel Corporation
- * All rights reserved.
- * * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-3-Clause
  */
 
 /* Created 2013 by Keith Wiles @ intel.com */

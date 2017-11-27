@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 #
-#   BSD LICENSE
-#
 #   Copyright(c) 2017 Intel Corporation. All rights reserved.
-#   All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 #

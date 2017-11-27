@@ -1,7 +1,10 @@
 /*
  * Marsaglia, George (July 2003). "Xorshift RNGs".
  * Journal of Statistical Software.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  */
+
 /* https://en.wikipedia.org/wiki/Xorshift */
 
 #ifndef _XORSHIFT64STAR_H_

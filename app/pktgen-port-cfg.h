@@ -344,7 +344,11 @@ pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint
 		di->max_vmdq_pools);
 	fprintf(
 		f,
+#if RTE_VERSION < RTE_VERSION_NUM(17, 11, 0, 0)
+		"   rx_offload_capa:%4u, tx_offload_capa   :%4u, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
+#else
 		"   rx_offload_capa:%4lu, tx_offload_capa   :%4lu, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
+#endif
 		di->rx_offload_capa,
 		di->tx_offload_capa,
 		di->reta_size,

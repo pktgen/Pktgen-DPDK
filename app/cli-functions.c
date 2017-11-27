@@ -92,22 +92,6 @@ static const char *title_help[] = {
 	NULL,
 };
 
-static inline int
-command_error(const char * msg, const char *group, int argc, char **argv)
-{
-	int n;
-
-	if (group)
-		cli_help_show_group(group);
-	if (msg)
-		cli_printf("%s:\n", msg);
-	cli_printf("  Invalid line: <");
-	for(n = 0; n < argc; n++)
-		cli_printf("%s ", argv[n]);
-	cli_printf(">\n");
-	return -1;
-}
-
 static const char *status_help[] = {
 	"       Flags: P---------------- - Promiscuous mode enabled",
 	"               E                - ICMP Echo enabled",
@@ -178,7 +162,7 @@ static const char *range_help[] = {
 	"                 range 0 dst ip min 0.0.0.0",
 	"                 range 0 dst ip max 1.2.3.4",
 	"                 range 0 dst ip inc 0.0.1.0",
-    "             or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
+	"             or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
 	"range <portlist> proto tcp|udp                - Set the IP protocol type",
 	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
 	"   or  range <portlist> src|dst port <start> <min> <max> <inc>",
@@ -209,7 +193,7 @@ range_cmd(int argc, char **argv)
 
 	m = cli_mapping(range_map, argc, argv);
 	if (!m)
-		return command_error("Range command error", "Range", argc, argv);
+		return cli_cmd_error("Range command error", "Range", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -465,7 +449,7 @@ set_cmd(int argc, char **argv)
 
 	m = cli_mapping(set_map, argc, argv);
 	if (!m)
-		return command_error("Set command is invalid", "Set", argc, argv);
+		return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -589,7 +573,7 @@ pcap_cmd(int argc, char **argv)
 
 	m = cli_mapping(pcap_map, argc, argv);
 	if (!m)
-		return command_error("PCAP command invalid", "PCAP", argc, argv);
+		return cli_cmd_error("PCAP command invalid", "PCAP", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -655,7 +639,7 @@ start_stop_cmd(int argc, char **argv)
 
 	m = cli_mapping(start_map, argc, argv);
 	if (!m)
-		return command_error("Start/Stop command invalid", "Start", argc, argv);
+		return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -707,7 +691,7 @@ theme_cmd(int argc, char **argv)
 
 	m = cli_mapping(theme_map, argc, argv);
 	if (!m)
-		return command_error("Theme command invalid", "Theme", argc, argv);
+		return cli_cmd_error("Theme command invalid", "Theme", argc, argv);
 
 	switch(m->index) {
 	case 0:  pktgen_theme_show(); break;
@@ -784,7 +768,7 @@ en_dis_cmd(int argc, char **argv)
 
 	m = cli_mapping(enable_map, argc, argv);
 	if (!m)
-		return command_error("Enable/Disable invalid command", "Enable", argc, argv);
+		return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
 
 	rte_parse_portlist(argv[1], &portlist);
 
@@ -878,44 +862,49 @@ en_dis_cmd(int argc, char **argv)
 	return 0;
 }
 
-static struct cli_map debug_map[] = {
-	{ 10, "debug l2p" },
-	{ 20, "debug tx_debug" },
-	{ 30, "debug mempool %P %s" },
-	{ 40, "debug pdump %P" },
-	{ 50, "debug memzone" },
-	{ 51, "debug memseg" },
-	{ 60, "debug hexdump %H %d" },
-	{ 61, "debug hexdump %H" },
-	{ 80, "debug break" },
+static struct cli_map dbg_map[] = {
+	{ 10, "dbg l2p" },
+	{ 20, "dbg tx_dbg" },
+	{ 30, "dbg %|mempool|dump %P %s" },
+	{ 40, "dbg pdump %P" },
+	{ 50, "dbg memzone" },
+	{ 51, "dbg memseg" },
+	{ 60, "dbg hexdump %H %d" },
+	{ 61, "dbg hexdump %H" },
+#ifdef RTE_LIBRTE_SMEM
+	{ 70, "dbg smem" },
+#endif
+	{ 80, "dbg break" },
     { -1, NULL }
 };
 
-static const char *debug_help[] = {
-	"debug l2p                          - Dump out internal lcore to port mapping",
-	"debug tx_debug                     - Enable tx debug output",
-	"debug mempool <portlist> <type>    - Dump out the mempool info for a given type",
-	"                                     type = rx, tx, range, seq, arp, pcap",
-	"debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
-	"debug memzone                      - List all of the current memzones",
-	"debug memseg                       - List all of the current memsegs",
-	"debug hexdump <addr> <len>         - hex dump memory at given address",
-	"debug break                        - break into the debugger",
+static const char *dbg_help[] = {
+	"dbg l2p                          - Dump out internal lcore to port mapping",
+	"dbg tx_dbg                       - Enable tx debug output",
+	"dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type",
+	"dbg pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
+	"dbg memzone                      - List all of the current memzones",
+	"dbg memseg                       - List all of the current memsegs",
+	"dbg hexdump <addr> <len>         - hex dump memory at given address",
+#ifdef RTE_LIBRTE_SMEM
+	"dbg smem                         - dump out the RBUF structure",
+#endif
+	"dbg break                        - break into the debugger",
 	"",
 	NULL
 };
 
 static int
-debug_cmd(int argc, char **argv)
+dbg_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	portlist_t portlist;
 	unsigned int len;
 	const void *addr;
 
-	m = cli_mapping(debug_map, argc, argv);
+	m = cli_mapping(dbg_map, argc, argv);
 	if (!m)
-		return command_error("Debug invalid command", "Debug", argc, argv);
+		return cli_cmd_error("Debug invalid command", "Debug", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -1145,7 +1134,7 @@ seq_cmd(int argc, char **argv)
 
 	m = cli_mapping(seq_map, argc, argv);
 	if (!m)
-		return command_error("Sequence invalid command", "Seq", argc, argv);
+		return cli_cmd_error("Sequence invalid command", "Seq", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -1288,7 +1277,7 @@ misc_cmd(int argc, char **argv)
 
 	m = cli_mapping(misc_map, argc, argv);
 	if (!m)
-		return command_error("Misc invalid command", "Misc", argc, argv);
+		return cli_cmd_error("Misc invalid command", "Misc", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -1384,7 +1373,7 @@ page_cmd(int argc, char **argv)
 
 	m = cli_mapping(page_map, argc, argv);
 	if (!m)
-		return command_error("Page invalid command", "Page", argc, argv);
+		return cli_cmd_error("Page invalid command", "Page", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -1438,7 +1427,7 @@ static struct cli_tree default_tree[] = {
 	c_alias("stp",		"stop all",		"stop all ports sending packets"),
 	c_cmd("pcap",		pcap_cmd, 		"pcap commands"),
 	c_cmd("set", 		set_cmd, 		"set a number of options"),
-	c_cmd("debug",          debug_cmd,		"debug commands"),
+	c_cmd("dbg",            dbg_cmd,		"debug commands"),
 
 	c_alias("on",       "enable screen","Enable screen updates"),
 	c_alias("off",      "disable screen", "Disable screen updates"),
@@ -1465,7 +1454,7 @@ init_tree(void)
 	cli_help_add("Sequence", seq_map, seq_help);
 	cli_help_add("PCAP", pcap_map, pcap_help);
 	cli_help_add("Start", start_map, start_help);
-	cli_help_add("Debug", debug_map, debug_help);
+	cli_help_add("DBG", dbg_map, dbg_help);
 	cli_help_add("Misc", misc_map, misc_help);
 	cli_help_add("Theme", theme_map, theme_help);
 	cli_help_add("Status", NULL, status_help);

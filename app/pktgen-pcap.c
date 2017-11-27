@@ -38,6 +38,14 @@
 
 #include "pktgen.h"
 
+#ifndef MBUF_INVALID_PORT
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#define MBUF_INVALID_PORT	UINT16_MAX
+#else
+#define MBUF_INVALID_PORT	UINT8_MAX
+#endif
+#endif
+
 /**************************************************************************//**
  *
  * pktgen_print_pcap - Display the pcap data page.

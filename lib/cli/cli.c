@@ -90,6 +90,14 @@ cli_add_bin(struct cli_node *dir)
 	if (!dir || !is_directory(dir))
 		return -1;
 
+	for (i = 1; i < CLI_MAX_BINS; i++)
+		if (cli->bins[i] == dir) {
+			RTE_LOG(WARNING, EAL,
+				"Adding duplicate bin directory (%s)\n",
+				dir->name);
+			return 0;
+		}
+
 	/* Skip first special entry for current working directory */
 	for (i = 1; i < CLI_MAX_BINS; i++)
 		if (cli->bins[i] == NULL) {
@@ -387,6 +395,8 @@ cli_add_tree(struct cli_node *parent, struct cli_tree *tree)
 				        "Add directory %s failed\n", d->name);
 				return -1;
 			}
+			if (d->bin)
+				cli_add_bin_path(d->name);
 
 			parent = n;
 			break;

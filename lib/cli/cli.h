@@ -169,6 +169,8 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define DELETE_CHAR		(1 << 4)
 #define CLEAR_LINE		(1 << 5)
 
+#define CLI_DEFAULT_TREE	(1 << 16)
+
 static inline void
 cli_set_flag(uint32_t x)
 {
@@ -195,6 +197,7 @@ typedef union {
 
 struct cli_dir {
 	const char *name; /**< directory name */
+	uint8_t bin;
 };
 
 struct cli_cmd {
@@ -233,7 +236,8 @@ struct cli_tree {
 };
 
 /**< Used to help create a directory tree */
-#define c_dir(n)		{ CLI_DIR_NODE,   .dir = {(n)} }
+#define c_dir(n)		{ CLI_DIR_NODE,   .dir = {(n), 0} }
+#define c_bin(n)		{ CLI_DIR_NODE,   .dir = {(n), 1} }
 #define c_cmd(n, f, h)		{ CLI_CMD_NODE,   .cmd = {(n), (f), (h)} }
 #define c_file(n, rw, h)	{ CLI_FILE_NODE,  .file = {(n), (rw), (h)} }
 #define c_alias(n, l, h)	{ CLI_ALIAS_NODE, .alias = {(n), (l), (h)} }

@@ -656,7 +656,7 @@ version_cmd(int argc __rte_unused, char **argv __rte_unused)
 static struct cli_tree cli_default_tree[] = {
 c_file("copyright", copyright_file, "DPDK copyright information"),
 c_file("dpdk-version",   version_file,   "DPDK version"),
-c_dir("/sbin"),
+c_bin("/sbin"),
 
 c_cmd("delay",      delay_cmd,  "delay a number of milliseconds"),
 c_cmd("sleep",      sleep_cmd,  "delay a number of seconds"),
@@ -692,14 +692,19 @@ cli_default_tree_init(void)
 {
 	int ret = 0;
 
-	/* Add the list of commands/dirs in cli_cmds.c file */
-	if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0) {
-		cli_help_add("Env", cli_env_map, cli_env_help);
-		ret = cli_add_bin_path("/sbin");
-	}
+	if (this_cli->flags & CLI_DEFAULT_TREE)
+		return ret;
 
-	if (ret)
+	this_cli->flags |= CLI_DEFAULT_TREE;
+
+	/* Add the list of commands/dirs in cli_cmds.c file */
+	if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0)
+		cli_help_add("Env", cli_env_map, cli_env_help);
+
+	if (ret) {
 		RTE_LOG(ERR, EAL, "Unable to add commands or directoies\n");
+		this_cli->flags &= ~CLI_DEFAULT_TREE;
+	}
 
 	return ret;
 }

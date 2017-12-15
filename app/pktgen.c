@@ -266,28 +266,33 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt;
+	uint32_t ret, cnt, retry;
 
 	cnt = mtab->len;
 	mtab->len = 0;
 
 	pkts    = mtab->m_table;
 
+	retry = 100;
 	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
-		while (cnt > 0) {
+		while (cnt && retry) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pktgen_do_tx_tap(info, pkts, ret);
 
 			pkts += ret;
 			cnt -= ret;
+			if (!ret)
+				retry--;
 		}
 	else
-		while (cnt > 0) {
+		while (cnt && retry) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pkts += ret;
 			cnt -= ret;
+			if (!ret)
+				retry--;
 		}
 }
 
@@ -308,15 +313,17 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, flags;
+	uint32_t ret, cnt, flags, retry;
 
 	cnt         = mtab->len;
 	mtab->len   = 0;
 	pkts        = mtab->m_table;
 
+	retry = 100;
+
 	flags   = rte_atomic32_read(&info->port_flags);
 	if (unlikely(flags & PROCESS_TX_TAP_PKTS))
-		while (cnt) {
+		while (cnt && retry) {
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
@@ -325,15 +332,19 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 
 			pkts += ret;
 			cnt -= ret;
+			if (!ret)
+				retry--;
 		}
 	else
-		while (cnt) {
+		while (cnt && retry) {
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pkts += ret;
 			cnt -= ret;
+			if (!ret)
+				retry--;
 		}
 }
 
@@ -354,18 +365,21 @@ _send_burst_latency(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt;
+	uint32_t ret, cnt, retry;
 
 	cnt         = mtab->len;
 	mtab->len   = 0;
 	pkts        = mtab->m_table;
-	while (cnt) {
+	retry       = 100;
+	while (cnt && retry) {
 		pktgen_latency_apply(info, pkts, cnt);
 
 		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 		pkts += ret;
 		cnt -= ret;
+		if (!ret)
+			retry--;
 	}
 }
 

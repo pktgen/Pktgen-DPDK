@@ -18,6 +18,7 @@ pktmbuf_reset(struct rte_mbuf *m)
 	m->nb_segs = 1;
 	m->port = 0xff;
 
+	m->data_len = m->pkt_len;
 	m->data_off = (RTE_PKTMBUF_HEADROOM <= m->buf_len) ?
 		RTE_PKTMBUF_HEADROOM : m->buf_len;
 }

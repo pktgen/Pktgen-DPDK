@@ -719,7 +719,7 @@ static void
 pktgen_packet_classify(struct rte_mbuf *m, int pid)
 {
 	port_info_t *info = &pktgen.info[pid];
-	int plen = (m->pkt_len + FCS_SIZE);
+	uint32_t plen = (m->pkt_len + FCS_SIZE);
 	uint32_t flags;
 	pktType_e pType;
 

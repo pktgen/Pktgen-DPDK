@@ -172,6 +172,7 @@ typedef struct port_info_s {
 	uint64_t jitter_threshold;
 	uint64_t jitter_threshold_clks;
 	uint64_t jitter_count;
+	uint64_t prev_latency;
 
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */

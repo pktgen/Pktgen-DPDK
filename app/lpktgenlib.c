@@ -2627,6 +2627,7 @@ pkt_stats(lua_State *L, port_info_t *info)
 	struct ether_addr ethaddr;
 	char mac_buf[32];
 	pkt_stats_t stats;
+	uint64_t avg_lat, ticks, jitter;
 	uint32_t flags = rte_atomic32_read(&info->port_flags);
 
 	pktgen_pkt_stats(info->pid, &stats);
@@ -2648,11 +2649,32 @@ pkt_stats(lua_State *L, port_info_t *info)
 	ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
 	setf_string(L, "mac_addr", mac_buf);
 
+	avg_lat = 0;
+	jitter = 0;
 	if (flags & SEND_LATENCY_PKTS) {
-		setf_integer(L, "avg_latency", info->avg_latency);
+		ticks = rte_get_timer_hz() / 1000000;
+		if (ticks == 0)
+			printf("Ticks = %lu\n", ticks);
+		else if (info->latency_nb_pkts > 0) {
+			avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
+			if (avg_lat > info->max_latency)
+				info->max_latency = avg_lat;
+			if (info->min_latency == 0)
+				info->min_latency = avg_lat;
+			else if (avg_lat < info->min_latency)
+				info->min_latency = avg_lat;
+			jitter = (info->jitter_count * 100) / info->latency_nb_pkts;
+			info->latency_nb_pkts = 0;
+			info->avg_latency     = 0;
+			info->jitter_count    = 0;
+		} else {
+			printf("Latency pkt count = %d\n", info->latency_nb_pkts);
+		}
+
+		setf_integer(L, "avg_latency", avg_lat);
 		setf_integer(L, "max_latency", info->max_latency);
 		setf_integer(L, "min_latency", info->min_latency);
-		setf_integer(L, "jitter_count", info->jitter_count);
+		setf_integer(L, "jitter_count", jitter);
 	}
 
 	/* Now set the table as an array with pid as the index. */

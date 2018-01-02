@@ -13,7 +13,7 @@
 
 #include "pktgen.h"
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 9, 0, 0)
 #include <rte_bus_pci.h>
 #endif
 

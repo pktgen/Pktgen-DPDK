@@ -201,7 +201,7 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 }
 
 static __inline__ latency_t *
-pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
+pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
 {
 	latency_t *latency;
 	char *p;
@@ -210,10 +210,10 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
 
 	p += sizeof(struct ether_hdr);
 
-	p += (info->seq_pkt[SINGLE_PKT].ethType == ETHER_TYPE_IPv4) ?
+	p += (info->seq_pkt[seq_idx].ethType == ETHER_TYPE_IPv4) ?
 		sizeof(struct ipv4_hdr) : sizeof(struct ipv6_hdr);
 
-	p += (info->seq_pkt[SINGLE_PKT].ipProto == IPPROTO_UDP) ?
+	p += (info->seq_pkt[seq_idx].ipProto == IPPROTO_UDP) ?
 		sizeof(struct udp_hdr) : sizeof(struct tcp_hdr);
 
 	/* Force pointer to be aligned correctly */
@@ -226,13 +226,13 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m)
 
 static inline void
 pktgen_latency_apply(port_info_t *info __rte_unused,
-		     struct rte_mbuf **mbufs, int cnt)
+		     struct rte_mbuf **mbufs, int cnt, int32_t seq_idx)
 {
 	latency_t *latency;
 	int i;
 
 	for (i = 0; i < cnt; i++) {
-		latency = pktgen_latency_pointer(info, mbufs[i]);
+		latency = pktgen_latency_pointer(info, mbufs[i], seq_idx);
 
 		latency->timestamp  = rte_rdtsc_precise();
 		latency->magic      = LATENCY_MAGIC;
@@ -363,7 +363,7 @@ _send_burst_random(port_info_t *info, uint16_t qid)
  */
 
 static __inline__ void
-_send_burst_latency(port_info_t *info, uint16_t qid)
+_send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
@@ -374,7 +374,7 @@ _send_burst_latency(port_info_t *info, uint16_t qid)
 	pkts        = mtab->m_table;
 	retry       = 100;
 	while (cnt && retry) {
-		pktgen_latency_apply(info, pkts, cnt);
+		pktgen_latency_apply(info, pkts, cnt, seq_idx);
 
 		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -389,13 +389,19 @@ static __inline__ void
 pktgen_send_burst(port_info_t *info, uint16_t qid)
 {
 	uint32_t flags;
+	int32_t seq_idx;
 
 	flags = rte_atomic32_read(&info->port_flags);
 
-	if (flags & SEND_RANDOM_PKTS)
+	if (flags & SEND_RANGE_PKTS)
+		seq_idx = RANGE_PKT;
+	else
+		seq_idx = SINGLE_PKT;
+
+	if (flags & SEND_LATENCY_PKTS)
+		_send_burst_latency(info, qid, seq_idx);
+	else if (flags & SEND_RANDOM_PKTS)
 		_send_burst_random(info, qid);
-	else if (flags & SEND_LATENCY_PKTS)
-		_send_burst_latency(info, qid);
 	else
 		_send_burst_fast(info, qid);
 }
@@ -404,24 +410,35 @@ static __inline__ void
 pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
 	uint32_t flags;
-	uint64_t lat;
+	uint64_t lat, jitter;
+	int32_t seq_idx;
 
 	flags = rte_atomic32_read(&info->port_flags);
+
+	if (flags & SEND_RANGE_PKTS)
+		seq_idx = RANGE_PKT;
+	else
+		seq_idx = SINGLE_PKT;
 
 	if (flags & SEND_LATENCY_PKTS) {
 		int i;
 		latency_t *latency;
 
 		for (i = 0; i < nb_pkts; i++) {
-			latency = pktgen_latency_pointer(info, pkts[i]);
+			latency = pktgen_latency_pointer(info, pkts[i], seq_idx);
 
 			if (latency->magic == LATENCY_MAGIC) {
 				lat = (rte_rdtsc_precise() - latency->timestamp);
 				info->avg_latency += lat;
-				if (lat > info->jitter_threshold_clks)
+				if (lat > info->prev_latency)
+					jitter = lat - info->prev_latency;
+				else
+					jitter = info->prev_latency - lat;
+				if (jitter > info->jitter_threshold_clks)
 					info->jitter_count++;
+				info->prev_latency = lat;
 			} else
-				info->magic_errors++;
+			info->magic_errors++;
 		}
 		info->latency_nb_pkts += nb_pkts;
 	}

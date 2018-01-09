@@ -580,9 +580,12 @@ cli_start(const char *msg)
 
 	this_cli->plen = this_cli->prompt(0);
 
+	/* Must be set before command files are executed */
+	this_cli->quit_flag = 0;
+
 	cli_execute_cmdfiles();
 
-	for (this_cli->quit_flag = 0; this_cli->quit_flag == 0; )
+	while(!this_cli->quit_flag)
 		if (cli_poll(&c))
 			cli_input(&c, 1);
 

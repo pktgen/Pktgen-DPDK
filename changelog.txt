@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.4.7 - Command file can now use 'quit' to exit and Lua scripts use pktgen.quit()
  - 3.4.6 - Fixed low performance in a VM with virtio and a TX hang.
  - 3.4.5 - Fixed a few backward compact issues and synced CLI code
  - 3.4.4 - Fixed the long line problem in CLI and improved the performance.

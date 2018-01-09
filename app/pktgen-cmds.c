@@ -3319,5 +3319,5 @@ pktgen_recv_pkt(port_info_t *info __rte_unused)
 void
 pktgen_quit(void)
 {
-	printf("TODO: Add a exit routine\n");
+	cli_quit();
 }

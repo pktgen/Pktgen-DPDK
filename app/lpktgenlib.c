@@ -34,6 +34,15 @@
 int execute_lua_string(lua_State *L, char *str);
 int dolibrary(lua_State *L, const char *name);
 
+void pktgen_quit(void);
+
+static int
+pktgen_exit(lua_State *L __rte_unused)
+{
+	pktgen_quit();
+	return 0;
+}
+
 /**************************************************************************//**
  *
  * setf_integer - Helper routine to set Lua variables.
@@ -3382,6 +3391,7 @@ static const luaL_Reg pktgenlib_range[] = {
 };
 
 static const luaL_Reg pktgenlib[] = {
+	{"quit",	  pktgen_exit},
 	{"set",           pktgen_set},	/* Set a number of options */
 
 	{"start",         pktgen_start},/* Start a set of ports sending packets */

@@ -93,6 +93,7 @@ theme_color_map_t theme_color_map[] = {
 	{ "stats.port.label",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 	{ "stats.port.flags",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 	{ "stats.port.status",  SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.data",    SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_OFF     },
 
 	/* Dynamic elements (updated every second) */
 	{ "stats.dyn.label",    SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_OFF     },
@@ -104,6 +105,7 @@ theme_color_map_t theme_color_map[] = {
 
 	/* Total statistics */
 	{ "stats.total.label",  SCRN_RED,        SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.total.data",   SCRN_RED,        SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/* Colon separating labels and values */
 	{ "stats.colon",        SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },

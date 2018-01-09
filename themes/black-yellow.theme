@@ -1,7 +1,7 @@
 theme default black none off
 theme top.spinner cyan none bold
 theme top.ports green none bold
-theme top.page black none off
+theme top.page red none off
 theme top.copyright yellow none off
 theme top.poweredby blue none bold
 theme sep.dash black none off
@@ -9,11 +9,13 @@ theme sep.text red none off
 theme stats.port.label blue none bold
 theme stats.port.flags blue none bold
 theme stats.port.status green none bold
-theme stats.dyn.label yellow none off
+theme stats.port.data white none bold
+theme stats.dyn.label yellow none bold
 theme stats.dyn.values yellow none off
 theme stats.stat.label magenta none off
-theme stats.stat.values blue none bold
-theme stats.total.label red none bold
+theme stats.stat.values green none off
+theme stats.total.label cyan none bold
+theme stats.total.data cyan none bold
 theme stats.colon blue none bold
 theme pktgen.prompt green none off
 theme on

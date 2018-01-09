@@ -329,6 +329,7 @@ pktgen_page_stats(void)
 		rate = &info->rate_stats;
 		prev = &info->prev_stats;
 
+		pktgen_display_set_color("stats.port.data");
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
 		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
@@ -376,6 +377,7 @@ pktgen_page_stats(void)
 			info->stats.arp_pkts, info->stats.echo_pkts);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		pktgen_display_set_color(NULL);
 		if (pktgen.flags & TX_DEBUG_FLAG) {
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -403,6 +405,8 @@ pktgen_page_stats(void)
 		display_cnt++;
 	}
 
+	pktgen_display_set_color("stats.total.data");
+
 	/* Display the total pkts/s for all ports */
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	row = LINK_STATE_ROW + 1;
@@ -419,6 +423,7 @@ pktgen_page_stats(void)
 	         oBitsTotal(pktgen.cumm_rate_totals) / Million);
 	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
 	scrn_eol();
+	pktgen_display_set_color(NULL);
 }
 
 /**************************************************************************//**
@@ -452,7 +457,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 			else
 				rte_eth_led_off(pid);
 		}
-    }
+	}
 	for (pid = 0; pid < pktgen.nb_ports; pid++) {
 		info = &pktgen.info[pid];
 

@@ -24,6 +24,8 @@
 #include "pktgen-gtpu.h"
 #include "pktgen-cfg.h"
 
+#define PKTGEN_RETRY_COUNT	10000
+
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
@@ -273,7 +275,7 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 
 	pkts    = mtab->m_table;
 
-	retry = 100;
+	retry = PKTGEN_RETRY_COUNT;
 	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
 		while (cnt && retry) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
@@ -883,6 +885,9 @@ pktgen_setup_cb(struct rte_mempool *mp,
 
 	info = data->info;
 	qid = data->qid;
+
+	/* Cleanup the mbuf data as virtio messes with the values */
+	pktgen_reset(m);
 
 	if (mp == info->q[qid].tx_mp)
 		pkt = &info->seq_pkt[SINGLE_PKT];

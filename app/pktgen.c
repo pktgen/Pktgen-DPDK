@@ -887,7 +887,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	qid = data->qid;
 
 	/* Cleanup the mbuf data as virtio messes with the values */
-	pktgen_reset(m);
+	pktmbuf_reset(m);
 
 	if (mp == info->q[qid].tx_mp)
 		pkt = &info->seq_pkt[SINGLE_PKT];

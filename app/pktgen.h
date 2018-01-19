@@ -151,8 +151,12 @@ extern "C" {
 static inline void __attribute__((always_inline))
 rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
 {
-	while (npkts--)
-		rte_pktmbuf_free(*m_list++);
+	struct rte_mbuf *m;
+	while (npkts--) {
+		m = *m_list++;
+		m->next = 0;
+		rte_pktmbuf_free(m);
+	}
 }
 
 typedef enum { PACKET_CONSUMED = 0, UNKNOWN_PACKET = 0xEEEE,

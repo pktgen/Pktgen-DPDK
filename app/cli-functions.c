@@ -327,7 +327,7 @@ range_cmd(int argc, char **argv)
 				);
 			break;
 		default:
-			return -1;
+			return cli_cmd_error("Range command error", "Range", argc, argv);
 	}
 	pktgen_update_display();
 	return 0;
@@ -446,7 +446,7 @@ set_cmd(int argc, char **argv)
 					case 10: single_set_vlan_id(info, value); break;
 					case 11: pktgen_set_port_seqCnt(info, value); break;
 					default:
-						return -1;
+						return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 				}) );
 			break;
 		case 11:
@@ -503,6 +503,27 @@ set_cmd(int argc, char **argv)
 			id2 = strtol(argv[4], NULL, 0);
 			foreach_port(portlist, single_set_qinqids(info, id1, id2));
 			break;
+		case 60: {
+			char mask[34] = { 0 }, *m;
+			char cb;
+
+			id1 = strtol(argv[3], NULL, 0);
+			id2 = strtol(argv[4], NULL, 0);
+			m = argv[5];
+			if (strcmp(m, "off")) {
+				int idx;
+				/* Filter invalid characters from provided mask. This way the user can
+				* more easily enter long bitmasks, using for example '_' as a separator
+				* every 8 bits. */
+				for (n = 0, idx = 0; (idx < 32) && ((cb = m[n]) != '\0'); n++)
+					if ((cb == '0') || (cb == '1') || (cb == '.') || (cb == 'X') || (cb == 'x'))
+						mask[idx++] = cb;
+			}
+			foreach_port(portlist,
+				enable_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+					id1, id2, mask) ? ENABLE_STATE : DISABLE_STATE));
+			}
+			break;
 		case 70:
 			id1 = strtol(argv[3], NULL, 0);
 			foreach_port(portlist, single_set_cos(info, id1));
@@ -512,7 +533,7 @@ set_cmd(int argc, char **argv)
 			foreach_port(portlist, single_set_tos(info, id1));
 			break;
 		default:
-			return -1;
+			return cli_cmd_error("Command invalid", "Set", argc, argv);
 	}
 
 	pktgen_update_display();
@@ -576,7 +597,7 @@ pcap_cmd(int argc, char **argv)
 				pcap_filter(info, argv[3]) );
 			break;
 		default:
-			return -1;
+			return cli_cmd_error("PCAP command invalid", "PCAP", argc, argv);
 	}
 	pktgen_update_display();
 	return 0;
@@ -634,7 +655,7 @@ start_stop_cmd(int argc, char **argv)
 				     pktgen_send_arp_requests(info, 0) );
 			break;
 		default:
-			return -1;
+			return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
 	}
 	pktgen_update_display();
 	return 0;
@@ -812,8 +833,7 @@ en_dis_cmd(int argc, char **argv)
 					foreach_port(portlist, enable_short_pkts(info, state));
 					break;
 				default:
-					cli_printf("Invalid option %s\n", ed_type);
-					return -1;
+					return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
 			}
 			break;
 
@@ -827,8 +847,7 @@ en_dis_cmd(int argc, char **argv)
 				pktgen_screen(state);
 			break;
 		default:
-			cli_usage();
-			return -1;
+			return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
 	}
 	pktgen_update_display();
 	return 0;
@@ -918,7 +937,7 @@ dbg_cmd(int argc, char **argv)
 			kill(getpid(), SIGINT);
 			break;
 		default:
-			return -1;
+			return cli_cmd_error("Debug invalid command", "Debug", argc, argv);
 	}
 	return 0;
 }
@@ -952,8 +971,10 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 	}
 
-	if (seqnum >= NUM_SEQ_PKTS)
+	if (seqnum >= NUM_SEQ_PKTS) {
+		cli_printf("sequence number too large\n");
 		return -1;
+	}
 
 	teid = (argc == 14)? strtoul(argv[13], NULL, 10) : 0;
 	p = strchr(argv[5], '/'); /* remove subnet if found */
@@ -1013,8 +1034,10 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 		return -1;
 	}
 
-	if (seqnum >= NUM_SEQ_PKTS)
+	if (seqnum >= NUM_SEQ_PKTS) {
+		cli_printf("Sequence number too large\n");
 		return -1;
+	}
 
 	teid = (argc == 23)? strtoul(argv[22], NULL, 10) : 0;
 	p = strchr(argv[8], '/'); /* remove subnet if found */
@@ -1065,8 +1088,10 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 	portlist_t portlist;
 	uint32_t cos, tos;
 
-	if (seqnum >= NUM_SEQ_PKTS)
+	if (seqnum >= NUM_SEQ_PKTS) {
+		cli_printf("Sequence number too large\n");
 		return -1;
+	}
 
 	cos = strtoul(argv[4], NULL, 10);
 	tos = strtoul(argv[6], NULL, 10);
@@ -1115,7 +1140,7 @@ seq_cmd(int argc, char **argv)
 		case 13: seq_2_set_cmd(argc, argv); break;
 		case 15: seq_3_set_cmd(argc, argv); break;
 		default:
-			return -1;
+			return cli_cmd_error("Sequence invalid command", "Seq", argc, argv);
 	}
 	return 0;
 }
@@ -1267,7 +1292,7 @@ misc_cmd(int argc, char **argv)
 				pktgen_display_set_geometry(rows, cols);
 				pktgen_clear_display();
 			} else
-				return -1;
+				return cli_cmd_error("Misc invalid command", "Misc", argc, argv);
 			/* FALLTHRU */
 		case 21:
 			pktgen_display_get_geometry(&rows, &cols);
@@ -1307,7 +1332,7 @@ misc_cmd(int argc, char **argv)
 			break;
 #endif
 		default:
-			return -1;
+			return cli_cmd_error("Misc invalid command", "Misc", argc, argv);
 	}
 	return 0;
 }
@@ -1351,7 +1376,7 @@ page_cmd(int argc, char **argv)
 		case 10:
 		case 11: pktgen_set_page(argv[1]); break;
 		default:
-			return -1;
+			return cli_cmd_error("Page invalid command", "Page", argc, argv);
 	}
 	return 0;
 }

@@ -853,6 +853,10 @@ en_dis_cmd(int argc, char **argv)
 	return 0;
 }
 
+#ifdef RTE_LIBRTE_SMEM
+#include <rte_smem.h>
+#endif
+
 static struct cli_map dbg_map[] = {
 	{ 10, "dbg l2p" },
 	{ 20, "dbg tx_dbg" },
@@ -878,7 +882,7 @@ static const char *dbg_help[] = {
 	"dbg memseg                       - List all of the current memsegs",
 	"dbg hexdump <addr> <len>         - hex dump memory at given address",
 #ifdef RTE_LIBRTE_SMEM
-	"dbg smem                         - dump out the RBUF structure",
+	"dbg smem                         - dump out the SMEM structure",
 #endif
 	"dbg break                        - break into the debugger",
 	"",
@@ -932,6 +936,9 @@ dbg_cmd(int argc, char **argv)
 			else
 				len = strtoul(argv[3], NULL, 0);
 			rte_hexdump(stdout, "", addr, len);
+			break;
+		case 70:
+			rte_smem_list_dump(stdout);
 			break;
 		case 80:
 			kill(getpid(), SIGINT);

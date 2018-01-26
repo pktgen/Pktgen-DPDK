@@ -22,6 +22,8 @@
 #include <rte_string_fns.h>
 #include <cli_string_fns.h>
 #include <rte_hexdump.h>
+#include <rte_cycles.h>
+#include <rte_malloc.h>
 
 #include "pktgen.h"
 
@@ -870,6 +872,8 @@ static struct cli_map dbg_map[] = {
 	{ 70, "dbg smem" },
 #endif
 	{ 80, "dbg break" },
+	{ 90, "dbg memcpy" },
+	{ 91, "dbg memcpy %d %d" },
     { -1, NULL }
 };
 
@@ -885,22 +889,60 @@ static const char *dbg_help[] = {
 	"dbg smem                         - dump out the SMEM structure",
 #endif
 	"dbg break                        - break into the debugger",
+	"dbg memcpy [loop-cnt KBytes]     - run a memcpy test",
 	"",
 	NULL
 };
+
+static void
+rte_memcpy_perf(unsigned int cnt, unsigned int kb)
+{
+	char *buf[2], *src, *dst;
+	uint64_t start_time, total_time;
+	uint64_t total_bits, bits_per_tick;
+	unsigned int i;
+
+	kb *= 1024;
+
+	buf[0] = malloc(kb + RTE_CACHE_LINE_SIZE);
+	buf[1] = malloc(kb + RTE_CACHE_LINE_SIZE);
+
+	src = RTE_PTR_ALIGN(buf[0], RTE_CACHE_LINE_SIZE);
+	dst = RTE_PTR_ALIGN(buf[1], RTE_CACHE_LINE_SIZE);
+
+	start_time = rte_get_tsc_cycles();
+	for(i = 0; i < cnt; i++)
+		rte_memcpy(dst, src, kb);
+	total_time = rte_get_tsc_cycles() - start_time;
+
+	total_bits = ((uint64_t)cnt * (uint64_t)kb) * 8L;
+
+	bits_per_tick = total_bits/total_time;
+
+	free(buf[0]);
+	free(buf[1]);
+
+#define MEGA (uint64_t)(1024 * 1024)
+	printf("%3d Kbytes for %8d loops, ", (kb/1024), cnt);
+//	printf("%ld total_bits, ", total_bits);
+	printf("%3ld bits/tick, ", bits_per_tick);
+	printf("%6ld Mbits/sec\n", (bits_per_tick * rte_get_timer_hz())/MEGA);
+}
 
 static int
 dbg_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
 	portlist_t portlist;
-	unsigned int len;
+	unsigned int len, cnt;
 	const void *addr;
 
 	m = cli_mapping(dbg_map, argc, argv);
 	if (!m)
 		return cli_cmd_error("Debug invalid command", "Debug", argc, argv);
 
+	len = 32;
+	cnt = 100000;
 	switch(m->index) {
 		case 10:
 			pktgen_l2p_dump();
@@ -942,6 +984,13 @@ dbg_cmd(int argc, char **argv)
 			break;
 		case 80:
 			kill(getpid(), SIGINT);
+			break;
+		case 91:
+			cnt = atoi(argv[2]);
+			len = atoi(argv[3]);
+			/*FALLTHRU*/
+		case 90:
+			rte_memcpy_perf(cnt, len);
 			break;
 		default:
 			return cli_cmd_error("Debug invalid command", "Debug", argc, argv);

@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.4.9 - fix PRNG random number code to work correctly.
+           Add more validation of -m commands
+           Fix the rte_pci_bus.h header include problems.
  - 3.4.8 - Increase the TX retry count for VMs and reset mbuf as virtio modifies the data.
  - 3.4.7 - Command file can now use 'quit' to exit and Lua scripts use pktgen.quit()
  - 3.4.6 - Fixed low performance in a VM with virtio and a TX hang.

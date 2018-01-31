@@ -136,10 +136,12 @@ pg_parse_rt_list(char *list, uint8_t *map)
 	if (list == NULL)
 		return 1;
 
-	/* Split up the string by '/' for each list or range set */
+	/* Split up the string by '/' or ',' for each list or range set */
 	k = pg_strparse(list, "/", arr, countof(arr));
-	if (k == 0)
+	if (k == 0) {
+		fprintf(stderr, "No comma or '/' in list\n");
 		return 1;
+	}
 
 	for (i = 0; (i < k) && arr[i]; i++) {
 		p = strchr(arr[i], '-');
@@ -320,6 +322,8 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 		if (m != 2) {
 			fprintf(stderr, "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
 				__func__, lcore_port[i]);
+			fprintf(stderr, "  Make sure to use '/' in the lcore and port list for ranges and not ','\n");
+			fprintf(stderr, "  -m [2:3/4/5/6/8-12].0 or -m [2-4/7-8:9/11-14].0\n");
 			goto leave;
 		}
 
@@ -391,9 +395,10 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 		}
 		put_map(l2p, RTE_MAX_ETHPORTS, lid, n.rxtx);
 	}
+	return 0;
 
 leave:
-	return 0;
+	return -1;
 }
 
 /**************************************************************************//**

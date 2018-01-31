@@ -10,7 +10,6 @@ import os
 import getopt
 import subprocess
 import glob
-from os.path import exists, abspath, dirname, basename
 import imp
 
 def usage():
@@ -341,11 +340,15 @@ def main():
 
 	global sdk, target
 
-	sdk = os.getenv('RTE_SDK', os.path.curdir)
-	if sdk == '':
-		err_exit("Set RTE_SDK environment variable")
+	sdk = os.getenv('RTE_SDK')
+	if sdk == None:
+		err_exit("Set RTE_SDK environment variable or use 'sudo -E ...'")
 
-	target = os.getenv('RTE_TARGET', 'x86_64-native-linuxapp-gcc')
+	target = os.getenv('RTE_TARGET')
+	if target == None:
+		err_exit("Set the RTE_TARET environment variable or use 'sudo -E ...'")
+
+	print(">>> sdk '%s', target '%s'" % (sdk, target))
 
 	cfg_file = parse_args()
 

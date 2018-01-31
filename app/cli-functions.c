@@ -895,12 +895,13 @@ static const char *dbg_help[] = {
 };
 
 static void
-rte_memcpy_perf(unsigned int cnt, unsigned int kb)
+rte_memcpy_perf(unsigned int cnt, unsigned int kb, int flag)
 {
 	char *buf[2], *src, *dst;
 	uint64_t start_time, total_time;
 	uint64_t total_bits, bits_per_tick;
 	unsigned int i;
+	void *(*cpy)(void *, const void *, size_t);
 
 	kb *= 1024;
 
@@ -910,9 +911,11 @@ rte_memcpy_perf(unsigned int cnt, unsigned int kb)
 	src = RTE_PTR_ALIGN(buf[0], RTE_CACHE_LINE_SIZE);
 	dst = RTE_PTR_ALIGN(buf[1], RTE_CACHE_LINE_SIZE);
 
+	cpy = (flag)? rte_memcpy : memcpy;
+
 	start_time = rte_get_tsc_cycles();
 	for(i = 0; i < cnt; i++)
-		rte_memcpy(dst, src, kb);
+		cpy(dst, src, kb);
 	total_time = rte_get_tsc_cycles() - start_time;
 
 	total_bits = ((uint64_t)cnt * (uint64_t)kb) * 8L;
@@ -924,9 +927,10 @@ rte_memcpy_perf(unsigned int cnt, unsigned int kb)
 
 #define MEGA (uint64_t)(1024 * 1024)
 	printf("%3d Kbytes for %8d loops, ", (kb/1024), cnt);
-//	printf("%ld total_bits, ", total_bits);
 	printf("%3ld bits/tick, ", bits_per_tick);
-	printf("%6ld Mbits/sec\n", (bits_per_tick * rte_get_timer_hz())/MEGA);
+	printf("%6ld Mbits/sec with %s\n",
+		(bits_per_tick * rte_get_timer_hz())/MEGA,
+		(flag)? "rte_memcpy" : "memcpy");
 }
 
 static int
@@ -990,7 +994,8 @@ dbg_cmd(int argc, char **argv)
 			len = atoi(argv[3]);
 			/*FALLTHRU*/
 		case 90:
-			rte_memcpy_perf(cnt, len);
+			rte_memcpy_perf(cnt, len, 0);
+			rte_memcpy_perf(cnt, len, 1);
 			break;
 		default:
 			return cli_cmd_error("Debug invalid command", "Debug", argc, argv);

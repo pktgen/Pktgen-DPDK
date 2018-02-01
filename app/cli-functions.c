@@ -983,9 +983,11 @@ dbg_cmd(int argc, char **argv)
 				len = strtoul(argv[3], NULL, 0);
 			rte_hexdump(stdout, "", addr, len);
 			break;
+#ifdef RTE_LIBRTE_SMEM
 		case 70:
 			rte_smem_list_dump(stdout);
 			break;
+#endif
 		case 80:
 			kill(getpid(), SIGINT);
 			break;

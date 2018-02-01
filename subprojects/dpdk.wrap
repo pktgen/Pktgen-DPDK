@@ -1,0 +1,4 @@
+[wrap-git]
+directory = dpdk-latest
+url = http://dpdk.org/git/dpdk
+revision = master

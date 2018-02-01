@@ -1,5 +1,5 @@
 DPDK_17.05 {
-	global: *;
+	global:
 	rte_strtrim;
 
 	cli_add_alias;

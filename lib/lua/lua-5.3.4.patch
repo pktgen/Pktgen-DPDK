@@ -1,6 +1,6 @@
 diff -ruN lua-5.3.4/Makefile lua-patched/Makefile
 --- lua-5.3.4/Makefile	2016-12-20 10:26:08.000000000 -0600
-+++ lua-patched/Makefile	2017-11-27 16:04:23.579925619 -0600
++++ lua-patched/Makefile	2018-02-01 09:27:06.264879392 -0600
 @@ -1,114 +1,11 @@
 -# Makefile for installing Lua
 -# See doc/readme.html for installation and customization instructions.
@@ -125,7 +125,7 @@ diff -ruN lua-5.3.4/Makefile lua-patched/Makefile
 +include $(RTE_SDK)/mk/rte.extsubdir.mk
 diff -ruN lua-5.3.4/Makefile.lua lua-patched/Makefile.lua
 --- lua-5.3.4/Makefile.lua	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/Makefile.lua	2017-11-27 16:00:11.153613168 -0600
++++ lua-patched/Makefile.lua	2018-02-01 09:27:06.264879392 -0600
 @@ -0,0 +1,114 @@
 +# Makefile for installing Lua
 +# See doc/readme.html for installation and customization instructions.
@@ -243,7 +243,7 @@ diff -ruN lua-5.3.4/Makefile.lua lua-patched/Makefile.lua
 +# (end of Makefile)
 diff -ruN lua-5.3.4/src/lauxlib.c lua-patched/src/lauxlib.c
 --- lua-5.3.4/src/lauxlib.c	2016-12-20 12:37:00.000000000 -0600
-+++ lua-patched/src/lauxlib.c	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/lauxlib.c	2018-02-01 09:27:06.268879395 -0600
 @@ -1040,4 +1040,3 @@
      luaL_error(L, "version mismatch: app. needs %f, Lua core provides %f",
                    (LUAI_UACNUMBER)ver, (LUAI_UACNUMBER)*v);
@@ -251,7 +251,7 @@ diff -ruN lua-5.3.4/src/lauxlib.c lua-patched/src/lauxlib.c
 -
 diff -ruN lua-5.3.4/src/lauxlib.h lua-patched/src/lauxlib.h
 --- lua-5.3.4/src/lauxlib.h	2016-12-06 08:54:31.000000000 -0600
-+++ lua-patched/src/lauxlib.h	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/lauxlib.h	2018-02-01 09:27:06.268879395 -0600
 @@ -258,7 +258,6 @@
  /* }============================================================ */
  
@@ -262,7 +262,7 @@ diff -ruN lua-5.3.4/src/lauxlib.h lua-patched/src/lauxlib.h
  
 diff -ruN lua-5.3.4/src/liolib.c lua-patched/src/liolib.c
 --- lua-5.3.4/src/liolib.c	2016-12-20 12:37:00.000000000 -0600
-+++ lua-patched/src/liolib.c	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/liolib.c	2018-02-01 09:27:06.268879395 -0600
 @@ -746,7 +746,7 @@
  }
  
@@ -274,7 +274,7 @@ diff -ruN lua-5.3.4/src/liolib.c lua-patched/src/liolib.c
    p->f = f;
 diff -ruN lua-5.3.4/src/lstate.h lua-patched/src/lstate.h
 --- lua-5.3.4/src/lstate.h	2016-12-22 07:08:50.000000000 -0600
-+++ lua-patched/src/lstate.h	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/lstate.h	2018-02-01 09:27:06.268879395 -0600
 @@ -181,6 +181,8 @@
    unsigned short nCcalls;  /* number of nested C calls */
    l_signalT hookmask;
@@ -286,7 +286,7 @@ diff -ruN lua-5.3.4/src/lstate.h lua-patched/src/lstate.h
  
 diff -ruN lua-5.3.4/src/luac.c lua-patched/src/luac.c
 --- lua-5.3.4/src/luac.c	2015-03-11 20:58:27.000000000 -0500
-+++ lua-patched/src/luac.c	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/luac.c	2018-02-01 09:27:06.268879395 -0600
 @@ -211,14 +211,10 @@
  ** See Copyright Notice in lua.h
  */
@@ -304,7 +304,7 @@ diff -ruN lua-5.3.4/src/luac.c lua-patched/src/luac.c
  #define VOID(p)		((const void*)(p))
 diff -ruN lua-5.3.4/src/luaconf.h lua-patched/src/luaconf.h
 --- lua-5.3.4/src/luaconf.h	2016-12-22 07:08:50.000000000 -0600
-+++ lua-patched/src/luaconf.h	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/luaconf.h	2018-02-01 09:27:06.268879395 -0600
 @@ -61,7 +61,7 @@
  #if defined(LUA_USE_LINUX)
  #define LUA_USE_POSIX
@@ -343,7 +343,7 @@ diff -ruN lua-5.3.4/src/luaconf.h lua-patched/src/luaconf.h
  #endif
 diff -ruN lua-5.3.4/src/lua.h lua-patched/src/lua.h
 --- lua-5.3.4/src/lua.h	2016-12-22 09:51:20.000000000 -0600
-+++ lua-patched/src/lua.h	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/lua.h	2018-02-01 09:27:06.268879395 -0600
 @@ -437,6 +437,9 @@
  LUA_API int (lua_gethookmask) (lua_State *L);
  LUA_API int (lua_gethookcount) (lua_State *L);
@@ -363,7 +363,7 @@ diff -ruN lua-5.3.4/src/lua.h lua-patched/src/lua.h
  #endif
 diff -ruN lua-5.3.4/src/lua_shell.c lua-patched/src/lua_shell.c
 --- lua-5.3.4/src/lua_shell.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua_shell.c	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/lua_shell.c	2018-02-01 09:27:06.268879395 -0600
 @@ -0,0 +1,419 @@
 +/*
 + ** $Id: lua.c,v 1.205 2012/05/23 15:37:09 roberto Exp $
@@ -786,7 +786,7 @@ diff -ruN lua-5.3.4/src/lua_shell.c lua-patched/src/lua_shell.c
 +
 diff -ruN lua-5.3.4/src/lua_shell.h lua-patched/src/lua_shell.h
 --- lua-5.3.4/src/lua_shell.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua_shell.h	2017-11-27 16:02:13.380794642 -0600
++++ lua-patched/src/lua_shell.h	2018-02-01 09:27:06.268879395 -0600
 @@ -0,0 +1,43 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -833,7 +833,7 @@ diff -ruN lua-5.3.4/src/lua_shell.h lua-patched/src/lua_shell.h
 +#endif /* LUA_SHELL_H_ */
 diff -ruN lua-5.3.4/src/lua-socket.c lua-patched/src/lua-socket.c
 --- lua-5.3.4/src/lua-socket.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua-socket.c	2017-11-27 16:02:51.804537902 -0600
++++ lua-patched/src/lua-socket.c	2018-02-01 09:27:06.268879395 -0600
 @@ -0,0 +1,357 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -1194,7 +1194,7 @@ diff -ruN lua-5.3.4/src/lua-socket.c lua-patched/src/lua-socket.c
 +}
 diff -ruN lua-5.3.4/src/lua-socket.h lua-patched/src/lua-socket.h
 --- lua-5.3.4/src/lua-socket.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua-socket.h	2017-11-27 16:03:51.060142434 -0600
++++ lua-patched/src/lua-socket.h	2018-02-01 09:27:06.268879395 -0600
 @@ -0,0 +1,36 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -1232,9 +1232,18 @@ diff -ruN lua-5.3.4/src/lua-socket.h lua-patched/src/lua-socket.h
 +void * lua_create_instance(void);
 +
 +#endif /* _LUA_SOCKET_H_ */
+diff -ruN lua-5.3.4/src/lua_version.map lua-patched/src/lua_version.map
+--- lua-5.3.4/src/lua_version.map	1969-12-31 18:00:00.000000000 -0600
++++ lua-patched/src/lua_version.map	2018-02-01 09:28:13.676917042 -0600
+@@ -0,0 +1,5 @@
++DPDK_18.02 {
++	global: *;
++
++	local: *;
++};
 diff -ruN lua-5.3.4/src/Makefile lua-patched/src/Makefile
 --- lua-5.3.4/src/Makefile	2015-05-27 06:10:11.000000000 -0500
-+++ lua-patched/src/Makefile	2017-11-27 16:03:23.524326138 -0600
++++ lua-patched/src/Makefile	2018-02-01 09:27:06.268879395 -0600
 @@ -1,197 +1,46 @@
 -# Makefile for building Lua
 -# See ../doc/readme.html for installation and customization instructions.
@@ -1480,7 +1489,7 @@ diff -ruN lua-5.3.4/src/Makefile lua-patched/src/Makefile
 +include $(RTE_SDK)/mk/rte.extlib.mk
 diff -ruN lua-5.3.4/src/Makefile.lua lua-patched/src/Makefile.lua
 --- lua-5.3.4/src/Makefile.lua	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/Makefile.lua	2017-11-27 16:00:11.157613141 -0600
++++ lua-patched/src/Makefile.lua	2018-02-01 09:27:06.268879395 -0600
 @@ -0,0 +1,197 @@
 +# Makefile for building Lua
 +# See ../doc/readme.html for installation and customization instructions.

@@ -1263,7 +1263,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	if (txcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For TX found %d port(s) for lcore %d\n", rxcnt, lid);
+	printf("For TX found %d port(s) for lcore %d\n", txcnt, lid);
 	for(idx = 0; idx < txcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);

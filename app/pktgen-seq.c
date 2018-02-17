@@ -111,7 +111,7 @@ pktgen_page_seq(uint32_t pid)
 		scrn_printf(row, col, "%3d", pkt->tos);
 		col += 4;
 
-		scrn_printf(row, col, "%5d", pkt->pktSize + FCS_SIZE);
+		scrn_printf(row, col, "%5d", pkt->pktSize + ETHER_CRC_LEN);
 		col += 6;
 
 		scrn_printf(row, col, "%5d", pkt->gtpu_teid);

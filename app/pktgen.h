@@ -65,6 +65,7 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
+#include <rte_dbuf.h>
 
 #include <copyright_info.h>
 #include <l2p.h>
@@ -102,9 +103,9 @@ extern "C" {
 #define Million                 (uint64_t)(1000000ULL)
 
 #define iBitsTotal(_x) \
-	(uint64_t)(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + FCS_SIZE)) + _x.ibytes) * 8)
+	(uint64_t)(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + ETHER_CRC_LEN)) + _x.ibytes) * 8)
 #define oBitsTotal(_x) \
-	(uint64_t)(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + FCS_SIZE)) + _x.obytes) * 8)
+	(uint64_t)(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + ETHER_CRC_LEN)) + _x.obytes) * 8)
 
 #define _do(_exp)       do { _exp; } while ((0))
 
@@ -222,10 +223,10 @@ enum {
 
 	INTER_FRAME_GAP         = 12,	/**< in bytes */
 	PKT_PREAMBLE_SIZE       = 8,	/**< in bytes */
-	FCS_SIZE                = 4,	/**< in bytes */
-	MIN_PKT_SIZE            = (ETHER_MIN_LEN - FCS_SIZE),
-	MAX_PKT_SIZE            = (ETHER_MAX_LEN - FCS_SIZE),
-	MIN_v6_PKT_SIZE         = (78 - FCS_SIZE),
+
+	MIN_PKT_SIZE            = (ETHER_MIN_LEN - ETHER_CRC_LEN),
+	MAX_PKT_SIZE            = (ETHER_MAX_LEN - ETHER_CRC_LEN),
+	MIN_v6_PKT_SIZE         = (78 - ETHER_CRC_LEN),
 
 	MAX_RX_QUEUES           = 16,	/**< RX Queues per port */
 	MAX_TX_QUEUES           = 16,	/**< TX Queues per port */

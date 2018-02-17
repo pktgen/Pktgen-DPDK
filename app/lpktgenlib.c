@@ -21,7 +21,7 @@
 #include <cli.h>
 #include <rte_net.h>
 #include <luaconf.h>
-#include <luasocket/luasocket.h>
+#include <luasocket.h>
 #include <lualib.h>
 
 #include <cli_help.h>
@@ -2924,7 +2924,7 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 			    (p->ipProto == PG_IPPROTO_TCP) ? "tcp" :
 			    (p->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp"));
 
-	setf_integer(L, "pktSize", p->pktSize + FCS_SIZE);
+	setf_integer(L, "pktSize", p->pktSize + ETHER_CRC_LEN);
 	setf_integer(L, "gtpu_teid", p->gtpu_teid);
 
 	/* Now set the table as an array with pid as the index. */
@@ -3567,8 +3567,8 @@ luaopen_pktgen(lua_State *L)
 	setf_integer(L, "numExtraTxPkts", NUM_EXTRA_TX_PKTS);
 	setf_integer(L, "numTotalPkts", NUM_TOTAL_PKTS);
 
-	setf_integer(L, "minPktSize", MIN_PKT_SIZE + FCS_SIZE);
-	setf_integer(L, "maxPktSize", MAX_PKT_SIZE + FCS_SIZE);
+	setf_integer(L, "minPktSize", MIN_PKT_SIZE + ETHER_CRC_LEN);
+	setf_integer(L, "maxPktSize", MAX_PKT_SIZE + ETHER_CRC_LEN);
 	setf_integer(L, "minVlanID", MIN_VLAN_ID);
 	setf_integer(L, "maxVlanID", MAX_VLAN_ID);
 	setf_integer(L, "vlanTagSize", VLAN_TAG_SIZE);

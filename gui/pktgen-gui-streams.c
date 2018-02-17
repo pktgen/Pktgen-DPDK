@@ -75,7 +75,7 @@ fill_proto_field_info(proto_type type, unsigned int pid, unsigned int seq_id)
 		val.value = g_strdup(buff);
 		g_array_append_vals(packet_info, &val, 1);
 
-		size = (pkt->pktSize + FCS_SIZE);
+		size = (pkt->pktSize + ETHER_CRC_LEN);
 		sprintf(buff, "%d", size);
 		gtk_entry_set_text(GTK_ENTRY(pktsize_entry), buff);
 
@@ -607,8 +607,8 @@ pktsize_enter_callback(GtkWidget *widget, gpointer *data)
 	entry_text = gtk_entry_get_text(GTK_ENTRY(widget));
 	size = atoi(entry_text);
 
-	if (( (size - FCS_SIZE) < MIN_PKT_SIZE) ||
-	    ( (size - FCS_SIZE) > MAX_PKT_SIZE)) {
+	if (( (size - ETHER_CRC_LEN) < MIN_PKT_SIZE) ||
+	    ( (size - ETHER_CRC_LEN) > MAX_PKT_SIZE)) {
 		GtkWidget *dialog;
 		dialog = gtk_message_dialog_new(
 		                GTK_WINDOW(stream_window),
@@ -616,8 +616,8 @@ pktsize_enter_callback(GtkWidget *widget, gpointer *data)
 		                GTK_MESSAGE_INFO,
 		                GTK_BUTTONS_OK,
 		                "Acceptable range is [%d - %d]\nAlphabets/special characters are not allowed",
-		                (MIN_PKT_SIZE + FCS_SIZE),
-		                (MAX_PKT_SIZE + FCS_SIZE));
+		                (MIN_PKT_SIZE + ETHER_CRC_LEN),
+		                (MAX_PKT_SIZE + ETHER_CRC_LEN));
 		gtk_window_set_title(GTK_WINDOW(dialog),
 		                     "Pktgen");
 		gtk_dialog_run(GTK_DIALOG(dialog));
@@ -880,8 +880,8 @@ set_stream_info(unsigned int pid, unsigned int seq_id)
 	port_info_t *info = NULL;
 	pkt_seq_t *pkt = NULL;
 	uint8_t *usr_def = NULL;
-	unsigned int l4_and_payload[MAX_PKT_SIZE - FCS_SIZE];
-	gchar usr_def_str[MAX_PKT_SIZE - FCS_SIZE];
+	unsigned int l4_and_payload[MAX_PKT_SIZE - ETHER_CRC_LEN];
+	gchar usr_def_str[MAX_PKT_SIZE - ETHER_CRC_LEN];
 	GtkTextIter start;
 	GtkTextIter end;
 	unsigned int size;
@@ -905,7 +905,7 @@ set_stream_info(unsigned int pid, unsigned int seq_id)
 
 	entry_text = gtk_entry_get_text(GTK_ENTRY(pktsize_entry));
 	size = atoi(entry_text);
-	pkt->pktSize = (size - FCS_SIZE);
+	pkt->pktSize = (size - ETHER_CRC_LEN);
 
 	ip_proto_str = gtk_entry_get_text(GTK_ENTRY(ip_proto_entry));
 	ascii_to_number(ip_proto_str, ip_proto_value, 1);

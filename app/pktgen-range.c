@@ -430,14 +430,14 @@ pktgen_print_range(void)
 		snprintf(str,
 		         sizeof(str),
 		         "%4d/%4d",
-		         range->pkt_size + FCS_SIZE,
+		         range->pkt_size + ETHER_CRC_LEN,
 		         range->pkt_size_inc);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 		snprintf(str,
 		         sizeof(str),
 		         "%4d/%4d",
-		         range->pkt_size_min + FCS_SIZE,
-		         range->pkt_size_max + FCS_SIZE);
+		         range->pkt_size_min + ETHER_CRC_LEN,
+		         range->pkt_size_max + ETHER_CRC_LEN);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 
 		row++;

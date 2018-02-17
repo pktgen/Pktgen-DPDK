@@ -343,6 +343,7 @@ pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint
 }
 
 void pktgen_set_hw_strip_crc(uint8_t val);
+int pktgen_get_hw_strip_crc(void);
 
 #ifdef __cplusplus
 }

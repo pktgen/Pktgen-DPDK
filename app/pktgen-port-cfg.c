@@ -75,6 +75,12 @@ pktgen_set_hw_strip_crc(uint8_t val)
 	hw_strip_crc = val;
 }
 
+int
+pktgen_get_hw_strip_crc(void)
+{
+	return (hw_strip_crc)? ETHER_CRC_LEN : 0;
+}
+
 /**************************************************************************//**
  *
  * pktgen_mbuf_pool_create - Create mbuf packet pool.

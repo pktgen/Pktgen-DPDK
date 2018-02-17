@@ -363,7 +363,7 @@ diff -ruN lua-5.3.4/src/lua.h lua-patched/src/lua.h
  #endif
 diff -ruN lua-5.3.4/src/lua_shell.c lua-patched/src/lua_shell.c
 --- lua-5.3.4/src/lua_shell.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua_shell.c	2018-02-01 09:27:06.268879395 -0600
++++ lua-patched/src/lua_shell.c	2018-02-01 13:20:21.669525902 -0600
 @@ -0,0 +1,419 @@
 +/*
 + ** $Id: lua.c,v 1.205 2012/05/23 15:37:09 roberto Exp $
@@ -383,7 +383,7 @@ diff -ruN lua-5.3.4/src/lua_shell.c lua-patched/src/lua_shell.c
 +
 +#include "lauxlib.h"
 +#include "lualib.h"
-+#include "lua-socket.h"
++#include "luasocket.h"
 +#include "lua_shell.h"
 +
 +#if !defined(LUA_PROGNAME)
@@ -831,9 +831,9 @@ diff -ruN lua-5.3.4/src/lua_shell.h lua-patched/src/lua_shell.h
 +#endif
 +
 +#endif /* LUA_SHELL_H_ */
-diff -ruN lua-5.3.4/src/lua-socket.c lua-patched/src/lua-socket.c
---- lua-5.3.4/src/lua-socket.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua-socket.c	2018-02-01 09:27:06.268879395 -0600
+diff -ruN lua-5.3.4/src/luasocket.c lua-patched/src/luasocket.c
+--- lua-5.3.4/src/luasocket.c	1969-12-31 18:00:00.000000000 -0600
++++ lua-patched/src/luasocket.c	2018-02-01 13:19:16.413483452 -0600
 @@ -0,0 +1,357 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -900,7 +900,7 @@ diff -ruN lua-5.3.4/src/lua-socket.c lua-patched/src/lua-socket.c
 +#include "lualib.h"
 +#include "lauxlib.h"
 +
-+#include "lua-socket.h"
++#include "luasocket.h"
 +#include "lua_shell.h"
 +
 +static lua_State * lstate;
@@ -1192,9 +1192,9 @@ diff -ruN lua-5.3.4/src/lua-socket.c lua-patched/src/lua-socket.c
 +
 +    return L;
 +}
-diff -ruN lua-5.3.4/src/lua-socket.h lua-patched/src/lua-socket.h
---- lua-5.3.4/src/lua-socket.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua-socket.h	2018-02-01 09:27:06.268879395 -0600
+diff -ruN lua-5.3.4/src/luasocket.h lua-patched/src/luasocket.h
+--- lua-5.3.4/src/luasocket.h	1969-12-31 18:00:00.000000000 -0600
++++ lua-patched/src/luasocket.h	2018-02-01 09:27:06.268879395 -0600
 @@ -0,0 +1,36 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -1243,7 +1243,7 @@ diff -ruN lua-5.3.4/src/lua_version.map lua-patched/src/lua_version.map
 +};
 diff -ruN lua-5.3.4/src/Makefile lua-patched/src/Makefile
 --- lua-5.3.4/src/Makefile	2015-05-27 06:10:11.000000000 -0500
-+++ lua-patched/src/Makefile	2018-02-01 09:27:06.268879395 -0600
++++ lua-patched/src/Makefile	2018-02-01 13:19:42.605500521 -0600
 @@ -1,197 +1,46 @@
 -# Makefile for building Lua
 -# See ../doc/readme.html for installation and customization instructions.
@@ -1285,12 +1285,12 @@ diff -ruN lua-5.3.4/src/Makefile lua-patched/src/Makefile
 +	linit.c liolib.c llex.c lmathlib.c lmem.c loadlib.c \
 +	lobject.c lopcodes.c loslib.c lparser.c lstate.c lutf8lib.c \
 +	lstring.c lstrlib.c ltable.c ltablib.c ltm.c lua_shell.c \
-+	lundump.c lvm.c lzio.c lua-socket.c
++	lundump.c lvm.c lzio.c luasocket.c
 +
 +SYMLINK-y-include := lapi.h lauxlib.h lcode.h lctype.h ldebug.h \
 +    ldo.h lfunc.h lgc.h llex.h llimits.h lmem.h lobject.h lopcodes.h \
 +    lparser.h lprefix.h lstate.h lstring.h ltable.h ltm.h luaconf.h \
-+    lua.h lualib.h lua_shell.h lua-socket.h lundump.h lvm.h lzio.h
++    lua.h lualib.h lua_shell.h luasocket.h lundump.h lvm.h lzio.h
  
 -# == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
 -

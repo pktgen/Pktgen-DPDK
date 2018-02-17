@@ -14,7 +14,7 @@
 #include "pktgen.h"
 #include "lpktgenlib.h"
 #include "lua_shell.h"
-#include "lua-socket.h"
+#include "luasocket.h"
 #include "lauxlib.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"

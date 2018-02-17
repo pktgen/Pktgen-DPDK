@@ -45,16 +45,16 @@ valid_pkt_size(port_info_t *info, char *val)
 	uint16_t pkt_size;
 
 	if (!val)
-		return (MIN_PKT_SIZE + FCS_SIZE);
+		return (MIN_PKT_SIZE + ETHER_CRC_LEN);
 
 	pkt_size = atoi(val);
 	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
-		if (pkt_size < (MIN_PKT_SIZE + FCS_SIZE))
-			pkt_size = (MIN_PKT_SIZE + FCS_SIZE);
+		if (pkt_size < (MIN_PKT_SIZE + ETHER_CRC_LEN))
+			pkt_size = (MIN_PKT_SIZE + ETHER_CRC_LEN);
 	}
 
-	if (pkt_size > (MAX_PKT_SIZE + FCS_SIZE))
-		pkt_size = MAX_PKT_SIZE + FCS_SIZE;
+	if (pkt_size > (MAX_PKT_SIZE + ETHER_CRC_LEN))
+		pkt_size = MAX_PKT_SIZE + ETHER_CRC_LEN;
 
 	return pkt_size;
 }

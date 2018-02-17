@@ -190,7 +190,7 @@ update_port_static_info(unsigned int pid)
 
 		case 3:
 			g_snprintf(buf, sizeof(buf), "%d",
-			           (pkt->pktSize + FCS_SIZE));
+			           (pkt->pktSize + ETHER_CRC_LEN));
 			break;
 
 		case 4:

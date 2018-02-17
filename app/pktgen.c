@@ -48,17 +48,17 @@ pktgen_wire_size(port_info_t *info)
 
 	if (rte_atomic32_read(&info->port_flags) & SEND_PCAP_PKTS)
 		size = info->pcap->pkt_size + PKT_PREAMBLE_SIZE +
-			INTER_FRAME_GAP + FCS_SIZE;
+			INTER_FRAME_GAP + ETHER_CRC_LEN;
 	else {
 		if (unlikely(info->seqCnt > 0)) {
 			for (i = 0; i < info->seqCnt; i++)
 				size += info->seq_pkt[i].pktSize +
 					PKT_PREAMBLE_SIZE + INTER_FRAME_GAP +
-					FCS_SIZE;
+					ETHER_CRC_LEN;
 			size = size / info->seqCnt;	/* Calculate the average sized packet */
 		} else
 			size = info->seq_pkt[SINGLE_PKT].pktSize +
-				PKT_PREAMBLE_SIZE + INTER_FRAME_GAP + FCS_SIZE;
+				PKT_PREAMBLE_SIZE + INTER_FRAME_GAP + ETHER_CRC_LEN;
 	}
 	return size;
 }
@@ -738,11 +738,17 @@ static void
 pktgen_packet_classify(struct rte_mbuf *m, int pid)
 {
 	port_info_t *info = &pktgen.info[pid];
-	uint32_t plen = (m->pkt_len + FCS_SIZE);
+	uint32_t plen;
 	uint32_t flags;
 	pktType_e pType;
 
 	pType = pktgen_packet_type(m);
+
+	if (rte_pktdbuf_is_indirect(m)) {
+		struct rte_dbuf *d = rte_dbuf_from_indirect(m);
+		plen = rte_pktdbuf_data_len(d);
+	} else
+		plen = rte_pktmbuf_pkt_len(m);
 
 	flags = rte_atomic32_read(&info->port_flags);
 	if (unlikely(flags & (PROCESS_INPUT_PKTS | PROCESS_RX_TAP_PKTS))) {
@@ -774,6 +780,8 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 		default:                    break;
 		}
 
+	plen += pktgen_get_hw_strip_crc();
+
 	/* Count the size of each packet. */
 	if (plen == ETHER_MIN_LEN)
 		info->sizes._64++;
@@ -787,9 +795,10 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 		info->sizes._512_1023++;
 	else if ( (plen >= 1024) && (plen <= ETHER_MAX_LEN))
 		info->sizes._1024_1518++;
-	else if (plen < ETHER_MIN_LEN)
+	else if (plen < ETHER_MIN_LEN) {
 		info->sizes.runt++;
-	else if (plen >= (ETHER_MAX_LEN + 1))
+fprintf(stderr, "plen %u\n", plen);
+	} else if (plen > ETHER_MAX_LEN)
 		info->sizes.jumbo++;
 
 	/* Process multicast and broadcast packets. */

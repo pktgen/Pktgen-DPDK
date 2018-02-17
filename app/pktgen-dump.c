@@ -26,7 +26,7 @@ void
 pktgen_packet_dump(struct rte_mbuf *m, int pid)
 {
 	port_info_t *info = &pktgen.info[pid];
-	int plen = (m->pkt_len + FCS_SIZE);
+	int plen = (m->pkt_len + ETHER_CRC_LEN);
 	unsigned char *curr_data;
 	struct rte_mbuf *curr_mbuf;
 

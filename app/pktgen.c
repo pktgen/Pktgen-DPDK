@@ -744,10 +744,12 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 
 	pType = pktgen_packet_type(m);
 
-	if (rte_pktdbuf_is_indirect(m)) {
-		struct rte_dbuf *d = rte_dbuf_from_indirect(m);
+#ifdef RTE_DBUF_INDIRECT
+	if (RTE_DBUF_INDIRECT(m)) {
+		struct rte_dbuf *d = rte_dbuf_from_indirect(m->buf_addr);
 		plen = rte_pktdbuf_data_len(d);
 	} else
+#endif
 		plen = rte_pktmbuf_pkt_len(m);
 
 	flags = rte_atomic32_read(&info->port_flags);
@@ -797,7 +799,6 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 		info->sizes._1024_1518++;
 	else if (plen < ETHER_MIN_LEN) {
 		info->sizes.runt++;
-fprintf(stderr, "plen %u\n", plen);
 	} else if (plen > ETHER_MAX_LEN)
 		info->sizes.jumbo++;
 

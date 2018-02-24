@@ -82,9 +82,10 @@ _pcap_open(char *filename, uint16_t port)
 		goto leave;
 	}
 
-	pcap = (pcap_info_t *)rte_malloc("PCAP info",
+	pcap = (pcap_info_t *)rte_malloc_socket("PCAP info",
 					 sizeof(pcap_info_t),
-					 RTE_CACHE_LINE_SIZE);
+					 RTE_CACHE_LINE_SIZE,
+					 rte_socket_id());
 	if (pcap == NULL) {
 		printf("%s: malloc failed for pcap_info_t structure\n",
 		       __FUNCTION__);

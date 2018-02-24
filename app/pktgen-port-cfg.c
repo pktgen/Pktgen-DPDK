@@ -100,7 +100,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 
 	snprintf(name, sizeof(name), "%-12s%u:%u", type, pid, queue_id);
 	pktgen_log_info(
-		"    Create: %-*s - Memory used (MBUFs %4u x (size %u + Hdr %lu)) + %lu = %6lu KB headroom %d %d",
+		"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB headroom %d %d",
 		16,
 		name,
 		nb_mbufs,

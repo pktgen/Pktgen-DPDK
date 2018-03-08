@@ -2944,13 +2944,8 @@ range_set_tos_id(port_info_t *info, char *what, uint8_t id)
 {
 
 	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
-		// if (id > 255)
-		// 	id = 255;
 		info->range.tos_inc = id;
 	} else {
-		/*if ( (id < MIN_TOS) || (id > MAX_TOS) )*/
-		/*id = 160 MIN_TOS;*/
-
 		if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.tos_min = id;
 		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
@@ -2980,9 +2975,6 @@ range_set_cos_id(port_info_t *info, char *what, uint8_t id)
 			id = 7;
 		info->range.cos_inc = id;
 	} else {
-		/*if ( (id < MIN_COS) || (id > MAX_COS) )
-		id = MIN_COS;*/
-
 		if (!strcmp(what, "min") || !strcmp(what, "minimum"))
 			info->range.cos_min = id;
 		else if (!strcmp(what, "max") || !strcmp(what, "maximum"))

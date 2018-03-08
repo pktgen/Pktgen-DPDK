@@ -240,7 +240,7 @@ ls_cmd(int argc, char **argv)
 	else
 		cli_scan_directory(node, __list_dir, CLI_ALL_TYPE, &args);
 
-	printf("\n");
+	cli_printf("\n");
 	return 0;
 }
 
@@ -516,14 +516,10 @@ sleep_cmd(int argc __rte_unused, char **argv)
 		return 0;
 	}
 
-	if (cli_use_timers()) {
-		while (cnt--) {
+	while (cnt--) {
+		if (cli_use_timers())
 			rte_timer_manage();
-			rte_delay_ms(250);
-		}
-	} else {
-		while (cnt--)
-			rte_delay_ms(250);
+		rte_delay_ms(250);
 	}
 	return 0;
 }

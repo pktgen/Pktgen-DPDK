@@ -585,9 +585,11 @@ cli_start(const char *msg)
 
 	cli_execute_cmdfiles();
 
-	while(!this_cli->quit_flag)
+	while(!this_cli->quit_flag) {
 		if (cli_poll(&c))
 			cli_input(&c, 1);
+		rte_pause();
+	}
 
 	cli_printf("\n");
 }

@@ -102,14 +102,14 @@ scrn_stdin_setup(void)
 	memset(&scrn->oldterm, 0, sizeof(term));
 	if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm) ||
 	    tcgetattr(fileno(scrn->fd_in), &term)) {
-		printf("%s: setup failed for tty\n", __func__);
+		fprintf(stderr, "%s: setup failed for tty\n", __func__);
 		return -1;
 	}
 
 	term.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
 
 	if (tcsetattr(fileno(scrn->fd_in), TCSANOW, &term)) {
-		printf("%s: failed to set tty\n", __func__);
+		fprintf(stderr, "%s: failed to set tty\n", __func__);
 		return -1;
 	}
 
@@ -125,10 +125,10 @@ scrn_stdin_restore(void)
 		return;
 
 	if (tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm))
-		printf("%s: failed to set tty\n", __func__);
+		fprintf(stderr, "%s: failed to set tty\n", __func__);
 
 	if (system("stty sane"))
-		printf("%s: system command failed\n", __func__);
+		fprintf(stderr, "%s: system command failed\n", __func__);
 }
 
 static void

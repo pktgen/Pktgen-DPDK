@@ -79,8 +79,8 @@ int
 rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 {
 	char *p, *start_of_word, *s;
-	int c, argc = 0;
-	enum { INIT, WORD, STRING_QUOTE, STRING_TICK } state = WORD;
+	int argc = 0;
+	enum { INIT, WORD, STRING_QUOTE, STRING_TICK, STRING_BRACKET } state = WORD;
 
 	if (!str || !delim || !argv || maxtokens == 0)
 		return -1;
@@ -90,7 +90,7 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 
 	start_of_word = s;
 	for (p = s; (argc < maxtokens) && (*p != '\0'); p++) {
-		c = (unsigned char)*p;
+		int c = (unsigned char)*p;
 
 		if (c == '\\') {
 			start_of_word = ++p;
@@ -104,6 +104,9 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 				start_of_word = p + 1;
 			} else if (c == '\'') {
 				state = STRING_TICK;
+				start_of_word = p + 1;
+			} else if (c == '{') {
+				state = STRING_BRACKET;
 				start_of_word = p + 1;
 			} else if (!strchr(delim, c)) {
 				state = WORD;
@@ -121,6 +124,14 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 
 		case STRING_TICK:
 			if (c == '\'') {
+				*p = 0;
+				argv[argc++] = start_of_word;
+				state = INIT;
+			}
+			break;
+
+		case STRING_BRACKET:
+			if (c == '}') {
 				*p = 0;
 				argv[argc++] = start_of_word;
 				state = INIT;

@@ -929,7 +929,6 @@ int cli_nodes_unlimited(void);
 static inline void
 cli_quit(void)
 {
-	fprintf(stderr, "Quiting....\n");
 	this_cli->quit_flag = 1;
 }
 

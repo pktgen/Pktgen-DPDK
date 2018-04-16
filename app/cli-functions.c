@@ -1152,7 +1152,6 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 	portlist_t portlist;
 	uint32_t cos, tos;
 
-<<<<<<< Updated upstream
 	if (seqnum >= NUM_SEQ_PKTS) {
 		cli_printf("Sequence number too large\n");
 		return -1;
@@ -1160,13 +1159,6 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 
 	cos = strtoul(argv[4], NULL, 10);
 	tos = strtoul(argv[6], NULL, 10);
-=======
-	if (seqnum >= NUM_SEQ_PKTS)
-		return -1;
-
-	cos = strtoul(argv[4], NULL, 10);
-	cos = strtoul(argv[6], NULL, 10);
->>>>>>> Stashed changes
 
 	rte_parse_portlist(argv[2], &portlist);
 

@@ -3000,9 +3000,8 @@ void
 range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
 {
 	if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
-		if (size > ETHER_MIN_LEN)
-			size = ETHER_MIN_LEN;
-
+		if (size > ETHER_MAX_LEN)
+			size = ETHER_MAX_LEN;
 		info->range.pkt_size_inc = size;
 	} else {
 		if (size < ETHER_MIN_LEN)

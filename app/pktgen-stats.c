@@ -33,7 +33,7 @@ static void
 pktgen_print_static_data(void)
 {
 	port_info_t *info;
-	struct rte_eth_dev_info dev;
+	struct rte_eth_dev_info dev = { 0 };
 	uint32_t pid, col, row, sp, ip_row;
 	pkt_seq_t *pkt;
 	char buff[32];
@@ -174,6 +174,7 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		rte_eth_dev_info_get(pid, &dev);
+#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 		if (dev.pci_dev)
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 				 dev.pci_dev->id.vendor_id,
@@ -182,6 +183,22 @@ pktgen_print_static_data(void)
 				 dev.pci_dev->addr.devid,
 				 dev.pci_dev->addr.function);
 		else
+#else
+		struct rte_bus *bus;
+		if (dev.device)
+			bus = rte_bus_find_by_device(dev.device);
+		else
+			bus = NULL;
+		if (bus && !strcmp(bus->name, "pci")) {
+			struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
+			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+				 pci_dev->id.vendor_id,
+				 pci_dev->id.device_id,
+				 pci_dev->addr.bus,
+				 pci_dev->addr.devid,
+				 pci_dev->addr.function);
+		} else
+#endif
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 				0, 0, 0, 0, 0);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);

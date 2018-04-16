@@ -1282,7 +1282,8 @@ theme save <filename>              - Save the current color theme to a file
                       D         - DPI Scanning enabled (If Enabled)
                        I        - Process packets on input enabled
                         *       - Using TAP interface for this port can be [-rt*]
-                         L      - Send Latency packets                          V     - Send VLAN ID tag
+                         L      - Send Latency packets
+                          V     - Send VLAN ID tag
                           M     - Send MPLS header
                           Q     - Send Q-in-Q tags
                            g    - Process GARP packets

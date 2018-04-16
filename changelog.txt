@@ -6,6 +6,8 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.5.0 - fix compiler warning and range size increment command.
+           fixes for working with dpdk 18.04 release.
  - 3.4.9 - fix PRNG random number code to work correctly.
            Add more validation of -m commands
            Fix the rte_pci_bus.h header include problems.

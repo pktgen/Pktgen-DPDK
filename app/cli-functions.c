@@ -282,14 +282,14 @@ range_cmd(int argc, char **argv)
 			break;
 		case 70:
 			foreach_port(portlist,
-				range_set_pkt_size(info, argv[3], valid_pkt_size(info, what)));
+				range_set_pkt_size(info, argv[3], strcmp("inc", argv[3])? valid_pkt_size(info, what) : atoi(what)));
 			break;
 		case 71:
 			foreach_port(portlist,
 				range_set_pkt_size(info, (char *)(uintptr_t)"start", valid_pkt_size(info, argv[3]));
 				range_set_pkt_size(info, (char *)(uintptr_t)"min", valid_pkt_size(info, argv[4]));
 				range_set_pkt_size(info, (char *)(uintptr_t)"max", valid_pkt_size(info, argv[5]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"inc", valid_pkt_size(info, argv[6]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"inc", atoi(argv[6]));
 				);
 			break;
 		case 80:
@@ -336,17 +336,17 @@ range_cmd(int argc, char **argv)
 }
 
 #define set_types	"count|"		/*  0 */ \
-					"size|"			/*  1 */ \
-					"rate|"			/*  2 */ \
-					"burst|"		/*  3 */ \
-					"tx_cycles|"	/*  4 */ \
-					"sport|"		/*  5 */ \
-					"dport|"		/*  6 */ \
-					"seq_cnt|"		/*  7 */ \
-					"prime|"		/*  8 */ \
-					"dump|"			/*  9 */ \
-					"vlan|"			/* 10 */ \
-					"seqCnt"		/* 11 */
+			"size|"			/*  1 */ \
+			"rate|"			/*  2 */ \
+			"burst|"		/*  3 */ \
+			"tx_cycles|"		/*  4 */ \
+			"sport|"		/*  5 */ \
+			"dport|"		/*  6 */ \
+			"seq_cnt|"		/*  7 */ \
+			"prime|"		/*  8 */ \
+			"dump|"			/*  9 */ \
+			"vlan|"			/* 10 */ \
+			"seqCnt"		/* 11 */
 
 static struct cli_map set_map[] = {
 	{ 10, "set %P %|" set_types " %d" },
@@ -901,7 +901,6 @@ rte_memcpy_perf(unsigned int cnt, unsigned int kb, int flag)
 	uint64_t start_time, total_time;
 	uint64_t total_bits, bits_per_tick;
 	unsigned int i;
-	void *(*cpy)(void *, const void *, size_t);
 
 	kb *= 1024;
 
@@ -911,11 +910,13 @@ rte_memcpy_perf(unsigned int cnt, unsigned int kb, int flag)
 	src = RTE_PTR_ALIGN(buf[0], RTE_CACHE_LINE_SIZE);
 	dst = RTE_PTR_ALIGN(buf[1], RTE_CACHE_LINE_SIZE);
 
-	cpy = (flag)? rte_memcpy : memcpy;
-
 	start_time = rte_get_tsc_cycles();
-	for(i = 0; i < cnt; i++)
-		cpy(dst, src, kb);
+	for(i = 0; i < cnt; i++) {
+		if (flag)
+			rte_memcpy(dst, src, kb);
+		else
+			memcpy(dst, src, kb);
+	}
 	total_time = rte_get_tsc_cycles() - start_time;
 
 	total_bits = ((uint64_t)cnt * (uint64_t)kb) * 8L;

@@ -53,7 +53,7 @@ An example to set a packet sequence:
 
 .. literalinclude:: ../../test/set_seq.lua
    :language: lua
-   :tab-width: 4g
+   :tab-width: 4
 
 
 Example: Main

@@ -3580,7 +3580,7 @@ luaopen_pktgen(lua_State *L)
 	setf_integer(L, "maxTOS", MAX_TOS);
 
 	setf_integer(L, "defaultPktBurst", DEFAULT_PKT_BURST);
-	setf_integer(L, "defaultBuffSize", MBUF_SIZE);
+	setf_integer(L, "defaultBuffSize", DEFAULT_MBUF_SIZE);
 	setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT);
 	setf_integer(L, "maxPrimeCount", MAX_PRIME_COUNT);
 

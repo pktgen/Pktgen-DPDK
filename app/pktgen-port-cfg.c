@@ -13,6 +13,10 @@
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
 
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
+#define rte_eth_dev_count	rte_eth_dev_count_total
+#endif
+
 #ifdef RTE_LIBRTE_BONDING_PMD
 #include <rte_eth_bond_8023ad.h>
 #endif
@@ -100,27 +104,27 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 
 	snprintf(name, sizeof(name), "%-12s%u:%u", type, pid, queue_id);
 	pktgen_log_info(
-		"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB headroom %d %d",
+		"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB headroom %d",
 		16,
 		name,
 		nb_mbufs,
-		MBUF_SIZE,
+		DEFAULT_MBUF_SIZE,
 		sizeof(struct rte_mbuf),
 		sizeof(struct rte_mempool),
-		(((nb_mbufs * (MBUF_SIZE + sizeof(struct rte_mbuf)) +
+		(((nb_mbufs * (DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf)) +
 		   sizeof(struct rte_mempool))) + 1023) / 1024,
-		RTE_PKTMBUF_HEADROOM,
-		RTE_MBUF_DEFAULT_BUF_SIZE);
+		RTE_PKTMBUF_HEADROOM);
+
 	pktgen.mem_used += ((nb_mbufs *
-		(MBUF_SIZE + sizeof(struct rte_mbuf)) +
+		(DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf)) +
 		sizeof(struct rte_mempool)));
 	pktgen.total_mem_used += ((nb_mbufs *
-		(MBUF_SIZE + sizeof(struct rte_mbuf)) +
+		(DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf)) +
 		sizeof(struct rte_mempool)));
 
 	/* create the mbuf pool */
 	mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size,
-		DEFAULT_PRIV_SIZE, MBUF_SIZE, socket_id);
+		DEFAULT_PRIV_SIZE, DEFAULT_MBUF_SIZE, socket_id);
 	if (mp == NULL)
 		pktgen_log_panic(
 			"Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, socket_id %d: %s",
@@ -256,7 +260,7 @@ pktgen_config_ports(void)
 	pktgen_log_info(
 		"Configuring %d ports, MBUF Size %d, MBUF Cache Size %d",
 		pktgen.nb_ports,
-		MBUF_SIZE,
+		DEFAULT_MBUF_SIZE,
 		MBUF_CACHE_SIZE);
 
 	/* For each lcore setup each port that is handled by that lcore. */

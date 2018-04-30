@@ -2591,6 +2591,10 @@ void
 enable_range(port_info_t *info, uint32_t state)
 {
 	if (state == ENABLE_STATE) {
+		if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
+			pktgen_log_warning("Cannot enable the range settings while sending packets!");
+			return;
+		}
 		pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
 		pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
 		pktgen_set_port_flags(info, SEND_RANGE_PKTS);

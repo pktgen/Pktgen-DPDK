@@ -13,6 +13,7 @@ LIB = libcommon.a
 LIBABIVER := 1
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
+CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 LDLIBS += -lrte_eal -lrte_mempool -lrte_kvargs -lrte_cmdline
  

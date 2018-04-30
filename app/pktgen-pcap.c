@@ -349,7 +349,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		info->q[qid].pcap_mp = rte_mempool_create(
 		                name,
 		                elt_count,
-		                MBUF_SIZE,
+		                DEFAULT_MBUF_SIZE,
 		                0,
 		                sizeof(struct rte_pktmbuf_pool_private),
 		                rte_pktmbuf_pool_init,
@@ -364,7 +364,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 			pktgen_log_panic("Cannot init port %d for PCAP packets",
 					 info->pid);
 
-		data_size = (info->pcap->pkt_count * MBUF_SIZE);
+		data_size = (info->pcap->pkt_count * DEFAULT_MBUF_SIZE);
 		scrn_printf(0, 0,
 		        "    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
 		        16,

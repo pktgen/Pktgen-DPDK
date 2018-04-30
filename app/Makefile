@@ -20,6 +20,7 @@ APP = pktgen
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
+CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 dpdk_ver := $(RTE_SDK)/xusertools/dpdk-version.sh
 pktgen_ver := $(RTE_SRCDIR)/../tools/dpdk-version.sh

@@ -33,44 +33,25 @@ enum {
 };
 
 static uint8_t hw_strip_crc = 0;
-const struct rte_eth_conf default_port_conf = {
+
+static struct rte_eth_conf default_port_conf = {
 	.rxmode = {
+		.mq_mode = ETH_MQ_RX_RSS,
+		.max_rx_pkt_len = ETHER_MAX_LEN,
 		.split_hdr_size = 0,
-		.header_split   = 0,	/**< Header Split disabled. */
-		.hw_ip_checksum = 0,	/**< IP checksum offload disabled. */
-		.hw_vlan_filter = 0,	/**< VLAN filtering enabled. */
-		.hw_vlan_strip  = 0,	/**< VLAN strip enabled. */
-		.hw_vlan_extend = 0,	/**< Extended VLAN disabled. */
-		.jumbo_frame    = 0,	/**< Jumbo Frame Support disabled. */
-		.hw_strip_crc   = 0,	/**< CRC stripping by hardware disabled. */
+		.ignore_offload_bitfield = 1,
+		.offloads = (DEV_RX_OFFLOAD_CRC_STRIP |
+			     DEV_RX_OFFLOAD_CHECKSUM),
 	},
 	.rx_adv_conf = {
 		.rss_conf = {
 			.rss_key = NULL,
-			.rss_key_len = 0,
 			.rss_hf = ETH_RSS_IP,
 		},
 	},
 	.txmode = {
 		.mq_mode = ETH_MQ_TX_NONE,
 	},
-};
-
-const ring_conf_t default_ring_conf = {
-	.rx_pthresh = RTE_PMD_PARAM_UNSET,
-	.rx_hthresh = RTE_PMD_PARAM_UNSET,
-	.rx_wthresh = RTE_PMD_PARAM_UNSET,
-
-	.tx_pthresh = RTE_PMD_PARAM_UNSET,
-	.tx_hthresh = RTE_PMD_PARAM_UNSET,
-	.tx_wthresh = RTE_PMD_PARAM_UNSET,
-
-	.rx_free_thresh = 32,
-	.rx_drop_en = RTE_PMD_PARAM_UNSET,
-	.tx_free_thresh = RTE_PMD_PARAM_UNSET,
-	.tx_rs_thresh = RTE_PMD_PARAM_UNSET,
-	.txq_flags = RTE_PMD_PARAM_UNSET,
-	.rss_hf = ETH_RSS_IP
 };
 
 void
@@ -101,26 +82,21 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 			uint32_t nb_mbufs, int socket_id, int cache_size){
 	struct rte_mempool *mp;
 	char name[RTE_MEMZONE_NAMESIZE];
+	uint64_t sz;
 
 	snprintf(name, sizeof(name), "%-12s%u:%u", type, pid, queue_id);
-	pktgen_log_info(
-		"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB headroom %d",
-		16,
-		name,
-		nb_mbufs,
-		DEFAULT_MBUF_SIZE,
-		sizeof(struct rte_mbuf),
-		sizeof(struct rte_mempool),
-		(((nb_mbufs * (DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf)) +
-		   sizeof(struct rte_mempool))) + 1023) / 1024,
-		RTE_PKTMBUF_HEADROOM);
 
-	pktgen.mem_used += ((nb_mbufs *
-		(DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf)) +
-		sizeof(struct rte_mempool)));
-	pktgen.total_mem_used += ((nb_mbufs *
-		(DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf)) +
-		sizeof(struct rte_mempool)));
+	sz = nb_mbufs * (DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf));
+	sz = RTE_ALIGN_CEIL(sz + sizeof(struct rte_mempool), 1024);
+
+	pktgen_log_info(
+		"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB, headroom %d",
+		16, name, nb_mbufs, DEFAULT_MBUF_SIZE,
+		sizeof(struct rte_mbuf), sizeof(struct rte_mempool),
+		sz / 1024, RTE_PKTMBUF_HEADROOM);
+
+	pktgen.mem_used += sz;
+	pktgen.total_mem_used += sz;
 
 	/* create the mbuf pool */
 	mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size,
@@ -128,89 +104,9 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	if (mp == NULL)
 		pktgen_log_panic(
 			"Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, socket_id %d: %s",
-			name,
-			pid,
-			queue_id,
-			nb_mbufs,
-			socket_id,
-			rte_strerror(errno));
+			name, pid, queue_id, nb_mbufs, socket_id, rte_strerror(errno));
 
 	return mp;
-}
-
-static void
-pktgen_port_conf_setup(uint32_t pid, rxtx_t *rt, const struct rte_eth_conf *dpc)
-{
-	port_info_t *info = &pktgen.info[pid];
-	struct rte_eth_conf *conf = &info->port_conf;
-	struct rte_eth_dev_info *dev = &info->dev_info;
-	ring_conf_t *rc = &info->ring_conf;
-	struct rte_eth_rxconf *rx;
-	struct rte_eth_txconf *tx;
-
-	rte_memcpy(conf, dpc, sizeof(struct rte_eth_conf));
-	rte_memcpy(&info->ring_conf, &default_ring_conf, sizeof(ring_conf_t));
-
-	rte_eth_dev_info_get(pid, dev);
-
-	pktgen_dump_dev_info(stdout, "Default Info", dev, pid);
-
-	if (rt->rx > 1) {
-		conf->rx_adv_conf.rss_conf.rss_key  = NULL;
-		conf->rx_adv_conf.rss_conf.rss_hf   = ETH_RSS_IP;
-	} else {
-		conf->rx_adv_conf.rss_conf.rss_key  = NULL;
-		conf->rx_adv_conf.rss_conf.rss_hf   = 0;
-	}
-	conf->rxmode.hw_strip_crc = hw_strip_crc;
-
-	if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
-		conf->rxmode.mq_mode = (dev->max_vfs) ?
-			ETH_MQ_RX_VMDQ_RSS : ETH_MQ_RX_RSS;
-	else
-		conf->rxmode.mq_mode = ETH_MQ_RX_NONE;
-
-	conf->txmode.mq_mode = ETH_MQ_TX_NONE;
-
-	rx = &info->rx_conf;
-	tx = &info->tx_conf;
-
-	rte_memcpy(rx, &info->dev_info.default_rxconf, sizeof(struct rte_eth_rxconf));
-	rte_memcpy(tx, &info->dev_info.default_txconf, sizeof(struct rte_eth_txconf));
-
-	/* Check if any RX/TX parameters have been passed */
-	if (rc->rx_pthresh != RTE_PMD_PARAM_UNSET)
-		rx->rx_thresh.pthresh = rc->rx_pthresh;
-
-	if (rc->rx_hthresh != RTE_PMD_PARAM_UNSET)
-		rx->rx_thresh.hthresh = rc->rx_hthresh;
-
-	if (rc->rx_wthresh != RTE_PMD_PARAM_UNSET)
-		rx->rx_thresh.wthresh = rc->rx_wthresh;
-
-	if (rc->rx_free_thresh != RTE_PMD_PARAM_UNSET)
-		rx->rx_free_thresh = rc->rx_free_thresh;
-
-	if (rc->rx_drop_en != RTE_PMD_PARAM_UNSET)
-		rx->rx_drop_en = rc->rx_drop_en;
-
-	if (rc->tx_pthresh != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.tx_thresh.pthresh = rc->tx_pthresh;
-
-	if (rc->tx_hthresh != RTE_PMD_PARAM_UNSET)
-		tx->tx_thresh.hthresh = rc->tx_hthresh;
-
-	if (rc->tx_wthresh != RTE_PMD_PARAM_UNSET)
-		tx->tx_thresh.wthresh = rc->tx_wthresh;
-
-	if (rc->tx_rs_thresh != RTE_PMD_PARAM_UNSET)
-		tx->tx_rs_thresh = rc->tx_rs_thresh;
-
-	if (rc->tx_free_thresh != RTE_PMD_PARAM_UNSET)
-		tx->tx_free_thresh = rc->tx_free_thresh;
-
-	if (rc->txq_flags != RTE_PMD_PARAM_UNSET)
-		info->tx_conf.txq_flags = rc->txq_flags;
 }
 
 /**************************************************************************//**
@@ -269,7 +165,7 @@ pktgen_config_ports(void)
 			continue;
 
 		/* For each port attached or handled by the lcore */
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {
+		RTE_ETH_FOREACH_DEV(pid) {
 			/* If non-zero then this port is handled by this lcore. */
 			if (get_map(pktgen.l2p, pid, lid) == 0)
 				continue;
@@ -281,14 +177,14 @@ pktgen_config_ports(void)
 
 	pktgen.total_mem_used = 0;
 
-	for (pid = 0; pid < pktgen.nb_ports; pid++) {
+	RTE_ETH_FOREACH_DEV(pid) {
 		/* Skip if we do not have any lcores attached to a port. */
 		if ( (rt.rxtx = get_map(pktgen.l2p, pid, RTE_MAX_LCORE)) == 0)
 			continue;
 
 		pktgen.port_cnt++;
 		snprintf(output_buff, sizeof(output_buff),
-			 "Initialize Port %d -- TxQ %d, RxQ %d",
+			 "Initialize Port %u -- TxQ %u, RxQ %u",
 			 pid, rt.tx, rt.rx);
 
 		info = get_port_private(pktgen.l2p, pid);
@@ -299,7 +195,7 @@ pktgen_config_ports(void)
 		rte_spinlock_init(&info->port_lock);
 
 		/* Create the pkt header structures for transmitting sequence of packets. */
-		snprintf(buff, sizeof(buff), "seq_hdr_%d", pid);
+		snprintf(buff, sizeof(buff), "seq_hdr_%u", pid);
 		info->seq_pkt = rte_zmalloc_socket(buff,
 						   (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
 						   RTE_CACHE_LINE_SIZE, rte_socket_id());
@@ -320,9 +216,14 @@ pktgen_config_ports(void)
 		cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE) ?
 			RTE_MEMPOOL_CACHE_MAX_SIZE : info->nb_mbufs;
 
-		pktgen_port_conf_setup(pid, &rt, &default_port_conf);
+		rte_eth_dev_info_get(pid, &info->dev_info);
+		rte_eth_dev_info_dump(NULL, pid);
 
-		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &info->port_conf)) < 0)
+		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE)
+			default_port_conf.txmode.offloads |=
+				DEV_TX_OFFLOAD_MBUF_FAST_FREE;
+
+		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &default_port_conf)) < 0)
 			pktgen_log_panic(
 				"Cannot configure device: port=%d, Num queues %d,%d (%d)%s",
 				pid, rt.rx, rt.tx, errno, rte_strerror(-ret));
@@ -332,6 +233,10 @@ pktgen_config_ports(void)
 		pktgen.mem_used = 0;
 
 		for (q = 0; q < rt.rx; q++) {
+			struct rte_eth_rxconf rxq_conf;
+			struct rte_eth_dev *dev = &rte_eth_devices[pid];
+			struct rte_eth_conf *conf;
+
 			/* grab the socket id value based on the lcore being used. */
 			sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, q));
 
@@ -341,8 +246,13 @@ pktgen_config_ports(void)
 			if (info->q[q].rx_mp == NULL)
 				pktgen_log_panic("Cannot init port %d for Default RX mbufs", pid);
 
+			conf = &dev->data->dev_conf;
+
+			rte_eth_dev_info_get(pid, &info->dev_info);
+			rxq_conf = info->dev_info.default_rxconf;
+			rxq_conf.offloads = conf->rxmode.offloads;
 			ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid,
-						     &info->rx_conf, pktgen.info[pid].q[q].rx_mp);
+						     &rxq_conf, pktgen.info[pid].q[q].rx_mp);
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s",
 						 ret, pid, rte_strerror(-ret));
@@ -353,6 +263,9 @@ pktgen_config_ports(void)
 		pktgen_log_info("");
 
 		for (q = 0; q < rt.tx; q++) {
+			struct rte_eth_txconf *txconf;
+
+
 			/* grab the socket id value based on the lcore being used. */
 			sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, q));
 
@@ -387,7 +300,11 @@ pktgen_config_ports(void)
 			/* Find out the link speed to program the WTHRESH value correctly. */
 			pktgen_get_link_status(info, pid, 0);
 
-			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &info->tx_conf);
+			txconf = &info->dev_info.default_txconf;
+			txconf->txq_flags = ETH_TXQ_FLAGS_IGNORE;
+			txconf->offloads = default_port_conf.txmode.offloads;
+
+			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s",
 						 ret, pid, rte_strerror(-ret));
@@ -415,7 +332,7 @@ pktgen_config_ports(void)
 			(pktgen.total_mem_used + 1023) / 1024);
 
 	/* Start up the ports and display the port Link status */
-	for (pid = 0; pid < pktgen.nb_ports; pid++) {
+	RTE_ETH_FOREACH_DEV(pid) {
 		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
@@ -423,13 +340,13 @@ pktgen_config_ports(void)
 		if ( (ret = rte_eth_dev_start(pid)) < 0)
 			pktgen_log_panic("rte_eth_dev_start: port=%d, %s",
 					 pid, rte_strerror(-ret));
-		rte_delay_us(250000);
+		rte_delay_ms(200);
 	}
 
-	rte_delay_us(1000000);
+	rte_delay_us(100000);
 
 	/* Start up the ports and display the port Link status */
-	for (pid = 0; pid < pktgen.nb_ports; pid++) {
+	RTE_ETH_FOREACH_DEV(pid) {
 		if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
 			continue;
 
@@ -439,12 +356,12 @@ pktgen_config_ports(void)
 
 		if (info->link.link_status)
 			snprintf(output_buff, sizeof(output_buff),
-				 "Port %2d: Link Up - speed %u Mbps - %s",
+				 "Port %2u: Link Up - speed %u Mbps - %s",
 				 pid, (uint32_t)info->link.link_speed,
 				 (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ?
 				 ("full-duplex") : ("half-duplex"));
 		else
-			snprintf(output_buff, sizeof(output_buff), "Port %2d: Link Down", pid);
+			snprintf(output_buff, sizeof(output_buff), "Port %2u: Link Down", pid);
 
 		/* If enabled, put device in promiscuous mode. */
 		if (pktgen.flags & PROMISCUOUS_ON_FLAG) {

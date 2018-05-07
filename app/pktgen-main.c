@@ -467,7 +467,7 @@ main(int argc, char **argv)
 	/* Wait for all of the cores to stop running and exit. */
 	rte_eal_mp_wait_lcore();
 
-	for (i = 0; i < pktgen.nb_ports; i++) {
+	RTE_ETH_FOREACH_DEV(i) {
 		rte_eth_dev_stop(i);
 		rte_delay_ms(100);
 		rte_eth_dev_close(i);

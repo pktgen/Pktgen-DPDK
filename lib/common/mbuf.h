@@ -7,6 +7,8 @@
 #ifndef _MBUF_H_
 #define _MBUF_H_
 
+#include <rte_atomic.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,13 +16,15 @@ extern "C" {
 static inline void
 pktmbuf_reset(struct rte_mbuf *m)
 {
+	rte_atomic16_set(&m->refcnt_atomic, 1);
+
 	m->next = NULL;
 	m->nb_segs = 1;
-	m->port = 0xff;
+	m->port = MBUF_INVALID_PORT;
 
+	m->packet_type = 0;
 	m->data_len = m->pkt_len;
-	m->data_off = (m->buf_len < RTE_PKTMBUF_HEADROOM) ?
-		RTE_PKTMBUF_HEADROOM : m->buf_len;
+	m->data_off = RTE_MIN(RTE_PKTMBUF_HEADROOM, (uint16_t)m->buf_len);
 }
 
 /**
@@ -43,7 +47,7 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 	unsigned idx = 0;
 	int rc;
 
-	rc = rte_mempool_get_bulk(pool, (void * *)mbufs, count);
+	rc = rte_mempool_get_bulk(pool, (void **)mbufs, count);
 	if (unlikely(rc))
 		return rc;
 
@@ -55,24 +59,21 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 	switch (count % 4) {
 	case 0:
 		while (idx != count) {
-			rte_mbuf_refcnt_set(mbufs[idx], 1);
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
 			/* fall-through */
-		case 3:
-			rte_mbuf_refcnt_set(mbufs[idx], 1);
+	case 3:
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
 			/* fall-through */
-		case 2:
-			rte_mbuf_refcnt_set(mbufs[idx], 1);
+	case 2:
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
 			/* fall-through */
-		case 1:
-			rte_mbuf_refcnt_set(mbufs[idx], 1);
+	case 1:
 			pktmbuf_reset(mbufs[idx]);
 			idx++;
+			/* fall-through */
 		}
 	}
 	return 0;

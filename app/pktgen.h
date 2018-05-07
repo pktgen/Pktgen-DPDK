@@ -111,10 +111,14 @@ extern "C" {
 
 #define _do(_exp)       do { _exp; } while ((0))
 
+#ifndef RTE_ETH_FOREACH_DEV
+#define RTE_ETH_FOREACH_DEV(p)	for(_p = 0; _p < pktgen.nb_ports; _p++)
+#endif
+
 #define forall_ports(_action)					\
 	do {							\
 		uint32_t pid;					\
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {	\
+		RTE_ETH_FOREACH_DEV(pid) {			\
 			port_info_t   *info;			\
 			info = &pktgen.info[pid];		\
 			if (info->seq_pkt == NULL)		\
@@ -127,7 +131,7 @@ extern "C" {
 	do {								\
 		uint32_t    *_pl = (uint32_t *)&_portlist;		\
 		uint32_t pid, idx, bit;					\
-		for (pid = 0; pid < pktgen.nb_ports; pid++) {		\
+		RTE_ETH_FOREACH_DEV(pid) {				\
 			port_info_t   *info;				\
 			idx = (pid / (sizeof(uint32_t) * 8));		\
 			bit = (pid - (idx * (sizeof(uint32_t) * 8)));	\

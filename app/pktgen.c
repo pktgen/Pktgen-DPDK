@@ -24,7 +24,7 @@
 #include "pktgen-gtpu.h"
 #include "pktgen-cfg.h"
 
-#define PKTGEN_RETRY_COUNT	10000
+#define PKTGEN_RETRY_COUNT	1000
 
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
@@ -228,10 +228,11 @@ static inline void
 pktgen_latency_apply(port_info_t *info __rte_unused,
 		     struct rte_mbuf **mbufs, int cnt, int32_t seq_idx)
 {
-	latency_t *latency;
 	int i;
 
 	for (i = 0; i < cnt; i++) {
+		latency_t *latency;
+
 		latency = pktgen_latency_pointer(info, mbufs[i], seq_idx);
 
 		latency->timestamp  = rte_rdtsc_precise();
@@ -268,9 +269,10 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, retry;
+	uint32_t ret, cnt, sav, retry;
 
 	cnt = mtab->len;
+	sav = cnt;
 	mtab->len = 0;
 
 	pkts    = mtab->m_table;
@@ -296,6 +298,11 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 			if (!ret)
 				retry--;
 		}
+	if (cnt) {
+		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
+			sizeof(char *) * cnt);
+		mtab->len = cnt;
+	}
 }
 
 /**************************************************************************//**
@@ -315,13 +322,14 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, flags, retry;
+	uint32_t ret, cnt, sav, flags, retry;
 
 	cnt         = mtab->len;
+	sav	    = cnt;
 	mtab->len   = 0;
 	pkts        = mtab->m_table;
 
-	retry = 100;
+	retry = PKTGEN_RETRY_COUNT;
 
 	flags   = rte_atomic32_read(&info->port_flags);
 	if (unlikely(flags & PROCESS_TX_TAP_PKTS))
@@ -348,6 +356,11 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 			if (!ret)
 				retry--;
 		}
+	if (cnt) {
+		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
+			sizeof(char *) * cnt);
+		mtab->len = cnt;
+	}
 }
 
 /**************************************************************************//**
@@ -367,13 +380,16 @@ _send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, retry;
+	uint32_t cnt, sav, retry;
 
 	cnt         = mtab->len;
+	sav         = cnt;
 	mtab->len   = 0;
 	pkts        = mtab->m_table;
-	retry       = 100;
+	retry       = PKTGEN_RETRY_COUNT;
 	while (cnt && retry) {
+		int ret;
+
 		pktgen_latency_apply(info, pkts, cnt, seq_idx);
 
 		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
@@ -382,6 +398,11 @@ _send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
 		cnt -= ret;
 		if (!ret)
 			retry--;
+	}
+	if (cnt) {
+		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
+			sizeof(char *) * cnt);
+		mtab->len = cnt;
 	}
 }
 
@@ -410,7 +431,6 @@ static __inline__ void
 pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
 	uint32_t flags;
-	uint64_t lat, jitter;
 	int32_t seq_idx;
 
 	flags = rte_atomic32_read(&info->port_flags);
@@ -422,9 +442,10 @@ pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 
 	if (flags & SEND_LATENCY_PKTS) {
 		int i;
-		latency_t *latency;
+		uint64_t lat, jitter;
 
 		for (i = 0; i < nb_pkts; i++) {
+			latency_t *latency;
 			latency = pktgen_latency_pointer(info, pkts[i], seq_idx);
 
 			if (latency->magic == LATENCY_MAGIC) {
@@ -486,13 +507,15 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 static __inline__ void
 pktgen_exit_cleanup(uint8_t lid)
 {
-	port_info_t *info;
-	uint8_t idx, pid, qid;
+	uint8_t idx;
 
 	for (idx = 0; idx < get_lcore_txcnt(pktgen.l2p, lid); idx++) {
+		port_info_t *info;
+		uint8_t pid;
+
 		pid = get_tx_pid(pktgen.l2p, lid, idx);
 		if ( (info = (port_info_t *)get_port_private(pktgen.l2p, pid)) != NULL) {
-			qid = get_txque(pktgen.l2p, lid, pid);
+			uint8_t qid = get_txque(pktgen.l2p, lid, pid);
 			pktgen_tx_flush(info, qid);
 		}
 	}
@@ -539,7 +562,6 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 	pkt_seq_t         *pkt = &info->seq_pkt[seq_idx];
 	struct ether_hdr  *eth = (struct ether_hdr *)&pkt->hdr.eth;
 	char *l3_hdr = NULL;
-	uint16_t tlen;
 
 	/* Fill in the pattern for data space. */
 	pktgen_fill_pattern((uint8_t *)&pkt->hdr,
@@ -592,8 +614,9 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_ICMP) {
-			udpip_t           *uip;
-			icmpv4Hdr_t       *icmp;
+			udpip_t *uip;
+			icmpv4Hdr_t *icmp;
+			uint16_t tlen;
 
 			/* Start from Ethernet header */
 			uip = (udpip_t *)l3_hdr;

@@ -149,15 +149,15 @@ typedef struct port_info_s {
 	uint64_t tx_count;	/**< Total count of tx attempts */
 
 	/* Packet buffer space for traffic generator, shared for all packets per port */
-	uint16_t seqIdx;		/**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
-	uint16_t seqCnt;		/**< Current packet sequence max count */
-	uint16_t prime_cnt;		/**< Set the number of packets to send in a prime command */
-	uint16_t vlanid;		/**< Set the port VLAN ID value */
-	uint8_t cos;			/**< Set the port 802.1p cos value */
-	uint8_t tos;			/**< Set the port tos value */
-	rte_spinlock_t port_lock;	/**< Used to sync up packet constructor between cores */
-	pkt_seq_t *seq_pkt;		/**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
-	range_info_t range;		/**< Range Information */
+	uint16_t seqIdx;	/**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
+	uint16_t seqCnt;	/**< Current packet sequence max count */
+	uint16_t prime_cnt;	/**< Set the number of packets to send in a prime command */
+	uint16_t vlanid;	/**< Set the port VLAN ID value */
+	uint8_t cos;		/**< Set the port 802.1p cos value */
+	uint8_t tos;		/**< Set the port tos value */
+	rte_spinlock_t port_lock;/**< Used to sync up packet constructor between cores */
+	pkt_seq_t *seq_pkt;	/**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
+	range_info_t range;	/**< Range Information */
 
 	uint32_t mpls_entry;	/**< Set the port MPLS entry */
 	uint32_t gre_key;	/**< GRE key if used */
@@ -198,10 +198,10 @@ typedef struct port_info_s {
 		uint64_t tx_cnt, rx_cnt;
 	} q[NUM_Q];
 
-	int32_t rx_tapfd;		/**< Rx Tap file descriptor */
-	int32_t tx_tapfd;		/**< Tx Tap file descriptor */
-	pcap_info_t           *pcap;	/**< PCAP information header */
-	uint64_t pcap_cycles;		/**< number of cycles for pcap sending */
+	int32_t rx_tapfd;	/**< Rx Tap file descriptor */
+	int32_t tx_tapfd;	/**< Tx Tap file descriptor */
+	pcap_info_t *pcap;	/**< PCAP information header */
+	uint64_t pcap_cycles;	/**< number of cycles for pcap sending */
 
 	int32_t pcap_result;	/**< PCAP result of filter compile */
 	struct bpf_program pcap_program;/**< PCAP filter program structure */
@@ -217,11 +217,7 @@ typedef struct port_info_s {
 
 	struct rnd_bits_s     *rnd_bitfields;	/**< Random bitfield settings */
 
-	struct rte_eth_conf port_conf;		/**< port configuration information */
 	struct rte_eth_dev_info dev_info;	/**< PCI info + driver name */
-	struct rte_eth_rxconf rx_conf;		/**< RX configuration */
-	struct rte_eth_txconf tx_conf;		/**< TX configuration */
-	ring_conf_t ring_conf;			/**< Misc ring configuration information */
 	char user_pattern[USER_PATTERN_SIZE];	/**< User set pattern values */
 	fill_t fill_pattern_type;		/**< Type of pattern to fill with */
 } port_info_t;
@@ -242,10 +238,10 @@ static inline uint64_t
 pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 {
 	int success;
-	int64_t tmp1, tmp2;
+	int64_t tmp2;
 
 	do {
-		tmp1 = v->cnt;
+		int64_t tmp1 = v->cnt;
 		if (tmp1 == 0)
 			return 0;
 		tmp2 = likely(tmp1 > burst) ? burst : tmp1;
@@ -258,87 +254,137 @@ pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 }
 
 static inline void
-pktgen_dump_rx_conf(FILE *f, struct rte_eth_rxconf *rx){
-	fprintf(f, "** RX Conf **\n");
-	fprintf(
-		f,
-		"   pthresh        :%4d, hthresh          :%4d, wthresh        :%6d\n",
+rte_eth_rxconf_dump(FILE *f, struct rte_eth_rxconf *rx)
+{
+	fprintf(f, "  RX Conf:\n");
+	fprintf(f,
+		"     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16 " wthresh        :%5" PRIu16 "\n",
 		rx->rx_thresh.pthresh,
 		rx->rx_thresh.hthresh,
 		rx->rx_thresh.wthresh);
-	fprintf(
-		f,
-		"   Free Thresh    :%4d, Drop Enable      :%4d, Deferred Start :%6d\n",
+	fprintf(f,
+		"     Free Thresh    :%5" PRIu16 " Drop Enable      :%5" PRIu16 " Deferred Start :%5" PRIu16 "\n",
 		rx->rx_free_thresh,
 		rx->rx_drop_en,
 		rx->rx_deferred_start);
+	fprintf(f,
+		"     offloads       :%016" PRIx64 "\n",
+		rx->offloads);
 }
 
 static inline void
-pktgen_dump_tx_conf(FILE *f, struct rte_eth_txconf *tx){
-	fprintf(f, "** TX Conf **\n");
-	fprintf(
-		f,
-		"   pthresh        :%4d, hthresh          :%4d, wthresh        :%6d\n",
+rte_eth_txconf_dump(FILE *f, struct rte_eth_txconf *tx)
+{
+	fprintf(f, "  TX Conf:\n");
+	fprintf(f,
+		"     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16 " wthresh        :%5" PRIu16 "\n",
 		tx->tx_thresh.pthresh,
 		tx->tx_thresh.hthresh,
 		tx->tx_thresh.wthresh);
-	fprintf(
-		f,
-		"   Free Thresh    :%4d, RS Thresh        :%4d, Deferred Start :%6d, TXQ Flags:%08x\n",
+	fprintf(f,
+		"     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16 " Deferred Start :%5" PRIu16 "  TXQ Flags: %08x\n",
 		tx->tx_free_thresh,
 		tx->tx_rs_thresh,
 		tx->tx_deferred_start,
 		tx->txq_flags);
+	fprintf(f,
+		"     offloads       :%016" PRIx64 "\n",
+		tx->offloads);
 }
 
 static inline void
-pktgen_dump_dev_info(FILE *f, const char *msg, struct rte_eth_dev_info *di, uint32_t pid) {
-	fprintf(f, "\n** %s (%s, if_index:%d) **\n",
-		(msg) ? msg : "Device Info", rte_eth_devices[pid].data->name, di->if_index);
-#if RTE_VERSION < RTE_VERSION_NUM(17, 5, 0, 0)
-	fprintf(
-		f,
-		"   max_vfs        :%4d, min_rx_bufsize    :%4d, max_rx_pktlen :%6d\n",
-		di->pci_dev ? di->pci_dev->max_vfs : 0,
-		di->min_rx_bufsize,
-		di->max_rx_pktlen);
-#endif
-	fprintf(
-		f,
-		"   max_rx_queues  :%4d, max_tx_queues     :%4d\n",
-		di->max_rx_queues,
-		di->max_tx_queues);
-	fprintf(
-		f,
-		"   max_mac_addrs  :%4d, max_hash_mac_addrs:%4d, max_vmdq_pools:%6d\n",
-		di->max_mac_addrs,
-		di->max_hash_mac_addrs,
-		di->max_vmdq_pools);
-	fprintf(
-		f,
-#if RTE_VERSION < RTE_VERSION_NUM(17, 11, 0, 0)
-		"   rx_offload_capa:%4u, tx_offload_capa   :%4u, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
-#else
-		"   rx_offload_capa:%4lu, tx_offload_capa   :%4lu, reta_size     :%6d, flow_type_rss_offloads:%016" PRIx64 "\n",
-#endif
-		di->rx_offload_capa,
-		di->tx_offload_capa,
-		di->reta_size,
-#if defined(RTE_VER_MAJOR) && (RTE_VER_MAJOR < 2)
-		0L
-#else
-		di->flow_type_rss_offloads
-#endif
-		);
-	fprintf(
-		f,
-		"   vmdq_queue_base:%4d, vmdq_queue_num    :%4d, vmdq_pool_base:%6d\n",
-		di->vmdq_queue_base,
-		di->vmdq_queue_num,
-		di->vmdq_pool_base);
-	pktgen_dump_rx_conf(f, &di->default_rxconf);
-	pktgen_dump_tx_conf(f, &di->default_txconf);
+rte_eth_desc_lim_dump(FILE *f, struct rte_eth_desc_lim *lim, int tx_flag)
+{
+	fprintf(f, "  %s: descriptor Limits\n", tx_flag ? "Tx" : "Rx");
+
+	fprintf(f,
+		"     nb_max         :%5" PRIu16 "  nb_min          :%5" PRIu16 "  nb_align      :%5" PRIu16 "\n",
+		lim->nb_max, lim->nb_min, lim->nb_align);
+	fprintf(f,
+		"     nb_seg_max     :%5" PRIu16 "  nb_mtu_seg_max  :%5" PRIu16 "\n",
+		lim->nb_seg_max, lim->nb_mtu_seg_max);
+}
+
+static inline void
+rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_flag)
+{
+	fprintf(f, "  %s: Port Config\n", tx_flag ? "Tx" : "Rx");
+
+	fprintf(f,
+		"     burst_size     :%5" PRIu16 "  ring_size       :%5" PRIu16 "  nb_queues     :%5" PRIu16 "\n",
+		conf->burst_size, conf->ring_size, conf->nb_queues);
+}
+
+static inline void
+rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
+{
+	fprintf(f, "  Switch Info: %s\n", sw->name);
+
+	fprintf(f,
+		"     domain_id      :%5" PRIu16 "  port_id         :%5" PRIu16 "\n",
+		sw->domain_id, sw->port_id);
+}
+
+static inline void
+rte_eth_dev_info_dump(FILE *f, uint16_t pid)
+{
+	struct rte_eth_dev_info dev_info;
+	struct rte_eth_dev_info *di = &dev_info;
+
+	rte_eth_dev_info_get(pid, &dev_info);
+
+	if (!f)
+		f = stderr;
+
+	fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n",
+		rte_eth_devices[pid].data->name, di->if_index, *di->dev_flags);
+
+	fprintf(f,
+		"   min_rx_bufsize :%5" PRIu32 "  max_rx_pktlen     :%5" PRIu32 "  hash_key_size :%5" PRIu8 "\n",
+		di->min_rx_bufsize, di->max_rx_pktlen, di->hash_key_size);
+	fprintf(f,
+		"   max_rx_queues  :%5" PRIu16 "  max_tx_queues     :%5" PRIu16 "  max_vfs       :%5" PRIu16 "\n",
+		di->max_rx_queues, di->max_tx_queues, di->max_vfs);
+	fprintf(f,
+		"   max_mac_addrs  :%5" PRIu32 "  max_hash_mac_addrs:%5" PRIu32 "  max_vmdq_pools:%5" PRIu16 "\n",
+		di->max_mac_addrs, di->max_hash_mac_addrs, di->max_vmdq_pools);
+	fprintf(f,
+		"   vmdq_queue_base:%5" PRIu16 "  vmdq_queue_num    :%5" PRIu16 "  vmdq_pool_base:%5" PRIu16 "\n",
+		di->vmdq_queue_base, di->vmdq_queue_num, di->vmdq_pool_base);
+	fprintf(f,
+		"   nb_rx_queues   :%5" PRIu16 "  nb_tx_queues      :%5" PRIu16 "  speed_capa    : %08" PRIx32 "\n",
+		di->nb_rx_queues, di->nb_tx_queues, di->speed_capa);
+	fprintf(f, "\n");
+	fprintf(f,
+		"   flow_type_rss_offloads:%016" PRIx64 "  reta_size             :%5" PRIu16 "\n",
+		di->flow_type_rss_offloads, di->reta_size);
+	fprintf(f,
+		"   rx_offload_capa       :%016" PRIx64,
+		di->rx_offload_capa);
+	fprintf(f,
+		"  tx_offload_capa       :%016" PRIu64 "\n",
+		di->tx_offload_capa);
+	fprintf(f,
+		"   rx_queue_offload_capa :%016" PRIx64,
+		di->rx_queue_offload_capa);
+	fprintf(f,
+		"  tx_queue_offload_capa :%016" PRIx64 "\n",
+		di->tx_queue_offload_capa);
+	fprintf(f,
+		"   dev_capa              :%016" PRIx64 "\n",
+		di->dev_capa);
+	fprintf(f, "\n");
+
+	rte_eth_rxconf_dump(f, &di->default_rxconf);
+	rte_eth_txconf_dump(f, &di->default_txconf);
+
+	rte_eth_desc_lim_dump(f, &di->rx_desc_lim, 0);
+	rte_eth_desc_lim_dump(f, &di->tx_desc_lim, 1);
+
+	rte_eth_dev_portconf_dump(f, &di->default_rxportconf, 0);
+	rte_eth_dev_portconf_dump(f, &di->default_txportconf, 1);
+
+	rte_eth_switch_info_dump(f, &di->switch_info);
 	fprintf(f, "\n");
 }
 

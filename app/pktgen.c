@@ -272,31 +272,27 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 	uint32_t ret, cnt, sav, retry;
 
 	cnt = mtab->len;
-	sav = cnt;
 	mtab->len = 0;
+	sav = cnt;
 
-	pkts    = mtab->m_table;
+	pkts = mtab->m_table;
 
 	retry = PKTGEN_RETRY_COUNT;
 	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
-		while (cnt && retry) {
+		while (cnt && retry--) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pktgen_do_tx_tap(info, pkts, ret);
 
 			pkts += ret;
 			cnt -= ret;
-			if (!ret)
-				retry--;
 		}
 	else
-		while (cnt && retry) {
+		while (cnt && retry--) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pkts += ret;
 			cnt -= ret;
-			if (!ret)
-				retry--;
 		}
 	if (cnt) {
 		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
@@ -333,7 +329,7 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 
 	flags   = rte_atomic32_read(&info->port_flags);
 	if (unlikely(flags & PROCESS_TX_TAP_PKTS))
-		while (cnt && retry) {
+		while (cnt && retry--) {
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
@@ -342,19 +338,15 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 
 			pkts += ret;
 			cnt -= ret;
-			if (!ret)
-				retry--;
 		}
 	else
-		while (cnt && retry) {
+		while (cnt && retry--) {
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pkts += ret;
 			cnt -= ret;
-			if (!ret)
-				retry--;
 		}
 	if (cnt) {
 		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
@@ -387,7 +379,7 @@ _send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
 	mtab->len   = 0;
 	pkts        = mtab->m_table;
 	retry       = PKTGEN_RETRY_COUNT;
-	while (cnt && retry) {
+	while (cnt && retry--) {
 		int ret;
 
 		pktgen_latency_apply(info, pkts, cnt, seq_idx);
@@ -396,8 +388,6 @@ _send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
 
 		pkts += ret;
 		cnt -= ret;
-		if (!ret)
-			retry--;
 	}
 	if (cnt) {
 		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],

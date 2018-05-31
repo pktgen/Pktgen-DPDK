@@ -14,7 +14,7 @@
 #include "pktgen-log.h"
 
 #if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
-#define rte_eth_dev_count	rte_eth_dev_count_total
+#define rte_eth_dev_count	rte_eth_dev_count_avail
 #endif
 
 #ifdef RTE_LIBRTE_BONDING_PMD

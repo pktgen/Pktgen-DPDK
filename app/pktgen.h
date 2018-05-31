@@ -161,8 +161,8 @@ rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
 	struct rte_mbuf *m;
 	while (npkts--) {
 		m = *m_list++;
-		m->next = 0;
 		rte_pktmbuf_free(m);
+		m->next = 0;
 	}
 }
 

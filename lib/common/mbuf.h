@@ -16,15 +16,11 @@ extern "C" {
 static inline void
 pktmbuf_reset(struct rte_mbuf *m)
 {
-	rte_atomic16_set(&m->refcnt_atomic, 1);
+	uint16_t data_len = m->data_len;
 
-	m->next = NULL;
-	m->nb_segs = 1;
-	m->port = MBUF_INVALID_PORT;
-
-	m->packet_type = 0;
-	m->data_len = m->pkt_len;
-	m->data_off = RTE_MIN(RTE_PKTMBUF_HEADROOM, (uint16_t)m->buf_len);
+	rte_pktmbuf_reset(m);
+	m->data_len = data_len;
+	m->pkt_len = (uint32_t)data_len;
 }
 
 /**

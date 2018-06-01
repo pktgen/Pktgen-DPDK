@@ -929,71 +929,33 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	/* Cleanup the mbuf data as virtio messes with the values */
 	pktmbuf_reset(m);
 
-	if (mp == info->q[qid].tx_mp)
-		pkt = &info->seq_pkt[SINGLE_PKT];
-	else if (mp == info->q[qid].range_mp)
-		pkt = &info->seq_pkt[RANGE_PKT];
-	else if (mp == info->q[qid].seq_mp)
-		pkt = &info->seq_pkt[info->seqIdx];
-	else
-		pkt = NULL;
-
-	/* allocate each mbuf and put them on a list to be freed. */
 	if (mp == info->q[qid].tx_mp) {
+		pkt = &info->seq_pkt[SINGLE_PKT];
+
 		pktgen_packet_ctor(info, SINGLE_PKT, -1);
 
-		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-			   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
-
-		m->pkt_len  = pkt->pktSize;
-		m->data_len = pkt->pktSize;
 	} else if (mp == info->q[qid].range_mp) {
+		pkt = &info->seq_pkt[RANGE_PKT];
+
 		pktgen_range_ctor(&info->range, pkt);
 		pktgen_packet_ctor(info, RANGE_PKT, -1);
 
-		rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-			   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
-
-		m->pkt_len  = pkt->pktSize;
-		m->data_len = pkt->pktSize;
 	} else if (mp == info->q[qid].seq_mp) {
-		if (pktgen.is_gui_running)
-			while (info->seqIdx < info->seqCnt) {
-				pkt = &info->seq_pkt[info->seqIdx];
+		pkt = &info->seq_pkt[info->seqIdx];
 
-				/* Check the sequence and start from the beginning */
-				if (++info->seqIdx >= info->seqCnt)
-					info->seqIdx = 0;
+		pktgen_packet_ctor(info, info->seqIdx, -1);
 
-				if (pkt->seq_enabled) {
-					/* Call ctor for those sequence which are enabled in the GUI */
-					pktgen_packet_ctor(info, info->seqIdx, -1);
+		/* move to the next packet in the sequence. */
+		if (unlikely(++info->seqIdx >= info->seqCnt))
+			info->seqIdx = 0;
+	} else
+		return;
 
-					rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-						   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
-					m->pkt_len  = pkt->pktSize;
-					m->data_len = pkt->pktSize;
-					pkt = &info->seq_pkt[info->seqIdx];
-					break;
-				}
-			}
-		else {
-			pkt = &info->seq_pkt[info->seqIdx];
-			pktgen_packet_ctor(info, info->seqIdx, -1);
+	rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
+			(uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
 
-			rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
-				   (uint8_t *)&pkt->hdr, MAX_PKT_SIZE);
-
-			m->pkt_len  = pkt->pktSize;
-			m->data_len = pkt->pktSize;
-
-			pkt = &info->seq_pkt[info->seqIdx];
-
-			/* move to the next packet in the sequence. */
-			if (unlikely(++info->seqIdx >= info->seqCnt))
-				info->seqIdx = 0;
-		}
-	}
+	m->pkt_len  = pkt->pktSize;
+	m->data_len = pkt->pktSize;
 }
 
 /**************************************************************************//**

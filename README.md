@@ -1194,7 +1194,7 @@ set <portlist> <type> value        - Set a few port values
                  jitter            - Set the jitter threshold in micro-seconds
                  mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)
                  gre_key           - Set the GRE key
-                 mac dst|src <etheraddr> - Set MAC addresses 00:11:22:33:44:55
+                 dst|src mac <etheraddr> - Set MAC addresses 00:11:22:33:44:55
                                      You can use 0011:2233:4455 format as well
 set <portlist> jitter <value>      - Set the jitter value
 set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN

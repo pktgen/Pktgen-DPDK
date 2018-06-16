@@ -264,7 +264,7 @@ def setup_cfg(cfg_file):
 	# locate the binding tool
 	if os.path.exists("%s/usertools/dpdk-devbind.py" % sdk):
 		script = "%s/usertools/dpdk-devbind.py" % sdk
-	elif os.path.exits("%s/tools/dpdk_nic_bind.py" % sdk):
+	elif os.path.exists("%s/tools/dpdk_nic_bind.py" % sdk):
 		script = "%s/tools/dpdk_nic_bind.py" % sdk
 	else:
 		err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")

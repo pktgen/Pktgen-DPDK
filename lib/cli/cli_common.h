@@ -63,4 +63,4 @@ cli_printf(const char *fmt, ...)
 }
 #endif
 
-#endif /* _CLI_HELP_H_ */
+#endif /* _CLI_COMMON_H_ */

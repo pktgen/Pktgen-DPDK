@@ -232,7 +232,7 @@ cli_file_create(const char *path, const char *type)
 
 	data = malloc(CLI_FILE_SIZE);
 	if (data) {
-		parent = cli_last_node_in_path(path);
+		parent = cli_last_dir_in_path(path);
 		if (parent) {
 			node = cli_add_file(file, parent, cli_file_handler, "");
 			if (node) {

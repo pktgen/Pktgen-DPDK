@@ -37,10 +37,6 @@
 extern "C" {
 #endif
 
-#define CLI_USE_TIMERS 0x0001      /**< call rte_timer_manager() on input */
-#define CLI_NODES_UNLIMITED 0x0002 /**< Allocate nodes with no limit */
-#define CLI_YIELD_IO 0x0004
-
 #define CLI_ROOT_NAME "/"
 #define CLI_BIN_NAME "bin"
 
@@ -71,7 +67,7 @@ typedef enum {
 } node_type_t;
 
 /* Keep this list in sync with the node_type_t enum above */
-#define CLI_NODE_TYPES                                                         \
+#define CLI_NODE_TYPES \
   { "Unknown", "Directory", "Command", "File", "Alias", "String", NULL }
 
 enum {
@@ -169,7 +165,10 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define DELETE_CHAR		(1 << 4)
 #define CLEAR_LINE		(1 << 5)
 
-#define CLI_DEFAULT_TREE	(1 << 16)
+#define CLI_USE_TIMERS 		(1 << 8)	/**< call rte_timer_manager() on input */
+#define CLI_NODES_UNLIMITED	(1 << 9)	/**< Allocate nodes with no limit */
+#define CLI_YIELD_IO		(1 << 10)
+#define CLI_DEFAULT_TREE	(1 << 11)
 
 static inline void
 cli_set_flag(uint32_t x)

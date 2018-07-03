@@ -26,7 +26,7 @@ int
 cli_use_timers(void)
 {
 	if (!this_cli)
-		return 1;
+		return 0;
 	return this_cli->flags & CLI_USE_TIMERS;
 }
 

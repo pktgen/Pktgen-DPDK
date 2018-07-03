@@ -163,9 +163,9 @@ uint32_t cli_path_item_count(uint32_t types);
 * @param path
 *   Path string to scan
 * @return
-*   Pointer to last node in path
+*   Pointer to last directory node in path
 */
-struct cli_node *cli_last_node_in_path(const char *path);
+struct cli_node *cli_last_dir_in_path(const char *path);
 
 /**
 * Scan a directory for a given string matching name

@@ -117,7 +117,7 @@ complete_args(int argc, char **argv, uint32_t types)
 					return 0;
 
 			/* if not found get last directory in path */
-			node = cli_last_node_in_path(match);
+			node = cli_last_dir_in_path(match);
 
 			if ((slashes == 1) && (match && (match[0] == '/'))) {
 				match++;

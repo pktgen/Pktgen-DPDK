@@ -307,6 +307,7 @@ pktgen_config_ports(void)
 			if (pktgen.info[pid].pcap != NULL)
 				if (pktgen_pcap_parse(pktgen.info[pid].pcap, info, q) == -1)
 					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
+
 			/* Find out the link speed to program the WTHRESH value correctly. */
 			pktgen_get_link_status(info, pid, 0);
 
@@ -320,6 +321,7 @@ pktgen_config_ports(void)
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s",
 						 ret, pid, rte_strerror(-ret));
+
 			pktgen_log_info("");
 		}
 		pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ",

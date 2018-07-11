@@ -246,7 +246,8 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
 		rte_delay_ms(100);
 	}
 
-	printf("**** Failed to get link UP and speed, use dfaults!\n");
+	if (wait)
+		printf("**** Failed to get link UP and speed, use defaults!\n");
 	/* Setup a few default values to prevent problems later. */
 #if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 	info->link.link_speed   = ETH_SPEED_NUM_10G;

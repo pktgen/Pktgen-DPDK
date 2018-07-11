@@ -115,10 +115,12 @@ typedef struct ring_conf_s {
 	 */
 	int16_t tx_rs_thresh;
 
+#if RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
 	/*
 	 * Configurable value of TX queue flags.
 	 */
 	int32_t txq_flags;
+#endif
 
 	/*
 	 * Receive Side Scaling (RSS) configuration.
@@ -281,12 +283,20 @@ rte_eth_txconf_dump(FILE *f, struct rte_eth_txconf *tx)
 		tx->tx_thresh.pthresh,
 		tx->tx_thresh.hthresh,
 		tx->tx_thresh.wthresh);
+#if RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
 	fprintf(f,
 		"     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16 " Deferred Start :%5" PRIu16 "  TXQ Flags: %08x\n",
 		tx->tx_free_thresh,
 		tx->tx_rs_thresh,
 		tx->tx_deferred_start,
 		tx->txq_flags);
+#else
+	fprintf(f,
+		"     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16 " Deferred Start :%5" PRIu16 "\n",
+		tx->tx_free_thresh,
+		tx->tx_rs_thresh,
+		tx->tx_deferred_start);
+#endif
 	fprintf(f,
 		"     offloads       :%016" PRIx64 "\n",
 		tx->offloads);
@@ -305,6 +315,7 @@ rte_eth_desc_lim_dump(FILE *f, struct rte_eth_desc_lim *lim, int tx_flag)
 		lim->nb_seg_max, lim->nb_mtu_seg_max);
 }
 
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 static inline void
 rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_flag)
 {
@@ -314,7 +325,9 @@ rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_fla
 		"     burst_size     :%5" PRIu16 "  ring_size       :%5" PRIu16 "  nb_queues     :%5" PRIu16 "\n",
 		conf->burst_size, conf->ring_size, conf->nb_queues);
 }
+#endif
 
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 static inline void
 rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
 {
@@ -324,6 +337,7 @@ rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
 		"     domain_id      :%5" PRIu16 "  port_id         :%5" PRIu16 "\n",
 		sw->domain_id, sw->port_id);
 }
+#endif
 
 static inline void
 rte_eth_dev_info_dump(FILE *f, uint16_t pid)
@@ -336,8 +350,13 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 	if (!f)
 		f = stderr;
 
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 	fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n",
 		rte_eth_devices[pid].data->name, di->if_index, *di->dev_flags);
+#else
+	fprintf(f, "** Device Info (%s, if_index:%" PRId32 ") **\n",
+		rte_eth_devices[pid].data->name, di->if_index);
+#endif
 
 	fprintf(f,
 		"   min_rx_bufsize :%5" PRIu32 "  max_rx_pktlen     :%5" PRIu32 "  hash_key_size :%5" PRIu8 "\n",
@@ -370,9 +389,11 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 	fprintf(f,
 		"  tx_queue_offload_capa :%016" PRIx64 "\n",
 		di->tx_queue_offload_capa);
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 	fprintf(f,
 		"   dev_capa              :%016" PRIx64 "\n",
 		di->dev_capa);
+#endif
 	fprintf(f, "\n");
 
 	rte_eth_rxconf_dump(f, &di->default_rxconf);
@@ -381,10 +402,12 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 	rte_eth_desc_lim_dump(f, &di->rx_desc_lim, 0);
 	rte_eth_desc_lim_dump(f, &di->tx_desc_lim, 1);
 
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 	rte_eth_dev_portconf_dump(f, &di->default_rxportconf, 0);
 	rte_eth_dev_portconf_dump(f, &di->default_txportconf, 1);
 
 	rte_eth_switch_info_dump(f, &di->switch_info);
+#endif
 	fprintf(f, "\n");
 }
 

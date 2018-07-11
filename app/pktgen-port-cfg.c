@@ -35,6 +35,7 @@ enum {
 static uint8_t hw_strip_crc = 0;
 
 static struct rte_eth_conf default_port_conf = {
+#if RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
 	.rxmode = {
 		.mq_mode = ETH_MQ_RX_RSS,
 		.max_rx_pkt_len = ETHER_MAX_LEN,
@@ -52,6 +53,15 @@ static struct rte_eth_conf default_port_conf = {
 	.txmode = {
 		.mq_mode = ETH_MQ_TX_NONE,
 	},
+#else
+	.rxmode = {
+		.split_hdr_size = 0,
+		.offloads = DEV_RX_OFFLOAD_CRC_STRIP,
+	},
+	.txmode = {
+		.mq_mode = ETH_MQ_TX_NONE,
+	},
+#endif
 };
 
 void
@@ -301,7 +311,9 @@ pktgen_config_ports(void)
 			pktgen_get_link_status(info, pid, 0);
 
 			txconf = &info->dev_info.default_txconf;
+#if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
 			txconf->txq_flags = ETH_TXQ_FLAGS_IGNORE;
+#endif
 			txconf->offloads = default_port_conf.txmode.offloads;
 
 			ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);

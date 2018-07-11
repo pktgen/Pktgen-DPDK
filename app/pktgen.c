@@ -810,9 +810,9 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 		info->sizes._512_1023++;
 	else if ( (plen >= 1024) && (plen <= ETHER_MAX_LEN))
 		info->sizes._1024_1518++;
-	else if (plen < ETHER_MIN_LEN) {
+	else if (plen < ETHER_MIN_LEN)
 		info->sizes.runt++;
-	} else if (plen > ETHER_MAX_LEN)
+	else if (plen > ETHER_MAX_LEN)
 		info->sizes.jumbo++;
 
 	/* Process multicast and broadcast packets. */

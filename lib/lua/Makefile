@@ -5,7 +5,7 @@
 #   SPDX-License-Identifier: BSD-3-Clause
 #
 
-lua_version := 5.3.4
+lua_version := 5.3.5
 tarball := lua-$(lua_version).tar.gz
 
 all: get_tarball
@@ -13,11 +13,11 @@ all: get_tarball
 
 get_tarball:
 	@if [ ! -f $(tarball) ]; then \
-		wget https://www.lua.org/ftp/lua-5.3.4.tar.gz; \
+		wget https://www.lua.org/ftp/$(tarball); \
 	fi
 	@if [ ! -d lua-$(lua_version) ]; then \
 		tar xf $(tarball); \
-		(cd lua-5.3.4; patch -p1 < ../lua-5.3.4.patch); \
+		(cd lua-$(lua_version); patch -p1 < ../lua-$(lua_version).patch); \
 	fi
 
 clean:

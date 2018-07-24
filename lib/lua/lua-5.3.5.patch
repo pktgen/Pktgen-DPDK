@@ -1,6 +1,6 @@
-diff -ruN lua-5.3.5/Makefile lua-patched/Makefile
+diff -ruN lua-5.3.5/Makefile lua.patched/Makefile
 --- lua-5.3.5/Makefile	2016-12-20 10:26:08.000000000 -0600
-+++ lua-patched/Makefile	2018-07-20 14:34:57.097353876 -0500
++++ lua.patched/Makefile	2018-07-20 15:02:52.859487140 -0500
 @@ -1,114 +1,11 @@
 -# Makefile for installing Lua
 -# See doc/readme.html for installation and customization instructions.
@@ -123,9 +123,9 @@ diff -ruN lua-5.3.5/Makefile lua-patched/Makefile
  
 -# (end of Makefile)
 +include $(RTE_SDK)/mk/rte.extsubdir.mk
-diff -ruN lua-5.3.5/Makefile.lua lua-patched/Makefile.lua
+diff -ruN lua-5.3.5/Makefile.lua lua.patched/Makefile.lua
 --- lua-5.3.5/Makefile.lua	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/Makefile.lua	2016-12-20 10:26:08.000000000 -0600
++++ lua.patched/Makefile.lua	2018-07-20 15:02:52.859487140 -0500
 @@ -0,0 +1,114 @@
 +# Makefile for installing Lua
 +# See doc/readme.html for installation and customization instructions.
@@ -241,9 +241,9 @@ diff -ruN lua-5.3.5/Makefile.lua lua-patched/Makefile.lua
 +.PHONY: all $(PLATS) clean test install local none dummy echo pecho lecho
 +
 +# (end of Makefile)
-diff -ruN lua-5.3.5/src/liolib.c lua-patched/src/liolib.c
+diff -ruN lua-5.3.5/src/liolib.c lua.patched/src/liolib.c
 --- lua-5.3.5/src/liolib.c	2017-04-19 12:29:57.000000000 -0500
-+++ lua-patched/src/liolib.c	2018-07-20 14:48:43.629897833 -0500
++++ lua.patched/src/liolib.c	2018-07-20 15:02:52.859487140 -0500
 @@ -751,7 +751,7 @@
  }
  
@@ -253,9 +253,9 @@ diff -ruN lua-5.3.5/src/liolib.c lua-patched/src/liolib.c
                             const char *fname) {
    LStream *p = newprefile(L);
    p->f = f;
-diff -ruN lua-5.3.5/src/lstate.h lua-patched/src/lstate.h
+diff -ruN lua-5.3.5/src/lstate.h lua.patched/src/lstate.h
 --- lua-5.3.5/src/lstate.h	2017-04-19 12:39:34.000000000 -0500
-+++ lua-patched/src/lstate.h	2018-07-20 14:49:29.585934612 -0500
++++ lua.patched/src/lstate.h	2018-07-20 15:02:52.859487140 -0500
 @@ -199,6 +199,8 @@
    unsigned short nCcalls;  /* number of nested C calls */
    l_signalT hookmask;
@@ -265,9 +265,9 @@ diff -ruN lua-5.3.5/src/lstate.h lua-patched/src/lstate.h
  };
  
  
-diff -ruN lua-5.3.5/src/luaconf.h lua-patched/src/luaconf.h
+diff -ruN lua-5.3.5/src/luaconf.h lua.patched/src/luaconf.h
 --- lua-5.3.5/src/luaconf.h	2017-04-19 12:29:57.000000000 -0500
-+++ lua-patched/src/luaconf.h	2018-07-20 14:51:36.026078159 -0500
++++ lua.patched/src/luaconf.h	2018-07-20 15:02:52.859487140 -0500
 @@ -61,7 +61,7 @@
  #if defined(LUA_USE_LINUX)
  #define LUA_USE_POSIX
@@ -304,9 +304,9 @@ diff -ruN lua-5.3.5/src/luaconf.h lua-patched/src/luaconf.h
  
  
  #endif
-diff -ruN lua-5.3.5/src/lua.h lua-patched/src/lua.h
+diff -ruN lua-5.3.5/src/lua.h lua.patched/src/lua.h
 --- lua-5.3.5/src/lua.h	2018-06-13 11:58:17.000000000 -0500
-+++ lua-patched/src/lua.h	2018-07-20 14:50:55.030025376 -0500
++++ lua.patched/src/lua.h	2018-07-20 15:02:52.859487140 -0500
 @@ -437,6 +437,9 @@
  LUA_API int (lua_gethookmask) (lua_State *L);
  LUA_API int (lua_gethookcount) (lua_State *L);
@@ -324,10 +324,10 @@ diff -ruN lua-5.3.5/src/lua.h lua-patched/src/lua.h
 +void lua_callback_routine(char *);
  
  #endif
-diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
+diff -ruN lua-5.3.5/src/lua_shell.c lua.patched/src/lua_shell.c
 --- lua-5.3.5/src/lua_shell.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua_shell.c	2018-07-20 14:34:57.097353876 -0500
-@@ -0,0 +1,419 @@
++++ lua.patched/src/lua_shell.c	2018-07-24 09:15:04.219666501 -0500
+@@ -0,0 +1,448 @@
 +/*
 + ** $Id: lua.c,v 1.205 2012/05/23 15:37:09 roberto Exp $
 + ** Lua stand-alone interpreter
@@ -393,25 +393,29 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +
 +static const char *progname = LUA_PROGNAME;
 +
-+static void lstop(lua_State *L, lua_Debug *ar) {
++static void
++lstop(lua_State *L, lua_Debug *ar) {
 +	(void) ar; /* unused arg. */
 +	lua_sethook(L, NULL, 0, 0);
 +	luaL_error(L, "interrupted!");
 +}
 +
-+static void laction(int i) {
++static void
++laction(int i) {
 +	signal(i, SIG_DFL ); /* if another SIGINT happens before lstop,
 +	 terminate process (default action) */
 +	lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 +}
 +
-+static void l_message(lua_State *L, const char *pname, const char *msg) {
++static void 
++l_message(lua_State *L, const char *pname, const char *msg) {
 +	if (pname)
 +		lua_writestringerror("%s: ", pname);
 +	lua_writestringerror("%s\n", msg);
 +}
 +
-+static int report(lua_State *L, int status) {
++static int 
++report(lua_State *L, int status) {
 +	if (status != LUA_OK && !lua_isnil(L, -1)) {
 +		const char *msg = lua_tostring(L, -1);
 +		if (msg == NULL )
@@ -424,8 +428,10 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return status;
 +}
 +
++#if 0
 +/* the next function is called unprotected, so it must avoid errors */
-+static void finalreport(lua_State *L, int status) {
++static void 
++finalreport(lua_State *L, int status) {
 +	if (status != LUA_OK) {
 +		const char *msg =
 +				(lua_type(L, -1) == LUA_TSTRING) ? lua_tostring(L, -1) : NULL;
@@ -435,8 +441,10 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +		lua_pop(L, 1);
 +	}
 +}
++#endif
 +
-+static int traceback(lua_State *L) {
++static int 
++traceback(lua_State *L) {
 +	const char *msg = lua_tostring(L, 1);
 +	if (msg)
 +		luaL_traceback(L, L, msg, 1);
@@ -447,7 +455,8 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return 1;
 +}
 +
-+static int docall(lua_State *L, int narg, int nres) {
++static int 
++docall(lua_State *L, int narg, int nres) {
 +	int status;
 +	int base = lua_gettop(L) - narg; /* function index */
 +
@@ -464,21 +473,26 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return status;
 +}
 +
-+static int dofile(lua_State *L, const char *name) {
++#if 0
++static int 
++dofile(lua_State *L, const char *name) {
 +	int status = luaL_loadfile(L, name);
 +	if (status == LUA_OK)
 +		status = docall(L, 0, 0);
 +	return report(L, status);
 +}
 +
-+static int dostring(lua_State *L, const char *s, const char *name) {
++static int 
++dostring(lua_State *L, const char *s, const char *name) {
 +	int status = luaL_loadbuffer(L, s, strlen(s), name);
 +	if (status == LUA_OK)
 +		status = docall(L, 0, 0);
 +	return report(L, status);
 +}
++#endif
 +
-+int dolibrary(lua_State *L, const char *name) {
++int
++dolibrary(lua_State *L, const char *name) {
 +	int status;
 +	lua_getglobal(L, "require");
 +	lua_pushstring(L, name);
@@ -492,7 +506,9 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +#define EOFMARK		"<eof>"
 +#define marklen		(sizeof(EOFMARK)/sizeof(char) - 1)
 +
-+static int incomplete(lua_State *L, int status) {
++#if 0
++static int
++incomplete(lua_State *L, int status) {
 +	if (status == LUA_ERRSYNTAX) {
 +		size_t lmsg;
 +		const char *msg = lua_tolstring(L, -1, &lmsg);
@@ -504,7 +520,8 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return 0; /* else... */
 +}
 +
-+static int pushline(lua_State *L, int firstline) {
++static int
++pushline(lua_State *L, int firstline) {
 +	char buffer[LUA_MAXINPUT];
 +	char *b = buffer;
 +	size_t l;
@@ -524,7 +541,8 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return 1;
 +}
 +
-+static int loadline(lua_State *L) {
++static int 
++loadline(lua_State *L) {
 +	int status;
 +
 +	lua_settop(L, 0);
@@ -551,7 +569,8 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return status;
 +}
 +
-+static void dotty(lua_State *L) {
++static void
++dotty(lua_State *L) {
 +	int status;
 +	const char *oldprogname = progname;
 +	progname = NULL;
@@ -577,7 +596,8 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	progname = oldprogname;
 +}
 +
-+static int handle_luainit(lua_State *L) {
++static int
++handle_luainit(lua_State *L) {
 +	const char *name = "=" LUA_INITVERSION;
 +	const char *init = getenv(name + 1);
 +	if (init == NULL ) {
@@ -591,25 +611,30 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	else
 +		return dostring(L, init, name);
 +}
++#endif
 +
 +static newlib_t	newlibs[MAX_NEW_LIBS];
 +static int newlibs_idx = 0;
 +
-+int lua_newlib_add(newlib_t n) {
++int
++lua_newlib_add(newlib_t n) {
 +	if ( newlibs_idx >= MAX_NEW_LIBS )
 +		return -1;
 +	newlibs[newlibs_idx++] = n;
 +	return 0;
 +}
 +
-+void lua_newlibs_init(lua_State * L) {
++void
++lua_newlibs_init(lua_State * L) {
 +	int		i;
 +
 +	for(i = 0; i < newlibs_idx; i++)
 +		newlibs[i](L);
 +}
 +
-+static int pmain(lua_State *L) {
++#if 0
++static int
++pmain(lua_State *L) {
 +
 +	/* open standard libraries */
 +	luaL_checkversion(L);
@@ -630,7 +655,8 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	return 1;
 +}
 +
-+int lua_shell(void * pServer) {
++int
++lua_shell(void * pServer) {
 +	int status, result;
 +	lua_State *L;
 +
@@ -650,6 +676,7 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +
 +	return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
 +}
++#endif
 +
 +/**************************************************************************//**
 +*
@@ -696,11 +723,13 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +		lua_close(L);
 +}
 +
-+LUA_API void lua_setprivate(lua_State * L, void * val) {
++LUA_API void
++lua_setprivate(lua_State * L, void * val) {
 +	L->private = val;
 +}
 +
-+LUA_API void * lua_getprivate(lua_State * L) {
++LUA_API void *
++lua_getprivate(lua_State * L) {
 +	return L->private;
 +}
 +
@@ -747,9 +776,9 @@ diff -ruN lua-5.3.5/src/lua_shell.c lua-patched/src/lua_shell.c
 +	createstdfile(L, stderr, NULL, "stderr");
 +}
 +
-diff -ruN lua-5.3.5/src/lua_shell.h lua-patched/src/lua_shell.h
+diff -ruN lua-5.3.5/src/lua_shell.h lua.patched/src/lua_shell.h
 --- lua-5.3.5/src/lua_shell.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua_shell.h	2018-07-20 14:34:57.097353876 -0500
++++ lua.patched/src/lua_shell.h	2018-07-20 15:02:52.859487140 -0500
 @@ -0,0 +1,43 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -794,9 +823,9 @@ diff -ruN lua-5.3.5/src/lua_shell.h lua-patched/src/lua_shell.h
 +#endif
 +
 +#endif /* LUA_SHELL_H_ */
-diff -ruN lua-5.3.5/src/luasocket.c lua-patched/src/luasocket.c
+diff -ruN lua-5.3.5/src/luasocket.c lua.patched/src/luasocket.c
 --- lua-5.3.5/src/luasocket.c	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/luasocket.c	2018-07-20 14:34:57.101353892 -0500
++++ lua.patched/src/luasocket.c	2018-07-20 15:02:52.859487140 -0500
 @@ -0,0 +1,357 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -1155,9 +1184,9 @@ diff -ruN lua-5.3.5/src/luasocket.c lua-patched/src/luasocket.c
 +
 +    return L;
 +}
-diff -ruN lua-5.3.5/src/luasocket.h lua-patched/src/luasocket.h
+diff -ruN lua-5.3.5/src/luasocket.h lua.patched/src/luasocket.h
 --- lua-5.3.5/src/luasocket.h	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/luasocket.h	2018-07-20 14:34:57.101353892 -0500
++++ lua.patched/src/luasocket.h	2018-07-20 15:02:52.859487140 -0500
 @@ -0,0 +1,36 @@
 +/*-
 + * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
@@ -1195,18 +1224,18 @@ diff -ruN lua-5.3.5/src/luasocket.h lua-patched/src/luasocket.h
 +void * lua_create_instance(void);
 +
 +#endif /* _LUA_SOCKET_H_ */
-diff -ruN lua-5.3.5/src/lua_version.map lua-patched/src/lua_version.map
+diff -ruN lua-5.3.5/src/lua_version.map lua.patched/src/lua_version.map
 --- lua-5.3.5/src/lua_version.map	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/lua_version.map	2018-07-20 14:34:57.101353892 -0500
++++ lua.patched/src/lua_version.map	2018-07-20 15:02:52.859487140 -0500
 @@ -0,0 +1,5 @@
 +DPDK_18.02 {
 +	global: *;
 +
 +	local: *;
 +};
-diff -ruN lua-5.3.5/src/Makefile lua-patched/src/Makefile
+diff -ruN lua-5.3.5/src/Makefile lua.patched/src/Makefile
 --- lua-5.3.5/src/Makefile	2018-06-25 12:46:36.000000000 -0500
-+++ lua-patched/src/Makefile	2018-07-20 14:34:57.101353892 -0500
++++ lua.patched/src/Makefile	2018-07-20 15:02:52.859487140 -0500
 @@ -1,197 +1,46 @@
 -# Makefile for building Lua
 -# See ../doc/readme.html for installation and customization instructions.
@@ -1450,9 +1479,9 @@ diff -ruN lua-5.3.5/src/Makefile lua-patched/src/Makefile
 -
 -# (end of Makefile)
 +include $(RTE_SDK)/mk/rte.extlib.mk
-diff -ruN lua-5.3.5/src/Makefile.lua lua-patched/src/Makefile.lua
+diff -ruN lua-5.3.5/src/Makefile.lua lua.patched/src/Makefile.lua
 --- lua-5.3.5/src/Makefile.lua	1969-12-31 18:00:00.000000000 -0600
-+++ lua-patched/src/Makefile.lua	2018-06-25 12:46:36.000000000 -0500
++++ lua.patched/src/Makefile.lua	2018-07-20 15:02:52.859487140 -0500
 @@ -0,0 +1,197 @@
 +# Makefile for building Lua
 +# See ../doc/readme.html for installation and customization instructions.

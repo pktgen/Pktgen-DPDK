@@ -30,11 +30,12 @@ export GUI
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk
 
-clean_archives = $(shell find . -name "*.a")
+clean_objs = $(shell find . -name "*.a")
+clean_objs += $(shell find . -name "x86_64*") 
 
 realclean:
-	@if [ -n "$(clean_archives)" ]; then \
-		rm $(clean_archives); \
+	@if [ -n "$(clean_objs)" ]; then \
+		rm -fr $(clean_objs); \
 	fi
 
 docs:

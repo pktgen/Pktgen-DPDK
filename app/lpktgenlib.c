@@ -21,6 +21,7 @@
 #include <cli.h>
 #include <rte_net.h>
 #include <luaconf.h>
+#include <lua_shell.h>
 #include <luasocket.h>
 #include <lualib.h>
 

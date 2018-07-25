@@ -30,15 +30,12 @@ export GUI
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk
 
+clean_archives = $(shell find . -name "*.a")
+
 realclean:
-	@rm -fr app/app
-	@rm -fr lib/common/lib
-	@rm -fr lib/cli/lib
-	@rm -fr lib/lua/src/lib
-	@rm -fr app/$(RTE_TARGET)
-	@rm -fr lib/common/$(RTE_TARGET)
-	@rm -fr lib/cli/$(RTE_TARGET)
-	@rm -fr lib/lua/src/$(RTE_TARGET)
+	@if [ -n "$(clean_archives)" ]; then \
+		rm $(clean_archives); \
+	fi
 
 docs:
 	@make -C docs html

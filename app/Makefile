@@ -21,6 +21,7 @@ APP = pktgen
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 CFLAGS += -DALLOW_EXPERIMENTAL_API
+CFLAGS += -I/usr/include/lua5.3
 
 dpdk_ver := $(RTE_SDK)/xusertools/dpdk-version.sh
 pktgen_ver := $(RTE_SRCDIR)/../tools/dpdk-version.sh
@@ -45,7 +46,7 @@ CLI_PRE := $(RTE_SRCDIR)/../lib/cli/lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui
 else
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common
-LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src
+LUA_PRE := $(RTE_SRCDIR)/../lib/lua
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui/gui
 endif
@@ -71,7 +72,7 @@ MYLIB_PATH += -L$(COMMON_LIB)
 
 LUA_NAME   := librte_lua.a
 MYLIBS     += -lrte_lua
-MYLIB_PATH += -L$(LUA_LIB)
+MYLIB_PATH += -L$(LUA_LIB) -llua5.3
 
 CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli
@@ -86,8 +87,7 @@ CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
 endif
 
 LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/src
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/lua-5.3.4/src
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe

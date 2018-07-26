@@ -143,16 +143,16 @@ docall(lua_State *L, int narg, int nres) {
 	return status;
 }
 
-static int
-dofile(lua_State *L, const char *name) {
+int
+lua_dofile(lua_State *L, const char *name) {
 	int status = luaL_loadfile(L, name);
 	if (status == LUA_OK)
 		status = docall(L, 0, 0);
 	return report(L, status);
 }
 
-static int 
-dostring(lua_State *L, const char *s, const char *name) {
+int 
+lua_dostring(lua_State *L, const char *s, const char *name) {
 	int status = luaL_loadbuffer(L, s, strlen(s), name);
 	if (status == LUA_OK)
 		status = docall(L, 0, 0);
@@ -160,7 +160,7 @@ dostring(lua_State *L, const char *s, const char *name) {
 }
 
 int
-dolibrary(lua_State *L, const char *name) {
+lua_dolibrary(lua_State *L, const char *name) {
 	int status;
 	lua_getglobal(L, "require");
 	lua_pushstring(L, name);
@@ -274,9 +274,9 @@ handle_luainit(lua_State *L) {
 	if (init == NULL )
 		return LUA_OK;
 	else if (init[0] == '@')
-		return dofile(L, init + 1);
+		return lua_dofile(L, init + 1);
 	else
-		return dostring(L, init, name);
+		return lua_dostring(L, init, name);
 }
 
 static newlib_t	newlibs[MAX_NEW_LIBS];
@@ -327,7 +327,8 @@ pmain(lua_State *L) {
 }
 
 int
-lua_shell(void * pServer) {
+lua_shell(void * pServer)
+{
 	int status, result;
 	lua_State *L;
 	struct lua_Shell *ls;

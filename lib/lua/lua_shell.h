@@ -1,12 +1,10 @@
-/*-
- * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
- *
- * SPDX-License-Indentifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause
+ * Copyright(c) 2018 Intel Corporation.
  */
 /* Created 2011 by Keith Wiles @ intel.com */
 
-#ifndef LUA_SHELL_H_
-#define LUA_SHELL_H_
+#ifndef _LUA_SHELL_H_
+#define _LUA_SHELL_H_
 
 #define lua_c
 #include "lua.h"
@@ -48,6 +46,7 @@ extern void * _get_stderr(void * L);
 #define lua_writestringerror(s, p) \
     (fprintf(_get_stderr(L), (s), (p)), fflush(_get_stderr(L)))
 #endif
+
 #define lua_putstring(s)        (fwrite((s), sizeof(char), strlen(s), _get_stdout(L)), fflush(_get_stdout(L)))
 
 #define MAX_NEW_LIBS	16
@@ -63,8 +62,11 @@ void lua_callback_routine(char *);
 
 void create_stdfile (struct lua_Shell *ls, FILE *f, const char *k, const char *fname);
 
+int lua_dofile(lua_State *L, const char *name);
+int lua_dostring(lua_State *L, const char *s, const char *name);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LUA_SHELL_H_ */
+#endif /* _LUA_SHELL_H_ */

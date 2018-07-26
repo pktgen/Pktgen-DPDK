@@ -17,8 +17,6 @@
 #include "cli_input.h"
 #include "cli_string_fns.h"
 
-int (*lua_dofile)(void *, const char *);
-
 int
 cli_yield_io(void)
 {

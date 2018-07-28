@@ -90,6 +90,8 @@
 #include "pktgen-latency.h"
 #include "pktgen-seq.h"
 
+#include <lua_support.h>
+
 #include <cli.h>
 
 #ifdef __cplusplus
@@ -253,7 +255,8 @@ typedef union {
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
-	void *L;		/**< Lua State pointer */
+	luaData_t *ld;		/**< General Lua Data pointer */
+	luaData_t *ld_sock;	/**< Info for Lua Socket */
 	char *hostname;		/**< GUI hostname */
 
 	int32_t socket_port;		/**< GUI port number */

@@ -13,8 +13,7 @@
 
 #include "pktgen.h"
 #include "lpktgenlib.h"
-#include "lua_shell.h"
-#include "luasocket.h"
+#include "lua_support.h"
 #include "lauxlib.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
@@ -22,8 +21,6 @@
 #include "pktgen-log.h"
 #include "cli-functions.h"
 
-/* Defined in examples/pktgen/lib/lua/lua_shell.c */
-void execute_lua_close(lua_State *L);
 #ifdef GUI
 int pktgen_gui_main(int argc, char *argv[]);
 #endif
@@ -61,7 +58,7 @@ pktgen_l2p_dump(void)
 void *
 pktgen_get_lua(void)
 {
-	return pktgen.L;
+	return pktgen.ld->L;
 }
 
 /**************************************************************************//**
@@ -372,11 +369,12 @@ main(int argc, char **argv)
 	cli_set_lua_callback(pktgen_lua_dofile);
 
 	/* Open the Lua script handler. */
-	if ( (pktgen.L = lua_create_instance()) == NULL) {
+	if ( (pktgen.ld = lua_create_instance()) == NULL) {
 		pktgen_log_error("Failed to open Lua pktgen support library");
 		return -1;
 	}
-	cli_set_user_state(pktgen.L);
+	cli_set_lua_state(pktgen.ld->L);
+	cli_set_user_data(pktgen.ld);
 
 	/* parse application arguments (after the EAL ones) */
 	ret = pktgen_parse_args(argc, argv);
@@ -443,7 +441,9 @@ main(int argc, char **argv)
 			scrn_pos(this_scrn->nrows, 1);
 		}
 
-		lua_init_socket(pktgen.L,
+		pktgen.ld_sock = lua_create_instance();
+		
+		lua_start_socket(pktgen.ld_sock,
 				&pktgen.thread,
 				pktgen.hostname,
 				pktgen.socket_port);
@@ -454,7 +454,7 @@ main(int argc, char **argv)
 
 	pktgen_cli_start();
 
-	execute_lua_close(pktgen.L);
+	execute_lua_close(pktgen.ld);
 
 	pktgen_stop_running();
 

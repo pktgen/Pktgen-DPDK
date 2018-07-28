@@ -1224,7 +1224,7 @@ seq_cmd(int argc, char **argv)
 static int
 script_cmd(int argc __rte_unused, char **argv)
 {
-	lua_State *L = pktgen.L;
+	lua_State *L = pktgen.ld->L;
 
 	if (L == NULL) {
 		pktgen_log_error("Lua is not initialized!");
@@ -1256,7 +1256,7 @@ script_cmd(int argc __rte_unused, char **argv)
 static int
 exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 {
-	lua_State *L = pktgen.L;
+	lua_State *L = pktgen.ld->L;
 	char buff[512], *p;
 	int i;
 	size_t n, sz;

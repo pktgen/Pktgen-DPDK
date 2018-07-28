@@ -151,7 +151,8 @@ struct cli {
 	TAILQ_HEAD(, help_node) help_nodes; /**< head of help */
 	TAILQ_HEAD(, cli_node) free_nodes;  /**< Free list of nodes */
 	CIRCLEQ_HEAD(, cli_hist) free_hist; /**< free list of history nodes */
-	void *user_state;                   /**< Pointer to some state variable */
+	void *lua_state;	/**< Pointer to Lua state variable */
+	void *user_data;	/**< Pointer to user private state */
 } __rte_cache_aligned;
 
 RTE_DECLARE_PER_LCORE(struct cli *, cli);
@@ -244,9 +245,21 @@ struct cli_tree {
 #define c_end()			{ CLI_UNK_NODE,   .dir = { NULL } }
 
 static inline void
-cli_set_user_state(void *val)
+cli_set_lua_state(void *val)
 {
-	this_cli->user_state = val;
+	this_cli->lua_state = val;
+}
+
+static inline void
+cli_set_user_data(void *val)
+{
+	this_cli->user_data = val;
+}
+
+static inline void *
+cli_get_user_data(void)
+{
+	return this_cli->user_data;
 }
 
 /**

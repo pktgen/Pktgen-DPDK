@@ -72,7 +72,7 @@ MYLIB_PATH += -L$(COMMON_LIB)
 
 LUA_NAME   := librte_lua.a
 MYLIBS     += -lrte_lua
-MYLIB_PATH += -L$(LUA_LIB) -llua5.3
+MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
 
 CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli

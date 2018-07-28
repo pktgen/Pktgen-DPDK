@@ -193,6 +193,11 @@ typedef uint8_t cli_rgb_t;
 static inline int
 scrn_write(const void *str, int len)
 {
+	if (!this_scrn) {
+		if (write(1, str, len) != len)
+			fprintf(stderr, "%s: Write failed\n", __func__);
+		return 0;
+	}
 	if (len <= 0)
 		len = strlen(str);
 
@@ -208,6 +213,9 @@ scrn_read(char *buf, int len)
 	int n = 0;
 
 	if (!buf || !len)
+		return 0;
+
+	if (!this_scrn)
 		return 0;
 
 	while(len--)
@@ -352,6 +360,8 @@ void __set_prompt(void);
 static __inline__ void
 scrn_pause(void)
 {
+	if (!this_scrn)
+		return;
 	rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_PAUSED);
 	__set_prompt();
 }
@@ -360,6 +370,8 @@ scrn_pause(void)
 static __inline__ void
 scrn_resume(void)
 {
+	if (!this_scrn)
+		return;
 	rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_RUNNING);
 	__set_prompt();
 }
@@ -368,6 +380,8 @@ scrn_resume(void)
 static __inline__ int
 scrn_is_paused(void)
 {
+	if (!this_scrn)
+		return 0;
 	return rte_atomic32_read(&this_scrn->pause) == SCRN_SCRN_PAUSED;
 }
 

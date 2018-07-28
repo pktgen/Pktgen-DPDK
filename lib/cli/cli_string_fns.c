@@ -32,7 +32,7 @@ rte_strtrimset(char *str, const char *set)
 		p[1] = '\0';
 	}
 
-	return str;
+	return *str? str : NULL;
 }
 
 char *
@@ -55,7 +55,7 @@ rte_strtrim(char *str)
 
 		p[1] = '\0';
 	}
-	return str;
+	return *str? str : NULL;
 }
 
 int

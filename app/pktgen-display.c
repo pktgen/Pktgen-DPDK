@@ -151,6 +151,8 @@ display_dashline(int last_row)
 void
 pktgen_display_set_geometry(uint16_t rows, uint16_t cols)
 {
+	if (!this_scrn)
+		return;
 	this_scrn->nrows = rows;
 	this_scrn->ncols = cols;
 }
@@ -159,6 +161,9 @@ pktgen_display_set_geometry(uint16_t rows, uint16_t cols)
 void
 pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols)
 {
+	if (!this_scrn)
+		return;
+
 	if (rows != NULL)
 		*rows = this_scrn->nrows;
 
@@ -192,7 +197,7 @@ void
 pktgen_display_set_color(const char *elem) {
 	theme_color_map_t *theme_color;
 
-	if (this_scrn->theme == SCRN_THEME_OFF)
+	if (!this_scrn || this_scrn->theme == SCRN_THEME_OFF)
 		return;
 
 	theme_color = lookup_item(elem);
@@ -211,6 +216,9 @@ void
 __set_prompt(void)
 {
 	theme_color_map_t *def, *prompt;
+
+	if (!this_scrn)
+		return;
 
 	/* Set default return value. */
 	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_APP_NAME);
@@ -287,6 +295,9 @@ pktgen_theme_show(void)
 {
 	int i;
 
+	if (!this_scrn)
+		return;
+
 	printf("*** Theme Color Map Names (%s) ***\n",
 	       this_scrn->theme ? "Enabled" : "Disabled");
 	printf("   %-30s %-10s %-10s %s\n",
@@ -311,6 +322,8 @@ pktgen_theme_show(void)
 void
 pktgen_theme_state(const char *state)
 {
+	if (!this_scrn)
+		return;
 	if (estate(state) == DISABLE_STATE)
 		this_scrn->theme = SCRN_THEME_OFF;
 	else

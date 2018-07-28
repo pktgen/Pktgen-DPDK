@@ -32,11 +32,15 @@ include $(RTE_SDK)/mk/rte.extsubdir.mk
 
 clean_objs = $(shell find . -name "*.a")
 clean_objs += $(shell find . -name "x86_64*") 
+clean_objs += $(shell find . -name "*.d") 
+clean_objs += $(shell find . -name "*.o") 
+clean_objs += $(shell find . -name "*.cmd") 
 
 realclean:
 	@if [ -n "$(clean_objs)" ]; then \
 		rm -fr $(clean_objs); \
 	fi
+	rm -fr app/build/pktgen
 
 docs:
 	@make -C docs html

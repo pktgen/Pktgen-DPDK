@@ -28,11 +28,11 @@ WERROR_FLAGS += -Wno-cast-align
 
 CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT
 CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
-CFLAGS += -I/usr/include/lua5.3
+CFLAGS += $(shell pkg-config --cflags lua5.3)
 
 # all source are stored in SRCS-y
-SRCS-y := lua_shell.c luasocket.c
+SRCS-y := support.c
 
-SYMLINK-y-include := lua_shell.h luasocket.h
+SYMLINK-y-include := support.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

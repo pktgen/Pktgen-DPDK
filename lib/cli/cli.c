@@ -18,7 +18,7 @@
 #include "cli_input.h"
 #include "cli_string_fns.h"
 
-int (*lua_dofile)(void *, const char *);
+int (*lua_do_file)(void *, const char *);
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
@@ -839,7 +839,7 @@ cli_set_prompt(cli_prompt_t prompt)
 void
 cli_set_lua_callback( int(*func)(void *, const char *))
 {
-	lua_dofile = func;
+	lua_do_file = func;
 }
 
 /**
@@ -855,13 +855,13 @@ cli_execute_cmdfile(const char *filename)
 	gb_reset_buf(this_cli->gb);
 
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
-		if (!this_cli->user_state) {
+		if (!this_cli->lua_state) {
 			cli_printf(">>> User State for CLI not set for Lua\n");
 			return -1;
 		}
-		if (lua_dofile) {
+		if (lua_do_file) {
 			/* Execute the Lua script file. */
-			if (lua_dofile(this_cli->user_state, filename) != 0)
+			if (lua_do_file(this_cli->lua_state, filename) != 0)
 				return -1;
 		} else
 			cli_printf(">>> Lua is not enabled in configuration!\n");

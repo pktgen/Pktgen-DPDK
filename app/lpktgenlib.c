@@ -21,8 +21,7 @@
 #include <cli.h>
 #include <rte_net.h>
 #include <luaconf.h>
-#include <lua_shell.h>
-#include <luasocket.h>
+#include <lua_support.h>
 #include <lualib.h>
 
 #include <cli_help.h>
@@ -31,9 +30,7 @@
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-/* Defined in lua_shell.c */
-int execute_lua_string(lua_State *L, char *str);
-int dolibrary(lua_State *L, const char *name);
+extern pktgen_t pktgen;
 
 void pktgen_quit(void);
 
@@ -962,6 +959,7 @@ static int
 pktgen_pause(lua_State *L)
 {
 	char *str;
+	int v;
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "pause, wrong number of arguments");
@@ -972,7 +970,9 @@ pktgen_pause(lua_State *L)
 	if (strlen(str) > 0)
 		lua_putstring(str);
 
-	__delay(luaL_checkinteger(L, 2));
+	v = luaL_checkinteger(L, 2);
+	__delay(v);
+fprintf(stderr, "__delay(%d) done\n", v);
 	return 0;
 }
 
@@ -1005,7 +1005,7 @@ pktgen_continue(lua_State *L)
 		lua_putstring(str);
 
 	buf[0] = '\0';
-	n = fread(buf, 1, 1, (FILE *)_get_stdin(L));
+	n = fread(buf, 1, 1, (FILE *)_get_stdin(pktgen.ld));
 	if (n > 0)
 		buf[n] = '\0';
 
@@ -1044,7 +1044,7 @@ pktgen_input(lua_State *L)
 	idx = 0;
 	buf[idx] = '\0';
 	while (idx < (sizeof(buf) - 2) ) {
-		n = fread(&c, 1, 1, (FILE *)_get_stdin(L));
+		n = fread(&c, 1, 1, (FILE *)_get_stdin(pktgen.ld));
 		if ( (n <= 0) || (c == '\r') || (c == '\n') )
 			break;
 		buf[idx++] = c;
@@ -3233,7 +3233,7 @@ pktgen_run(lua_State *L)
 	if (strcasecmp("cmd", luaL_checkstring(L, 1)) == 0)
 		cli_execute_cmdfile(luaL_checkstring(L, 2));
 	else if (strcasecmp("lua", luaL_checkstring(L, 1)) == 0)/* Only a Lua script in memory. */
-		execute_lua_string(L, (char *)luaL_checkstring(L, 2));
+		execute_lua_string(pktgen.ld, (char *)luaL_checkstring(L, 2));
 	else
 		return luaL_error(L, "run( ['cmd'|'lua'], <string>), arguments wrong.");
 
@@ -3398,18 +3398,18 @@ pktgen_lua_help(lua_State *L)
 
 static const luaL_Reg pktgenlib_range[] = {
 	/* Range commands */
-	{"dst_mac",       range_dst_mac},		/* Set the destination MAC address for a port */
-	{"src_mac",       range_src_mac},		/* Set the src MAC address for a port */
-	{"src_ip",        range_src_ip},		/* Set the source IP address and netmask value */
-	{"dst_ip",        range_dst_ip},		/* Set the destination IP address */
-	{"ip_proto",      range_ip_proto},		/* Set the IP Protocol type */
-	{"src_port",      range_src_port},		/* Set the IP source port number */
-	{"dst_port",      range_dst_port},		/* Set the IP destination port number */
-	{"vlan_id",       range_vlan_id},		/* Set the vlan id value */
+	{"dst_mac",       range_dst_mac},	/* Set the destination MAC address for a port */
+	{"src_mac",       range_src_mac},	/* Set the src MAC address for a port */
+	{"src_ip",        range_src_ip},	/* Set the source IP address and netmask value */
+	{"dst_ip",        range_dst_ip},	/* Set the destination IP address */
+	{"ip_proto",      range_ip_proto},	/* Set the IP Protocol type */
+	{"src_port",      range_src_port},	/* Set the IP source port number */
+	{"dst_port",      range_dst_port},	/* Set the IP destination port number */
+	{"vlan_id",       range_vlan_id},	/* Set the vlan id value */
 	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
-	{"qinqids",       range_qinqids},		/* Set the Q-in-Q ID values */
-	{"gre_key",       range_gre_key},		/* Set the GRE key */
-	{"pkt_size",      range_pkt_size},		/* the packet size for a range port */
+	{"qinqids",       range_qinqids},	/* Set the Q-in-Q ID values */
+	{"gre_key",       range_gre_key},	/* Set the GRE key */
+	{"pkt_size",      range_pkt_size},	/* the packet size for a range port */
 	{NULL, NULL}
 };
 
@@ -3611,8 +3611,10 @@ luaopen_pktgen(lua_State *L)
  */
 
 void
-_lua_openlib(lua_State *L)
+_lua_openlib(luaData_t *ld)
 {
+	lua_State *L = ld->L;
+
 	lua_gc(L, LUA_GCSTOP, 0);	/* stop collector during initialization */
 
 	luaL_openlibs(L);	/* open libraries */
@@ -3622,5 +3624,5 @@ _lua_openlib(lua_State *L)
 
 	lua_gc(L, LUA_GCRESTART, 0);
 
-	assert(dolibrary(L, PKTGEN_SHORTCUTS) == LUA_OK);
+	assert(lua_dolibrary(ld, PKTGEN_SHORTCUTS) == LUA_OK);
 }

@@ -41,13 +41,20 @@ pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid)
 
 	/* No support for nested tunnel */
 	switch ((int)pType) {
-	case ETHER_TYPE_ARP:    info->stats.arp_pkts++;
-		pktgen_process_arp(m, pid, 1);      break;
-	case ETHER_TYPE_IPv4:   info->stats.ip_pkts++;
-		pktgen_process_ping4(m, pid, 1);    break;
-	case ETHER_TYPE_IPv6:   info->stats.ipv6_pkts++;
-		pktgen_process_ping6(m, pid, 1);    break;
+	case ETHER_TYPE_ARP:
+		info->stats.arp_pkts++;
+		pktgen_process_arp(m, pid, 1);
+		break;
+	case ETHER_TYPE_IPv4:
+		info->stats.ip_pkts++;
+		pktgen_process_ping4(m, pid, 1);
+		break;
+	case ETHER_TYPE_IPv6:
+		info->stats.ipv6_pkts++;
+		pktgen_process_ping6(m, pid, 1);
+		break;
 	case UNKNOWN_PACKET:	/* FALL THRU */
-	default:                break;
+	default:
+		break;
 	}
 }

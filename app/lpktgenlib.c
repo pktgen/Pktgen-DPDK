@@ -19,10 +19,12 @@
 
 #include "pktgen-cmds.h"
 #include <cli.h>
-#include <rte_net.h>
 #include <luaconf.h>
-#include <lua_support.h>
 #include <lualib.h>
+
+#include <rte_net.h>
+#include <rte_lua.h>
+#include <rte_lua_stdio.h>
 
 #include <cli_help.h>
 
@@ -1005,7 +1007,7 @@ pktgen_continue(lua_State *L)
 		lua_putstring(str);
 
 	buf[0] = '\0';
-	n = fread(buf, 1, 1, (FILE *)_get_stdin(pktgen.ld));
+	n = fread(buf, 1, 1, (FILE *)lua_get_stdin(pktgen.ld));
 	if (n > 0)
 		buf[n] = '\0';
 
@@ -1044,7 +1046,7 @@ pktgen_input(lua_State *L)
 	idx = 0;
 	buf[idx] = '\0';
 	while (idx < (sizeof(buf) - 2) ) {
-		n = fread(&c, 1, 1, (FILE *)_get_stdin(pktgen.ld));
+		n = fread(&c, 1, 1, (FILE *)lua_get_stdin(pktgen.ld));
 		if ( (n <= 0) || (c == '\r') || (c == '\n') )
 			break;
 		buf[idx++] = c;
@@ -3233,7 +3235,7 @@ pktgen_run(lua_State *L)
 	if (strcasecmp("cmd", luaL_checkstring(L, 1)) == 0)
 		cli_execute_cmdfile(luaL_checkstring(L, 2));
 	else if (strcasecmp("lua", luaL_checkstring(L, 1)) == 0)/* Only a Lua script in memory. */
-		execute_lua_string(pktgen.ld, (char *)luaL_checkstring(L, 2));
+		lua_execute_string(pktgen.ld, (char *)luaL_checkstring(L, 2));
 	else
 		return luaL_error(L, "run( ['cmd'|'lua'], <string>), arguments wrong.");
 
@@ -3600,7 +3602,7 @@ luaopen_pktgen(lua_State *L)
 
 /**************************************************************************//**
  *
- * _lua_openlib - Open the Pktgen Lua library.
+ * pktgen_lua_openlib - Open the Pktgen Lua library.
  *
  * DESCRIPTION
  * Open and initialize the Pktgen Lua Library.
@@ -3611,10 +3613,8 @@ luaopen_pktgen(lua_State *L)
  */
 
 void
-_lua_openlib(luaData_t *ld)
+pktgen_lua_openlib(lua_State *L)
 {
-	lua_State *L = ld->L;
-
 	lua_gc(L, LUA_GCSTOP, 0);	/* stop collector during initialization */
 
 	luaL_openlibs(L);	/* open libraries */
@@ -3624,5 +3624,5 @@ _lua_openlib(luaData_t *ld)
 
 	lua_gc(L, LUA_GCRESTART, 0);
 
-	assert(lua_dolibrary(ld, PKTGEN_SHORTCUTS) == LUA_OK);
+	assert(lua_dolibrary(L, PKTGEN_SHORTCUTS) == LUA_OK);
 }

@@ -90,7 +90,7 @@
 #include "pktgen-latency.h"
 #include "pktgen-seq.h"
 
-#include <lua_support.h>
+#include <rte_lua.h>
 
 #include <cli.h>
 

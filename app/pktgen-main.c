@@ -13,13 +13,15 @@
 
 #include "pktgen.h"
 #include "lpktgenlib.h"
-#include "lua_support.h"
 #include "lauxlib.h"
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
 #include "pktgen-display.h"
 #include "pktgen-log.h"
 #include "cli-functions.h"
+
+#include <rte_lua.h>
+#include <rte_lua_socket.h>
 
 #ifdef GUI
 int pktgen_gui_main(int argc, char *argv[]);
@@ -365,7 +367,7 @@ main(int argc, char **argv)
 	if (pktgen_cli_create())
 		return -1;
 
-	lua_newlib_add(_lua_openlib);
+	lua_newlib_add(pktgen_lua_openlib);
 	cli_set_lua_callback(pktgen_lua_dofile);
 
 	/* Open the Lua script handler. */
@@ -442,7 +444,7 @@ main(int argc, char **argv)
 		}
 
 		pktgen.ld_sock = lua_create_instance();
-		
+
 		lua_start_socket(pktgen.ld_sock,
 				&pktgen.thread,
 				pktgen.hostname,
@@ -454,7 +456,7 @@ main(int argc, char **argv)
 
 	pktgen_cli_start();
 
-	execute_lua_close(pktgen.ld);
+	lua_execute_close(pktgen.ld);
 
 	pktgen_stop_running();
 

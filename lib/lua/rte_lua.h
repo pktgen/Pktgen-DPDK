@@ -2,10 +2,10 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Created 2010 by Keith Wiles @ intel.com */
+/* Created 2018 by Keith Wiles @ intel.com */
 
-#ifndef _LUA_SUPPORT_H_
-#define _LUA_SUPPORT_H_
+#ifndef _RTE_LUA_H_
+#define _RTE_LUA_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +27,23 @@
 extern "C" {
 #endif
 
+#if !defined(LUA_PROGNAME)
+#define LUA_PROGNAME		"lua-shell"
+#endif
+
+#if !defined(LUA_INIT)
+#define LUA_INIT		"LUA_INIT"
+#endif
+
+#define LUA_INITVERSION  \
+	LUA_INIT "_" LUA_VERSION_MAJOR "_" LUA_VERSION_MINOR
+
+#define DBG(...)		do { \
+					fprintf(stderr, "%s: ", __func__); \
+					fprintf(stderr, __VA_ARGS__); \
+				} while(0)
+
+#define MAX_NEW_LIBS		16
 #define LUA_BUFFER_SIZE		2048
 #define MAX_NEW_LIBS		16
 #define LUA_EOF			-1
@@ -36,57 +53,40 @@ extern "C" {
 #define IO_INPUT        	(IO_PREFIX "input")
 #define IO_OUTPUT       	(IO_PREFIX "output")
 
-#define DBG(...)		do { \
-					fprintf(stderr, "%s: ", __func__); \
-					fprintf(stderr, __VA_ARGS__); \
-				} while(0)
-
-typedef struct {
-	lua_State *L;
+typedef struct luaData_s {
+	lua_State *L;		/**< Lua State pointer */
 	int32_t server_socket;	/**< Server socket descriptor */
 	int32_t client_socket;	/**< Client socket descriptor */
-	int32_t socket_port;
-	char *buffer;
-	void *out, *in, *err;
-	char *hostname;
+	int32_t socket_port;	/**< Port address for socket */
+	char *buffer;		/**< Buffer for reading Lua code */
+	void *out, *in, *err;	/**< stdout, stdin, stderr */
+	char *hostname;		/**< Name of host for socket */
 } luaData_t;
 
-typedef void (*newlib_t)(luaData_t *ld);
+typedef void (*newlib_t)(lua_State *L);
 
 luaData_t *lua_create_instance(void);
-int lua_start_socket(luaData_t *ld, pthread_t *pthread, char *hostname, int port);
 
-void pktgen_lua_openlib(luaData_t *ld);
-void *_get_stdout(luaData_t *ld);
-void *_get_stdin(luaData_t *ld);
-void *_get_stderr(luaData_t *ld);
-void _set_stdfiles(luaData_t *ld);
-void _reset_stdfiles(luaData_t *ld);
-
-int lua_shell(luaData_t *ld);
 int lua_newlib_add(newlib_t n);
 void lua_newlibs_init(luaData_t *ld);
-void lua_callback_routine(void *func);
+
 int lua_dofile(luaData_t *ld, const char *name);
 int lua_dostring(luaData_t *ld, const char *s, const char *name);
 int lua_dolibrary(lua_State *L, const char *name);
 
-void create_stdfile (luaData_t *ld, FILE *f, const char *k, const char *fname);
+int lua_execute_string(luaData_t *ld, char *str);
+void lua_execute_close(luaData_t *ld);
+
+void lua_create_stdfile (luaData_t *ld, FILE *f, const char *k, const char *fname);
 
 void lua_set_stdfiles(luaData_t *ld);
 void lua_reset_stdfiles(luaData_t *ld);
-int execute_lua_string(luaData_t *ld, char *str);
-void execute_lua_close(luaData_t *ld);
 
-static inline void
-lua_putstring(const char *s)
-{
-	fwrite((s), sizeof(char), strlen(s), stdout);
-	fflush(stdout);
-}
+const char *lua_get_progname(void);
+void lua_set_progname(const char *name);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _LUA_SUPPORT_H_ */
+#endif /* _RTE_LUA_H_ */

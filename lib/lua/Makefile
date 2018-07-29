@@ -31,8 +31,8 @@ CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
 CFLAGS += $(shell pkg-config --cflags lua5.3)
 
 # all source are stored in SRCS-y
-SRCS-y := support.c
+SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
 
-SYMLINK-y-include := support.h
+SYMLINK-y-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

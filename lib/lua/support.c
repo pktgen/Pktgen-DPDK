@@ -103,7 +103,7 @@ rte_strtrim(char *str)
 	return *str? str : NULL;
 }
 
-static int 
+static int
 traceback(lua_State *L)
 {
 	const char *msg = lua_tostring(L, 1);
@@ -138,26 +138,26 @@ _k(lua_State *L __rte_unused, int status, lua_KContext ctx __rte_unused)
 {
 	(void)traceback;
 
-DBG("Entry\n");
+	DBG("Entry\n");
 	signal(SIGINT, SIG_DFL );
 	globalL = NULL;
 
-DBG("Exit status %d\n", status);
+	DBG("Exit status %d\n", status);
 	return status;
 }
 
-static int 
+static int
 docall(lua_State *L, int narg, int nres)
 {
 	int status;
 
-DBG("Entry narg %d, nres %d\n", narg, nres);
+	DBG("Entry narg %d, nres %d\n", narg, nres);
 	globalL = L;				/* to be available to 'laction' */
 	signal(SIGINT, laction);
 
 	status = _k(L, lua_pcallk(L, narg, nres, 0, 0, _k), 0);
 
-DBG("Exit status %d\n", status);
+	DBG("Exit status %d\n", status);
 	return status;
 }
 
@@ -186,12 +186,12 @@ server_startup(luaData_t *ld)
 
 	err_msg = "Setsockopt failed";
 	if (setsockopt(ld->server_socket, SOL_SOCKET, SO_REUSEADDR, &linger,
-			sizeof(linger)) == -1)
+	                sizeof(linger)) == -1)
 		goto error_exit;
 
 	err_msg = "Bind failed";
 	if (bind(ld->server_socket, (struct sockaddr *) &ipaddr,
-			sizeof(ipaddr)) < 0)
+	                sizeof(ipaddr)) < 0)
 		goto error_exit;
 
 	err_msg = "Listen failed";
@@ -297,12 +297,12 @@ pushline(luaData_t *ld)
 	lua_State *L = ld->L;
 	char *b;
 
-DBG("Entry Stack top %d\n", lua_gettop(L));
+	DBG("Entry Stack top %d\n", lua_gettop(L));
 	do {
 		b = lua_readline(ld);
 		if (!b)
 			break;
-fprintf(stderr, ">>> %s", b);		/* String contains newline */
+		fprintf(stderr, ">>> %s", b);		/* String contains newline */
 		b = rte_strtrim(b);
 
 		/* skip blank lines or comments */
@@ -310,18 +310,18 @@ fprintf(stderr, ">>> %s", b);		/* String contains newline */
 			continue;
 		break;
 	} while(1);
-DBG("Exit Stack top %d\n", lua_gettop(L));
+	DBG("Exit Stack top %d\n", lua_gettop(L));
 	return b;
 }
 
-static int 
+static int
 loadline(luaData_t *ld)
 {
 	lua_State *L = ld->L;
 	int status = 0;
 	int firstline = 1;
 
-DBG("Entry Stack top %d\n", lua_gettop(L));
+	DBG("Entry Stack top %d\n", lua_gettop(L));
 	do {
 		char *line;
 		size_t l;
@@ -329,21 +329,21 @@ DBG("Entry Stack top %d\n", lua_gettop(L));
 		line = pushline(ld);
 		if (!line)
 			break;
-		
+
 		/* first line starts with `=' then change to 'return ' */
 		if (firstline && line[0] == '=')
 			snprintf(ld->buffer, LUA_BUFFER_SIZE, "return %s", line + 1);
 		firstline = 0;
 		l = strlen(line);
 
-DBG("Before luaL_loadbuffer Stack top %d len %lu\n", lua_gettop(L), l);
+		DBG("Before luaL_loadbuffer Stack top %d len %lu\n", lua_gettop(L), l);
 		status = luaL_loadbuffer(L, line, l, "=stdin");
-DBG("After luaL_loadbuffer Stack top %d status %d\n", lua_gettop(L), status);
+		DBG("After luaL_loadbuffer Stack top %d status %d\n", lua_gettop(L), status);
 		if (status != LUA_OK)
 			traceback(L);
 		break;
 	} while(1);
-DBG("Exit Stack top %d\n", lua_gettop(L));
+	DBG("Exit Stack top %d\n", lua_gettop(L));
 	return status;
 }
 
@@ -355,13 +355,13 @@ dotty(luaData_t *ld)
 	const char *oldprogname = progname;
 	progname = NULL;
 
-DBG("Entry\n");
+	DBG("Entry\n");
 	while ((status = loadline(ld)) != -1) {
 		if (status)
 			break;
-DBG("Before lua_pcall Stack top %d\n", lua_gettop(L));
+		DBG("Before lua_pcall Stack top %d\n", lua_gettop(L));
 		status = lua_pcall(L, 0, LUA_MULTRET, 0);
-DBG("After lua_pcall Stack top %d status %d\n", lua_gettop(L), status);
+		DBG("After lua_pcall Stack top %d status %d\n", lua_gettop(L), status);
 		if (status) {
 			DBG("%s\n", lua_tostring(L, -1));
 			break;
@@ -370,7 +370,7 @@ DBG("After lua_pcall Stack top %d status %d\n", lua_gettop(L), status);
 	lua_writeline();
 
 	progname = oldprogname;
-DBG("Exit %s\n", progname);
+	DBG("Exit %s\n", progname);
 }
 
 static void
@@ -379,25 +379,25 @@ handle_server_requests(luaData_t *ld)
 	struct sockaddr_in ipaddr;
 	socklen_t	len;
 
-DBG("ld %p\n", ld);
+	DBG("ld %p\n", ld);
 	ld->client_socket = -1;
 
 	do {
 		len = sizeof(struct sockaddr_in);
-DBG("Wait accept\n");
+		DBG("Wait accept\n");
 		if ( (ld->client_socket = accept(ld->server_socket,
-				(struct sockaddr *)&ipaddr, &len)) < 0) {
+		                                 (struct sockaddr *)&ipaddr, &len)) < 0) {
 			perror("accept failed");
 			break;
 		}
 
-DBG("Accept found fd %d\n", ld->client_socket);
+		DBG("Accept found fd %d\n", ld->client_socket);
 		if (ld->client_socket > 0) {
-DBG("Socket Open\n");
+			DBG("Socket Open\n");
 			_socket_open(ld);
 			dotty(ld);
 			_socket_close(ld);
-DBG("Socket Closed\n");
+			DBG("Socket Closed\n");
 
 			close(ld->client_socket);
 			ld->client_socket = -1;
@@ -411,7 +411,7 @@ DBG("Socket Closed\n");
 }
 
 static void *
-lua_server(void * arg)
+lua_server(void *arg)
 {
 
 	if (server_startup((luaData_t *)arg))
@@ -477,7 +477,7 @@ lua_create_instance(void)
 	return ld;
 }
 
-static void 
+static void
 l_message(lua_State *L, const char *pname, const char *msg)
 {
 	(void)L;
@@ -486,7 +486,7 @@ l_message(lua_State *L, const char *pname, const char *msg)
 	lua_writestringerror("%s\n", msg);
 }
 
-static int 
+static int
 report(lua_State *L, int status)
 {
 	if (status != LUA_OK && !lua_isnil(L, -1)) {
@@ -502,12 +502,12 @@ report(lua_State *L, int status)
 }
 
 /* the next function is called unprotected, so it must avoid errors */
-static void 
+static void
 finalreport(lua_State *L, int status)
 {
 	if (status != LUA_OK) {
 		const char *msg = (lua_type(L, -1) == LUA_TSTRING) ?
-						lua_tostring(L, -1) : NULL;
+		                  lua_tostring(L, -1) : NULL;
 		if (msg == NULL )
 			msg = "(error object is not a string)";
 		l_message(L, progname, msg);
@@ -520,50 +520,49 @@ lua_dofile(luaData_t *ld, const char *name)
 {
 	int status;
 
-DBG("Entry (%s)\n", name);
+	DBG("Entry (%s)\n", name);
 	status = luaL_loadfile(ld->L, name);
 
-DBG("Here 0 status %d\n", status);
+	DBG("Here 0 status %d\n", status);
 	if (status == LUA_OK)
 		status = docall(ld->L, 0, 0);
 
-DBG("Call report with status %d\n", status);
-	return report(ld->L, status);
-}
-
-int 
-lua_dostring(luaData_t *ld, const char *s, const char *name)
-{
-	int status;
-
-DBG("s (%s), name (%s)\n", s, name);
-	status = luaL_loadbuffer(ld->L, s, strlen(s), name);
-
-DBG("Here 0 status %d\n", status);
-	if (status == LUA_OK)
-		status = docall(ld->L, 0, 0);
-
-DBG("Call report with status %d\n", status);
+	DBG("Call report with status %d\n", status);
 	return report(ld->L, status);
 }
 
 int
-lua_dolibrary(luaData_t *ld, const char *name)
+lua_dostring(luaData_t *ld, const char *s, const char *name)
 {
-	lua_State *L = ld->L;
 	int status;
 
-DBG("Entry %s\n", name);
+	DBG("s (%s), name (%s)\n", s, name);
+	status = luaL_loadbuffer(ld->L, s, strlen(s), name);
+
+	DBG("Here 0 status %d\n", status);
+	if (status == LUA_OK)
+		status = docall(ld->L, 0, 0);
+
+	DBG("Call report with status %d\n", status);
+	return report(ld->L, status);
+}
+
+int
+lua_dolibrary(lua_State *L, const char *name)
+{
+	int status;
+
+	DBG("Entry %s\n", name);
 
 	lua_getglobal(L, "require");
 	lua_pushstring(L, name);
 
-DBG("Here 0\n");
+	DBG("Here 0\n");
 	status = docall(L, 1, 1); /* call 'require(name)' */
 	if (status == LUA_OK)
 		lua_setglobal(L, name); /* global[name] = require return */
 
-DBG("Call report with status %d\n", status);
+	DBG("Call report with status %d\n", status);
 	return report(L, status);
 }
 
@@ -575,16 +574,16 @@ handle_luainit(luaData_t *ld)
 
 	name = "=" LUA_INITVERSION;
 	init = getenv(&name[1]);
-DBG("init %s, name %s\n", init, name);
+	DBG("init %s, name %s\n", init, name);
 	if (!init) {
 		name = "=" LUA_INIT;
 		init = getenv(&name[1]); /* try alternative name */
 	}
-	
+
 	if (!init)
 		return LUA_OK;
 
-DBG("%s\n", init);
+	DBG("%s\n", init);
 	if (init[0] == '@')
 		return lua_dofile(ld, init + 1);
 	else
@@ -596,18 +595,18 @@ pmain(lua_State *L)
 {
 	luaData_t *ld;
 
-DBG("Entry\n");
+	DBG("Entry\n");
 	if (!lua_isuserdata(L, 1)) {
 		lua_putstring("*** Not Light User data\n");
 		return -1;
 	}
 	ld = lua_touserdata(L, 1);
 
-DBG("Here 0 ld %p\n", ld);
+	DBG("Here 0 ld %p\n", ld);
 	/* open standard libraries */
 	luaL_checkversion(L);
 
-DBG("Here 1\n");
+	DBG("Here 1\n");
 	if (handle_luainit(ld) != LUA_OK)
 		return 0; /* error running LUA_INIT */
 
@@ -629,20 +628,20 @@ lua_shell(luaData_t *ld)
 	int result;
 	lua_State *L = ld->L;
 
-DBG("Here 0 ls %p\n", ld);
+	DBG("Here 0 ls %p\n", ld);
 	(void)finalreport;
 
 	/* call 'pmain' in protected mode */
 	lua_pushcfunction(L, &pmain);
 	lua_pushlightuserdata(L, ld);
 
-DBG("Here 1 about to make docall()\n");
+	DBG("Here 1 about to make docall()\n");
 	status = docall(L, 1, 1);
 
-DBG("Here 2 status %d\n", status);
+	DBG("Here 2 status %d\n", status);
 	result = lua_toboolean(L, -1);	/* get result */
 
-DBG("Here 3 result %d\n", result);
+	DBG("Here 3 result %d\n", result);
 	return report(L, status);
 }
 
@@ -699,7 +698,7 @@ lua_reset_stdfiles(luaData_t *ld)
 	luaL_getmetatable(L, LUA_FILEHANDLE);
 
 	if (lua_isnil(L, -1))
-	  return;
+		return;
 
 	/* create (and set) default files */
 	create_stdfile(ld, stdin, IO_INPUT, "stdin");

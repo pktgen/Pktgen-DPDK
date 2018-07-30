@@ -250,7 +250,6 @@ doREPL(luaData_t *ld)
 	}
 	if (lua_gettop(L))
 		lua_settop(L, 0);	/* clear stack */
-//	lua_writeline();
 
 	lua_set_progname(oldprogname);
 }

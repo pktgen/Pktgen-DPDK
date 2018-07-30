@@ -1,10 +1,10 @@
 /*-
- * Copyright (c) <2017>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2018>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-/* Created 2017 by Keith Wiles @ intel.com */
+/* Created 2018 by Keith Wiles @ intel.com */
 
 #ifndef _PKTGEN_CFG_H_
 #define _PKTGEN_CFG_H_

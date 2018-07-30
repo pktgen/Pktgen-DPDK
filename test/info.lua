@@ -9,9 +9,6 @@ require "Pktgen"
 function info()
 	printf("Lua Version      : %s\n", pktgen.info.Lua_Version);
 
-	printf("Test delay for 2 seconds\n")
-	pktgen.delay(2000);
-
 	printf("Pktgen Version   : %s\n",
 		pktgen.info.Pktgen_Version);
 	printf("Pktgen Copyright : %s\n",

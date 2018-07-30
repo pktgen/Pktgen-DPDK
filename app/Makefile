@@ -4,7 +4,7 @@
 #
 #   SPDX-License-Identifier: BSD-3-Clause
 #
-# Created 2010-2017 by Keith Wiles @ intel.com
+# Created 2010-2018 by Keith Wiles @ intel.com
 
 ifeq ($(RTE_SDK),)
 $(error "Please define RTE_SDK environment variable")

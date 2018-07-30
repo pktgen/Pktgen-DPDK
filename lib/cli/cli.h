@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) 2016-2017 Intel Corporation. All rights reserved.
+ * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -944,7 +944,7 @@ cli_quit(void)
 	this_cli->quit_flag = 1;
 }
 
-void cli_set_lua_callback( int(*func)(void *, const char *));
+void cli_set_lua_callback( int(*func)(void *, const char *), void *arg);
 
 #ifdef __cplusplus
 }

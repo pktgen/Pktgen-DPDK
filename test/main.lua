@@ -1,15 +1,17 @@
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
+require "Pktgen"
+
 -- A list of the test script for Pktgen and Lua.
 -- Each command somewhat mirrors the pktgen command line versions.
 -- A couple of the arguments have be changed to be more like the others.
 --
 pktgen.screen("off");
-pktgen.pause("Screen off\n", 2000);
+pktgen.pause("Screen off\n", 1000);
 pktgen.screen("on");
-pktgen.pause("Screen on\n", 2000);
+pktgen.pause("Screen on\n", 1000);
 pktgen.screen("off");
-pktgen.pause("Screen off\n", 2000);
+pktgen.pause("Screen off\n", 1000);
 
 printf("delay for 1 second\n");
 pktgen.delay(1000);
@@ -30,7 +32,7 @@ pktgen.rnd("all", 1, 20, "XX111000.. ..xx11");
 pktgen.vlanid("all", 55);
 
 pktgen.screen("on");
-pktgen.pause("Screen on\n", 2000);
+pktgen.pause("Screen on\n", 1000);
 pktgen.screen("off");
 
 -- sequence command in one line
@@ -121,7 +123,7 @@ pktgen.pkt_size("all", "inc", 2);
 pktgen.pkt_size("all", "min", 64);
 pktgen.pkt_size("all", "max", 1518);
 
-pktgen.pause("Wait a second, then go back to main page\n", 2000);
+pktgen.pause("Wait a second, then go back to main page\n", 1000);
 
 pktgen.page("0");
 pktgen.pause("About to do range\n", 1000);
@@ -142,7 +144,8 @@ prints("pktgen.info", pktgen.info);
 printf("Port Count %d\n", pktgen.portCount());
 printf("Total port Count %d\n", pktgen.totalPorts());
 
-printf("\nDone, Key pressed is (%s)\n", pktgen.continue("\nPress any key: "));
+printf("\nDone\n");
+key = pktgen.continue("\nPress any key: ");
 if ( key == "s" ) then
 	pktgen.set("all", "seq_cnt", 4);
 	pktgen.save("foobar.cmd");

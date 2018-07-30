@@ -7,7 +7,7 @@ Pktgen - Traffic Generator powered by DPDK
 
 
 ---
-**Copyright &copy; \<2010-2017\>, Intel Corporation. All rights reserved.**
+**Copyright &copy; \<2010-2018\>, Intel Corporation. All rights reserved.**
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
@@ -40,13 +40,13 @@ Pktgen - Traffic Generator powered by DPDK
 
  SPDX-License-Identifier: BSD-3-Clause
 
- Pktgen: Created 2010-2017 by Keith Wiles @ Intel.com
+ Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
  ---
 
 **======================== README.md file ==============================**
 
 *** Pktgen ***
-Copyright &copy \<2015-2017\>, Intel Corporation.
+Copyright &copy \<2015-2018\>, Intel Corporation.
 
 README for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
@@ -56,10 +56,10 @@ Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
 
 I am using Ubuntu 16.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
 Crownpass Dual socket board running at 2.4GHz with 32GB of ram 16GB per socket.
-The current kernel version is 4.4.0-66-generic (as of 2017-04-01) support, but should
+The current kernel version is 4.4.0-66-generic (as of 2018-04-01) support, but should
 work on just about any new Linux kernel version.
 
-Currently using as of 2017-04-01 Ubuntu 16.10 Kernel 4.4.0-66-generic system.
+Currently using as of 2018-04-01 Ubuntu 16.10 Kernel 4.4.0-66-generic system.
 
 To get hugeTLB page support your Linux kernel must be at least 2.6.33 and in the
 DPDK documents it talks about how you can upgrade your Linux kernel.
@@ -429,7 +429,7 @@ run = {
 ``
 Usage: ./app/pktgen -l CORELIST -n NUM [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
-Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by DPDK
+Copyright (c) <2010-2018>, Intel Corporation. All rights reserved. Powered by DPDK
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
 EAL: Detected 72 lcore(s)
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
@@ -677,7 +677,7 @@ system configuration.
 rkwiles@rkwiles-DESK1 (dev):~/.../intel/pktgen$ ./tools/run.sh
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen -l 1,2-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 --file-prefix pg --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3 -b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0 -- -I -T -P --crc-strip -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8 -f themes/black-yellow.theme
 
-Copyright (c) <2010-2017>, Intel Corporation. All rights reserved. Powered by DPDK
+Copyright (c) <2010-2018>, Intel Corporation. All rights reserved. Powered by DPDK
 EAL: Detected lcore 0 as core 0 on socket 0
 EAL: Detected lcore 1 as core 1 on socket 0
 EAL: Detected lcore 2 as core 2 on socket 0
@@ -845,7 +845,7 @@ EAL: Initializing pmd_bond for net_bonding1
 PMD: Using mode 4, it is necessary to do TX burst and RX burst at least every 100ms.
 EAL: Create bonded device net_bonding1 on port 8 in mode 4 on socket 0.
 
-   Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
+   Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
    Pktgen created by: Keith Wiles -- >>> Powered by DPDK <<<
 
 Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
@@ -1084,7 +1084,7 @@ For RX found 1 port(s) for lcore 18
 For TX found 1 port(s) for lcore 19
 ``
 ------------------
-/ Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2017>, Intel Corporation
+/ Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2018>, Intel Corporation
   Flags:Port      :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
 Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 Pkts/s Max/Rx     :                 3/1                 3/1                 3/1                 3/1                  12/4
@@ -1298,7 +1298,7 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
 ``
 ---------------------------------------------------------------------------
 ``
-\                  <Sequence Page>  Copyright (c) <2010-2017>, Intel Corporation
+\                  <Sequence Page>  Copyright (c) <2010-2018>, Intel Corporation
 Port:  0, Sequence Count:  4 of 16                                                                             GTPu
   Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -1348,7 +1348,7 @@ Pktgen:/>
 ``
 ---------------------------------------------------------------------------
 ``
-| Port 0           <Random bitfield Page>  Copyright (c) <2010-2017>, Intel Corporation
+| Port 0           <Random bitfield Page>  Copyright (c) <2010-2018>, Intel Corporation
    Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -1479,7 +1479,7 @@ $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
 Lua Vesrion: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2017>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2018>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1507,7 +1507,7 @@ f,e = loadfile("test/hello-world.lua")
 f()
 Lua Version: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2017>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2018>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1520,7 +1520,7 @@ You can also just send it commands via echo.
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
 Lua Version: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2017>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2018>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2017>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -299,9 +299,9 @@ sig_handler(int v __rte_unused)
 }
 
 static int
-pktgen_lua_dofile(void * L, const char * filename)
+pktgen_lua_dofile(void *ld, const char * filename)
 {
-	return luaL_dofile(L, filename);
+	return lua_dofile((luaData_t *)ld, filename);
 }
 
 /**************************************************************************//**
@@ -368,14 +368,14 @@ main(int argc, char **argv)
 		return -1;
 
 	lua_newlib_add(pktgen_lua_openlib);
-	cli_set_lua_callback(pktgen_lua_dofile);
 
 	/* Open the Lua script handler. */
 	if ( (pktgen.ld = lua_create_instance()) == NULL) {
 		pktgen_log_error("Failed to open Lua pktgen support library");
 		return -1;
 	}
-	cli_set_lua_state(pktgen.ld->L);
+	cli_set_lua_callback(pktgen_lua_dofile, (void *)pktgen.ld);
+	cli_set_lua_state(pktgen.ld);
 	cli_set_user_data(pktgen.ld);
 
 	/* parse application arguments (after the EAL ones) */

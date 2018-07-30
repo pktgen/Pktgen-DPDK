@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-/* Created 2014-2017 by Keith Wiles @ intel.com */
+/* Created 2014-2018 by Keith Wiles @ intel.com */
 
 #ifndef __LSCPU_H
 #define __LSCPU_H

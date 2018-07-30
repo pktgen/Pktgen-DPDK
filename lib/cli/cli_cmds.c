@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) 2016-2017 Intel Corporation. All rights reserved.
+ * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -445,7 +445,7 @@ path_cmd(int argc __rte_unused, char **argv __rte_unused)
 static const char *copyright =
 "   BSD LICENSE\n"
 "\n"
-"   Copyright(c) 2010-2017 Intel Corporation. All rights reserved.\n"
+"   Copyright(c) 2010-2018 Intel Corporation. All rights reserved.\n"
 "\n"
 "   Redistribution and use in source and binary forms, with or without\n"
 "   modification, are permitted provided that the following conditions\n"

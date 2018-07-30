@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) 2016-2017 Intel Corporation. All rights reserved.
+ * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,6 +19,7 @@
 #include "cli_string_fns.h"
 
 int (*lua_do_file)(void *, const char *);
+void *lua_do_file_arg;
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
@@ -837,9 +838,10 @@ cli_set_prompt(cli_prompt_t prompt)
  * set the callout function pointer to execute a lua file.
  */
 void
-cli_set_lua_callback( int(*func)(void *, const char *))
+cli_set_lua_callback( int(*func)(void *, const char *), void * arg)
 {
 	lua_do_file = func;
+	lua_do_file_arg = arg;
 }
 
 /**
@@ -855,13 +857,13 @@ cli_execute_cmdfile(const char *filename)
 	gb_reset_buf(this_cli->gb);
 
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
-		if (!this_cli->lua_state) {
+		if (!lua_do_file || !lua_do_file_arg) {
 			cli_printf(">>> User State for CLI not set for Lua\n");
 			return -1;
 		}
 		if (lua_do_file) {
 			/* Execute the Lua script file. */
-			if (lua_do_file(this_cli->lua_state, filename) != 0)
+			if (lua_do_file(lua_do_file_arg, filename) != 0)
 				return -1;
 		} else
 			cli_printf(">>> Lua is not enabled in configuration!\n");

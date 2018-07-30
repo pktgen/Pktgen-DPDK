@@ -30,7 +30,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
  - 3.3.7 - Fix BLACKLIST and WHITELIST macro change for 17.08 DPDK
  - 3.3.6 - Add flag to enable bonding PMD to do TX calls with zero packets.
            New command 'enable|disable bonding'
-           Cleanup some of the copyright dates to use 2017
+           Cleanup some of the copyright dates to use 2018
  - 3.3.5 - fix sequeuce command be truncated and fix run.py to fix strings in cfg file.
  - 3.3.4 - Minor fixes for help and run.py scipt.
  - 3.3.3 - Make sure the mbuf data size is at least 2K in size

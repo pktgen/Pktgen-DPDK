@@ -5,7 +5,7 @@ from pygments.formatters.latex import LatexFormatter
 
 
 project = 'Pktgen'
-copyright = '2017, Keith Wiles'
+copyright = '2018, Keith Wiles'
 
 version = '3.2.4'
 release = version

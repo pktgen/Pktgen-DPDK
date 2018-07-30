@@ -1,5 +1,5 @@
  /*-
- * Copyright (c) <2011-2017>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2011-2018>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -147,7 +147,7 @@ static __inline__ void
 getf_etheraddr(lua_State *L, const char *field, struct ether_addr *value)
 {
 	lua_getfield(L, 3, field);
-	if (lua_isstring(L, 1) )
+	if (lua_isstring(L, -1) )
 		rte_ether_aton(luaL_checkstring(L, -1), value);
 	lua_pop(L, 1);
 }
@@ -156,7 +156,7 @@ static __inline__ void
 getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
 {
 	lua_getfield(L, 3, field);
-	if (lua_isstring(L, 1) ) {
+	if (lua_isstring(L, -1) ) {
 		rte_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
 				     sizeof(struct pg_ipaddr));
 	}
@@ -169,7 +169,7 @@ getf_integer(lua_State *L, const char *field)
 	uint32_t value = 0;
 
 	lua_getfield(L, 3, field);
-	if (lua_isinteger(L, 1) )
+	if (lua_isinteger(L, -1))
 		value   = luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
@@ -182,7 +182,7 @@ getf_string(lua_State *L, const char *field)
 	char      *value = NULL;
 
 	lua_getfield(L, 3, field);
-	if (lua_isstring(L, 1) )
+	if (lua_isstring(L, -1) )
 		value   = (char *)luaL_checkstring(L, -1);
 	lua_pop(L, 1);
 
@@ -280,6 +280,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 
 	sport   = luaL_checkinteger(L, 7);
 	dport   = luaL_checkinteger(L, 8);
+
 	/* Determine if we are IPv4 or IPv6 packets */
 	ip      = (char *)luaL_checkstring(L, 9);
 	if (ip[3] == '6') {
@@ -303,8 +304,12 @@ set_seq(lua_State *L, uint32_t seqnum)
 	else
 		gtpu_teid = 0;
 
-	cos  = luaL_checkinteger(L, 14);
-	tos  = luaL_checkinteger(L, 15);
+	cos = 0;
+	tos = 0;
+	if (lua_gettop(L) > 13) {
+		cos  = luaL_checkinteger(L, 14);
+		tos  = luaL_checkinteger(L, 15);
+	}
 
 	if ( (proto[0] == 'i') && (ip[3] == '6') ) {
 		lua_putstring("Must use IPv4 with ICMP type packets\n");
@@ -394,12 +399,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	cos         = getf_integer(L, "cos");
 	tos         = getf_integer(L, "tos");
 
-	lua_getfield(L, 3, "gtpu_teid");
-	if (lua_isinteger(L, -1))
-		gtpu_teid   = luaL_checkinteger(L, -1);
-	else
-		gtpu_teid   = 0;
-	lua_pop(L, 1);
+	gtpu_teid = getf_integer(L, "gtpu_teid");
 
 	if ( (ipProto[0] == 'i') && (ethType[3] == '6') ) {
 		lua_putstring("Must use IPv4 with ICMP type packets\n");
@@ -974,7 +974,7 @@ pktgen_pause(lua_State *L)
 
 	v = luaL_checkinteger(L, 2);
 	__delay(v);
-fprintf(stderr, "__delay(%d) done\n", v);
+
 	return 0;
 }
 

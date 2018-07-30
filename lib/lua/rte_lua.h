@@ -70,6 +70,8 @@ luaData_t *lua_create_instance(void);
 int lua_newlib_add(newlib_t n);
 void lua_newlibs_init(luaData_t *ld);
 
+int lua_docall(lua_State *L, int narg, int nres);
+
 int lua_dofile(luaData_t *ld, const char *name);
 int lua_dostring(luaData_t *ld, const char *s, const char *name);
 int lua_dolibrary(lua_State *L, const char *name);

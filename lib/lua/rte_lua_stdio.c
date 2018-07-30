@@ -106,7 +106,7 @@ lua_reset_stdfiles(luaData_t *ld)
 ** function to (not) close the standard files stdin, stdout, and stderr
 */
 static int
-io_noclose (lua_State *L)
+io_noclose(lua_State *L)
 {
 	LStream *p = tolstream(L);
 	p->closef = &io_noclose;  /* keep file opened */
@@ -116,7 +116,7 @@ io_noclose (lua_State *L)
 }
 
 static LStream *
-newprefile (lua_State *L)
+newprefile(lua_State *L)
 {
 	LStream *p = (LStream *)lua_newuserdata(L, sizeof(LStream));
 	p->closef = NULL;  /* mark file handle as 'closed' */
@@ -125,7 +125,7 @@ newprefile (lua_State *L)
 }
 
 void
-lua_create_stdfile (luaData_t *ld, FILE *f, const char *k, const char *fname)
+lua_create_stdfile(luaData_t *ld, FILE *f, const char *k, const char *fname)
 {
 	lua_State *L = ld->L;
 	LStream *p = newprefile(L);

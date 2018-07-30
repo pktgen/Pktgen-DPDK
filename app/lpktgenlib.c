@@ -3623,6 +3623,4 @@ pktgen_lua_openlib(lua_State *L)
 	lua_pop(L, 1);
 
 	lua_gc(L, LUA_GCRESTART, 0);
-
-	assert(lua_dolibrary(L, PKTGEN_SHORTCUTS) == LUA_OK);
 }

@@ -1,21 +1,21 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 
 -- Create some short cuts to the real functions.
-gsub		    = string.gsub
-gmatch          = string.gmatch
-strrep		    = string.rep
-strsub          = string.sub
-strfmt          = string.format
-strmatch        = string.match
-strrep          = string.rep
-strfind         = string.find
-strlen          = string.len
-tolower         = string.lower
-unlink          = os.remove
-system          = os.execute
-tinsert         = table.insert
-tgetn           = table.getn
-tconcat         = table.concat
+gsub	    = string.gsub
+gmatch      = string.gmatch
+strrep	    = string.rep
+strsub      = string.sub
+strfmt      = string.format
+strmatch    = string.match
+strrep      = string.rep
+strfind     = string.find
+strlen      = string.len
+tolower     = string.lower
+unlink      = os.remove
+system      = os.execute
+tinsert     = table.insert
+tgetn       = table.getn
+tconcat     = table.concat
 
 -- ===========================================================================
 -- getPwd - Get the current working directory path.

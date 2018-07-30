@@ -62,6 +62,29 @@ lua_newlibs_init(luaData_t *ld)
 		newlibs[i](ld->L);
 }
 
+static int
+handle_luainit(luaData_t *ld)
+{
+	const char *name;
+	const char *init;
+
+	name = "=" LUA_INITVERSION;
+	init = getenv(&name[1]);
+
+	if (!init) {
+		name = "=" LUA_INIT;
+		init = getenv(&name[1]); /* try alternative name */
+	}
+
+	if (!init)
+		return LUA_OK;
+
+	if (init[0] == '@')
+		return lua_dofile(ld, init + 1);
+	else
+		return lua_dostring(ld, init, name);
+}
+
 luaData_t *
 lua_create_instance(void)
 {
@@ -91,6 +114,12 @@ lua_create_instance(void)
 		ld->out = stdout;
 		ld->err = stderr;
 
+		if (handle_luainit(ld)) {
+			free(ld);
+			DBG("handle_luainit() failed\n");
+			return NULL;
+		}
+
 		lua_newlibs_init(ld);
 
 		// Make sure we display the copyright string for Lua.
@@ -118,86 +147,70 @@ laction(int i)
 		lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 }
 
+/*
+** Message handler used to run all chunks
+*/
+static int
+msghandler(lua_State *L)
+{
+	const char *msg = lua_tostring(L, 1);
+
+	if (msg == NULL) {	/* is error object not a string? */
+		if (luaL_callmeta(L, 1, "__tostring") &&	/* does it have a metamethod */
+		                lua_type(L, -1) == LUA_TSTRING) {	/* that produces a string? */
+			DBG("No metadata to produce a string on object\n");
+			return 1;	/* that is the message */
+		} else {
+			msg = lua_pushfstring(L,
+			                      "(error object is a %s value)",
+			                      luaL_typename(L, 1));
+		}
+	}
+	luaL_traceback(L, L, msg, 1);	/* append a standard traceback */
+	return 1;		/* return the traceback */
+}
+
 static int
 _k(lua_State *L, int status, lua_KContext ctx)
 {
-	DBG("Entry\n");
-
 	(void)L;
 	(void)ctx;
 
 	signal(SIGINT, SIG_DFL );
 	globalL = NULL;
 
-	DBG("Exit status %d\n", status);
 	return status;
 }
 
-static int
+int
 lua_docall(lua_State *L, int narg, int nres)
 {
 	int status;
+	int base;
 
-	DBG("Entry narg %d, nres %d\n", narg, nres);
-	globalL = L;				/* to be available to 'laction' */
+	base = lua_gettop(L);
+
+	lua_pushcfunction(L, msghandler);
+	lua_insert(L, base);
+
+	globalL = L;		/* to be available to 'laction' */
 	signal(SIGINT, laction);
 
-	status = _k(L, lua_pcallk(L, narg, nres, 0, 0, _k), 0);
+	status = _k(L, lua_pcallk(L, narg, nres, base, 0, _k), 0);
 
-	DBG("Exit status %d\n", status);
 	return status;
 }
-
-static void
-l_message(const char *pname, const char *msg)
-{
-	if (pname)
-		lua_writestringerror("%s: ", pname);
-	lua_writestringerror("%s\n", msg);
-}
-
-static int
-report(lua_State *L, int status)
-{
-	if (status != LUA_OK) {
-		const char *msg = lua_tostring(L, -1);
-		if (msg == NULL )
-			msg = "(error object is not a string)";
-		l_message(progname, msg);
-		lua_pop(L, 1);
-	}
-	return status;
-}
-
-#if 0
-/* the next function is called unprotected, so it must avoid errors */
-static void
-finalreport(lua_State *L, int status)
-{
-	if (status != LUA_OK) {
-		const char *msg = (lua_type(L, -1) == LUA_TSTRING) ?
-		                  lua_tostring(L, -1) : NULL;
-		if (msg == NULL )
-			msg = "(error object is not a string)";
-		l_message(progname, msg);
-		lua_pop(L, 1);
-	}
-}
-#endif
 
 int
 lua_dofile(luaData_t *ld, const char *name)
 {
 	int status;
 
-	DBG("Entry (%s)\n", name);
 	status = luaL_loadfile(ld->L, name);
 
-	DBG("Here 0 status %d\n", status);
 	if (status == LUA_OK)
 		status = lua_docall(ld->L, 0, 0);
 
-	DBG("Call report with status %d\n", status);
 	return report(ld->L, status);
 }
 
@@ -206,14 +219,11 @@ lua_dostring(luaData_t *ld, const char *s, const char *name)
 {
 	int status;
 
-	DBG("s (%s), name (%s)\n", s, name);
 	status = luaL_loadbuffer(ld->L, s, strlen(s), name);
 
-	DBG("Here 0 status %d\n", status);
 	if (status == LUA_OK)
 		status = lua_docall(ld->L, 0, 0);
 
-	DBG("Call report with status %d\n", status);
 	return report(ld->L, status);
 }
 
@@ -222,17 +232,13 @@ lua_dolibrary(lua_State *L, const char *name)
 {
 	int status;
 
-	DBG("Entry %s\n", name);
-
 	lua_getglobal(L, "require");
 	lua_pushstring(L, name);
 
-	DBG("Here 0\n");
 	status = lua_docall(L, 1, 1); /* call 'require(name)' */
 	if (status == LUA_OK)
 		lua_setglobal(L, name); /* global[name] = require return */
 
-	DBG("Call report with status %d\n", status);
 	return report(L, status);
 }
 

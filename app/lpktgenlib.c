@@ -1594,6 +1594,74 @@ range_vlan_id(lua_State *L)
 
 /**************************************************************************//**
  *
+ * range_cos - Set the CoS in the range data.
+ *
+ * DESCRIPTION
+ * Set the CoS in the range data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+range_cos(lua_State *L)
+{
+	portlist_t portlist;
+	uint32_t cos;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "cos, wrong number of arguments");
+	case 3:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	cos = luaL_checkinteger(L, 3);
+
+	foreach_port(portlist,
+		     range_set_cos_id(info, (char *)luaL_checkstring(L, 2),
+					cos) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * range_tos - Set the ToS in the range data.
+ *
+ * DESCRIPTION
+ * Set the ToS in the range data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+range_tos(lua_State *L)
+{
+	portlist_t portlist;
+	uint32_t tos;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "tos, wrong number of arguments");
+	case 3:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	tos = luaL_checkinteger(L, 3);
+
+	foreach_port(portlist,
+		     range_set_tos_id(info, (char *)luaL_checkstring(L, 2),
+					tos) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
  * single_vlan_id - Set the VLAN id for a single port
  *
  * DESCRIPTION
@@ -1646,11 +1714,11 @@ single_cos(lua_State *L) {
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "cos, wrong number of arguments");
-	case 2:
+	case 3:
 		break;
 	}
 	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
-	cos = luaL_checkinteger(L, 2);
+	cos = luaL_checkinteger(L, 3);
 	if (cos > MAX_COS)
 		cos = 0;
 
@@ -3479,11 +3547,13 @@ static const luaL_Reg pktgenlib[] = {
 	{"src_port",      range_src_port},		/* Set the IP source port number */
 	{"dst_port",      range_dst_port},		/* Set the IP destination port number */
 	{"vlan_id",       range_vlan_id},		/* Set the vlan id value */
-	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
+	{"mpls_entry",    range_mpls_entry},		/* Set the MPLS entry value */
 	{"qinqids",       range_qinqids},		/* Set the Q-in-Q ID values */
 	{"gre_key",       range_gre_key},		/* Set the GRE key */
 	{"pkt_size",      range_pkt_size},		/* the packet size for a range port */
-	{"set_range",     range},				/* Enable or disable sending range data on a port. */
+	{"cos",           range_cos},			/* Set the COS value */
+	{"tos",           range_tos},			/* Set the COS value */
+	{"set_range",     range},			/* Enable or disable sending range data on a port. */
 
 	{"ports_per_page", pktgen_ports_per_page},	/* Set the number of ports per page */
 	{"page",          pktgen_page},			/* Select a page to display, seq, range, pcap and a number from 0-N */

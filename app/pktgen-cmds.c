@@ -437,6 +437,9 @@ pktgen_lua_save(char *path)
 	fprintf(fd, "--\n-- Pktgen - %s\n", pktgen_version());
 	fprintf(fd, "-- %s, %s\n\n", copyright_msg(), powered_by());
 
+	fprintf(fd, "package.path = package.path ..\";?.lua;test/?.lua;app/?.lua;\"\n");
+	fprintf(fd, "require \"Pktgen\"\n\n");
+
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
 	fprintf(fd, "-- Command line arguments: (DPDK args are defaults)\n");
 	fprintf(fd, "-- %s -c %" PRIx64 " -n 3 -m 512 --proc-type %s -- ",

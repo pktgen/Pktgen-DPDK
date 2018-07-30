@@ -1,5 +1,6 @@
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
+require "Pktgen"
 -- A list of the test script for Pktgen and Lua.
 -- Each command somewhat mirrors the pktgen command line versions.
 -- A couple of the arguments have be changed to be more like the others.
@@ -34,7 +35,7 @@ end
 pktgen.reset("all");
 
 -- 'set' commands for a number of per port values
-pktgen+.set("all", "rate", 100);
+pktgen.set("all", "rate", 100);
 
 pktgen.clear("all");
 pktgen.cls();

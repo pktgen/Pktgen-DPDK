@@ -1,5 +1,6 @@
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
+require "Pktgen"
 pktgen.seqTable(pktgen.info.startSeqIdx, "all", {
     ["eth_dst_addr"] = "0011:4455:6677",
     ["eth_src_addr"] = "0011:1234:5678",
@@ -16,7 +17,7 @@ pktgen.seqTable(pktgen.info.startSeqIdx, "all", {
 
 prints("seqTable", pktgen.decompile(pktgen.info.startSeqIdx, "all"));
 
-pktgen.compile(pktgen.info.startExtraIdx, "all", {
+pktgen.compile(pktgen.info.startSeqIdx, "all", {
     ["eth_dst_addr"] = "0022:4455:6677",
     ["eth_src_addr"] = "0022:1234:5678",
     ["ip_dst_addr"] = "10.12.0.1",
@@ -30,6 +31,6 @@ pktgen.compile(pktgen.info.startExtraIdx, "all", {
     ["vlanid"] = 40
   });
 
-prints("compile", pktgen.decompile(pktgen.info.startExtraIdx, "all"));
+prints("compile", pktgen.decompile(pktgen.info.startSeqIdx, "all"));
 
 prints("pktgen", pktgen);

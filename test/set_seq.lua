@@ -1,5 +1,7 @@
+package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 -- Lua uses '--' as comment to end of line read the
 -- manual for more comment options.
+require "Pktgen"
 local seq_table = {			-- entries can be in any order
     ["eth_dst_addr"] = "0011:4455:6677",
     ["eth_src_addr"] = "0011:1234:5678",

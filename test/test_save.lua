@@ -14,7 +14,9 @@
 --   Number descriptors: RX 512 TX: 512
 --   Promiscuous mode is Enabled
 
+package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
+require "Pktgen"
 --#######################################################################
 -- Global configuration:
 -- geometry 132x44

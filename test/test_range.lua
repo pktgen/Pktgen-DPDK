@@ -1,5 +1,6 @@
 package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
+require "Pktgen"
 --pktgen.page("range");
 
 -- Port 0 3c:fd:fe:9c:5c:d8,  Port 1 3c:fd:fe:9c:5c:b8

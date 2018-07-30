@@ -1,4 +1,6 @@
+package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
+require "Pktgen"
 --
 -- Set up the sequence data for the port.
 pktgen.set('0', 'seq_cnt', 8);

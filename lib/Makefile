@@ -4,12 +4,25 @@
 include $(RTE_SDK)/mk/rte.vars.mk
 
 DIRS-y += common
-DEPDIRS-y = common
+DEPDIRS-common =
+
+DIRS-y += utils
+DEPDIRS-utils = common
+
+ifeq ($(CONFIG_RTE_LIBRTE_VEC),)
+DIRS-y += vec
+DEPDIRS-vec += common utils
+else
+ifeq ($(CONFIG_RTE_LIBRTE_VEC),n)
+DIRS-y += vec
+DEPDIRS-vec += common utils
+endif
+endif
 
 DIRS-y += lua
-DEPDIRS-y += lua
+DEPDIRS-lua += vec
 
 DIRS-y += cli
-DEPDIRS-y += cli
+DEPDIRS-cli += lua
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk

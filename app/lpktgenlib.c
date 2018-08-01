@@ -3687,8 +3687,6 @@ pktgen_lua_openlib(lua_State *L)
 {
 	lua_gc(L, LUA_GCSTOP, 0);	/* stop collector during initialization */
 
-	luaL_openlibs(L);	/* open libraries */
-
 	luaL_requiref(L, LUA_PKTGENLIBNAME, luaopen_pktgen, 1);
 	lua_pop(L, 1);
 

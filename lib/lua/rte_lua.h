@@ -16,10 +16,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/queue.h>
+
+#include <rte_tailq.h>
 
 #define lua_c
 
 #include <lua.h>
+#define LUA_COMPAT_APIINTCASTS
 #include <lauxlib.h>
 #include <lualib.h>
 
@@ -53,7 +57,8 @@ extern "C" {
 #define IO_INPUT        	(IO_PREFIX "input")
 #define IO_OUTPUT       	(IO_PREFIX "output")
 
-typedef struct luaData_s {
+typedef struct luaData {
+	TAILQ_ENTRY(luaData) node;
 	lua_State *L;		/**< Lua State pointer */
 	int32_t server_socket;	/**< Server socket descriptor */
 	int32_t client_socket;	/**< Client socket descriptor */
@@ -86,6 +91,9 @@ void lua_reset_stdfiles(luaData_t *ld);
 
 const char *lua_get_progname(void);
 void lua_set_progname(const char *name);
+
+void lua_destroy_instance(luaData_t *ld);
+luaData_t *lua_find_luaData(lua_State *L);
 
 #ifdef __cplusplus
 }

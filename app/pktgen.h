@@ -119,9 +119,11 @@ extern "C" {
 
 #define forall_ports(_action)					\
 	do {							\
-		uint32_t pid;					\
+		uint16_t pid;					\
+								\
 		RTE_ETH_FOREACH_DEV(pid) {			\
-			port_info_t   *info;			\
+			port_info_t *info;			\
+								\
 			info = &pktgen.info[pid];		\
 			if (info->seq_pkt == NULL)		\
 				continue;			\
@@ -131,13 +133,15 @@ extern "C" {
 
 #define foreach_port(_portlist, _action)				\
 	do {								\
-		uint32_t    *_pl = (uint32_t *)&_portlist;		\
-		uint32_t pid, idx, bit;					\
+		uint64_t *_pl = (uint64_t *)&_portlist;			\
+		uint16_t pid, idx, bit;					\
+									\
 		RTE_ETH_FOREACH_DEV(pid) {				\
 			port_info_t   *info;				\
-			idx = (pid / (sizeof(uint32_t) * 8));		\
-			bit = (pid - (idx * (sizeof(uint32_t) * 8)));	\
-			if ( (_pl[idx] & (1 << bit)) == 0)		\
+									\
+			idx = (pid / (sizeof(uint64_t) * 8));		\
+			bit = (pid - (idx * (sizeof(uint64_t) * 8)));	\
+			if ( (_pl[idx] & (1LL<< bit)) == 0)		\
 				continue;				\
 			info = &pktgen.info[pid];			\
 			if (info->seq_pkt == NULL)			\

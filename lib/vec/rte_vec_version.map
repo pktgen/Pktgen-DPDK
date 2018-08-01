@@ -1,0 +1,13 @@
+DPDK_17.05 {
+	global:
+
+	rte_vec_create;
+	rte_vec_create_pool;
+	rte_vec_destroy_pool;
+	rte_vec_print;
+
+	rte_vec_qadd;
+	rte_vec_qpop;
+
+	local: *;
+};

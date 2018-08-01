@@ -20,10 +20,20 @@
 #include <netdb.h>
 #include <assert.h>
 
+#include <rte_eal.h>
+#include <rte_eal_memconfig.h>
+#include <rte_rwlock.h>
+
 #include "rte_lua.h"
 #include "rte_lua_utils.h"
 
-static lua_State *globalL;
+TAILQ_HEAD(rte_luaData_list, rte_tailq_entry);
+
+static struct rte_tailq_elem rte_luaData_tailq = {
+	.name = "RTE_LUADATA",
+};
+
+EAL_REGISTER_TAILQ(rte_luaData_tailq);
 
 static const char *progname = LUA_PROGNAME;
 
@@ -45,7 +55,7 @@ lua_set_progname(const char *name)
 int
 lua_newlib_add(newlib_t n)
 {
-	if ( newlibs_idx >= MAX_NEW_LIBS )
+	if (newlibs_idx >= MAX_NEW_LIBS)
 		return -1;
 
 	newlibs[newlibs_idx++] = n;
@@ -89,62 +99,120 @@ luaData_t *
 lua_create_instance(void)
 {
 	luaData_t *ld;
+	struct rte_luaData_list *luaData_list = NULL;
+	struct rte_tailq_entry *te;
 
 	ld = (luaData_t *)malloc(sizeof(luaData_t));
-	if (ld) {
-		memset(ld, 0, sizeof(luaData_t));
+	if (!ld)
+		return NULL;
 
-		ld->client_socket = -1;
-		ld->server_socket = -1;
+	memset(ld, 0, sizeof(luaData_t));
 
-		ld->buffer = malloc(LUA_BUFFER_SIZE);
-		if (!ld->buffer) {
-			free(ld);
-			return NULL;
-		}
-		memset(ld->buffer, 0, LUA_BUFFER_SIZE);
+	ld->client_socket = -1;
+	ld->server_socket = -1;
 
-		ld->L = luaL_newstate();
-		if (!ld->L) {
-			free(ld);
-			return NULL;
-		}
-
-		ld->in = stdin;
-		ld->out = stdout;
-		ld->err = stderr;
-
-		if (handle_luainit(ld)) {
-			free(ld);
-			DBG("handle_luainit() failed\n");
-			return NULL;
-		}
-
-		lua_newlibs_init(ld);
-
-		// Make sure we display the copyright string for Lua.
-		lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
-		lua_writeline();
+	ld->buffer = malloc(LUA_BUFFER_SIZE);
+	if (!ld->buffer) {
+		free(ld);
+		return NULL;
 	}
+	memset(ld->buffer, 0, LUA_BUFFER_SIZE);
+
+	ld->L = luaL_newstate();
+	if (!ld->L) {
+		free(ld);
+		return NULL;
+	}
+
+	ld->in = stdin;
+	ld->out = stdout;
+	ld->err = stderr;
+
+	if (handle_luainit(ld)) {
+		free(ld);
+		DBG("handle_luainit() failed\n");
+		return NULL;
+	}
+
+	luaL_openlibs(ld->L);
+	lua_newlibs_init(ld);
+
+	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
+
+	/* try to allocate tailq entry */
+	te = malloc(sizeof(*te));
+	if (te == NULL) {
+		DBG("Cannot allocate tailq entry!\n");
+		lua_close(ld->L);
+		free(ld);
+		return NULL;
+	}
+	memset(te, 0, sizeof(*te));
+	te->data = ld;
+
+	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+	TAILQ_INSERT_TAIL(luaData_list, te, next);
+	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
+
+	// Make sure we display the copyright string for Lua.
+	lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
+	lua_writeline();
 
 	return ld;
 }
 
-static void
-lstop(lua_State *L, lua_Debug *ar)
+void
+lua_destroy_instance(luaData_t *ld)
 {
-	(void) ar; /* unused arg. */
-	lua_sethook(L, NULL, 0, 0);
-	luaL_error(L, "interrupted!");
+	struct rte_luaData_list *luaData_list = NULL;
+	struct rte_tailq_entry *te;
+
+	if (!ld)
+		return;
+
+	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
+
+	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+
+	TAILQ_FOREACH(te, luaData_list, next) {
+		if (te->data == (void *)ld)
+			break;
+	}
+	if (te) {
+		TAILQ_REMOVE(luaData_list, te, next);
+		free(te);
+	}
+
+	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
+
+	free(ld);
 }
 
-static void
-laction(int i)
+luaData_t *
+lua_find_luaData(lua_State *L)
 {
-	signal(i, SIG_DFL ); /* if another SIGINT happens before lstop,
-				terminate process (default action) */
-	if (globalL)
-		lua_sethook(globalL, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+	struct rte_luaData_list *luaData_list = NULL;
+	struct rte_tailq_entry *te;
+	luaData_t *ret_ld = NULL;
+
+	if (!L)
+		return NULL;
+
+	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
+
+	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+
+	TAILQ_FOREACH(te, luaData_list, next) {
+		luaData_t *ld = (luaData_t *)te->data;
+		if (ld->L == L) {
+			ret_ld = ld;
+			break;
+		}
+	}
+
+	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
+
+	return ret_ld;
 }
 
 /*
@@ -176,9 +244,6 @@ _k(lua_State *L, int status, lua_KContext ctx)
 	(void)L;
 	(void)ctx;
 
-	signal(SIGINT, SIG_DFL );
-	globalL = NULL;
-
 	return status;
 }
 
@@ -186,15 +251,12 @@ int
 lua_docall(lua_State *L, int narg, int nres)
 {
 	int status;
-	int base;
+	int base = 0;
 
 	base = lua_gettop(L);
 
 	lua_pushcfunction(L, msghandler);
 	lua_insert(L, base);
-
-	globalL = L;		/* to be available to 'laction' */
-	signal(SIGINT, laction);
 
 	status = _k(L, lua_pcallk(L, narg, nres, base, 0, _k), 0);
 
@@ -210,6 +272,8 @@ lua_dofile(luaData_t *ld, const char *name)
 
 	if (status == LUA_OK)
 		status = lua_docall(ld->L, 0, 0);
+	else
+		printf("lua_dofile(%s) failed\n", name);
 
 	return report(ld->L, status);
 }

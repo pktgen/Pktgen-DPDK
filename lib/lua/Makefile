@@ -26,13 +26,17 @@ WERROR_FLAGS += -Wcast-align
 WERROR_FLAGS += -Wnested-externs
 WERROR_FLAGS += -Wno-cast-align
 
-CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT
+CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT -DALLOW_EXPERIMENTAL_API
 CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
+CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
+CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
 CFLAGS += $(shell pkg-config --cflags lua5.3)
 
 # all source are stored in SRCS-y
-SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
+SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c
+SRCS-y += rte_lua_socket.c rte_lua_dpdk.c
 
 SYMLINK-y-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
+SYMLINK-y-include += rte_lua_dpdk.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

@@ -33,10 +33,10 @@ CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
 CFLAGS += $(shell pkg-config --cflags lua5.3)
 
 # all source are stored in SRCS-y
-SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c
-SRCS-y += rte_lua_socket.c rte_lua_dpdk.c
+SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
+SRCS-y += rte_lua_dpdk.c rte_lua_pktmbuf.c rte_lua_vec.c rte_lua_dapi.c
 
 SYMLINK-y-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
-SYMLINK-y-include += rte_lua_dpdk.h
+SYMLINK-y-include += rte_lua_dpdk.h rte_lua_pktmbuf.h rte_lua_vec.h rte_lua_dapi.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

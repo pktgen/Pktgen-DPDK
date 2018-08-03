@@ -24,8 +24,6 @@ extern "C" {
 #endif
 
 #define LUA_DPDK_LIBNAME        "dpdk"
-#define LUA_MBUFPOOL_LIBNAME    "mbufpool"
-#define LUA_VEC_LIBNAME         "vec"
 
 typedef uint64_t portlist_t;
 
@@ -79,7 +77,9 @@ struct pkt_data {
         uint16_t pad0;
 };
 
-typedef struct rte_mempool mbufpool_t;
+typedef struct rte_mempool pktmbuf_t;
+typedef struct rte_mempool mempool_t;
+typedef struct rte_vec vec_t;
 
 /**************************************************************************//**
  *

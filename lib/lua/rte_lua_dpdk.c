@@ -17,6 +17,8 @@
 
 #include "rte_lua.h"
 #include "rte_lua_dpdk.h"
+#include "rte_lua_pktmbuf.h"
+#include "rte_lua_vec.h"
 #include "rte_lua_utils.h"
 
 #ifndef __INTEL_COMPILER
@@ -24,182 +26,6 @@
 #endif
 
 static int lua_logtype;
-static int lua_inst;
-
-static const char *Vec	= "Vec";
-static const char *Mbuf =  "Mbuf";
-static const char *Mbufpool = "Mbufpool";
-
-static int
-mbufpool_new(lua_State *L)
-{
-	mbufpool_t **mbp;
-	struct rte_mempool *mp;
-	const char *name;
-	uint32_t n, size, csize;
-	char poolname[RTE_MEMPOOL_NAMESIZE];
-
-	validate_arg_count(L, 4);
-
-	name = luaL_checkstring(L, 1);
-	if (!name)
-		luaL_error(L, "Name is empty");
-	n = luaL_checkint(L, 2);
-	if (n == 0)
-		luaL_error(L, "Number of entries is zero");
-	size = luaL_checkint(L, 3);
-	if (size == 0)
-		luaL_error(L, "Size of entries is zero");
-	csize = luaL_checkint(L, 4);
-
-	mbp = (mbufpool_t **)lua_newuserdata(L, sizeof(mbp));
-
-	snprintf(poolname, sizeof(poolname), "%s-%d", name, lua_inst++);
-	mp = rte_pktmbuf_pool_create(poolname, n, csize, 0, size, rte_socket_id());
-	if (mp == NULL)
-		luaL_error(L, "Failed to create MBUF Pool");
-	*mbp = mp;
-
-	return 1;
-}
-
-static int
-mbufpool_destroy(lua_State *L)
-{
-	mbufpool_t **mbp;
-
-	validate_arg_count(L, 1);
-
-	mbp = (mbufpool_t **)luaL_checkudata(L, 1, Mbufpool);
-
-	rte_mempool_free(*mbp);
-
-	return 0;
-}
-
-static int
-mbufpool_get(lua_State *L)
-{
-	mbufpool_t **mbp;
-	struct rte_mbuf *m;
-
-	validate_arg_count(L, 1);
-
-	mbp = luaL_checkudata(L, 1, Mbufpool);
-
-	m = rte_pktmbuf_alloc(*mbp);
-
-	if (m)
-		lua_pushlightuserdata(L, m);
-
-	return 1;
-}
-
-static int
-mbufpool_tostring(lua_State *L)
-{
-	mbufpool_t **mbp;
-
-	mbp = (mbufpool_t **)luaL_checkudata(L, 1, Mbufpool);
-
-	lua_pushfstring(L, "%s(%p)", (*mbp)->name, *mbp);
-
-	return 1;
-}
-
-static const struct luaL_Reg mbufpool_methods[] = {
-	{ "get",	mbufpool_get },
-	{"__tostring",  mbufpool_tostring},
-	{"__gc",	mbufpool_destroy},
-	{ NULL, 	NULL }
-};
-
-static const struct luaL_Reg mbufpool_functions[] = {
-	{ "new",	mbufpool_new },
-	{ "destroy",	mbufpool_destroy},
-	{ NULL,		NULL }
-};
-
-static int
-luaopen_mbufpool(lua_State *L)
-{
-	(void)L;
-	(void)mbufpool_methods;
-	(void)mbufpool_functions;
-
-	return 1;
-}
-
-static int
-vec_new(lua_State *L)
-{
-	struct rte_vec *v;
-	const char *name;
-	int size;
-
-	validate_arg_count(L, 2);
-
-	size = luaL_checkint(L, 1);
-	if (size == 0)
-		size = rte_vec_calc_size(0);
-	name = luaL_checkstring(L, 2);
-	if (!name)
-		luaL_error(L, "Name is empty");
-
-	v = (struct rte_vec *)lua_newuserdata(L,
-		(sizeof(struct rte_vec) * (size * sizeof(void *))));
-	rte_vec_init(v, size, VEC_CREATE_FLAG);
-
-	luaL_getmetatable(L, Vec);
-	lua_setmetatable(L, -2);
-
-	return 1;
-}
-
-static int
-vec_add1(lua_State *L)
-{
-	struct rte_vec *v;
-
-	validate_arg_count(L, 2);
-
-	v = (struct rte_vec *)luaL_checkudata(L, 1, Vec);
-
-	if (v->len >= v->tlen)
-		return 0;
-
-	v->list[v->len++] = luaL_checkudata(L, 2, Mbuf);
-
-	return 1;
-}
-
-static const struct luaL_Reg vec_methods[] = {
-	{ "add1",	vec_add1 },
-	{ NULL, 	NULL }
-};
-
-static const struct luaL_Reg vec_functions[] = {
-	{ "vec_new",	vec_new },
-	{ NULL,		NULL }
-};
-
-static int
-luaopen_vec(lua_State *L)
-{
-	luaL_newmetatable(L, Vec);
-	lua_pushvalue(L, -1);
-
-	lua_setfield(L, -2, "__index");
-
-	luaL_setfuncs(L, vec_methods, 0);
-
-	lua_getglobal(L, LUA_DPDK_LIBNAME);
-	lua_newtable(L);
-	luaL_setfuncs(L, vec_functions, 0);
-	lua_setfield(L, -2, LUA_VEC_LIBNAME);
-
-	return 1;
-}
 
 static __inline__ void
 __delay(int32_t t)
@@ -592,8 +418,14 @@ dpdk_lua_openlib(lua_State *L)
 	luaL_requiref(L, LUA_DPDK_LIBNAME, luaopen_dpdk, 1);
 	lua_pop(L, 1);
 
-	luaopen_mbufpool(L);
+	luaopen_pktmbuf(L);
+	lua_pop(L, 1);
+
 	luaopen_vec(L);
+	lua_pop(L, 1);
+
+	luaopen_dapi(L);
+	lua_pop(L, 1);
 
 	lua_gc(L, LUA_GCRESTART, 0);
 }

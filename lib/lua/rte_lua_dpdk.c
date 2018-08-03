@@ -7,6 +7,7 @@
 #define LUA_LIB
 #define lua_c
 
+#include <rte_common.h>
 #include <rte_ethdev.h>
 #include <rte_mbuf.h>
 #include <rte_cycles.h>
@@ -23,6 +24,10 @@
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
+
+#ifndef __rte_weak
+#define __rte_weak	__attribute__((__weak__))
 #endif
 
 static int lua_logtype;
@@ -407,6 +412,14 @@ luaopen_dpdk(lua_State *L)
 	/* Now set the table for the info values. */
 	lua_rawset(L, -3);
 
+	return 1;
+}
+
+int luaopen_dapi(lua_State *L);
+
+int
+luaopen_dapi(lua_State *L __rte_unused)
+{
 	return 1;
 }
 

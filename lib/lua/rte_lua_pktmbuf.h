@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) 2018 Intel Corporation.
  */
-/* Created 2018 by Keith Wiles @ intel.com */
+/* Created by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_PKTMBUF_H_
 #define _RTE_LUA_PKTMBUF_H_

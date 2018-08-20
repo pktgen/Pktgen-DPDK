@@ -16,7 +16,6 @@ sources = files(
 	'cli_map.c',
 	'cli_scrn.c',
 	'cli_search.c',
-	'cli_string_fns.c',
 	'cli_vt100.c')
 headers = files(
 	'cli_auto_complete.h',
@@ -32,6 +31,5 @@ headers = files(
 	'cli_input.h',
 	'cli_map.h',
 	'cli_scrn.h',
-	'cli_search.h',
-	'cli_string_fns.h')
+	'cli_search.h')
 deps += ['ethdev', 'timer', 'pci']

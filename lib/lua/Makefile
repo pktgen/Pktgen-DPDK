@@ -10,7 +10,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 # library name
 LIB = librte_lua.a
 
-EXPORT_MAP := lua_version.map
+EXPORT_MAP := rte_lua_version.map
 LIBABIVER := 1
 
 # To overcome problems with FD6 more strict warnings gcc flags,
@@ -31,6 +31,9 @@ CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
 CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
 CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
 CFLAGS += $(shell pkg-config --cflags lua5.3)
+
+LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf
+LDLIBS += -lrte_timer -L$(SRCDIR)/../utils/$(RTE_TARGET)/lib -lutils -llua5.3 -lpthread
 
 # all source are stored in SRCS-y
 SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c

@@ -17,7 +17,7 @@
 
 #include "pktgen.h"
 #include <rte_string_fns.h>
-#include <cli_string_fns.h>
+#include <rte_portlist.h>
 
 #ifdef __cplusplus
 "C" {

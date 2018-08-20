@@ -1,6 +1,5 @@
 DPDK_17.05 {
 	global:
-	rte_strtrim;
 
 	cli_add_alias;
 	cli_add_bin;
@@ -14,7 +13,6 @@ DPDK_17.05 {
 	cli_create;
 	cli_create_root;
 	cli_create_with_defaults;
-	cli_create_with_tree;
 	cli_default_tree_init;
 	cli_del_bin;
 	cli_destroy;
@@ -57,7 +55,6 @@ DPDK_17.05 {
 	cli_history_prev;
 	cli_history_reset;
 	cli_input;
-	cli_last_node_in_path;
 	cli_map_dump;
 	cli_map_list_search;
 	cli_mapping;
@@ -82,13 +79,10 @@ DPDK_17.05 {
 	cli_use_timers;
 	cli_write;
 	cli_yield_io;
-	rte_atoip;
-	rte_parse_portlist;
-	rte_stropt;
-	rte_strqtok;
-	rte_strtok;
-	rte_strtrim;
-	rte_strtrimset;
+	cli_setup;
+	cli_setup_with_tree;
+	per_lcore_scrn;
+	per_lcore_cli;
 
 	local: *;
 };

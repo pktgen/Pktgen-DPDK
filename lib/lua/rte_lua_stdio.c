@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Created 2018 by Keith Wiles @ intel.com */
+/* Created by Keith Wiles @ intel.com */
 
 #include <sys/queue.h>
 #include <netinet/in.h>

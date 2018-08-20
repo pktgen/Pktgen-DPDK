@@ -1,5 +1,5 @@
 DPDK_18.11 {
-	global: ;
+	global: *;
 
 	local: *;
 };

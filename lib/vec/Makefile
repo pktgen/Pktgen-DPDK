@@ -39,6 +39,8 @@ LIB = librte_vec.a
 CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3
 CFLAGS += -I$(RTE_SDK)/$(RTE_TARGET)/include
 
+LDLIBS += -lrte_eal -lrte_mempool
+
 EXPORT_MAP := rte_vec_version.map
 
 LIBABIVER := 1

@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-#include "rte_utils.h"
+#include "rte_strings.h"
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
 

@@ -374,9 +374,8 @@ main(int argc, char **argv)
 		pktgen_log_error("Failed to open Lua pktgen support library");
 		return -1;
 	}
-	cli_set_lua_callback(pktgen_lua_dofile, (void *)pktgen.ld);
-	cli_set_lua_state(pktgen.ld);
-	cli_set_user_data(pktgen.ld);
+	cli_set_lua_callback(pktgen_lua_dofile);
+	cli_set_user_state(pktgen.ld);
 
 	/* parse application arguments (after the EAL ones) */
 	ret = pktgen_parse_args(argc, argv);

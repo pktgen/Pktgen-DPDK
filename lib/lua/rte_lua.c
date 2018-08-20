@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Create from lua.c 2018 by Keith Wiles @ intel.com */
+/* Create from lua.c by Keith Wiles @ intel.com */
 
 #include <sys/queue.h>
 #include <netinet/in.h>

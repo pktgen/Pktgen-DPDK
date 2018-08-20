@@ -1,7 +1,7 @@
  /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) 2018 Intel Corporation.
  */
-/* Created 2018 by Keith Wiles @ intel.com */
+/* Created by Keith Wiles @ intel.com */
 
 #define rte_lua_dpdk_c
 #define LUA_LIB
@@ -13,12 +13,20 @@
 #include <rte_cycles.h>
 #include <rte_vec.h>
 #include <rte_timer.h>
-#include <rte_utils.h>
+#include <rte_strings.h>
 #include <rte_version.h>
+#include <rte_portlist.h>
+
+//#include <pg_inet.h>
 
 #include "rte_lua.h"
 #include "rte_lua_dpdk.h"
 #include "rte_lua_pktmbuf.h"
+#ifdef RTE_LIBRTE_DAPI
+#include <rte_lua_dapi.h>
+#else
+int luaopen_dapi(lua_State *L);
+#endif
 #include "rte_lua_vec.h"
 #include "rte_lua_utils.h"
 
@@ -392,6 +400,8 @@ static const luaL_Reg dpdklib[] = {
 	{NULL, NULL}
 };
 
+static const char *rte_copyright = "Copyright (c) <2010-2018>, Intel Corporation";
+
 static int
 luaopen_dpdk(lua_State *L)
 {
@@ -407,7 +417,7 @@ luaopen_dpdk(lua_State *L)
 
 	setf_string(L, "DAPI_Authors", (char *)"Keith Wiles @ Intel Corp");
 	setf_string(L, "DPDK_Version", (char *)rte_version());
-	setf_string(L, "DPDK_Copyright", (char *)powered_by());
+	setf_string(L, "DPDK_Copyright", (char *)rte_copyright);
 
 	/* Now set the table for the info values. */
 	lua_rawset(L, -3);
@@ -415,9 +425,7 @@ luaopen_dpdk(lua_State *L)
 	return 1;
 }
 
-int luaopen_dapi(lua_State *L);
-
-int
+__rte_weak int
 luaopen_dapi(lua_State *L __rte_unused)
 {
 	return 1;

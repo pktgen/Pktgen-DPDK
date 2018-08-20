@@ -20,9 +20,9 @@ endif
 endif
 
 DIRS-y += lua
-DEPDIRS-lua += vec
+DEPDIRS-lua += vec utils
 
 DIRS-y += cli
-DEPDIRS-cli += lua
+DEPDIRS-cli += lua utils
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk

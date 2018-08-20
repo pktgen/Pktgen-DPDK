@@ -8,13 +8,14 @@
  * String-related utility functions
  */
 
-#ifndef _RTE_STR_FNS_H_
-#define _RTE_STR_FNS_H_
+#ifndef _RTE_STRINGS_H_
+#define _RTE_STRINGS_H_
 
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <rte_compat.h>
 #include <rte_ether.h>
@@ -23,6 +24,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define __numbits(_v)       __builtin_popcount(_v)
 
 enum {
 	STR_MAX_ARGVS = 64,             /**< Max number of args to support */
@@ -206,8 +209,62 @@ rte_ether_aton(const char *a, struct ether_addr *e)
 	return e;
 }
 
+#ifndef _MTOA_
+#define _MTOA_
+/* char * inet_mtoa(char * buff, int len, struct ether_addr * eaddr) - Convert MAC address to ascii */
+static __inline__ char *
+inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
+        snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
+                 eaddr->addr_bytes[0], eaddr->addr_bytes[1],
+                 eaddr->addr_bytes[2], eaddr->addr_bytes[3],
+                 eaddr->addr_bytes[4], eaddr->addr_bytes[5]);
+        return buff;
+}
+#endif
+
+#ifndef _MASK_SIZE_
+#define _MASK_SIZE_
+/* mask_size(uint32_t mask) - return the number of bits in mask */
+static __inline__ int
+mask_size(uint32_t mask) {
+        if (mask == 0)
+                return 0;
+        else if (mask == 0xFF000000)
+                return 8;
+        else if (mask == 0xFFFF0000)
+                return 16;
+        else if (mask == 0xFFFFFF00)
+                return 24;
+        else if (mask == 0xFFFFFFFF)
+                return 32;
+        else {
+                int i;
+                for (i = 0; i < 32; i++)
+                        if ( (mask & (1 << (31 - i))) == 0)
+                                break;
+                return i;
+        }
+}
+#endif
+
+#ifndef _NTOP4_
+#define _NTOP4_
+/* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
+static __inline__ char *
+inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
+        char lbuf[64];
+
+        inet_ntop(AF_INET, &ip_addr, buff, len);
+        if (mask != 0xFFFFFFFF) {
+                snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, mask_size(mask));
+                strncpy(buff, lbuf, len);
+        }
+        return buff;
+}
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _RTE_STR_FNS_H_ */
+#endif /* _RTE_STRINGS_H_ */

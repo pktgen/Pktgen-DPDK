@@ -1174,6 +1174,8 @@ enable|disable <portlist> <features>
               range                - Enable or Disable the given portlist for sending a range of packets
               capture              - Enable/disable packet capturing on a portlist
 
+Note: must disable capture on a port to save the data into the current working directory.
+
 enable|disable screen              - Enable/disable updating the screen and unlock/lock window
                mac_from_arp        - Enable/disable MAC address from ARP packet
 off                                - screen off shortcut

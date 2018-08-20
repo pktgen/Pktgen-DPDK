@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-#include "rte_str_fns.h"
+#include "rte_strings.h"
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
 
@@ -185,4 +185,3 @@ rte_stropt(const char *list, char *str, const char *delim)
 
 	return -1;
 }
-

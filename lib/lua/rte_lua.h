@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Created 2018 by Keith Wiles @ intel.com */
+/* Created by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_H_
 #define _RTE_LUA_H_

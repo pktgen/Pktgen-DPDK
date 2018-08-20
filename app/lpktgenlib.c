@@ -25,6 +25,7 @@
 #include <rte_net.h>
 #include <rte_lua.h>
 #include <rte_lua_stdio.h>
+#include <rte_strings.h>
 
 #include <cli_help.h>
 

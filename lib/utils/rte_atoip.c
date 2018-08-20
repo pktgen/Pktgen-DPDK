@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-#include "rte_str_fns.h"
+#include "rte_strings.h"
 #include "rte_atoip.h"
 
 /* isblank() needs _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE, so use our own. */
@@ -48,7 +48,7 @@ rte_isendoftoken(char c)
  *      Paul Vixie, 1996.
  */
 static int
-inet_pton4(const char *src, unsigned char *dst)
+inet_ipton4(const char *src, unsigned char *dst)
 {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
@@ -99,7 +99,7 @@ inet_pton4(const char *src, unsigned char *dst)
  *      Paul Vixie, 1996.
  */
 static int
-inet_pton6(const char *src, unsigned char *dst)
+inet_ipton6(const char *src, unsigned char *dst)
 {
 	static const char xdigits_l[] = "0123456789abcdef",
 	                                xdigits_u[] = "0123456789ABCDEF";
@@ -156,7 +156,7 @@ inet_pton6(const char *src, unsigned char *dst)
 			continue;
 		}
 		if (ch == '.' && ((tp + RTE_INADDRSZ) <= endp) &&
-		    inet_pton4(curtok, tp) > 0) {
+		    inet_ipton4(curtok, tp) > 0) {
 			tp += RTE_INADDRSZ;
 			saw_xdigit = 0;
 			dbloct_count += 2;
@@ -206,13 +206,13 @@ inet_pton6(const char *src, unsigned char *dst)
  *      Paul Vixie, 1996.
  */
 static int
-inet_pton(int af, const char *src, void *dst)
+inet_ipton(int af, const char *src, void *dst)
 {
 	switch (af) {
 	case AF_INET:
-		return inet_pton4(src, dst);
+		return inet_ipton4(src, dst);
 	case AF_INET6:
-		return inet_pton6(src, dst);
+		return inet_ipton6(src, dst);
 	default:
 		errno = EAFNOSUPPORT;
 		return -1;
@@ -262,7 +262,7 @@ rte_atoip(const char *buf, int flags, void *res, unsigned ressize)
 
 	/* convert the IP addr */
 	if ((flags & RTE_IPADDR_V4) &&
-	    inet_pton(AF_INET, ip_str, &ipaddr.ipv4) == 1 &&
+	    inet_ipton(AF_INET, ip_str, &ipaddr.ipv4) == 1 &&
 	    prefixlen <= RTE_V4PREFIXMAX) {
 		ipaddr.family = AF_INET;
 		if (res)
@@ -271,7 +271,7 @@ rte_atoip(const char *buf, int flags, void *res, unsigned ressize)
 	}
 
 	if ((flags & RTE_IPADDR_V6) &&
-	    inet_pton(AF_INET6, ip_str, &ipaddr.ipv6) == 1) {
+	    inet_ipton(AF_INET6, ip_str, &ipaddr.ipv6) == 1) {
 		ipaddr.family = AF_INET6;
 		if (res)
 			memcpy(res, &ipaddr, sizeof(ipaddr));

@@ -20,7 +20,7 @@
 #include <rte_devargs.h>
 #include <rte_ether.h>
 #include <rte_string_fns.h>
-#include <cli_string_fns.h>
+#include <rte_strings.h>
 #include <rte_hexdump.h>
 #include <rte_cycles.h>
 #include <rte_malloc.h>
@@ -743,6 +743,7 @@ static const char *enable_help[] = {
 	"              icmp                 - Enable/Disable sending ICMP packets",
 	"              range                - Enable or Disable the given portlist for sending a range of packets",
 	"              capture              - Enable/disable packet capturing on a portlist, disable to save capture",
+	"                                     Disable capture on a port to save the data into the currect working directory.",
 	"              bonding              - Enable call TX wiht zero packets for bonding driver",
 	"              short                - Allow shorter then 64 byte frames to be sent",
 	"",

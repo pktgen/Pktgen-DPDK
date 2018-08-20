@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) 2018 Intel Corporation.
  */
-/* Created 2018 by Keith Wiles @ intel.com */
+/* Created by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_DPDK_H_
 #define _RTE_LUA_DPDK_H_
@@ -24,8 +24,6 @@ extern "C" {
 #endif
 
 #define LUA_DPDK_LIBNAME        "dpdk"
-
-typedef uint64_t portlist_t;
 
 #define LUA_LOG(level, fmt, args...) \
 	rte_log(RTE_LOG_ ## level, lua_logtype, "%s(): " fmt "\n", \

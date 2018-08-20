@@ -1,13 +1,11 @@
-/*-
- * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause
+ * Copyright(c) 2016-2018 Intel Corporation.
  */
 
 #include <rte_string_fns.h>
+#include <rte_strings.h>
 
 #include "cli.h"
-#include "cli_string_fns.h"
 
 static int
 __count_nodes(struct cli_node *node,

@@ -20,6 +20,7 @@ APP = pktgen
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
+CFLAGS += -I$(RTE_SRCDIR)/../lib/utils
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 CFLAGS += -I/usr/include/lua5.3
 
@@ -38,17 +39,20 @@ COMMON_PRE := $(RTE_OUTPUT)/../../lib/common
 CLI_PRE := $(RTE_OUTPUT)/../../lib/cli
 GUI_PRE := $(RTE_OUTPUT)/../../gui/gui
 LUA_PRE := $(RTE_OUTPUT)/../../lib/lua/src
+UTIL_PRE := $(RTE_SRCDIR)/../lib/utils
 else
 ifeq ($(yy),16)
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common/lib/common
 LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli/lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui
+UTIL_PRE := $(RTE_SRCDIR)/../lib/utils/lib/utils
 else
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common
 LUA_PRE := $(RTE_SRCDIR)/../lib/lua
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui/gui
+UTIL_PRE := $(RTE_SRCDIR)/../lib/utils
 endif
 endif
 
@@ -56,6 +60,7 @@ COMMON_LIB := $(COMMON_PRE)/$(RTE_TARGET)/lib
 LUA_LIB    := $(LUA_PRE)/$(RTE_TARGET)/lib
 CLI_LIB    := $(CLI_PRE)/$(RTE_TARGET)/lib
 GUI_LIB    := $(GUI_PRE)/$(RTE_TARGET)/lib
+UTIL_LIB   := $(UTIL_PRE)/$(RTE_TARGET)/lib
 
 SRCS-y := \
 	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
@@ -66,20 +71,17 @@ SRCS-y := \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
 	pktgen-latency.c
 
-COMMON_NAME := libcommon.a
 MYLIBS     += -lcommon
 MYLIB_PATH += -L$(COMMON_LIB)
 
-LUA_NAME   := librte_lua.a
 MYLIBS     += -lrte_lua
 MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
 
-CLI_NAME   := librte_cli.a
+#CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli
 MYLIB_PATH += -L$(CLI_LIB)
 
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/common
-COMMON_DEP := $(COMMON_LIB)/$(COMMON_NAME)
 
 ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
@@ -88,6 +90,9 @@ endif
 
 LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
+
+MYLIB_PATH += -L$(UTIL_LIB)
+MYLIBS     += -lutils
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe
@@ -115,8 +120,6 @@ endif
 
 # $(info $(CLI_LIB)/$(CLI_NAME))
 # $(info $(MYLIB_PATH))
-
-pktgen: $(COMMON_DEP) $(LUA_DEP) $(CLI_DEP)
 
 LDFLAGS += -g -lpcap $(RPATHS) $(MYLIB_PATH) $(MYLIBS) -lm
 

@@ -648,6 +648,8 @@ inetAddrSwap(void *t, void *f) {
 	v  = *d; *d = *s; *s = v;
 }
 
+#ifndef _MASK_SIZE_
+#define _MASK_SIZE_
 /* mask_size(uint32_t mask) - return the number of bits in mask */
 static __inline__ int
 mask_size(uint32_t mask) {
@@ -669,6 +671,7 @@ mask_size(uint32_t mask) {
 		return i;
 	}
 }
+#endif
 
 /* size_to_mask( int len ) - return the mask for the mask size */
 static __inline__ uint32_t
@@ -694,6 +697,8 @@ size_to_mask(int len) {
 	return mask;
 }
 
+#ifndef _NTOP4_
+#define _NTOP4_
 /* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
 static __inline__ char *
 inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
@@ -706,12 +711,15 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 	}
 	return buff;
 }
+#endif
 
 static __inline__ const char *
 inet_ntop6(char *buff, int len, uint8_t *ip6) {
 	return inet_ntop(AF_INET6, ip6, buff, len);
 }
 
+#ifndef _MTOA_
+#define _MTOA_
 /* char * inet_mtoa(char * buff, int len, struct ether_addr * eaddr) - Convert MAC address to ascii */
 static __inline__ char *
 inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
@@ -721,6 +729,7 @@ inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
 		 eaddr->addr_bytes[4], eaddr->addr_bytes[5]);
 	return buff;
 }
+#endif
 
 /* convert a MAC address from network byte order to host 64bit number */
 static __inline__ uint64_t

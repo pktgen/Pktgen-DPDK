@@ -1,7 +1,5 @@
-/*-
- * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause
+ * Copyright(c) 2016-2018 Intel Corporation.
  */
 /* inspired by an email/code written by: Joseph H. Allen, 9/10/89 */
 

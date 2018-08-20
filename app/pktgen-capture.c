@@ -11,7 +11,6 @@
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
 #include <rte_string_fns.h>
-#include <cli_string_fns.h>
 
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"

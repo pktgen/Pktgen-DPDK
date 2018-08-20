@@ -1,7 +1,5 @@
-/*-
- * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause
+ * Copyright(c) 2016-2018 Intel Corporation.
  */
 
 #include <stdio.h>
@@ -12,10 +10,12 @@
 #include <rte_timer.h>
 #include <rte_log.h>
 #include <rte_string_fns.h>
+#include <rte_strings.h>
 
 #include "cli.h"
 #include "cli_input.h"
-#include "cli_string_fns.h"
+
+int (*lua_dofile)(void *, const char *);
 
 int
 cli_yield_io(void)

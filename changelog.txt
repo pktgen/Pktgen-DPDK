@@ -6,6 +6,8 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.5.3 - Fix performance problem on FVL NIC with losing mbufs.
+           Number of little cleanups and fixes.
  - 3.5.2 - Fix 18.08-rc0 fixed some fields that were removed txq_flags and .ignore_offload_fields.
            Tested backward compat to 18.02 at least. Pktgen should work with at least 18.02 release.
  - 3.5.1 - Fix 18.05 related problems and minor cleanup in port configuration.

@@ -197,7 +197,6 @@ typedef struct port_info_s {
 		struct rte_mempool *seq_mp;	/**< Pool pointer for port Sequence TX mbufs */
 		struct rte_mempool *pcap_mp;	/**< Pool pointer for port PCAP TX mbufs */
 		struct rte_mempool *special_mp;	/**< Pool pointer for special TX mbufs */
-		uint64_t tx_cnt, rx_cnt;
 	} q[NUM_Q];
 
 	int32_t rx_tapfd;	/**< Rx Tap file descriptor */

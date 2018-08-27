@@ -279,7 +279,7 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 	pkts = mtab->m_table;
 
 	retry = PKTGEN_RETRY_COUNT;
-	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS)
+	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS) {
 		while (cnt && retry--) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -287,13 +287,15 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 
 			pkts += ret;
 			cnt -= ret;
-		} else
+		}
+	} else {
 		while (cnt && retry--) {
 			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 			pkts += ret;
 			cnt -= ret;
 		}
+	}
 	if (cnt) {
 		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
 		           sizeof(char *) * cnt);
@@ -1047,12 +1049,14 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 	flags = rte_atomic32_read(&info->port_flags);
 
 	if (flags & SEND_FOREVER) {
+		uint16_t saved = info->q[qid].tx_mbufs.len;
+		uint16_t nb_pkts = info->tx_burst - saved;
+
 		rc = pg_pktmbuf_alloc_bulk(mp,
-		                           info->q[qid].tx_mbufs.m_table,
-		                           info->tx_burst);
+		                           &info->q[qid].tx_mbufs.m_table[saved],
+		                           nb_pkts);
 		if (rc == 0) {
 			info->q[qid].tx_mbufs.len = info->tx_burst;
-			info->q[qid].tx_cnt += info->tx_burst;
 
 			pktgen_send_burst(info, qid);
 		}
@@ -1061,11 +1065,15 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count, info->tx_burst);
 		if (txCnt > 0) {
+			uint16_t saved = info->q[qid].tx_mbufs.len;
+			uint16_t nb_pkts = txCnt - saved;
+
 			rc = pg_pktmbuf_alloc_bulk(mp,
-			                           info->q[qid].tx_mbufs.m_table,
-			                           txCnt);
+			                           &info->q[qid].tx_mbufs.m_table[saved],
+			                           nb_pkts);
 			if (rc == 0) {
 				info->q[qid].tx_mbufs.len = txCnt;
+
 				pktgen_send_burst(info, qid);
 			}
 		} else
@@ -1153,8 +1161,6 @@ pktgen_main_receive(port_info_t *info,
 	 */
 	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, info->tx_burst)) == 0)
 		return;
-
-	info->q[qid].rx_cnt += nb_rx;
 
 	pktgen_recv_latency(info, pkts_burst, nb_rx);
 

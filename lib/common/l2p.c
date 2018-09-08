@@ -310,15 +310,15 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 
 	for (i = 0; (i < k) && lcore_port[i]; i++) {
 		char *arr[3];
-		char str[64];
+		char _str[128];
 
 		memset(lp, '\0', sizeof(lp_t));
 
 		/* Grab a private copy of the string. */
-		strncpy(str, lcore_port[i], sizeof(str));
+		snprintf(_str, sizeof(_str), "%s", lcore_port[i]);
 
 		/* Parse the string into <lcore-list> and <port-list> */
-		m = pg_strparse(lcore_port[i], ".", arr, 3);
+		m = pg_strparse(_str, ".", arr, 3);
 		if (m != 2) {
 			fprintf(stderr, "%s: could not parse <lcore-list>.<port-list> (%s) string\n",
 				__func__, lcore_port[i]);

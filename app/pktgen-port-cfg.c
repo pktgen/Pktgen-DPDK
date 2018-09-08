@@ -200,7 +200,7 @@ pktgen_config_ports(void)
 		info = get_port_private(pktgen.l2p, pid);
 
 		info->fill_pattern_type  = ABC_FILL_PATTERN;
-		strncpy(info->user_pattern, "0123456789abcdef", USER_PATTERN_SIZE);
+		snprintf(info->user_pattern, USER_PATTERN_SIZE, "%s", "0123456789abcdef");
 
 		rte_spinlock_init(&info->port_lock);
 

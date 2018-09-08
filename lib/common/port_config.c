@@ -169,14 +169,12 @@ create_blacklist(uint64_t portmask,
 		memset(pci_addr_str, 0, sizeof(pci_addr_str));
 		if ( (portmask & (1ULL << i)) == 0) {
 			fprintf(stdout, "-- %s\n", desc[i]);
-			strncpy(pci_addr_str, (void *)desc[i], 12);
-			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI,
-					    pci_addr_str);
+			snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);
+			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI, pci_addr_str);
 			idx++;
 		} else {
-			strncpy(pci_addr_str, (void *)desc[i], 12);
-			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI,
-					    pci_addr_str);
+			snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);
+			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI, pci_addr_str);
 			fprintf(stdout, "++ %s\n", desc[i]);
 		}
 	}

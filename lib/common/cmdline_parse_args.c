@@ -60,7 +60,7 @@ cmdline_parse_args(cmdline_parse_token_hdr_t *tk __rte_unused,
 	pl          = res;
 	pl->argc    = 1;	/* Leave the zero entry empty */
 
-	strncpy(orig_cmdline, buf, sizeof(orig_cmdline) - 1);
+	snprintf(orig_cmdline, sizeof(orig_cmdline), "%s", buf);
 	do {
 		while (!cmdline_isendoftoken(buf[token_len]) &&
 		       (token_len < XARGS_TOKEN_SIZE)) {

@@ -290,7 +290,7 @@ cli_add_dir(const char *name, struct cli_node *dir)
 	p = cli->scratch;
 
 	/* Grab a local copy of the directory path */
-	strncpy(p, name, CLI_MAX_SCRATCH_LENGTH);
+	snprintf(p, CLI_MAX_SCRATCH_LENGTH, "%s", name);
 
 	if (p[0] == '/') {	/* Start from root */
 		dir = cli->root.tqh_first;

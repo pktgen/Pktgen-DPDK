@@ -191,9 +191,9 @@ pktgen_script_save(char *path)
 			(info->fill_pattern_type ==
 			 ZERO_FILL_PATTERN) ? "zero" : "user");
 		if ((info->fill_pattern_type == USER_FILL_PATTERN) && strlen(info->user_pattern)) {
-			char buff[32];
+			char buff[64];
 			memset(buff, 0, sizeof(buff));
-			strncpy(buff, info->user_pattern, sizeof(info->user_pattern));
+			snprintf(buff, sizeof(buff), "%s", info->user_pattern);
 			fprintf(fd, "set %d user pattern %s\n", i, buff);
 		}
 		fprintf(fd, "\n");
@@ -531,9 +531,9 @@ pktgen_lua_save(char *path)
 			(info->fill_pattern_type ==
 			 ZERO_FILL_PATTERN) ? "zero" : "user");
 		if ((info->fill_pattern_type == USER_FILL_PATTERN) && strlen(info->user_pattern)) {
-			char buff[32];
+			char buff[64];
 			memset(buff, 0, sizeof(buff));
-			strncpy(buff, info->user_pattern, sizeof(info->user_pattern));
+			snprintf(buff, sizeof(buff), "%s", info->user_pattern);
 			fprintf(fd, "pktgen.userPattern('%d', '%s');\n", i, buff);
 		}
 		fprintf(fd, "\n");
@@ -2700,7 +2700,7 @@ pattern_set_user_pattern(port_info_t *info, char *str)
 		cp++;
 	}
 	memset(info->user_pattern, 0, USER_PATTERN_SIZE);
-	strncpy(info->user_pattern, cp, USER_PATTERN_SIZE);
+	snprintf(info->user_pattern, USER_PATTERN_SIZE, "%s", cp);
 	info->fill_pattern_type = USER_FILL_PATTERN;
 }
 

@@ -122,6 +122,7 @@ theme_color_map_t theme_color_map[] = {
 void
 display_topline(const char *msg)
 {
+	pktgen_display_set_color("top.page");
 	scrn_printf(1, 20, "%s", msg);
 	pktgen_display_set_color("top.copyright");
 	scrn_puts("  %s", copyright_msg_short());

@@ -56,7 +56,9 @@ static struct rte_eth_conf default_port_conf = {
 #else
 	.rxmode = {
 		.split_hdr_size = 0,
+#if RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
 		.offloads = DEV_RX_OFFLOAD_CRC_STRIP,
+#endif
 	},
 	.txmode = {
 		.mq_mode = ETH_MQ_TX_NONE,

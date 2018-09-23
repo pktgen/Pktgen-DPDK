@@ -56,27 +56,33 @@ pktgen_page_cpu(void)
 	if ( (counter++ & 3) != 0)
 		return;
 
+	pktgen_display_set_color("stats.stat.label");
 	row = 3;
 	scrn_printf(row++, 1, "Kernel: %s", pktgen.uname);
 	row++;
+	pktgen_display_set_color("stats.stat.values");
 	scrn_printf(row++, 1, "Model Name: %s", pktgen.lscpu->model_name);
 	scrn_printf(row++, 1, "CPU Speed : %s", pktgen.lscpu->cpu_mhz);
 	scrn_printf(row++, 1, "Cache Size: %s", pktgen.lscpu->cache_size);
 	row++;
+	pktgen_display_set_color("top.ports");
 	scrn_printf(row++, 1, "CPU Flags : %s", pktgen.lscpu->cpu_flags);
-	row += 4;
+	row += 6;
 
+	pktgen_display_set_color("stats.total.data");
 	scrn_printf(row++, 5,
 				"%d sockets, %d cores per socket and %d threads per core.",
 	        nb_sockets,
 	        nb_cores,
 	        nb_threads);
 
+	pktgen_display_set_color("stats.dyn.label");
 	sprintf(buff, "Socket   : ");
 	for (i = 0; i < nb_sockets; i++)
 		strncatf(buff, "%4d      ", i);
 	scrn_printf(row++, 3, "%s", buff);
 
+	pktgen_display_set_color("stats.stat.label");
 	buff[0] = '\0';
 	for (i = 0; i < nb_cores; i++) {
 		strncatf(buff, "  Core %3d : [%2d,%2d]   ",
@@ -93,16 +99,19 @@ pktgen_page_cpu(void)
 		strncatf(buff, "\n");
 	}
 	scrn_printf(row++, 1, "%s", buff);
+	row += i;
 
+	pktgen_display_set_color("stats.total.data");
 	pg_port_matrix_dump(pktgen.l2p);
 
 	if (pktgen.flags & PRINT_LABELS_FLAG) {
-		pktgen.last_row = 36;
+		pktgen.last_row = row + 6 + pktgen.nb_ports;
 		display_dashline(pktgen.last_row);
 
 		scrn_setw(pktgen.last_row);
 		scrn_printf(100, 1, "");	/* Put cursor on the last row. */
 	}
+	pktgen_display_set_color(NULL);
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 

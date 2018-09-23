@@ -68,6 +68,8 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 			0,
 			rte_socket_id());
 
+	pktgen_display_set_color("stats.stat.values");
+
 	/* Initialize mask to all ignore */
 	for (i = 0; i < MAX_RND_BITFIELDS; ++i) {
 		pktgen_set_random_bitfield(*rnd_bits, i, 0,
@@ -269,6 +271,7 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 
 	display_topline("<Random bitfield Page>");
 
+	pktgen_display_set_color("stats.stat.label");
 	scrn_printf(1, 3, "Port %d", pid);
 
 	row = PORT_STATE_ROW;
@@ -281,6 +284,7 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 		row = 28;
 		goto leave;
 	}
+	pktgen_display_set_color("stats.dyn.label");
 	/* Header line */
 	scrn_printf(
 	        row++,
@@ -291,6 +295,7 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 	        "Act?",
 	        "Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]");
 
+	pktgen_display_set_color("stats.stat.label");
 	for (bitmask_idx = 0; bitmask_idx < MAX_RND_BITFIELDS; ++bitmask_idx) {
 		curr_spec = &rnd_bits->specs[bitmask_idx];
 
@@ -316,6 +321,7 @@ pktgen_page_random_bitfields(uint32_t print_labels,
 	}
 
 leave:
+	pktgen_display_set_color(NULL);
 	display_dashline(++row);
 }
 

@@ -231,11 +231,15 @@ pktgen_print_range(void)
 	int32_t row;
 	struct ether_addr eaddr;
 	char str[64];
-
+ 
+	pktgen_display_set_color("top.page");
 	display_topline("<Range Page>");
+	
+	pktgen_display_set_color("top.pages");
 	scrn_printf(1, 3, "Ports %d-%d of %d", pktgen.starting_port,
 	               (pktgen.ending_port - 1), pktgen.nb_ports);
 
+	pktgen_display_set_color("stats.stat.label");
 	row = PORT_STATE_ROW;
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port #");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "dst.ip");
@@ -296,6 +300,7 @@ pktgen_print_range(void)
 	pktgen.last_row = ++row;
 	display_dashline(pktgen.last_row);
 
+	pktgen_display_set_color("stats.colon");
 	/* Display the colon after the row label. */
 	for (row = 3; row < (pktgen.last_row - 1); row++)
 		scrn_printf(row, COLUMN_WIDTH_0 - 1, ":");
@@ -311,10 +316,12 @@ pktgen_print_range(void)
 		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
 		row = PORT_STATE_ROW;
 
+		pktgen_display_set_color("stats.stat.label");
 		/* Display the port number for the column */
 		snprintf(buff, sizeof(buff), "Port-%d", pid + sp);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		pktgen_display_set_color("stats.stat.values");
 		range = &info->range;
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_ntop4(buff, sizeof(buff),
@@ -488,6 +495,8 @@ pktgen_print_range(void)
 		         range->gtpu_teid_max);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, str);
 	}
+
+	pktgen_display_set_color(NULL);
 
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }

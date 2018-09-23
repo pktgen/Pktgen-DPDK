@@ -99,6 +99,7 @@ pktgen_print_static_data(void)
 
 		pkt     = &info->seq_pkt[SINGLE_PKT];
 
+		pktgen_display_set_color("stats.stat.values");
 		/* Display Port information Src/Dest IP addr, Netmask, Src/Dst MAC addr */
 		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
 		row = ip_row;
@@ -231,6 +232,7 @@ pktgen_page_latency(void)
 		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
 
+		pktgen_display_set_color("stats.stat.values");
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
 		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,

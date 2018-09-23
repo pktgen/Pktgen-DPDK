@@ -346,7 +346,7 @@ range_cmd(int argc, char **argv)
 			"prime|"		/*  8 */ \
 			"dump|"			/*  9 */ \
 			"vlan|"			/* 10 */ \
-			"seqCnt"		/* 11 */ \
+			"seqCnt|"		/* 11 */ \
 			"seqcnt"		/* 12 */
 
 static struct cli_map set_map[] = {
@@ -379,6 +379,7 @@ static const char *set_help[] = {
 	"                 dport             - Destination port number for TCP",
 	"                 prime             - Set the number of packets to send on prime command",
 	"                 seq_cnt           - Set the number of packet in the sequence to send",
+	"                   or seqcnt or seqCnt",
 	"                 dump              - Dump the next <value> received packets to the screen",
 	"                 vlan              - Set the VLAN ID value for the portlist",
 	"                 jitter            - Set the jitter threshold in micro-seconds",
@@ -448,6 +449,7 @@ set_cmd(int argc, char **argv)
 					case 9: debug_set_port_dump(info, value); break;
 					case 10: single_set_vlan_id(info, value); break;
 					case 11: pktgen_set_port_seqCnt(info, value); break;
+					case 12: pktgen_set_port_seqCnt(info, value); break;
 					default:
 						return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 				}) );
@@ -1532,29 +1534,35 @@ init_tree(void)
 static int
 my_prompt(int cont __rte_unused)
 {
-    return cli_printf("Pktgen:%s> ", cli_path_string(NULL, NULL));
+	int nb;
+
+	pktgen_display_set_color("pktgen.prompt");
+	nb = cli_printf("Pktgen:%s> ", cli_path_string(NULL, NULL));
+	pktgen_display_set_color("stats.stat.values");
+
+	return nb;
 }
 
 int
 pktgen_cli_create(void)
 {
-    int ret = -1;
+	int ret = -1;
 
-    if (!cli_create()) {
-	if (!cli_setup_with_tree(init_tree)) {
-		cli_set_prompt(my_prompt);
-		ret = 0;
+	if (!cli_create()) {
+		if (!cli_setup_with_tree(init_tree)) {
+			cli_set_prompt(my_prompt);
+			ret = 0;
+		}
 	}
-    }
-    return ret;
+	return ret;
 }
 
 void
 pktgen_cli_start(void)
 {
-    cli_start_with_timers(NULL);
+	cli_start_with_timers(NULL);
 
-    cli_destroy();
+	cli_destroy();
 }
 
 /**************************************************************************//**

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) 2018 Intel Corporation.
  */
-/* Created by Keith Wiles @ intel.com */
+/* Created 2018 by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_DAPI_H_
 #define _RTE_LUA_DAPI_H_
@@ -11,9 +11,6 @@
 #define lua_c
 #include <lua.h>
 #include <lauxlib.h>
-
-#include <rte_lua.h>
-#include <rte_lua_utils.h>
 
 #include <dapi.h>
 

@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Created by Keith Wiles @ intel.com */
+/* Created 2010 by Keith Wiles @ intel.com */
 
 #include <sys/queue.h>
 #include <netinet/in.h>
@@ -21,6 +21,7 @@
 #include <assert.h>
 
 #include "rte_lua.h"
+#include "rte_lua_stdio.h"
 #include "rte_lua_utils.h"
 
 char *

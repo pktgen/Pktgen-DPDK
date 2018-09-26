@@ -7,6 +7,26 @@
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
 
+int
+rte_parse_portmask(const char *str, portlist_t *portmask)
+{
+	char *end = NULL;
+	portlist_t pm;
+
+	/* parse hexadecimal string */
+	pm = strtoull(str, &end, 16);
+	if ((str[0] == '\0') || (end == NULL) || (*end != '\0'))
+		return -1;
+
+	if (pm == 0)
+		return -1;
+
+	if (portmask)
+		*portmask = pm;
+
+	return 0;
+}
+
 static inline void
 set_portlist_bits(size_t low, size_t high, uint64_t *map)
 {

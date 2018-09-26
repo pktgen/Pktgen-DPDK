@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <rte_lua.h>
+
 #include "pktgen.h"
 #include "pktgen-gre.h"
 #include "pktgen-tcp.h"

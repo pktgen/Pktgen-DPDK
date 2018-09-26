@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 
 #include <cli_scrn.h>
+#include <rte_lua.h>
+
 #include "pktgen.h"
 #include "pktgen-log.h"
 #include "pktgen-ipv4.h"

@@ -5,6 +5,8 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <rte_lua.h>
+
 #include "pktgen-display.h"
 #include "pktgen-log.h"
 
@@ -43,6 +45,7 @@ pktgen_print_pcap(uint16_t pid)
 	char buff[64];
 	char pkt_buff[2048];
 
+	pktgen_display_set_color("top.page");
 	display_topline("<PCAP Page>");
 	scrn_printf(1, 3, "Port %d of %d", pid, pktgen.nb_ports);
 
@@ -59,6 +62,7 @@ pktgen_print_pcap(uint16_t pid)
 		goto leave;
 	}
 
+	pktgen_display_set_color("stats.stat.label");
 	scrn_eol_pos(row, col);
 	scrn_printf(row++, col, "Port: %d, PCAP Count: %d of %d",
 	               pid, pcap->pkt_idx, pcap->pkt_count);
@@ -78,6 +82,7 @@ pktgen_print_pcap(uint16_t pid)
 
 	_pcap_skip(pcap, pcap->pkt_idx);
 
+	pktgen_display_set_color("stats.stat.values");
 	for (i = pcap->pkt_idx; i < max_pkts; i++) {
 		col = 1;
 		skip = 0;
@@ -166,6 +171,7 @@ pktgen_print_pcap(uint16_t pid)
 	}
 leave:
 	display_dashline(row + 2);
+	pktgen_display_set_color(NULL);
 
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }

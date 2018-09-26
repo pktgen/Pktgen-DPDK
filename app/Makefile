@@ -19,8 +19,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 APP = pktgen
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
-CFLAGS += -I$(RTE_SRCDIR)/../lib/utils
+CFLAGS += -I$(RTE_SRCDIR)
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 CFLAGS += -I/usr/include/lua5.3
 
@@ -81,15 +80,17 @@ MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
 MYLIBS     += -lrte_cli
 MYLIB_PATH += -L$(CLI_LIB)
 
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/common
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/common -I$(RTE_SRCDIR)/../lib/utils
 
 ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
 CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
 endif
 
-LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
+LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+endif
 
 MYLIB_PATH += -L$(UTIL_LIB)
 MYLIBS     += -lutils

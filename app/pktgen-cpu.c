@@ -6,6 +6,8 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <rte_lua.h>
+
 #include "pktgen-display.h"
 #include "pktgen-cpu.h"
 #include "pktgen-log.h"

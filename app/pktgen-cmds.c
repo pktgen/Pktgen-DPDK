@@ -10,6 +10,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <rte_lua.h>
+
 #include "pktgen.h"
 
 #include "pktgen-cmds.h"

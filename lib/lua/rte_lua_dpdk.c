@@ -1,7 +1,7 @@
  /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) 2018 Intel Corporation.
  */
-/* Created by Keith Wiles @ intel.com */
+/* Created 2018 by Keith Wiles @ intel.com */
 
 #define rte_lua_dpdk_c
 #define LUA_LIB
@@ -15,11 +15,9 @@
 #include <rte_timer.h>
 #include <rte_strings.h>
 #include <rte_version.h>
-#include <rte_portlist.h>
-
-//#include <pg_inet.h>
 
 #include "rte_lua.h"
+#include "rte_lua_stdio.h"
 #include "rte_lua_dpdk.h"
 #include "rte_lua_pktmbuf.h"
 #ifdef RTE_LIBRTE_DAPI

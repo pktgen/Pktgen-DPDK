@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Create from lua.c by Keith Wiles @ intel.com */
+/* Create from lua.c 2018 by Keith Wiles @ intel.com */
 
 #include <sys/queue.h>
 #include <netinet/in.h>
@@ -25,6 +25,7 @@
 #include <rte_rwlock.h>
 
 #include "rte_lua.h"
+#include "rte_lua_stdio.h"
 #include "rte_lua_utils.h"
 
 TAILQ_HEAD(rte_luaData_list, rte_tailq_entry);
@@ -273,7 +274,7 @@ lua_dofile(luaData_t *ld, const char *name)
 	if (status == LUA_OK)
 		status = lua_docall(ld->L, 0, 0);
 	else
-		printf("lua_dofile(%s) failed\n", name);
+		printf("lua_docall(%s) failed\n", name);
 
 	return report(ld->L, status);
 }

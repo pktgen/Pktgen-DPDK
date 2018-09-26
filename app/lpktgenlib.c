@@ -17,6 +17,10 @@
 #include <stdint.h>
 #include <netinet/in.h>
 
+#include <rte_lua.h>
+#include <rte_lua_stdio.h>
+#include <rte_lua_utils.h>
+
 #include "pktgen-cmds.h"
 #include <cli.h>
 #include <luaconf.h>

@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Created by Keith Wiles @ intel.com */
+/* Created 2010 by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_SOCKET_H_
 #define _RTE_LUA_SOCKET_H_
@@ -22,8 +22,6 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
-
-#include <rte_lua.h>
 
 #ifdef __cplusplus
 extern "C" {

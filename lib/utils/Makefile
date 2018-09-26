@@ -16,11 +16,11 @@ EXPORT_MAP := rte_utils_version.map
 LIBABIVER := 1
 
 # all source are stored in SRCS-y
-SRCS-y += rte_strings.c rte_link.c
+SRCS-y += rte_strings.c rte_link.c parson_json.c
 SRCS-y += rte_atoip.c rte_portlist.c inet_pton.c
 
 # install includes
 SYMLINK-y-include += rte_strings.h rte_link.h
-SYMLINK-y-include += rte_atoip.h rte_portlist.h
+SYMLINK-y-include += rte_atoip.h rte_portlist.h parson_json.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

@@ -5,6 +5,8 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <rte_lua.h>
+
 #include "pktgen-display.h"
 #include "pktgen.h"
 
@@ -35,15 +37,17 @@ pktgen_page_seq(uint32_t pid)
 	pkt_seq_t   *pkt;
 	char buff[64];
 
+	pktgen_display_set_color("top.page");
 	display_topline("<Sequence Page>");
 
 	info = &pktgen.info[pid];
 
+	pktgen_display_set_color("top.ports");
 	row = PORT_STATE_ROW;
 	col = 1;
 	scrn_printf(row, col, "Port: %2d, Sequence Count: %2d of %2d  ",
 	               pid, info->seqCnt, NUM_SEQ_PKTS);
-	scrn_fgcolor(SCRN_BLUE, SCRN_BOLD);
+	pktgen_display_set_color("stats.stat.label");
 	scrn_printf(row++, col + 111, "GTPu");
 	scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s%*s%*s%*s",
 	               6, "Seq:",
@@ -57,6 +61,8 @@ pktgen_page_seq(uint32_t pid)
 	               4,  "ToS",
 	               6, "Size",
 	               6, "TEID");
+
+	pktgen_display_set_color("stats.stat.values");
 	scrn_fgcolor(SCRN_DEFAULT_FG, SCRN_NO_ATTR);
 	sav = row;
 	for (i = 0; i <= NUM_SEQ_PKTS; i++) {
@@ -120,4 +126,5 @@ pktgen_page_seq(uint32_t pid)
 	}
 
 	display_dashline(row + 2);
+	pktgen_display_set_color(NULL);
 }

@@ -14,33 +14,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <rte_compat.h>
+#include <rte_ether.h>
 #include <rte_string_fns.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef ETHER_ADDR_LEN
-#define ETHER_ADDR_LEN     6
-
-/**
- * Ethernet address:
- * A universally administered address is uniquely assigned to a device by its
- * manufacturer. The first three octets (in transmission order) contain the
- * Organizationally Unique Identifier (OUI). The following three (MAC-48 and
- * EUI-48) octets are assigned by that organization with the only constraint
- * of uniqueness.
- * A locally administered address is assigned to a device by a network
- * administrator and does not contain OUIs.
- * See http://standards.ieee.org/regauth/groupmac/tutorial.html
- */
-struct ether_addr {
-	uint8_t addr_bytes[ETHER_ADDR_LEN]; /**< Addr bytes in tx order */
-} __attribute__((__packed__));
-
-#endif
 
 #define RTE_IPADDR_V4      0x01
 #define RTE_IPADDR_V6      0x02
@@ -281,6 +264,83 @@ rte_ether_aton(const char *a, struct ether_addr *e)
 	return e;
 }
 
+/* mask_size(uint32_t mask) - return the number of bits in mask */
+static inline int
+mask_size(uint32_t mask) {
+        if (mask == 0)
+                return 0;
+        else if (mask == 0xFF000000)
+                return 8;
+        else if (mask == 0xFFFF0000)
+                return 16;
+        else if (mask == 0xFFFFFF00)
+                return 24;
+        else if (mask == 0xFFFFFFFF)
+                return 32;
+        else {
+                int i;
+                for (i = 0; i < 32; i++)
+                        if ( (mask & (1 << (31 - i))) == 0)
+                                break;
+                return i;
+        }
+}
+
+/* size_to_mask( int len ) - return the mask for the mask size */
+static inline uint32_t
+size_to_mask(int len) {
+        uint32_t mask = 0;
+
+        if (len == 0)
+                mask = 0x00000000;
+        else if (len == 8)
+                mask = 0xFF000000;
+        else if (len == 16)
+                mask = 0xFFFF0000;
+        else if (len == 24)
+                mask = 0xFFFFFF00;
+        else if (len == 32)
+                mask = 0xFFFFFFFF;
+        else {
+                int i;
+
+                for (i = 0; i < len; i++)
+                        mask |= (1 << (31 - i));
+        }
+        return mask;
+}
+
+static inline char *
+inet_mtoa(char *buff, int len, struct ether_addr *eaddr)
+{
+	snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
+		 eaddr->addr_bytes[0], eaddr->addr_bytes[1],
+		 eaddr->addr_bytes[2], eaddr->addr_bytes[3],
+		 eaddr->addr_bytes[4], eaddr->addr_bytes[5]);
+
+	return buff;
+}
+
+/* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
+static inline char *
+inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
+        char lbuf[64];
+
+        inet_ntop(AF_INET, &ip_addr, buff, len);
+        if (mask != 0xFFFFFFFF) {
+                snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, mask_size(mask));
+                strncpy(buff, lbuf, len);
+        }
+        return buff;
+}
+
+#define POWERED_BY_DPDK         "Powered by DPDK"
+
+static inline const char *
+powered_by(void)
+{
+	return POWERED_BY_DPDK;
+}
 
 /**
  * Convert an IPv4/v6 address into a binary value.

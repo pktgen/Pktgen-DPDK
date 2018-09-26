@@ -12,10 +12,6 @@
 #include <lua.h>
 #include <lauxlib.h>
 
-#include <rte_lua.h>
-#include <rte_lua_stdio.h>
-#include <rte_lua_utils.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

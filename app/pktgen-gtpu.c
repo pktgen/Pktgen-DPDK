@@ -7,6 +7,8 @@
 /* Created 2015 by abhinandan.gujjar@intel.com */
 
 #include <cli_scrn.h>
+#include "rte_lua.h"
+
 #include "pktgen.h"
 
 #include "pktgen-gtpu.h"

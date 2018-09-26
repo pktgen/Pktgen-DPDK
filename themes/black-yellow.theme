@@ -1,7 +1,7 @@
 theme default black none off
 theme top.spinner cyan none bold
 theme top.ports green none off
-theme top.page red none off
+theme top.page yellow none off
 theme top.copyright yellow none off
 theme top.poweredby blue none bold
 theme sep.dash black none off

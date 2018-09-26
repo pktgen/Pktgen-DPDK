@@ -90,8 +90,6 @@
 #include "pktgen-latency.h"
 #include "pktgen-seq.h"
 
-#include <rte_lua.h>
-
 #include <cli.h>
 
 #ifdef __cplusplus

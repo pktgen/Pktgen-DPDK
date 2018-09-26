@@ -35,6 +35,18 @@ typedef uint64_t portlist_t;
  */
 int __rte_experimental rte_parse_portlist(const char *str, portlist_t *portlist);
 
+/**
+ * Parse a portmasl string into a mask or bitmap value.
+ *
+ * @param str
+ *   String to parse
+ * @param portlist
+ *   Pointer to uint64_t value for returned bitmap
+ * @return
+ *   -1 on error or 0 on success.
+ */
+int __rte_experimental rte_parse_portmask(const char *str, portlist_t *portmask);
+
 char * __rte_experimental rte_print_portlist(FILE *f, uint64_t portlist,
 	char *buf, int len);
 

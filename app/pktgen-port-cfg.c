@@ -7,6 +7,8 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <cli_scrn.h>
+#include <rte_lua.h>
+
 #include "pktgen-port-cfg.h"
 
 #include "pktgen.h"

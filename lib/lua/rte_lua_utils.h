@@ -2,7 +2,7 @@
  * Copyright(c) 2018 Intel Corporation.
  */
 
-/* Created by Keith Wiles @ intel.com */
+/* Created 2018 by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_UTILS_H_
 #define _RTE_LUA_UTILS_H_
@@ -22,9 +22,6 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
-
-#include <rte_lua.h>
-#include <rte_lua_stdio.h>
 
 #ifdef __cplusplus
 extern "C" {

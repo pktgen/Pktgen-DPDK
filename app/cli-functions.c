@@ -25,6 +25,8 @@
 #include <rte_cycles.h>
 #include <rte_malloc.h>
 
+#include <rte_lua.h>
+
 #include "pktgen.h"
 
 #include <cli.h>

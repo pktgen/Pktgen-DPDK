@@ -16,6 +16,8 @@
 #include <libgen.h>
 #include <sys/stat.h>
 
+#include "rte_lua.h"
+
 #include "pktgen-display.h"
 #include <rte_rwlock.h>
 
@@ -169,13 +171,16 @@ pktgen_page_log(uint32_t print_labels)
 	if (!print_labels && !log_history.need_refresh)
 		return;
 
+	pktgen_display_set_color("top.page");
 	display_topline("<Logged messages>");
 	row = 2;
 
+	pktgen_display_set_color("stats.stat.label");
 	/* Header line */
 	scrn_printf(row++, 1, "%1s %8s %-32s %s",
 	               "L", "Time", "Function", "Message");
 
+	pktgen_display_set_color("stats.stat.values");
 	curr_line = output_lines = 0;
 	curr_msg = log_history.head;
 	while ((curr_msg != log_history.tail) &&
@@ -220,6 +225,7 @@ pktgen_page_log(uint32_t print_labels)
 
 	display_dashline(++row);
 	log_history.need_refresh = 0;
+	pktgen_display_set_color(NULL);
 
 #undef MAX_PAGE_LINES
 }

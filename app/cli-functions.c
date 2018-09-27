@@ -1263,7 +1263,7 @@ static int
 exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 {
 	lua_State *L = pktgen.ld->L;
-	char buff[512], *p;
+	char buff[1024], *p;
 	int i;
 	size_t n, sz;
 
@@ -1277,12 +1277,14 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 		return 0;
 	}
 
-	memset(buff, 0, sizeof(buff));
-	sz = sizeof(buff) - 1;
+	sz = sizeof(buff);
+	memset(buff, 0, sz);
+	sz--;	/* Make sure a NULL is at the end of the string */
 	n = 0;
 	for(i = 1, p = buff; i < argc; i++) {
 		if ((strlen(argv[i]) + 1) > (sz - n)) {
-			cli_printf("Input line too long > 512 bytes\n");
+			cli_printf("Input line too long > %ld bytes\n",
+				sizeof(buff));
 			return -1;
 		}
 		n += snprintf(&p[n], sz - n, "%s ", argv[i]);

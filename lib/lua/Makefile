@@ -28,7 +28,9 @@ WERROR_FLAGS += -Wno-cast-align
 
 CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT -DALLOW_EXPERIMENTAL_API
 CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
 CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
+endif
 CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
 CFLAGS += $(shell pkg-config --cflags lua5.3)
 

@@ -23,8 +23,6 @@
 #include "pktgen-log.h"
 #include "cli-functions.h"
 
-int rte_lua_dofile(luaData_t *ld, const char *name);
-
 #ifdef GUI
 int pktgen_gui_main(int argc, char *argv[]);
 #endif
@@ -303,11 +301,7 @@ sig_handler(int v __rte_unused)
 static int
 pktgen_lua_dofile(void *ld, const char * filename)
 {
-	int ret;
-printf("%s: Execute %s %p\n", __func__, filename, ld);
-	ret = lua_dofile((luaData_t *)ld, filename);
-printf("%s: After lua_dofile() %s %d\n", __func__, filename, ret);
-	return ret;
+	return lua_dofile((luaData_t *)ld, filename);
 }
 
 /**************************************************************************//**

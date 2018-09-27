@@ -222,33 +222,33 @@ pktgen_set(lua_State *L) {
 	value = luaL_checknumber(L, 3);
 
 	foreach_port(portlist, _do(
-			     if (!strcasecmp(what, "count"))
-				     single_set_tx_count(info, value);
-			     else if (!strcasecmp(what, "size"))
-				     single_set_pkt_size(info, value);
-			     else if (!strcasecmp(what, "rate"))
-				     single_set_tx_rate(info, luaL_checkstring(L, 3));
-			     else if (!strcasecmp(what, "burst"))
-				     single_set_tx_burst(info, value);
-			     else if (!strcasecmp(what, "cycles"))
-				     debug_set_tx_cycles(info, value);
-			     else if (!strcasecmp(what, "sport"))
-				     single_set_port_value(info, what[0], value);
-			     else if (!strcasecmp(what, "dport"))
-				     single_set_port_value(info, what[0], value);
-			     else if (!strcasecmp(what, "seq_cnt"))
-				     pktgen_set_port_seqCnt(info, value);
-			     else if (!strcasecmp(what, "seqCnt"))
-				     pktgen_set_port_seqCnt(info, value);
-			     else if (!strcasecmp(what, "prime"))
-				     pktgen_set_port_prime(info, value);
-			     else if (!strcasecmp(what, "dump"))
-				     debug_set_port_dump(info, value);
-			     else
-				     return luaL_error(L,
-						       "set does not support %s",
-						       what);
-			     ) );
+		if (!strcasecmp(what, "count"))
+			single_set_tx_count(info, value);
+		else if (!strcasecmp(what, "size"))
+			single_set_pkt_size(info, value);
+		else if (!strcasecmp(what, "rate"))
+			single_set_tx_rate(info, luaL_checkstring(L, 3));
+		else if (!strcasecmp(what, "burst"))
+			single_set_tx_burst(info, value);
+		else if (!strcasecmp(what, "cycles"))
+			debug_set_tx_cycles(info, value);
+		else if (!strcasecmp(what, "sport"))
+			single_set_port_value(info, what[0], value);
+		else if (!strcasecmp(what, "dport"))
+			single_set_port_value(info, what[0], value);
+		else if (!strcasecmp(what, "seq_cnt"))
+			pktgen_set_port_seqCnt(info, value);
+		else if (!strcasecmp(what, "seqCnt"))
+			pktgen_set_port_seqCnt(info, value);
+		else if (!strcasecmp(what, "prime"))
+			pktgen_set_port_prime(info, value);
+		else if (!strcasecmp(what, "dump"))
+			debug_set_port_dump(info, value);
+		else
+			return luaL_error(L,
+					"set does not support %s",
+					what);
+		) );
 
 	pktgen_update_display();
 	return 0;

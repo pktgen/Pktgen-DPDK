@@ -15,6 +15,7 @@
 #include <rte_timer.h>
 #include <rte_strings.h>
 #include <rte_version.h>
+#include <rte_portlist.h>
 
 #include "rte_lua.h"
 #include "rte_lua_stdio.h"

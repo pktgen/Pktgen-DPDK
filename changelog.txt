@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.5.5 - Minor fixes to run pktgen without libs in DPDK.
  - 3.5.4 - Fix possible mbuf leak and clean up colors for pages.
  - 3.5.3 - Fix performance problem on FVL NIC with losing mbufs.
            Number of little cleanups and fixes.

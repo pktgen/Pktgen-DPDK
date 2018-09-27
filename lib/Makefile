@@ -19,10 +19,19 @@ DEPDIRS-vec += common utils
 endif
 endif
 
+DIRS-y += cli
+DEPDIRS-cli += utils
+
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
 DIRS-y += lua
 DEPDIRS-lua += vec utils
-
-DIRS-y += cli
-DEPDIRS-cli += lua utils
+DEPDIRS-cli += lua
+else
+ifeq ($(CONFIG_RTE_LIBRTE_VEC),n)
+DIRS-y += lua
+DEPDIRS-lua += vec utils
+DEPDIRS-cli += lua
+endif
+endif
 
 include $(RTE_SDK)/mk/rte.extsubdir.mk

@@ -17,6 +17,8 @@
 #include <string.h>
 #include <pthread.h>
 
+#include <rte_lua.h>
+
 #define lua_c
 
 #include <lua.h>

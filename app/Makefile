@@ -73,9 +73,6 @@ SRCS-y := \
 MYLIBS     += -lcommon
 MYLIB_PATH += -L$(COMMON_LIB)
 
-MYLIBS     += -lrte_lua
-MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
-
 #CLI_NAME   := librte_cli.a
 MYLIBS     += -lrte_cli
 MYLIB_PATH += -L$(CLI_LIB)
@@ -88,8 +85,19 @@ CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
 endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
+MYLIBS     += -lrte_lua
+MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
+
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
 LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+else
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),n)
+MYLIBS     += -lrte_lua
+MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
+
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
+LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+endif
 endif
 
 MYLIB_PATH += -L$(UTIL_LIB)

@@ -7,7 +7,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 # library name
 LIB = libcli.a
 
-CFLAGS += -O3 -D_GNU_SOURCE $(WERROR_FLAGS) -I$(SRCDIR)
+CFLAGS += -O3 $(WERROR_FLAGS) -I$(SRCDIR) -D_GNU_SOURCE
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
@@ -44,8 +44,6 @@ SRCS-y +=  cli_search.c
 SRCS-y +=  cli_cmap.c
 SRCS-y +=  cli_vt100.c
 SRCS-y +=  cli_scrn.c
-
-CFLAGS += -D_GNU_SOURCE
 
 # install includes
 SYMLINK-y-include += cli.h

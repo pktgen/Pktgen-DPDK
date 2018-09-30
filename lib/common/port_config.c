@@ -6,7 +6,6 @@
 
 /* Created 2014 by Keith Wiles @ intel.com */
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

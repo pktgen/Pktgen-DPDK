@@ -12,7 +12,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 LIB = libcommon.a
 LIBABIVER := 1
 
-CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
+CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR) -D_GNU_SOURCE
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 LDLIBS += -lrte_eal -lrte_mempool -lrte_kvargs -lrte_cmdline

@@ -27,7 +27,7 @@ WERROR_FLAGS += -Wnested-externs
 WERROR_FLAGS += -Wno-cast-align
 
 CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT -DALLOW_EXPERIMENTAL_API
-CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
+CFLAGS += -D_GNU_SOURCE $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
 
 LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf -lrte_timer
 
@@ -37,11 +37,12 @@ CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
 endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
-CFLAGS += $(shell pkg-config --cflags lua5.3)
 else
+CFLAGS += $(shell pkg-config --cflags lua5.3)
 CFLAGS += -I$(SRCDIR)/../lua/$(RTE_TARGET)/include
 LDLIBS += -L$(SRCDIR)/../lua/$(RTE_TARGET)/lib -llua
 endif
+
 ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
 else
 CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
@@ -51,12 +52,12 @@ endif
 LDLIBS += -pthread
 
 # all source are stored in SRCS-y
-SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
-SRCS-y += rte_lua_dpdk.c rte_lua_pktmbuf.c rte_lua_vec.c
-SRC-$(CONFIG_RTE_LIBRTE_DAPI) += rte_lua_dapi.c
+SRCS-$(CONFIG_RTE_LIBRTE_LUA) := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
+SRCS-$(CONFIG_RTE_LIBRTE_LUA) += rte_lua_dpdk.c rte_lua_pktmbuf.c rte_lua_vec.c
+SRCS-$(CONFIG_RTE_LIBRTE_DAPI) += rte_lua_dapi.c
 
-SYMLINK-y-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
-SYMLINK-y-include += rte_lua_dpdk.h rte_lua_pktmbuf.h rte_lua_vec.h
+SYMLINK-$(CONFIG_RTE_LIBRTE_LUA)-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
+SYMLINK-$(CONFIG_RTE_LIBRTE_LUA)-include += rte_lua_dpdk.h rte_lua_pktmbuf.h rte_lua_vec.h
 SYMLINK-$(CONFIG_RTE_LIBRTE_DAPI)-include += rte_lua_dapi.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

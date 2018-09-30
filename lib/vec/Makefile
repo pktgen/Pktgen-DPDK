@@ -9,7 +9,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 # library name
 LIB = libvec.a
 
-CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3
+CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3 -D_GNU_SOURCE
 CFLAGS += -I$(RTE_SDK)/$(RTE_TARGET)/include
 
 LDLIBS += -lrte_eal -lrte_mempool

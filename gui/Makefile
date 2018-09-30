@@ -23,7 +23,7 @@ GTK_INCLUDE := $(shell pkg-config --cflags glib-2.0) \
 
 #$(info $(GTK_INCLUDE))
 
-CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR)
+CFLAGS += -O3 -g $(WERROR_FLAGS) -I$(RTE_SRCDIR) -D_GNU_SOURCE
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common -I$(RTE_SRCDIR)/../app
 CFLAGS += -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
 CFLAGS += $(GTK_INCLUDE)

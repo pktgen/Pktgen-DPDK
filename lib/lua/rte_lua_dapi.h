@@ -12,7 +12,9 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#ifdef RTE_LIBRTE_DAPI
 #include <dapi.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

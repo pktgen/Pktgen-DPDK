@@ -72,7 +72,7 @@ typedef void (*newlib_t)(lua_State *L);
 
 luaData_t *lua_create_instance(void);
 
-int lua_newlib_add(newlib_t n);
+int lua_newlib_add(newlib_t n, int order);
 void lua_newlibs_init(luaData_t *ld);
 
 int lua_docall(lua_State *L, int narg, int nres);

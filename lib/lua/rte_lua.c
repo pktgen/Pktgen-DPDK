@@ -38,7 +38,11 @@ EAL_REGISTER_TAILQ(rte_luaData_tailq);
 
 static const char *progname = LUA_PROGNAME;
 
-static newlib_t	newlibs[MAX_NEW_LIBS];
+static struct newlib_info {
+	newlib_t lib_func;
+	int order;
+} newlibs[MAX_NEW_LIBS];
+
 static int newlibs_idx = 0;
 
 const char *
@@ -54,23 +58,38 @@ lua_set_progname(const char *name)
 }
 
 int
-lua_newlib_add(newlib_t n)
+lua_newlib_add(newlib_t n, int order)
 {
 	if (newlibs_idx >= MAX_NEW_LIBS)
 		return -1;
 
-	newlibs[newlibs_idx++] = n;
+	newlibs[newlibs_idx].order = order;
+	newlibs[newlibs_idx++].lib_func = n;
 
 	return 0;
+}
+
+static int
+cmp_libs(const void *p1, const void *p2)
+{
+	const struct newlib_info *ni1 = p1;
+	const struct newlib_info *ni2 = p2;
+
+	return (ni1->order - ni2->order);
 }
 
 void
 lua_newlibs_init(luaData_t *ld)
 {
+	struct newlib_info _libs[MAX_NEW_LIBS];
 	int i;
 
+	memcpy(_libs, newlibs, sizeof(newlibs));
+
+	qsort(_libs, newlibs_idx, sizeof(struct newlib_info), cmp_libs);
+
 	for(i = 0; i < newlibs_idx; i++)
-		newlibs[i](ld->L);
+		_libs[i].lib_func(ld->L);
 }
 
 static int

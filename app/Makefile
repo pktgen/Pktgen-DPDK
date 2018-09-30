@@ -19,7 +19,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 APP = pktgen
 
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
-CFLAGS += -I$(RTE_SRCDIR)
+CFLAGS += -I$(RTE_SRCDIR) -D_GNU_SOURCE
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 dpdk_ver := $(RTE_SDK)/xusertools/dpdk-version.sh
@@ -62,7 +62,7 @@ LUA_LIB    := $(LUA_PRE)/$(RTE_TARGET)/lib
 CLI_LIB    := $(CLI_PRE)/$(RTE_TARGET)/lib
 GUI_LIB    := $(GUI_PRE)/$(RTE_TARGET)/lib
 UTIL_LIB   := $(UTIL_PRE)/$(RTE_TARGET)/lib
-UTIL_LIB   := $(VEC_PRE)/$(RTE_TARGET)/lib
+VEC_LIB   := $(VEC_PRE)/$(RTE_TARGET)/lib
 
 SRCS-y := \
 	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \

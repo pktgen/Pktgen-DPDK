@@ -456,5 +456,5 @@ RTE_INIT(dpdk_lua_init)
 	if(lua_logtype >= 0)
 		rte_log_set_level(lua_logtype, RTE_LOG_INFO);
 
-	lua_newlib_add(dpdk_lua_openlib);
+	lua_newlib_add(dpdk_lua_openlib, 10);
 }

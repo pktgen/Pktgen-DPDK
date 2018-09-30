@@ -373,7 +373,7 @@ main(int argc, char **argv)
 	if (pktgen_cli_create())
 		return -1;
 
-	lua_newlib_add(pktgen_lua_openlib);
+	lua_newlib_add(pktgen_lua_openlib, 0);
 
 	/* Open the Lua script handler. */
 	if ( (pktgen.ld = lua_create_instance()) == NULL) {

@@ -57,7 +57,7 @@ struct rte_ipaddr {
  * @return
  *   Pointer to the trimmed string or NULL on error
  */
-char * rte_strtrimset(char *str, const char *set);
+char * __rte_experimental rte_strtrimset(char *str, const char *set);
 
 /**
  * Remove leading and trailing white space from a string.
@@ -68,7 +68,7 @@ char * rte_strtrimset(char *str, const char *set);
  *   pointer to the trimmed string or NULL if <str> is Null or
  *   if string is empty then return pointer to <str>
  */
-char * rte_strtrim(char *str);
+char * __rte_experimental rte_strtrim(char *str);
 
 /**
  * Parse a string into a argc/argv list using a set of delimiters, but does
@@ -85,7 +85,7 @@ char * rte_strtrim(char *str);
  * @return
  *   The number of tokens in the <entries> array.
  */
-int rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
+int __rte_experimental rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
 
 /**
  * Parse a string into a argc/argv list using a set of delimiters, but does
@@ -102,7 +102,7 @@ int rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
  * @return
  *   The number of tokens in the <entries> array.
  */
-int rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
+int __rte_experimental rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
 
 /**
  * Parse a string <list> looking for <str> using delim character.
@@ -116,7 +116,7 @@ int rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
  * @return
  *   The index in the list of option strings, -1 if not found
  */
-int rte_stropt(const char *list, char *str, const char *delim);
+int __rte_experimental rte_stropt(const char *list, char *str, const char *delim);
 
 /**
  * Parse a portlist string into a mask or bitmap value.
@@ -128,7 +128,7 @@ int rte_stropt(const char *list, char *str, const char *delim);
  * @return
  *   -1 on error or 0 on success.
  */
-int rte_parse_portlist(const char *str, portlist_t *portlist);
+int __rte_experimental rte_parse_portlist(const char *str, portlist_t *portlist);
 
 #ifndef _RTE_STRING_FNS_H_
 enum {
@@ -157,7 +157,7 @@ enum {
  * @return
  *   The number of tokens in the array.
  */
-int
+int __rte_experimental
 rte_strsplit(char *string, int stringlen,
              char **tokens, int maxtokens, char delim);
 
@@ -356,7 +356,7 @@ powered_by(void)
  * @return
  *   0 on OK and -1 on error
  */
-int rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
+int __rte_experimental rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
 
 #ifdef __cplusplus
 }

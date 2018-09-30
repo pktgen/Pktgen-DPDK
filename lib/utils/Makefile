@@ -6,7 +6,7 @@ include $(RTE_SDK)/mk/rte.vars.mk
 # library name
 LIB = libutils.a
 
-CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3
+CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3 -D_GNU_SOURCE
 CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 LDLIBS += -lrte_ethdev -lrte_eal

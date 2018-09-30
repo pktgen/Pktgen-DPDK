@@ -1,11 +1,5 @@
 DPDK_18.11 {
-	global: *;
-
-	local: *;
-};
-
-EXPERIMENTAL {
-	global:
+	global: 
 
 	rte_strtrimset;
 	rte_strtrim;
@@ -15,4 +9,5 @@ EXPERIMENTAL {
 	rte_parse_portlist;
 	rte_atoip;
 
+	local: *;
 };

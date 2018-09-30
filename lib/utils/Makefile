@@ -11,7 +11,7 @@ CFLAGS += -DALLOW_EXPERIMENTAL_API
 
 LDLIBS += -lrte_ethdev -lrte_eal
 
-EXPORT_MAP := rte_utils_version.map
+EXPORT_MAP := utils_version.map
 
 LIBABIVER := 1
 

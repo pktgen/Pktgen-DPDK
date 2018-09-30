@@ -8,9 +8,9 @@
 include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
-LIB = librte_lua.a
+LIB = libpktgen_lua.a
 
-EXPORT_MAP := rte_lua_version.map
+EXPORT_MAP := lua_version.map
 LIBABIVER := 1
 
 # To overcome problems with FD6 more strict warnings gcc flags,
@@ -28,14 +28,27 @@ WERROR_FLAGS += -Wno-cast-align
 
 CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT -DALLOW_EXPERIMENTAL_API
 CFLAGS += $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
-ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
+
+LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf -lrte_timer
+
+ifeq ($(CONFIG_RTE_LIBRTE_VEC),y)
+else
 CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
 endif
-CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
-CFLAGS += $(shell pkg-config --cflags lua5.3)
 
-LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf
-LDLIBS += -lrte_timer -L$(SRCDIR)/../utils/$(RTE_TARGET)/lib -lutils -llua5.3 -lpthread
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
+CFLAGS += $(shell pkg-config --cflags lua5.3)
+else
+CFLAGS += -I$(SRCDIR)/../lua/$(RTE_TARGET)/include
+LDLIBS += -L$(SRCDIR)/../lua/$(RTE_TARGET)/lib -llua
+endif
+ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
+else
+CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
+LDLIBS += -L$(SRCDIR)/../utils/$(RTE_TARGET)/lib -lutils
+endif
+
+LDLIBS += -pthread
 
 # all source are stored in SRCS-y
 SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c

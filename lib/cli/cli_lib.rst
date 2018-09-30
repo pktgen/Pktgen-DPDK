@@ -278,7 +278,6 @@ find and execute or modify a previous command in history.
 The user can also execute host level commands if enabled using the '@' prefix
 to a command line e.g. @ls or @lspci or ... line is passed to popen or system
 function to be executed and the output displayed on the console if any output.
-To disable set CONFIG_RTE_CLI_HOST_COMMANDS=n in configuration file.
 
 Compiling the Application
 -------------------------

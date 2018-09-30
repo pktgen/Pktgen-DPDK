@@ -2,22 +2,30 @@
 # Copyright(c) 2016-2018 Intel Corporation.
 #
 
-include $(RTE_SDK)/$(RTE_TARGET)/.config
 include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
-LIB = librte_cli.a
+LIB = libcli.a
 
 CFLAGS += -O3 -D_GNU_SOURCE $(WERROR_FLAGS) -I$(SRCDIR)
 CFLAGS += -DALLOW_EXPERIMENTAL_API
-CFLAGS += -DRTE_CLI_HOST_COMMANDS
-CFLAGS += -DRTE_LIBRTE_LUA -DCLI_STANDALONE
+
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
+else
 CFLAGS += -I$(RTE_SRCDIR)/../lua/src
+endif
+ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
+else
 CFLAGS += -I$(RTE_SRCDIR)/../utils
+endif
 
-LDLIBS += -L$(RTE_SRCDIR)/../utils/$(RTE_TARGET)/lib -lrte_eal -lrte_mempool -lrte_mbuf -lrte_timer -lutils
+LDLIBS += -L$(RTE_SRCDIR)/../utils/$(RTE_TARGET)/lib -lrte_eal -lrte_mempool -lrte_mbuf -lrte_timer
+ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
+else
+LDLIBS += -lutils
+endif
 
-EXPORT_MAP := rte_cli_version.map
+EXPORT_MAP := cli_version.map
 
 LIBABIVER := 1
 

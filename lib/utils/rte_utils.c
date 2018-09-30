@@ -3,6 +3,8 @@
  */
 
 #include "rte_strings.h"
+#include "rte_portlist.h"
+#include "rte_utils.h"
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
 

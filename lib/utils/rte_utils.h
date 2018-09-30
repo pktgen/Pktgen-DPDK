@@ -43,12 +43,99 @@ struct rte_ipaddr {
 	unsigned int prefixlen; /* in case of network only */
 };
 
+/**
+ * Trim a set of characters like "[]" or "{}" from the start and end of string.
+ *
+ * @param str
+ *   A null terminated string to be trimmed.
+ * @param set
+ *   The <set> string is a set of two character values to be removed from the
+ *   <str>. Removes only one set at a time, if you have more then one set to
+ *   remove then you must call the routine for each set. The <set> string must
+ *   be two characters and can be any characters you
+ *   want to call a set.
+ * @return
+ *   Pointer to the trimmed string or NULL on error
+ */
+char * rte_strtrimset(char *str, const char *set);
+
+/**
+ * Remove leading and trailing white space from a string.
+ *
+ * @param str
+ *   String to be trimmed, must be null terminated
+ * @return
+ *   pointer to the trimmed string or NULL if <str> is Null or
+ *   if string is empty then return pointer to <str>
+ */
+char * rte_strtrim(char *str);
+
+/**
+ * Parse a string into a argc/argv list using a set of delimiters, but does
+ * not handle quoted strings within the string being parsed.
+ *
+ * @param str
+ *   String to be tokenized and will be modified, must be null terminated
+ * @param delim
+ *   A null terminated list of delimitors
+ * @param entries
+ *   A pointer to an array to place the token pointers
+ * @param max_entries
+ *   Max number of tokens to be placed in <entries>
+ * @return
+ *   The number of tokens in the <entries> array.
+ */
+int rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
+
+/**
+ * Parse a string into a argc/argv list using a set of delimiters, but does
+ * handle quoted strings within the string being parsed
+ *
+ * @param str
+ *   String to be tokenized and will be modified, null terminated
+ * @param delim
+ *   A null terminated list of delimitors
+ * @param entries
+ *   A pointer to an array to place the token pointers
+ * @param max_entries
+ *   Max number of tokens to be placed in <entries>
+ * @return
+ *   The number of tokens in the <entries> array.
+ */
+int rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
+
+/**
+ * Parse a string <list> looking for <str> using delim character.
+ *
+ * @param list
+ *   A string list of options with delim character between them.
+ * @param str
+ *   String to search for in <list>
+ * @param delim
+ *   A character string to use as a delim values
+ * @return
+ *   The index in the list of option strings, -1 if not found
+ */
+int rte_stropt(const char *list, char *str, const char *delim);
+
+/**
+ * Parse a portlist string into a mask or bitmap value.
+ *
+ * @param str
+ *   String to parse
+ * @param portlist
+ *   Pointer to uint64_t value for returned bitmap
+ * @return
+ *   -1 on error or 0 on success.
+ */
+int rte_parse_portlist(const char *str, portlist_t *portlist);
+
+#ifndef _RTE_STRING_FNS_H_
 enum {
 	STR_MAX_ARGVS = 64,             /**< Max number of args to support */
 	STR_TOKEN_SIZE = 128,
 };
 
-#ifndef _RTE_STRING_FNS_H_
 /**
  * Takes string <string> parameter and splits it at character <delim>
  * up to maxtokens-1 times - to give <maxtokens> resulting tokens. Like
@@ -70,85 +157,9 @@ enum {
  * @return
  *   The number of tokens in the array.
  */
-int __rte_experimental
+int
 rte_strsplit(char *string, int stringlen,
              char **tokens, int maxtokens, char delim);
-#endif
-
-/**
- * Trim a set of characters like "[]" or "{}" from the start and end of string.
- *
- * @param str
- *   A null terminated string to be trimmed.
- * @param set
- *   The <set> string is a set of two character values to be removed from the
- *   <str>. Removes only one set at a time, if you have more then one set to
- *   remove then you must call the routine for each set. The <set> string must
- *   be two characters and can be any characters you
- *   want to call a set.
- * @return
- *   Pointer to the trimmed string or NULL on error
- */
-char * __rte_experimental rte_strtrimset(char *str, const char *set);
-
-/**
- * Remove leading and trailing white space from a string.
- *
- * @param str
- *   String to be trimmed, must be null terminated
- * @return
- *   pointer to the trimmed string or NULL if <str> is Null or
- *   if string is empty then return pointer to <str>
- */
-char * __rte_experimental rte_strtrim(char *str);
-
-/**
- * Parse a string into a argc/argv list using a set of delimiters, but does
- * not handle quoted strings within the string being parsed.
- *
- * @param str
- *   String to be tokenized and will be modified, must be null terminated
- * @param delim
- *   A null terminated list of delimitors
- * @param entries
- *   A pointer to an array to place the token pointers
- * @param max_entries
- *   Max number of tokens to be placed in <entries>
- * @return
- *   The number of tokens in the <entries> array.
- */
-int __rte_experimental rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
-
-/**
- * Parse a string into a argc/argv list using a set of delimiters, but does
- * handle quoted strings within the string being parsed
- *
- * @param str
- *   String to be tokenized and will be modified, null terminated
- * @param delim
- *   A null terminated list of delimitors
- * @param entries
- *   A pointer to an array to place the token pointers
- * @param max_entries
- *   Max number of tokens to be placed in <entries>
- * @return
- *   The number of tokens in the <entries> array.
- */
-int __rte_experimental rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
-
-/**
- * Parse a string <list> looking for <str> using delim character.
- *
- * @param list
- *   A string list of options with delim character between them.
- * @param str
- *   String to search for in <list>
- * @param delim
- *   A character string to use as a delim values
- * @return
- *   The index in the list of option strings, -1 if not found
- */
-int __rte_experimental rte_stropt(const char *list, char *str, const char *delim);
 
 /**
  * Helper routine to compare two strings exactly
@@ -193,18 +204,6 @@ rte_strcnt(char *s, char c)
 	       ? 0
 	       : rte_strcnt(s + 1, c) + (*s == c);
 }
-
-/**
- * Parse a portlist string into a mask or bitmap value.
- *
- * @param str
- *   String to parse
- * @param portlist
- *   Pointer to uint64_t value for returned bitmap
- * @return
- *   -1 on error or 0 on success.
- */
-int __rte_experimental rte_parse_portlist(const char *str, portlist_t *portlist);
 
 /**
  * Convert a string Ethernet MAC address to the binary form
@@ -285,6 +284,7 @@ mask_size(uint32_t mask) {
                 return i;
         }
 }
+#endif
 
 /* size_to_mask( int len ) - return the mask for the mask size */
 static inline uint32_t
@@ -356,7 +356,7 @@ powered_by(void)
  * @return
  *   0 on OK and -1 on error
  */
-int __rte_experimental  rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
+int rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
 
 #ifdef __cplusplus
 }

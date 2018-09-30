@@ -17,7 +17,7 @@
 #include "cli.h"
 #include "cli_input.h"
 
-int (*__dofile_lua)(void *, const char *);
+static int (*__dofile_lua)(void *, const char *);
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 

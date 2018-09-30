@@ -21,7 +21,6 @@ APP = pktgen
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR)
 CFLAGS += -DALLOW_EXPERIMENTAL_API
-CFLAGS += -I/usr/include/lua5.3
 
 dpdk_ver := $(RTE_SDK)/xusertools/dpdk-version.sh
 pktgen_ver := $(RTE_SRCDIR)/../tools/dpdk-version.sh
@@ -39,6 +38,7 @@ CLI_PRE := $(RTE_OUTPUT)/../../lib/cli
 GUI_PRE := $(RTE_OUTPUT)/../../gui/gui
 LUA_PRE := $(RTE_OUTPUT)/../../lib/lua/src
 UTIL_PRE := $(RTE_SRCDIR)/../lib/utils
+VEC_PRE := $(RTE_SRCDIR)/../lib/vec
 else
 ifeq ($(yy),16)
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common/lib/common
@@ -46,12 +46,14 @@ LUA_PRE := $(RTE_SRCDIR)/../lib/lua/src/lib/lua/src
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli/lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui
 UTIL_PRE := $(RTE_SRCDIR)/../lib/utils/lib/utils
+VEC_PRE := $(RTE_SRCDIR)/../lib/vec/lib/vec
 else
 COMMON_PRE := $(RTE_SRCDIR)/../lib/common
 LUA_PRE := $(RTE_SRCDIR)/../lib/lua
 CLI_PRE := $(RTE_SRCDIR)/../lib/cli
 GUI_PRE := $(RTE_SRCDIR)/../gui/gui
 UTIL_PRE := $(RTE_SRCDIR)/../lib/utils
+VEC_PRE := $(RTE_SRCDIR)/../lib/vec
 endif
 endif
 
@@ -60,6 +62,7 @@ LUA_LIB    := $(LUA_PRE)/$(RTE_TARGET)/lib
 CLI_LIB    := $(CLI_PRE)/$(RTE_TARGET)/lib
 GUI_LIB    := $(GUI_PRE)/$(RTE_TARGET)/lib
 UTIL_LIB   := $(UTIL_PRE)/$(RTE_TARGET)/lib
+UTIL_LIB   := $(VEC_PRE)/$(RTE_TARGET)/lib
 
 SRCS-y := \
 	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
@@ -73,35 +76,40 @@ SRCS-y := \
 MYLIBS     += -lcommon
 MYLIB_PATH += -L$(COMMON_LIB)
 
-#CLI_NAME   := librte_cli.a
-MYLIBS     += -lrte_cli
+MYLIBS     += -lcli
 MYLIB_PATH += -L$(CLI_LIB)
 
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/common -I$(RTE_SRCDIR)/../lib/utils
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/common
 
-ifeq ($(CONFIG_RTE_LIBRTE_CLI),)
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),y)
+else
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/cli
 CLI_DEP    := $(CLI_LIB)/$(CLI_NAME)
 endif
 
-ifeq ($(CONFIG_RTE_LIBRTE_LUA),)
-MYLIBS     += -lrte_lua
-MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
-
-CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
-LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
+ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
 else
-ifeq ($(CONFIG_RTE_LIBRTE_LUA),n)
-MYLIBS     += -lrte_lua
+MYLIBS     += -lpktgen_lua
 MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
 
+CFLAGS     += -I/usr/include/lua5.3
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/
 LUA_DEP    := $(LUA_LIB)/$(LUA_NAME)
 endif
-endif
 
+ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
+else
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/utils
 MYLIB_PATH += -L$(UTIL_LIB)
 MYLIBS     += -lutils
+endif
+
+ifeq ($(CONFIG_RTE_LIBRTE_VEC),y)
+else
+CFLAGS     += -I$(RTE_SRCDIR)/../lib/vec
+MYLIB_PATH += -L$(VEC_LIB)
+MYLIBS     += -lvec
+endif
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 	MYLIBS += -lrte_pmd_ixgbe

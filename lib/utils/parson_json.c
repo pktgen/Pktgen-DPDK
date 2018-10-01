@@ -113,7 +113,7 @@ static int    is_valid_utf8(const char *string, size_t string_len);
 static int    is_decimal(const char *string, size_t length);
 
 /* JSON Object */
-static JSON_Object *json_object_init(JSON_Value *wrapping_value);
+static JSON_Object *json_object_new(JSON_Value *wrapping_value);
 static JSON_Status   json_object_add(JSON_Object *object, const char *name, JSON_Value *value);
 static JSON_Status   json_object_addn(JSON_Object *object, const char *name, size_t name_len, JSON_Value *value);
 static JSON_Status   json_object_resize(JSON_Object *object, size_t new_capacity);
@@ -129,7 +129,7 @@ static JSON_Status  json_array_resize(JSON_Array *array, size_t new_capacity);
 static void         json_array_free(JSON_Array *array);
 
 /* JSON Value */
-static JSON_Value *json_value_init_string_no_copy(char *string);
+static JSON_Value *json_value_new_string_no_copy(char *string);
 
 /* Parser */
 static JSON_Status  skip_quotes(const char **string);
@@ -362,7 +362,7 @@ remove_comments(char *string)
 
 /* JSON Object */
 static JSON_Object *
-json_object_init(JSON_Value *wrapping_value)
+json_object_new(JSON_Value *wrapping_value)
 {
 	JSON_Object *new_obj = (JSON_Object *)parson_malloc(sizeof(JSON_Object));
 
@@ -579,7 +579,7 @@ json_array_free(JSON_Array *array)
 
 /* JSON Value */
 static JSON_Value *
-json_value_init_string_no_copy(char *string)
+json_value_new_string_no_copy(char *string)
 {
 	JSON_Value *new_value = (JSON_Value *)parson_malloc(sizeof(JSON_Value));
 
@@ -808,7 +808,7 @@ parse_object_value(const char **string, size_t nesting)
 	JSON_Object *output_object = NULL;
 	char *new_key = NULL;
 
-	output_value = json_value_init_object();
+	output_value = json_value_new_object();
 	if (output_value == NULL)
 		return NULL;
 
@@ -871,7 +871,7 @@ parse_array_value(const char **string, size_t nesting)
 	JSON_Value *output_value = NULL, *new_array_value = NULL;
 	JSON_Array *output_array = NULL;
 
-	output_value = json_value_init_array();
+	output_value = json_value_new_array();
 	if (output_value == NULL)
 		return NULL;
 
@@ -922,7 +922,7 @@ parse_string_value(const char **string)
 	if (new_string == NULL)
 		return NULL;
 
-	value = json_value_init_string_no_copy(new_string);
+	value = json_value_new_string_no_copy(new_string);
 	if (value == NULL) {
 		parson_free(new_string);
 		return NULL;
@@ -938,10 +938,10 @@ parse_boolean_value(const char **string)
 
 	if (strncasecmp("true", *string, true_token_size) == 0) {
 		*string += true_token_size;
-		return json_value_init_boolean(1);
+		return json_value_new_boolean(1);
 	} else if (strncasecmp("false", *string, false_token_size) == 0) {
 		*string += false_token_size;
-		return json_value_init_boolean(0);
+		return json_value_new_boolean(0);
 	}
 	return NULL;
 }
@@ -958,7 +958,7 @@ parse_number_value(const char **string)
 		return NULL;
 
 	*string = end;
-	return json_value_init_number(number);
+	return json_value_new_number(number);
 }
 
 static JSON_Value *
@@ -973,7 +973,7 @@ parse_uint64_value(const char **string)
 		return NULL;
 
 	*string = end;
-	return json_value_init_uint64(number);
+	return json_value_new_uint64(number);
 }
 
 static JSON_Value *
@@ -988,7 +988,7 @@ parse_integer_value(const char **string)
 		return NULL;
 
 	*string = end;
-	return json_value_init_integer(number);
+	return json_value_new_integer(number);
 }
 
 static JSON_Value *
@@ -998,7 +998,7 @@ parse_null_value(const char **string)
 
 	if (strncmp("null", *string, token_size) == 0) {
 		*string += token_size;
-		return json_value_init_null();
+		return json_value_new_null();
 	}
 	return NULL;
 }
@@ -1743,7 +1743,7 @@ json_value_free(JSON_Value *value)
 }
 
 JSON_Value *
-json_value_init_object(void)
+json_value_new_object(void)
 {
 	JSON_Value *new_value = (JSON_Value *)parson_malloc(sizeof(JSON_Value));
 
@@ -1752,7 +1752,7 @@ json_value_init_object(void)
 
 	new_value->parent = NULL;
 	new_value->type = JSONObject;
-	new_value->value.object = json_object_init(new_value);
+	new_value->value.object = json_object_new(new_value);
 	if (!new_value->value.object) {
 		parson_free(new_value);
 		return NULL;
@@ -1761,7 +1761,7 @@ json_value_init_object(void)
 }
 
 JSON_Value *
-json_value_init_array(void)
+json_value_new_array(void)
 {
 	JSON_Value *new_value = (JSON_Value *)parson_malloc(sizeof(JSON_Value));
 
@@ -1779,7 +1779,7 @@ json_value_init_array(void)
 }
 
 JSON_Value *
-json_value_init_string(const char *string)
+json_value_new_string(const char *string)
 {
 	char *copy = NULL;
 	JSON_Value *value;
@@ -1796,14 +1796,14 @@ json_value_init_string(const char *string)
 	if (copy == NULL)
 		return NULL;
 
-	value = json_value_init_string_no_copy(copy);
+	value = json_value_new_string_no_copy(copy);
 	if (value == NULL)
 		parson_free(copy);
 	return value;
 }
 
 JSON_Value *
-json_value_init_number(double number)
+json_value_new_number(double number)
 {
 	JSON_Value *new_value = NULL;
 
@@ -1821,7 +1821,7 @@ json_value_init_number(double number)
 }
 
 JSON_Value *
-json_value_init_uint64(uint64_t number)
+json_value_new_uint64(uint64_t number)
 {
 	JSON_Value *new_value = NULL;
 
@@ -1836,7 +1836,7 @@ json_value_init_uint64(uint64_t number)
 }
 
 JSON_Value *
-json_value_init_integer(int number)
+json_value_new_integer(int number)
 {
 	JSON_Value *new_value = NULL;
 
@@ -1851,7 +1851,7 @@ json_value_init_integer(int number)
 }
 
 JSON_Value *
-json_value_init_boolean(int boolean)
+json_value_new_boolean(int boolean)
 {
 	JSON_Value *new_value = (JSON_Value *)parson_malloc(sizeof(JSON_Value));
 
@@ -1865,7 +1865,7 @@ json_value_init_boolean(int boolean)
 }
 
 JSON_Value *
-json_value_init_null(void)
+json_value_new_null(void)
 {
 	JSON_Value *new_value = (JSON_Value *)parson_malloc(sizeof(JSON_Value));
 
@@ -1890,7 +1890,7 @@ json_value_deep_copy(const JSON_Value *value)
 	switch (json_value_get_type(value)) {
 	case JSONArray:
 		temp_array = json_value_get_array(value);
-		return_value = json_value_init_array();
+		return_value = json_value_new_array();
 		if (return_value == NULL)
 			return NULL;
 
@@ -1912,7 +1912,7 @@ json_value_deep_copy(const JSON_Value *value)
 
 	case JSONObject:
 		temp_object = json_value_get_object(value);
-		return_value = json_value_init_object();
+		return_value = json_value_new_object();
 		if (return_value == NULL)
 			return NULL;
 
@@ -1934,16 +1934,16 @@ json_value_deep_copy(const JSON_Value *value)
 		return return_value;
 
 	case JSONBoolean:
-		return json_value_init_boolean(json_value_get_boolean(value));
+		return json_value_new_boolean(json_value_get_boolean(value));
 
 	case JSONNumber:
-		return json_value_init_number(json_value_get_number(value));
+		return json_value_new_number(json_value_get_number(value));
 
 	case JSONUint64:
-		return json_value_init_uint64(json_value_get_uint64(value));
+		return json_value_new_uint64(json_value_get_uint64(value));
 
 	case JSONInteger:
-		return json_value_init_integer(json_value_get_integer(value));
+		return json_value_new_integer(json_value_get_integer(value));
 
 	case JSONString:
 		temp_string = json_value_get_string(value);
@@ -1954,13 +1954,13 @@ json_value_deep_copy(const JSON_Value *value)
 		if (temp_string_copy == NULL)
 			return NULL;
 
-		return_value = json_value_init_string_no_copy(temp_string_copy);
+		return_value = json_value_new_string_no_copy(temp_string_copy);
 		if (return_value == NULL)
 			parson_free(temp_string_copy);
 		return return_value;
 
 	case JSONNull:
-		return json_value_init_null();
+		return json_value_new_null();
 
 	case JSONError:
 		return NULL;
@@ -2146,7 +2146,7 @@ json_array_replace_value(JSON_Array *array, size_t ix, JSON_Value *value)
 JSON_Status
 json_array_replace_string(JSON_Array *array, size_t i, const char *string)
 {
-	JSON_Value *value = json_value_init_string(string);
+	JSON_Value *value = json_value_new_string(string);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2161,7 +2161,7 @@ json_array_replace_string(JSON_Array *array, size_t i, const char *string)
 JSON_Status
 json_array_replace_number(JSON_Array *array, size_t i, double number)
 {
-	JSON_Value *value = json_value_init_number(number);
+	JSON_Value *value = json_value_new_number(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2176,7 +2176,7 @@ json_array_replace_number(JSON_Array *array, size_t i, double number)
 JSON_Status
 json_array_replace_uint64(JSON_Array *array, size_t i, uint64_t number)
 {
-	JSON_Value *value = json_value_init_uint64(number);
+	JSON_Value *value = json_value_new_uint64(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2191,7 +2191,7 @@ json_array_replace_uint64(JSON_Array *array, size_t i, uint64_t number)
 JSON_Status
 json_array_replace_integer(JSON_Array *array, size_t i, int number)
 {
-	JSON_Value *value = json_value_init_integer(number);
+	JSON_Value *value = json_value_new_integer(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2206,7 +2206,7 @@ json_array_replace_integer(JSON_Array *array, size_t i, int number)
 JSON_Status
 json_array_replace_boolean(JSON_Array *array, size_t i, int boolean)
 {
-	JSON_Value *value = json_value_init_boolean(boolean);
+	JSON_Value *value = json_value_new_boolean(boolean);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2221,7 +2221,7 @@ json_array_replace_boolean(JSON_Array *array, size_t i, int boolean)
 JSON_Status
 json_array_replace_null(JSON_Array *array, size_t i)
 {
-	JSON_Value *value = json_value_init_null();
+	JSON_Value *value = json_value_new_null();
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2259,7 +2259,7 @@ json_array_append_value(JSON_Array *array, JSON_Value *value)
 JSON_Status
 json_array_append_string(JSON_Array *array, const char *string)
 {
-	JSON_Value *value = json_value_init_string(string);
+	JSON_Value *value = json_value_new_string(string);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2274,7 +2274,7 @@ json_array_append_string(JSON_Array *array, const char *string)
 JSON_Status
 json_array_append_number(JSON_Array *array, double number)
 {
-	JSON_Value *value = json_value_init_number(number);
+	JSON_Value *value = json_value_new_number(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2289,7 +2289,7 @@ json_array_append_number(JSON_Array *array, double number)
 JSON_Status
 json_array_append_uint64(JSON_Array *array, uint64_t number)
 {
-	JSON_Value *value = json_value_init_uint64(number);
+	JSON_Value *value = json_value_new_uint64(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2304,7 +2304,7 @@ json_array_append_uint64(JSON_Array *array, uint64_t number)
 JSON_Status
 json_array_append_integer(JSON_Array *array, int number)
 {
-	JSON_Value *value = json_value_init_integer(number);
+	JSON_Value *value = json_value_new_integer(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2319,7 +2319,7 @@ json_array_append_integer(JSON_Array *array, int number)
 JSON_Status
 json_array_append_boolean(JSON_Array *array, int boolean)
 {
-	JSON_Value *value = json_value_init_boolean(boolean);
+	JSON_Value *value = json_value_new_boolean(boolean);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2334,7 +2334,7 @@ json_array_append_boolean(JSON_Array *array, int boolean)
 JSON_Status
 json_array_append_null(JSON_Array *array)
 {
-	JSON_Value *value = json_value_init_null();
+	JSON_Value *value = json_value_new_null();
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2372,37 +2372,37 @@ json_object_set_value(JSON_Object *object, const char *name, JSON_Value *value)
 JSON_Status
 json_object_set_string(JSON_Object *object, const char *name, const char *string)
 {
-	return json_object_set_value(object, name, json_value_init_string(string));
+	return json_object_set_value(object, name, json_value_new_string(string));
 }
 
 JSON_Status
 json_object_set_number(JSON_Object *object, const char *name, double number)
 {
-	return json_object_set_value(object, name, json_value_init_number(number));
+	return json_object_set_value(object, name, json_value_new_number(number));
 }
 
 JSON_Status
 json_object_set_uint64(JSON_Object *object, const char *name, uint64_t number)
 {
-	return json_object_set_value(object, name, json_value_init_uint64(number));
+	return json_object_set_value(object, name, json_value_new_uint64(number));
 }
 
 JSON_Status
 json_object_set_integer(JSON_Object *object, const char *name, int number)
 {
-	return json_object_set_value(object, name, json_value_init_integer(number));
+	return json_object_set_value(object, name, json_value_new_integer(number));
 }
 
 JSON_Status
 json_object_set_boolean(JSON_Object *object, const char *name, int boolean)
 {
-	return json_object_set_value(object, name, json_value_init_boolean(boolean));
+	return json_object_set_value(object, name, json_value_new_boolean(boolean));
 }
 
 JSON_Status
 json_object_set_null(JSON_Object *object, const char *name)
 {
-	return json_object_set_value(object, name, json_value_init_null());
+	return json_object_set_value(object, name, json_value_new_null());
 }
 
 JSON_Status
@@ -2431,7 +2431,7 @@ json_object_dotset_value(JSON_Object *object, const char *name, JSON_Value *valu
 		temp_object = json_value_get_object(temp_value);
 		return json_object_dotset_value(temp_object, dot_pos + 1, value);
 	}
-	new_value = json_value_init_object();
+	new_value = json_value_new_object();
 	if (new_value == NULL)
 		return JSONFailure;
 
@@ -2453,7 +2453,7 @@ json_object_dotset_value(JSON_Object *object, const char *name, JSON_Value *valu
 JSON_Status
 json_object_dotset_string(JSON_Object *object, const char *name, const char *string)
 {
-	JSON_Value *value = json_value_init_string(string);
+	JSON_Value *value = json_value_new_string(string);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2468,7 +2468,7 @@ json_object_dotset_string(JSON_Object *object, const char *name, const char *str
 JSON_Status
 json_object_dotset_number(JSON_Object *object, const char *name, double number)
 {
-	JSON_Value *value = json_value_init_number(number);
+	JSON_Value *value = json_value_new_number(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2483,7 +2483,7 @@ json_object_dotset_number(JSON_Object *object, const char *name, double number)
 JSON_Status
 json_object_dotset_uint64(JSON_Object *object, const char *name, uint64_t number)
 {
-	JSON_Value *value = json_value_init_uint64(number);
+	JSON_Value *value = json_value_new_uint64(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2498,7 +2498,7 @@ json_object_dotset_uint64(JSON_Object *object, const char *name, uint64_t number
 JSON_Status
 json_object_dotset_integer(JSON_Object *object, const char *name, int number)
 {
-	JSON_Value *value = json_value_init_integer(number);
+	JSON_Value *value = json_value_new_integer(number);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2513,7 +2513,7 @@ json_object_dotset_integer(JSON_Object *object, const char *name, int number)
 JSON_Status
 json_object_dotset_boolean(JSON_Object *object, const char *name, int boolean)
 {
-	JSON_Value *value = json_value_init_boolean(boolean);
+	JSON_Value *value = json_value_new_boolean(boolean);
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2528,7 +2528,7 @@ json_object_dotset_boolean(JSON_Object *object, const char *name, int boolean)
 JSON_Status
 json_object_dotset_null(JSON_Object *object, const char *name)
 {
-	JSON_Value *value = json_value_init_null();
+	JSON_Value *value = json_value_new_null();
 
 	if (value == NULL)
 		return JSONFailure;
@@ -2715,49 +2715,49 @@ json_value_equals(const JSON_Value *a, const JSON_Value *b)
 }
 
 JSON_Value_Type
-json_type(const JSON_Value *value)
+json_get_type(const JSON_Value *value)
 {
 	return json_value_get_type(value);
 }
 
 JSON_Object *
-json_object (const JSON_Value *value)
+json_get_object (const JSON_Value *value)
 {
 	return json_value_get_object(value);
 }
 
 JSON_Array *
-json_array  (const JSON_Value *value)
+json_get_array  (const JSON_Value *value)
 {
 	return json_value_get_array(value);
 }
 
 const char *
-json_string (const JSON_Value *value)
+json_get_string (const JSON_Value *value)
 {
 	return json_value_get_string(value);
 }
 
 double
-json_number (const JSON_Value *value)
+json_get_number (const JSON_Value *value)
 {
 	return json_value_get_number(value);
 }
 
 uint64_t
-json_uint64 (const JSON_Value *value)
+json_get_uint64 (const JSON_Value *value)
 {
 	return json_value_get_uint64(value);
 }
 
 int
-json_integer (const JSON_Value *value)
+json_get_integer (const JSON_Value *value)
 {
 	return json_value_get_integer(value);
 }
 
 int
-json_boolean(const JSON_Value *value)
+json_get_boolean(const JSON_Value *value)
 {
 	return json_value_get_boolean(value);
 }

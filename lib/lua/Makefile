@@ -52,12 +52,12 @@ endif
 LDLIBS += -pthread
 
 # all source are stored in SRCS-y
-SRCS-$(CONFIG_RTE_LIBRTE_LUA) := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
-SRCS-$(CONFIG_RTE_LIBRTE_LUA) += rte_lua_dpdk.c rte_lua_pktmbuf.c rte_lua_vec.c
-SRCS-$(CONFIG_RTE_LIBRTE_DAPI) += rte_lua_dapi.c
+SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
+SRCS-y += rte_lua_dpdk.c rte_lua_pktmbuf.c rte_lua_vec.c
+SRCS-y += rte_lua_dapi.c
 
-SYMLINK-$(CONFIG_RTE_LIBRTE_LUA)-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
-SYMLINK-$(CONFIG_RTE_LIBRTE_LUA)-include += rte_lua_dpdk.h rte_lua_pktmbuf.h rte_lua_vec.h
-SYMLINK-$(CONFIG_RTE_LIBRTE_DAPI)-include += rte_lua_dapi.h
+SYMLINK-y-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
+SYMLINK-y-include += rte_lua_dpdk.h rte_lua_pktmbuf.h rte_lua_vec.h
+SYMLINK-y-include += rte_lua_dapi.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

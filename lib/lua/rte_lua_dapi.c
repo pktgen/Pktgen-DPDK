@@ -1,4 +1,4 @@
- /* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) 2018 Intel Corporation.
  */
 /* Created 2018 by Keith Wiles @ intel.com */
@@ -7,6 +7,7 @@
 #define LUA_LIB
 #define lua_c
 
+#ifdef RTE_LIBRTE_API
 #include <rte_ethdev.h>
 #include <rte_mbuf.h>
 #include <rte_cycles.h>
@@ -156,3 +157,4 @@ luaopen_dapi(lua_State *L)
 
 	return 1;
 }
+#endif

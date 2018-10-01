@@ -228,14 +228,14 @@ JSON_Status json_array_append_null(JSON_Array *array);
 /*
  * JSON Value
  */
-JSON_Value *json_value_init_object (void);
-JSON_Value *json_value_init_array  (void);
-JSON_Value *json_value_init_string (const char *string);  /* copies passed string */
-JSON_Value *json_value_init_number (double number);
-JSON_Value *json_value_init_uint64 (uint64_t number);
-JSON_Value *json_value_init_integer(int number);
-JSON_Value *json_value_init_boolean(int boolean);
-JSON_Value *json_value_init_null   (void);
+JSON_Value *json_value_new_object (void);
+JSON_Value *json_value_new_array  (void);
+JSON_Value *json_value_new_string (const char *string);  /* copies passed string */
+JSON_Value *json_value_new_number (double number);
+JSON_Value *json_value_new_uint64 (uint64_t number);
+JSON_Value *json_value_new_integer(int number);
+JSON_Value *json_value_new_boolean(int boolean);
+JSON_Value *json_value_new_null   (void);
 JSON_Value *json_value_deep_copy   (const JSON_Value *value);
 void         json_value_free        (JSON_Value *value);
 
@@ -250,14 +250,14 @@ int             json_value_get_boolean(const JSON_Value *value);
 JSON_Value     *json_value_get_parent (const JSON_Value *value);
 
 /* Same as above, but shorter */
-JSON_Value_Type json_type   (const JSON_Value *value);
-JSON_Object    *json_object (const JSON_Value *value);
-JSON_Array     *json_array  (const JSON_Value *value);
-const char     *json_string (const JSON_Value *value);
-double          json_number (const JSON_Value *value);
-uint64_t        json_uint64 (const JSON_Value *value);
-int             json_integer(const JSON_Value *value);
-int             json_boolean(const JSON_Value *value);
+JSON_Value_Type json_get_type   (const JSON_Value *value);
+JSON_Object    *json_get_object (const JSON_Value *value);
+JSON_Array     *json_get_array  (const JSON_Value *value);
+const char     *json_get_string (const JSON_Value *value);
+double          json_get_number (const JSON_Value *value);
+uint64_t        json_get_uint64 (const JSON_Value *value);
+int             json_get_integer(const JSON_Value *value);
+int             json_get_boolean(const JSON_Value *value);
 
 static inline const char *
 json_string_type(JSON_Value *val)
@@ -265,21 +265,21 @@ json_string_type(JSON_Value *val)
 	if (!val)
 		return "oops";
 
-	if (json_type(val) == JSONString)
+	if (json_get_type(val) == JSONString)
 		return "String";
-	if (json_type(val) == JSONNull)
+	if (json_get_type(val) == JSONNull)
 		return "Null";
-	if (json_type(val) == JSONNumber)
+	if (json_get_type(val) == JSONNumber)
 		return "Number";
-	if (json_type(val) == JSONUint64)
+	if (json_get_type(val) == JSONUint64)
 		return "uint64";
-	if (json_type(val) == JSONInteger)
+	if (json_get_type(val) == JSONInteger)
 		return "Integer";
-	if (json_type(val) == JSONArray)
+	if (json_get_type(val) == JSONArray)
 		return "Array";
-	if (json_type(val) == JSONObject)
+	if (json_get_type(val) == JSONObject)
 		return "Object";
-	if (json_type(val) == JSONBoolean)
+	if (json_get_type(val) == JSONBoolean)
 		return "Boolean";
 
 	return "Unknown";

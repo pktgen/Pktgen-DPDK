@@ -263,7 +263,6 @@ _k(lua_State *L, int status, lua_KContext ctx)
 {
 	(void)L;
 	(void)ctx;
-printf("%s: L %p, status %d, ctx %ld)\n", __func__, L, status, ctx);
 
 	return status;
 }
@@ -279,9 +278,7 @@ lua_docall(lua_State *L, int narg, int nres)
 	lua_pushcfunction(L, msghandler);
 	lua_insert(L, base);
 
-printf("%s: lua_pcallk(%p, %d, %d) base %d\n", __func__, L, narg, nres, base);
 	status = _k(L, lua_pcallk(L, narg, nres, base, 0, _k), 0);
-printf("%s: After lua_pcallk() %d\n", __func__, status);
 
 	return status;
 }
@@ -291,15 +288,11 @@ lua_dofile(luaData_t *ld, const char *name)
 {
 	int status;
 
-printf("%s: luaL_loadfile(%p, %s)\n", __func__, ld->L, name);
 	status = luaL_loadfile(ld->L, name);
-printf("%s: After luaL_loadfile(%p, %s) %d\n", __func__, ld->L, name, status);
 
-	if (status == LUA_OK) {
-printf("%s: lua_docall(%p)\n", __func__, ld->L);
+	if (status == LUA_OK)
 		status = lua_docall(ld->L, 0, 0);
-printf("%s: After lua_docall(%p) %d\n", __func__, ld->L, status);
-	} else
+	else
 		printf("lua_docall(%s) failed\n", name);
 
 	return report(ld->L, status);

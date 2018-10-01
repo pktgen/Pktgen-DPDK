@@ -96,7 +96,7 @@
 extern "C" {
 #endif
 
-#define PKTGEN_VERSION          "3.5.5"
+#define PKTGEN_VERSION          "3.5.6"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 

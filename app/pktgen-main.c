@@ -303,9 +303,7 @@ pktgen_lua_dofile(void *ld, const char * filename)
 {
 	int ret;
 
-printf("%s: call lua_dofile()\n", __func__);
 	ret = lua_dofile((luaData_t *)ld, filename);
-printf("%s: After lua_dofile() %d\n", __func__, ret);
 
 	return ret;
 }

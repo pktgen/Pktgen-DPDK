@@ -406,7 +406,7 @@ luaopen_dpdk(lua_State *L)
 {
 	luaL_newlib(L, dpdklib);
 
-	lua_pushstring(L, "info");	/* Push the table index name */
+	lua_pushstring(L, "dinfo");	/* Push the table index name */
 	lua_newtable(L);		/* Create the structure table for information */
 
 	setf_string(L, "Lua_Version", (char *)LUA_VERSION);
@@ -427,7 +427,7 @@ luaopen_dpdk(lua_State *L)
 __rte_weak int
 luaopen_dapi(lua_State *L __rte_unused)
 {
-	return 1;
+	return 0;
 }
 
 static void
@@ -438,14 +438,14 @@ dpdk_lua_openlib(lua_State *L)
 	luaL_requiref(L, LUA_DPDK_LIBNAME, luaopen_dpdk, 1);
 	lua_pop(L, 1);
 
-	luaopen_pktmbuf(L);
-	lua_pop(L, 1);
+	if (luaopen_pktmbuf(L))
+		lua_pop(L, 1);
 
-	luaopen_vec(L);
-	lua_pop(L, 1);
+	if (luaopen_vec(L))
+		lua_pop(L, 1);
 
-	luaopen_dapi(L);
-	lua_pop(L, 1);
+	if (luaopen_dapi(L))
+		lua_pop(L, 1);
 
 	lua_gc(L, LUA_GCRESTART, 0);
 }

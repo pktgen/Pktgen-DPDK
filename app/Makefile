@@ -89,8 +89,8 @@ endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
 else
-MYLIBS     += -lpktgen_lua
-MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs lua5.3)
+MYLIBS     += -lpktgen_lua $(shell pkg-config --libs-only-l lua5.3)
+MYLIB_PATH += -L$(LUA_LIB) $(shell pkg-config --libs-only-L lua5.3)
 
 CFLAGS     += -I/usr/include/lua5.3
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/lua/

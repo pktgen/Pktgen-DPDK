@@ -95,7 +95,6 @@ vec_gc(lua_State *L)
 	struct rte_mbuf *m;
 	int i;
 
-fprintf(stderr, "%s:\n", __func__);
 	if (lua_gettop(L) != 1)
                 return luaL_error(L, "vec.gc, Invalid arg count should be 1");
 	v = (struct rte_vec *)lua_touserdata(L, 1);

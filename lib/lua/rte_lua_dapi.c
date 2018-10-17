@@ -17,9 +17,9 @@
 #include <rte_version.h>
 
 #include <dapi.h>
-#include <dapi_types.h>
 
 #include "rte_lua.h"
+#include "rte_lua_stdio.h"
 #include "rte_lua_dpdk.h"
 #include "rte_lua_dapi.h"
 #include "rte_lua_utils.h"
@@ -45,7 +45,7 @@ _create(lua_State *L)
 
 	dapi = (struct dapi **)lua_newuserdata(L, sizeof(void *));
 
-	d = dapi_create((char *)(uintptr_t)name);
+	d = dapi_create((char *)(uintptr_t)name, 0, 0);
 	if (!d)
 		return luaL_error(L, "create: dapi_create() failed");
 	*dapi = d;
@@ -111,10 +111,8 @@ _tostring(lua_State *L)
 }
 
 static int
-_gc(lua_State *L)
+_gc(lua_State *L __rte_unused)
 {
-	(void)L;
-fprintf(stderr, "%s:\n", __func__);
 	return 0;
 }
 

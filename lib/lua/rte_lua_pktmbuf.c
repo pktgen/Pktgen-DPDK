@@ -137,10 +137,8 @@ _tostring(lua_State *L)
 }
 
 static int
-_gc(lua_State *L)
+_gc(lua_State *L __rte_unused)
 {
-	(void)L;
-fprintf(stderr, "%s:\n", __func__);
 	return 0;
 }
 

@@ -76,8 +76,11 @@ SRCS-y := \
 MYLIBS     += -lcommon
 MYLIB_PATH += -L$(COMMON_LIB)
 
+ifeq ($(CONFIG_RTE_LIBRTE_CLI),y)
+else
 MYLIBS     += -lcli
 MYLIB_PATH += -L$(CLI_LIB)
+endif
 
 CFLAGS     += -I$(RTE_SRCDIR)/../lib/common
 

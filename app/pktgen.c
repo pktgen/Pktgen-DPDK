@@ -1252,6 +1252,10 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
 
+	if (lid == rte_get_master_lcore()) {
+		printf("Using %d master lcore for Rx/Tx\n", lid);
+		rte_exit(0, "using master lcore for port");
+	}
 	port_map_info(lid, infos, qids, &txcnt, &rxcnt, "RX/TX");
 
 	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
@@ -1330,6 +1334,12 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
+
+	if (lid == rte_get_master_lcore()) {
+		printf("Using %d master lcore for Rx/Tx\n", lid);
+		rte_exit(0, "Invalid master lcore assigned a port");
+	}
+
 	port_map_info(lid, infos, qids, &txcnt, NULL, "TX");
 
 	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
@@ -1393,6 +1403,11 @@ pktgen_main_rx_loop(uint8_t lid)
 	port_info_t   *infos[RTE_MAX_ETHPORTS];
 
 	memset(infos, '\0', sizeof(infos));
+	if (lid == rte_get_master_lcore()) {
+		printf("Using %d master lcore for Rx/Tx\n", lid);
+		rte_exit(0, "using master lcore for ports");
+	}
+
 	port_map_info(lid, infos, NULL, NULL, &rxcnt, "RX");
 
 	pg_start_lcore(pktgen.l2p, lid);

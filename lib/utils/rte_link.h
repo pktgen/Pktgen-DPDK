@@ -47,7 +47,7 @@ void __rte_experimental rte_link_status_show(FILE *f, uint64_t port_list);
  * @return
  *   If all of the ports in the port_list are up return 1 or 0 if not
  */
-int __rte_experimental rte_link_status_check(uint64_t port_list);
+int __rte_experimental rte_link_status_check(uint16_t portid, struct rte_eth_link *link);
 
 /**
  * Wait for ports to be up and then display link status information. Using

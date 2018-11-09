@@ -108,6 +108,21 @@ int __rte_experimental rte_strqtok(char *str, const char *delim, char **entries,
 int __rte_experimental rte_stropt(const char *list, char *str, const char *delim);
 
 /**
+ * Parse a corelist string and return a list of the lcores.
+ *
+ * @param corelist
+ *    The string defining a set of cores e.g. "1-8,22,25-29"
+ * @param lcores
+ *    The pointer to a uint16_t array to update with the core id.
+ * @param len
+ *    The length of the uint16_t array.
+ * @return
+ *    -1 error or number of cores in the string.
+ */
+int __rte_experimental rte_parse_corelist(const char *corelist,
+	uint8_t *lcores, int len);
+
+/**
  * Helper routine to compare two strings exactly
  *
  * @param s1

@@ -185,3 +185,66 @@ rte_stropt(const char *list, char *str, const char *delim)
 
 	return -1;
 }
+
+int
+rte_parse_corelist(const char *corelist, uint8_t *lcores, int len)
+{
+	int idx = 0;
+	unsigned count = 0;
+	char *end = NULL;
+	int min, max, k;
+	char cl_buf[128], *cl = cl_buf;
+
+	if (corelist == NULL)
+		return -1;
+
+	memset(lcores, 0, len);
+
+	strlcpy(cl, corelist, sizeof(cl_buf));
+
+	/* Remove all blank characters ahead and after */
+	cl = rte_strtrim(cl);
+
+	/* Get list of cores */
+	min = RTE_MAX_LCORE;
+	k = 0;
+	do {
+		while (isblank(*cl))
+			cl++;
+
+		if (*cl == '\0')
+			return -1;
+
+		errno = 0;
+		idx = strtoul(cl, &end, 10);
+		if (errno || end == NULL)
+			return -1;
+
+		while (isblank(*end))
+			end++;
+
+		if (*end == '-')
+			min = idx;
+		else if ((*end == ',') || (*end == '\0')) {
+			max = idx;
+
+			if (min == RTE_MAX_LCORE)
+				min = idx;
+
+			for (idx = min; idx <= max; idx++) {
+				lcores[idx] = 1;
+				count++;
+			}
+
+			min = RTE_MAX_LCORE;
+		} else
+			return -1;
+
+		cl = end + 1;
+
+		if (k >= len)
+			return -1;
+	} while (*end != '\0');
+
+	return count;
+}

@@ -71,28 +71,9 @@ rte_link_status_show(FILE *f, uint64_t port_list)
 }
 
 int
-rte_link_status_check(uint64_t port_list)
+rte_link_status_check(uint16_t portid, struct rte_eth_link *link)
 {
-	uint16_t portid, all_up;
-
-	if (!port_list)
-		port_list = -1;
-
-	all_up = 1;
-	RTE_ETH_FOREACH_DEV(portid) {
-		if (lsc_cancel)
-			return -1;
-
-		if ((port_list & (1 << portid)) == 0)
-			continue;
-
-		if (!get_link_status(portid, NULL)) {
-			all_up = 0;
-			break;
-		}
-	}
-
-	return all_up;
+	return get_link_status(portid, link);
 }
 
 /* Check the link status of all ports in up to 9s, and print them finally */
@@ -101,6 +82,7 @@ rte_link_status_wait(FILE *f, uint64_t port_list, int secs)
 {
 #define CHECK_INTERVAL 100 /* 100ms */
 #define DEFAULT_WAIT_TIME 9 /* 9 seconds */
+	uint16_t portid, all_up;
 	uint8_t count;
 	char buf[128];
 
@@ -122,10 +104,18 @@ rte_link_status_wait(FILE *f, uint64_t port_list, int secs)
 	lsc_cancel = 0;
 
 	for (count = 0; count <= secs; count++) {
-		if (lsc_cancel)
-			return;
+		all_up = 1;
 
-		if (rte_link_status_check(port_list))
+		for(portid = 0; portid < RTE_MAX_ETHPORTS; portid++) {
+			if (lsc_cancel)
+				return;
+
+			if ((1LL << portid) & port_list) {
+				if (!get_link_status(portid, NULL))
+					all_up = 0;
+			}
+		}
+		if (all_up)
 			break;
 
 		fprintf(f, ".");

@@ -93,6 +93,32 @@ rte_parse_portlist(const char *str, portlist_t *portlist)
 }
 
 char *
+rte_portlist_string(uint64_t portlist, char *buf, int len)
+{
+	int i, k, j, cnt = 0;
+
+	k = 0;
+	for(i = 0; i < RTE_MAX_ETHPORTS; i++)
+		if (portlist & (1UL << i))
+			cnt++;
+
+	memset(buf, 0, len);
+
+	k = 0;
+	j = 0;
+	*buf = '\0';
+	for(i = 0; (i < RTE_MAX_ETHPORTS) && (k < len); i++)
+		if (portlist & (1UL << i)) {
+			k += snprintf(&buf[k], len - k, "%d%s", i,
+				(j >= cnt)? "" : ", ");
+			j++;
+		}
+
+	if (k >= 2)
+		buf[k - 2] = '\0';
+	return buf;
+}
+char *
 rte_print_portlist(FILE *f, uint64_t portlist, char *buf, int len)
 {
 	int i, k;

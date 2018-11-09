@@ -3,11 +3,18 @@
 
 version = 1
 allow_experimental_apis = true
-headers = files('rte_atoip.h',
+headers = files(
+	'rte_atoip.h',
 	'rte_link.h',
 	'rte_portlist.h',
-	'rte_strings.h')
+	'rte_strings.h',
+	'rte_heap.h')
 
-sources = files('rte_atoip.c', 'rte_link.c', 'rte_portlist.c', 'rte_strings.c')
+sources = files(
+	'rte_atoip.c',
+	'rte_link.c',
+	'rte_portlist.c',
+	'rte_strings.c',
+	'rte_heap.c')
 deps += ['ethdev']
 #deps += ['mbuf', 'dbuf']

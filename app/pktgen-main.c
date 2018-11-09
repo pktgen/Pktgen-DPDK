@@ -416,13 +416,10 @@ main(int argc, char **argv)
 	pktgen_log_info("=== Display processing on lcore %d", rte_lcore_id());
 
 	/* launch per-lcore init on every lcore except master and master + 1 lcores */
-	for (i = 0; i < RTE_MAX_LCORE; i++) {
-		if ( (i == rte_get_master_lcore()) || !rte_lcore_is_enabled(i) )
-			continue;
-		ret = rte_eal_remote_launch(pktgen_launch_one_lcore, NULL, i);
-		if (ret != 0)
-			pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
-	}
+	ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MASTER);
+	if (ret != 0)
+		pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
+
 	rte_delay_ms(1000);	/* Wait for the lcores to start up. */
 
 	/* Disable printing log messages of level info and below to screen, */

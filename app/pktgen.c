@@ -1281,6 +1281,13 @@ pktgen_main_rxtx_loop(uint8_t lid)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
 	}
 
+	for (idx = 0; idx < rxcnt; idx++) {
+		uint16_t pid = infos[idx]->pid;
+		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
+			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
+					pid, rte_eth_dev_socket_id(pid), 
+					rte_lcore_id(), rte_socket_id());
+	}
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		for (idx = 0; idx < rxcnt; idx++)	/* Read Packets */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);
@@ -1356,6 +1363,13 @@ pktgen_main_tx_loop(uint8_t lid)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
 	}
 
+	for (idx = 0; idx < txcnt; idx++) {
+		uint16_t pid = infos[idx]->pid;
+		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
+			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
+					pid, rte_eth_dev_socket_id(pid), 
+					rte_lcore_id(), rte_socket_id());
+	}
 	idx = 0;
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_get_tsc_cycles();
@@ -1421,6 +1435,13 @@ pktgen_main_rx_loop(uint8_t lid)
 			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
 	}
 
+	for (idx = 0; idx < rxcnt; idx++) {
+		uint16_t pid = infos[idx]->pid;
+		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
+			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
+					pid, rte_eth_dev_socket_id(pid), 
+					rte_lcore_id(), rte_socket_id());
+	}
 	while (pg_lcore_is_running(pktgen.l2p, lid))
 		for (idx = 0; idx < rxcnt; idx++)	/* Read packet */
 			pktgen_main_receive(infos[idx], lid, pkts_burst);

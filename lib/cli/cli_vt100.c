@@ -151,12 +151,22 @@ key_ctrl_b(void)
 	key_left_arr();
 }
 
+// This is the 'super key' which has had many usages in the past. I changed it to
+// but the back space key as it seems windows or mobaxterm sends this code to delete key.
 static inline void
 key_suppr(void)
 {
-	gb_del(this_cli->gb, 1);
-	cli_display_right();
-	cli_clear_to_eol();
+	struct gapbuf *gb = this_cli->gb;
+
+	if (!gb_point_at_start(gb)) {
+		cli_cursor_left();
+
+		gb_move_left(gb);
+
+		gb_del(gb, 1);
+
+		cli_set_flag(DELETE_CHAR);
+	}
 }
 
 static inline void

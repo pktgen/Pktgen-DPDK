@@ -61,20 +61,20 @@ pktgen_print_static_data(void)
 
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Broadcast");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Multicast");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  64 Bytes");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  65-127");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  128-255");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  256-511");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  512-1023");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  1024-1518");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Sizes 64");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      65-127");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      128-255");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      256-511");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      512-1023");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      1024-1518");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Runts/Jumbos");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
 
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Errors Rx/Tx");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx Pkts");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx Pkts");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
 
 	if (pktgen.flags & TX_DEBUG_FLAG) {
 		scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
@@ -94,15 +94,15 @@ pktgen_print_static_data(void)
 	ip_row = ++row;
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Tx Burst");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src/Dest Port");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Size/Tx Burst");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port Src/Dest");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "CoS/DSCP/IPP");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst  IP Address");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src  IP Address");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src MAC Address");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VendID/PCI Addr");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "802.1p CoS/DSCP/IPP");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "IP  Destination");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MAC Destination");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PCI Vendor/Addr");
 	row++;
 
 	/* Get the last location to use for the window starting row. */
@@ -150,7 +150,7 @@ pktgen_print_static_data(void)
 		         pkt->vlanid);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d/%d/%d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5); 
+		snprintf(buff, sizeof(buff), "%3d/%3d/%3d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5); 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
@@ -370,6 +370,10 @@ pktgen_page_stats(void)
 		         info->sizes.runt, info->sizes.jumbo);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+		         info->stats.arp_pkts, info->stats.echo_pkts);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
 		/* Rx/Tx Errors */
 		row = PKT_TOTALS_ROW;
 		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
@@ -383,10 +387,6 @@ pktgen_page_stats(void)
 		/* Total Rx/Tx mbits */
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->prev_stats) / Million);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->prev_stats) / Million);
-
-		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
-		         info->stats.arp_pkts, info->stats.echo_pkts);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color(NULL);
 		if (pktgen.flags & TX_DEBUG_FLAG) {

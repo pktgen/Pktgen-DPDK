@@ -4,7 +4,7 @@ theme top.ports green none bold
 theme top.page black none off
 theme top.copyright red none off
 theme top.poweredby blue none bold
-theme sep.dash black none off
+theme sep.dash blue none off
 theme sep.text red none bold
 theme stats.port.label blue none bold
 theme stats.port.flags blue none bold

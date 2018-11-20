@@ -177,7 +177,7 @@ enum {
 	MAX_SCRN_ROWS           = 44,
 	MAX_SCRN_COLS           = 132,
 
-	COLUMN_WIDTH_0          = 20,
+	COLUMN_WIDTH_0          = 22,
 	COLUMN_WIDTH_1          = 20,
 	COLUMN_WIDTH_3          = 22,
 

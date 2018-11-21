@@ -184,7 +184,7 @@ enum {
 	/* Row locations for start of data */
 	PORT_STATE_ROWS         = 1,
 	LINK_STATE_ROWS         = 4,
-	PKT_SIZE_ROWS           = 9,
+	PKT_SIZE_ROWS           = 10,
 	PKT_TOTALS_ROWS         = 7,
 	IP_ADDR_ROWS            = 12,
 

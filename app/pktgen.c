@@ -835,6 +835,8 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 		info->sizes.runt++;
 	else if (plen > ETHER_MAX_LEN)
 		info->sizes.jumbo++;
+	else
+		info->sizes.unknown++;
 
 	/* Process multicast and broadcast packets. */
 	if (unlikely(((uint8_t *)m->buf_addr + m->data_off)[0] == 0xFF)) {

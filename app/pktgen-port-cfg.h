@@ -44,6 +44,7 @@ typedef struct port_sizes_s {
 	uint64_t multicast;	/**< Number of multicast packets */
 	uint64_t jumbo;		/**< Number of Jumbo frames */
 	uint64_t runt;		/**< Number of Runt frames */
+	uint64_t unknown;	/**< Number of unknown sizes */
 } port_sizes_t;
 
 struct mbuf_table {

@@ -40,7 +40,7 @@ realclean:
 	@if [ -n "$(clean_objs)" ]; then \
 		rm -fr $(clean_objs); \
 	fi
-	rm -fr app/build/pktgen
+	rm -fr app/build
 
 docs:
 	@make -C docs html

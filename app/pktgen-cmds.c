@@ -614,7 +614,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.src_ip('%d', 'max', '%s');\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_max),
 				   0xFFFFFFFF));
-		fprintf(fd, "pktgen.src_ip(';%d', 'inc', '%s');\n", i,
+		fprintf(fd, "pktgen.src_ip('%d', 'inc', '%s');\n", i,
 			inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_inc),
 				   0xFFFFFFFF));
 
@@ -3105,6 +3105,9 @@ pktgen_set_page(char *str)
 	} else if (_cp("stats")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= STATS_PAGE_FLAG;
+	} else if (_cp("xstats")) {
+		pktgen.flags &= ~PAGE_MASK_BITS;
+		pktgen.flags |= XSTATS_PAGE_FLAG;
 	} else if (_cp("sequence") || _cp("seq")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= SEQUENCE_PAGE_FLAG;

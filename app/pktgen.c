@@ -1287,7 +1287,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 		uint16_t pid = infos[idx]->pid;
 		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
 			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
-					pid, rte_eth_dev_socket_id(pid), 
+					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
@@ -1369,7 +1369,7 @@ pktgen_main_tx_loop(uint8_t lid)
 		uint16_t pid = infos[idx]->pid;
 		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
 			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
-					pid, rte_eth_dev_socket_id(pid), 
+					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}
 	idx = 0;
@@ -1441,7 +1441,7 @@ pktgen_main_rx_loop(uint8_t lid)
 		uint16_t pid = infos[idx]->pid;
 		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
 			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
-					pid, rte_eth_dev_socket_id(pid), 
+					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}
 	while (pg_lcore_is_running(pktgen.l2p, lid))
@@ -1518,6 +1518,8 @@ _page_display(void)
 		pktgen_page_latency();
 	else if (pktgen.flags & STATS_PAGE_FLAG)
 		pktgen_page_phys_stats();
+	else if (pktgen.flags & XSTATS_PAGE_FLAG)
+		pktgen_page_xstats(pktgen.portNum);
 	else
 		pktgen_page_stats();
 }

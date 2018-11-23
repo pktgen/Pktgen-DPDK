@@ -346,10 +346,13 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
 		_pcap_rewind(pcap);
 
+		/* Removed to allow for all of the PCAP file to be replayed */
+#if 0
 		/* Round up the count and size to allow for TX ring size. */
 		if (elt_count < MAX_MBUFS_PER_PORT)
 			elt_count = MAX_MBUFS_PER_PORT;
 		elt_count = rte_align32pow2(elt_count);
+#endif
 
 		scrn_printf(0, 0, "\r    Create: %-*s   \b", 16, name);
 		info->q[qid].pcap_mp = rte_mempool_create(

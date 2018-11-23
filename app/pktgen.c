@@ -1062,9 +1062,10 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		uint16_t saved = info->q[qid].tx_mbufs.len;
 		uint16_t nb_pkts = info->tx_burst - saved;
 
-		rc = pg_pktmbuf_alloc_bulk(mp,
-		                           &info->q[qid].tx_mbufs.m_table[saved],
-		                           nb_pkts);
+		if (likely(nb_pkts > 0))
+			rc = pg_pktmbuf_alloc_bulk(mp,
+				&info->q[qid].tx_mbufs.m_table[saved],
+				nb_pkts);
 		if (rc == 0) {
 			info->q[qid].tx_mbufs.len = info->tx_burst;
 
@@ -1078,9 +1079,10 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 			uint16_t saved = info->q[qid].tx_mbufs.len;
 			uint16_t nb_pkts = txCnt - saved;
 
-			rc = pg_pktmbuf_alloc_bulk(mp,
-			                           &info->q[qid].tx_mbufs.m_table[saved],
-			                           nb_pkts);
+			if (likely(nb_pkts > 0))
+				rc = pg_pktmbuf_alloc_bulk(mp,
+					&info->q[qid].tx_mbufs.m_table[saved],
+					nb_pkts);
 			if (rc == 0) {
 				info->q[qid].tx_mbufs.len = txCnt;
 

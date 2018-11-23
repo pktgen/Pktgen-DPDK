@@ -1,0 +1,18 @@
+var cp = require('child_process');
+var gulp = require('gulp');
+
+var env = process.env.RTE_TARGET || 'x86_64-native-linuxapp-gcc';
+
+gulp.task('default', function () {
+	// Clear the terminal
+	cp.execSync('clear', {
+		stdio: 'inherit'
+	});
+	console.log('RTE_SDK   :' + process.env.RTE_SDK)
+	console.log('RTE_TARGET:' + process.env.RTE_TARGET)
+
+	extra_cflags = ' EXTRA_CFLAGS=\"-g -O3\" V=0 ';
+	cp.execSync('cd ../pktgen; make'+ extra_cflags + '-j', {
+		stdio: 'inherit'
+	});
+});

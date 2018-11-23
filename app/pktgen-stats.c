@@ -150,7 +150,7 @@ pktgen_print_static_data(void)
 		         pkt->vlanid);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%3d/%3d/%3d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5); 
+		snprintf(buff, sizeof(buff), "%3d/%3d/%3d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
@@ -614,6 +614,203 @@ pktgen_page_phys_stats(void)
 		ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
 		snprintf(buff, sizeof(buff), "%s", mac_buf);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+	}
+
+	pktgen_display_set_color(NULL);
+	scrn_eol();
+}
+
+#if 0
+static void
+_xstats_display(uint16_t port_id)
+{
+	struct rte_eth_xstat *xstats;
+	int cnt_xstats, idx_xstat, idx;
+	struct rte_eth_xstat_name *xstats_names;
+
+	if (!rte_eth_dev_is_valid_port(port_id)) {
+		printf("Error: Invalid port number %i\n", port_id);
+		return;
+	}
+
+	/* Get count */
+	cnt_xstats = rte_eth_xstats_get_names(port_id, NULL, 0);
+	if (cnt_xstats  < 0) {
+		printf("Error: Cannot get count of xstats\n");
+		return;
+	}
+
+	/* Get id-name lookup table */
+	xstats_names = malloc(sizeof(struct rte_eth_xstat_name) * cnt_xstats);
+	if (xstats_names == NULL) {
+		printf("Cannot allocate memory for xstats lookup\n");
+		return;
+	}
+	if (cnt_xstats != rte_eth_xstats_get_names(
+			port_id, xstats_names, cnt_xstats)) {
+		printf("Error: Cannot get xstats lookup\n");
+		free(xstats_names);
+		return;
+	}
+
+	/* Get stats themselves */
+	xstats = malloc(sizeof(struct rte_eth_xstat) * cnt_xstats);
+	if (xstats == NULL) {
+		printf("Cannot allocate memory for xstats\n");
+		free(xstats_names);
+		return;
+	}
+	if (cnt_xstats != rte_eth_xstats_get(port_id, xstats, cnt_xstats)) {
+		printf("Error: Unable to get xstats\n");
+		free(xstats_names);
+		free(xstats);
+		return;
+	}
+
+	/* Display xstats */
+	idx = 1;
+	printf("  ");
+	for (idx_xstat = 0; idx_xstat < cnt_xstats; idx_xstat++) {
+		if (xstats[idx_xstat].value == 0)
+			continue;
+		if (idx++ % 2)
+			printf("\n   ");
+		pktgen_display_set_color("stats.port.label");
+		printf("%-32s: ", xstats_names[idx_xstat].name);
+		pktgen_display_set_color("stats.port.data");
+		printf("%12"PRIu64"  ", xstats[idx_xstat].value);
+	}
+	printf("\n\n");
+
+	free(xstats_names);
+	free(xstats);
+}
+#endif
+
+static struct xstats_info {
+	struct rte_eth_xstat_name *names;
+	struct rte_eth_xstat *xstats;
+	struct rte_eth_xstat *prev;
+	int cnt;
+} xstats_info[RTE_MAX_ETHPORTS];
+
+static void
+_xstats_display(uint16_t port_id)
+{
+	struct xstats_info *info;
+	int idx_xstat, idx;
+
+	if (!rte_eth_dev_is_valid_port(port_id)) {
+		printf("Error: Invalid port number %i\n", port_id);
+		return;
+	}
+	info = &xstats_info[port_id];
+
+	/* Get count */
+	info->cnt = rte_eth_xstats_get_names(port_id, NULL, 0);
+	if (info->cnt  < 0) {
+		printf("Error: Cannot get count of xstats\n");
+		return;
+	}
+	if (info->cnt == 0)
+		return;
+
+	if (info->names == NULL) {
+		/* Get id-name lookup table */
+		info->names = malloc(sizeof(struct rte_eth_xstat_name) * info->cnt);
+		if (info->names == NULL) {
+			printf("Cannot allocate memory for xstats lookup\n");
+			return;
+		}
+		if (info->cnt != rte_eth_xstats_get_names(port_id, info->names, info->cnt)) {
+			printf("Error: Cannot get xstats lookup\n");
+			return;
+		}
+	}
+
+	/* Get stats themselves */
+	if (info->xstats == NULL) {
+		info->xstats = malloc(sizeof(struct rte_eth_xstat) * info->cnt);
+		if (info->xstats == NULL) {
+			printf("Cannot allocate memory for xstats\n");
+			return;
+		}
+		info->prev = malloc(sizeof(struct rte_eth_xstat) * info->cnt);
+		if (info->prev== NULL) {
+			printf("Cannot allocate memory for previous xstats\n");
+			return;
+		}
+		if (info->cnt != rte_eth_xstats_get(port_id, info->prev, info->cnt)) {
+			printf("Error: Unable to get prev_xstats\n");
+			return;
+		}
+	}
+	if (info->cnt != rte_eth_xstats_get(port_id, info->xstats, info->cnt)) {
+		printf("Error: Unable to get xstats\n");
+		return;
+	}
+
+	/* Display xstats */
+	idx = 0;
+	for (idx_xstat = 0; idx_xstat < info->cnt; idx_xstat++) {
+		uint64_t value;
+
+		value = info->xstats[idx_xstat].value - info->prev[idx_xstat].value;
+		if (info->xstats[idx_xstat].value || value) {
+			if (idx == 0) {
+				pktgen_display_set_color("stats.port.data");
+				printf("%3d: ", port_id);
+				pktgen_display_set_color("stats.port.label");
+				scrn_eol();
+			} else if ((idx & 1) == 0) {
+				printf("\n     ");
+				scrn_eol();
+			}
+			idx++;
+
+			pktgen_display_set_color("stats.port.label");
+			printf("%-32s| ", info->names[idx_xstat].name);
+			pktgen_display_set_color("stats.port.data");
+			printf("%12"PRIu64, value);
+			pktgen_display_set_color("stats.port.label");
+			printf(" | ");
+			scrn_eol();
+		}
+	}
+	rte_memcpy(info->prev, info->xstats, sizeof(struct rte_eth_xstat) * info->cnt);
+	printf("\n");
+	scrn_eol();
+	printf("\n");
+}
+
+void
+pktgen_page_xstats(uint16_t pid)
+{
+	uint64_t p;
+	int k;
+
+	pktgen_display_set_color("top.page");
+	display_topline("<Port XStats Page>");
+
+	pktgen_display_set_color("stats.port.status");
+	scrn_printf(3, 1, "     %-32s| %12s | %-32s| %12s |\n",
+		"XStat Name", "Per/Second", "XStat Name", "Per/Second");
+	pktgen_display_set_color("top.page");
+	printf("Port ");
+	pktgen_display_set_color("stats.port.status");
+	for(k = 0; k < 97; k++)
+		printf("=");
+	printf("\n");
+	pktgen_display_set_color("stats.stat.label");
+
+	k = 0;
+	for (p = rte_eth_find_next_owned_by(pid, RTE_ETH_DEV_NO_OWNER);
+	     (unsigned int)p < (unsigned int)RTE_MAX_ETHPORTS;
+	     p = rte_eth_find_next_owned_by(p + 1, RTE_ETH_DEV_NO_OWNER)) {
+
+		_xstats_display(p);
+		if (k++ >= pktgen.nb_ports_per_page)
+			break;
 	}
 
 	pktgen_display_set_color(NULL);

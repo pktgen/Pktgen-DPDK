@@ -1407,7 +1407,7 @@ misc_cmd(int argc, char **argv)
 
 static struct cli_map page_map[] = {
 	{ 10, "page %d" },
-	{ 11, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|log|latency|stats" },
+	{ 11, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|log|latency|stats|xstats" },
 	{ -1, NULL }
 };
 
@@ -1426,6 +1426,7 @@ static const char *page_help[] = {
 	"page log                           - Display the log messages page",
 	"page latency                       - Display the latency page",
 	"page stats                         - Display physical ports stats for all ports",
+	"page xstats                        - Display port XSTATS values",
 	CLI_HELP_PAUSE,
 	NULL
 };

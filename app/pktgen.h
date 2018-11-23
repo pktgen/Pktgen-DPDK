@@ -339,6 +339,7 @@ enum {						/* Pktgen flags bits */
 	LOG_PAGE_FLAG           = (1 << 22),	/**< Display the message log page */
 	LATENCY_PAGE_FLAG       = (1 << 23),	/**< Display latency page */
 	STATS_PAGE_FLAG         = (1 << 24),	/**< Display the physical port stats */
+	XSTATS_PAGE_FLAG        = (1 << 25),	/**< Display the physical port stats */
 
 	UPDATE_DISPLAY_FLAG     = (1 << 31)
 };
@@ -352,7 +353,8 @@ enum {						/* Pktgen flags bits */
 			 RANGE_PAGE_FLAG | \
 			 PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
 			 RND_BITFIELD_PAGE_FLAG | \
-			 LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | STATS_PAGE_FLAG)
+			 LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | \
+			 XSTATS_PAGE_FLAG | STATS_PAGE_FLAG)
 
 extern pktgen_t pktgen;
 

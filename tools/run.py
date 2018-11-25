@@ -100,12 +100,12 @@ def add_setup_options(s, arg_list):
 		for a in mk_tuple(cfg.setup, s):
 			arg_list.extend(a.split(' '))
 
-def file_list(d, t):
+def file_list(directory, file_extension):
 	''' Return list of configuration files '''
 	fileiter = (os.path.join(root, f)
-		for root, _, files in os.walk(d)
+		for root, _, files in os.walk(directory)
 			for f in files)
-	return (f for f in fileiter if os.path.splitext(f)[1] == t)
+	return (f for f in fileiter if os.path.splitext(f)[1] == file_extension)
 
 def load_cfg(fname):
 	''' Load the configuration or .cfg file as a python data file '''
@@ -114,15 +114,14 @@ def load_cfg(fname):
 		err_exit("Config file %s does not exists\n" % fname)
 
 	try:
-		f = open(fname)
+		configuration_file = open(fname)
 	except:
 		err_exit("Error: unable to open file %s\n" % fname)
 
 	global cfg
-	cfg = imp.load_source('cfg', '', f)
+	cfg = imp.load_source('cfg', fname, configuration_file)
 
-	f.close()
-	os.unlink('c')
+	configuration_file.close()
 
 	return cfg
 
@@ -136,14 +135,20 @@ def show_configs():
 	for fname in file_list('cfg', '.cfg'):
 		base = os.path.splitext(os.path.basename(fname))[0]
 
-		cfg = load_cfg(fname)
+		try:
+			cfg = load_cfg(fname)
 
-		if not cfg.description:
+			if not cfg.description:
+				cfg.description = ""
+			print("   %-16s - %s" % (base, cfg.description))
+		except NameError:
+			sys.stderr.write("We were unable to load the module " + fname + \
+			" If you do not plan to use this module you can safely ignore this " \
+			"message.\n")
+		finally:
+			# reset the descriptoin to empty, for next loop/file
 			cfg.description = ""
-		print("   %-16s - %s" % (base, cfg.description))
-
-		# reset the descriptoin to empty, for next loop/file
-		cfg.description = ""
+		
 	sys.exit(0)
 
 def run_cfg(cfg_file):

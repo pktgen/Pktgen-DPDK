@@ -59,11 +59,14 @@ def err_exit(str):
 	print(str)
 	sys.exit(1)
 
-def find_file(arg, t):
+def find_file(fn, t):
 	''' Find the first file matching the arg value '''
-	fn = arg + '.cfg'
-	for f in file_list('.', t):
-		if os.path.basename(f) == fn:
+        f = os.path.splitext(fn)
+        if f[1] == t:
+	    fn = f[0]
+	for f in file_list('cfg', t):
+                b = os.path.basename(f)
+		if os.path.splitext(b)[0] == fn:
 			return f
 	return None
 
@@ -130,7 +133,7 @@ def show_configs():
 	print("   %-16s - %s" % ("Name", "Description"))
 	print("   %-16s   %s" % ("----", "-----------"))
 
-	for fname in file_list('.', '.cfg'):
+	for fname in file_list('cfg', '.cfg'):
 		base = os.path.splitext(os.path.basename(fname))[0]
 
 		cfg = load_cfg(fname)
@@ -328,7 +331,12 @@ def parse_args():
 
 	fn = find_file(args[0], '.cfg')
 	if not fn:
-		print("*** Config file '%s' not found" % args[0])
+                f = args[0]
+                if os.path.splitext(args[0])[1] != '.cfg':
+                    f = args[0] + '.cfg'
+		print("*** Config file '%s' not found" % f)
+                print("    Make sure you are running this command in pktgen top directory")
+                print("    e.g. cd Pktgen-DPDK; ./tools/run.py default")
 		show_configs()
 	else:
 		cfg_file = fn

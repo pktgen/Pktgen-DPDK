@@ -370,8 +370,8 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		                MEMPOOL_F_DMA);
 		scrn_printf(0, 0, "\r");
 		if (info->q[qid].pcap_mp == NULL)
-			pktgen_log_panic("Cannot init port %d for PCAP packets",
-					 info->pid);
+			pktgen_log_panic("Cannot init port %d for %d PCAP packets",
+					 info->pid, info->pcap->pkt_count);
 
 		data_size = (info->pcap->pkt_count * DEFAULT_MBUF_SIZE);
 		scrn_printf(0, 0,

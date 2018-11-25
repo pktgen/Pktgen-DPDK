@@ -6,6 +6,10 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.5.9 - Fixed run.py to find config files better.
+         - Limit the pcap packets to the number of mbufs used.
+         - Added new 'page xstats' screen to view extended stats for ports.
+         - other minor patches
  - 3.5.8 - Add code to check for using master lcore for ports
  - 3.5.7 - Fix CentOS building with Lua, fixed cli building as was not linking cli
  - 3.5.6 - Minor fixes to cleanup builds sync cli,vec,utils and lua code bases.

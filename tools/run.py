@@ -121,6 +121,10 @@ def load_cfg(fname):
 	global cfg
 	cfg = imp.load_source('cfg', fname, configuration_file)
 
+        # The command above will create a file called <filename>c and needs to be removed.
+        # The file is the compiled python code from the config file.
+        os.unlink(fname + 'c');
+
 	configuration_file.close()
 
 	return cfg

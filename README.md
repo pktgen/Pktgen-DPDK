@@ -5,97 +5,45 @@ Pktgen - Traffic Generator powered by DPDK
 
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
-
 ---
 **Copyright &copy; \<2010-2018\>, Intel Corporation. All rights reserved.**
 
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
 
- - Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
 
- - Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the
-   distribution.
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in
+  the documentation and/or other materials provided with the
+  distribution.
 
- - Neither the name of Intel Corporation nor the names of its
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
+- Neither the name of Intel Corporation nor the names of its
+  contributors may be used to endorse or promote products derived
+  from this software without specific prior written permission.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
 
- SPDX-License-Identifier: BSD-3-Clause
+SPDX-License-Identifier: BSD-3-Clause
 
- Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
- ---
+Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
+---
 
-**======================== README.md file ==============================**
 
-*** Pktgen ***
-Copyright &copy \<2015-2018\>, Intel Corporation.
 
-README for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop, it
-should work on most Linux systems as long as the kernel has hugeTLB page support.
-
-Note: Tested with Ubuntu 13.10 and up to 16.10 kernel versions
-Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
-
-I am using Ubuntu 16.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
-Crownpass Dual socket board running at 2.4GHz with 32GB of ram 16GB per socket.
-The current kernel version is 4.4.0-66-generic (as of 2018-04-01) support, but should
-work on just about any new Linux kernel version.
-
-Currently using as of 2018-04-01 Ubuntu 16.10 Kernel 4.4.0-66-generic system.
-
-To get hugeTLB page support your Linux kernel must be at least 2.6.33 and in the
-DPDK documents it talks about how you can upgrade your Linux kernel.
-
-Here is another document on how to upgrade your Linux kernel.
-Ubuntu 10.04 is 2.6.32 by default so upgraded to kernel 2.6.34 using this HOWTO:
-http://usablesoftware.wordpress.com/2010/05/26/switch-to-a-newer-kernel-in-ubuntu-10-04/
-
-The pktgen output display needs 132 columns and about 42 lines to display
-currentlyt. I am using an xterm of 132x42, but you can have a larger display
-and maybe a bit smaller. If you are displaying more then 4-6 ports then you
-will need a wider display. Pktgen allows you to view a set of ports if they
-do not all fit on the screen at one time via the 'page' command.
-
-Type 'help' at the 'Pktgen>' prompt to see the complete Pktgen command line
-commands. Pktgen uses VT100 control codes or escape codes to display the screens,
-which means your terminal must support VT100. The Hyperterminal in windows is not
-going to work for Pktgen as it has a few problems with VT100 codes.
-
-Pktgen has a number of modes to send packets single, range, random, sequeue and
-PCAP modes. Each mode has its own set of packet buffers and you must configure
-each mode to work correctly. The single packet mode is the information displayed
-at startup screen or when using the 'page main or page 0' command. The other
-screens can be accessed using 'page seq|range|rnd|pcap|stats' command.
-
-The pktgen program as built can send up to 16 packets per port in a sequence
-and you can configure a port using the 'seq' pktgen command. A script file
-can be loaded from the shell command line via the -f option and you can 'load'
-a script file from within pktgen as well.
-
-In the BIOS make sure the HPET High Precision Event Timer is enabled. Also
-make sure hyper-threading is enabled.
-
-** NOTE **
-On a 10GB NIC if the transceivers are not attached the screen updates will go
-very slow.
 
 *** Pktgen command line directory format ***
 
@@ -194,140 +142,27 @@ Pktgen:/pktgen/bin/> ls -l
 
 Pktgen:/pktgen/bin/>
 ``
-Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
-``
-# cd <InstallDir>
-# git clone git://dpdk.org/dpdk.git
-``
-``
-# cd <InstallDir>
-# git clone git://dpdk.org/pktgen-dpdk.git
-``
-** Note **
-The site dpdk.org you must also pull down DPDK repo as well. git://dpdk.org/dpdk
 
-Will create a directory called Pktgen-DPDK in the current directory location. Using
-the above clone commands you will get DPDK and pktgen source files.
 
-Make sure you have HUGE TLB support in the kernel with the following commands:
-``
-# grep -i huge /boot/config-2.6.35-24-generic
-CONFIG_HUGETLBFS=y
-CONFIG_HUGETLB_PAGE=y
+run pktgen type `sudo -E ./tools/run.sh`.
+`run.sh` is a script designed to help you with the command line options of pktgen. 
+You may need to modify this script for your system and configuration.
 
-# grep -i huge /proc/meminfo
-HugePages_Total:128
-HugePages_Free: 128
-HugePages_Rsvd:0
-HugePages_Surp:0
-Hugepagesize: 2048 kB
-``
-NOTE: The values in Total and Free maybe different until you reboot the machine.
+    # cat ./tools/run.sh
+    #!/bin/bash
 
-Two files in /etc must be setup to support huge TLBs. If you do not have
-hugeTLB support then you most likely need a newer kernel.
-``
-# vi /etc/sysctl.conf
-Add to the bottom of the file for 2M hugepages:
-vm.nr_hugepages=256
-``
-If you need more or less hugeTLB pages then you can change the value to a
-number you need it to be. In some cases pktgen needs a fair number of pages
-and making it too small will effect performance or pktgen will terminate on
-startup looking for more pages.
-``
-# On Ubuntu 15.10 I noticed mounting /mnt/huge is not required as /dev/hugepages
-# is already mounted. Check your system and verify that /mnt/huge is required.
-# vi /etc/fstab
-Add to the bottom of the file:
-huge /mnt/huge hugetlbfs defaults 0 0
-
-# mkdir /mnt/huge
-# chmod 777 /mnt/huge
-``
-Reboot your machine as the huge pages must be setup just after boot to make
-sure you have contiguous memory for the 2Meg pages, setting up 1G pages can
-also be done.
-
-** Note: If you startup Eclipse or WR Workbench before starting pktgen the first
- time after reboot, pktgen will fail to load because it can not get all of the
- huge pages as eclipse has consumed some of the huge pages. If you did start eclipse
- or WR Workbench then you need to close that application first.
-
-This is my current machine you will have a few different numbers depending on
-how your system was booted and if you had hugeTLB support enabled.
-
-At the pktgen-DPDK level directory we have the 'tools/setup.sh' script,
-which needs to be run as root once per boot. The script contains a commands to setup
-the environment.
-
-Make sure you run the setup script as root via './tools/setup.sh'. The setup
-script is a bash script and tries to setup the system correctly, but you may have to
-change the script to match your number of huge pages you configured above and ports.
-
-The modprobe uio command, in the setup script, loads the UIO support module into the
-kernel plus it loads the igb-uio.ko module into the kernel. The two echo commands,
-in the setup script, finish setting up the huge pages one for each socket. If you
-only have a single socket system then comment out the second echo command. The last
-command is to display the huge TLB setup.
-
-Edit your .bashrc or .profile or .cshrc to add the environment variables.
-I am using bash:
-`# vi ~/.bashrc`
-Add the following lines: Change the $RTE_SDK to the location of the DPDK version
-directory. Your SDK directory maybe named differently, but should point to the DPDK
-SDK directory.
-
-Make sure you have the Linux kernel headers installed as DPDK requires them to build
-the kernel modules. On Ubuntu I run the following:
-
-`# sudo apt-get install linux-headers-`uname -r``
-
-You will need to adjust the version number to match your current kernel version.
-If you upgrade your system or kernel version you will need to install the correct
-headers and rebuild the RTE_TARGET directory.
-
-``
-# sudo apt-get install libpcap-dev
-
-export RTE_SDK=<DPDKinstallDir>
-export RTE_TARGET=x86_64-native-linuxapp-gcc
-or use clang if you have it installed
-export RTE_TARGET=x86_64-native-linuxapp-clang
-``
-Create the DPDK build tree:
-``
-# cd $RTE_SDK
-# make install T=x86_64-native-linuxapp-gcc -j
-``
-This above command will create the x86_64-native-linuxapp-gcc directory in the
-top level of the current-dkdp directory. The above command will build the basic
-DPDK libraries and build tree.
-
-Next we build pktgen:
-``
-# cd <PktgenInstallDir>
-# make
-``
-You should now have pktgen built and to run pktgen type 'sudo -E ./tools/run.sh', which is a script
-to help with the command line options of pktgen. You may need to modify this script for
-your system and configuration.
-``
-# cat ./tools/run.sh
-#!/bin/bash
-
-#rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
-#06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-#09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
-#83:00.1 Ethernet controller: Intel Corporation DH8900CC Null Device (rev 21)
-#87:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#87:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
-#89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #rkwiles@rkwiles-desk:~/projects/intel/dpdk$ lspci |grep Ether
+    #06:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #06:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #08:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #08:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #09:00.0 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+    #09:00.1 Ethernet controller: Intel Corporation I350 Gigabit Network Connection (rev 01)
+    #83:00.1 Ethernet controller: Intel Corporation DH8900CC Null Device (rev 21)
+    #87:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #87:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
+    #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
 ./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
@@ -363,8 +198,6 @@ a single physical core. If you pick the rx/tx functions on different lcores, but
 on the same physical core you will not be able to get the performance you want as the
 single physical core will be trying to do both Rx/Tx functions.
 
-The '-n 2' is a required argument for DPDK and denotes the number of memory channels.
-
 *** New setup and run python script with config files ***
 
 Using the new tools/run.py script to setup and run pktgen with different configurations. The configuration files are located in the cfg directory with filenames ending in .cfg.
@@ -375,7 +208,7 @@ $ ./tools/run.py -s default  # to setup the ports and attach them to DPDK (only 
 
 $ ./tools/run.py default     # Run the default configuration
 ``
-The configuration files are python scritps or a set of variables that run.py uses to initialize and run pktgen.
+The configuration files are python scripts or a set of variables that run.py uses to initialize and run pktgen.
 Here is an example of the default.cfg file:
 
 ``
@@ -399,7 +232,6 @@ run = {
 		'-n 4',
 		'--proc-type auto',
 		'--log-level 7',
-		'--socket-mem 2048,2048',
 		'--file-prefix pg'
 		],
 
@@ -427,7 +259,7 @@ run = {
 ``
 
 ``
-Usage: ./app/pktgen -l CORELIST -n NUM [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
+Usage: ./app/pktgen -l CORELIST [-n NUM] [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
 Copyright (c) <2010-2018>, Intel Corporation. All rights reserved. Powered by DPDK
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
@@ -489,13 +321,13 @@ EAL Linux options:
   --vfio-intr         Interrupt mode for VFIO (legacy|msi|msix)
   --xen-dom0          Support running on Xen dom0 without hugetlbfs
 
+
 ===== Application Usage =====
 
 Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
   -s P:file    PCAP packet stream file, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename
-  -I           use CLI
   -P           Enable PROMISCUOUS mode on all ports
   -g address   Optional IP address and port number default is (localhost:0x5606)
                If -g is used that enable socket support as a server application
@@ -1529,3 +1361,4 @@ Hello World!!!!
 ----------------------
 
 Keith Wiles @ Intel Corporation
+

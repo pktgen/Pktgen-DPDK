@@ -213,12 +213,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 		      unsigned i)
 {
 	struct rte_mbuf *m = _m;
-
-#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
-	uint32_t buf_len, mbuf_size, priv_size;
-#else
-	uint32_t buf_len = mp->elt_size - sizeof(struct rte_mbuf);
-#endif
+	uint32_t mbuf_size, buf_len, priv_size = 0;
 	pcaprec_hdr_t hdr;
 	ssize_t len = -1;
 	char buffer[2048];
@@ -226,9 +221,11 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 
 #if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	priv_size = rte_pktmbuf_priv_size(mp);
-	mbuf_size = sizeof(struct rte_mbuf) + priv_size;
 	buf_len = rte_pktmbuf_data_room_size(mp);
+#else
+	buf_len = mp->elt_size - sizeof(struct rte_mbuf);
 #endif
+	mbuf_size = sizeof(struct rte_mbuf) + priv_size;
 	memset(m, 0, mbuf_size);
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
@@ -261,6 +258,8 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	m->next		= NULL;
 
 	for (;; ) {
+		union pktgen_data *d = (union pktgen_data *)&m->udata64;
+
 		if ( (i & 0x3ff) == 0) {
 			scrn_printf(1, 1, "%c\b", "-\\|/"[(i >> 10) & 3]);
 			i++;
@@ -282,6 +281,10 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 
 		m->data_len = len;
 		m->pkt_len  = len;
+
+		d->pkt_len = len;
+		d->data_len = len;
+		d->buf_len = m->buf_len;
 
 		rte_memcpy((uint8_t *)m->buf_addr + m->data_off, buffer, len);
 		break;

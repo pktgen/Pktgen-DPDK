@@ -13,14 +13,28 @@
 extern "C" {
 #endif
 
+union pktgen_data {
+	uint64_t udata;
+	RTE_STD_C11
+	struct {
+		uint16_t data_len;
+		uint16_t buf_len;
+		uint32_t pkt_len;
+	};
+};
+
 static inline void
 pktmbuf_reset(struct rte_mbuf *m)
 {
-	uint16_t data_len = m->data_len;
+	union pktgen_data d;
+
+	d.udata = m->udata64;	/* Save the original value */
 
 	rte_pktmbuf_reset(m);
-	m->data_len = data_len;
-	m->pkt_len = (uint32_t)data_len;
+
+	m->data_len = d.data_len;
+	m->pkt_len = d.pkt_len;
+	m->buf_len = d.buf_len;
 }
 
 /**

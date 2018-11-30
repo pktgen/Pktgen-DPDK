@@ -942,6 +942,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 {
 	pkt_data_t *data = (pkt_data_t *)opaque;
 	struct rte_mbuf *m = (struct rte_mbuf *)obj;
+	union pktgen_data *d = (union pktgen_data *)&m->udata64;
 	port_info_t *info;
 	pkt_seq_t *pkt;
 	uint16_t qid, idx;
@@ -950,7 +951,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	qid = data->qid;
 
 	/* Cleanup the mbuf data as virtio messes with the values */
-	pktmbuf_reset(m);
+	rte_pktmbuf_reset(m);
 
 	if (mp == info->q[qid].tx_mp)
 		idx = SINGLE_PKT;
@@ -977,6 +978,11 @@ pktgen_setup_cb(struct rte_mempool *mp,
 
 	m->pkt_len  = pkt->pktSize;
 	m->data_len = pkt->pktSize;
+
+	/* Save the information */
+	d->pkt_len = m->pkt_len;
+	d->buf_len = m->buf_len;
+	d->data_len = m->data_len;
 }
 
 /**************************************************************************//**

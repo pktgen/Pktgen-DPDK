@@ -36,6 +36,8 @@
 #include <math.h>
 #include <errno.h>
 
+#include <rte_string_fns.h>
+
 /* Apparently sscanf is not implemented in some "standard" libraries, so don't use it, if you
  * don't have to. */
 #define sscanf THINK_TWICE_ABOUT_USING_SSCANF
@@ -162,7 +164,7 @@ parson_strndup(const char *string, size_t n)
 		return NULL;
 
 	output_string[n] = '\0';
-	strncpy(output_string, string, n);
+	rte_strlcpy(output_string, string, n);
 	return output_string;
 }
 

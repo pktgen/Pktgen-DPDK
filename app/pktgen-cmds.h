@@ -84,6 +84,8 @@ void single_set_port_value(port_info_t *info,
 void single_set_qinqids(port_info_t *info,
 			       uint16_t outerid,
 			       uint16_t innerid);
+void single_set_vxlan(port_info_t *info, uint16_t flags,
+		uint16_t group_id, uint32_t vxlan_id);
 
 /* Debug */
 void debug_dump(port_info_t *info, char *str);
@@ -99,6 +101,7 @@ void debug_set_port_dump(port_info_t *info, uint32_t cnt);
 void enable_rx_tap(port_info_t *info, uint32_t state);
 void enable_tx_tap(port_info_t *info, uint32_t state);
 void enable_vlan(port_info_t *info, uint32_t state);
+void enable_vxlan(port_info_t *info, uint32_t state);
 void enable_qinq(port_info_t *info, uint32_t state);
 void enable_mpls(port_info_t *info, uint32_t state);
 void enable_gre(port_info_t *info, uint32_t state);

@@ -80,8 +80,9 @@ static const char *status_help[] = {
 	"                      D         - DPI Scanning enabled (If Enabled)",
 	"                       I        - Process packets on input enabled",
 	"                        *       - Using TAP interface for this port can be [-rt*]",
-	"                         L      - Send Latency packets"
+	"                         L      - Send Latency packets",
 	"                          V     - Send VLAN ID tag",
+	"                          X     - Send VxLAN packets",
 	"                          M     - Send MPLS header",
 	"                          Q     - Send Q-in-Q tags",
 	"                           g    - Process GARP packets",
@@ -367,7 +368,8 @@ static struct cli_map set_map[] = {
 	{ 60, "set %P rnd %d %d %s" },
 	{ 70, "set %P cos %d" },
 	{ 80, "set %P tos %d" },
-    { -1, NULL }
+	{ 90, "set %P vxlan %h %d %d" },
+	{ -1, NULL }
 };
 
 static const char *set_help[] = {
@@ -376,18 +378,16 @@ static const char *set_help[] = {
 	"set <portlist> size <value>        - size of the packet to transmit",
 	"set <portlist> rate <percent>      - Packet rate in percentage",
 	"set <portlist> burst <value>       - number of packets in a burst",
+	"set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst",
 	"set <portlist> sport <value>       - Source port number for TCP",
 	"set <portlist> dport <value>       - Destination port number for TCP",
-	"set <portlist> prime <value>       - Set the number of packets to send on prime command",
 	"set <portlist> seq_cnt|seqcnt|seqCnt <value>",
 	"                                   - Set the number of packet in the sequence to send [0-16]",
+	"set <portlist> prime <value>       - Set the number of packets to send on prime command",
 	"set <portlist> dump <value>        - Dump the next N received packets to the screen",
 	"set <portlist> vlan <value>        - Set the VLAN ID value for the portlist",
 	"set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds",
-	"set <portlist> mpls <value>        - Set the MPLS entry for the portlist (must be specified in hex)",
-	"set <portlist> gre_key <value>     - Set the GRE key",
 	"set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format",
-	"set <portlist> jitter <value>      - Set the jitter value",
 	"set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
 	"set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port",
 	"set <portlist> pattern <type>      - Set the fill pattern type",
@@ -408,6 +408,7 @@ static const char *set_help[] = {
 	"          X: bit will get random value",
 	"set <portlist> cos <value>         - Set the CoS value for the portlist",
 	"set <portlist> tos <value>         - Set the ToS value for the portlist",
+	"set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values",
 	"set ports_per_page <value>         - Set ports per page value 1 - 6",
 	CLI_HELP_PAUSE,
 	NULL
@@ -422,6 +423,7 @@ set_cmd(int argc, char **argv)
 	struct cli_map *m;
 	struct pg_ipaddr ip;
 	uint16_t id1, id2;
+	uint32_t u1;
 
 	m = cli_mapping(set_map, argc, argv);
 	if (!m)
@@ -455,8 +457,8 @@ set_cmd(int argc, char **argv)
 				}) );
 			break;
 		case 11:
-			foreach_port(portlist, single_set_jitter(info,
-										strtoull(argv[3], NULL, 0)));
+			foreach_port(portlist,
+				single_set_jitter(info, strtoull(argv[3], NULL, 0)));
 			break;
 		case 20:
 			foreach_port(portlist, single_set_pkt_type(info, argv[3]));
@@ -536,6 +538,12 @@ set_cmd(int argc, char **argv)
 		case 80:
 			id1 = strtol(argv[3], NULL, 0);
 			foreach_port(portlist, single_set_tos(info, id1));
+			break;
+		case 90:
+			id1 = strtol(argv[3], NULL, 0);
+			id2 = strtol(argv[4], NULL, 0);
+			u1 = strtol(argv[5], NULL, 0);
+			foreach_port(portlist, single_set_vxlan(info, id1, id2, u1));
 			break;
 		default:
 			return cli_cmd_error("Command invalid", "Set", argc, argv);
@@ -718,7 +726,8 @@ theme_cmd(int argc, char **argv)
 				"range|"		/* 14 */	\
 				"capture|"		/* 15 */	\
 				"bonding|"		/* 16 */	\
-				"short"			/* 17 */
+				"short|"		/* 17 */	\
+				"vxlan"			/* 18 */
 
 static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
@@ -748,6 +757,7 @@ static const char *enable_help[] = {
 	"                                     Disable capture on a port to save the data into the currect working directory.",
 	"enable|disable <portlist> bonding  - Enable call TX wiht zero packets for bonding driver",
 	"enable|disable <portlist> short    - Allow shorter then 64 byte frames to be sent",
+	"enable|disable <portlist> vxlan    - Send VxLAN packets",
 	"enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",
 	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
 	"    off                            - screen off shortcut",
@@ -835,6 +845,9 @@ en_dis_cmd(int argc, char **argv)
 					break;
 				case 17:
 					foreach_port(portlist, enable_short_pkts(info, state));
+					break;
+				case 18:
+					foreach_port(portlist, enable_vxlan(info, state));
 					break;
 				default:
 					return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
@@ -1457,42 +1470,42 @@ static int help_cmd(int argc, char **argv);
 
 static struct cli_tree default_tree[] = {
 	c_dir("/pktgen/bin"),
-	c_cmd("help",		help_cmd, 		"help command"),
+	c_cmd("help",		help_cmd, 	"help command"),
 
-	c_cmd("clear",		misc_cmd,		"clear stats, ..."),
+	c_cmd("clear",		misc_cmd,	"clear stats, ..."),
 	c_alias("clr",		"clear all stats",	"clear all port stats"),
-	c_cmd("geometry",	misc_cmd, 		"set the screen geometry"),
-	c_alias("geom",		"geometry",		"set or show screen geometry"),
-	c_cmd("load",		misc_cmd, 		"load command file"),
-	c_cmd("script", 	misc_cmd,		"run a Lua script"),
-	c_cmd("lua", 		misc_cmd,		"execute a Lua string"),
-	c_cmd("save", 		misc_cmd,		"save the current state"),
-	c_cmd("redisplay",	misc_cmd,		"redisplay the screen"),
+	c_cmd("geometry",	misc_cmd, 	"set the screen geometry"),
+	c_alias("geom",		"geometry",	"set or show screen geometry"),
+	c_cmd("load",		misc_cmd, 	"load command file"),
+	c_cmd("script", 	misc_cmd,	"run a Lua script"),
+	c_cmd("lua", 		misc_cmd,	"execute a Lua string"),
+	c_cmd("save", 		misc_cmd,	"save the current state"),
+	c_cmd("redisplay",	misc_cmd,	"redisplay the screen"),
 	c_alias("cls",		"redisplay",	"redraw screen"),
-	c_cmd("reset",		misc_cmd,		"reset pktgen configuration"),
+	c_cmd("reset",		misc_cmd,	"reset pktgen configuration"),
 	c_alias("rst",          "reset all",    "reset all ports"),
-	c_cmd("restart", 	misc_cmd,		"restart port"),
-	c_cmd("port", 		misc_cmd, 		"Switch between ports"),
-	c_cmd("ping4", 		misc_cmd, 		"Send a ping packet for IPv4"),
+	c_cmd("restart", 	misc_cmd,	"restart port"),
+	c_cmd("port", 		misc_cmd, 	"Switch between ports"),
+	c_cmd("ping4", 		misc_cmd, 	"Send a ping packet for IPv4"),
 #ifdef INCLUDE_PING6
-	c_cmd("ping6", 		misc_cmd,		"Send a ping packet for IPv6"),
+	c_cmd("ping6", 		misc_cmd,	"Send a ping packet for IPv6"),
 #endif
 
-	c_cmd("sequence",	seq_cmd,		"sequence command"),
-	c_alias("seq",		"sequence",		"sequence command"),
+	c_cmd("sequence",	seq_cmd,	"sequence command"),
+	c_alias("seq",		"sequence",	"sequence command"),
 
-	c_cmd("page",		page_cmd,		"change page displays"),
-	c_cmd("theme", 		theme_cmd,		"Set, save, show the theme"),
-	c_cmd("range",		range_cmd,		"Range commands"),
-	c_cmd("enable",		en_dis_cmd,		"enable features"),
-	c_cmd("disable",	en_dis_cmd,		"disable features"),
+	c_cmd("page",		page_cmd,	"change page displays"),
+	c_cmd("theme", 		theme_cmd,	"Set, save, show the theme"),
+	c_cmd("range",		range_cmd,	"Range commands"),
+	c_cmd("enable",		en_dis_cmd,	"enable features"),
+	c_cmd("disable",	en_dis_cmd,	"disable features"),
 	c_cmd("start",		start_stop_cmd,	"start features"),
 	c_cmd("stop",		start_stop_cmd,	"stop features"),
 	c_alias("str",		"start all",	"start all ports sending packets"),
-	c_alias("stp",		"stop all",		"stop all ports sending packets"),
-	c_cmd("pcap",		pcap_cmd, 		"pcap commands"),
-	c_cmd("set", 		set_cmd, 		"set a number of options"),
-	c_cmd("dbg",            dbg_cmd,		"debug commands"),
+	c_alias("stp",		"stop all",	"stop all ports sending packets"),
+	c_cmd("pcap",		pcap_cmd, 	"pcap commands"),
+	c_cmd("set", 		set_cmd, 	"set a number of options"),
+	c_cmd("dbg",            dbg_cmd,	"debug commands"),
 
 	c_alias("on",       "enable screen","Enable screen updates"),
 	c_alias("off",      "disable screen", "Disable screen updates"),

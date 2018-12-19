@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+#define VXLAN_PORT_ID	4789
+
 /**************************************************************************//**
  *
  * pktgen_udp_hdr_ctor - UDP header constructor routine.

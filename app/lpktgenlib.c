@@ -1702,7 +1702,7 @@ single_vlan_id(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_cos - Set the 802.1p prio for a single port
+ * single_cos - Set the 802.1p prio for a single port
  *
  * DESCRIPTION
  * Set the 802.1p cos for a single port.
@@ -1737,7 +1737,7 @@ single_cos(lua_State *L) {
 
 /**************************************************************************//**
  *
- * pktgen_tos - Set the TOS for a single port
+ * single_tos - Set the TOS for a single port
  *
  * DESCRIPTION
  * Set the TOS for a single port.
@@ -1769,6 +1769,41 @@ single_tos(lua_State *L) {
 
 /**************************************************************************//**
  *
+ * single_vxlan_id - Set the VxLAN for a single port
+ *
+ * DESCRIPTION
+ * Set the VxLAN for a single port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+single_vxlan_id(lua_State *L) {
+	portlist_t portlist;
+	uint8_t flags, group_id;
+	uint32_t vxlan_id;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "tos, wrong number of arguments");
+	case 4:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	flags = luaL_checkinteger(L, 2);
+	group_id = luaL_checkinteger(L, 3);
+	vxlan_id = luaL_checkinteger(L, 4);
+
+	foreach_port(portlist,
+	             single_set_vxlan(info, flags, group_id, vxlan_id) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
  * single_vlan - Enable or Disable vlan header
  *
  * DESCRIPTION
@@ -1792,8 +1827,38 @@ single_vlan(lua_State *L)
 	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
-		     enable_vlan(info,
-				     estate(luaL_checkstring(L, 2))) );
+		     enable_vlan(info, estate(luaL_checkstring(L, 2))) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * single_vxlan - Enable or Disable vxlan header
+ *
+ * DESCRIPTION
+ * Enable or disable insertion of VxLAN header.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+single_vxlan(lua_State *L)
+{
+	portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "process, wrong number of arguments");
+	case 2:
+		break;
+	}
+	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist,
+		     enable_vxlan(info, estate(luaL_checkstring(L, 2))) );
 
 	pktgen_update_display();
 	return 0;
@@ -3535,7 +3600,9 @@ static const luaL_Reg pktgenlib[] = {
 	{"vlanid",        single_vlan_id},	/* Set the vlan ID for a given portlist */
 
 	{"cos",           single_cos},		/* Set the prio for a given portlist */
-	{"tos",           single_tos},	/* Set the tos for a given portlist */
+	{"tos",           single_tos},		/* Set the tos for a given portlist */
+	{"vxlan",         single_vxlan},	/* Enable or disable VxLAN */
+	{"vxlan_id",      single_vxlan_id},	/* Set the VxLAN values */
 
 
 	{"mpls",          pktgen_mpls},		/* Enable or disable MPLS header */

@@ -98,6 +98,7 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port Src/Dest");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "802.1p CoS/DSCP/IPP");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VxLAN Flg/Grp/vid");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "IP  Destination");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MAC Destination");
@@ -146,11 +147,15 @@ pktgen_print_static_data(void)
 		         (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
 		         (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
-		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
+		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" :
+			 (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN" : "UDP",
 		         pkt->vlanid);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%3d/%3d/%3d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%4x/%5d/%5d",  pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

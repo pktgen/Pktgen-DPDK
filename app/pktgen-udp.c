@@ -48,6 +48,12 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		uip->udp.sport      = htons(pkt->sport);
 		uip->udp.dport      = htons(pkt->dport);
 
+		if (pkt->dport == VXLAN_PORT_ID) {
+			uint64_t *vxlan = (uint64_t *)&uip[1];
+
+			*vxlan = pkt->vxlan;
+		}
+
 		/* Includes the pseudo header information */
 		tlen                = pkt->pktSize - pkt->ether_hdr_size;
 

@@ -552,8 +552,9 @@ pktgen_has_work(void)
 void
 pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 {
-	pkt_seq_t         *pkt = &info->seq_pkt[seq_idx];
-	struct ether_hdr  *eth = (struct ether_hdr *)&pkt->hdr.eth;
+	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
+	struct ether_hdr *eth = (struct ether_hdr *)&pkt->hdr.eth;
+	uint32_t flags;
 	char *l3_hdr = NULL;
 
 	/* Fill in the pattern for data space. */
@@ -561,10 +562,12 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 	                    (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
 	                    info->fill_pattern_type, info->user_pattern);
 
+	flags = rte_atomic32_read(&info->port_flags);
+
 	/* Add GRE header and adjust ether_hdr pointer if requested */
-	if (rte_atomic32_read(&info->port_flags) & SEND_GRE_IPv4_HEADER)
+	if (flags & SEND_GRE_IPv4_HEADER)
 		l3_hdr = pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)l3_hdr);
-	else if (rte_atomic32_read(&info->port_flags) & SEND_GRE_ETHER_HEADER)
+	else if (flags & SEND_GRE_ETHER_HEADER)
 		l3_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)l3_hdr);
 	else
 		l3_hdr = pktgen_ether_hdr_ctor(info, pkt, eth);
@@ -589,7 +592,14 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
-			if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
+			if (flags & SEND_VXLAN_PACKETS) {
+				/* Construct the UDP header */
+				pkt->dport = VXLAN_PORT_ID;
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
+
+				/* IPv4 Header constructor */
+				pktgen_ipv4_ctor(pkt, l3_hdr);
+			} else if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
 				/* Construct the UDP header */
 				pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
 

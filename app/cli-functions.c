@@ -755,7 +755,7 @@ static const char *enable_help[] = {
 	"enable|disable <portlist> range    - Enable or Disable the given portlist for sending a range of packets",
 	"enable|disable <portlist> capture  - Enable/disable packet capturing on a portlist, disable to save capture",
 	"                                     Disable capture on a port to save the data into the currect working directory.",
-	"enable|disable <portlist> bonding  - Enable call TX wiht zero packets for bonding driver",
+	"enable|disable <portlist> bonding  - Enable call TX with zero packets for bonding driver",
 	"enable|disable <portlist> short    - Allow shorter then 64 byte frames to be sent",
 	"enable|disable <portlist> vxlan    - Send VxLAN packets",
 	"enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",

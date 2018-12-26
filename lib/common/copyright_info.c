@@ -100,8 +100,8 @@ print_copyright(const char *appname, const char *created_by)
 	scrn_color(BLUE, NO_CHANGE, OFF);
 	rte_printf_status("-----------------------\n");
 #else
-	printf("   %s\n", COPYRIGHT_MSG);
-	printf("   %s created by: %s -- >>> %s <<<\n\n",
+	printf("\n*** %s\n", COPYRIGHT_MSG);
+	printf("*** %s created by: %s -- >>> %s <<<\n\n",
 	       appname,
 	       created_by,
 	       POWERED_BY_DPDK);

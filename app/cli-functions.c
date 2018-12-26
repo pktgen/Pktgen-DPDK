@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -69,27 +69,27 @@ static const char *title_help[] = {
 };
 
 static const char *status_help[] = {
-	"       Flags: P---------------- - Promiscuous mode enabled",
-	"               E                - ICMP Echo enabled",
-	"                A               - Send ARP Request flag",
-	"                 G              - Send Gratuitous ARP flag",
-	"                  C             - TX Cleanup flag",
-	"                   p            - PCAP enabled flag",
-	"                    S           - Send Sequence packets enabled",
-	"                     R          - Send Range packets enabled",
-	"                      D         - DPI Scanning enabled (If Enabled)",
-	"                       I        - Process packets on input enabled",
-	"                        *       - Using TAP interface for this port can be [-rt*]",
-	"                         L      - Send Latency packets",
-	"                          V     - Send VLAN ID tag",
-	"                          X     - Send VxLAN packets",
-	"                          M     - Send MPLS header",
-	"                          Q     - Send Q-in-Q tags",
-	"                           g    - Process GARP packets",
-	"                            g   - Perform GRE with IPv4 payload",
-	"                            G   - Perform GRE with Ethernet payload",
-	"                             C  - Capture received packets",
-	"                              R - Random bitfield(s) are applied",
+	"",
+	"       Flags: P--------------- - Promiscuous mode enabled",
+	"               E               - ICMP Echo enabled",
+	"                A              - Send ARP Request flag",
+	"                 G             - Send Gratuitous ARP flag",
+	"                  C            - TX Cleanup flag",
+	"                   p           - PCAP enabled flag",
+	"                    S          - Send Sequence packets enabled",
+	"                     R         - Send Range packets enabled",
+	"                      D        - DPI Scanning enabled (If Enabled)",
+	"                       I       - Process packets on input enabled",
+	"                        *      - Using TAP interface for this port can be [-rt*]",
+	"                         L     - Send Latency packets",
+	"                          V    - Send VLAN ID tag",
+	"                          X    - Send VxLAN packets",
+	"                          M    - Send MPLS header",
+	"                          Q    - Send Q-in-Q tags",
+	"                           g   - Perform GRE with IPv4 payload",
+	"                           G   - Perform GRE with Ethernet payload",
+	"                            C  - Capture received packets",
+	"                             R - Random bitfield(s) are applied",
 	"Notes: <state>       - Use enable|disable or on|off to set the state.",
 	"       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'",
 	"       Color best seen on a black background for now",
@@ -127,8 +127,9 @@ static struct cli_map range_map[] = {
 };
 
 static const char *range_help[] = {
+	"",
 	"  -- Setup the packet range values --",
-	"   note: SMMI = start|min|max|inc (start, minimum, maximum, increment)",
+	"     note: SMMI = start|min|max|inc (start, minimum, maximum, increment)",
 	"",
 	"range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address",
 	"      e.g: range 0 src mac start 00:00:00:00:00:00",
@@ -373,6 +374,7 @@ static struct cli_map set_map[] = {
 };
 
 static const char *set_help[] = {
+	"",
 	"    note: <portlist>               - a list of ports (no spaces) e.g. 2,4,6-9,12 or the word 'all'",
 	"set <portlist> count <value>       - number of packets to transmit",
 	"set <portlist> size <value>        - size of the packet to transmit",
@@ -561,10 +563,11 @@ static struct cli_map pcap_map[] = {
 };
 
 static const char *pcap_help[] = {
+	"",
 	"pcap show                          - Show PCAP information",
 	"pcap <index>                       - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file",
 	"pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive",
-	"",
+	CLI_HELP_PAUSE,
 	NULL
 };
 
@@ -683,6 +686,7 @@ static struct cli_map theme_map[] = {
 };
 
 static const char *theme_help[] = {
+	"",
 	"theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value",
 	"theme show                         - List the item strings, colors and attributes to the items",
 	"theme save <filename>              - Save the current color theme to a file",
@@ -738,13 +742,14 @@ static struct cli_map enable_map[] = {
 };
 
 static const char *enable_help[] = {
+	"",
 	"enable|disable <portlist> process  - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets",
 	"enable|disable <portlist> mpls     - Enable/disable sending MPLS entry in packets",
 	"enable|disable <portlist> qinq     - Enable/disable sending Q-in-Q header in packets",
 	"enable|disable <portlist> gre      - Enable/disable GRE support",
 	"enable|disable <portlist> gre_eth  - Enable/disable GRE with Ethernet frame payload",
 	"enable|disable <portlist> vlan     - Enable/disable VLAN tagging",
-	"enable|disable <portlist> garp     - Enable or Disable GARP packet processing and update MAC address",
+	"enable|disable <portlist> garp     - Enable or Disable Gratuitous ARP packet processing",
 	"enable|disable <portlist> random   - Enable/disable Random packet support",
 	"enable|disable <portlist> latency  - Enable/disable latency testing",
 	"enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist",
@@ -893,6 +898,7 @@ static struct cli_map dbg_map[] = {
 };
 
 static const char *dbg_help[] = {
+	"",
 	"dbg l2p                          - Dump out internal lcore to port mapping",
 	"dbg tx_dbg                       - Enable tx debug output",
 	"dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type",
@@ -905,7 +911,7 @@ static const char *dbg_help[] = {
 #endif
 	"dbg break                        - break into the debugger",
 	"dbg memcpy [loop-cnt KBytes]     - run a memcpy test",
-	"",
+	CLI_HELP_PAUSE,
 	NULL
 };
 
@@ -1194,12 +1200,13 @@ static struct cli_map seq_map[] = {
 };
 
 static const char *seq_help[] = {
+	"",
 	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]",
 	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]",
 	"sequence <seq#> <portlist> cos <cos> tos <tos>",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
-	"",
+	CLI_HELP_PAUSE,
 	NULL
 };
 
@@ -1325,6 +1332,7 @@ static struct cli_map misc_map[] = {
 };
 
 static const char *misc_help[] = {
+	"",
 	"save <path-to-file>                - Save a configuration file using the filename",
 	"load <path-to-file>                - Load a command/script file from the given path",
 	"script <filename>                  - Execute the Lua script code in file (www.lua.org).",
@@ -1425,6 +1433,7 @@ static struct cli_map page_map[] = {
 };
 
 static const char *page_help[] = {
+	"",
 	"page [0-7]                         - Show the port pages or configuration or sequence page",
 	"page main                          - Display page zero",
 	"page range                         - Display the range packet page",
@@ -1507,8 +1516,8 @@ static struct cli_tree default_tree[] = {
 	c_cmd("set", 		set_cmd, 	"set a number of options"),
 	c_cmd("dbg",            dbg_cmd,	"debug commands"),
 
-	c_alias("on",       "enable screen","Enable screen updates"),
-	c_alias("off",      "disable screen", "Disable screen updates"),
+	c_alias("on",       "enable screen",    "Enable screen updates"),
+	c_alias("off",      "disable screen",   "Disable screen updates"),
 
 	c_end()
 };
@@ -1532,12 +1541,12 @@ init_tree(void)
 	cli_help_add("Sequence", seq_map, seq_help);
 	cli_help_add("PCAP", pcap_map, pcap_help);
 	cli_help_add("Start", start_map, start_help);
-	cli_help_add("DBG", dbg_map, dbg_help);
+	cli_help_add("Debug", dbg_map, dbg_help);
 	cli_help_add("Misc", misc_map, misc_help);
 	cli_help_add("Theme", theme_map, theme_help);
 	cli_help_add("Status", NULL, status_help);
 
-	/* Make sure the pktgen commands are executable an in search path */
+	/* Make sure the pktgen commands are executable in search path */
 	if (cli_add_bin_path("/pktgen/bin"))
 		return -1;
 

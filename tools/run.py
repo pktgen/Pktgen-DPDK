@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-#   Copyright(c) 2018 Intel Corporation. All rights reserved.
+#   Copyright(c) 2019 Intel Corporation. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 #
@@ -152,7 +152,7 @@ def show_configs():
 		finally:
 			# reset the descriptoin to empty, for next loop/file
 			cfg.description = ""
-		
+
 	sys.exit(0)
 
 def run_cfg(cfg_file):

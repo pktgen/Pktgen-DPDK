@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -24,8 +24,8 @@
 #include "copyright_info.h"
 
 #define COPYRIGHT_MSG \
-	"Copyright (c) <2010-2018>, Intel Corporation. All rights reserved."
-#define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2018>, Intel Corporation"
+	"Copyright (c) <2010-2019>, Intel Corporation. All rights reserved."
+#define COPYRIGHT_MSG_SHORT     "Copyright (c) <2010-2019>, Intel Corporation"
 #define POWERED_BY_DPDK         "Powered by DPDK"
 
 #ifdef ENABLE_COPYRIGHT_OUTPUT
@@ -33,7 +33,7 @@ static const char *intel_copyright[] = {
 	"",
 	"   BSD LICENSE",
 	"",
-	"   Copyright(c) 2010-2018 Intel Corporation. All rights reserved.",
+	"   Copyright(c) <2010-2019> Intel Corporation. All rights reserved.",
 	"",
 	"   Redistribution and use in source and binary forms, with or without",
 	"   modification, are permitted provided that the following conditions",

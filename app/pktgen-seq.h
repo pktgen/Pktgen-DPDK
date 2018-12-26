@@ -46,18 +46,17 @@ typedef struct pkt_seq_s {
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t pktSize;	/**< Size of packet in bytes not counting FCS */
-	uint16_t pad0;
-	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
 	uint8_t seq_enabled;	/**< Enable or disable this sequence through GUI */
+	uint8_t pad0;
+	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
 
         RTE_STD_C11
         union {
-                uint64_t vxlan;         /**< VxLAN 64 bit word */
+                uint64_t vxlan;         	/**< VxLAN 64 bit word */
                 struct {
                         uint16_t vni_flags;     /**< VxLAN Flags */
                         uint16_t group_id;      /**< VxLAN Group Policy ID */
-                        uint32_t vxlan_id : 24; /**< VxLAN VNI */
-                        uint32_t r1 : 8;
+                        uint32_t vxlan_id;	/**< VxLAN VNI */
                 };
         };
 

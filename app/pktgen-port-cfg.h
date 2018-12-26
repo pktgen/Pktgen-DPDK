@@ -167,7 +167,6 @@ typedef struct port_info_s {
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
-	uint16_t pad1;
 	uint64_t max_latency;	/**< TX Latency sequence */
 	uint64_t avg_latency;	/**< Latency delta in clock ticks */
 	uint64_t min_latency;	/**< RX Latency sequence */
@@ -178,8 +177,7 @@ typedef struct port_info_s {
 		struct {
 			uint16_t vni_flags;	/**< VxLAN Flags */
 			uint16_t group_id;	/**< VxLAN Group Policy ID */
-			uint32_t vxlan_id : 24;	/**< VxLAN VNI */
-			uint32_t r1 : 8;
+			uint32_t vxlan_id;	/**< VxLAN VNI */
 		};
 	};
 
@@ -236,6 +234,12 @@ typedef struct port_info_s {
 	char user_pattern[USER_PATTERN_SIZE];	/**< User set pattern values */
 	fill_t fill_pattern_type;		/**< Type of pattern to fill with */
 } port_info_t;
+
+struct vxlan {
+	uint16_t vni_flags;	/**< VxLAN Flags */
+	uint16_t group_id;	/**< VxLAN Group Policy ID */
+	uint32_t vxlan_id;	/**< VxLAN VNI */
+};
 
 void pktgen_config_ports(void);
 

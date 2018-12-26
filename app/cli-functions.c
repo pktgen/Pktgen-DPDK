@@ -346,10 +346,10 @@ range_cmd(int argc, char **argv)
 			"tx_cycles|"		/*  4 */ \
 			"sport|"		/*  5 */ \
 			"dport|"		/*  6 */ \
-			"seq_cnt|"		/*  7 */ \
-			"prime|"		/*  8 */ \
-			"dump|"			/*  9 */ \
-			"vlan|"			/* 10 */ \
+			"prime|"		/*  7 */ \
+			"dump|"			/*  8 */ \
+			"vlan|"			/*  9 */ \
+			"seq_cnt|"		/* 10 */ \
 			"seqCnt|"		/* 11 */ \
 			"seqcnt"		/* 12 */
 
@@ -448,11 +448,13 @@ set_cmd(int argc, char **argv)
 					case 4: debug_set_tx_cycles(info, value); break;
 					case 5: single_set_port_value(info, what[0], value); break;
 					case 6: single_set_port_value(info, what[0], value); break;
-					case 7: pktgen_set_port_seqCnt(info, value); break;
-					case 8: pktgen_set_port_prime(info, value); break;
-					case 9: debug_set_port_dump(info, value); break;
-					case 10: single_set_vlan_id(info, value); break;
-					case 11: pktgen_set_port_seqCnt(info, value); break;
+					case 7: pktgen_set_port_prime(info, value); break;
+					case 8: debug_set_port_dump(info, value); break;
+					case 9: single_set_vlan_id(info, value); break;
+					case 10:
+						/* FALLTHRU */
+					case 11:
+						/* FALLTHRU */
 					case 12: pktgen_set_port_seqCnt(info, value); break;
 					default:
 						return cli_cmd_error("Set command is invalid", "Set", argc, argv);
@@ -1190,12 +1192,52 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 	return 0;
 }
 
+/**************************************************************************//**
+ *
+ * Set a sequence config for given port and slot.
+ *
+ * DESCRIPTION
+ * Set up the sequence packets for a given port and slot.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ * 	"%|seq|sequence %d %P vxlan %d gid %d vid %d"
+ */
+
+static int
+seq_4_set_cmd(int argc __rte_unused, char **argv)
+{
+	int seqnum = atoi(argv[1]);
+	portlist_t portlist;
+	uint32_t flag, gid, vid;
+
+	if (seqnum >= NUM_SEQ_PKTS) {
+		cli_printf("Sequence number too large\n");
+		return -1;
+	}
+
+	flag = strtoul(argv[4], NULL, 0);
+	gid = strtoul(argv[6], NULL, 10);
+	vid = strtoul(argv[8], NULL, 10);
+
+	rte_parse_portlist(argv[2], &portlist);
+
+	foreach_port(portlist,
+		     pktgen_set_vxlan_seq(info, seqnum, flag, gid, vid) );
+
+	pktgen_update_display();
+	return 0;
+}
+
 static struct cli_map seq_map[] = {
 	{ 10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d" },
 	{ 11, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d" },
 	{ 12, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d" },
 	{ 13, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 %|udp|tcp|icmp vlan %d size %d teid %d" },
 	{ 15, "%|seq|sequence %d %P cos %d tos %d" },
+	{ 16, "%|seq|sequence %d %P vxlan %d gid %d vid %d" },
+	{ 17, "%|seq|sequence %d %P vxlan %h gid %d vid %d" },
 	{ -1, NULL }
 };
 
@@ -1204,6 +1246,7 @@ static const char *seq_help[] = {
 	"sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]",
 	"sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]",
 	"sequence <seq#> <portlist> cos <cos> tos <tos>",
+	"sequence <seq#> <portlist> vxlan <flags> gid <group_id> vid <vxlan_id>",
 	"                                   - Set the sequence packet information, make sure the src-IP",
 	"                                     has the netmask value eg 1.2.3.4/24",
 	CLI_HELP_PAUSE,
@@ -1225,6 +1268,8 @@ seq_cmd(int argc, char **argv)
 		case 12:
 		case 13: seq_2_set_cmd(argc, argv); break;
 		case 15: seq_3_set_cmd(argc, argv); break;
+		case 16:
+		case 17: seq_4_set_cmd(argc, argv); break;
 		default:
 			return cli_cmd_error("Sequence invalid command", "Seq", argc, argv);
 	}

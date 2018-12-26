@@ -155,7 +155,7 @@ pktgen_print_static_data(void)
 		snprintf(buff, sizeof(buff), "%3d/%3d/%3d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%4x/%5d/%5d",  pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
+		snprintf(buff, sizeof(buff), "%04x/%5d/%5d",  pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

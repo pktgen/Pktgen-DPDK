@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) 2018 Intel Corporation.
+ * Copyright(c) 2019 Intel Corporation.
  */
 
 #ifndef __RTE_HEAP_H

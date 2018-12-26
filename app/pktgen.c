@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -477,8 +477,6 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 	pktgen_send_burst(info, qid);
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
-	rte_delay_ms(250);
-
 	rte_eth_tx_done_cleanup(info->pid, qid, 0);
 #endif
 
@@ -1286,7 +1284,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	if (rxcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For RX found %d port(s) for lcore %d\n", rxcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For RX found %d port(s) for lcore %d", rxcnt, lid);
 	for(idx = 0; idx < rxcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1295,7 +1294,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	if (txcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For TX found %d port(s) for lcore %d\n", txcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For TX found %d port(s) for lcore %d", txcnt, lid);
 	for(idx = 0; idx < txcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1377,7 +1377,8 @@ pktgen_main_tx_loop(uint8_t lid)
 	if (txcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For TX found %d port(s) for lcore %d\n", txcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For TX found %d port(s) for lcore %d\n", txcnt, lid);
 	for(idx = 0; idx < txcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1449,7 +1450,8 @@ pktgen_main_rx_loop(uint8_t lid)
 	if (rxcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For RX found %d port(s) for lcore %d\n", rxcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For RX found %d port(s) for lcore %d", rxcnt, lid);
 	for(idx = 0; idx < rxcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1491,7 +1493,7 @@ pktgen_launch_one_lcore(void *arg __rte_unused)
 	if (pktgen_has_work())
 		return 0;
 
-	rte_delay_ms((lid + 1) * 21);
+	rte_delay_us_sleep((lid + 1) * 10021);
 
 	switch (get_type(pktgen.l2p, lid)) {
 	case RX_TYPE:

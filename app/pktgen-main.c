@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -90,6 +90,7 @@ pktgen_usage(const char *prgname)
 		"  -G           Enable socket support using default server values localhost:0x5606 \n"
 		"  -N           Enable NUMA support\n"
 		"  -T           Enable the color output\n"
+		"  -v           Verbose output\n"
 		"  --crc-strip  Strip CRC on all ports\n"
 		"  -m <string>  matrix for mapping ports to logical cores\n"
 		"      BNF: (or kind of BNF)\n"
@@ -160,7 +161,8 @@ pktgen_parse_args(int argc, char **argv)
 	for (opt = 0; opt < argc; opt++)
 		pktgen.argv[opt] = strdup(argv[opt]);
 
-	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGT",
+	pktgen.verbose = 0;
+	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTv",
 				  lgopts, &option_index)) != EOF)
 		switch (opt) {
 		case 'p':
@@ -232,6 +234,9 @@ pktgen_parse_args(int argc, char **argv)
 
 		case 'T':
 			pktgen.flags    |= ENABLE_THEME_FLAG;
+			break;
+		case 'v':
+			pktgen.verbose =- 1;
 			break;
 
 		case 'h':	/* print out the help message */
@@ -401,26 +406,29 @@ main(int argc, char **argv)
 
 	print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
-	pktgen_log_info(
-		">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
-		DEFAULT_PKT_BURST,
-		DEFAULT_RX_DESC,
-		DEFAULT_TX_DESC,
-		MAX_MBUFS_PER_PORT,
-		MBUF_CACHE_SIZE);
+	if (pktgen.verbose)
+		pktgen_log_info(
+			">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
+			DEFAULT_PKT_BURST,
+			DEFAULT_RX_DESC,
+			DEFAULT_TX_DESC,
+			MAX_MBUFS_PER_PORT,
+			MBUF_CACHE_SIZE);
 
 	/* Configure and initialize the ports */
 	pktgen_config_ports();
 
-	pktgen_log_info("");
-	pktgen_log_info("=== Display processing on lcore %d", rte_lcore_id());
+	if (pktgen.verbose) {
+		pktgen_log_info("");
+		pktgen_log_info("=== Display processing on lcore %d", rte_lcore_id());
+	}
 
 	/* launch per-lcore init on every lcore except master and master + 1 lcores */
 	ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MASTER);
 	if (ret != 0)
 		pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
 
-	rte_delay_ms(1000);	/* Wait for the lcores to start up. */
+	rte_delay_us_sleep(50000);	/* Wait for the lcores to start up. */
 
 	/* Disable printing log messages of level info and below to screen, */
 	/* erase the screen and start updating the screen again. */
@@ -433,7 +441,10 @@ main(int argc, char **argv)
 
 	pktgen_clear_display();
 
+	pktgen_log_info("=== Timer Setup\n");
 	rte_timer_setup();
+
+	pktgen_log_info("=== After Timer Setup\n");
 
 	if (pktgen.flags & ENABLE_GUI_FLAG) {
 		if (!scrn_is_paused() ) {
@@ -454,6 +465,7 @@ main(int argc, char **argv)
 #endif
 	}
 
+	pktgen_log_info("=== Run CLI\n");
 	pktgen_cli_start();
 
 	lua_execute_close(pktgen.ld);

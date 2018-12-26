@@ -1,5 +1,5 @@
 ..  BSD LICENSE
-   Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
+   Copyright(c) <2016-2019> Intel Corporation. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
@@ -592,4 +592,3 @@ format to be parsed by the function. The function is attached to a command file
 in the directory tree and is executed when the user types the name of the
 function along with it arguments. Some examples of the default commands can be
 seen in the lib/librte_cli/cli_cmds.c file.
-

@@ -98,6 +98,7 @@ cli_help_find_group(const char *group)
 		if (!strcmp(group, n->group))
 			return n;
 	}
+
 	return NULL;
 }
 
@@ -122,9 +123,11 @@ cli_cmd_error(const char * msg, const char *group, int argc, char **argv)
                 cli_help_show_group(group);
         if (msg)
                 cli_printf("%s:\n", msg);
+
         cli_printf("  Invalid line: <");
         for(n = 0; n < argc; n++)
                 cli_printf("%s ", argv[n]);
         cli_printf(">\n");
+
         return -1;
 }

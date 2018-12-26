@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -393,7 +393,6 @@ pktgen_page_stats(void)
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->prev_stats) / Million);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->prev_stats) / Million);
 
-		pktgen_display_set_color(NULL);
 		if (pktgen.flags & TX_DEBUG_FLAG) {
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -418,6 +417,7 @@ pktgen_page_stats(void)
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.rx_nombuf);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
+		pktgen_display_set_color(NULL);
 		display_cnt++;
 	}
 
@@ -477,7 +477,6 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	RTE_ETH_FOREACH_DEV(pid) {
 		info = &pktgen.info[pid];
 
-		memset(&stats, 0, sizeof(stats));
 		rte_eth_stats_get(pid, &stats);
 
 		init = &info->init_stats;
@@ -519,6 +518,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		rate->imcasts    = stats.imcasts - prev->imcasts;
 #endif
 
+		/* Find the new max rate values */
 		if (rate->ipackets > info->max_ipackets)
 			info->max_ipackets = rate->ipackets;
 		if (rate->opackets > info->max_opackets)

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) 2016-2018 Intel Corporation.
+# Copyright(c) <2016-2019> Intel Corporation.
 #
 
 include $(RTE_SDK)/mk/rte.vars.mk

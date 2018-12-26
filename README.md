@@ -6,7 +6,7 @@ Pktgen - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 ---
-**Copyright &copy; \<2010-2018\>, Intel Corporation. All rights reserved.**
+**Copyright &copy; \<2010-2019\>, Intel Corporation. All rights reserved.**
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -145,7 +145,7 @@ Pktgen:/pktgen/bin/>
 
 
 run pktgen type `sudo -E ./tools/run.sh`.
-`run.sh` is a script designed to help you with the command line options of pktgen. 
+`run.sh` is a script designed to help you with the command line options of pktgen.
 You may need to modify this script for your system and configuration.
 
     # cat ./tools/run.sh
@@ -261,7 +261,7 @@ run = {
 ``
 Usage: ./app/pktgen -l CORELIST [-n NUM] [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
-Copyright (c) <2010-2018>, Intel Corporation. All rights reserved. Powered by DPDK
+Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
 EAL: Detected 72 lcore(s)
 ./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
@@ -334,6 +334,7 @@ Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-P] [-G]
   -G           Enable socket support using default server values localhost:0x5606
   -N           Enable NUMA support
   -T           Enable the color output
+  -v           Verbose flags for startup messages
   --crc-strip  Strip CRC on all ports
   -m <string>  matrix for mapping ports to logical cores
       BNF: (or kind of BNF)
@@ -506,463 +507,92 @@ running the new version.
 Running the run.sh script produces output as follows, but maybe different on your
 system configuration.
 ``
-rkwiles@rkwiles-DESK1 (dev):~/.../intel/pktgen$ ./tools/run.sh
-./app/app/x86_64-dnet-linuxapp-gcc/pktgen -l 1,2-9,18-19 -n 4 --proc-type auto --log-level 8 --socket-mem 10240,2048 --file-prefix pg --vdev=net_bonding1,mode=4,xmit_policy=l23,slave=0000:81:00.0,slave=0000:81:00.1,slave=0000:81:00.2,slave=0000:81:00.3 -b 05:00.0 -b 05:00.1 -b 82:00.0 -b 83:00.0 -- -I -T -P --crc-strip -m [2:3].0 -m [4:5].1 -m [6:7].2 -m [8:9].3 -m [18:19].8 -f themes/black-yellow.theme
+rkwiles@broadwell (dev):~/.../intel/pktgen$ ./tools/run.py default
+>>> sdk '/work/home/rkwiles/projects/intel/dpdk.org', target 'x86_64-native-linuxapp-gcc'
+   Trying ./app/x86_64-native-linuxapp-gcc/pktgen
+sudo -E ./app/x86_64-native-linuxapp-gcc/pktgen -l 14,15-22 -n 4 --proc-type auto --log-level 7 --file-prefix pg -b 81:00.2 -b 81:00.3 -b 85:00.2 -b 85:00.3 -b 83:00.0 -- -T -P --crc-strip -m [15:16].0 -m [17:18].1 -m [19:20].2 -m [21:22].3 -f themes/black-yellow.theme
 
-Copyright (c) <2010-2018>, Intel Corporation. All rights reserved. Powered by DPDK
-EAL: Detected lcore 0 as core 0 on socket 0
-EAL: Detected lcore 1 as core 1 on socket 0
-EAL: Detected lcore 2 as core 2 on socket 0
-EAL: Detected lcore 3 as core 3 on socket 0
-EAL: Detected lcore 4 as core 4 on socket 0
-EAL: Detected lcore 5 as core 8 on socket 0
-EAL: Detected lcore 6 as core 9 on socket 0
-EAL: Detected lcore 7 as core 10 on socket 0
-EAL: Detected lcore 8 as core 11 on socket 0
-EAL: Detected lcore 9 as core 16 on socket 0
-EAL: Detected lcore 10 as core 17 on socket 0
-EAL: Detected lcore 11 as core 18 on socket 0
-EAL: Detected lcore 12 as core 19 on socket 0
-EAL: Detected lcore 13 as core 20 on socket 0
-EAL: Detected lcore 14 as core 24 on socket 0
-EAL: Detected lcore 15 as core 25 on socket 0
-EAL: Detected lcore 16 as core 26 on socket 0
-EAL: Detected lcore 17 as core 27 on socket 0
-EAL: Detected lcore 18 as core 0 on socket 1
-EAL: Detected lcore 19 as core 1 on socket 1
-EAL: Detected lcore 20 as core 2 on socket 1
-EAL: Detected lcore 21 as core 3 on socket 1
-EAL: Detected lcore 22 as core 4 on socket 1
-EAL: Detected lcore 23 as core 8 on socket 1
-EAL: Detected lcore 24 as core 9 on socket 1
-EAL: Detected lcore 25 as core 10 on socket 1
-EAL: Detected lcore 26 as core 11 on socket 1
-EAL: Detected lcore 27 as core 16 on socket 1
-EAL: Detected lcore 28 as core 17 on socket 1
-EAL: Detected lcore 29 as core 18 on socket 1
-EAL: Detected lcore 30 as core 19 on socket 1
-EAL: Detected lcore 31 as core 20 on socket 1
-EAL: Detected lcore 32 as core 24 on socket 1
-EAL: Detected lcore 33 as core 25 on socket 1
-EAL: Detected lcore 34 as core 26 on socket 1
-EAL: Detected lcore 35 as core 27 on socket 1
-EAL: Detected lcore 36 as core 0 on socket 0
-EAL: Detected lcore 37 as core 1 on socket 0
-EAL: Detected lcore 38 as core 2 on socket 0
-EAL: Detected lcore 39 as core 3 on socket 0
-EAL: Detected lcore 40 as core 4 on socket 0
-EAL: Detected lcore 41 as core 8 on socket 0
-EAL: Detected lcore 42 as core 9 on socket 0
-EAL: Detected lcore 43 as core 10 on socket 0
-EAL: Detected lcore 44 as core 11 on socket 0
-EAL: Detected lcore 45 as core 16 on socket 0
-EAL: Detected lcore 46 as core 17 on socket 0
-EAL: Detected lcore 47 as core 18 on socket 0
-EAL: Detected lcore 48 as core 19 on socket 0
-EAL: Detected lcore 49 as core 20 on socket 0
-EAL: Detected lcore 50 as core 24 on socket 0
-EAL: Detected lcore 51 as core 25 on socket 0
-EAL: Detected lcore 52 as core 26 on socket 0
-EAL: Detected lcore 53 as core 27 on socket 0
-EAL: Detected lcore 54 as core 0 on socket 1
-EAL: Detected lcore 55 as core 1 on socket 1
-EAL: Detected lcore 56 as core 2 on socket 1
-EAL: Detected lcore 57 as core 3 on socket 1
-EAL: Detected lcore 58 as core 4 on socket 1
-EAL: Detected lcore 59 as core 8 on socket 1
-EAL: Detected lcore 60 as core 9 on socket 1
-EAL: Detected lcore 61 as core 10 on socket 1
-EAL: Detected lcore 62 as core 11 on socket 1
-EAL: Detected lcore 63 as core 16 on socket 1
-EAL: Detected lcore 64 as core 17 on socket 1
-EAL: Detected lcore 65 as core 18 on socket 1
-EAL: Detected lcore 66 as core 19 on socket 1
-EAL: Detected lcore 67 as core 20 on socket 1
-EAL: Detected lcore 68 as core 24 on socket 1
-EAL: Detected lcore 69 as core 25 on socket 1
-EAL: Detected lcore 70 as core 26 on socket 1
-EAL: Detected lcore 71 as core 27 on socket 1
-EAL: Support maximum 128 logical core(s) by configuration.
-EAL: Detected 72 lcore(s)
+Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
+EAL: Detected 56 lcore(s)
+EAL: Detected 2 NUMA nodes
 EAL: Auto-detected process type: PRIMARY
+EAL: Multi-process socket /var/run/dpdk/pg/mp_socket
 EAL: No free hugepages reported in hugepages-1048576kB
 EAL: Probing VFIO support...
-EAL: Module /sys/module/vfio_pci not found! error 2 (No such file or directory)
-EAL: VFIO modules not loaded, skipping VFIO support...
-EAL: Module /sys/module/vfio_pci not found! error 2 (No such file or directory)
-EAL: Setting up physically contiguous memory...
-EAL: Ask a virtual area of 0x2fc00000 bytes
-EAL: Virtual area found at 0x7fa7c3600000 (size = 0x2fc00000)
-EAL: Ask a virtual area of 0x3cc00000 bytes
-EAL: Virtual area found at 0x7fa786800000 (size = 0x3cc00000)
-EAL: Ask a virtual area of 0x200000 bytes
-EAL: Virtual area found at 0x7fa786400000 (size = 0x200000)
-EAL: Ask a virtual area of 0x200000 bytes
-EAL: Virtual area found at 0x7fa786000000 (size = 0x200000)
-EAL: Ask a virtual area of 0x28f400000 bytes
-EAL: Virtual area found at 0x7fa4f6a00000 (size = 0x28f400000)
-EAL: Ask a virtual area of 0x200000 bytes
-EAL: Virtual area found at 0x7fa4f6600000 (size = 0x200000)
-EAL: Ask a virtual area of 0x200000 bytes
-EAL: Virtual area found at 0x7fa4f6200000 (size = 0x200000)
-EAL: Ask a virtual area of 0x200000 bytes
-EAL: Virtual area found at 0x7fa4f5e00000 (size = 0x200000)
-EAL: Ask a virtual area of 0x2fc000000 bytes
-EAL: Virtual area found at 0x7fa1f9c00000 (size = 0x2fc000000)
-EAL: Ask a virtual area of 0x200000 bytes
-EAL: Virtual area found at 0x7fa1f9800000 (size = 0x200000)
-EAL: Requesting 5120 pages of size 2MB from socket 0
-EAL: Requesting 1024 pages of size 2MB from socket 1
-EAL: TSC frequency is ~2299980 KHz
-EAL: Master lcore 1 is ready (tid=f855a8c0;cpuset=[1])
-EAL: lcore 7 is ready (tid=f4200700;cpuset=[7])
-EAL: lcore 5 is ready (tid=f5202700;cpuset=[5])
-EAL: lcore 2 is ready (tid=f6a05700;cpuset=[2])
-EAL: lcore 3 is ready (tid=f6204700;cpuset=[3])
-EAL: lcore 19 is ready (tid=847fc700;cpuset=[19])
-EAL: lcore 6 is ready (tid=f4a01700;cpuset=[6])
-EAL: lcore 9 is ready (tid=857fe700;cpuset=[9])
-EAL: lcore 18 is ready (tid=84ffd700;cpuset=[18])
-EAL: lcore 4 is ready (tid=f5a03700;cpuset=[4])
-EAL: lcore 8 is ready (tid=85fff700;cpuset=[8])
-EAL: PCI device 0000:04:00.0 on NUMA socket 0
-EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa7f3200000
-EAL:   PCI memory mapped at 0x7fa7f8588000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
-EAL: PCI device 0000:04:00.1 on NUMA socket 0
-EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa7837fc000
-EAL:   PCI memory mapped at 0x7fa7f8580000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
-EAL: PCI device 0000:04:00.2 on NUMA socket 0
-EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa782ffc000
-EAL:   PCI memory mapped at 0x7fa7f8578000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
-EAL: PCI device 0000:04:00.3 on NUMA socket 0
-EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa7827fc000
-EAL:   PCI memory mapped at 0x7fa7f8570000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
-EAL: PCI device 0000:05:00.0 on NUMA socket 0
-EAL:   Device is blacklisted, not initializing
-EAL: PCI device 0000:05:00.1 on NUMA socket 0
-EAL:   Device is blacklisted, not initializing
+EAL: PCI device 0000:01:00.0 on NUMA socket 0
+EAL:   probe driver: 8086:1521 net_e1000_igb
+EAL: PCI device 0000:01:00.1 on NUMA socket 0
+EAL:   probe driver: 8086:1521 net_e1000_igb
 EAL: PCI device 0000:81:00.0 on NUMA socket 1
 EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa781ffc000
-EAL:   PCI memory mapped at 0x7fa7f8568000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
 EAL: PCI device 0000:81:00.1 on NUMA socket 1
 EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa7817fc000
-EAL:   PCI memory mapped at 0x7fa7f8560000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
 EAL: PCI device 0000:81:00.2 on NUMA socket 1
-EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa780ffc000
-EAL:   PCI memory mapped at 0x7fa7f841f000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
+EAL:   Device is blacklisted, not initializing
 EAL: PCI device 0000:81:00.3 on NUMA socket 1
-EAL:   probe driver: 8086:1572 net_i40e
-EAL:   PCI memory mapped at 0x7fa7807fc000
-EAL:   PCI memory mapped at 0x7fa7f8417000
-PMD: eth_i40e_dev_init(): FW 5.0 API 1.5 NVM 05.00.04 eetrack 800024ca
-EAL: PCI device 0000:82:00.0 on NUMA socket 1
 EAL:   Device is blacklisted, not initializing
 EAL: PCI device 0000:83:00.0 on NUMA socket 1
 EAL:   Device is blacklisted, not initializing
-EAL: Initializing pmd_bond for net_bonding1
-PMD: Using mode 4, it is necessary to do TX burst and RX burst at least every 100ms.
-EAL: Create bonded device net_bonding1 on port 8 in mode 4 on socket 0.
+EAL: PCI device 0000:85:00.0 on NUMA socket 1
+EAL:   probe driver: 8086:1572 net_i40e
+EAL: PCI device 0000:85:00.1 on NUMA socket 1
+EAL:   probe driver: 8086:1572 net_i40e
+EAL: PCI device 0000:85:00.2 on NUMA socket 1
+EAL:   Device is blacklisted, not initializing
+EAL: PCI device 0000:85:00.3 on NUMA socket 1
+EAL:   Device is blacklisted, not initializing
+Lua 5.3.5  Copyright (C) 1994-2018 Lua.org, PUC-Rio
 
-   Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
-   Pktgen created by: Keith Wiles -- >>> Powered by DPDK <<<
+*** Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
+*** Pktgen created by: Keith Wiles -- >>> Powered by DPDK <<<
 
-Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
->>> Packet Burst 32, RX Desc 512, TX Desc 1024, mbufs/port 8192, mbuf cache 1024
+Initialize Port 0 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:a1:2b:40
+Initialize Port 1 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:a1:2b:41
+Initialize Port 2 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:a1:2b:08
+Initialize Port 3 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:a1:2b:09
 
-=== port to lcore mapping table (# lcores 11) ===
-   lcore:    1       2       3       4       5       6       7       8       9      10      11      12      13      14      15      16      17      18      19      Total
-port   0: ( D: T) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
-port   1: ( D: T) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
-port   2: ( D: T) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
-port   3: ( D: T) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) = ( 1: 1)
-port   8: ( D: T) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1) = ( 1: 1)
-Total   : ( 0: 0) ( 1: 0) ( 0: 1) ( 1: 0) ( 0: 1) ( 1: 0) ( 0: 1) ( 1: 0) ( 0: 1) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 0: 0) ( 1: 0) ( 0: 1)
-  Display and Timer on lcore 1, rx:tx counts per port/lcore
-
-Configuring 9 ports, MBUF Size 1920, MBUF Cache Size 1024
-Lcore:
-    2, RX-Only
-                RX_cnt( 1): (pid= 0:qid= 0)
-    3, TX-Only
-                TX_cnt( 1): (pid= 0:qid= 0)
-    4, RX-Only
-                RX_cnt( 1): (pid= 1:qid= 0)
-    5, TX-Only
-                TX_cnt( 1): (pid= 1:qid= 0)
-    6, RX-Only
-                RX_cnt( 1): (pid= 2:qid= 0)
-    7, TX-Only
-                TX_cnt( 1): (pid= 2:qid= 0)
-    8, RX-Only
-                RX_cnt( 1): (pid= 3:qid= 0)
-    9, TX-Only
-                TX_cnt( 1): (pid= 3:qid= 0)
-   18, RX-Only
-                RX_cnt( 1): (pid= 8:qid= 0)
-   19, TX-Only
-                TX_cnt( 1): (pid= 8:qid= 0)
-
-Port :
-    0, nb_lcores  2, private 0x9a54c0, lcores:  2  3
-    1, nb_lcores  2, private 0x9a7820, lcores:  4  5
-    2, nb_lcores  2, private 0x9a9b80, lcores:  6  7
-    3, nb_lcores  2, private 0x9abee0, lcores:  8  9
-    8, nb_lcores  2, private 0x9b6fc0, lcores: 18 19
-
-
-
-** Default Info (0000:04:00.0, if_index:0) **
-   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
-   max_rx_queues  : 192, max_tx_queues     : 192
-   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
-   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
-   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
-** RX Conf **
-   pthresh        :   8, hthresh          :   8, wthresh        :     0
-   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
-** TX Conf **
-   pthresh        :  32, hthresh          :   0, wthresh        :     0
-   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
-
-    Create: Default RX  0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=0, queue=0.
-      Set RX queue stats mapping pid 0, q 0, lcore 2
-
-
-    Create: Default TX  0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Range TX    0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Sequence TX 0:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Special TX  0:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
-PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
-
-                                                                       Port memory used =  65665 KB
-Initialize Port 0 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:d8
-
-** Default Info (0000:04:00.1, if_index:0) **
-   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
-   max_rx_queues  : 192, max_tx_queues     : 192
-   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
-   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
-   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
-** RX Conf **
-   pthresh        :   8, hthresh          :   8, wthresh        :     0
-   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
-** TX Conf **
-   pthresh        :  32, hthresh          :   0, wthresh        :     0
-   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
-
-    Create: Default RX  1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=1, queue=0.
-      Set RX queue stats mapping pid 1, q 0, lcore 4
-
-
-    Create: Default TX  1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Range TX    1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Sequence TX 1:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Special TX  1:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
-PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
-
-                                                                       Port memory used =  65665 KB
-Initialize Port 1 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:d9
-
-** Default Info (0000:04:00.2, if_index:0) **
-   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
-   max_rx_queues  : 192, max_tx_queues     : 192
-   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
-   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
-   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
-** RX Conf **
-   pthresh        :   8, hthresh          :   8, wthresh        :     0
-   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
-** TX Conf **
-   pthresh        :  32, hthresh          :   0, wthresh        :     0
-   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
-
-    Create: Default RX  2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=2, queue=0.
-      Set RX queue stats mapping pid 2, q 0, lcore 6
-
-
-    Create: Default TX  2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Range TX    2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Sequence TX 2:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Special TX  2:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
-PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
-
-                                                                       Port memory used =  65665 KB
-Initialize Port 2 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:da
-
-** Default Info (0000:04:00.3, if_index:0) **
-   max_vfs        :   0, min_rx_bufsize    :1024, max_rx_pktlen :  9728
-   max_rx_queues  : 192, max_tx_queues     : 192
-   max_mac_addrs  :  64, max_hash_mac_addrs:   0, max_vmdq_pools:    32
-   rx_offload_capa:  47, tx_offload_capa   :8127, reta_size     :   512, flow_type_rss_offloads:0000000000007ef8
-   vmdq_queue_base:  64, vmdq_queue_num    : 128, vmdq_pool_base:     1
-** RX Conf **
-   pthresh        :   8, hthresh          :   8, wthresh        :     0
-   Free Thresh    :  32, Drop Enable      :   0, Deferred Start :     0
-** TX Conf **
-   pthresh        :  32, hthresh          :   0, wthresh        :     0
-   Free Thresh    :  32, RS Thresh        :  32, Deferred Start :     0, TXQ Flags:00000f01
-
-    Create: Default RX  3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=3, queue=0.
-      Set RX queue stats mapping pid 3, q 0, lcore 8
-
-
-    Create: Default TX  3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Range TX    3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Sequence TX 3:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Special TX  3:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
-PMD: i40e_set_tx_function_flag(): Vector tx can be enabled on this txq.
-
-                                                                       Port memory used =  65665 KB
-Initialize Port 3 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:db
-
-** Default Info (net_bonding1, if_index:0) **
-   max_vfs        :   0, min_rx_bufsize    :   0, max_rx_pktlen :  2048
-   max_rx_queues  : 128, max_tx_queues     : 512
-   max_mac_addrs  :   1, max_hash_mac_addrs:   0, max_vmdq_pools:     0
-   rx_offload_capa:   0, tx_offload_capa   :   0, reta_size     :     0, flow_type_rss_offloads:00000000003ffffc
-   vmdq_queue_base:   0, vmdq_queue_num    :   0, vmdq_pool_base:     0
-** RX Conf **
-   pthresh        :   0, hthresh          :   0, wthresh        :     0
-   Free Thresh    :   0, Drop Enable      :   0, Deferred Start :     0
-** TX Conf **
-   pthresh        :   0, hthresh          :   0, wthresh        :     0
-   Free Thresh    :   0, RS Thresh        :   0, Deferred Start :     0, TXQ Flags:00000000
-
-    Create: Default RX  8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-      Set RX queue stats mapping pid 8, q 0, lcore 18
-
-
-    Create: Default TX  8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Range TX    8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Sequence TX 8:0  - Memory used (MBUFs 8192 x (size 1920 + Hdr 128)) + 192 =  16385 KB headroom 128 2176
-    Create: Special TX  8:0  - Memory used (MBUFs   64 x (size 1920 + Hdr 128)) + 192 =    129 KB headroom 128 2176
-
-                                                                       Port memory used =  65665 KB
-Initialize Port 8 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:9c:5c:b8
-                                                                      Total memory used = 328325 KB
-PMD: i40e_set_tx_function(): Vector tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=0).
-PMD: i40e_set_tx_function(): Vector tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=1).
-PMD: i40e_set_tx_function(): Vector tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=2).
-PMD: i40e_set_tx_function(): Vector tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=3).
-**** nb_rx_queues 2
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=4, queue=0.
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=4, queue=1.
-PMD: i40e_set_tx_function(): Xmit tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=4).
-**** nb_rx_queues 2
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=5, queue=0.
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=5, queue=1.
-PMD: i40e_set_tx_function(): Xmit tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=5).
-**** nb_rx_queues 2
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=6, queue=0.
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=6, queue=1.
-PMD: i40e_set_tx_function(): Xmit tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=6).
-**** nb_rx_queues 2
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=7, queue=0.
-PMD: i40e_dev_rx_queue_setup(): Rx Burst Bulk Alloc Preconditions are satisfied. Rx Burst Bulk Alloc function will be used on port=7, queue=1.
-PMD: i40e_set_tx_function(): Xmit tx finally be used.
-PMD: i40e_set_rx_function(): Vector rx enabled, please make sure RX burst size no less than 4 (port=7).
 Port  0: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 Port  2: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 Port  3: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
-Port  8: Link Up - speed 40000 Mbps - full-duplex <Enable promiscuous mode>
 
 
-=== Display processing on lcore 1
-  RX processing lcore:   2 rx:  1 tx:  0
-For RX found 1 port(s) for lcore 2
-  TX processing lcore:   3 rx:  0 tx:  1
-For TX found 1 port(s) for lcore 3
-  RX processing lcore:   4 rx:  1 tx:  0
-For RX found 1 port(s) for lcore 4
-  TX processing lcore:   5 rx:  0 tx:  1
-For TX found 1 port(s) for lcore 5
-  RX processing lcore:   6 rx:  1 tx:  0
-For RX found 1 port(s) for lcore 6
-  TX processing lcore:   7 rx:  0 tx:  1
-For TX found 1 port(s) for lcore 7
-  RX processing lcore:   8 rx:  1 tx:  0
-For RX found 1 port(s) for lcore 8
-  TX processing lcore:   9 rx:  0 tx:  1
-For TX found 1 port(s) for lcore 9
-  RX processing lcore:  18 rx:  1 tx:  0
-For RX found 1 port(s) for lcore 18
-  TX processing lcore:  19 rx:  0 tx:  1
-For TX found 1 port(s) for lcore 19
-``
-------------------
-/ Ports 0-3 of 9   <Main Page>  Copyright (c) <2010-2018>, Intel Corporation
-  Flags:Port      :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
-Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
-Pkts/s Max/Rx     :                 3/1                 3/1                 3/1                 3/1                  12/4
-       Max/Tx     :                 0/0                 0/0                 0/0                 0/0                  12/4
-MBits/s Rx/Tx     :                 0/0                 0/0                 0/0                 0/0                   0/0
-Broadcast         :                   0                   0                   0                   0
-Multicast         :                   0                   0                   0                   0
-  64 Bytes        :                   0                   0                   0                   0
-  65-127          :                   0                   0                   0                   0
-  128-255         :                  22                  22                  22                  22
-  256-511         :                   0                   0                   0                   0
-  512-1023        :                   0                   0                   0                   0
-  1024-1518       :                   0                   0                   0                   0
-Runts/Jumbos      :                 0/0                 0/0                 0/0                 0/0
-Errors Rx/Tx      :                 0/0                 0/0                 0/0                 0/0
-Total Rx Pkts     :                  21                  21                  21                  21
-      Tx Pkts     :                   0                   0                   0                   0
-      Rx MBs      :                   0                   0                   0                   0
-      Tx MBs      :                   0                   0                   0                   0
-ARP/ICMP Pkts     :                 0/0                 0/0                 0/0                 0/0
-                  :
-Pattern Type      :             abcd...             abcd...             abcd...             abcd...
-Tx Count/% Rate   :       Forever /100%       Forever /100%       Forever /100%       Forever /100%
-PktSize/Tx Burst  :           64 /   32           64 /   32           64 /   32           64 /   32
-Src/Dest Port     :         1234 / 5678         1234 / 5678         1234 / 5678         1234 / 5678
-Pkt Type:VLAN ID  :     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001
-Dst  IP Address   :         192.168.1.1         192.168.0.1         192.168.3.1         192.168.2.1
-Src  IP Address   :      192.168.0.1/24      192.168.1.1/24      192.168.2.1/24      192.168.3.1/24
-Dst MAC Address   :   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:db   3c:fd:fe:9c:5c:da
-Src MAC Address   :   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:da   3c:fd:fe:9c:5c:db
-VendID/PCI Addr   :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2   8086:1572/04:00.3
+- Ports 0-3 of 4   <Main Page>  Copyright (c) <2010-2019>, Intel Corporation
+  Flags:Port        :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
+Link State          :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
+Pkts/s Max/Rx       :                 0/0                 0/0                 0/0                 0/0                   0/0
+       Max/Tx       :                 0/0                 0/0                 0/0                 0/0                   0/0
+MBits/s Rx/Tx       :                 0/0                 0/0                 0/0                 0/0                   0/0
+Broadcast           :                   0                   0                   0                   0
+Multicast           :                   0                   0                   0                   0
+Sizes 64            :                   0                   0                   0                   0
+      65-127        :                   0                   0                   0                   0
+      128-255       :                   0                   0                   0                   0
+      256-511       :                   0                   0                   0                   0
+      512-1023      :                   0                   0                   0                   0
+      1024-1518     :                   0                   0                   0                   0
+Runts/Jumbos        :                 0/0                 0/0                 0/0                 0/0
+ARP/ICMP Pkts       :                 0/0                 0/0                 0/0                 0/0
+Errors Rx/Tx        :                 0/0                 0/0                 0/0                 0/0
+Total Rx Pkts       :                   0                   0                   0                   0
+      Tx Pkts       :                   0                   0                   0                   0
+      Rx MBs        :                   0                   0                   0                   0
+      Tx MBs        :                   0                   0                   0                   0
+                    :
+Pattern Type        :             abcd...             abcd...             abcd...             abcd...
+Tx Count/% Rate     :       Forever /100%       Forever /100%       Forever /100%       Forever /100%
+Pkt Size/Tx Burst   :           64 /   64           64 /   64           64 /   64           64 /   64
+Port Src/Dest       :         1234 / 5678         1234 / 5678         1234 / 5678         1234 / 5678
+Pkt Type:VLAN ID    :     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001
+802.1p CoS/DSCP/IPP :           0/  0/  0           0/  0/  0           0/  0/  0           0/  0/  0
+VxLAN Flg/Grp/vid   :       0/    0/    0       0/    0/    0       0/    0/    0       0/    0/    0
+IP  Destination     :         192.168.1.1         192.168.0.1         192.168.3.1         192.168.2.1
+    Source          :      192.168.0.1/24      192.168.1.1/24      192.168.2.1/24      192.168.3.1/24
+MAC Destination     :   3c:fd:fe:a1:2b:41   3c:fd:fe:a1:2b:40   3c:fd:fe:a1:2b:09   3c:fd:fe:a1:2b:08
+    Source          :   3c:fd:fe:a1:2b:40   3c:fd:fe:a1:2b:41   3c:fd:fe:a1:2b:08   3c:fd:fe:a1:2b:09
+PCI Vendor/Addr     :   8086:1572/81:00.0   8086:1572/81:00.1   8086:1572/85:00.0   8086:1572/85:00.1
 
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- Pktgen Ver: 3.5.9 (DPDK 19.02.0-rc1)  Powered by DPDK ----------------------
 
 
 Pktgen:/> quit
@@ -970,109 +600,123 @@ $
 ``
 ------------------------------------------------------------------------
 ``
-   *** Pktgen Help information ***
-
-page <pages>                       - Show the port pages or configuration or sequence page
-     [0-7]                         - Page of different ports
-     main                          - Display page zero
-     range                         - Display the range packet page
-     config | cfg                  - Display the configuration page
-     pcap                          - Display the pcap page
-     cpu                           - Display some information about the CPU system
-     next                          - Display next page of PCAP packets.
-     sequence | seq                - sequence will display a set of packets for a given port
+                                                  ** Pktgen Help Information **
+page [0-7]                         - Show the port pages or configuration or sequence page
+page main                          - Display page zero
+page range                         - Display the range packet page
+page config | cfg                  - Display the configuration page
+page pcap                          - Display the pcap page
+page cpu                           - Display some information about the CPU system
+page next                          - Display next page of PCAP packets.
+page sequence | seq                - sequence will display a set of packets for a given port
                                      Note: use the 'port <number>' to display a new port sequence
-     rnd                           - Display the random bitfields to packets for a given port
+page rnd                           - Display the random bitfields to packets for a given port
                                      Note: use the 'port <number>' to display a new port sequence
-     log                           - Display the log messages page
-     latency                       - Display the latency page
-     stats                         - Display physical ports stats for all ports
+page log                           - Display the log messages page
+page latency                       - Display the latency page
+page stats                         - Display physical ports stats for all ports
+page xstats                        - Display port XSTATS values
 
-enable|disable <portlist> <features>
-    Feature - process              - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
-              mpls                 - Enable/disable sending MPLS entry in packets
-              qinq                 - Enable/disable sending Q-in-Q header in packets
-              gre                  - Enable/disable GRE support
-              gre_eth              - Enable/disable GRE with Ethernet frame payload
-              vlan                 - Enable/disable VLAN tagging
-              garp                 - Enable or Disable GARP packet processing and update MAC address
-              random               - Enable/disable Random packet support
-              latency              - Enable/disable latency testing
-              pcap                 - Enable or Disable sending pcap packets on a portlist
-              blink                - Blink LED on port(s)
-              rx_tap               - Enable/Disable RX Tap support
-              tx_tap               - Enable/Disable TX Tap support
-              icmp                 - Enable/Disable sending ICMP packets
-              range                - Enable or Disable the given portlist for sending a range of packets
-              capture              - Enable/disable packet capturing on a portlist
-
-Note: must disable capture on a port to save the data into the current working directory.
-
+enable|disable <portlist> process  - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
+enable|disable <portlist> mpls     - Enable/disable sending MPLS entry in packets
+enable|disable <portlist> qinq     - Enable/disable sending Q-in-Q header in packets
+enable|disable <portlist> gre      - Enable/disable GRE support
+enable|disable <portlist> gre_eth  - Enable/disable GRE with Ethernet frame payload
+enable|disable <portlist> vlan     - Enable/disable VLAN tagging
+enable|disable <portlist> garp     - Enable or Disable GARP packet processing and update MAC address
+enable|disable <portlist> random   - Enable/disable Random packet support
+enable|disable <portlist> latency  - Enable/disable latency testing
+enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist
+enable|disable <portlist> blink    - Blink LED on port(s)
+enable|disable <portlist> rx_tap   - Enable/Disable RX Tap support
+enable|disable <portlist> tx_tap   - Enable/Disable TX Tap support
+enable|disable <portlist> icmp     - Enable/Disable sending ICMP packets
+enable|disable <portlist> range    - Enable or Disable the given portlist for sending a range of packets
+enable|disable <portlist> capture  - Enable/disable packet capturing on a portlist, disable to save capture
+                                     Disable capture on a port to save the data into the currect working directory.
+enable|disable <portlist> bonding  - Enable call TX with zero packets for bonding driver
+enable|disable <portlist> short    - Allow shorter then 64 byte frames to be sent
+enable|disable <portlist> vxlan    - Send VxLAN packets
+enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet
 enable|disable screen              - Enable/disable updating the screen and unlock/lock window
-               mac_from_arp        - Enable/disable MAC address from ARP packet
-off                                - screen off shortcut
-on                                 - screen on shortcut
+    off                            - screen off shortcut
+    on                             - screen on shortcut
 
-set <portlist> <type> value        - Set a few port values
-  <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'
-  <type>         count             - number of packets to transmit
-                 size              - size of the packet to transmit
-                 rate              - Packet rate in percentage
-                 burst             - number of packets in a burst
-                 sport             - Source port number for TCP
-                 dport             - Destination port number for TCP
-                 prime             - Set the number of packets to send on prime command
-                 seq_cnt           - Set the number of packet in the sequence to send
-                 dump              - Dump the next <value> received packets to the screen
-                 vlanid            - Set the VLAN ID value for the portlist
-                 jitter            - Set the jitter threshold in micro-seconds
-                 mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)
-                 gre_key           - Set the GRE key
-                 dst|src mac <etheraddr> - Set MAC addresses 00:11:22:33:44:55
-                                     You can use 0011:2233:4455 format as well
-set <portlist> jitter <value>      - Set the jitter value
+    note: <portlist>               - a list of ports (no spaces) e.g. 2,4,6-9,12 or the word 'all'
+set <portlist> count <value>       - number of packets to transmit
+set <portlist> size <value>        - size of the packet to transmit
+set <portlist> rate <percent>      - Packet rate in percentage
+set <portlist> burst <value>       - number of packets in a burst
+set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
+set <portlist> sport <value>       - Source port number for TCP
+set <portlist> dport <value>       - Destination port number for TCP
+set <portlist> seq_cnt|seqcnt|seqCnt <value>
+                                   - Set the number of packet in the sequence to send [0-16]
+set <portlist> prime <value>       - Set the number of packets to send on prime command
+set <portlist> dump <value>        - Dump the next N received packets to the screen
+set <portlist> vlan <value>        - Set the VLAN ID value for the portlist
+set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds
+set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format
 set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
 set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port
 set <portlist> pattern <type>      - Set the fill pattern type
-     type - abc                    - Default pattern of abc string
-            none                   - No fill pattern, maybe random data
-            zero                   - Fill of zero bytes
-            user                   - User supplied string of max 16 bytes
+                 type - abc        - Default pattern of abc string
+                        none       - No fill pattern, maybe random data
+                        zero       - Fill of zero bytes
+                        user       - User supplied string of max 16 bytes
 set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
-set <portlist> [src|dst] ip ipaddr - Set IP addresses
-set ports_per_page <value>         - Set ports per page value 1 - 6
+set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24
 set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
 set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
-                                     idx: random mask slot
-                                     off: offset in packets, where to apply mask
-                                     mask: up to 32 bit long mask specification (empty to disable):
-                                       0: bit will be 0
-                                       1: bit will be 1
-                                       .: bit will be ignored (original value is retained)
-                                       X: bit will get random value
+    idx: random mask index slot
+    off: offset in bytes to apply mask value
+    mask: up to 32 bit long mask specification (empty to disable):
+          0: bit will be 0
+          1: bit will be 1
+          .: bit will be ignored (original value is retained)
+          X: bit will get random value
+set <portlist> cos <value>         - Set the CoS value for the portlist
+set <portlist> tos <value>         - Set the ToS value for the portlist
+set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values
+set ports_per_page <value>         - Set ports per page value 1 - 6
 
   -- Setup the packet range values --
-range <portlist> [dst|src] mac <SMMI> <etheraddr> - Set destination/source MAC address
-range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address
-range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)
-range <portlist> [src|dst] port <SMMI> <value> - Set UDP/TCP source/dest port number
+   note: SMMI = start|min|max|inc (start, minimum, maximum, increment)
+
+range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address
+      e.g: range 0 src mac start 00:00:00:00:00:00
+           range 0 dst mac max 00:12:34:56:78:90
+      or  range 0 src mac 00:00:00:00:00:00 00:00:00:00:00:00 00:12:34:56:78:90 00:00:00:01:01:01
+range <portlist> src|dst ip <SMMI> <ipaddr>   - Set source IP start address
+      e.g: range 0 dst ip start 0.0.0.0
+           range 0 dst ip min 0.0.0.0
+           range 0 dst ip max 1.2.3.4
+           range 0 dst ip inc 0.0.1.0
+       or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0
+range <portlist> proto tcp|udp                - Set the IP protocol type
+range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number
+       or  range <portlist> src|dst port <start> <min> <max> <inc>
 range <portlist> vlan <SMMI> <value>          - Set vlan id start address
+      or  range <portlist> vlan <start> <min> <max> <inc>
 range <portlist> size <SMMI> <value>          - Set pkt size start address
+      or  range <portlist> size <start> <min> <max> <inc>
 range <portlist> teid <SMMI> <value>          - Set TEID value
+      or  range <portlist> teid <start> <min> <max> <inc>
 range <portlist> mpls entry <hex-value>       - Set MPLS entry value
 range <portlist> qinq index <val1> <val2>     - Set QinQ index values
 range <portlist> gre key <value>              - Set GRE key value
-                 - SMMI = start|min|max|inc (start, minimum, maximum, increment)
+range <portlist> cos <SMMI> <value>           - Set cos value
+range <portlist> tos <SMMI> <value>           - Set tos value
 
-sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]
+sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]
 sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
+sequence <seq#> <portlist> cos <cos> tos <tos>
                                    - Set the sequence packet information, make sure the src-IP
                                      has the netmask value eg 1.2.3.4/24
 
 pcap show                          - Show PCAP information
-pcap index                         - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file
+pcap <index>                       - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file
 pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive
-
 
 start <portlist>                   - Start transmitting packets
 stop <portlist>                    - Stop transmitting packets
@@ -1082,10 +726,15 @@ start <portlist> prime             - Transmit packets on each port listed. See s
 start <portlist> arp <type>        - Send a ARP type packet
     type - request | gratuitous | req | grat
 
-debug l2p                          - Dump out internal lcore to port mapping
-debug tx_debug                     - Enable tx debug output
-debug mempool <portlist> <type>    - Dump out the mempool info for a given type
-debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only
+dbg l2p                          - Dump out internal lcore to port mapping
+dbg tx_dbg                       - Enable tx debug output
+dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type
+dbg pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only
+dbg memzone                      - List all of the current memzones
+dbg memseg                       - List all of the current memsegs
+dbg hexdump <addr> <len>         - hex dump memory at given address
+dbg break                        - break into the debugger
+dbg memcpy [loop-cnt KBytes]     - run a memcpy test
 
 save <path-to-file>                - Save a configuration file using the filename
 load <path-to-file>                - Load a command/script file from the given path
@@ -1105,34 +754,34 @@ theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and att
 theme show                         - List the item strings, colors and attributes to the items
 theme save <filename>              - Save the current color theme to a file
 
-       Flags: P---------------- - Promiscuous mode enabled
-               E                - ICMP Echo enabled
-                A               - Send ARP Request flag
-                 G              - Send Gratuitous ARP flag
-                  C             - TX Cleanup flag
-                   p            - PCAP enabled flag
-                    S           - Send Sequence packets enabled
-                     R          - Send Range packets enabled
-                      D         - DPI Scanning enabled (If Enabled)
-                       I        - Process packets on input enabled
-                        *       - Using TAP interface for this port can be [-rt*]
-                         L      - Send Latency packets
-                          V     - Send VLAN ID tag
-                          M     - Send MPLS header
-                          Q     - Send Q-in-Q tags
-                           g    - Process GARP packets
-                            g   - Perform GRE with IPv4 payload
-                            G   - Perform GRE with Ethernet payload
-                             C  - Capture received packets
-                              R - Random bitfield(s) are applied
+       Flags: P--------------- - Promiscuous mode enabled
+               E               - ICMP Echo enabled
+                A              - Send ARP Request flag
+                 G             - Send Gratuitous ARP flag
+                  C            - TX Cleanup flag
+                   p           - PCAP enabled flag
+                    S          - Send Sequence packets enabled
+                     R         - Send Range packets enabled
+                      D        - DPI Scanning enabled (If Enabled)
+                       I       - Process packets on input enabled
+                        *      - Using TAP interface for this port can be [-rt*]
+                         L     - Send Latency packets
+                          V    - Send VLAN ID tag
+                          X    - Send VxLAN packets
+                          M    - Send MPLS header
+                          Q    - Send Q-in-Q tags
+                           g   - Perform GRE with IPv4 payload
+                           G   - Perform GRE with Ethernet payload
+                            C  - Capture received packets
+                             R - Random bitfield(s) are applied
 Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Color best seen on a black background for now
-       To see a set of example Lua commands see the files in wr-examples/pktgen/test
+
 ``
 ---------------------------------------------------------------------------
 ``
-\                  <Sequence Page>  Copyright (c) <2010-2018>, Intel Corporation
+\                  <Sequence Page>  Copyright (c) <2010-2019>, Intel Corporation
 Port:  0, Sequence Count:  4 of 16                                                                             GTPu
   Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -1182,7 +831,7 @@ Pktgen:/>
 ``
 ---------------------------------------------------------------------------
 ``
-| Port 0           <Random bitfield Page>  Copyright (c) <2010-2018>, Intel Corporation
+| Port 0           <Random bitfield Page>  Copyright (c) <2010-2019>, Intel Corporation
    Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -1313,7 +962,7 @@ $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
 Lua Vesrion: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2018>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1341,7 +990,7 @@ f,e = loadfile("test/hello-world.lua")
 f()
 Lua Version: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2018>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1354,11 +1003,10 @@ You can also just send it commands via echo.
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
 Lua Version: Lua 5.2
 Pktgen Version : 2.9.x
-Pktgen Copyright : Copyright (c) `<2010-2018>`, Intel Corporation
+Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 ----------------------
 
 Keith Wiles @ Intel Corporation
-

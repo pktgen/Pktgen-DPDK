@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -260,6 +260,7 @@ typedef struct pktgen_s {
 	luaData_t *ld;		/**< General Lua Data pointer */
 	luaData_t *ld_sock;	/**< Info for Lua Socket */
 	char *hostname;		/**< GUI hostname */
+	int verbose;		/**< Verbose flag */
 
 	int32_t socket_port;		/**< GUI port number */
 	uint32_t blinklist;		/**< Port list for blinking the led */

@@ -168,6 +168,8 @@ void pktgen_set_seq(port_info_t *info,
 			   uint32_t gtpu_teid);
 void pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum,
 				uint32_t cos, uint32_t tos);
+void pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum,
+			uint32_t flag, uint32_t gid, uint32_t vid);
 
 
 /* Packet */

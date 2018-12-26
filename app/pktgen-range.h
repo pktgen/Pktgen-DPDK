@@ -74,6 +74,18 @@ typedef struct range_info_s {
 	uint32_t gtpu_teid_inc;	/**< GTP-U TEID inc */
 	uint32_t gtpu_teid_min;	/**< GTP-U TEID minimum */
 	uint32_t gtpu_teid_max;	/**< GTP-U TEID maximum */
+
+	uint32_t vxlan_gid;	/**< VxLAN Group ID */
+	uint32_t vxlan_gid_inc;
+	uint32_t vxlan_gid_min;
+	uint32_t vxlan_gid_max;
+
+	uint32_t vxlan_vid;	/**< VxLAN VLAN ID */
+	uint32_t vxlan_vid_inc;
+	uint32_t vxlan_vid_min;
+	uint32_t vxlan_vid_max;
+
+	uint32_t vni_flags;	/**< VxLAN Flags */
 } range_info_t;
 
 struct port_info_s;

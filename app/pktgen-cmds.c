@@ -3266,6 +3266,18 @@ pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum, uint32_t cos, uint32_
 	pktgen_packet_ctor(info, seqnum, -1);
 }
 
+void
+pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum, uint32_t flag, uint32_t gid, uint32_t vid)
+{
+	pkt_seq_t     *pkt;
+
+	pkt = &info->seq_pkt[seqnum];
+	pkt->vni_flags = flag;
+	pkt->group_id = gid;
+	pkt->vxlan_id = vid;
+	pktgen_packet_ctor(info, seqnum, -1);
+}
+
 /**************************************************************************//**
  *
  * pktgen_compile_pkt - Compile a packet for a given port.

@@ -88,11 +88,13 @@ def mk_tuple(lst, s):
 
 	return t[s]
 
-def add_run_options(s, arg_list):
+def add_run_options(s, arg_list, p):
 	''' Append options to arg list '''
 	if s in cfg.run:
 		for a in mk_tuple(cfg.run, s):
-			arg_list.extend(a.split(' '))
+                    if p is not None:
+                        arg_list.append(p)
+                    arg_list.append(a)
 
 def add_setup_options(s, arg_list):
 	''' Append options to arg list '''
@@ -161,7 +163,7 @@ def run_cfg(cfg_file):
 	cfg = load_cfg(cfg_file)
 
 	args = []
-	add_run_options('exec', args)
+	add_run_options('exec', args, None)
 
 	if not 'app_path' in cfg.run:
 		err_exit("'app_path' variable is missing from cfg.run in config file")
@@ -190,12 +192,20 @@ def run_cfg(cfg_file):
 
 	args.extend([fname])
 
-	add_run_options('dpdk', args)
-	add_run_options('blacklist', args)
-	add_run_options('whitelist', args)
+	add_run_options('cores', args, '-l')
+	add_run_options('nrank', args, '-n')
+	add_run_options('proc', args, '--proc-type')
+	add_run_options('log', args, '--log-level')
+	add_run_options('prefix', args, '--file-prefix')
+	add_run_options('blacklist', args, '-b')
+	add_run_options('whitelist', args, '-w')
+	add_run_options('vdev', args, '--vdev')
 	args.extend(["--"])
-	add_run_options('app', args)
-	add_run_options('misc', args)
+	add_run_options('opts', args, None)
+	add_run_options('map', args, '-m')
+	add_run_options('pcap', args, '-s')
+	add_run_options('theme', args, '-f')
+	add_run_options('logfile', args, '-l')
 
 	# Convert the args list to a single string with spaces.
 	str = ""
@@ -252,19 +262,51 @@ def setup_cfg(cfg_file):
 
 	if verbose:
 		print("  modprobe the 'uio' required module")
-	subprocess.call(['sudo', 'modprobe', "uio"])
 
-	if verbose:
-		print("  Remove igb_uio if already installed")
+        if 'uio' in cfg.setup:
+            u = cfg.setup['uio']
 
-	ret = subprocess.call(['sudo', 'rmmod', 'igb_uio'])
-	if ret > 0:
-		print("  Remove of igb_uio, displayed an error ignore it")
+            if u == 'igb_uio':
+                subprocess.call(['sudo', 'modprobe', "uio"])
 
-	igb_uio = ("%s/%s/kmod/igb_uio.ko" % (sdk, target))
-	if verbose:
-		print("  insmode the %s module" % igb_uio)
-	subprocess.call(['sudo', 'insmod', igb_uio])
+                if verbose:
+                        print("  Remove %s if already installed" % u)
+
+                ret = subprocess.call(['sudo', 'rmmod', u])
+                if ret > 0:
+                        print("  Remove of %s, displayed an error ignore it" % u)
+
+                uio = ("%s/%s/kmod/%s.ko" % (sdk, target, u))
+                if verbose:
+                        print("  insmode the %s module" % uio)
+                subprocess.call(['sudo', 'insmod', uio])
+
+            if u == 'vfio-pci':
+                ret = subprocess.call(['sudo', 'rmmod', u])
+                if ret > 0:
+                        print("  Remove of %s, displayed an error ignore it" % u)
+
+                if verbose:
+                        print("  modprobe the %s module" % u)
+                subprocess.call(['sudo', 'modprobe', u])
+
+            if u == 'uio_pci_generic':
+                ret = subprocess.call(['sudo', 'rmmod', u])
+                if ret > 0:
+                        print("  Remove of %s, displayed an error ignore it" % u)
+
+                if verbose:
+                        print("  insmode the %s module" % u)
+                subprocess.call(['sudo', 'modprobe', u])
+        else:
+            if u == 'vfio-pci':
+                ret = subprocess.call(['sudo', 'rmmod', u])
+                if ret > 0:
+                        print("  Remove of %s, displayed an error ignore it" % u)
+
+                if verbose:
+                        print("  modprobe the %s module" % u)
+                subprocess.call(['sudo', 'modprobe', u])
 
 	for i in range(0, nb_sockets):
 		fn = (hugepage_path % i)
@@ -287,7 +329,9 @@ def setup_cfg(cfg_file):
 
 	args.extend([script])
 
-	add_setup_options('opts', args)
+        args.append('-b')
+        args.append(cfg.setup['uio'])
+
 	add_setup_options('devices', args)
 
 	if verbose:
@@ -296,6 +340,7 @@ def setup_cfg(cfg_file):
 			print("		%s" % a)
 		print(args)
 
+        print(args)
 	subprocess.call(args)
 
 def parse_args():

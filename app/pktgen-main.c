@@ -79,11 +79,10 @@ static void
 pktgen_usage(const char *prgname)
 {
 	printf(
-		"Usage: %s [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
+		"Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
 		"  -s P:file    PCAP packet stream file, 'P' is the port number\n"
 		"  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
 		"  -l filename  Write log to filename\n"
-		"  -I           use CLI\n"
 		"  -P           Enable PROMISCUOUS mode on all ports\n"
 		"  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
 		"               If -g is used that enable socket support as a server application\n"

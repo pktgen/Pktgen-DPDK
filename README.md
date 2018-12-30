@@ -324,7 +324,7 @@ EAL Linux options:
 
 ===== Application Usage =====
 
-Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
+Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
   -s P:file    PCAP packet stream file, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename

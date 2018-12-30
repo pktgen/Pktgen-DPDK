@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -202,8 +202,8 @@ pktgen_script_save(char *path)
 		fprintf(fd, "set %d jitter %" PRIu64 "\n", i, info->jitter_threshold);
 		fprintf(fd, "%sable %d mpls\n",
 			(flags & SEND_MPLS_LABEL) ? "en" : "dis", i);
-		sprintf(buff, "%x", pkt->mpls_entry);
-		fprintf(fd, "set %d mpls_entry %s\n", i, buff);
+		sprintf(buff, "0x%x", pkt->mpls_entry);
+		fprintf(fd, "range %d mpls entry %s\n", i, buff);
 
 		fprintf(fd, "%sable %d qinq\n",
 			(flags & SEND_Q_IN_Q_IDS) ? "en" : "dis", i);
@@ -215,6 +215,11 @@ pktgen_script_save(char *path)
 		fprintf(fd, "%sable %d gre_eth\n",
 			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis", i);
 		fprintf(fd, "set %d gre_key %d\n", i, pkt->gre_key);
+
+		fprintf(fd, "%sable %d vxlan\n",
+			(flags & SEND_VXLAN_PACKETS) ? "en" : "dis", i);
+		fprintf(fd, "set %d vxlan 0x%x %d %d\n", i,
+			pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
 
 		fprintf(fd, "#\n# Port flag values:\n");
 		fprintf(fd, "%sable %d icmp\n",
@@ -543,7 +548,7 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.jitter('%d', %lu);\n", i, info->jitter_threshold);
 		fprintf(fd, "pktgen.mpls('%d', '%sable');\n", i,
 			(flags & SEND_MPLS_LABEL) ? "en" : "dis");
-		sprintf(buff, "%x", pkt->mpls_entry);
+		sprintf(buff, "0x%x", pkt->mpls_entry);
 		fprintf(fd, "pktgen.mpls_entry('%d', '%s');\n", i, buff);
 
 		fprintf(fd, "pktgen.qinq('%d', '%sable');\n", i,
@@ -556,6 +561,11 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.gre_eth('%d', '%sable');\n", i,
 			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis");
 		fprintf(fd, "pktgen.gre_key('%d', %d);\n", i, pkt->gre_key);
+
+		fprintf(fd, "pkrgen.vxlan('%d', '%sable');\n", i,
+			(flags & SEND_VXLAN_PACKETS) ? "en" : "dis");
+		fprintf(fd, "pktgen.vxlan_id('%d', '0x%x', '%d', '%d');\n", i,
+				pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
 
 		fprintf(fd, "--\n-- Port flag values:\n");
 		fprintf(fd, "pktgen.icmp_echo('%d', '%sable');\n", i,
@@ -967,23 +977,24 @@ pktgen_flags_string(port_info_t *info)
 
 	snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
 		 (pktgen.flags & PROMISCUOUS_ON_FLAG)   ? 'P' : '-',
-		 (flags & ICMP_ECHO_ENABLE_FLAG)    ? 'E' : '-',
-		 (flags & SEND_ARP_REQUEST)     ? 'A' : '-',
-		 (flags & SEND_GRATUITOUS_ARP)      ? 'G' : '-',
-		 (flags & SEND_PCAP_PKTS)       ? 'p' : '-',
-		 (flags & SEND_SEQ_PKTS)        ? 'S' : '-',
-		 (flags & SEND_RANGE_PKTS)      ? 'R' : '-',
-		 (flags & PROCESS_INPUT_PKTS)       ? 'I' : '-',
-		 "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
-		 (flags & SEND_LATENCY_PKTS)        ? 'L' : '-',
-		 (flags & SEND_VLAN_ID)         ? 'V' :
-		 (flags & SEND_MPLS_LABEL)        ? 'M' :
-		 (flags & SEND_Q_IN_Q_IDS)        ? 'Q' : '-',
-		 (flags & PROCESS_GARP_PKTS)        ? 'g' : '-',
-		 (flags & SEND_GRE_IPv4_HEADER)     ? 'g' :
-		 (flags & SEND_GRE_ETHER_HEADER)  ? 'G' : '-',
-		 (flags & CAPTURE_PKTS)         ? 'C' : '-',
-		 (flags & SEND_RANDOM_PKTS)     ? 'r' : '-');
+		 (flags & ICMP_ECHO_ENABLE_FLAG)	? 'E' : '-',
+		 (flags & SEND_ARP_REQUEST)		? 'A' : '-',
+		 (flags & SEND_GRATUITOUS_ARP)		? 'G' : '-',
+		 (flags & SEND_PCAP_PKTS)		? 'p' : '-',
+		 (flags & SEND_SEQ_PKTS)		? 'S' : '-',
+		 (flags & SEND_RANGE_PKTS)		? 'R' : '-',
+		 (flags & PROCESS_INPUT_PKTS)		? 'I' : '-',
+		 	"-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
+		 (flags & SEND_LATENCY_PKTS)		? 'L' : '-',
+		 (flags & SEND_VLAN_ID)			? 'V' :
+		 	(flags & SEND_VXLAN_PACKETS)	? 'X' :
+		 	(flags & SEND_MPLS_LABEL)	? 'M' :
+		 	(flags & SEND_Q_IN_Q_IDS)	? 'Q' : '-',
+		 (flags & PROCESS_GARP_PKTS)		? 'g' : '-',
+		 (flags & SEND_GRE_IPv4_HEADER)		? 'g' :
+		 (flags & SEND_GRE_ETHER_HEADER)	? 'G' : '-',
+		 (flags & CAPTURE_PKTS)			? 'C' : '-',
+		 (flags & SEND_RANDOM_PKTS)		? 'r' : '-');
 
 	return buff;
 }
@@ -1752,6 +1763,31 @@ single_set_pkt_type(port_info_t *info, const char *type)
 
 /**************************************************************************//**
  *
+ * enable_vxlan - Set the port to send a VxLAN ID
+ *
+ * DESCRIPTION
+ * Set the given port list to send VxLAN ID packets.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+enable_vxlan(port_info_t *info, uint32_t onOff)
+{
+	if (onOff == ENABLE_STATE) {
+		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
+		pktgen_clr_port_flags(info, SEND_VLAN_ID);
+		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
+		pktgen_set_port_flags(info, SEND_VXLAN_PACKETS);
+	} else
+		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
  * enable_vlan - Set the port to send a VLAN ID
  *
  * DESCRIPTION
@@ -1767,6 +1803,7 @@ enable_vlan(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
+		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
 		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
 		pktgen_set_port_flags(info, SEND_VLAN_ID);
 	} else
@@ -1837,10 +1874,30 @@ single_set_tos(port_info_t *info, uint8_t tos)
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
+/**************************************************************************//**
+ *
+ * single_set_vxlan - Set the port vxlan value
+ *
+ * DESCRIPTION
+ * Set the given port list with the given vxlan
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
-
-
-
+void
+single_set_vxlan(port_info_t *info, uint16_t flags, uint16_t group_id,
+		uint32_t vxlan_id)
+{
+	info->vni_flags = flags;
+	info->group_id = group_id;
+	info->vxlan_id = vxlan_id;
+	info->seq_pkt[SINGLE_PKT].vni_flags = info->vni_flags;
+	info->seq_pkt[SINGLE_PKT].group_id = info->group_id;
+	info->seq_pkt[SINGLE_PKT].vxlan_id = info->vxlan_id;
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
 
 /**************************************************************************//**
  *
@@ -1860,6 +1917,7 @@ enable_mpls(port_info_t *info, uint32_t onOff)
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
 		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
+		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
 		pktgen_set_port_flags(info, SEND_MPLS_LABEL);
 	} else
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
@@ -1904,6 +1962,7 @@ enable_qinq(port_info_t *info, uint32_t onOff)
 	if (onOff == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
+		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
 		pktgen_set_port_flags(info, SEND_Q_IN_Q_IDS);
 	} else
 		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
@@ -2000,7 +2059,7 @@ enable_gre_eth(port_info_t *info, uint32_t onOff)
 
 /**************************************************************************//**
  *
- * pktgen_set_gre_key - Set the port GRE key
+ * range_set_gre_key - Set the port GRE key
  *
  * DESCRIPTION
  * Set the given port list with the given GRE key.
@@ -2766,7 +2825,7 @@ range_set_src_mac(port_info_t *info, const char *what,
 
 /**************************************************************************//**
  *
- * pktgen_set_src_ip - Set the source IP address value.
+ * range_set_src_ip - Set the source IP address value.
  *
  * DESCRIPTION
  * Set the source IP address for all of the ports listed.
@@ -2875,7 +2934,7 @@ range_set_gtpu_teid(port_info_t *info, char *what, uint32_t teid)
 
 /**************************************************************************//**
  *
- * pktgen_set_dst_port - Set the destination port value
+ * range_set_dst_port - Set the destination port value
  *
  * DESCRIPTION
  * Set the destination port values.
@@ -3204,6 +3263,18 @@ pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum, uint32_t cos, uint32_
 	pkt = &info->seq_pkt[seqnum];
 	pkt->cos      = cos;
 	pkt->tos      = tos;
+	pktgen_packet_ctor(info, seqnum, -1);
+}
+
+void
+pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum, uint32_t flag, uint32_t gid, uint32_t vid)
+{
+	pkt_seq_t     *pkt;
+
+	pkt = &info->seq_pkt[seqnum];
+	pkt->vni_flags = flag;
+	pkt->group_id = gid;
+	pkt->vxlan_id = vid;
 	pktgen_packet_ctor(info, seqnum, -1);
 }
 

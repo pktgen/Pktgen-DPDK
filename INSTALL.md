@@ -6,7 +6,7 @@ Pktgen - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 ---
-**Copyright &copy; \<2010-2018\>, Intel Corporation. All rights reserved.**
+**Copyright &copy; \<2010-2019\>, Intel Corporation. All rights reserved.**
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@ Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
 
 ## Environment
 
-INSTALL for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop and CentOS, 
+INSTALL for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop and CentOS,
 it should work on most Linux systems as long as the kernel has hugeTLB page support.
 
 **Note:**
@@ -108,8 +108,8 @@ will have to build LUA manually.
 **Note:** On Red Hat proper you will need to install epel manually as it is not available
 in the repositories.
 
-**Note:** You will need to adjust the version number to match your current kernel 
-version. If you upgrade your system or kernel version you will need to install the 
+**Note:** You will need to adjust the version number to match your current kernel
+version. If you upgrade your system or kernel version you will need to install the
 correct headers and rebuild the RTE_TARGET directory.
 
 Be aware that most often there are mismatches when you update the kernel, but have
@@ -128,7 +128,7 @@ Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
 
 ## Use the Quick Start Script to Install dpdk Toolkit and Configure Host
 
-You can setup all relevant settings manually, but I recommend you use the quick 
+You can setup all relevant settings manually, but I recommend you use the quick
 start setup script detailed [here](https://doc.dpdk.org/guides/linux_gsg/quick_start.html).
 
 ## Manually Configure dpdk Toolkit
@@ -137,15 +137,15 @@ If you did not use the quick start script to configure huge pages you can follow
 the below procedure.
 
 **Note:** You will still need to manually compile the dpdk toolset before you follow
-the below procedure. 
+the below procedure.
 
-The commands above created a directory called Pktgen-DPDK in the current directory 
+The commands above created a directory called Pktgen-DPDK in the current directory
 location. You now have the dpdk source.
 
 Make sure you have HUGE TLB support in the kernel with the following commands:
 
 For more information in huge pages see [here](https://www.kernel.org/doc/Documentation/vm/hugetlbpage.txt).
-    
+
     # grep -i huge /boot/config-2.6.35-24-generic
     CONFIG_HUGETLBFS=y
     CONFIG_HUGETLB_PAGE=y
@@ -175,7 +175,7 @@ startup looking for more pages.
 
 **Note:** On Ubuntu 15.10 I noticed mounting /mnt/huge is not required as /dev/hugepages
 is already mounted. Check your system and verify that /mnt/huge is required.
-    
+
     # vi /etc/fstab
 
 Add the below to the bottom of the file:
@@ -196,10 +196,10 @@ also be done.
 
 This is my current machine you will have a few different numbers depending on
 how your system was booted and if you had hugeTLB support enabled.
- 
+
 ## Setup Prerequisites on Red Hat-based Systems
 
-Red Hat does not provide an up-to-date LUA package so you will need to build it 
+Red Hat does not provide an up-to-date LUA package so you will need to build it
 yourself. You can do this by following the below procedure.
 
 1) Make sure you have run a `yum update -y` prior to continuing. We also recommend
@@ -212,7 +212,7 @@ yourself. You can do this by following the below procedure.
    **Note:** This was tested with LUA 5.3.2.
 
 3) Run the following commands:
-   
+
         # cd /usr/local/src
         # curl -R -O http://www.lua.org/ftp/lua-5.3.2.tar.gz
         # tar zxf lua-5.3.2.tar.gz
@@ -225,7 +225,7 @@ yourself. You can do this by following the below procedure.
 
         # cd /usr/local/src/lua-5.3.2/src
         # vi Makefile
-        
+
         // Change: CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
         // To be: CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS) -fPIC
         // Add under: LUA_A= liblua.a
@@ -258,7 +258,7 @@ yourself. You can do this by following the below procedure.
         Version: ${R}
         Requires:
         Libs: -llua-${V} -lm -ldl
-        Cflags: -I${includedir}/lua-${V}   
+        Cflags: -I${includedir}/lua-${V}
 
 6) Now run `vi /usr/lib64/pkgconfig/lua5.3.pc` and add the below text.
 
@@ -321,7 +321,7 @@ SDK directory.
 
     # export RTE_SDK=<DPDKinstallDir>
     # export RTE_TARGET=x86_64-native-linuxapp-gcc
-    
+
 or use clang if you have it installed
 
     # export RTE_TARGET=x86_64-native-linuxapp-clang
@@ -342,5 +342,4 @@ Next we build pktgen:
 
 You should now have pktgen built.
 
-To get started, see README.md. 
-
+To get started, see README.md.

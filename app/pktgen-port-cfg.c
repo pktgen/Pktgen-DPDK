@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -105,11 +105,12 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	sz = nb_mbufs * (DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf));
 	sz = RTE_ALIGN_CEIL(sz + sizeof(struct rte_mempool), 1024);
 
-	pktgen_log_info(
-		"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB, headroom %d",
-		16, name, nb_mbufs, DEFAULT_MBUF_SIZE,
-		sizeof(struct rte_mbuf), sizeof(struct rte_mempool),
-		sz / 1024, RTE_PKTMBUF_HEADROOM);
+	if (pktgen.verbose)
+		pktgen_log_info(
+			"    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = %6lu KB, headroom %d",
+			16, name, nb_mbufs, DEFAULT_MBUF_SIZE,
+			sizeof(struct rte_mbuf), sizeof(struct rte_mempool),
+			sz / 1024, RTE_PKTMBUF_HEADROOM);
 
 	pktgen.mem_used += sz;
 	pktgen.total_mem_used += sz;
@@ -167,13 +168,15 @@ pktgen_config_ports(void)
 	else
 		pktgen.ending_port = pktgen.starting_port + pktgen.nb_ports;
 
-	pg_port_matrix_dump(pktgen.l2p);
+	if (pktgen.verbose) {
+		pg_port_matrix_dump(pktgen.l2p);
 
-	pktgen_log_info(
-		"Configuring %d ports, MBUF Size %d, MBUF Cache Size %d",
-		pktgen.nb_ports,
-		DEFAULT_MBUF_SIZE,
-		MBUF_CACHE_SIZE);
+		pktgen_log_info(
+			"Configuring %d ports, MBUF Size %d, MBUF Cache Size %d",
+			pktgen.nb_ports,
+			DEFAULT_MBUF_SIZE,
+			MBUF_CACHE_SIZE);
+	}
 
 	/* For each lcore setup each port that is handled by that lcore. */
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
@@ -189,7 +192,8 @@ pktgen_config_ports(void)
 			pktgen.info[pid].pid = pid;
 		}
 	}
-	pg_dump_l2p(pktgen.l2p);
+	if (pktgen.verbose)
+		pg_dump_l2p(pktgen.l2p);
 
 	pktgen.total_mem_used = 0;
 
@@ -233,7 +237,9 @@ pktgen_config_ports(void)
 			RTE_MEMPOOL_CACHE_MAX_SIZE : info->nb_mbufs;
 
 		rte_eth_dev_info_get(pid, &info->dev_info);
-		rte_eth_dev_info_dump(NULL, pid);
+
+		if (pktgen.verbose)
+			rte_eth_dev_info_dump(NULL, pid);
 
 		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE)
 			default_port_conf.txmode.offloads |=
@@ -273,10 +279,12 @@ pktgen_config_ports(void)
 				pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s",
 						 ret, pid, rte_strerror(-ret));
 			lid = get_port_lid(pktgen.l2p, pid, q);
-			pktgen_log_info("      Set RX queue stats mapping pid %d, q %d, lcore %d\n", pid, q, lid);
+			if (pktgen.verbose)
+				pktgen_log_info("      Set RX queue stats mapping pid %d, q %d, lcore %d\n", pid, q, lid);
 			rte_eth_dev_set_rx_queue_stats_mapping(pid, q, lid);
 		}
-		pktgen_log_info("");
+		if (pktgen.verbose)
+			pktgen_log_info("");
 
 		for (q = 0; q < rt.tx; q++) {
 			struct rte_eth_txconf *txconf;
@@ -327,10 +335,11 @@ pktgen_config_ports(void)
 			if (ret < 0)
 				pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s",
 						 ret, pid, rte_strerror(-ret));
-
-			pktgen_log_info("");
+			if (pktgen.verbose)
+				pktgen_log_info("");
 		}
-		pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ",
+		if (pktgen.verbose)
+			pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ",
 				(pktgen.mem_used + 1023) / 1024);
 
 		/* Grab the source MAC addresses */
@@ -348,8 +357,11 @@ pktgen_config_ports(void)
 		for (i = 0; i < NUM_SEQ_PKTS; i++)
 			ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
 	}
-	pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ",
+	if (pktgen.verbose)
+		pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ",
 			(pktgen.total_mem_used + 1023) / 1024);
+	else
+		pktgen_log_info("");
 
 	/* Start up the ports and display the port Link status */
 	RTE_ETH_FOREACH_DEV(pid) {
@@ -360,10 +372,10 @@ pktgen_config_ports(void)
 		if ( (ret = rte_eth_dev_start(pid)) < 0)
 			pktgen_log_panic("rte_eth_dev_start: port=%d, %s",
 					 pid, rte_strerror(-ret));
-		rte_delay_ms(200);
+		rte_delay_us_sleep(200000);
 	}
 
-	rte_delay_us(100000);
+	rte_delay_us_sleep(100000);
 
 	/* Start up the ports and display the port Link status */
 	RTE_ETH_FOREACH_DEV(pid) {

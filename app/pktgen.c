@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -477,8 +477,6 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 	pktgen_send_burst(info, qid);
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
-	rte_delay_ms(250);
-
 	rte_eth_tx_done_cleanup(info->pid, qid, 0);
 #endif
 
@@ -552,8 +550,9 @@ pktgen_has_work(void)
 void
 pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 {
-	pkt_seq_t         *pkt = &info->seq_pkt[seq_idx];
-	struct ether_hdr  *eth = (struct ether_hdr *)&pkt->hdr.eth;
+	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
+	struct ether_hdr *eth = (struct ether_hdr *)&pkt->hdr.eth;
+	uint32_t flags;
 	char *l3_hdr = NULL;
 
 	/* Fill in the pattern for data space. */
@@ -561,10 +560,12 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 	                    (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
 	                    info->fill_pattern_type, info->user_pattern);
 
+	flags = rte_atomic32_read(&info->port_flags);
+
 	/* Add GRE header and adjust ether_hdr pointer if requested */
-	if (rte_atomic32_read(&info->port_flags) & SEND_GRE_IPv4_HEADER)
+	if (flags & SEND_GRE_IPv4_HEADER)
 		l3_hdr = pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)l3_hdr);
-	else if (rte_atomic32_read(&info->port_flags) & SEND_GRE_ETHER_HEADER)
+	else if (flags & SEND_GRE_ETHER_HEADER)
 		l3_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)l3_hdr);
 	else
 		l3_hdr = pktgen_ether_hdr_ctor(info, pkt, eth);
@@ -589,7 +590,14 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
-			if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
+			if (flags & SEND_VXLAN_PACKETS) {
+				/* Construct the UDP header */
+				pkt->dport = VXLAN_PORT_ID;
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
+
+				/* IPv4 Header constructor */
+				pktgen_ipv4_ctor(pkt, l3_hdr);
+			} else if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
 				/* Construct the UDP header */
 				pktgen_udp_hdr_ctor(pkt, l3_hdr, ETHER_TYPE_IPv4);
 
@@ -942,6 +950,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 {
 	pkt_data_t *data = (pkt_data_t *)opaque;
 	struct rte_mbuf *m = (struct rte_mbuf *)obj;
+	union pktgen_data *d = (union pktgen_data *)&m->udata64;
 	port_info_t *info;
 	pkt_seq_t *pkt;
 	uint16_t qid, idx;
@@ -950,7 +959,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	qid = data->qid;
 
 	/* Cleanup the mbuf data as virtio messes with the values */
-	pktmbuf_reset(m);
+	rte_pktmbuf_reset(m);
 
 	if (mp == info->q[qid].tx_mp)
 		idx = SINGLE_PKT;
@@ -977,6 +986,11 @@ pktgen_setup_cb(struct rte_mempool *mp,
 
 	m->pkt_len  = pkt->pktSize;
 	m->data_len = pkt->pktSize;
+
+	/* Save the information */
+	d->pkt_len = m->pkt_len;
+	d->buf_len = m->buf_len;
+	d->data_len = m->data_len;
 }
 
 /**************************************************************************//**
@@ -1056,9 +1070,10 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		uint16_t saved = info->q[qid].tx_mbufs.len;
 		uint16_t nb_pkts = info->tx_burst - saved;
 
-		rc = pg_pktmbuf_alloc_bulk(mp,
-		                           &info->q[qid].tx_mbufs.m_table[saved],
-		                           nb_pkts);
+		if (likely(nb_pkts > 0))
+			rc = pg_pktmbuf_alloc_bulk(mp,
+				&info->q[qid].tx_mbufs.m_table[saved],
+				nb_pkts);
 		if (rc == 0) {
 			info->q[qid].tx_mbufs.len = info->tx_burst;
 
@@ -1072,9 +1087,10 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 			uint16_t saved = info->q[qid].tx_mbufs.len;
 			uint16_t nb_pkts = txCnt - saved;
 
-			rc = pg_pktmbuf_alloc_bulk(mp,
-			                           &info->q[qid].tx_mbufs.m_table[saved],
-			                           nb_pkts);
+			if (likely(nb_pkts > 0))
+				rc = pg_pktmbuf_alloc_bulk(mp,
+					&info->q[qid].tx_mbufs.m_table[saved],
+					nb_pkts);
 			if (rc == 0) {
 				info->q[qid].tx_mbufs.len = txCnt;
 
@@ -1268,7 +1284,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	if (rxcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For RX found %d port(s) for lcore %d\n", rxcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For RX found %d port(s) for lcore %d", rxcnt, lid);
 	for(idx = 0; idx < rxcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1277,7 +1294,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	if (txcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For TX found %d port(s) for lcore %d\n", txcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For TX found %d port(s) for lcore %d", txcnt, lid);
 	for(idx = 0; idx < txcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1359,7 +1377,8 @@ pktgen_main_tx_loop(uint8_t lid)
 	if (txcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For TX found %d port(s) for lcore %d\n", txcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For TX found %d port(s) for lcore %d\n", txcnt, lid);
 	for(idx = 0; idx < txcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1431,7 +1450,8 @@ pktgen_main_rx_loop(uint8_t lid)
 	if (rxcnt == 0)
 		rte_panic("No ports found for %d lcore\n", lid);
 
-	printf("For RX found %d port(s) for lcore %d\n", rxcnt, lid);
+	if (pktgen.verbose)
+		pktgen_log_info("For RX found %d port(s) for lcore %d", rxcnt, lid);
 	for(idx = 0; idx < rxcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
@@ -1473,7 +1493,7 @@ pktgen_launch_one_lcore(void *arg __rte_unused)
 	if (pktgen_has_work())
 		return 0;
 
-	rte_delay_ms((lid + 1) * 21);
+	rte_delay_us_sleep((lid + 1) * 10021);
 
 	switch (get_type(pktgen.l2p, lid)) {
 	case RX_TYPE:

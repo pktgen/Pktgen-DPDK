@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) 2018 Intel Corporation.
+ * Copyright(c) 2019 Intel Corporation.
  */
 
 /**
@@ -272,7 +272,7 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
         inet_ntop(AF_INET, &ip_addr, buff, len);
         if (mask != 0xFFFFFFFF) {
                 snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, mask_size(mask));
-                strncpy(buff, lbuf, len);
+                rte_strlcpy(buff, lbuf, len);
         }
         return buff;
 }

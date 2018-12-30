@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -98,6 +98,7 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port Src/Dest");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "802.1p CoS/DSCP/IPP");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VxLAN Flg/Grp/vid");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "IP  Destination");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MAC Destination");
@@ -146,11 +147,15 @@ pktgen_print_static_data(void)
 		         (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
 		         (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
-		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
+		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" :
+			 (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN" : "UDP",
 		         pkt->vlanid);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%3d/%3d/%3d",  pkt->cos, pkt->tos >> 2, pkt->tos >> 5);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%04x/%5d/%5d",  pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
@@ -388,7 +393,6 @@ pktgen_page_stats(void)
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->prev_stats) / Million);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->prev_stats) / Million);
 
-		pktgen_display_set_color(NULL);
 		if (pktgen.flags & TX_DEBUG_FLAG) {
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -413,6 +417,7 @@ pktgen_page_stats(void)
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.rx_nombuf);
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
+		pktgen_display_set_color(NULL);
 		display_cnt++;
 	}
 
@@ -472,7 +477,6 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	RTE_ETH_FOREACH_DEV(pid) {
 		info = &pktgen.info[pid];
 
-		memset(&stats, 0, sizeof(stats));
 		rte_eth_stats_get(pid, &stats);
 
 		init = &info->init_stats;
@@ -514,6 +518,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 		rate->imcasts    = stats.imcasts - prev->imcasts;
 #endif
 
+		/* Find the new max rate values */
 		if (rate->ipackets > info->max_ipackets)
 			info->max_ipackets = rate->ipackets;
 		if (rate->opackets > info->max_opackets)

@@ -6,6 +6,11 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.6.0 - Fixed config files.
+         - Fixed tx stopping on some platforms.
+	 - Updated the copyrights to 2019
+	 - Add verbose flag to cleanup startup text.
+	 - Adding support for VxLAN
  - 3.5.9 - Fixed run.py to find config files better.
          - Limit the pcap packets to the number of mbufs used.
          - Added new 'page xstats' screen to view extended stats for ports.

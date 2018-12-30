@@ -1,5 +1,5 @@
 ..  BSD LICENSE
-   Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
+   Copyright(c) <2016-2019> Intel Corporation. All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
@@ -627,4 +627,3 @@ using the default 'more copyright' command.
 A number of default commands are predefined in the /sbin directory and are
 defined above. Other bin directories can be added to the system if needed,
 but a limit of CLI_MAX_BINS is defined in the cli.h header file.
-

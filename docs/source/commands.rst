@@ -1,7 +1,7 @@
 .. _commands:
 
 ``*** Pktgen ***``
-Copyright &copy \<2015-2018\>, Intel Corporation.
+Copyright &copy \<2015-2019\>, Intel Corporation.
 
 README for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
@@ -173,21 +173,22 @@ From this you can get help or issue runtime commands::
 
 The ``page`` commands to show different screens::
 
-   	page <pages>                       - Show the port pages or configuration or sequence page
-   	     [0-7]                         - Page of different ports
-   	     main                          - Display page zero
-   	     range                         - Display the range packet page
-   	     config | cfg                  - Display the configuration page
-   	     pcap                          - Display the pcap page
-   	     cpu                           - Display some information about the CPU system
-   	     next                          - Display next page of PCAP packets.
-   	     sequence | seq                - sequence will display a set of packets for a given port
-   	                                     Note: use the 'port <number>' to display a new port sequence
-   	     rnd                           - Display the random bitfields to packets for a given port
-   	                                     Note: use the 'port <number>' to display a new port sequence
-   	     log                           - Display the log messages page
-   	     latency                       - Display the latency page
-   	     stats                         - Display physical ports stats for all ports
+   page <pages>                      - Show the port pages or configuration or sequence page
+       [0-7]                         - Page of different ports
+       main                          - Display page zero
+       range                         - Display the range packet page
+       config | cfg                  - Display the configuration page
+       pcap                          - Display the pcap page
+       cpu                           - Display some information about the CPU system
+       next                          - Display next page of PCAP packets.
+       sequence | seq                - sequence will display a set of packets for a given port
+                                       Note: use the 'port <number>' to display a new port sequence
+       rnd                           - Display the random bitfields to packets for a given port
+                                       Note: use the 'port <number>' to display a new port sequence
+       log                           - Display the log messages page
+       latency                       - Display the latency page
+       stats                         - Display physical ports stats for all ports
+       xstats                        - Display the extended stats per port
 
 List of the ``enable/disable`` commands::
 
@@ -198,7 +199,7 @@ List of the ``enable/disable`` commands::
                   gre                  - Enable/disable GRE support
                   gre_eth              - Enable/disable GRE with Ethernet frame payload
                   vlan                 - Enable/disable VLAN tagging
-                  garp                 - Enable or Disable GARP packet processing and update MAC address
+                  garp                 - Enable or Disable Gratuitous ARP packet processing
                   random               - Enable/disable Random packet support
                   latency              - Enable/disable latency testing
                   pcap                 - Enable or Disable sending pcap packets on a portlist
@@ -208,6 +209,9 @@ List of the ``enable/disable`` commands::
                   icmp                 - Enable/Disable sending ICMP packets
                   range                - Enable or Disable the given portlist for sending a range of packets
                   capture              - Enable/disable packet capturing on a portlist
+                  bonding              - Enable call TX with zero packets for bonding driver
+                  short                - Allow shorter then 64 byte frames to be sent
+                  vxlan                - Send VxLAN packets
 
     enable|disable screen              - Enable/disable updating the screen and unlock/lock window
                    mac_from_arp        - Enable/disable MAC address from ARP packet
@@ -216,64 +220,83 @@ List of the ``enable/disable`` commands::
 
 List of the ``set`` commands::
 
-    set <portlist> <type> value        - Set a few port values
-      <portlist>                       - a list of ports as 2,4,6-9,12 or the word 'all'
-      <type>         count             - number of packets to transmit
-                     size              - size of the packet to transmit
-                     rate              - Packet rate in percentage
-                     burst             - number of packets in a burst
-                     sport             - Source port number for TCP
-                     dport             - Destination port number for TCP
-                     prime             - Set the number of packets to send on prime command
-                     seq_cnt           - Set the number of packet in the sequence to send
-                     dump              - Dump the next <value> received packets to the screen
-                     vlanid            - Set the VLAN ID value for the portlist
-                     jitter            - Set the jitter threshold in micro-seconds
-                     mpls entry        - Set the MPLS entry for the portlist (must be specified in hex)
-                     gre_key           - Set the GRE key
-                     [src|dst] mac <etheraddr> - Set MAC addresses 00:11:22:33:44:55
-                                         You can use 0011:2233:4455 format as well
-    set <portlist> jitter <value>      - Set the jitter value
-    set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
-    set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port
-    set <portlist> pattern <type>      - Set the fill pattern type
-         type - abc                    - Default pattern of abc string
-                none                   - No fill pattern, maybe random data
-                zero                   - Fill of zero bytes
-                user                   - User supplied string of max 16 bytes
-    set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
-    set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24
-    set ports_per_page <value>         - Set ports per page value 1 - 6
-    set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
-    set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
-                                         idx: random mask slot
-                                         off: offset in packets, where to apply mask
-                                         mask: up to 32 bit long mask specification (empty to disable):
-                                           0: bit will be 0
-                                           1: bit will be 1
-                                           .: bit will be ignored (original value is retained)
-                                           X: bit will get random value
+   note: <portlist> - a list of ports (no spaces) e.g. 2,4,6-9,12 or the word 'all'
+   set <portlist> count <value>       - number of packets to transmit
+   set <portlist> size <value>        - size of the packet to transmit
+   set <portlist> rate <percent>      - Packet rate in percentage
+   set <portlist> burst <value>       - number of packets in a burst
+   set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
+   set <portlist> sport <value>       - Source port number for TCP
+   set <portlist> dport <value>       - Destination port number for TCP
+   set <portlist> seq_cnt|seqcnt|seqCnt <value>
+                                      - Set the number of packet in the sequence to send [0-16]
+   set <portlist> prime <value>       - Set the number of packets to send on prime command
+   set <portlist> dump <value>        - Dump the next N received packets to the screen
+   set <portlist> vlan <value>        - Set the VLAN ID value for the portlist
+   set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds
+   set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format
+   set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
+   set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port
+   set <portlist> pattern <type>      - Set the fill pattern type
+                    type - abc        - Default pattern of abc string
+                           none       - No fill pattern, maybe random data
+                           zero       - Fill of zero bytes
+                           user       - User supplied string of max 16 bytes
+   set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
+   set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24
+   set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
+   set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
+       idx: random mask index slot
+       off: offset in bytes to apply mask value
+       mask: up to 32 bit long mask specification (empty to disable):
+             0: bit will be 0
+             1: bit will be 1
+             .: bit will be ignored (original value is retained)
+             X: bit will get random value
+   set <portlist> cos <value>         - Set the CoS value for the portlist
+   set <portlist> tos <value>         - Set the ToS value for the portlist
+   set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values
+   set ports_per_page <value>         - Set ports per page value 1 - 6
+
 
 The ``range`` commands::
 
-  -- Setup the packet range values --
-    range <portlist> [src|dst] mac <SMMI> <etheraddr> - Set destination/source MAC address
-    range <portlist> [src|dst] ip <SMMI> <ipaddr> - Set source IP start address
-    range <portlist> proto [tcp|udp]              - Set the IP protocol type (alias range.proto)
-    range <portlist> [src|dst] port <SMMI> <value> - Set UDP/TCP source/dest port number
-    range <portlist> vlan <SMMI> <value>          - Set vlan id start address
-    range <portlist> size <SMMI> <value>          - Set pkt size start address
-    range <portlist> teid <SMMI> <value>          - Set TEID value
-    range <portlist> mpls entry <hex-value>       - Set MPLS entry value
-    range <portlist> qinq index <val1> <val2>     - Set QinQ index values
-    range <portlist> gre key <value>              - Set GRE key value
-                 - SMMI = start|min|max|inc (start, minimum, maximum, increment)
+   -- Setup the packet range values --
+      note: SMMI = start|min|max|inc (start, minimum, maximum, increment)
+
+   range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address
+         e.g: range 0 src mac start 00:00:00:00:00:00
+              range 0 dst mac max 00:12:34:56:78:90
+         or  range 0 src mac 00:00:00:00:00:00 00:00:00:00:00:00 00:12:34:56:78:90 00:00:00:01:01:01
+   range <portlist> src|dst ip <SMMI> <ipaddr>   - Set source IP start address
+         e.g: range 0 dst ip start 0.0.0.0
+              range 0 dst ip min 0.0.0.0
+              range 0 dst ip max 1.2.3.4
+              range 0 dst ip inc 0.0.1.0
+          or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0
+   range <portlist> proto tcp|udp                - Set the IP protocol type
+   range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number
+          or  range <portlist> src|dst port <start> <min> <max> <inc>
+   range <portlist> vlan <SMMI> <value>          - Set vlan id start address
+         or  range <portlist> vlan <start> <min> <max> <inc>
+   range <portlist> size <SMMI> <value>          - Set pkt size start address
+         or  range <portlist> size <start> <min> <max> <inc>
+   range <portlist> teid <SMMI> <value>          - Set TEID value
+         or  range <portlist> teid <start> <min> <max> <inc>
+   range <portlist> mpls entry <hex-value>       - Set MPLS entry value
+   range <portlist> qinq index <val1> <val2>     - Set QinQ index values
+   range <portlist> gre key <value>              - Set GRE key value
+   range <portlist> cos <SMMI> <value>           - Set cos value
+   range <portlist> tos <SMMI> <value>           - Set tos value
 
 The ``sequence`` commands::
 
-    sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> pktsize <val> [teid <val>]
-    sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
-    - Set the sequence packet information, make sure the src-IP has the netmask value eg 1.2.3.4/24
+   sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]
+   sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
+   sequence <seq#> <portlist> cos <cos> tos <tos>
+       - Set the sequence packet information, make sure the src-IP
+         has the netmask value eg 1.2.3.4/24
+
 
 The ``pcap`` commands::
 
@@ -292,10 +315,15 @@ The ``start|stop`` commands::
        type - request | gratuitous | req | grat
 
 The ``debug`` commands::
-    debug l2p                          - Dump out internal lcore to port mapping
-    debug tx_debug                     - Enable tx debug output
-    debug mempool <portlist> <type>    - Dump out the mempool info for a given type
-    debug pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only
+    dbg l2p                            - Dump out internal lcore to port mapping
+    dbg tx_dbg                         - Enable tx debug output
+    dbg mempool <portlist> <type>      - Dump out the mempool info for a given type
+    dbg pdump <portlist>               - Hex dump the first packet to be sent, single packet mode only
+    dbg memzone                        - List all of the current memzones
+    dbg memseg                         - List all of the current memsegs
+    dbg hexdump <addr> <len>           - hex dump memory at given address
+    dbg break                          - break into the debugger
+    dbg memcpy [loop-cnt KBytes]       - run a memcpy test
 
 The odd or special commands::
 
@@ -407,7 +435,7 @@ pages
 The Random or rnd page.
 ::
 
-  Port 0           <Random bitfield Page>  Copyright (c) <2010-2018>, Intel Corporation
+  Port 0           <Random bitfield Page>  Copyright (c) <2010-2019>, Intel Corporation
     Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -446,7 +474,7 @@ The Random or rnd page.
 The sequence or seq page.
 ::
 
-	<Sequence Page>  Copyright (c) <2010-2018>, Intel Corporation
+	<Sequence Page>  Copyright (c) <2010-2019>, Intel Corporation
 	  Port   :  0, Sequence Count:  8 of 16                                                                            GTPu
 	    * Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 	    *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -463,7 +491,7 @@ The sequence or seq page.
 The CPU information page.
 ::
 
-	<CPU Page>  Copyright (c) <2010-2018>, Intel Corporation
+	<CPU Page>  Copyright (c) <2010-2019>, Intel Corporation
 
 	Kernel: Linux rkwiles-DESK1.intel.com 4.4.0-66-generic #87-Ubuntu SMP Fri Mar 3 15:29:05 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
 
@@ -496,7 +524,7 @@ The CPU information page.
 The latency page.
 ::
 
-	-- Ports 0-3 of 8   <Main Page>  Copyright (c) <2010-2018>, Intel Corporation
+	-- Ports 0-3 of 8   <Main Page>  Copyright (c) <2010-2019>, Intel Corporation
 		Flags:Port        :   P----S---------:0   P--------------:1   P--------------:2   P--------------:3
 		Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 		Pkts/s Max/Rx     :                 0/0                 0/0                 0/0                 0/0                   0/0
@@ -525,7 +553,7 @@ The latency page.
 The config or cfg page.
 ::
 
-	<CPU Page>  Copyright (c) <2010-2018>, Intel Corporation
+	<CPU Page>  Copyright (c) <2010-2019>, Intel Corporation
 	 2 sockets, 18 cores, 2 threads
 	  Socket   :    0         1      Port description
 	  Core   0 : [ 0,36]   [18,54]   0000:04:00.0 : Intel Corporation X710 for 10GbE SFP+ (rev 01)

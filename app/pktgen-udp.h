@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,6 +15,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define VXLAN_PORT_ID	4789
 
 /**************************************************************************//**
  *

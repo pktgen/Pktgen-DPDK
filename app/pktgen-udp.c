@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -38,8 +38,7 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		/* Create the UDP header */
 		uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 		uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-		tlen                = pkt->pktSize -
-			(pkt->ether_hdr_size + sizeof(ipHdr_t));
+		tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
 
 		uip->ip.len         = htons(tlen);
 		uip->ip.proto       = pkt->ipProto;
@@ -47,6 +46,14 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		uip->udp.len        = htons(tlen);
 		uip->udp.sport      = htons(pkt->sport);
 		uip->udp.dport      = htons(pkt->dport);
+
+		if (pkt->dport == VXLAN_PORT_ID) {
+			struct vxlan *vxlan = (struct vxlan *)&uip[1];
+
+			vxlan->vni_flags = htons(pkt->vni_flags);
+			vxlan->group_id  = htons(pkt->group_id);
+			vxlan->vxlan_id  = htonl(pkt->vxlan_id) << 8;
+		}
 
 		/* Includes the pseudo header information */
 		tlen                = pkt->pktSize - pkt->ether_hdr_size;
@@ -63,11 +70,9 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 
 		/* Create the pseudo header and TCP information */
 		addr                = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-		(void)rte_memcpy(&uip->ip.daddr[8], &addr,
-				 sizeof(uint32_t));
+		(void)rte_memcpy(&uip->ip.daddr[8], &addr, sizeof(uint32_t));
 		addr                = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-		(void)rte_memcpy(&uip->ip.saddr[8], &addr,
-				 sizeof(uint32_t));
+		(void)rte_memcpy(&uip->ip.saddr[8], &addr, sizeof(uint32_t));
 
 		tlen                = sizeof(udpHdr_t) +
 			(pkt->pktSize - pkt->ether_hdr_size -

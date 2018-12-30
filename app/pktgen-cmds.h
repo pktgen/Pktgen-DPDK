@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -84,6 +84,8 @@ void single_set_port_value(port_info_t *info,
 void single_set_qinqids(port_info_t *info,
 			       uint16_t outerid,
 			       uint16_t innerid);
+void single_set_vxlan(port_info_t *info, uint16_t flags,
+		uint16_t group_id, uint32_t vxlan_id);
 
 /* Debug */
 void debug_dump(port_info_t *info, char *str);
@@ -99,6 +101,7 @@ void debug_set_port_dump(port_info_t *info, uint32_t cnt);
 void enable_rx_tap(port_info_t *info, uint32_t state);
 void enable_tx_tap(port_info_t *info, uint32_t state);
 void enable_vlan(port_info_t *info, uint32_t state);
+void enable_vxlan(port_info_t *info, uint32_t state);
 void enable_qinq(port_info_t *info, uint32_t state);
 void enable_mpls(port_info_t *info, uint32_t state);
 void enable_gre(port_info_t *info, uint32_t state);
@@ -165,6 +168,8 @@ void pktgen_set_seq(port_info_t *info,
 			   uint32_t gtpu_teid);
 void pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum,
 				uint32_t cos, uint32_t tos);
+void pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum,
+			uint32_t flag, uint32_t gid, uint32_t vid);
 
 
 /* Packet */

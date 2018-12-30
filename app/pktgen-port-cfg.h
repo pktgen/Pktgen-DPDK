@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2018>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -73,8 +73,9 @@ enum {						/* Per port flag bits */
 	SEND_RANDOM_PKTS        = 0x00020000,	/**< Send random bitfields in packets */
 	SEND_GRE_ETHER_HEADER   = 0x00040000,	/**< Encapsulate Ethernet frame in GRE */
 	SEND_LATENCY_PKTS       = 0x00080000,	/**< Send latency packets */
-	BONDING_TX_PACKETS		= 0x00100000,	/**< Bonding driver send zero pkts */
-	SEND_SHORT_PACKETS		= 0x00200000,	/**< Allow port to send short packets */
+	BONDING_TX_PACKETS	= 0x00100000,	/**< Bonding driver send zero pkts */
+	SEND_SHORT_PACKETS	= 0x00200000,	/**< Allow port to send short packets */
+	SEND_VXLAN_PACKETS	= 0x00400000,	/**< Send VxLAN Packets */
 	SENDING_PACKETS         = 0x40000000,	/**< sending packets on this port */
 	SEND_FOREVER            = 0x80000000,	/**< Send packets forever */
 	SEND_ARP_PING_REQUESTS  =
@@ -166,10 +167,20 @@ typedef struct port_info_s {
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
-	uint16_t pad1;
 	uint64_t max_latency;	/**< TX Latency sequence */
 	uint64_t avg_latency;	/**< Latency delta in clock ticks */
 	uint64_t min_latency;	/**< RX Latency sequence */
+
+	RTE_STD_C11
+	union {
+		uint64_t vxlan;		/**< VxLAN 64 bit word */
+		struct {
+			uint16_t vni_flags;	/**< VxLAN Flags */
+			uint16_t group_id;	/**< VxLAN Group Policy ID */
+			uint32_t vxlan_id;	/**< VxLAN VNI */
+		};
+	};
+
 	uint32_t magic_errors;
 	uint32_t latency_nb_pkts;
 	uint64_t jitter_threshold;
@@ -223,6 +234,12 @@ typedef struct port_info_s {
 	char user_pattern[USER_PATTERN_SIZE];	/**< User set pattern values */
 	fill_t fill_pattern_type;		/**< Type of pattern to fill with */
 } port_info_t;
+
+struct vxlan {
+	uint16_t vni_flags;	/**< VxLAN Flags */
+	uint16_t group_id;	/**< VxLAN Group Policy ID */
+	uint32_t vxlan_id;	/**< VxLAN VNI */
+};
 
 void pktgen_config_ports(void);
 

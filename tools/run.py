@@ -340,7 +340,6 @@ def setup_cfg(cfg_file):
 			print("		%s" % a)
 		print(args)
 
-        print(args)
 	subprocess.call(args)
 
 def parse_args():

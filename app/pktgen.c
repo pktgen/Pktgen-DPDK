@@ -1113,7 +1113,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
  * SEE ALSO:
  */
 
-static __inline__ void
+static void
 pktgen_main_transmit(port_info_t *info, uint16_t qid)
 {
 	struct rte_mempool *mp = NULL;
@@ -1379,6 +1379,7 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	if (pktgen.verbose)
 		pktgen_log_info("For TX found %d port(s) for lcore %d\n", txcnt, lid);
+
 	for(idx = 0; idx < txcnt; idx++) {
 		if (infos[idx] == NULL)
 			rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);

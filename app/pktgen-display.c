@@ -147,6 +147,7 @@ display_dashline(int last_row)
 	scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
 	pktgen_display_set_color("top.poweredby");
 	scrn_puts(" %s ", powered_by());
+	scrn_puts(" (pid:%d) ", getpid());
 	pktgen_display_set_color(NULL);
 }
 

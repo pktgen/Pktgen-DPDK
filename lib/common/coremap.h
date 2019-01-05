@@ -11,6 +11,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PROC_CPUINFO "/proc/cpuinfo"
 
 typedef union {
@@ -29,5 +33,9 @@ int coremap(const char *opt,
 		   const char *proc_cpuinfo);
 unsigned coremap_cnt(const lc_info_t *lc, unsigned max_cnt,
 			    unsigned t);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /*_COREMAP_H */

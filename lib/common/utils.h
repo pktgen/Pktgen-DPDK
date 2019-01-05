@@ -9,6 +9,10 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************************//**
  * The function is a wrapper around strdup() and will free the previous string
  * if the pointer is present.
@@ -56,5 +60,9 @@ uint32_t pg_strparse(char *s,
 			    uint32_t max_entries);
 char *pg_strtrim(char *line);
 char *pg_strccpy(char *t, char *f, const char *str);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _UTILS_H_ */

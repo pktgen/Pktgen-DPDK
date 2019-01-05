@@ -8,6 +8,10 @@
 #ifndef _COPYRIGHT_INFO_H
 #define _COPYRIGHT_INFO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void print_copyright(const char *appname, const char *created_by);
 void logo(int row, int col, const char *appname);
 void splash_screen(int row,
@@ -35,5 +39,9 @@ const char *copyright_msg_short(void);
  *     string
  */
 const char *powered_by(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _COPYRIGHT_INFO_H */

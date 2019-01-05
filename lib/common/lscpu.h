@@ -9,6 +9,10 @@
 #ifndef __LSCPU_H
 #define __LSCPU_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct action_s {
 	const char  *str;
 	void (*func)(struct action_s *action, char *line);
@@ -37,5 +41,9 @@ typedef struct {
 #define CPU_PROC_PATH   "cat /proc/cpuinfo"
 
 lscpu_t *lscpu_info(const char *lscpu_path, const char *proc_path);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

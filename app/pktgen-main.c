@@ -434,8 +434,6 @@ main(int argc, char **argv)
 	pktgen_log_set_screen_level(LOG_LEVEL_WARNING);
 	scrn_erase(this_scrn->nrows);
 
-	splash_screen(3, 16, PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
-
 	scrn_resume();
 
 	pktgen_clear_display();

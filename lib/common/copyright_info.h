@@ -12,12 +12,15 @@
 extern "C" {
 #endif
 
+/**
+ * Print out a copyright string
+ *
+ * @param appname
+ *   The name of the application
+ * @param created_by
+ *   The created_by string
+ */
 void print_copyright(const char *appname, const char *created_by);
-void logo(int row, int col, const char *appname);
-void splash_screen(int row,
-			  int col,
-			  const char *appname,
-			  const char *created_by);
 
 /**
  * Function returning string for Copyright message.

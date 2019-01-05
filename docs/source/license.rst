@@ -4,11 +4,10 @@ Third Party License Notices
 ===========================
 
 This document contains third party intellectual property (IP) notices for the
-Wind River® Packet Generation 2.0 distribution. Certain licenses and license
+Intel Corp® Packet Generation distribution. Certain licenses and license
 notices may appear in other parts of the product distribution in accordance
-with the license requirements. "Wind River", is a registered trademark of Wind
-River Systems. The Wind River logo is a trademark of Wind River Systems,
-Inc. All other third-party trademarks are the property of their respective
+with the license requirements. "Intel Corp", is a registered trademark of Intel
+Corp. All other third-party trademarks are the property of their respective
 owners.
 
 Lua

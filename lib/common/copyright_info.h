@@ -20,21 +20,21 @@ void splash_screen(int row,
 			  const char *created_by);
 
 /**
- * Function returning string for Copyright message."
+ * Function returning string for Copyright message.
  * @return
  *     string
  */
 const char *copyright_msg(void);
 
 /**
- * Function returning short string for Copyright message."
+ * Function returning short string for Copyright message.
  * @return
  *     string
  */
 const char *copyright_msg_short(void);
 
 /**
- * Function returning string for Copyright message."
+ * Function returning string for Copyright message.
  * @return
  *     string
  */

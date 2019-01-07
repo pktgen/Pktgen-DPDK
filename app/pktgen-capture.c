@@ -200,7 +200,7 @@ found_rx_lid:
 			size_t mem_dumped = 0;
 			unsigned int pct = 0;
 
-			char status[256];
+			char status[1024];
 			sprintf(
 			        status,
 			        "\r    Dumping ~%.2fMB of captured data to disk: 0%%",

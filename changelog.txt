@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.6.1 - Fix string truncation warnings for latest GCC
  - 3.6.0 - Fixed config files.
          - Fixed tx stopping on some platforms.
 	 - Updated the copyrights to 2019

@@ -960,8 +960,8 @@ You can also just send Pktgen a script file and display the ouptut.
 ---------
 $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
-Lua Vesrion: Lua 5.2
-Pktgen Version : 2.9.x
+Lua Version: Lua 5.3
+Pktgen Version : 3.6.1
 Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
@@ -988,8 +988,8 @@ disk where Pktgen is running and then we execute the file with 'f()'.
 $ socat READLINE TCP4:172.25.40.163:22022
 f,e = loadfile("test/hello-world.lua")
 f()
-Lua Version: Lua 5.2
-Pktgen Version : 2.9.x
+Lua Version: Lua 5.3
+Pktgen Version : 3.6.1
 Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 
@@ -1001,8 +1001,8 @@ You can also just send it commands via echo.
 
 -----------------
 $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
-Lua Version: Lua 5.2
-Pktgen Version : 2.9.x
+Lua Version: Lua 5.3
+Pktgen Version : 3.6.1
 Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
 Pktgen Authors : Keith Wiles @ Intel Corporation
 

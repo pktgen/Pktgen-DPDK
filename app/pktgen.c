@@ -268,11 +268,10 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, sav, retry;
+	uint32_t ret, cnt, retry, i;
 
 	cnt = mtab->len;
 	mtab->len = 0;
-	sav = cnt;
 
 	pkts = mtab->m_table;
 
@@ -295,8 +294,8 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 		}
 	}
 	if (cnt) {
-		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
-		           sizeof(char *) * cnt);
+		for (i = 0; i < cnt; i++)
+			mtab->m_table[i] = pkts[i];
 		mtab->len = cnt;
 	}
 }

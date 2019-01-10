@@ -318,7 +318,13 @@ pktgen_config_ports(void)
 				pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
 
 			/* Setup the PCAP file for each port */
-			if (pktgen.info[pid].pcap != NULL)
+			if (pktgen.info[pid].pcaps[q] != NULL) {
+				if (pktgen_pcap_parse(pktgen.info[pid].pcaps[q], info, q) == -1) {
+					pktgen_log_panic(
+						"Cannot load PCAP file for port %d queue %d",
+						pid, q);
+				}
+			} else if (pktgen.info[pid].pcap != NULL)
 				if (pktgen_pcap_parse(pktgen.info[pid].pcap, info, q) == -1)
 					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 

@@ -214,6 +214,7 @@ typedef struct port_info_s {
 	int32_t rx_tapfd;	/**< Rx Tap file descriptor */
 	int32_t tx_tapfd;	/**< Tx Tap file descriptor */
 	pcap_info_t *pcap;	/**< PCAP information header */
+	pcap_info_t *pcaps[NUM_Q];	/**< Per Tx queue PCAP information headers */
 	uint64_t pcap_cycles;	/**< number of cycles for pcap sending */
 
 	int32_t pcap_result;	/**< PCAP result of filter compile */

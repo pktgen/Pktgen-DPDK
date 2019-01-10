@@ -343,9 +343,9 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 	/* If count is greater then zero then we allocate and create the PCAP mbuf pool. */
 	if (elt_count > 0) {
 		/* Create the average size packet */
-		info->pcap->pkt_size    = (pkt_sizes / elt_count);
-		info->pcap->pkt_count   = elt_count;
-		info->pcap->pkt_idx     = 0;
+		pcap->pkt_size    = (pkt_sizes / elt_count);
+		pcap->pkt_count   = elt_count;
+		pcap->pkt_idx     = 0;
 
 		_pcap_rewind(pcap);
 
@@ -374,15 +374,15 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		scrn_printf(0, 0, "\r");
 		if (info->q[qid].pcap_mp == NULL)
 			pktgen_log_panic("Cannot init port %d for %d PCAP packets",
-					 info->pid, info->pcap->pkt_count);
+					 info->pid, pcap->pkt_count);
 
-		data_size = (info->pcap->pkt_count * DEFAULT_MBUF_SIZE);
+		data_size = (pcap->pkt_count * DEFAULT_MBUF_SIZE);
 		scrn_printf(0, 0,
 		        "    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
 		        16,
 		        name,
 		        elt_count,
-		        info->pcap->pkt_count,
+		        pcap->pkt_count,
 		        (data_size + 1023) / 1024);
 		pktgen.mem_used         += data_size;
 		pktgen.total_mem_used   += data_size;

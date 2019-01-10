@@ -81,6 +81,7 @@ pktgen_usage(const char *prgname)
 	printf(
 		"Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]\n"
 		"  -s P:file    PCAP packet stream file, 'P' is the port number\n"
+		"  -s P:file0,file1,... list of PCAP packet stream files per queue, 'P' is the port number\n"
 		"  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
 		"  -l filename  Write log to filename\n"
 		"  -P           Enable PROMISCUOUS mode on all ports\n"
@@ -142,10 +143,10 @@ pktgen_usage(const char *prgname)
 static int
 pktgen_parse_args(int argc, char **argv)
 {
-	int opt, ret, port;
+	int opt, ret, port, q;
 	char **argvopt;
 	int option_index;
-	char *prgname = argv[0], *p;
+	char *prgname = argv[0], *p, *pc;
 	static struct option lgopts[] = {
 		{"crc-strip", 0, 0, 0},
 		{NULL, 0, 0, 0}
@@ -187,14 +188,27 @@ pktgen_parse_args(int argc, char **argv)
 		case 's':	/* Read a PCAP packet capture file (stream) */
 			port = strtol(optarg, NULL, 10);
 			p = strchr(optarg, ':');
-			if ( (p == NULL) ||
-			     (pktgen.info[port].pcap =
-				      _pcap_open(++p, port)) == NULL) {
-				pktgen_log_error(
-					"Invalid PCAP filename (%s) must include port number as P:filename",
-					optarg);
-				pktgen_usage(prgname);
-				return -1;
+			pc = strchr(optarg, ',');
+			if (p == NULL)
+				goto pcap_err;
+			if (pc == NULL) {
+				pktgen.info[port].pcap = _pcap_open(++p, port);
+				if (pktgen.info[port].pcap == NULL)
+					goto pcap_err;
+			} else {
+				q = 0;
+				while (p != NULL && q < NUM_Q) {
+					p++;
+					pc = strchr(p, ',');
+					if (pc != NULL)
+						*pc = '\0';
+					pktgen.info[port].pcaps[q] = _pcap_open(p, port);
+					if (pktgen.info[port].pcaps[q] == NULL)
+						goto pcap_err;
+					p = pc;
+					q++;
+				}
+				pktgen.info[port].pcap = pktgen.info[port].pcaps[0];
 			}
 			break;
 		case 'P':	/* Enable promiscuous mode on the ports */
@@ -257,6 +271,12 @@ pktgen_parse_args(int argc, char **argv)
 	ret = optind - 1;
 	optind = 1;	/* reset getopt lib */
 	return ret;
+
+pcap_err:
+	pktgen_log_error("Invalid PCAP filename (%s) must include port number as P:filename",
+			 optarg);
+	pktgen_usage(prgname);
+	return -1;
 }
 
 #define MAX_BACKTRACE	32

@@ -43,7 +43,7 @@ pktgen_print_pcap(uint16_t pid)
 	pcap_info_t *pcap;
 	pcaprec_hdr_t pcap_hdr;
 	char buff[64];
-	char pkt_buff[2048];
+	char pkt_buff[DEFAULT_MBUF_SIZE];
 
 	pktgen_display_set_color("top.page");
 	display_topline("<PCAP Page>");
@@ -216,7 +216,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	uint32_t mbuf_size, buf_len, priv_size = 0;
 	pcaprec_hdr_t hdr;
 	ssize_t len = -1;
-	char buffer[2048];
+	char buffer[DEFAULT_MBUF_SIZE];
 	pcap_info_t *pcap = (pcap_info_t *)opaque_arg;
 
 #if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
@@ -274,10 +274,10 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 		len = hdr.incl_len;
 
 		/* Adjust the packet length if not a valid size. */
-		if (len < (ETHER_MIN_LEN - 4) )
-			len = (ETHER_MIN_LEN - 4);
-		else if (len > (ETHER_MAX_LEN - 4) )
-			len = (ETHER_MAX_LEN - 4);
+		if (len < MIN_PKT_SIZE)
+			len = MIN_PKT_SIZE;
+		else if (len > MAX_PKT_SIZE)
+			len = MAX_PKT_SIZE;
 
 		m->data_len = len;
 		m->pkt_len  = len;
@@ -309,7 +309,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 	pcaprec_hdr_t hdr;
 	uint32_t elt_count, data_size, len, i;
 	uint64_t pkt_sizes = 0;
-	char buffer[2048];
+	char buffer[DEFAULT_MBUF_SIZE];
 	char name[RTE_MEMZONE_NAMESIZE];
 
 	if ( (pcap == NULL) || (info == NULL) )
@@ -327,10 +327,10 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		/* Skip any jumbo packets or packets that are too small */
 		len = hdr.incl_len;
 
-		if (len < (ETHER_MIN_LEN - 4) )
-			len = (ETHER_MIN_LEN - 4);
-		else if (len > (ETHER_MAX_LEN - 4) )
-			len = (ETHER_MAX_LEN - 4);
+		if (len < MIN_PKT_SIZE)
+			len = MIN_PKT_SIZE;
+		else if (len > MAX_PKT_SIZE)
+			len = MAX_PKT_SIZE;
 
 		elt_count++;
 

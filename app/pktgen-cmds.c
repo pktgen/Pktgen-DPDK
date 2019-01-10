@@ -1412,10 +1412,10 @@ pktgen_start_transmitting(port_info_t *info)
 		rte_atomic64_set(&info->current_tx_count,
 				 rte_atomic64_read(&info->transmit_count));
 
-		pktgen_set_port_flags(info, SENDING_PACKETS);
-
 		if (rte_atomic64_read(&info->current_tx_count) == 0)
 			pktgen_set_port_flags(info, SEND_FOREVER);
+
+		pktgen_set_port_flags(info, SENDING_PACKETS);
 	}
 }
 

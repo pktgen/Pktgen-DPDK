@@ -2888,6 +2888,7 @@ port_stats(lua_State *L, port_info_t *info, char *type)
 	setf_integer(L, "ierrors", stats.ierrors);
 	setf_integer(L, "oerrors", stats.oerrors);
 	setf_integer(L, "rx_nombuf", stats.rx_nombuf);
+	setf_integer(L, "imissed", stats.imissed);
 
 	if (strcmp(type, "rate") == 0) {
 		setf_integer(L, "pkts_rx", stats.ipackets);

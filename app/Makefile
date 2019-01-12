@@ -111,14 +111,15 @@ ifeq ($(LUA_PKG_LIBS),)
 	LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua)
 endif
 ifeq ($(LUA_PKG_LIBS),)
-	$(info "Lua pkg-config was not found")
-	$(info "Get lua-5.3 from lua.org and build it on your system")
-	$(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
-	$(info "Make sure the library in /usr/local/lib is called liblua.a")
+$(info "Lua pkg-config was not found")
+$(info "Get lua-5.3 from lua.org and build it on your system")
+$(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
+$(info "Make sure the library in /usr/local/lib is called liblua.a")
 endif
 LUA_PKG_LIBS = "-L/usr/local/lib -llua"
 LUA_PKG_CFLAGS = "-I/usr/local/include"
 endif
+$(info "LUA_PKG_LIBS=($(LUA_PKG_LIBS))")
 
 MYLIBS     += -lpktgen_lua $(LUA_PKG_LIBS)
 MYLIB_PATH += -L$(LUA_LIB)

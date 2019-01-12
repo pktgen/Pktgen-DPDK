@@ -768,13 +768,7 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 
 	pType = pktgen_packet_type(m);
 
-#ifdef RTE_DBUF_INDIRECT
-	if (RTE_DBUF_INDIRECT(m)) {
-		struct rte_dbuf *d = rte_dbuf_from_indirect(m->buf_addr);
-		plen = rte_pktdbuf_data_len(d);
-	} else
-#endif
-		plen = rte_pktmbuf_pkt_len(m);
+	plen = rte_pktmbuf_pkt_len(m);
 
 	flags = rte_atomic32_read(&info->port_flags);
 	if (unlikely(flags & (PROCESS_INPUT_PKTS | PROCESS_RX_TAP_PKTS))) {

@@ -65,9 +65,6 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
-#ifdef RTE_DBUF_INDIRECT
-#include <rte_dbuf.h>
-#endif
 
 #include <copyright_info.h>
 #include <l2p.h>

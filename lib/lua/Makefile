@@ -33,49 +33,54 @@ LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf -lrte_timer
 
 ifeq ($(CONFIG_RTE_LIBRTE_VEC),y)
 else
-CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
+	CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
 endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
 else
-PKG := $(shell which pkg-config)
-ifeq (x$(PKG),x)
-$(info "pkg-config command is not found using defaults")
-$(info "Get lua-5.3 from lua.org and build it on your system")
-$(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
-$(info "Make sure the library in /usr/local/lib is called liblua.a or liblua.so")
-LUA_PKG_LIBS = "-L/usr/local/lib -llua"
-LUA_PKG_CFLAGS = "-I/usr/local/include"
-else
-LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs lua5.3)
-ifeq ($(LUA_PKG_LIBS),)
-        LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs lua-5.3)
-        LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua-5.3)
-endif
-ifeq ($(LUA_PKG_LIBS),)
-        LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs lua)
-        LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua)
-endif
-ifeq ($(LUA_PKG_LIBS),)
-        $(info "Lua pkg-config was not found")
-        $(info "Get lua-5.3 from lua.org and build it on your system")
-        $(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
-        $(info "Make sure the library in /usr/local/lib is called liblua.a")
-endif
-LUA_PKG_LIBS = "-L/usr/local/lib -llua"
-LUA_PKG_CFLAGS = "-I/usr/local/include"
+	# set defaults
+	LUA_PKG_CFLAGS  = -I/usr/local/include
 
-CFLAGS += $(LUA_PKG_CFLAGS)
-endif
+	PKG := $(shell which pkg-config)
+	ifeq (x$(PKG),x)
+		$(info "pkg-config command is not found using defaults")
+		$(info "Get lua-5.3 from lua.org and build it on your system")
+		$(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
+		$(info "Make sure the library in /usr/local/lib is called liblua.a or liblua.so")
+	else
+		LUA_PKG_LIBS    = $(shell pkg-config --silence-errors --libs-only-L lua5.3)
+		LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-l lua5.3)
+		LUA_PKG_CFLAGS  = $(shell pkg-config --silence-errors --cflags lua-5.3)
 
-CFLAGS += -I$(SRCDIR)/../lua/$(RTE_TARGET)/include
-LDLIBS += -L$(SRCDIR)/../lua/$(RTE_TARGET)/lib  $(LUA_PKG_LIBS)
+		ifeq ($(LUA_PKG_LIBS),)
+			LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs-only-L lua-5.3)
+			LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-l lua-5.3)
+			LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua-5.3)
+		endif
+
+		ifeq ($(LUA_PKG_LIBS),)
+			LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs-only-L lua)
+			LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs-only-l lua)
+			LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua)
+		endif
+
+		ifeq ($(LUA_PKG_LIBS),)
+			$(info "Lua pkg-config was not found")
+			$(info "Get lua-5.3 from lua.org and build it on your system")
+			$(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
+			$(info "Make sure the library in /usr/local/lib is called liblua.a")
+		endif
+	endif
+
+	# Pktgen Lua support code locations
+	CFLAGS  += -I$(RTE_SRCDIR)/../lua/$(RTE_TARGET)/include
+
+	CFLAGS  += $(LUA_PKG_CFLAGS)
 endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
 else
-CFLAGS += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
-LDLIBS += -L$(SRCDIR)/../utils/$(RTE_TARGET)/lib -lutils
+	CFLAGS  += -I$(SRCDIR)/../utils/$(RTE_TARGET)/include
 endif
 
 LDLIBS += -pthread

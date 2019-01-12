@@ -216,7 +216,7 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
 	p += (info->seq_pkt[seq_idx].ethType == ETHER_TYPE_IPv4) ?
 	     sizeof(struct ipv4_hdr) : sizeof(struct ipv6_hdr);
 
-	p += (info->seq_pkt[seq_idx].ipProto == IPPROTO_UDP) ?
+	p += (info->seq_pkt[seq_idx].ipProto == PG_IPPROTO_UDP) ?
 	     sizeof(struct udp_hdr) : sizeof(struct tcp_hdr);
 
 	/* Force pointer to be aligned correctly */
@@ -553,7 +553,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
 	struct ether_hdr *eth = (struct ether_hdr *)&pkt->hdr.eth;
 	uint32_t flags;
-	char *l3_hdr = NULL;
+	char *l3_hdr = (char *)&eth[1];	/* Point to l3 hdr location for GRE header */
 
 	/* Fill in the pattern for data space. */
 	pktgen_fill_pattern((uint8_t *)&pkt->hdr,
@@ -678,7 +678,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		arp->hln = ETHER_ADDR_LEN;
 		arp->pln = 4;
 
-		/* FIXME make request/reply operation selectable by user */
+		/* make request/reply operation selectable by user */
 		arp->op  = htons(2);
 
 		ether_addr_copy(&pkt->eth_src_addr,

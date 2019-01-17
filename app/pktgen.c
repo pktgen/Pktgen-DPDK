@@ -49,18 +49,14 @@ pktgen_wire_size(port_info_t *info)
 	uint64_t i, size = 0;
 
 	if (rte_atomic32_read(&info->port_flags) & SEND_PCAP_PKTS)
-		size = info->pcap->pkt_size + PKT_PREAMBLE_SIZE +
-		       INTER_FRAME_GAP + ETHER_CRC_LEN;
+		size = info->pcap->pkt_size + PKT_OVERHEAD_SIZE;
 	else {
 		if (unlikely(info->seqCnt > 0)) {
 			for (i = 0; i < info->seqCnt; i++)
-				size += info->seq_pkt[i].pktSize +
-				        PKT_PREAMBLE_SIZE + INTER_FRAME_GAP +
-				        ETHER_CRC_LEN;
+				size += info->seq_pkt[i].pktSize + PKT_OVERHEAD_SIZE;
 			size = size / info->seqCnt;	/* Calculate the average sized packet */
 		} else
-			size = info->seq_pkt[SINGLE_PKT].pktSize +
-			       PKT_PREAMBLE_SIZE + INTER_FRAME_GAP + ETHER_CRC_LEN;
+			size = info->seq_pkt[SINGLE_PKT].pktSize + PKT_OVERHEAD_SIZE;
 	}
 	return size;
 }

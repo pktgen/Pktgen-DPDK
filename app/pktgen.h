@@ -102,9 +102,9 @@ extern "C" {
 #define Million                 (uint64_t)(1000000ULL)
 
 #define iBitsTotal(_x) \
-	(uint64_t)(((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + ETHER_CRC_LEN)) + _x.ibytes) * 8)
+	(uint64_t)(((_x.ipackets * PKT_OVERHEAD_SIZE) + _x.ibytes) * 8)
 #define oBitsTotal(_x) \
-	(uint64_t)(((_x.opackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE + ETHER_CRC_LEN)) + _x.obytes) * 8)
+	(uint64_t)(((_x.opackets * PKT_OVERHEAD_SIZE) + _x.obytes) * 8)
 
 #define _do(_exp)       do { _exp; } while ((0))
 
@@ -229,7 +229,10 @@ enum {
 	NUM_TOTAL_PKTS          = (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
 
 	INTER_FRAME_GAP         = 12,	/**< in bytes */
-	PKT_PREAMBLE_SIZE       = 8,	/**< in bytes */
+	START_FRAME_DELIMITER	= 1,
+	PKT_PREAMBLE_SIZE       = 7,	/**< in bytes */
+	PKT_OVERHEAD_SIZE	= (INTER_FRAME_GAP + START_FRAME_DELIMITER +
+				   PKT_PREAMBLE_SIZE + ETHER_CRC_LEN),
 
 	MIN_PKT_SIZE            = (ETHER_MIN_LEN - ETHER_CRC_LEN),
 	MAX_PKT_SIZE            = (ETHER_MAX_LEN - ETHER_CRC_LEN),

@@ -378,12 +378,12 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
 		data_size = (pcap->pkt_count * DEFAULT_MBUF_SIZE);
 		scrn_printf(0, 0,
-		        "    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
-		        16,
-		        name,
-		        elt_count,
-		        pcap->pkt_count,
-		        (data_size + 1023) / 1024);
+			"    Create: %-*s - Number of MBUFs %6u for %5d packets                 = %6u KB\n",
+			16,
+			name,
+			elt_count,
+			pcap->pkt_count,
+			(data_size + 1023) / 1024);
 		pktgen.mem_used         += data_size;
 		pktgen.total_mem_used   += data_size;
 

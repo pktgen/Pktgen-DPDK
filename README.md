@@ -165,13 +165,16 @@ You may need to modify this script for your system and configuration.
     #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
-./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
 fi
 ``
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
  The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
  case). Do not use the '-m NNN' and '--socket-mem NN,NN' commands on the same command
  line.
+
+** Note: As of DPDK 18.05 using -m or --socket-mem is not required as memory is now
+dynamically allocated.
 
 The pktgen program follows the same format as a standard DPDK linuxapp, meaning
 the first set of arguments '-l 0-4' are the standard DPDK arguments. This option
@@ -324,8 +327,8 @@ EAL Linux options:
 
 ===== Application Usage =====
 
-Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
-  -s P:file    PCAP packet stream file, 'P' is the port number
+Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file[,PCap_file]] [-m <string>]
+  -s P:file1,file2    PCAP packet stream file per queue, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename
   -P           Enable PROMISCUOUS mode on all ports
@@ -413,7 +416,7 @@ fi
 #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
 if [ $name == "rkwiles-supermicro" ]; then
-./app/app/${target}/pktgen -l 4-16 -n 3 --proc-type auto --socket-mem 512,512 --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -l 4-16 -n 3 --proc-type auto --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
 fi
 
 #00:19.0 Ethernet controller: Intel Corporation Ethernet Connection (2) I218-V
@@ -423,7 +426,7 @@ fi
 #01:00.4 Ethernet controller: Intel Corporation DH8900CC Series Gigabit Network Connection (rev 10)
 
 if [ $name == "rkwiles-mini-i7" ]; then
-./app/app/${target}/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 512 --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
+./app/app/${target}/pktgen -l 0-4 -n 3 --proc-type auto --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
 fi
 ``
 ------------- run.sh script ----------------
@@ -882,11 +885,11 @@ Pktgen:/>
 ---------------------------------------------------------------------------
 -- Example command lines.
 ``
-./app/pktgen -l 0-8 -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
-./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
-./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
-./app/pktgen -l 1-3 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg -- -P -m "2.0, 3.1"
-./app/pktgen -l 0-8 -n 3 --proc-type auto --socket-mem 256,256 -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3"
+./app/pktgen -l 0-8 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
+./app/pktgen -l 0-4 -n 3 --proc-type auto --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
+./app/pktgen -l 0-4 -n 3 --proc-type auto --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
+./app/pktgen -l 1-3 -n 3 --proc-type auto --file-prefix pg -- -P -m "2.0, 3.1"
+./app/pktgen -l 0-8 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3"
 ``
 
 A command line passing in a pktgen/test/set_seq.pkt file to help initialize pktgen with some
@@ -894,7 +897,7 @@ default values and configurations. You can also replace the filename using the '
 with a Lua script file ending in .lua instead of .pkt. BTW, if the filename ends in anything
 other then .lua it is treated as a .pkt file.
 
-`./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
+`./app/pktgen -l 0-4 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
 
 -- test/set_seq.pkt
 ``
@@ -909,7 +912,7 @@ The Lua version is easier to remember the layout of the agruments if you want to
 use that one instead of set_seq.pkt file.
 
 ``
-./app/pktgen -l 0-4 -n 3 --proc-type auto --socket-mem 128,128 -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.lua`
+./app/pktgen -l 0-4 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.lua`
 
 -- The '--' is a comment in Lua
 local seq_table = {			-- entries can be in any order

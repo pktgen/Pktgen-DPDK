@@ -918,7 +918,7 @@ __delay(int32_t t)
 	while (t > 0) {
 		cli_use_timers();
 		n = (t > 10) ? 10 : t;
-		rte_delay_ms(n);
+		rte_delay_us_sleep(n * 1000);
 		t -= n;
 	}
 }
@@ -1081,7 +1081,7 @@ pktgen_sleep(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_delay_ms(luaL_checkinteger(L, 1) * 1000);
+	__delay(luaL_checkinteger(L, 1) * 1000);
 	return 0;
 }
 

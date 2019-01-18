@@ -46,7 +46,7 @@ __delay(int32_t t)
 
 	while (t > 0) {
 		n = (t > 10) ? 10 : t;
-		rte_delay_ms(n);
+		rte_delay_us_sleep(n * 1000);
 		t -= n;
 	}
 }
@@ -133,7 +133,7 @@ dpdk_sleep(lua_State *L)
 {
 	validate_arg_count(L, 1);
 
-	rte_delay_ms(luaL_checkinteger(L, 1) * 1000);
+	rte_delay_us_sleep((luaL_checkinteger(L, 1) * 1000) * 1000);
 	return 0;
 }
 

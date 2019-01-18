@@ -428,7 +428,7 @@ main(int argc, char **argv)
 
 	scrn_create_with_defaults(pktgen.flags & ENABLE_THEME_FLAG);
 
-	rte_delay_ms(100);	/* Wait a bit for things to settle. */
+	rte_delay_us_sleep(100 * 1000);	/* Wait a bit for things to settle. */
 
 	print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
 
@@ -507,7 +507,7 @@ main(int argc, char **argv)
 
 	RTE_ETH_FOREACH_DEV(i) {
 		rte_eth_dev_stop(i);
-		rte_delay_ms(100);
+		rte_delay_us_sleep(100 * 1000);
 		rte_eth_dev_close(i);
 	}
 

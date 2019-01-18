@@ -238,7 +238,7 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
 			return;
 		if (!wait)
 			break;
-		rte_delay_ms(100);
+		rte_delay_us_sleep(100 * 1000);
 	}
 
 	if (wait)

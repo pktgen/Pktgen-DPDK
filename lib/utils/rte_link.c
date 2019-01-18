@@ -121,7 +121,7 @@ rte_link_status_wait(FILE *f, uint64_t port_list, int secs)
 		fprintf(f, ".");
 		fflush(f);
 
-		rte_delay_ms(CHECK_INTERVAL);
+		rte_delay_us_sleep(CHECK_INTERVAL * 1000);
 	}
 
 	fprintf(f, "done\n");

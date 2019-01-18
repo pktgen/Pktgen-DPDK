@@ -1465,7 +1465,7 @@ pktgen_prime_ports(port_info_t *info)
 		pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 	rte_atomic64_set(&info->current_tx_count, info->prime_cnt);
 	pktgen_set_port_flags(info, SENDING_PACKETS);
-	rte_delay_ms(300);
+	rte_delay_us_sleep(300 * 1000);
 	for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 		pktgen_set_q_flags(info, q, DO_TX_FLUSH);
 }
@@ -2335,7 +2335,7 @@ pktgen_port_restart(port_info_t *info)
 
 	pktgen_stop_transmitting(info);
 
-	rte_delay_ms(10);
+	rte_delay_us_sleep(10 * 1000);
 
 	/* Stop and start the device to flush TX and RX buffers from the device rings. */
 	rte_eth_dev_stop(info->pid);

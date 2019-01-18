@@ -163,7 +163,7 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define DELETE_CHAR		(1 << 4)
 #define CLEAR_LINE		(1 << 5)
 
-#define CLI_USE_TIMERS 		(1 << 8)	/**< call rte_timer_manager() on input */
+#define CLI_USE_TIMERS 		(1 << 8)	/**< call rte_timer_manage() on input */
 #define CLI_NODES_UNLIMITED	(1 << 9)	/**< Allocate nodes with no limit */
 #define CLI_YIELD_IO		(1 << 10)
 #define CLI_DEFAULT_TREE	(1 << 11)

@@ -416,7 +416,7 @@ pktgen_config_ports(void)
 
 		pktgen_range_setup(info);
 
-		rte_eth_stats_get(pid, &info->init_stats);
+		rte_eth_stats_get(pid, &info->prev_stats);
 
 		pktgen_rnd_bits_init(&pktgen.info[pid].rnd_bitfields);
 	}

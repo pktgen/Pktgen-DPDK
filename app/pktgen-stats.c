@@ -458,7 +458,7 @@ void
 pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
 	unsigned int pid;
-	struct rte_eth_stats stats, *rate, *init, *prev;
+	struct rte_eth_stats stats, *rate, *prev;
 	port_info_t *info;
 	static unsigned int counter = 0;
 
@@ -479,27 +479,8 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 
 		rte_eth_stats_get(pid, &stats);
 
-		init = &info->init_stats;
 		rate = &info->rate_stats;
 		prev = &info->prev_stats;
-
-		/* Normalize counts to the initial state, used for clearing statistics */
-		stats.ipackets  -= init->ipackets;
-		stats.opackets  -= init->opackets;
-		stats.ibytes    -= init->ibytes;
-		stats.obytes    -= init->obytes;
-		stats.ierrors   -= init->ierrors;
-		stats.oerrors   -= init->oerrors;
-		stats.imissed   -= init->imissed;
-		stats.rx_nombuf -= init->rx_nombuf;
-
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		stats.ibadcrc   -= init->ibadcrc;
-		stats.ibadlen   -= init->ibadlen;
-#endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		stats.imcasts   -= init->imcasts;
-#endif
 
 		rate->ipackets   = stats.ipackets - prev->ipackets;
 		rate->opackets   = stats.opackets - prev->opackets;

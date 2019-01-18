@@ -2096,7 +2096,7 @@ pktgen_clear_stats(port_info_t *info)
 	memset(&info->prev_stats, 0, sizeof(eth_stats_t));
 	memset(&info->rate_stats, 0, sizeof(eth_stats_t));
 
-	rte_eth_stats_get(info->pid, &info->init_stats);
+	rte_eth_stats_get(info->pid, &info->prev_stats);
 	pktgen.max_total_ipackets   = 0;
 	pktgen.max_total_opackets   = 0;
 	info->max_ipackets          = 0;

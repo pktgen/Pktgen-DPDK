@@ -191,7 +191,6 @@ typedef struct port_info_s {
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */
 
-	eth_stats_t init_stats;	/**< Initial packet statistics */
 	eth_stats_t prev_stats;	/**< current port statistics */
 	eth_stats_t rate_stats;	/**< current packet rate statistics */
 	uint64_t max_ipackets;	/**< Max seen input packet rate */

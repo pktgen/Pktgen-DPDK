@@ -45,7 +45,6 @@ __delay(int32_t t)
 	int32_t n;
 
 	while (t > 0) {
-		rte_timer_manage();
 		n = (t > 10) ? 10 : t;
 		rte_delay_ms(n);
 		t -= n;

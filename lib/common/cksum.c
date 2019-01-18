@@ -70,7 +70,6 @@
 #include "port_config.h"
 
 #include "pg_inet.h"
-#include "cycles.h"
 #include "mbuf.h"
 #include "cksum.h"
 

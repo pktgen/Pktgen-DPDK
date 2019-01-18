@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <rte_lcore.h>
 #include <rte_lua.h>
 
 #include "pktgen.h"
@@ -1579,6 +1580,39 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 static struct rte_timer timer0;
 static struct rte_timer timer1;
 
+static void *
+_timer_thread(void *arg)
+{
+	uint64_t process, page, process_timo, page_timo;
+
+	this_scrn = arg;
+
+	process_timo = pktgen.hz;
+	page_timo = UPDATE_DISPLAY_TICK_RATE;
+
+	process = rte_rdtsc() + process_timo;
+	page = rte_rdtsc() + page_timo;
+	pktgen.timer_running = 1;
+
+	while(pktgen.timer_running) {
+		uint64_t curr;
+
+		curr = rte_rdtsc();
+
+		if (curr >= process) {
+			pktgen_process_stats(NULL, NULL);
+			process += process_timo;
+		}
+		if (curr >= page) {
+			pktgen_page_display(NULL, NULL);
+			page = curr + page_timo;
+		}
+
+		rte_pause();
+	}
+	return NULL;
+}
+
 /**************************************************************************//**
  *
  * pktgen_timer_setup - Set up the timer callback routines.
@@ -1595,6 +1629,7 @@ void
 rte_timer_setup(void)
 {
 	int lcore_id = rte_get_master_lcore();
+	pthread_t tid;
 
 	/* init RTE timer library */
 	rte_timer_subsystem_init();
@@ -1618,4 +1653,6 @@ rte_timer_setup(void)
 	                lcore_id,
 	                pktgen_process_stats,
 	                NULL);
+
+	rte_ctrl_thread_create(&tid, "Stats-thread", NULL, _timer_thread, this_scrn);
 }

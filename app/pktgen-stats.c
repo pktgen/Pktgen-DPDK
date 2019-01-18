@@ -461,7 +461,19 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	struct rte_eth_stats stats, *rate, *prev;
 	port_info_t *info;
 	static unsigned int counter = 0;
+#ifdef DEBUG_TIMERS
+	static uint64_t tsc = 0;
 
+	if (tsc == 0)
+		tsc = rte_rdtsc();
+	else {
+		uint64_t curr = rte_rdtsc();
+
+		if ((curr - tsc) != pktgen.hz)
+			printf("delta %18lu hz %lu %8ld\n", curr-tsc, pktgen.hz, pktgen.hz - (curr-tsc));
+		tsc = curr;
+	}
+#endif
 	counter++;
 	if (pktgen.flags & BLINK_PORTS_FLAG) {
 		RTE_ETH_FOREACH_DEV(pid) {

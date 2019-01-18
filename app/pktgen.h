@@ -75,7 +75,6 @@
 #include <pg_inet.h>
 #include <cksum.h>
 
-#include <cycles.h>
 #include <mbuf.h>
 #include <coremap.h>
 #include <lscpu.h>
@@ -310,6 +309,7 @@ typedef struct pktgen_s {
 
 	capture_t capture[RTE_MAX_NUMA_NODES];	/**< Packet capture, 1 struct per socket */
 	uint8_t is_gui_running;
+	volatile uint8_t timer_running;
 } pktgen_t;
 
 enum {						/* Queue flags */

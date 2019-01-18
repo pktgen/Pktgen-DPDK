@@ -91,7 +91,7 @@ pktgen_usage(const char *prgname)
 		"  -N           Enable NUMA support\n"
 		"  -T           Enable the color output\n"
 		"  -v           Verbose output\n"
-		"  --crc-strip  Strip CRC on all ports\n"
+		"  --no-crc-strip  Do not strip CRC on all ports, (Default is to strip crc)\n"
 		"  -m <string>  matrix for mapping ports to logical cores\n"
 		"      BNF: (or kind of BNF)\n"
 		"      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
@@ -149,6 +149,7 @@ pktgen_parse_args(int argc, char **argv)
 	char *prgname = argv[0], *p, *pc;
 	static struct option lgopts[] = {
 		{"crc-strip", 0, 0, 0},
+		{"no-crc-strip", 0, 0, 0},
 		{NULL, 0, 0, 0}
 	};
 
@@ -160,6 +161,8 @@ pktgen_parse_args(int argc, char **argv)
 	pktgen.argc = argc;
 	for (opt = 0; opt < argc; opt++)
 		pktgen.argv[opt] = strdup(argv[opt]);
+
+	pktgen_set_hw_strip_crc(1);
 
 	pktgen.verbose = 0;
 	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTv",
@@ -257,7 +260,11 @@ pktgen_parse_args(int argc, char **argv)
 			return -1;
 
 		case 0:	/* crc-strip for all ports */
+			printf(">>> Strip CRC in hardware is the default\n");
 			pktgen_set_hw_strip_crc(1);
+			break;
+		case 1:	/* no-crc-strip for all ports */
+			pktgen_set_hw_strip_crc(0);
 			break;
 		default:
 			pktgen_usage(prgname);
@@ -526,6 +533,7 @@ pktgen_stop_running(void)
 {
 	uint16_t lid;
 
+	pktgen.timer_running = 0;
 	for (lid = 0; lid < RTE_MAX_LCORE; lid++)
 		pg_stop_lcore(pktgen.l2p, lid);
 }

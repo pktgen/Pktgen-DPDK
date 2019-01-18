@@ -115,13 +115,13 @@ pktgen_print_static_data(void)
 	for (row = PORT_STATE_ROW; row < (uint32_t)(pktgen.last_row - 2); row++)
 		scrn_printf(row, COLUMN_WIDTH_0 - 1, ":");
 
-	pktgen_display_set_color("stats.stat.values");
 	sp = pktgen.starting_port;
 	display_cnt = 0;
 	for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
 		if (get_map(pktgen.l2p, pid + sp, RTE_MAX_LCORE) == 0)
 			continue;
 
+		pktgen_display_set_color("stats.stat.values");
 		info    = &pktgen.info[pid + sp];
 
 		pkt     = &info->seq_pkt[SINGLE_PKT];
@@ -135,9 +135,12 @@ pktgen_print_static_data(void)
 		            (info->fill_pattern_type == NO_FILL_PATTERN) ? "None" :
 		            (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" :
 		            info->user_pattern);
+
+		pktgen_display_set_color("stats.rate.count");
 		pktgen_transmit_count_rate(pid, buff, sizeof(buff));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		pktgen_display_set_color("stats.stat.values");
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
@@ -158,16 +161,19 @@ pktgen_print_static_data(void)
 		snprintf(buff, sizeof(buff), "%04x/%5d/%5d",  pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		pktgen_display_set_color("stats.ip");
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		            inet_ntop4(buff, sizeof(buff),
 		                       htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		            inet_ntop4(buff, sizeof(buff),
 		                       htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
+		pktgen_display_set_color("stats.mac");
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		            inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		            inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
+
 		rte_eth_dev_info_get(pid, &dev);
 #if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 		if (dev.pci_dev)
@@ -196,6 +202,7 @@ pktgen_print_static_data(void)
 #endif
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 			         0, 0, 0, 0, 0);
+		pktgen_display_set_color("stats.bdf");
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;

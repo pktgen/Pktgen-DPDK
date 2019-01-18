@@ -112,6 +112,12 @@ theme_color_map_t theme_color_map[] = {
 	/* Colon separating labels and values */
 	{ "stats.colon",        SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 
+	/* Highlight some static values */
+	{ "stats.rate.count",   SCRN_MAGENTA,    SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.bdf",          SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.mac",          SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.ip",           SCRN_CYAN,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+
 	/*
 	 * Misc.
 	 */

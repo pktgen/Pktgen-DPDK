@@ -916,8 +916,7 @@ __delay(int32_t t)
 	int32_t n;
 
 	while (t > 0) {
-		if (cli_use_timers())
-			rte_timer_manage();
+		cli_use_timers();
 		n = (t > 10) ? 10 : t;
 		rte_delay_ms(n);
 		t -= n;

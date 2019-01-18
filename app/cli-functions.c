@@ -1627,7 +1627,7 @@ pktgen_cli_create(void)
 void
 pktgen_cli_start(void)
 {
-	cli_start_with_timers(NULL);
+	cli_start(NULL);
 
 	cli_destroy();
 }

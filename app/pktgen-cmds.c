@@ -2340,7 +2340,7 @@ pktgen_port_restart(port_info_t *info)
 	/* Stop and start the device to flush TX and RX buffers from the device rings. */
 	rte_eth_dev_stop(info->pid);
 
-	rte_delay_us(250);
+	rte_delay_us_sleep(250);
 
 	rte_eth_dev_start(info->pid);
 

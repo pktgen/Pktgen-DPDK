@@ -515,8 +515,7 @@ sleep_cmd(int argc __rte_unused, char **argv)
 	}
 
 	while (cnt--) {
-		if (cli_use_timers())
-			rte_timer_manage();
+		cli_use_timers();
 		rte_delay_ms(250);
 	}
 	return 0;
@@ -529,8 +528,7 @@ delay_cmd(int argc __rte_unused, char **argv)
 	int cnt = (ms / 1000) * 4;
 
 	while (cnt--) {
-		if (cli_use_timers())
-			rte_timer_manage();
+		cli_use_timers();
 		rte_delay_ms(250);
 		ms -= 250;
 	}

@@ -84,8 +84,7 @@ cli_poll(char *c)
 	fds.events  = POLLIN;
 	fds.revents = 0;
 
-	if (cli_use_timers())
-		rte_timer_manage();
+	cli_use_timers();
 
 	if (poll(&fds, 1, 0)) {
 		if ((fds.revents & (POLLERR | POLLNVAL)) == 0) {

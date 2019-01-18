@@ -21,12 +21,11 @@ static int (*__dofile_lua)(void *, const char *);
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
-int
+void
 cli_use_timers(void)
 {
-	if (!this_cli)
-		return 0;
-	return this_cli->flags & CLI_USE_TIMERS;
+	if (this_cli && this_cli->flags & CLI_USE_TIMERS)
+		rte_timer_manage();
 }
 
 int

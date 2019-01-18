@@ -900,14 +900,11 @@ int cli_execute_cmdfiles(void);
 int cli_remove_node(struct cli_node *node);
 
 /**
- * return true if timers are enabled.
+ * Handle calling the rte_timer_manage routine if trimers are enabled
  *
  * @note Uses thread variable this_cli.
- *
- * @return
- *   non-zero if true else 0
  */
-int cli_use_timers(void);
+void cli_use_timers(void);
 
 /**
  * return true if allocating unlimited nodes are enabled.

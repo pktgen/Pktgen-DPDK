@@ -2330,7 +2330,7 @@ pktgen_port(lua_State *L)
 	case 1:
 		break;
 	}
-	pktgen_set_port_number(luaL_checkinteger(L, 1));
+	pktgen_set_port_number((uint16_t)luaL_checkinteger(L, 1));
 	return 0;
 }
 

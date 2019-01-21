@@ -59,7 +59,7 @@ void pktgen_mac_from_arp(int state);
 void pktgen_prime_ports(port_info_t *info);
 void pktgen_quit(void);
 void pktgen_set_page_size(uint32_t page_size);
-void pktgen_set_port_number(uint32_t port_number);
+void pktgen_set_port_number(uint16_t port_number);
 void pktgen_set_port_prime(port_info_t *info, uint32_t cnt);
 void pktgen_port_defaults(uint32_t pid, uint8_t seq);
 

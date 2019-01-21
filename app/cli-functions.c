@@ -1452,7 +1452,7 @@ misc_cmd(int argc, char **argv)
 				     pktgen_port_restart(info) );
 			break;
 		case 120:
-		case 130: pktgen_set_port_number(atoi(argv[1])); break;
+		case 130: pktgen_set_port_number((uint16_t)atoi(argv[1])); break;
 		case 140:
 			rte_parse_portlist(argv[1], &portlist);
 			foreach_port(portlist, pktgen_ping4(info));

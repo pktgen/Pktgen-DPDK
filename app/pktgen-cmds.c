@@ -1137,9 +1137,9 @@ pktgen_screen(int state)
  */
 
 void
-pktgen_set_port_number(uint32_t port_number)
+pktgen_set_port_number(uint16_t port_number)
 {
-	if (port_number <= pktgen.nb_ports) {
+	if (port_number < pktgen.nb_ports) {
 		pktgen.portNum = port_number;
 		pktgen_clear_display();
 	}

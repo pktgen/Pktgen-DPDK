@@ -215,49 +215,64 @@ The configuration files are python scripts or a set of variables that run.py use
 Here is an example of the default.cfg file:
 
 ``
-# Setup configuration
-setup = {
-	'devices': [
-		'04:00.0 04:00.1 04:00.2 04:00.3',
-		'81:00.0 81:00.1 81:00.2 81:00.3',
-		'82:00.0 83:00.0'
-		],
+	description = 'A Pktgen default simple configuration'
 
-	'opts': [
-		'-b igb_uio'
-		]
-	}
+	# Setup configuration
+	setup = {
+	    'exec': (
+		'sudo', '-E'
+		),
 
-# Run command and options
-run = {
-	'dpdk': [
-		'-l 8,9-16',
-		'-n 4',
-		'--proc-type auto',
-		'--log-level 7',
-		'--file-prefix pg'
-		],
+	    'devices': (
+		    '81:00.0', '81:00.1', '81:00.2', '81:00.3',
+		    '83:00.0', '83:00.1', '83:00.2', '83:00.3'
+		    ),
+	    # UIO module type, igb_uio, vfio-pci or uio_pci_generic
+	    'uio': 'vfio-pci'
+	    }
 
-	'blacklist': [
-		'-b 05:00.0 -b 05:00.1',
-		'-b 04:00.0 -b 04:00.1 -b 04:00.2 -b 04:00.3',
-		#'-b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3',
-		'-b 82:00.0 -b 83:00.0'
-		],
+	# Run command and options
+	run = {
+	    'exec': (
+		'sudo', '-E'
+		),
 
-	'pktgen': [
+	    # Application name and use app_path to help locate the app
+	    'app_name': 'pktgen',
+
+	    # using (sdk) or (target) for specific variables
+	    # add (app_name) of the application
+	    # Each path is tested for the application
+	    'app_path': (
+		'./app/%(target)s/%(app_name)s',
+		'%(sdk)s/%(target)s/app/%(app_name)s',
+		),
+
+	    'cores': '14,15-22',
+	    'nrank': '4',
+	    'proc': 'auto',
+	    'log': '7',
+	    'prefix': 'pg',
+    
+	    'blacklist': (
+		#'81:00.0', '81:00.1', '81:00.2', '81:00.3',
+		#'83:00.0', '83:00.1', '83:00.2', '83:00.3',
+		'81:00.2', '81:00.3',
+		'83:00.2', '83:00.3'
+		),
+		
+	    'opts': (
 		'-T',
 		'-P',
-		'--crc-strip',
-		'-m [9:10].0',
-		'-m [11:12].1',
-		'-m [13:14].2',
-		'-m [15:16].3'
-		],
+		),
+	    'map': (
+		'[15:16].0',
+		'[17:18].1',
+		'[19:20].2',
+		'[21:22].3'
+		),
 
-	'misc': [
-		'-f themes/black-yellow.theme'
-		]
+	    'theme': 'themes/black-yellow.theme'
 	}
 ``
 

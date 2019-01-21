@@ -532,9 +532,9 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 /***************************************************************************/
 
 void
-pktgen_page_phys_stats(void)
+pktgen_page_phys_stats(uint16_t pid)
 {
-	unsigned int pid, col, row;
+	unsigned int col, row, q, hdr;
 	struct rte_eth_stats stats, *s, *r;
 	struct ether_addr ethaddr;
 	char buff[32], mac_buf[32];
@@ -545,83 +545,71 @@ pktgen_page_phys_stats(void)
 	pktgen_display_set_color("top.page");
 	display_topline("<Real Port Stats Page>");
 
-	row = 3;
-	col = 1;
-	pktgen_display_set_color("stats.port.status");
-	scrn_printf(row++, col, "Port Name");
-	pktgen_display_set_color("stats.stat.label");
-	RTE_ETH_FOREACH_DEV(pid) {
-		snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
-		scrn_printf(row++, col, "%-*s", COLUMN_WIDTH_0 - 4, buff);
-	}
+        row = 3;
+        col = 1;
+        pktgen_display_set_color("stats.port.status");
+        scrn_printf(row, col, "Port %u", pid);
+
+        col = COLUMN_WIDTH_0 - 3;
+        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
+
+        col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 1)) - 3;
+        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
+
+        col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
+        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
+
+        col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
+        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
+
+	rte_eth_stats_get(pid, &stats);
 
 	row = 4;
-	/* Display the colon after the row label. */
-	pktgen_display_set_color("stats.colon");
-	RTE_ETH_FOREACH_DEV(pid) {
-		scrn_printf(row++, COLUMN_WIDTH_0 - 4, ":");
-	}
-	display_dashline(++row);
+	col = 1;
+	pktgen_display_set_color("stats.stat.label");
+	snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
+	scrn_printf(row, col, "%-*s:", COLUMN_WIDTH_0 - 4, buff);
 
-	row = 3;
+	pktgen_display_set_color("stats.stat.values");
 	col = COLUMN_WIDTH_0 - 3;
-	pktgen_display_set_color("stats.port.status");
-	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
-	pktgen_display_set_color("stats.stat.values");
-	RTE_ETH_FOREACH_DEV(pid) {
+	snprintf(buff, sizeof(buff), "%lu/%lu", s->ipackets, s->opackets);
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 
-		rte_eth_stats_get(pid, &stats);
+	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 1)) - 3;
+	snprintf(buff, sizeof(buff), "%lu/%lu", s->ierrors, s->imissed);
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 
-		snprintf(buff, sizeof(buff), "%lu/%lu", s->ipackets, s->opackets);
-
-		/* Total Rx/Tx */
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
-	}
-
-	row = 3;
-	col = (COLUMN_WIDTH_0 + COLUMN_WIDTH_3) - 3;
-	pktgen_display_set_color("stats.port.status");
-	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
-	pktgen_display_set_color("stats.stat.values");
-	RTE_ETH_FOREACH_DEV(pid) {
-
-		rte_eth_stats_get(pid, &stats);
-
-		snprintf(buff, sizeof(buff), "%lu/%lu", s->ierrors, s->imissed);
-
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
-	}
-
-	row = 3;
 	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
-	pktgen_display_set_color("stats.port.status");
-	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
-	pktgen_display_set_color("stats.stat.values");
+	r = &pktgen.info[pid].rate_stats;
+	snprintf(buff, sizeof(buff), "%lu/%lu", r->ipackets, r->opackets);
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 
-	RTE_ETH_FOREACH_DEV(pid) {
-
-		rte_eth_stats_get(pid, &stats);
-
-		r = &pktgen.info[pid].rate_stats;
-		snprintf(buff, sizeof(buff), "%lu/%lu", r->ipackets, r->opackets);
-
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
-	}
-	row = 3;
 	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
-	pktgen_display_set_color("stats.port.status");
-	scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
-	pktgen_display_set_color(NULL);
-	RTE_ETH_FOREACH_DEV(pid) {
+	rte_eth_macaddr_get(pid, &ethaddr);
+	ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+	snprintf(buff, sizeof(buff), "%s", mac_buf);
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
+	row++;
 
-		rte_eth_macaddr_get(pid, &ethaddr);
-
-		ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
-		snprintf(buff, sizeof(buff), "%s", mac_buf);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+	hdr = 0;
+	for(q = 0; q < RTE_ETHDEV_QUEUE_STAT_CNTRS; q++) {
+		if (!hdr) {
+			hdr = 1;
+			row++;
+        		pktgen_display_set_color("stats.port.status");
+			scrn_printf(row++, 1, "           %14s %14s %14s %14s %14s",
+					"ipackets", "opackets", "ibytes", "obytes", "errors");
+			pktgen_display_set_color("stats.stat.values");
+		}
+		scrn_printf(row++, 1, "     Q %2d: %14lu %14lu %14lu %14lu %14lu", q,
+				stats.q_ipackets[q], 
+				stats.q_opackets[q], 
+				stats.q_ibytes[q], 
+				stats.q_obytes[q], 
+				stats.q_errors[q]); 
 	}
-
 	pktgen_display_set_color(NULL);
+	display_dashline(++row);
 	scrn_eol();
 }
 

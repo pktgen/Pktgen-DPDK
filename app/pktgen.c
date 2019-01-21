@@ -1528,7 +1528,7 @@ _page_display(void)
 	else if (pktgen.flags & LATENCY_PAGE_FLAG)
 		pktgen_page_latency();
 	else if (pktgen.flags & STATS_PAGE_FLAG)
-		pktgen_page_phys_stats();
+		pktgen_page_phys_stats(pktgen.portNum);
 	else if (pktgen.flags & XSTATS_PAGE_FLAG)
 		pktgen_page_xstats(pktgen.portNum);
 	else

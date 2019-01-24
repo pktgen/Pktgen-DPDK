@@ -74,24 +74,24 @@ $(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
 $(info "Make sure the library in /usr/local/lib is called liblua.a or liblua.so")
 
 # set defaults
-LUA_PKG_LIBS    = -L/usr/local/lib
 LUA_PKG_CFLAGS  = -I/usr/local/include
-LUA_PKG_LDFLAGS = -llua
+LUA_PKG_LDFLAGS = -L/usr/local/lib
+LUA_PKG_LIBS    = -llua
 else
-LUA_PKG_LIBS    = $(shell pkg-config --silence-errors --libs-only-L lua5.3)
-LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-l lua5.3)
 LUA_PKG_CFLAGS  = $(shell pkg-config --silence-errors --cflags lua-5.3)
+LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-L lua-5.3)
+LUA_PKG_LIBS    = $(shell pkg-config --silence-errors --libs-only-l lua-5.3)
 
 ifeq ($(LUA_PKG_LIBS),)
-LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs-only-L lua-5.3)
-LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-l lua-5.3)
-LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua-5.3)
+LUA_PKG_CFLAGS  = $(shell pkg-config --silence-errors --cflags lua5.3)
+LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-L lua5.3)
+LUA_PKG_LIBS    = $(shell pkg-config --silence-errors --libs-only-l lua5.3)
 endif
 
 ifeq ($(LUA_PKG_LIBS),)
-LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs-only-L lua)
-LUA_PKG_LIBS = $(shell pkg-config --silence-errors --libs-only-l lua)
-LUA_PKG_CFLAGS = $(shell pkg-config --silence-errors --cflags lua)
+LUA_PKG_CFLAGS  = $(shell pkg-config --silence-errors --cflags lua)
+LUA_PKG_LDFLAGS = $(shell pkg-config --silence-errors --libs-only-L lua)
+LUA_PKG_LIBS    = $(shell pkg-config --silence-errors --libs-only-l lua)
 endif
 
 ifeq ($(LUA_PKG_LIBS),)
@@ -101,9 +101,9 @@ $(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
 $(info "Make sure the library in /usr/local/lib is called liblua.a")
 
 # set defaults
-LUA_PKG_LIBS    = -L/usr/local/lib
 LUA_PKG_CFLAGS  = -I/usr/local/include
-LUA_PKG_LDFLAGS = -llua
+LUA_PKG_LDFLAGS = -L/usr/local/lib
+LUA_PKG_LIBS    = -llua
 endif
 endif
 

@@ -6,6 +6,11 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.6.4 - Add a new page stats screen to dump out info
+           Updated the readme to give better info on .cfg files
+	   Fixed the port <N> to include only valid ports
+	   fix port command functions to use uint16_t for ports.
+	   fix detection of Lua libs testing LUA_PKT_LIBS for Ubuntu 18.10
  - 3.6.3 - Fix race condition in start command
            Add support of having a different PCAP file per queue of a port
 	   Replace constant with macro for PCAP buffer size

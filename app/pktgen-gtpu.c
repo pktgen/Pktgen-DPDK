@@ -36,11 +36,11 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 	void *p;
 
 	if (ipProto == PG_IPPROTO_UDP)
-		l4HdrSize = sizeof(udpHdr_t);
+		l4HdrSize = sizeof(struct udp_hdr);
 	else
-		l4HdrSize = sizeof(tcpHdr_t);
+		l4HdrSize = sizeof(struct tcp_hdr);
 
-	gtppHdr = (gtpuHdr_t *)RTE_PTR_ADD(hdr, sizeof(ipHdr_t) + l4HdrSize);
+	gtppHdr = (gtpuHdr_t *)RTE_PTR_ADD(hdr, sizeof(struct ipv4_hdr) + l4HdrSize);
 
 	/* Zero out the header space */
 	memset((char *)gtppHdr, 0, sizeof(gtpuHdr_t));

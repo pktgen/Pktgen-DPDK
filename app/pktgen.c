@@ -11,6 +11,8 @@
 
 #include <rte_lcore.h>
 #include <rte_lua.h>
+#include <rte_net.h>
+#include <rte_arp.h>
 
 #include "pktgen.h"
 #include "pktgen-gre.h"
@@ -611,42 +613,48 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_ICMP) {
-			udpip_t *uip;
-			icmpv4Hdr_t *icmp;
+			struct ipv4_hdr *ipv4;
+			struct udp_hdr *udp;
+			struct icmp_hdr *icmp;
 			uint16_t tlen;
 
 			/* Start from Ethernet header */
-			uip = (udpip_t *)l3_hdr;
+			ipv4 = (struct ipv4_hdr *)l3_hdr;
+			udp = (struct udp_hdr *)&ipv4[1];
 
 			/* Create the ICMP header */
-			uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-			uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-			tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
-			uip->ip.len         = htons(tlen);
-			uip->ip.proto       = pkt->ipProto;
+			ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+			ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
-			icmp = (icmpv4Hdr_t *)&uip->udp;
-			icmp->code                      = 0;
+			tlen  = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv4_hdr));
+			ipv4->total_length = htons(tlen);
+			ipv4->next_proto_id = pkt->ipProto;
+
+			icmp = (struct icmp_hdr *)&udp[1];
+			icmp->icmp_code = 0;
 			if ( (type == -1) || (type == ICMP4_TIMESTAMP)) {
-				icmp->type                      =
-				        ICMP4_TIMESTAMP;
-				icmp->data.timestamp.ident      = 0x1234;
-				icmp->data.timestamp.seq        = 0x5678;
-				icmp->data.timestamp.originate  = 0x80004321;
-				icmp->data.timestamp.receive    = 0;
-				icmp->data.timestamp.transmit   = 0;
+				union icmp_data *data = (union icmp_data *)&udp[1];
+
+				icmp->icmp_type = ICMP4_TIMESTAMP;
+				data->timestamp.ident = 0x1234;
+				data->timestamp.seq = 0x5678;
+				data->timestamp.originate = 0x80004321;
+				data->timestamp.receive = 0;
+				data->timestamp.transmit = 0;
 			} else if (type == ICMP4_ECHO) {
-				icmp->type                      = ICMP4_ECHO;
-				icmp->data.echo.ident           = 0x1234;
-				icmp->data.echo.seq             = 0x5678;
-				icmp->data.echo.data            = 0;
+				union icmp_data *data = (union icmp_data *)&udp[1];
+
+				icmp->icmp_type = ICMP4_ECHO;
+				data->echo.ident = 0x1234;
+				data->echo.seq = 0x5678;
+				data->echo.data = 0;
 			}
-			icmp->cksum     = 0;
+			icmp->icmp_cksum     = 0;
 			/* ICMP4_TIMESTAMP_SIZE */
-			tlen            = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
-			icmp->cksum     = cksum(icmp, tlen, 0);
-			if (icmp->cksum == 0)
-				icmp->cksum = 0xFFFF;
+			tlen            = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv4_hdr));
+			icmp->icmp_cksum	= rte_raw_cksum(icmp, tlen);
+			if (icmp->icmp_cksum == 0)
+				icmp->icmp_cksum = 0xFFFF;
 
 			/* IPv4 Header constructor */
 			pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -667,23 +675,23 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		}
 	} else if (pkt->ethType == ETHER_TYPE_ARP) {
 		/* Start from Ethernet header */
-		arpPkt_t *arp = (arpPkt_t *)l3_hdr;
+		struct arp_hdr *arp = (struct arp_hdr *)l3_hdr;
 
-		arp->hrd = htons(1);
-		arp->pro = htons(ETHER_TYPE_IPv4);
-		arp->hln = ETHER_ADDR_LEN;
-		arp->pln = 4;
+		arp->arp_hrd = htons(1);
+		arp->arp_pro = htons(ETHER_TYPE_IPv4);
+		arp->arp_hln = ETHER_ADDR_LEN;
+		arp->arp_pln = 4;
 
 		/* make request/reply operation selectable by user */
-		arp->op  = htons(2);
+		arp->arp_op  = htons(2);
 
 		ether_addr_copy(&pkt->eth_src_addr,
-		                (struct ether_addr *)&arp->sha);
-		arp->spa._32 = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+		                (struct ether_addr *)&arp->arp_data.arp_sha);
+		*((uint32_t *)&arp->arp_data.arp_sha) = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 
 		ether_addr_copy(&pkt->eth_dst_addr,
-		                (struct ether_addr *)&arp->tha);
-		arp->tpa._32 = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+		                (struct ether_addr *)&arp->arp_data.arp_tha);
+		*((uint32_t *)&arp->arp_data.arp_tip) = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	} else
 		pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
 }
@@ -981,6 +989,39 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	d->pkt_len = m->pkt_len;
 	d->buf_len = m->buf_len;
 	d->data_len = m->data_len;
+
+	switch(pkt->ethType) {
+	case ETHER_TYPE_IPv4:
+		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_IPV4_CKSUM)
+			pkt->ol_flags = PKT_TX_IP_CKSUM | PKT_TX_IPV4;
+		break;
+
+	case ETHER_TYPE_IPv6:
+		pkt->ol_flags = PKT_TX_IP_CKSUM | PKT_TX_IPV6;
+		break;
+
+	case ETHER_TYPE_VLAN:
+		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_VLAN_INSERT) {
+			/* TODO */
+		}
+		break;
+	default:
+		break;
+	}
+
+	switch(pkt->ipProto) {
+	case PG_IPPROTO_UDP:
+		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_UDP_CKSUM)
+			pkt->ol_flags |= PKT_TX_UDP_CKSUM;
+		break;
+	case PG_IPPROTO_TCP:
+		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_TCP_CKSUM)
+			pkt->ol_flags |= PKT_TX_TCP_CKSUM;
+		break;
+	default:
+		break;
+	}
+	m->ol_flags = pkt->ol_flags;
 }
 
 /**************************************************************************//**

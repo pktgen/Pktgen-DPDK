@@ -8,9 +8,6 @@
 #ifndef _PG_INET_H
 #define _PG_INET_H
 
-#define IPv4_VERSION    4
-#define IPv6_VERSION    6
-
 #ifdef RTE_MACHINE_CPUFLAG_SSE4_2
 #include <nmmintrin.h>
 #else
@@ -22,10 +19,15 @@
 #include <arpa/inet.h>
 
 #include <rte_ether.h>
+#include <rte_net.h>
+#include <rte_icmp.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define IPv4_VERSION    4
+#define IPv6_VERSION    6
 
 #define PG_IPADDR_V4      0x01
 #define PG_IPADDR_V6      0x02
@@ -45,80 +47,13 @@ struct pg_ipaddr {
         unsigned int prefixlen; /* in case of network only */
 };
 
-/* Internet protocol header structure */
-/* Basic IPv4 packet header
- *
- *                        IPv4 Header Format
- *
- *    0                   1                   2                   3
- *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   | Ver   | hlen  |      TOS      |         Total length          |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |         Ident                 |flags|     fragment offset     |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |    TTL        |    Protocol   |       Header Checksum         |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                    Source Address (32  Bits)                  |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                 Destination Address (32  Bits)                |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                             data                              |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-typedef struct ipHdr_s {
-	uint8_t vl;	/* Version and header length */
-	uint8_t tos;	/* Type of Service */
-	uint16_t tlen;	/* total length */
-	uint16_t ident;	/* identification */
-	uint16_t ffrag;	/* Flags and Fragment offset */
-	uint8_t ttl;	/* Time to Live */
-	uint8_t proto;	/* Protocol */
-	uint16_t cksum;	/* Header checksum */
-	uint32_t src;	/* source IP address */
-	uint32_t dst;	/* destination IP address */
-} __attribute__((__packed__)) ipHdr_t;
-
 #define PG_ISFRAG(off)  ((off) & (PG_OFF_MF | PG_OFF_MASK))
 #define PG_OFF_MASK     0x1fff
 #define PG_OFF_MF       0x2000
 #define PG_OFF_DF       0x4000
 
-/* Basic IPv6 packet header
- *
- *                        IPv6 Header Format
- *
- *    0                   1                   2                   3
- *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   | Ver   | Traffic Class |            Flow Label                 |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |         Payload Length        |  Next Header  |   Hop Limit   |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                                                               |
- *   |                    Source Address (128 Bits)                  |
- *   |                                                               |
- *   |                                                               |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                                                               |
- *   |                 Destination Address (128 Bits)                |
- *   |                                                               |
- *   |                                                               |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                             data                              |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-typedef struct ipv6Hdr_s {
-	uint32_t ver_tc_fl;
-	uint16_t payload_length;
-	uint8_t next_header;
-	uint8_t hop_limit;
-	uint8_t saddr[16];
-	uint8_t daddr[16];
-} __attribute__ ((__packed__)) ipv6Hdr_t;
-
 /******************************************************************************
- * ipHdr_t.proto values in the IP Header.
+ * struct ipv4_hdr.proto values in the IP Header.
  *  1     ICMP        Internet Control Message            [RFC792]
  *  2     IGMP        Internet Group Management          [RFC1112]
  *  4     IP          IP in IP (encapsulation)           [RFC2003]
@@ -213,69 +148,24 @@ typedef struct ipv6Overlay_s {
 
 typedef unsigned int seq_t;	/* TCP Sequence type */
 
-/* UDP Header */
-typedef struct udpHdr_s {
-	uint16_t sport;	/* Source port value */
-	uint16_t dport;	/* Destination port value */
-	uint16_t len;	/* Length of datagram + header */
-	uint16_t cksum;	/* Checksum of data and header */
-} __attribute__((__packed__)) udpHdr_t;
-
 /* The UDP/IP Pseudo header */
 typedef struct udpip_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	udpHdr_t udp;	/* UDP header for protocol */
+	struct udp_hdr udp;	/* UDP header for protocol */
 } __attribute__((__packed__)) udpip_t;
 
 /* The GTP-U/UDP/IP Pseudo header */
 typedef struct gtpuUdpIp_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	udpHdr_t udp;	/* UDP header for protocol */
+	struct udp_hdr udp;	/* UDP header for protocol */
 	gtpuHdr_t gtpu;	/* GTP-U header */
 } __attribute__((__packed__)) gtpuUdpIp_t;
 
 /* The UDP/IPv6 Pseudo header */
 typedef struct udpipv6_s {
 	ipv6Overlay_t ip;	/* IPv6 overlay header */
-	udpHdr_t udp;		/* UDP header for protocol */
+	struct udp_hdr udp;		/* UDP header for protocol */
 } __attribute__((__packed__)) udpipv6_t;
-
-/* Basic TCP packet header
- *
- *                        TCP Header Format
- *
- *    0                   1                   2                   3
- *    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |          Source Port          |       Destination Port        |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                        Sequence Number                        |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                    Acknowledgment Number                      |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |  Data |           |U|A|P|R|S|F|                               |
- *   | Offset| Reserved  |R|C|S|S|Y|I|            Window             |
- *   |       |           |G|K|H|T|N|N|                               |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |           Checksum            |         Urgent Pointer        |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                    Options                    |    Padding    |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *   |                             data                              |
- *   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-typedef struct tcpHdr_s {
-	uint16_t sport;	/* Source port address */
-	uint16_t dport;	/* Destination port address */
-	seq_t seq;	/* Sequence number */
-	seq_t ack;	/* ACK number */
-	uint8_t offset;	/* Offset */
-	uint8_t flags;	/* Control flags */
-	uint16_t window;/* Window value */
-	uint16_t cksum;	/* Checksum */
-	uint16_t urgent;/* Urgent pointer or offset */
-	uint8_t opts[0];/* Place holder for options */
-} __attribute__((__packed__)) tcpHdr_t;
 
 enum { URG_FLAG = 0x20, ACK_FLAG = 0x10, PSH_FLAG = 0x08, RST_FLAG = 0x04,
        SYN_FLAG = 0x02, FIN_FLAG = 0x01 };
@@ -283,83 +173,78 @@ enum { URG_FLAG = 0x20, ACK_FLAG = 0x10, PSH_FLAG = 0x08, RST_FLAG = 0x04,
 /* The TCP/IPv4 Pseudo header */
 typedef struct tcpip_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	tcpHdr_t tcp;	/* TCP header for protocol */
+	struct tcp_hdr tcp;	/* TCP header for protocol */
 } __attribute__((__packed__)) tcpip_t;
 
 /* The GTPu/TCP/IPv4 Pseudo header */
 typedef struct gtpuTcpIp_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	tcpHdr_t tcp;	/* TCP header for protocol */
+	struct tcp_hdr tcp;	/* TCP header for protocol */
 	gtpuHdr_t gtpu;	/* GTP-U header */
 } __attribute__((__packed__)) gtpuTcpIp_t;
 
 /* The TCP/IPv6 Pseudo header */
 typedef struct tcpipv6_s {
 	ipv6Overlay_t ip;	/* IPv6 overlay header */
-	tcpHdr_t tcp;		/* TCP header for protocol */
+	struct tcp_hdr tcp;		/* TCP header for protocol */
 } __attribute__((__packed__)) tcpipv6_t;
 
-/* ICMPv4 Packet structure */
-typedef struct icmpv4Hdr_s {
-	uint8_t type;	/* Message Type */
-	uint8_t code;	/* Code value */
-	uint16_t cksum;	/* checksum */
+/* ICMPv4 Packet data structures */
+union icmp_data {
+	struct {
+		uint16_t ident;	/* Identifier */
+		uint16_t seq;	/* Sequence Number */
+		uint32_t data;	/* Data for sequence number */
+	} echo;
 
-	union {
-		struct {
-			uint16_t ident;	/* Identifier */
-			uint16_t seq;	/* Sequence Number */
-			uint32_t data;	/* Data for sequence number */
-		} echo;
+	struct {
+		uint32_t gateway;	/* Gateway Address */
+		uint16_t ip[10];	/* IP information */
+		uint16_t transport[4];	/* Transport information */
+	} redirect;
 
-		struct {
-			uint32_t gateway;	/* Gateway Address */
-			uint16_t ip[10];	/* IP information */
-			uint16_t transport[4];	/* Transport information */
-		} redirect;
+	struct {
+		uint32_t nextHopMtu;	/* Only if code NEED_FRAG or unused */
+		uint16_t ip[10];	/* IP information */
+		uint16_t transport[4];	/* Transport information */
+	} failing_pkt;
 
-		struct {
-			uint32_t nextHopMtu;	/* Only if code NEED_FRAG or unused */
-			uint16_t ip[10];	/* IP information */
-			uint16_t transport[4];	/* Transport information */
-		} failing_pkt;
+	struct {
+		uint16_t ident;		/* Identifier */
+		uint16_t seq;		/* Sequence Number */
+		uint32_t originate;	/* originate time */
+		uint32_t receive;	/* receive time */
+		uint32_t transmit;	/* transmit time */
+	} timestamp;
 
-		struct {
-			uint16_t ident;		/* Identifier */
-			uint16_t seq;		/* Sequence Number */
-			uint32_t originate;	/* originate time */
-			uint32_t receive;	/* receive time */
-			uint32_t transmit;	/* transmit time */
-		} timestamp;
+	struct {
+		uint32_t multicast;		/* Multicast information */
+		uint8_t s_qrv;			/* s_grv value */
+		uint8_t qqic;			/* qqoc value */
+		uint16_t numberOfSources;	/* number of Source routes */
+		uint16_t source_addr[1];	/* source address */
+	} igmp;
 
-		struct {
-			uint32_t multicast;		/* Multicast information */
-			uint8_t s_qrv;			/* s_grv value */
-			uint8_t qqic;			/* qqoc value */
-			uint16_t numberOfSources;	/* number of Source routes */
-			uint16_t source_addr[1];	/* source address */
-		} igmp;
+	struct {
+		uint8_t pointer;	/* Parameter pointer */
+		uint8_t unused[3];	/* Not used */
+	} param;			/* Parameter Problem */
 
-		struct {
-			uint8_t pointer;	/* Parameter pointer */
-			uint8_t unused[3];	/* Not used */
-		} param;			/* Parameter Problem */
+	struct {
+		uint8_t numAddrs;	/* Number of address */
+		uint8_t addrEntrySize;	/* Size of each entry */
+		uint16_t lifetime;	/* lifetime value */
+		uint32_t advert[1];	/* advertized values */
+	} advertise;
 
-		struct {
-			uint8_t numAddrs;	/* Number of address */
-			uint8_t addrEntrySize;	/* Size of each entry */
-			uint16_t lifetime;	/* lifetime value */
-			uint32_t advert[1];	/* advertized values */
-		} advertise;
+	/* Address mask */
+	struct {
+		uint16_t ident;	/* Identifier */
+		uint16_t seq;	/* Sequence Number */
+		uint32_t dmask;	/* Mask data */
+	} mask;
 
-		/* Address mask */
-		struct {
-			uint16_t ident;	/* Identifier */
-			uint16_t seq;	/* Sequence Number */
-			uint32_t dmask;	/* Mask data */
-		} mask;
-	} data;
-} __attribute__((__packed__)) icmpv4Hdr_t;
+} __attribute__((__packed__));
 
 #define ICMP4_TIMESTAMP_SIZE        12
 
@@ -475,13 +360,13 @@ typedef struct greHdr_s {
 
 /* the GRE/IPv4 header */
 typedef struct greIp_s {
-	ipHdr_t ip;	/* Outer IPv4 header */
+	struct ipv4_hdr ip;	/* Outer IPv4 header */
 	greHdr_t gre;	/* GRE header for protocol */
 } __attribute__ ((__packed__)) greIp_t;
 
 /* the GRE/Ethernet header */
 typedef struct greEther_s {
-	ipHdr_t ip;		/* Outer IPv4 header */
+	struct ipv4_hdr ip;		/* Outer IPv4 header */
 	greHdr_t gre;		/* GRE header */
 	struct ether_hdr ether;	/* Inner Ethernet header */
 } __attribute__ ((__packed__)) greEther_t;
@@ -518,28 +403,15 @@ typedef union {
 	uint32_t _32;
 } ip4_e;
 
-/* ARP packet format */
-typedef struct arpPkt_s {
-	uint16_t hrd;	/**< ARP Hardware type */
-	uint16_t pro;	/**< ARP Protocol type */
-	uint8_t hln;	/**< Hardware length */
-	uint8_t pln;	/**< Protocol length */
-	uint16_t op;	/**< opcode */
-	mac_e sha;	/**< Sender hardware address */
-	ip4_e spa;	/**< Sender IP address */
-	mac_e tha;	/**< Target hardware address */
-	ip4_e tpa;	/**< Target protocol address */
-} __attribute__((__packed__)) arpPkt_t;
-
 typedef struct pkt_hdr_s {
 	struct ether_hdr eth;	/**< Ethernet header */
 	union {
-		ipHdr_t ipv4;		/**< IPv4 Header */
-		ipv6Hdr_t ipv6;		/**< IPv6 Header */
+		struct ipv4_hdr ipv4;		/**< IPv4 Header */
+		struct ipv6_hdr ipv6;		/**< IPv6 Header */
 		tcpip_t tip;		/**< TCP + IPv4 Headers */
 		udpip_t uip;		/**< UDP + IPv4 Headers */
 		gtpuUdpIp_t guip;	/**< GTP-U + UDP + IPv4 Header */
-		icmpv4Hdr_t icmp;	/**< ICMP + IPv4 Headers */
+		struct icmp_hdr icmp;	/**< ICMP + IPv4 Headers */
 		tcpipv6_t tip6;		/**< TCP + IPv6 Headers */
 		udpipv6_t uip6;		/**< UDP + IPv6 Headers */
 		uint64_t pad[8];	/**< Length of structures */

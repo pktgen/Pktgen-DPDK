@@ -191,7 +191,8 @@ typedef struct port_info_s {
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */
 
-	eth_stats_t prev_stats;	/**< current port statistics */
+	eth_stats_t curr_stats;	/**< current port statistics */
+	eth_stats_t prev_stats;	/**< previous port statistics */
 	eth_stats_t rate_stats;	/**< current packet rate statistics */
 	uint64_t max_ipackets;	/**< Max seen input packet rate */
 	uint64_t max_opackets;	/**< Max seen output packet rate */
@@ -356,11 +357,116 @@ rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
 }
 #endif
 
+static inline int
+rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
+{
+	uint32_t i;
+	int ret;
+#define _(x)	#x
+	struct {
+		uint64_t flag;
+		const char *name;
+	} rx_flags[] = {
+	{ DEV_RX_OFFLOAD_VLAN_STRIP,		_(VLAN_STRIP) },
+	{ DEV_RX_OFFLOAD_IPV4_CKSUM,		_(IPV4_CKSUM) },
+	{ DEV_RX_OFFLOAD_UDP_CKSUM,		_(UDP_CKSUM) },
+	{ DEV_RX_OFFLOAD_TCP_CKSUM,		_(TCP_CKSUM) },
+	{ DEV_RX_OFFLOAD_TCP_LRO,		_(TCP_LRO) },
+	{ DEV_RX_OFFLOAD_QINQ_STRIP,		_(QINQ_STRIP) },
+	{ DEV_RX_OFFLOAD_OUTER_IPV4_CKSUM,	_(OUTER_IPV4_CKSUM) },
+	{ DEV_RX_OFFLOAD_MACSEC_STRIP,		_(MACSEC_STRIP) },
+	{ DEV_RX_OFFLOAD_HEADER_SPLIT,		_(HEADER_SPLIT) },
+	{ DEV_RX_OFFLOAD_VLAN_FILTER,		_(VLAN_FILTER) },
+	{ DEV_RX_OFFLOAD_VLAN_EXTEND,		_(VLAN_EXTEND) },
+	{ DEV_RX_OFFLOAD_JUMBO_FRAME,		_(JUMBO_FRAME) },
+	{ DEV_RX_OFFLOAD_SCATTER,		_(SCATTER) },
+	{ DEV_RX_OFFLOAD_TIMESTAMP,		_(TIMESTAMP) },
+	{ DEV_RX_OFFLOAD_SECURITY,		_(SECURITY) },
+	{ DEV_RX_OFFLOAD_KEEP_CRC,		_(KEEP_CRC) },
+	{ DEV_RX_OFFLOAD_SCTP_CKSUM,		_(SCTP_CKSUM) },
+	{ DEV_RX_OFFLOAD_OUTER_UDP_CKSUM, 	_(OUTER_UDP_CKSUM) }
+	};
+#undef _
+
+	if (len == 0)
+		return -1;
+
+	buf[0] = '\0';
+	for(i = 0; i < RTE_DIM(rx_flags); i++) {
+		if ((rx_capa & rx_flags[i].flag) != rx_flags[i].flag)
+		continue;
+
+		ret = snprintf(buf, len, "%s ", rx_flags[i].name);
+		if (ret < 0)
+			return -1;
+		if ((size_t)ret >= len)
+			return -1;
+		buf += ret;
+		len -= ret;
+	}
+	return 0;
+}
+
+static inline int
+rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
+{
+	uint32_t i;
+	int ret;
+#define _(x)	#x
+	struct {
+		uint64_t flag;
+		const char *name;
+	} tx_flags[] = {
+	{ DEV_TX_OFFLOAD_VLAN_INSERT,		_(VLAN_INSERT) },
+	{ DEV_TX_OFFLOAD_IPV4_CKSUM, 		_(IPV4_CKSUM) },
+	{ DEV_TX_OFFLOAD_UDP_CKSUM, 		_(UDP_CKSUM) },
+	{ DEV_TX_OFFLOAD_TCP_CKSUM, 		_(TCP_CKSUM) },
+	{ DEV_TX_OFFLOAD_SCTP_CKSUM, 		_(SCTP_CKSUM) },
+	{ DEV_TX_OFFLOAD_TCP_TSO, 		_(TCP_TSO) },
+	{ DEV_TX_OFFLOAD_UDP_TSO, 		_(UDP_TSO) },
+	{ DEV_TX_OFFLOAD_OUTER_IPV4_CKSUM,	_(OUTER_IPV4_CKSUM) },
+	{ DEV_TX_OFFLOAD_QINQ_INSERT, 		_(QINQ_INSERT) },
+	{ DEV_TX_OFFLOAD_VXLAN_TNL_TSO, 	_(VXLAN_TNL_TSO) },
+	{ DEV_TX_OFFLOAD_GRE_TNL_TSO, 		_(GRE_TNL_TSO) },
+	{ DEV_TX_OFFLOAD_IPIP_TNL_TSO, 		_(IPIP_TNL_TSO) },
+	{ DEV_TX_OFFLOAD_GENEVE_TNL_TSO, 	_(GENEVE_TNL_TSO) },
+	{ DEV_TX_OFFLOAD_MACSEC_INSERT, 	_(MACSEC_INSERT) },
+	{ DEV_TX_OFFLOAD_MT_LOCKFREE, 		_(MT_LOCKFREE) },
+	{ DEV_TX_OFFLOAD_MULTI_SEGS, 		_(MULTI_SEGS) },
+	{ DEV_TX_OFFLOAD_MBUF_FAST_FREE,	_(MBUF_FAST_FREE) },
+	{ DEV_TX_OFFLOAD_SECURITY, 		_(SECURITY) },
+	{ DEV_TX_OFFLOAD_UDP_TNL_TSO, 		_(UDP_TNL_TSO) },
+	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) },
+	{ DEV_TX_OFFLOAD_OUTER_UDP_CKSUM,	_(OUTER_UDP_CKSUM) },
+	{ DEV_TX_OFFLOAD_MATCH_METADATA,	_(MATCH_METADATA) },
+	};
+#undef _
+
+	if (len == 0)
+		return -1;
+
+	buf[0] = '\0';
+	for(i = 0; i < RTE_DIM(tx_flags); i++) {
+		if ((tx_capa & tx_flags[i].flag) != tx_flags[i].flag)
+		continue;
+
+		ret = snprintf(buf, len, "%s ", tx_flags[i].name);
+		if (ret < 0)
+			return -1;
+		if ((size_t)ret >= len)
+			return -1;
+		buf += ret;
+		len -= ret;
+	}
+	return 0;
+}
+
 static inline void
 rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 {
 	struct rte_eth_dev_info dev_info;
 	struct rte_eth_dev_info *di = &dev_info;
+	char buf[512];
 
 	rte_eth_dev_info_get(pid, &dev_info);
 
@@ -394,12 +500,12 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 	fprintf(f,
 		"   flow_type_rss_offloads:%016" PRIx64 "  reta_size             :%5" PRIu16 "\n",
 		di->flow_type_rss_offloads, di->reta_size);
+	rte_get_rx_capa_list(di->rx_offload_capa, buf, sizeof(buf));
 	fprintf(f,
-		"   rx_offload_capa       :%016" PRIx64,
-		di->rx_offload_capa);
+		"   rx_offload_capa       :%s\n", buf);
+	rte_get_tx_capa_list(di->tx_offload_capa, buf, sizeof(buf));
 	fprintf(f,
-		"  tx_offload_capa       :%016" PRIu64 "\n",
-		di->tx_offload_capa);
+		"   tx_offload_capa       :%s\n", buf);
 	fprintf(f,
 		"   rx_queue_offload_capa :%016" PRIx64,
 		di->rx_queue_offload_capa);

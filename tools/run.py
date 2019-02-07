@@ -205,6 +205,7 @@ def run_cfg(cfg_file):
 	add_run_options('map', args, '-m')
 	add_run_options('pcap', args, '-s')
 	add_run_options('theme', args, '-f')
+	add_run_options('loadfile', args, '-f')
 	add_run_options('logfile', args, '-l')
 
 	# Convert the args list to a single string with spaces.

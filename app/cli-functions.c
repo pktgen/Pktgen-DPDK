@@ -1404,6 +1404,7 @@ misc_cmd(int argc, char **argv)
 	struct cli_map *m;
 	portlist_t portlist;
 	uint16_t rows, cols;
+	int paused;
 	char *p;
 
 	m = cli_mapping(misc_map, argc, argv);
@@ -1432,10 +1433,14 @@ misc_cmd(int argc, char **argv)
 			pktgen_display_get_geometry(&rows, &cols);
 			break;
 		case 30:
+			paused = scrn_is_paused();
+			scrn_pause();
 			if (cli_execute_cmdfile(argv[1]) )
 				cli_printf("load command failed for %s\n", argv[1]);
-			if (!scrn_is_paused() )
+			if (paused)
 				pktgen_force_update();
+			else
+				scrn_resume();
 			break;
 		case 40: script_cmd(argc, argv); break;
 		case 50: exec_lua_cmd(argc, argv); break;

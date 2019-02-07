@@ -986,7 +986,7 @@ set_stream_info(unsigned int pid, unsigned int seq_id)
 	ascii_to_number(usr_def_str, l4_and_payload, strlen(usr_def_str));
 	for (i = 0; i < strlen(usr_def_str) / 2; i++)
 		usr_def[i + sizeof(struct ether_hdr) +
-		        sizeof(ipHdr_t)] = l4_and_payload[i];
+		        sizeof(struct ipv4_hdr)] = l4_and_payload[i];
 
 	usr_def[sizeof(struct ether_hdr) + 9] = ip_proto_value[0];	/* Overwrite the IPv4 protocol field */
 	pkt->ipProto = ip_proto_value[0];

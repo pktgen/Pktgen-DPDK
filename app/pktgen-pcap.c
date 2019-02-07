@@ -118,12 +118,12 @@ pktgen_print_pcap(uint16_t pid)
 		col += COLUMN_WIDTH_1;
 
 		type = ntohs(hdr->eth.ether_type);
-		proto = hdr->u.ipv4.proto;
+		proto = hdr->u.ipv4.next_proto_id;
 		vlan = 0;
 		if (type == ETHER_TYPE_VLAN) {
 			vlan = ntohs( ((uint16_t *)&hdr->eth.ether_type)[1]);
 			type = ntohs( ((uint16_t *)&hdr->eth.ether_type)[2]);
-			proto = ((ipHdr_t *)((char *)&hdr->u.ipv4 + 4))->proto;
+			proto = ((struct ipv4_hdr *)((char *)&hdr->u.ipv4 + 4))->next_proto_id;
 		}
 
 		if (type == ETHER_TYPE_IPv4) {
@@ -132,7 +132,7 @@ pktgen_print_pcap(uint16_t pid)
 			               "%*s",
 			               COLUMN_WIDTH_1,
 			               inet_ntop4(buff, sizeof(buff),
-			                          hdr->u.ipv4.dst,
+			                          hdr->u.ipv4.dst_addr,
 			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1;
 			scrn_printf(row,
@@ -140,13 +140,13 @@ pktgen_print_pcap(uint16_t pid)
 			               "%*s",
 			               COLUMN_WIDTH_1 + 2,
 			               inet_ntop4(buff, sizeof(buff),
-			                          hdr->u.ipv4.src,
+			                          hdr->u.ipv4.src_addr,
 			                          0xFFFFFFFF));
 			col += COLUMN_WIDTH_1 + 2;
 
 			snprintf(buff, sizeof(buff), "%d/%d",
-			         ntohs(hdr->u.uip.udp.sport),
-			         ntohs(hdr->u.uip.udp.dport));
+			         ntohs(hdr->u.uip.udp.src_port),
+			         ntohs(hdr->u.uip.udp.dst_port));
 			scrn_printf(row, col, "%*s", 12, buff);
 			col += 12;
 		} else {

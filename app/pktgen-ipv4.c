@@ -30,28 +30,29 @@
 void
 pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
 {
-	ipHdr_t *ip = hdr;
+	struct ipv4_hdr *ip = hdr;
 	uint16_t tlen;
 
 	/* IPv4 Header constructor */
-	tlen                = pkt->pktSize - pkt->ether_hdr_size;
+	tlen = pkt->pktSize - pkt->ether_hdr_size;
 
 	/* Zero out the header space */
-	memset((char *)ip, 0, sizeof(ipHdr_t));
+	memset((char *)ip, 0, sizeof(struct ipv4_hdr));
 
-	ip->vl              = (IPv4_VERSION << 4) | (sizeof(ipHdr_t) / 4);
+	ip->version_ihl = (IPv4_VERSION << 4) | (sizeof(struct ipv4_hdr) / 4);
 
-	ip->tlen            = htons(tlen);
-	ip->ttl             = 4;
-	ip->tos             = pkt->tos;
+	ip->total_length = htons(tlen);
+	ip->time_to_live = 4;
+	ip->type_of_service = pkt->tos;
 
-	pktgen.ident        += 27;	/* bump by a prime number */
-	ip->ident           = htons(pktgen.ident);
-	ip->ffrag           = 0;
-	ip->proto           = pkt->ipProto;
-	ip->src             = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-	ip->dst             = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-	ip->cksum           = cksum(ip, sizeof(ipHdr_t), 0);
+	pktgen.ident += 27;	/* bump by a prime number */
+	ip->packet_id = htons(pktgen.ident);
+	ip->fragment_offset = 0;
+	ip->next_proto_id = pkt->ipProto;
+	ip->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+	ip->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+	ip->hdr_checksum = 0;
+	ip->hdr_checksum = rte_ipv4_cksum((const struct ipv4_hdr *)ip);
 }
 
 /**************************************************************************//**
@@ -111,71 +112,70 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 	port_info_t   *info = &pktgen.info[pid];
 	pkt_seq_t     *pkt;
 	struct ether_hdr *eth = rte_pktmbuf_mtod(m, struct ether_hdr *);
-	ipHdr_t       *ip = (ipHdr_t *)&eth[1];
+	struct ipv4_hdr *ip = (struct ipv4_hdr *)&eth[1];
 	char buff[24];
 
 	/* Adjust for a vlan header if present */
 	if (vlan)
-		ip = (ipHdr_t *)((char *)ip + sizeof(struct vlan_hdr));
+		ip = (struct ipv4_hdr *)((char *)ip + sizeof(struct vlan_hdr));
 
 	/* Look for a ICMP echo requests, but only if enabled. */
 	if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
-	     (ip->proto == PG_IPPROTO_ICMP) ) {
-		icmpv4Hdr_t *icmp =
-			(icmpv4Hdr_t *)((uintptr_t)ip + sizeof(ipHdr_t));
+	     (ip->next_proto_id == PG_IPPROTO_ICMP) ) {
+		struct icmp_hdr *icmp =
+			(struct icmp_hdr *)((uintptr_t)ip + sizeof(struct ipv4_hdr));
 
 		/* We do not handle IP options, which will effect the IP header size. */
-		if (unlikely(cksum(icmp,
+		if (unlikely(rte_raw_cksum(icmp,
 				   (m->data_len - sizeof(struct ether_hdr) -
-				    sizeof(ipHdr_t)),
-				   0)) ) {
+				    sizeof(struct ipv4_hdr)))) ) {
 			pktgen_log_error("ICMP checksum failed");
 			return;
 		}
 
-		if (unlikely(icmp->type == ICMP4_ECHO) ) {
-			if (ntohl(ip->dst) == INADDR_BROADCAST) {
+		if (unlikely(icmp->icmp_type == ICMP4_ECHO) ) {
+			if (ntohl(ip->dst_addr) == INADDR_BROADCAST) {
 				pktgen_log_warning(
 					"IP address %s is a Broadcast",
 					inet_ntop4(buff,
-						   sizeof(buff), ip->dst,
+						   sizeof(buff), ip->dst_addr,
 						   INADDR_BROADCAST));
 				return;
 			}
 
 			/* Toss all broadcast addresses and requests not for this port */
-			pkt = pktgen_find_matching_ipsrc(info, ip->dst);
+			pkt = pktgen_find_matching_ipsrc(info, ip->dst_addr);
 
 			/* ARP request not for this interface. */
 			if (unlikely(pkt == NULL) ) {
 				pktgen_log_warning("IP address %s not found",
 						   inet_ntop4(buff,
 							      sizeof(buff),
-							      ip->dst,
+							      ip->dst_addr,
 							      INADDR_BROADCAST));
 				return;
 			}
 
 			info->stats.echo_pkts++;
 
-			icmp->type  = ICMP4_ECHO_REPLY;
+			icmp->icmp_type  = ICMP4_ECHO_REPLY;
 
 			/* Recompute the ICMP checksum */
-			icmp->cksum = 0;
-			icmp->cksum =
-				cksum(icmp,
+			icmp->icmp_cksum = 0;
+			icmp->icmp_cksum =
+				rte_raw_cksum(icmp,
 				      (m->data_len - sizeof(struct ether_hdr) -
-				       sizeof(ipHdr_t)), 0);
+				       sizeof(struct ipv4_hdr)));
 
 			/* Swap the IP addresses. */
-			inetAddrSwap(&ip->src, &ip->dst);
+			inetAddrSwap(&ip->src_addr, &ip->dst_addr);
 
 			/* Bump the ident value */
-			ip->ident   = htons(ntohs(ip->ident) + m->data_len);
+			ip->packet_id = htons(ntohs(ip->packet_id) + m->data_len);
 
 			/* Recompute the IP checksum */
-			ip->cksum   = 0;
-			ip->cksum   = cksum(ip, sizeof(ipHdr_t), 0);
+			ip->hdr_checksum   = 0;
+			ip->hdr_checksum   = rte_raw_cksum(ip, sizeof(struct ipv4_hdr));
 
 			/* Swap the MAC addresses */
 			ethAddrSwap(&eth->d_addr, &eth->s_addr);
@@ -186,7 +186,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 
 			/* No need to free mbuf as it was reused. */
 			return;
-		} else if (unlikely(icmp->type == ICMP4_ECHO_REPLY) )
+		} else if (unlikely(icmp->icmp_type == ICMP4_ECHO_REPLY) )
 			info->stats.echo_pkts++;
 	}
 }

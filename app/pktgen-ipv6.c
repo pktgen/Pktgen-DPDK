@@ -28,24 +28,23 @@
 void
 pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
 {
-	ipv6Hdr_t *ip = hdr;
+	struct ipv6_hdr *ip = hdr;
 	uint16_t tlen;
 
 	/* IPv6 Header constructor */
-	memset(ip, 0, sizeof(ipv6Hdr_t));
+	memset(ip, 0, sizeof(struct ipv6_hdr));
 
-	ip->ver_tc_fl       = htonl(IPv6_VERSION << 28);
-	tlen                = pkt->pktSize -
-		(pkt->ether_hdr_size + sizeof(ipv6Hdr_t));
+	ip->vtc_flow = htonl(IPv6_VERSION << 28);
+	tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv6_hdr));
 
-	ip->payload_length  = htons(tlen);
-	ip->hop_limit       = 4;
-	ip->next_header     = pkt->ipProto;
+	ip->payload_len = htons(tlen);
+	ip->hop_limits = 4;
+	ip->proto = pkt->ipProto;
 
-	rte_memcpy(&ip->daddr[8],
+	rte_memcpy(&ip->dst_addr[8],
 		   pkt->ip_dst_addr.addr.ipv6.s6_addr,
 		   sizeof(struct in6_addr));
-	rte_memcpy(&ip->saddr[8],
+	rte_memcpy(&ip->src_addr[8],
 		   pkt->ip_dst_addr.addr.ipv6.s6_addr,
 		   sizeof(struct in6_addr));
 }
@@ -69,27 +68,26 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 #if 0	/* Broken needs to be updated to do IPv6 packets */
 	port_info_t     *info = &pktgen.info[pid];
 	struct ether_hdr *eth = rte_pktmbuf_mtod(m, struct ether_hdr *);
-	ipv6Hdr_t       *ip = (ipv6Hdr_t *)&eth[1];
+	struct ipv6_hdr       *ip = (struct ipv6_hdr *)&eth[1];
 
 	/* Adjust for a vlan header if present */
 	if (vlan)
-		ip = (ipv6Hdr_t *)((char *)ip + sizeof(struct vlan_hdr));
+		ip = (struct ipv6_hdr *)((char *)ip + sizeof(struct vlan_hdr));
 
 	/* Look for a ICMP echo requests, but only if enabled. */
 	if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
 	     (ip->next_header == PG_IPPROTO_ICMPV6) ) {
 #if !defined(RTE_ARCH_X86_64)
-		icmpv4Hdr_t *icmp =
-			(icmpv4Hdr_t *)((uint32_t)ip + sizeof(ipHdr_t));
+		struct icmp_hdr *icmp =
+			(struct icmp_hdr *)((uint32_t)ip + sizeof(struct ipv4_hdr));
 #else
-		icmpv4Hdr_t *icmp =
-			(icmpv4Hdr_t *)((uint64_t)ip + sizeof(ipHdr_t));
+		struct icmp_hdr *icmp =
+			(struct icmp_hdr *)((uint64_t)ip + sizeof(struct ipv4_hdr));
 #endif
 		/* We do not handle IP options, which will effect the IP header size. */
-		if (cksum(icmp,
+		if (rte_ipv6_cksum(icmp,
 			  (m->pkt.data_len - sizeof(struct ether_hdr) -
-			   sizeof(ipHdr_t)),
-			  0) ) {
+			   sizeof(struct ipv4_hdr))) ) {
 			rte_printf_status("ICMP checksum failed\n");
 			goto leave :
 		}
@@ -118,10 +116,10 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 			/* Recompute the ICMP checksum */
 			icmp->cksum = 0;
 			icmp->cksum =
-				cksum(icmp,
+				rte_raw_cksum(icmp,
 				      (m->pkt.data_len -
 				       sizeof(struct ether_hdr) -
-				       sizeof(ipHdr_t)), 0);
+				       sizeof(struct ipv4_hdr)));
 
 			/* Swap the IP addresses. */
 			inetAddrSwap(&ip->src, &ip->dst);
@@ -131,7 +129,7 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 
 			/* Recompute the IP checksum */
 			ip->cksum   = 0;
-			ip->cksum   = cksum(ip, sizeof(ipHdr_t), 0);
+			ip->cksum   = rte_raw_cksum(ip, sizeof(struct ipv4_hdr));
 
 			/* Swap the MAC addresses */
 			ethAddrSwap(&eth->d_addr, &eth->s_addr);

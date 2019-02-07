@@ -276,36 +276,36 @@ _pcap_close(pcap_info_t *pcap)
 int
 _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 		    unsigned int *length) {
-	const ipHdr_t *iph =
-		(const ipHdr_t *)(pkt_data + sizeof(struct ether_hdr));
-	const tcpHdr_t *th = NULL;
+	const struct ipv4_hdr *iph =
+		(const struct ipv4_hdr *)(pkt_data + sizeof(struct ether_hdr));
+	const struct tcp_hdr *th = NULL;
 
 	/* Ignore packets that aren't IPv4 */
-	if ( (iph->vl & 0xF0) != 0x40)
+	if ( (iph->version_ihl & 0xF0) != 0x40)
 		return -1;
 
 	/* Ignore fragmented packets. */
-	if (iph->ffrag & htons(PG_OFF_MF | PG_OFF_MASK))
+	if (iph->fragment_offset & htons(PG_OFF_MF | PG_OFF_MASK))
 		return -1;
 
 	/* IP header length, and transport header length. */
-	unsigned int ihlen = (iph->vl & 0x0F) * 4;
+	unsigned int ihlen = (iph->version_ihl & 0x0F) * 4;
 	unsigned int thlen = 0;
 
-	switch (iph->proto) {
+	switch (iph->next_proto_id) {
 	case PG_IPPROTO_TCP:
-		th = (const tcpHdr_t *)((const char *)iph + ihlen);
-		thlen = (th->offset >> 4) * 4;
+		th = (const struct tcp_hdr *)((const char *)iph + ihlen);
+		thlen = (th->data_off >> 4) * 4;
 		break;
 	case PG_IPPROTO_UDP:
-		thlen = sizeof(udpHdr_t);
+		thlen = sizeof(struct udp_hdr);
 		break;
 	default:
 		return -1;
 	}
 
 	*offset = sizeof(struct ether_hdr) + ihlen + thlen;
-	*length = sizeof(struct ether_hdr) + ntohs(iph->tlen) - *offset;
+	*length = sizeof(struct ether_hdr) + ntohs(iph->total_length) - *offset;
 
 	return *length != 0;
 }

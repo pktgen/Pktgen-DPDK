@@ -2240,8 +2240,9 @@ debug_pdump(port_info_t *info)
 
 	m->pkt_len  = ppkt->pktSize;
 	m->data_len = ppkt->pktSize;
+	m->ol_flags = ppkt->ol_flags;
 
-	rte_pktmbuf_dump(stdout, m, m->pkt_len);
+	dnet_pktmbuf_dump(stdout, m, m->pkt_len);
 	rte_pktmbuf_free(m);
 }
 

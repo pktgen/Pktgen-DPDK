@@ -8,6 +8,7 @@
 
 #include <cli_scrn.h>
 #include <rte_lua.h>
+#include <rte_net.h>
 
 #include "pktgen-gre.h"
 #include "pktgen.h"
@@ -32,25 +33,25 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt,
 	memset((char *)gre, 0, sizeof(greIp_t));
 
 	/* Create the IP header */
-	gre->ip.vl       = (IPv4_VERSION << 4) | (sizeof(ipHdr_t) / 4);
-	gre->ip.tos      = 0;
-	gre->ip.tlen     = htons(pkt->pktSize - pkt->ether_hdr_size);
+	gre->ip.version_ihl = (IPv4_VERSION << 4) | (sizeof(struct ipv4_hdr) / 4);
+	gre->ip.type_of_service = 0;
+	gre->ip.total_length = htons(pkt->pktSize - pkt->ether_hdr_size);
 
-	pktgen.ident    += 27;	/* bump by a prime number */
-	gre->ip.ident    = htons(pktgen.ident);
-	gre->ip.ffrag    = 0;
-	gre->ip.ttl      = 64;
-	gre->ip.proto    = PG_IPPROTO_GRE;
+	pktgen.ident += 27;	/* bump by a prime number */
+	gre->ip.packet_id = htons(pktgen.ident);
+	gre->ip.fragment_offset = 0;
+	gre->ip.time_to_live = 64;
+	gre->ip.next_proto_id= PG_IPPROTO_GRE;
 
 	/* FIXME don't hardcode */
 #define GRE_SRC_ADDR    (10 << 24) | (10 << 16) | (1 << 8) | 1
 #define GRE_DST_ADDR    (10 << 24) | (10 << 16) | (1 << 8) | 2
-	gre->ip.src      = htonl(GRE_SRC_ADDR);
-	gre->ip.dst      = htonl(GRE_DST_ADDR);
+	gre->ip.src_addr = htonl(GRE_SRC_ADDR);
+	gre->ip.dst_addr = htonl(GRE_DST_ADDR);
 #undef GRE_SRC_ADDR
 #undef GRE_DST_ADDR
 
-	gre->ip.cksum    = cksum(gre, sizeof(ipHdr_t), 0);
+	gre->ip.hdr_checksum = rte_ipv4_cksum(&gre->ip);
 
 	/* Create the GRE header */
 	gre->gre.chk_present = 0;
@@ -111,25 +112,25 @@ pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused,
 	memset((char *)gre, 0, sizeof(greEther_t));
 
 	/* Create the IP header */
-	gre->ip.vl       = (IPv4_VERSION << 4) | (sizeof(ipHdr_t) / 4);
-	gre->ip.tos      = 0;
-	gre->ip.tlen     = htons(pkt->pktSize - pkt->ether_hdr_size);
+	gre->ip.version_ihl = (IPv4_VERSION << 4) | (sizeof(struct ipv4_hdr) / 4);
+	gre->ip.type_of_service = 0;
+	gre->ip.total_length = htons(pkt->pktSize - pkt->ether_hdr_size);
 
-	pktgen.ident    += 27;	/* bump by a prime number */
-	gre->ip.ident    = htons(pktgen.ident);
-	gre->ip.ffrag    = 0;
-	gre->ip.ttl      = 64;
-	gre->ip.proto    = PG_IPPROTO_GRE;
+	pktgen.ident += 27;	/* bump by a prime number */
+	gre->ip.packet_id = htons(pktgen.ident);
+	gre->ip.fragment_offset = 0;
+	gre->ip.time_to_live = 64;
+	gre->ip.next_proto_id = PG_IPPROTO_GRE;
 
 	/* FIXME don't hardcode */
 #define GRE_SRC_ADDR    (10 << 24) | (10 << 16) | (1 << 8) | 1
 #define GRE_DST_ADDR    (10 << 24) | (10 << 16) | (1 << 8) | 2
-	gre->ip.src      = htonl(GRE_SRC_ADDR);
-	gre->ip.dst      = htonl(GRE_DST_ADDR);
+	gre->ip.src_addr = htonl(GRE_SRC_ADDR);
+	gre->ip.dst_addr = htonl(GRE_DST_ADDR);
 #undef GRE_SRC_ADDR
 #undef GRE_DST_ADDR
 
-	gre->ip.cksum    = cksum(gre, sizeof(ipHdr_t), 0);
+	gre->ip.hdr_checksum = rte_ipv4_cksum(&gre->ip);
 
 	/* Create the GRE header */
 	gre->gre.chk_present = 0;

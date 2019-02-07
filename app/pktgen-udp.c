@@ -30,65 +30,58 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 	uint16_t tlen;
 
 	if (type == ETHER_TYPE_IPv4) {
-		udpip_t *uip = (udpip_t *)hdr;
-
-		/* Zero out the header space */
-		memset((char *)uip, 0, sizeof(udpip_t));
+		struct ipv4_hdr *ipv4 = hdr;
+		struct udp_hdr *udp = (struct udp_hdr *)&ipv4[1];
 
 		/* Create the UDP header */
-		uip->ip.src         = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-		uip->ip.dst         = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-		tlen                = pkt->pktSize - (pkt->ether_hdr_size + sizeof(ipHdr_t));
+		ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+		ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
-		uip->ip.len         = htons(tlen);
-		uip->ip.proto       = pkt->ipProto;
+		tlen = pkt->pktSize - pkt->ether_hdr_size;
+		ipv4->total_length = htons(tlen);
+		ipv4->next_proto_id = pkt->ipProto;
 
-		uip->udp.len        = htons(tlen);
-		uip->udp.sport      = htons(pkt->sport);
-		uip->udp.dport      = htons(pkt->dport);
+		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv4_hdr));
+		udp->dgram_len = htons(tlen);
+		udp->src_port = htons(pkt->sport);
+		udp->dst_port = htons(pkt->dport);
 
 		if (pkt->dport == VXLAN_PORT_ID) {
-			struct vxlan *vxlan = (struct vxlan *)&uip[1];
+			struct vxlan *vxlan = (struct vxlan *)&udp[1];
 
 			vxlan->vni_flags = htons(pkt->vni_flags);
 			vxlan->group_id  = htons(pkt->group_id);
 			vxlan->vxlan_id  = htonl(pkt->vxlan_id) << 8;
 		}
 
-		/* Includes the pseudo header information */
-		tlen                = pkt->pktSize - pkt->ether_hdr_size;
-
-		uip->udp.cksum      = cksum(uip, tlen, 0);
-		if (uip->udp.cksum == 0)
-			uip->udp.cksum = 0xFFFF;
+		udp->dgram_cksum = 0;
+		udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)udp);
+		if (udp->dgram_cksum == 0)
+			udp->dgram_cksum = 0xFFFF;
 	} else {
 		uint32_t addr;
-		udpipv6_t *uip = (udpipv6_t *)hdr;
-
-		/* Zero out the header space */
-		memset((char *)uip, 0, sizeof(udpipv6_t));
+		struct ipv6_hdr *ipv6 = hdr;
+		struct udp_hdr *udp = (struct udp_hdr *)&ipv6[1];
 
 		/* Create the pseudo header and TCP information */
-		addr                = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-		(void)rte_memcpy(&uip->ip.daddr[8], &addr, sizeof(uint32_t));
-		addr                = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-		(void)rte_memcpy(&uip->ip.saddr[8], &addr, sizeof(uint32_t));
+		addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+		(void)rte_memcpy(&ipv6->dst_addr[8], &addr, sizeof(uint32_t));
+		addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+		(void)rte_memcpy(&ipv6->src_addr[8], &addr, sizeof(uint32_t));
 
-		tlen                = sizeof(udpHdr_t) +
-			(pkt->pktSize - pkt->ether_hdr_size -
-			 sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
-		uip->ip.tcp_length  = htonl(tlen);
-		uip->ip.next_header = pkt->ipProto;
+		tlen = pkt->pktSize - pkt->ether_hdr_size;
+		ipv6->payload_len = htonl(tlen);
+		ipv6->proto = pkt->ipProto;
 
-		uip->udp.sport      = htons(pkt->sport);
-		uip->udp.dport      = htons(pkt->dport);
+		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv6_hdr));
+		udp->dgram_len = htons(tlen);
+		udp->src_port = htons(pkt->sport);
+		udp->dst_port = htons(pkt->dport);
 
-		tlen                = sizeof(udpipv6_t) +
-			(pkt->pktSize - pkt->ether_hdr_size -
-			 sizeof(ipv6Hdr_t) - sizeof(udpHdr_t));
-		uip->udp.cksum      = cksum(uip, tlen, 0);
-		if (uip->udp.cksum == 0)
-			uip->udp.cksum = 0xFFFF;
+		udp->dgram_cksum = 0;
+		udp->dgram_cksum = rte_ipv6_udptcp_cksum(ipv6, (const void *)udp);
+		if (udp->dgram_cksum == 0)
+			udp->dgram_cksum = 0xFFFF;
 	}
 
 	/* Return the original pointer for IP ctor */

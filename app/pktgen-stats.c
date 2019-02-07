@@ -393,12 +393,12 @@ pktgen_page_stats(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		/* Total Rx/Tx */
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, prev->ipackets);
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, prev->opackets);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.ipackets);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
 
 		/* Total Rx/Tx mbits */
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->prev_stats) / Million);
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->prev_stats) / Million);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->curr_stats) / Million);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->curr_stats) / Million);
 
 		if (pktgen.flags & TX_DEBUG_FLAG) {
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
@@ -465,7 +465,7 @@ void
 pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
 	unsigned int pid;
-	struct rte_eth_stats stats, *rate, *prev;
+	struct rte_eth_stats *curr, *rate, *prev;
 	port_info_t *info;
 	static unsigned int counter = 0;
 #ifdef DEBUG_TIMERS
@@ -493,29 +493,31 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 				rte_eth_led_off(pid);
 		}
 	}
+
 	RTE_ETH_FOREACH_DEV(pid) {
 		info = &pktgen.info[pid];
 
-		rte_eth_stats_get(pid, &stats);
+		curr = &info->curr_stats;
+		rte_eth_stats_get(pid, curr);
 
 		rate = &info->rate_stats;
 		prev = &info->prev_stats;
 
-		rate->ipackets   = stats.ipackets - prev->ipackets;
-		rate->opackets   = stats.opackets - prev->opackets;
-		rate->ibytes     = stats.ibytes - prev->ibytes;
-		rate->obytes     = stats.obytes - prev->obytes;
-		rate->ierrors    = stats.ierrors - prev->ierrors;
-		rate->oerrors    = stats.oerrors - prev->oerrors;
-		rate->imissed    = stats.imissed - prev->imissed;
-		rate->rx_nombuf  = stats.rx_nombuf - prev->rx_nombuf;
+		rate->ipackets   = curr->ipackets - prev->ipackets;
+		rate->opackets   = curr->opackets - prev->opackets;
+		rate->ibytes     = curr->ibytes - prev->ibytes;
+		rate->obytes     = curr->obytes - prev->obytes;
+		rate->ierrors    = curr->ierrors - prev->ierrors;
+		rate->oerrors    = curr->oerrors - prev->oerrors;
+		rate->imissed    = curr->imissed - prev->imissed;
+		rate->rx_nombuf  = curr->rx_nombuf - prev->rx_nombuf;
 
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-		rate->ibadcrc    = stats.ibadcrc - prev->ibadcrc;
-		rate->ibadlen    = stats.ibadlen - prev->ibadlen;
+		rate->ibadcrc    = curr->ibadcrc - prev->ibadcrc;
+		rate->ibadlen    = curr->ibadlen - prev->ibadlen;
 #endif
 #if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-		rate->imcasts    = stats.imcasts - prev->imcasts;
+		rate->imcasts    = curr->imcasts - prev->imcasts;
 #endif
 
 		/* Find the new max rate values */
@@ -525,7 +527,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 			info->max_opackets = rate->opackets;
 
 		/* Use structure move to copy the data. */
-		*prev = *(struct rte_eth_stats *)&stats;
+		*prev = *curr;
 	}
 }
 

@@ -63,7 +63,7 @@ LUA_PKG_LIBS    = $(shell pkg-config --silence-errors --libs lua)
 endif
 
 ifeq ($(LUA_PKG_LIBS),)
-$(info "Lua pkg-config was not found")
+$(info "Lua pkg-config file was not found")
 $(info "Get lua-5.3 from lua.org and build it on your system")
 $(info "Also install lua 5.3 into /usr/local/include and /usr/local/lib")
 $(info "Make sure the library in /usr/local/lib is called liblua.a")
@@ -75,7 +75,7 @@ endif
 endif
 
 # Pktgen Lua support code locations
-CFLAGS  += -I$(RTE_SRCDIR)/../lua/$(RTE_TARGET)/include $(LUA_PKG_CFLAGS)
+CFLAGS += -I$(RTE_SRCDIR)/../lua/$(RTE_TARGET)/include $(LUA_PKG_CFLAGS)
 LDLIBS += $(LUA_PKG_LIBS)
 endif
 

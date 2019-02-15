@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.6.5 - Fix ldflags order for RHEL, CentOS and other systems to include lua in build
  - 3.6.4 - Add a new page stats screen to dump out info
            Updated the readme to give better info on .cfg files
 	   Fixed the port <N> to include only valid ports

@@ -153,7 +153,7 @@ ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 endif
 
 CFLAGS  += $(__CFLAGS)
-LDFLAGS += $(__LIBS) $(__LDFLAGS) -lpcap -lm
+LDFLAGS += $(__LDFLAGS) $(__LIBS) -lpcap -lm
 
 #$(info __CLFAGS = $(__CFLAGS))
 #$(info __LIBS = $(__LIBS))

@@ -1013,7 +1013,7 @@ dbg_cmd(int argc, char **argv)
 			break;
 #endif
 		case 80:
-			kill(getpid(), SIGINT);
+			kill(0, SIGINT);
 			break;
 		case 91:
 			cnt = atoi(argv[2]);

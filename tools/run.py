@@ -94,7 +94,9 @@ def add_run_options(s, arg_list, p):
 		for a in mk_tuple(cfg.run, s):
                     if p is not None:
                         arg_list.append(p)
-                    arg_list.append(a)
+
+                    _p = a % globals()
+                    arg_list.append(_p)
 
 def add_setup_options(s, arg_list):
 	''' Append options to arg list '''
@@ -200,6 +202,7 @@ def run_cfg(cfg_file):
 	add_run_options('blacklist', args, '-b')
 	add_run_options('whitelist', args, '-w')
 	add_run_options('vdev', args, '--vdev')
+	add_run_options('plugin', args, '-d')
 	args.extend(["--"])
 	add_run_options('opts', args, None)
 	add_run_options('map', args, '-m')
@@ -400,11 +403,15 @@ def parse_args():
 def main():
 	'''program main function'''
 
-	global sdk, target
+	global sdk, target, pmdk
 
 	sdk = os.getenv('RTE_SDK')
 	if sdk == None:
 		err_exit("Set RTE_SDK environment variable or use 'sudo -E ...'")
+
+	pmdk = os.getenv('PMDK_SDK')
+	if pmdk == None:
+		pmdk = 'pmdk-not-set';
 
 	target = os.getenv('RTE_TARGET')
 	if target == None:

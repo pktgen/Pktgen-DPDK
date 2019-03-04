@@ -1,0 +1,2 @@
+option('lib_dir', type: 'string', value: 'x86_64-linux-gnu',
+	description: 'Set the directory where the libs are located in x86_64-native-linuxapp-gcc')

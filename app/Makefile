@@ -44,6 +44,7 @@ CLI_INC    := -I$(RTE_SRCDIR)/../lib/cli
 UTILS_INC  := -I$(RTE_SRCDIR)/../lib/utils
 VEC_INC    := -I$(RTE_SRCDIR)/../lib/vec
 GUI_INC    := -I$(RTE_SRCDIR)/../gui/gui
+PLUGIN_INC := -I$(RTE_SRCDIR)/../lib/plugin
 
 COMMON_LIB := -L$(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)/lib
 LUA_LIB    := -L$(RTE_SRCDIR)/../lib/lua/$(RTE_TARGET)/lib
@@ -51,6 +52,7 @@ CLI_LIB    := -L$(RTE_SRCDIR)/../lib/cli/$(RTE_TARGET)/lib
 UTILS_LIB  := -L$(RTE_SRCDIR)/../lib/utils/$(RTE_TARGET)/lib
 VEC_LIB    := -L$(RTE_SRCDIR)/../lib/vec/$(RTE_TARGET)/lib
 GUI_LIB    := -L$(RTE_SRCDIR)/../gui/$(RTE_TARGET)/lib
+PLUGIN_LIB := -L$(RTE_SRCDIR)/../lib/plugin/$(RTE_TARGET)/lib
 
 COMMON_LD  := -lcommon
 LUA_LD     := -lpktgen_lua
@@ -58,11 +60,12 @@ CLI_LD     := -lcli
 UTILS_LD   := -lutils
 VEC_LD     := -lvec
 GUI_LD     := -lgui
+PLUGIN_LD  := -lplugin
 
 # default vars to using common information
-__CFLAGS   := $(COMMON_INC)
-__LIBS     := $(COMMON_LIB)
-__LDFLAGS  := $(COMMON_LD)
+__CFLAGS   := $(COMMON_INC) $(PLUGIN_INC)
+__LIBS     := $(COMMON_LIB) $(PLUGIN_LIB)
+__LDFLAGS  := $(COMMON_LD) $(PLUGIN_LD)
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
 else

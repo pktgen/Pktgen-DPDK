@@ -121,7 +121,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	if (mp == NULL)
 		pktgen_log_panic(
 			"Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, socket_id %d: %s",
-			name, pid, queue_id, nb_mbufs, socket_id, rte_strerror(errno));
+			name, pid, queue_id, nb_mbufs, socket_id, rte_strerror(rte_errno));
 
 	return mp;
 }
@@ -248,7 +248,7 @@ pktgen_config_ports(void)
 		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &default_port_conf)) < 0)
 			pktgen_log_panic(
 				"Cannot configure device: port=%d, Num queues %d,%d (%d)%s",
-				pid, rt.rx, rt.tx, errno, rte_strerror(-ret));
+				pid, rt.rx, rt.tx, -ret, rte_strerror(-ret));
 
 		pkt = &info->seq_pkt[SINGLE_PKT];
 

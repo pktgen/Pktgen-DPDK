@@ -21,5 +21,5 @@ headers = files(
 	'rte_lua_stdio.h',
 	'rte_lua_utils.h',
 	'rte_lua_vec.h')
-deps += ['eal', 'ethdev', 'mempool']
+#deps += ['eal', 'ethdev', 'mempool']
 

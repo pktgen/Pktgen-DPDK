@@ -30,6 +30,7 @@ CFLAGS += -O3 -g -DLUA_USE_LINUX -DUSE_64_BIT -DALLOW_EXPERIMENTAL_API
 CFLAGS += -D_GNU_SOURCE $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
 
 LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf -lrte_timer
+LDLIBS += -L/work/projects/intel/pktgen/lib/utils/x86_64-native-linuxapp-gcc/lib -lutils
 
 ifeq ($(CONFIG_RTE_LIBRTE_VEC),y)
 else

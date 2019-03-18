@@ -16,5 +16,5 @@ sources = files(
 	'rte_portlist.c',
 	'rte_strings.c',
 	'rte_heap.c')
-deps += ['ethdev']
+#deps += ['ethdev']
 #deps += ['mbuf', 'dbuf']

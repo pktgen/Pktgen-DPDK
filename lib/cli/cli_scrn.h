@@ -139,7 +139,6 @@ struct vt100_cmds {
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
 	rte_atomic32_t  pause;      /**< Pause the update of the screen. */
-	rte_atomic32_t  state;      /**< Screen state on or off */
 	uint16_t        nrows;      /**< Max number of rows. */
 	uint16_t        ncols;      /**< Max number of columns. */
 	uint16_t        theme;      /**< Current theme state on or off */

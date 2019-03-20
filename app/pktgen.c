@@ -1578,10 +1578,10 @@ _page_display(void)
 
 /**************************************************************************//**
  *
- * pktgen_page_display - Display the correct page based on timer0 callback.
+ * pktgen_page_display - Display the correct page based on timer callback.
  *
  * DESCRIPTION
- * When timer0 is active update or display the correct page of data.
+ * When timer is active update or display the correct page of data.
  *
  * RETURNS: N/A
  *
@@ -1618,9 +1618,6 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 	pktgen_print_packet_dump();
 }
 
-static struct rte_timer timer0;
-static struct rte_timer timer1;
-
 static void *
 _timer_thread(void *arg)
 {
@@ -1656,7 +1653,7 @@ _timer_thread(void *arg)
 
 /**************************************************************************//**
  *
- * pktgen_timer_setup - Set up the timer callback routines.
+ * rte_timer_setup - Set up the timer callback routines.
  *
  * DESCRIPTION
  * Setup the two timers to be used for display and calculating statistics.
@@ -1669,31 +1666,7 @@ _timer_thread(void *arg)
 void
 rte_timer_setup(void)
 {
-	int lcore_id = rte_get_master_lcore();
 	pthread_t tid;
 
-	/* init RTE timer library */
-	rte_timer_subsystem_init();
-
-	/* init timer structures */
-	rte_timer_init(&timer0);
-	rte_timer_init(&timer1);
-
-	/* load timer0, every 1/2 seconds, on Display lcore, reloaded automatically */
-	rte_timer_reset(&timer0,
-	                UPDATE_DISPLAY_TICK_RATE,
-	                PERIODICAL,
-	                lcore_id,
-	                pktgen_page_display,
-	                NULL);
-
-	/* load timer1, every second, on timer lcore, reloaded automatically */
-	rte_timer_reset(&timer1,
-	                pktgen.hz,
-	                PERIODICAL,
-	                lcore_id,
-	                pktgen_process_stats,
-	                NULL);
-
-	rte_ctrl_thread_create(&tid, "Stats-thread", NULL, _timer_thread, this_scrn);
+	pthread_create(&tid, NULL, _timer_thread, this_scrn);
 }

@@ -296,18 +296,18 @@ sig_handler(int v __rte_unused)
 	char **strings;
 	size_t i;
 
-	if (v == SIGINT)
-		return;
-
 	scrn_setw(1);	/* Reset the window size, from possible crash run. */
 	scrn_printf(100, 1, "\n");	/* Move the cursor to the bottom of the screen again */
 	scrn_destroy();
 
 	printf("\n======");
+
 	if (v == SIGSEGV)
 		printf(" Pktgen got a Segment Fault\n");
 	else if (v == SIGHUP)
 		printf(" Pktgen received a SIGHUP\n");
+	else if (v == SIGINT)
+		printf(" Pktgen received a SIGINT\n");
 	else if (v == SIGPIPE) {
 		printf(" Pktgen received a SIGPIPE\n");
 		return;
@@ -326,7 +326,7 @@ sig_handler(int v __rte_unused)
 
 	free (strings);
 
-	abort();
+	exit(-1);
 }
 
 static int
@@ -337,6 +337,14 @@ pktgen_lua_dofile(void *ld, const char * filename)
 	ret = lua_dofile((luaData_t *)ld, filename);
 
 	return ret;
+}
+
+RTE_FINI(pktgen_fini)
+{
+	scrn_setw(1);	/* Reset the window size, from possible crash run. */
+	scrn_printf(999, 1, "\n");	/* Move the cursor to the bottom of the screen again */
+	scrn_destroy();
+	cli_destroy();
 }
 
 /**************************************************************************//**
@@ -454,7 +462,7 @@ main(int argc, char **argv)
 	if (ret != 0)
 		pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
 
-	rte_delay_us_sleep(50000);	/* Wait for the lcores to start up. */
+	rte_delay_us_sleep(250000);	/* Wait for the lcores to start up. */
 
 	/* Disable printing log messages of level info and below to screen, */
 	/* erase the screen and start updating the screen again. */

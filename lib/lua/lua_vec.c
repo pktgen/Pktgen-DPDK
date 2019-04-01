@@ -3,7 +3,7 @@
  */
 /* Created 2018 by Keith Wiles @ intel.com */
 
-#define rte_lua_dpdk_c
+#define lua_dpdk_c
 #define LUA_LIB
 #define lua_c
 
@@ -12,14 +12,14 @@
 #include <rte_cycles.h>
 #include <rte_vec.h>
 #include <rte_timer.h>
-#include <rte_strings.h>
 #include <rte_version.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
-#include "rte_lua_dpdk.h"
-#include "rte_lua_vec.h"
-#include "rte_lua_utils.h"
+#include <_strings.h>
+#include "lua_config.h"
+#include "lua_stdio.h"
+#include "lua_dpdk.h"
+#include "lua_vec.h"
+#include "lua_utils.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"

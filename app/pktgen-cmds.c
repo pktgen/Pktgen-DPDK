@@ -9,7 +9,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include <rte_lua.h>
+#include <lua_config.h>
 
 #include "pktgen.h"
 

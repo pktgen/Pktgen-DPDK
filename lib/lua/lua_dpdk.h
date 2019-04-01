@@ -185,7 +185,7 @@ getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) ) {
-		rte_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
+		_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
 				     sizeof(struct pg_ipaddr));
 	}
 	lua_pop(L, 1);

@@ -7,7 +7,7 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <sys/stat.h>
-#include "rte_lua.h"
+#include "lua_config.h"
 
 #include "pktgen-display.h"
 #include "pktgen-cmds.h"

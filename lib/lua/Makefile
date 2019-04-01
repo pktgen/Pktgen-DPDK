@@ -88,12 +88,12 @@ endif
 LDLIBS += -pthread
 
 # all source are stored in SRCS-y
-SRCS-y := rte_lua.c rte_lua_stdio.c rte_lua_utils.c rte_lua_socket.c
-SRCS-y += rte_lua_dpdk.c rte_lua_pktmbuf.c rte_lua_vec.c
-SRCS-y += rte_lua_dapi.c
+SRCS-y := lua_config.c lua_stdio.c lua_utils.c lua_socket.c
+SRCS-y += lua_dpdk.c lua_pktmbuf.c lua_vec.c
+SRCS-y += lua_dapi.c
 
-SYMLINK-y-include := rte_lua.h rte_lua_stdio.h rte_lua_utils.h rte_lua_socket.h
-SYMLINK-y-include += rte_lua_dpdk.h rte_lua_pktmbuf.h rte_lua_vec.h
-SYMLINK-y-include += rte_lua_dapi.h
+SYMLINK-y-include := lua_config.h lua_stdio.h lua_utils.h lua_socket.h
+SYMLINK-y-include += lua_dpdk.h lua_pktmbuf.h lua_vec.h
+SYMLINK-y-include += lua_dapi.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

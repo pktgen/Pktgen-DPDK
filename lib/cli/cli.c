@@ -11,7 +11,7 @@
 #include <rte_timer.h>
 #include <rte_log.h>
 #include <rte_string_fns.h>
-#include <rte_strings.h>
+#include <_strings.h>
 #include <rte_pause.h>
 
 #include "cli.h"

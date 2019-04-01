@@ -33,7 +33,7 @@ typedef uint64_t portlist_t;
  * @return
  *   -1 on error or 0 on success.
  */
-int __rte_experimental rte_parse_portlist(const char *str, portlist_t *portlist);
+int portlist_parse(const char *str, portlist_t *portlist);
 
 /**
  * Parse a portmasl string into a mask or bitmap value.
@@ -45,13 +45,10 @@ int __rte_experimental rte_parse_portlist(const char *str, portlist_t *portlist)
  * @return
  *   -1 on error or 0 on success.
  */
-int __rte_experimental rte_parse_portmask(const char *str, portlist_t *portmask);
+int portmask_parse(const char *str, portlist_t *portmask);
 
-char * __rte_experimental rte_portlist_string(uint64_t portlist, char *buf, int len);
-char * __rte_experimental rte_print_portlist(FILE *f, uint64_t portlist,
-	char *buf, int len);
-
-
+char *portlist_string(uint64_t portlist, char *buf, int len);
+char *portlist_print(FILE *f, uint64_t portlist, char *buf, int len);
 
 #ifdef __cplusplus
 }

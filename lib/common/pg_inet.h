@@ -641,7 +641,7 @@ inet_h64tom(uint64_t value, struct ether_addr *eaddr) {
  * @return
  *   0 on OK and -1 on error
  */
-int rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
+int _atoip(const char *buf, int flags, void *res, unsigned ressize);
 
 #ifdef __cplusplus
 }

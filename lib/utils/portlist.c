@@ -2,13 +2,13 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
-#include "rte_strings.h"
-#include "rte_portlist.h"
+#include "_strings.h"
+#include "portlist.h"
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
 
 int
-rte_parse_portmask(const char *str, portlist_t *portmask)
+portmask_parse(const char *str, portlist_t *portmask)
 {
 	char *end = NULL;
 	portlist_t pm;
@@ -38,7 +38,7 @@ set_portlist_bits(size_t low, size_t high, uint64_t *map)
 #define MAX_SPLIT	64
 /* portlist = N,N,N-M,N, ... */
 int
-rte_parse_portlist(const char *str, portlist_t *portlist)
+portlist_parse(const char *str, portlist_t *portlist)
 {
 	size_t ps, pe, n, i;
 	char *split[MAX_SPLIT], *s, *p;
@@ -93,7 +93,7 @@ rte_parse_portlist(const char *str, portlist_t *portlist)
 }
 
 char *
-rte_portlist_string(uint64_t portlist, char *buf, int len)
+portlist_string(uint64_t portlist, char *buf, int len)
 {
 	int i, k, j, cnt = 0;
 
@@ -119,7 +119,7 @@ rte_portlist_string(uint64_t portlist, char *buf, int len)
 	return buf;
 }
 char *
-rte_print_portlist(FILE *f, uint64_t portlist, char *buf, int len)
+portlist_print(FILE *f, uint64_t portlist, char *buf, int len)
 {
 	int i, k;
 

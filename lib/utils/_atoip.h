@@ -51,7 +51,7 @@ struct rte_ipaddr {
  * @return
  *   0 on OK and -1 on error
  */
-int __rte_experimental  rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
+int _atoip(const char *buf, int flags, void *res, unsigned ressize);
 
 #ifdef __cplusplus
 }

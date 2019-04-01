@@ -16,7 +16,7 @@
 #include <libgen.h>
 #include <sys/stat.h>
 
-#include "rte_lua.h"
+#include "lua_config.h"
 
 #include "pktgen-display.h"
 #include <rte_rwlock.h>

@@ -17,9 +17,9 @@
 #include <stdint.h>
 #include <netinet/in.h>
 
-#include <rte_lua.h>
-#include <rte_lua_stdio.h>
-#include <rte_lua_utils.h>
+#include <lua_config.h>
+#include <lua_stdio.h>
+#include <lua_utils.h>
 
 #include "pktgen-cmds.h"
 #include <cli.h>
@@ -27,9 +27,9 @@
 #include <lualib.h>
 
 #include <rte_net.h>
-#include <rte_lua.h>
-#include <rte_lua_stdio.h>
-#include <rte_strings.h>
+#include <lua_config.h>
+#include <lua_stdio.h>
+#include <_strings.h>
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
@@ -166,7 +166,7 @@ getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) ) {
-		rte_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
+		_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
 				     sizeof(struct pg_ipaddr));
 	}
 	lua_pop(L, 1);
@@ -221,7 +221,7 @@ pktgen_set(lua_State *L) {
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	what = (char *)luaL_checkstring(L, 2);
 	value = luaL_checknumber(L, 3);
 
@@ -283,7 +283,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 	struct pg_ipaddr ip_saddr;
 	char *proto, *ip;
 
-	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
+	portlist_parse(luaL_checkstring(L, 2), &portlist);
 	rte_ether_aton(luaL_checkstring(L, 3), &daddr);
 	rte_ether_aton(luaL_checkstring(L, 4), &saddr);
 
@@ -293,15 +293,15 @@ set_seq(lua_State *L, uint32_t seqnum)
 	/* Determine if we are IPv4 or IPv6 packets */
 	ip      = (char *)luaL_checkstring(L, 9);
 	if (ip[3] == '6') {
-		rte_atoip(luaL_checkstring(L, 5), PG_IPADDR_V6,
+		_atoip(luaL_checkstring(L, 5), PG_IPADDR_V6,
 				  &ip_daddr, sizeof(struct pg_ipaddr));
-		rte_atoip(luaL_checkstring(L, 6),
+		_atoip(luaL_checkstring(L, 6),
 				  PG_IPADDR_NETWORK | PG_IPADDR_V6,
 				  &ip_saddr, sizeof(struct pg_ipaddr));
 	} else {
-		rte_atoip(luaL_checkstring(L, 5), PG_IPADDR_V4,
+		_atoip(luaL_checkstring(L, 5), PG_IPADDR_V4,
 				  &ip_daddr, sizeof(struct pg_ipaddr));
-		rte_atoip(luaL_checkstring(L, 6),
+		_atoip(luaL_checkstring(L, 6),
 				  PG_IPADDR_NETWORK | PG_IPADDR_V4,
 				  &ip_saddr, sizeof(struct pg_ipaddr));
 	}
@@ -391,7 +391,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	struct pg_ipaddr ip_saddr;
 	char *ipProto, *ethType;
 
-	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
+	portlist_parse(luaL_checkstring(L, 2), &portlist);
 
 	getf_etheraddr(L, "eth_dst_addr", &daddr);
 	getf_etheraddr(L, "eth_src_addr", &saddr);
@@ -500,7 +500,7 @@ pktgen_icmp(lua_State *L) {
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	foreach_port(portlist,
 		     enable_icmp_echo(info,
 					  estate((char *)luaL_checkstring(L,
@@ -531,7 +531,7 @@ pktgen_sendARP(lua_State *L) {
 		break;
 	}
 	what = (char *)luaL_checkstring(L, 2);
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	foreach_port(portlist,
 		     pktgen_send_arp_requests(info,
 					      (what[0] == 'g') ? GRATUITOUS_ARP : 0) );
@@ -561,7 +561,7 @@ pktgen_set_mac(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	rte_ether_aton(luaL_checkstring(L, 2), &mac);
 
 	foreach_port(portlist,
@@ -627,7 +627,7 @@ pktgen_prototype(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	type = (char *)luaL_checkstring(L, 2);
 
 	foreach_port(portlist,
@@ -661,11 +661,11 @@ pktgen_set_ip_addr(lua_State *L) {
 		break;
 	}
 	type = (char *)luaL_checkstring(L, 2);
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	flags = PG_IPADDR_V4;
 	if (type[0] == 's')
 		flags |= PG_IPADDR_NETWORK;
-	rte_atoip(luaL_checkstring(L, 3), flags,
+	_atoip(luaL_checkstring(L, 3), flags,
 			  &ipaddr, sizeof(struct pg_ipaddr));
 
 	foreach_port(portlist,
@@ -699,7 +699,7 @@ pktgen_set_type(lua_State *L)
 		break;
 	}
 	type = (char *)luaL_checkstring(L, 2);
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     single_set_pkt_type(info, type) );
@@ -730,7 +730,7 @@ pktgen_send_ping4(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_ping4(info) );
@@ -761,7 +761,7 @@ pktgen_send_ping6(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_ping6(info) );
@@ -794,7 +794,7 @@ pktgen_pcap(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	what = (char *)luaL_checkstring(L, 2);
 
 	foreach_port(portlist,
@@ -825,7 +825,7 @@ pktgen_start(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_start_transmitting(info) );
@@ -854,7 +854,7 @@ pktgen_stop(lua_State *L) {
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_stop_transmitting(info) );
@@ -907,7 +907,7 @@ pktgen_prime(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_prime_ports(info) );
@@ -1169,7 +1169,7 @@ pktgen_clear(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
          pktgen_clear_stats(info) );
@@ -1261,7 +1261,7 @@ pktgen_reset_config(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_reset(info) );
@@ -1291,7 +1291,7 @@ pktgen_restart(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	             pktgen_port_restart(info) );
@@ -1322,7 +1322,7 @@ range_dst_mac(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	rte_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
@@ -1355,7 +1355,7 @@ range_src_mac(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	rte_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
@@ -1389,8 +1389,8 @@ range_dst_ip(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
-	rte_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
+	_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
 			  &ipaddr, sizeof(struct pg_ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
@@ -1425,8 +1425,8 @@ range_src_ip(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
-	rte_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
+	_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
 			  &ipaddr, sizeof(ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
@@ -1459,7 +1459,7 @@ range_dst_port(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     range_set_dst_port(info, (char *)luaL_checkstring(L, 2),
@@ -1492,7 +1492,7 @@ range_ip_proto(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	ip = luaL_checkstring(L, 2);
 	foreach_port(portlist,
@@ -1524,7 +1524,7 @@ range_src_port(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     range_set_src_port(info, (char *)luaL_checkstring(L, 2),
@@ -1556,7 +1556,7 @@ range_gtpu_teid(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     range_set_gtpu_teid(info, (char *)luaL_checkstring(L, 2),
@@ -1589,7 +1589,7 @@ range_vlan_id(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	vlan_id = luaL_checkinteger(L, 3);
 
 	foreach_port(portlist,
@@ -1623,7 +1623,7 @@ range_cos(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	cos = luaL_checkinteger(L, 3);
 
 	foreach_port(portlist,
@@ -1657,7 +1657,7 @@ range_tos(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	tos = luaL_checkinteger(L, 3);
 
 	foreach_port(portlist,
@@ -1691,7 +1691,7 @@ single_vlan_id(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	vlanid = luaL_checkinteger(L, 2);
 	if ( (vlanid < MIN_VLAN_ID) || (vlanid > MAX_VLAN_ID) )
 		vlanid = 1;
@@ -1725,7 +1725,7 @@ single_cos(lua_State *L) {
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	cos = luaL_checkinteger(L, 3);
 	if (cos > MAX_COS)
 		cos = 0;
@@ -1760,7 +1760,7 @@ single_tos(lua_State *L) {
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	tos = luaL_checkinteger(L, 2);
 
 	foreach_port(portlist,
@@ -1793,7 +1793,7 @@ single_vxlan_id(lua_State *L) {
 	case 4:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	flags = luaL_checkinteger(L, 2);
 	group_id = luaL_checkinteger(L, 3);
 	vxlan_id = luaL_checkinteger(L, 4);
@@ -1827,7 +1827,7 @@ single_vlan(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_vlan(info, estate(luaL_checkstring(L, 2))) );
@@ -1858,7 +1858,7 @@ single_vxlan(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_vxlan(info, estate(luaL_checkstring(L, 2))) );
@@ -1890,7 +1890,7 @@ range_mpls_entry(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	mpls_entry = strtoul(luaL_checkstring(L, 2), NULL, 16);
 
 	foreach_port(portlist,
@@ -1922,7 +1922,7 @@ pktgen_mpls(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_mpls(info,
@@ -1955,7 +1955,7 @@ range_qinqids(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	qinq_id1 = luaL_checkinteger(L, 2);
 	if ( (qinq_id1 < MIN_VLAN_ID) || (qinq_id1 > MAX_VLAN_ID) )
 		qinq_id1 = 1;
@@ -1993,7 +1993,7 @@ pktgen_qinq(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_qinq(info,
@@ -2026,7 +2026,7 @@ range_gre_key(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	gre_key = luaL_checkinteger(L, 2);
 
 	foreach_port(portlist,
@@ -2057,7 +2057,7 @@ pktgen_gre(lua_State *L) {
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_gre(info, estate(luaL_checkstring(L, 2))) );
@@ -2088,7 +2088,7 @@ pktgen_gre_eth(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_gre_eth(info, estate(luaL_checkstring(L,
@@ -2122,7 +2122,7 @@ range_pkt_size(lua_State *L)
 	case 3:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	type = (char *)luaL_checkstring(L, 2);
 	size = luaL_checkinteger(L, 3);
 
@@ -2155,7 +2155,7 @@ range(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     enable_range(info, estate((const char *)luaL_checkstring(L, 2))));
@@ -2186,7 +2186,7 @@ pktgen_latency(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     enable_latency(info, estate((const char *)luaL_checkstring(L, 2))));
@@ -2217,7 +2217,7 @@ pktgen_jitter(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     single_set_jitter(info, luaL_checkinteger(L, 2)) );
@@ -2248,7 +2248,7 @@ pktgen_pattern(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     pattern_set_type(info,
@@ -2281,7 +2281,7 @@ pktgen_user_pattern(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     pattern_set_user_pattern(info, (char *)luaL_checkstring(L, 2)) );
@@ -2360,7 +2360,7 @@ pktgen_process(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     enable_process(info, estate((const char *)luaL_checkstring(L, 2))));
@@ -2391,7 +2391,7 @@ pktgen_capture(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     enable_capture(info, estate((const char *)luaL_checkstring(L, 2))) );
@@ -2422,7 +2422,7 @@ pktgen_bonding(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     enable_bonding(info, estate((const char *)luaL_checkstring(L, 2))) );
@@ -2453,7 +2453,7 @@ pktgen_rxtap(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_rx_tap(info, estate((char *)luaL_checkstring(L, 2))));
@@ -2484,7 +2484,7 @@ pktgen_txtap(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 		     enable_tx_tap(info, estate((char *)luaL_checkstring(L, 2))));
@@ -2515,7 +2515,7 @@ pktgen_garp(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     enable_garp(info, estate((const char *)luaL_checkstring(L, 2))));
@@ -2546,7 +2546,7 @@ pktgen_blink(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	foreach_port(portlist,
 	     debug_blink(info, estate((const char *)luaL_checkstring(L, 2))));
@@ -2605,7 +2605,7 @@ pktgen_isSending(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -2666,7 +2666,7 @@ pktgen_linkState(lua_State *L)
 		break;
 	}
 	portlist = 0;
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -2740,7 +2740,7 @@ pktgen_portSizes(lua_State *L)
 		break;
 	}
 	portlist = 0;
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -2849,7 +2849,7 @@ pktgen_pktStats(lua_State *L)
 		break;
 	}
 	portlist = 0;
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -2929,7 +2929,7 @@ pktgen_portStats(lua_State *L)
 		break;
 	}
 
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	type = (char *)luaL_checkstring(L, 2);
 
 	lua_newtable(L);
@@ -3172,7 +3172,7 @@ pktgen_portInfo(lua_State *L)
 		break;
 	}
 
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -3344,7 +3344,7 @@ pktgen_decompile(lua_State *L)
 	seqnum = luaL_checkinteger(L, 1);
 	if (seqnum >= NUM_SEQ_PKTS)
 		return 0;
-	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
+	portlist_parse(luaL_checkstring(L, 2), &portlist);
 
 	lua_newtable(L);
 
@@ -3380,7 +3380,7 @@ pktgen_sendPkt(lua_State *L)
 	case 2:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	seqnum = luaL_checkinteger(L, 2);
 	if ( (seqnum >= NUM_EXTRA_TX_PKTS) || (portlist == 0) )
@@ -3454,7 +3454,7 @@ pktgen_recvPkt(lua_State *L)
 	case 1:
 		break;
 	}
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 	if (portlist == 0)
 		return 0;
 
@@ -3490,7 +3490,7 @@ pktgen_rnd(lua_State *L)
         case 4:
                 break;
         }
-        rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+        portlist_parse(luaL_checkstring(L, 1), &portlist);
         if (portlist == 0)
                 return 0;
 
@@ -3577,7 +3577,7 @@ pktgen_rnd_list(lua_State *L) {
                 break;
         }
         if (lua_gettop(L) == 1)
-                rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+                portlist_parse(luaL_checkstring(L, 1), &portlist);
         else
                 portlist = -1;
 

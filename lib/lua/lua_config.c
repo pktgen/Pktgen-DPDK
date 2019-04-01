@@ -24,9 +24,9 @@
 #include <rte_eal_memconfig.h>
 #include <rte_rwlock.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
-#include "rte_lua_utils.h"
+#include "lua_config.h"
+#include "lua_stdio.h"
+#include "lua_utils.h"
 
 TAILQ_HEAD(rte_luaData_list, rte_tailq_entry);
 
@@ -334,7 +334,7 @@ lua_execute_string(luaData_t *ld, char *buffer )
 	if (!L)
 		return -1;
 
-	buffer = rte_lua_strtrim(buffer);
+	buffer = lua_strtrim(buffer);
 	if (!buffer)
 		return -1;
 

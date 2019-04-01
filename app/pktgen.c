@@ -10,7 +10,7 @@
 #include <time.h>
 
 #include <rte_lcore.h>
-#include <rte_lua.h>
+#include <lua_config.h>
 #include <rte_net.h>
 #include <rte_arp.h>
 

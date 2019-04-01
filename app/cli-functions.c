@@ -20,12 +20,12 @@
 #include <rte_devargs.h>
 #include <rte_ether.h>
 #include <rte_string_fns.h>
-#include <rte_strings.h>
+#include <_strings.h>
 #include <rte_hexdump.h>
 #include <rte_cycles.h>
 #include <rte_malloc.h>
 
-#include <rte_lua.h>
+#include <lua_config.h>
 
 #include "pktgen.h"
 
@@ -174,7 +174,7 @@ range_cmd(int argc, char **argv)
 	if (!m)
 		return cli_cmd_error("Range command error", "Range", argc, argv);
 
-	rte_parse_portlist(argv[1], &portlist);
+	portlist_parse(argv[1], &portlist);
 
 	what = argv[4];
 	val = (const char*)argv[5];
@@ -208,7 +208,7 @@ range_cmd(int argc, char **argv)
 			p = strchr(argv[4], '/');
 			if (p)
 				*p = '\0';
-			rte_atoip(val, PG_IPADDR_V4, &ip, sizeof(ip));
+			_atoip(val, PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_dst_ip(info, what, &ip));
 			break;
@@ -217,31 +217,31 @@ range_cmd(int argc, char **argv)
 			p = strchr(argv[4], '/');
 			if (p)
 				*p = '\0';
-			rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+			_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_src_ip(info, what, &ip));
 			break;
 		case 32:
 			foreach_port(portlist,
-				rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_dst_ip(info, (char *)(uintptr_t)"start", &ip);
-				rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_dst_ip(info, (char *)(uintptr_t)"min", &ip);
-				rte_atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_dst_ip(info, (char *)(uintptr_t)"max", &ip);
-				rte_atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_dst_ip(info, (char *)(uintptr_t)"inc", &ip)
 				);
 			break;
 		case 33:
 			foreach_port(portlist,
-				rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_src_ip(info, (char *)(uintptr_t)"start", &ip);
-				rte_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_src_ip(info, (char *)(uintptr_t)"min", &ip);
-				rte_atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_src_ip(info, (char *)(uintptr_t)"max", &ip);
-				rte_atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
+				_atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
 			    range_set_src_ip(info, (char *)(uintptr_t)"inc", &ip)
 				);
 			break;
@@ -432,7 +432,7 @@ set_cmd(int argc, char **argv)
 	if (!m)
 		return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 
-	rte_parse_portlist(argv[1], &portlist);
+	portlist_parse(argv[1], &portlist);
 
 	what = argv[2];
 	value = atoi(argv[3]);
@@ -492,9 +492,9 @@ set_cmd(int argc, char **argv)
 				char buf[32];
 				snprintf(buf, sizeof(buf), "%s/32", argv[4]);
 				cli_printf("src IP address should contain /NN subnet value, default /32\n");
-				rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+				_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
 			} else
-				rte_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+				_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, 's', &ip));
 			break;
 		case 31:
@@ -504,7 +504,7 @@ set_cmd(int argc, char **argv)
 				cli_printf("Subnet mask not required, removing subnet mask value\n");
 				*p = '\0';
 			}
-			rte_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+			_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist, single_set_ipaddr(info, 'd', &ip));
 			break;
 		case 40:
@@ -611,7 +611,7 @@ pcap_cmd(int argc, char **argv)
 						 pktgen.portNum);
 			break;
 		case 30:
-			rte_parse_portlist(argv[2], &portlist);
+			portlist_parse(argv[2], &portlist);
 			foreach_port(portlist,
 				pcap_filter(info, argv[3]) );
 			break;
@@ -653,7 +653,7 @@ start_stop_cmd(int argc, char **argv)
 	if (!m)
 		return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
 
-	rte_parse_portlist(argv[1], &portlist);
+	portlist_parse(argv[1], &portlist);
 
 	switch (m->index) {
 		case 10:
@@ -785,7 +785,7 @@ en_dis_cmd(int argc, char **argv)
 	if (!m)
 		return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
 
-	rte_parse_portlist(argv[1], &portlist);
+	portlist_parse(argv[1], &portlist);
 
 	switch (m->index) {
 		case 10:
@@ -984,12 +984,12 @@ dbg_cmd(int argc, char **argv)
 			pktgen_clear_display();
 			break;
 		case 30:
-			rte_parse_portlist(argv[2], &portlist);
+			portlist_parse(argv[2], &portlist);
 			foreach_port(portlist,
 				debug_mempool_dump(info, argv[3]) );
 			break;
 		case 40:
-			rte_parse_portlist(argv[2], &portlist);
+			portlist_parse(argv[2], &portlist);
 			foreach_port(portlist, debug_pdump(info));
 			pktgen_update_display();
 			break;
@@ -1068,16 +1068,16 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	p = strchr(argv[5], '/'); /* remove subnet if found */
 	if (p)
 		*p = '\0';
-	rte_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
+	_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
 	p = strchr(argv[6], '/');
 	if (!p) {
 		char buf[32];
 		cli_printf("src IP address should contain /NN subnet value, default /32\n");
 		snprintf(buf, sizeof(buf), "%s/32", argv[6]);
-		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+		_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	} else
-		rte_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	rte_parse_portlist(argv[2], &portlist);
+		_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+	portlist_parse(argv[2], &portlist);
 	rte_ether_aton(argv[3], &dmac);
 	rte_ether_aton(argv[4], &smac);
 	foreach_port(portlist,
@@ -1131,16 +1131,16 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	p = strchr(argv[8], '/'); /* remove subnet if found */
 	if (p)
 		*p = '\0';
-	rte_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
+	_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
 	p = strchr(argv[10], '/');
 	if (p == NULL) {
 		char buf[32];
 		snprintf(buf, sizeof(buf), "%s/32", argv[10]);
 		cli_printf("src IP address should contain /NN subnet value, default /32");
-		rte_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+		_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	} else
-		rte_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	rte_parse_portlist(argv[2], &portlist);
+		_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+	portlist_parse(argv[2], &portlist);
 	rte_ether_aton(argv[4], &dmac);
 	rte_ether_aton(argv[6], &smac);
 	foreach_port(portlist,
@@ -1184,7 +1184,7 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 	cos = strtoul(argv[4], NULL, 10);
 	tos = strtoul(argv[6], NULL, 10);
 
-	rte_parse_portlist(argv[2], &portlist);
+	portlist_parse(argv[2], &portlist);
 
 	foreach_port(portlist,
 		     pktgen_set_cos_tos_seq(info, seqnum, cos, tos) );
@@ -1222,7 +1222,7 @@ seq_4_set_cmd(int argc __rte_unused, char **argv)
 	gid = strtoul(argv[6], NULL, 10);
 	vid = strtoul(argv[8], NULL, 10);
 
-	rte_parse_portlist(argv[2], &portlist);
+	portlist_parse(argv[2], &portlist);
 
 	foreach_port(portlist,
 		     pktgen_set_vxlan_seq(info, seqnum, flag, gid, vid) );
@@ -1414,7 +1414,7 @@ misc_cmd(int argc, char **argv)
 
 	switch(m->index) {
 		case 10:
-			rte_parse_portlist(argv[1], &portlist);
+			portlist_parse(argv[1], &portlist);
 			foreach_port(portlist,
 				     pktgen_clear_stats(info) );
 			pktgen_clear_display();
@@ -1448,25 +1448,25 @@ misc_cmd(int argc, char **argv)
 		case 60: pktgen_save(argv[1]); break;
 		case 70: pktgen_clear_display(); break;
 		case 100:
-			rte_parse_portlist(argv[1], &portlist);
+			portlist_parse(argv[1], &portlist);
 			foreach_port(portlist,
 				     pktgen_reset(info) );
 			break;
 		case 110:
-			rte_parse_portlist(argv[1], &portlist);
+			portlist_parse(argv[1], &portlist);
 			foreach_port(portlist,
 				     pktgen_port_restart(info) );
 			break;
 		case 120:
 		case 130: pktgen_set_port_number((uint16_t)atoi(argv[1])); break;
 		case 140:
-			rte_parse_portlist(argv[1], &portlist);
+			portlist_parse(argv[1], &portlist);
 			foreach_port(portlist, pktgen_ping4(info));
 			pktgen_force_update();
 			break;
 #ifdef INCLUDE_PING6
 		case 141:
-			rte_parse_portlist(argv[1], &portlist);
+			portlist_parse(argv[1], &portlist);
 			foreach_port(portlist, pktgen_ping6(info));
 			pktgen_update_display();
 			break;

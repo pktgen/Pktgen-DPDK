@@ -9,8 +9,8 @@
 #include <execinfo.h>
 #include <signal.h>
 
-#include <rte_lua.h>
-#include <rte_lua_socket.h>
+#include <lua_config.h>
+#include <lua_socket.h>
 
 #include "pktgen-main.h"
 

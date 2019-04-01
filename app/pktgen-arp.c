@@ -7,7 +7,7 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <cli_scrn.h>
-#include <rte_lua.h>
+#include <lua_config.h>
 #include <rte_arp.h>
 
 #include "pktgen-arp.h"

@@ -9,8 +9,8 @@
 #include <rte_ethdev.h>
 #include <rte_cycles.h>
 
-#include "rte_portlist.h"
-#include "rte_link.h"
+#include "portlist.h"
+#include "link.h"
 
 static volatile bool lsc_cancel = 0;
 
@@ -30,7 +30,7 @@ get_link_status(uint16_t portid, struct rte_eth_link *link)
 }
 
 int
-rte_link_status_print(FILE *f, uint16_t portid)
+link_status_print(FILE *f, uint16_t portid)
 {
 	struct rte_eth_link link;
 
@@ -55,7 +55,7 @@ rte_link_status_print(FILE *f, uint16_t portid)
 }
 
 void
-rte_link_status_show(FILE *f, uint64_t port_list)
+link_status_show(FILE *f, uint64_t port_list)
 {
 	uint16_t portid;
 
@@ -66,19 +66,19 @@ rte_link_status_show(FILE *f, uint64_t port_list)
 		if ((port_list & (1 << portid)) == 0)
 			continue;
 
-		rte_link_status_print(f, portid);
+		link_status_print(f, portid);
 	}
 }
 
 int
-rte_link_status_check(uint16_t portid, struct rte_eth_link *link)
+link_status_check(uint16_t portid, struct rte_eth_link *link)
 {
 	return get_link_status(portid, link);
 }
 
 /* Check the link status of all ports in up to 9s, and print them finally */
 void
-rte_link_status_wait(FILE *f, uint64_t port_list, int secs)
+link_status_wait(FILE *f, uint64_t port_list, int secs)
 {
 #define CHECK_INTERVAL 100 /* 100ms */
 #define DEFAULT_WAIT_TIME 9 /* 9 seconds */
@@ -99,7 +99,7 @@ rte_link_status_wait(FILE *f, uint64_t port_list, int secs)
 	secs /= CHECK_INTERVAL;	/* Convert to 100ms intervals or ticks */
 
 	fprintf(f, "\nChecking portlist %s link status: ",
-		rte_print_portlist(NULL, port_list, buf, sizeof(buf)));
+		portlist_print(NULL, port_list, buf, sizeof(buf)));
 
 	lsc_cancel = 0;
 
@@ -127,11 +127,11 @@ rte_link_status_wait(FILE *f, uint64_t port_list, int secs)
 	fprintf(f, "done\n");
 	fflush(f);
 
-	rte_link_status_show(f, port_list);
+	link_status_show(f, port_list);
 }
 
 void
-rte_link_status_check_cancel(void)
+link_status_check_cancel(void)
 {
 	lsc_cancel = 1;
 }

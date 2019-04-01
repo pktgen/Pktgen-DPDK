@@ -5,7 +5,7 @@
 #include <fnmatch.h>
 
 #include <rte_string_fns.h>
-#include <rte_strings.h>
+#include <_strings.h>
 
 #include "cli.h"
 #include "cli_input.h"

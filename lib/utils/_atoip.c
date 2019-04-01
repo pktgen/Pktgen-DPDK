@@ -2,8 +2,8 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
-#include "rte_strings.h"
-#include "rte_atoip.h"
+#include "_strings.h"
+#include "_atoip.h"
 
 /* isblank() needs _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE, so use our own. */
 static int
@@ -221,7 +221,7 @@ inet_ipton(int af, const char *src, void *dst)
 }
 
 int
-rte_atoip(const char *buf, int flags, void *res, unsigned ressize)
+_atoip(const char *buf, int flags, void *res, unsigned ressize)
 {
 	unsigned int token_len = 0;
 	char ip_str[INET6_ADDRSTRLEN+4+1]; /* '+4' is for prefixlen (if any) */

@@ -7,7 +7,7 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <cli_scrn.h>
-#include <rte_lua.h>
+#include <lua_config.h>
 
 #include "pktgen-port-cfg.h"
 
@@ -15,7 +15,7 @@
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
 
-#include <rte_link.h>
+#include <link.h>
 
 #if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 #define rte_eth_dev_count	rte_eth_dev_count_avail
@@ -329,7 +329,7 @@ pktgen_config_ports(void)
 					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 
 			/* Find out the link speed to program the WTHRESH value correctly. */
-			rte_link_status_check(pid, &info->link);
+			link_status_check(pid, &info->link);
 
 			txconf = &info->dev_info.default_txconf;
 #if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
@@ -390,7 +390,7 @@ pktgen_config_ports(void)
 
 		info = get_port_private(pktgen.l2p, pid);
 
-		rte_link_status_check(pid, &info->link);
+		link_status_check(pid, &info->link);
 
 		if (info->link.link_status)
 			snprintf(output_buff, sizeof(output_buff),

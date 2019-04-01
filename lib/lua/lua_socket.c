@@ -20,10 +20,10 @@
 #include <netdb.h>
 #include <assert.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
-#include "rte_lua_utils.h"
-#include "rte_lua_socket.h"
+#include "lua_config.h"
+#include "lua_stdio.h"
+#include "lua_utils.h"
+#include "lua_socket.h"
 
 static int
 server_startup(luaData_t *ld)

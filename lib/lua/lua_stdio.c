@@ -20,8 +20,8 @@
 #include <netdb.h>
 #include <assert.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
+#include "lua_config.h"
+#include "lua_stdio.h"
 
 #define tolstream(L)    ((LStream *)luaL_checkudata(L, 1, LUA_FILEHANDLE))
 

@@ -88,15 +88,24 @@ def mk_tuple(lst, s):
 
 	return t[s]
 
+def add_ld_options(s, arg_list):
+	''' Append LD_LIBRARY_PATH option to arg list '''
+	if s in cfg.run:            
+            str = 'LD_LIBRARY_PATH=.'
+            for a in mk_tuple(cfg.run, s):
+                _p = a % globals()
+                str = str + ':' + _p
+            arg_list.append(str)
+
 def add_run_options(s, arg_list, p):
 	''' Append options to arg list '''
 	if s in cfg.run:
-		for a in mk_tuple(cfg.run, s):
-                    if p is not None:
-                        arg_list.append(p)
+            for a in mk_tuple(cfg.run, s):
+                if p is not None:
+                    arg_list.append(p)
 
-                    _p = a % globals()
-                    arg_list.append(_p)
+                _p = a % globals()
+                arg_list.append(_p)
 
 def add_setup_options(s, arg_list):
 	''' Append options to arg list '''
@@ -165,7 +174,10 @@ def run_cfg(cfg_file):
 	cfg = load_cfg(cfg_file)
 
 	args = []
+
 	add_run_options('exec', args, None)
+
+	add_ld_options('ld_path', args)
 
 	if not 'app_path' in cfg.run:
 		err_exit("'app_path' variable is missing from cfg.run in config file")

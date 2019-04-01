@@ -1,0 +1,6 @@
+DPDK_18.05 {
+	global: *;
+
+	local: *;
+};
+

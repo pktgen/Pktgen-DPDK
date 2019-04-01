@@ -1,4 +1,5 @@
 project('pktgen', 'C',
+	version: '19.05.0-rc0',
 	license: 'BSD',
 	default_options: ['buildtype=release', 'default_library=static'],
 	meson_version: '>= 0.47.1'
@@ -31,6 +32,13 @@ dpdk_static_libraries = []
 dpdk_drivers = []
 dpdk_extra_ldflags = []
 dpdk_app_link_libraries = []
+global_inc = []
+dpdk_dep = []
+pmdk_shared_libraries = []
+pmdk_static_libraries = []
+
+pver = meson.project_version().split('.')
+major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
 
 add_project_arguments('-D_GNU_SOURCE', '-O3', '-g', language: 'c')
 

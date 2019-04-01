@@ -6,6 +6,9 @@ include $(RTE_SDK)/mk/rte.vars.mk
 DIRS-y += common
 DEPDIRS-common =
 
+DIRS-y += plugin
+DEPDIRS-plugin = common
+
 ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
 else
 DIRS-y += utils

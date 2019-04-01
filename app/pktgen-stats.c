@@ -604,11 +604,11 @@ pktgen_page_phys_stats(uint16_t pid)
 			pktgen_display_set_color("stats.stat.values");
 		}
 		scrn_printf(row++, 1, "     Q %2d: %14lu %14lu %14lu %14lu %14lu", q,
-				stats.q_ipackets[q], 
-				stats.q_opackets[q], 
-				stats.q_ibytes[q], 
-				stats.q_obytes[q], 
-				stats.q_errors[q]); 
+				stats.q_ipackets[q],
+				stats.q_opackets[q],
+				stats.q_ibytes[q],
+				stats.q_obytes[q],
+				stats.q_errors[q]);
 	}
 	pktgen_display_set_color(NULL);
 	display_dashline(++row);

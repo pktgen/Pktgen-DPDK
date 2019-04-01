@@ -31,6 +31,7 @@
 
 #include <cli.h>
 #include <cli_map.h>
+#include <plugin.h>
 
 #include "copyright_info.h"
 #include "pktgen-cmds.h"
@@ -1521,6 +1522,63 @@ page_cmd(int argc, char **argv)
 	return 0;
 }
 
+static struct cli_map plugin_map[] = {
+	{ 10, "plugin" },
+	{ 20, "plugin load %s" },
+	{ 21, "plugin load %s %s" },
+	{ 30, "plugin %|rm|del|delete %s" },
+	{ -1, NULL }
+};
+
+static const char *plugin_help[] = {
+	"",
+	"plugin                             - Show the plugins currently installed",
+	"plugin load <filename>             - Load a plugin file",
+	"plugin load <filename> <path>      - Load a plugin file at path",
+	"plugin rm|delete <plugin>          - Remove or delete a plugin",
+	CLI_HELP_PAUSE,
+	NULL
+};
+
+static int
+plugin_cmd(int argc, char **argv)
+{
+	struct cli_map *m;
+	int inst;
+
+	m = cli_mapping(plugin_map, argc, argv);
+	if (!m)
+		return cli_cmd_error("Plugin invalid command", "Plugin", argc, argv);
+
+	switch(m->index) {
+		case 10:
+			plugin_dump(stdout);
+			break;
+		case 20:
+		case 21:
+			if ((inst = plugin_create(argv[2], argv[3])) < 0) {
+				printf("Plugin not loaded %s, %s\n", argv[2], argv[3]);
+				return -1;
+			}
+
+			if (plugin_start(inst, NULL) , 0) {
+				plugin_destroy(inst);
+				return -1;
+			}
+			break;
+		case 30:
+			inst = plugin_find_by_name(argv[2]);
+			if (inst < 0)
+				return -1;
+			plugin_stop(inst);
+			plugin_destroy(inst);
+			break;
+		default:
+			return cli_cmd_error("Plugin invalid command", "Plugin", argc, argv);
+	}
+	return 0;
+}
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
@@ -1565,6 +1623,7 @@ static struct cli_tree default_tree[] = {
 	c_cmd("pcap",		pcap_cmd, 	"pcap commands"),
 	c_cmd("set", 		set_cmd, 	"set a number of options"),
 	c_cmd("dbg",            dbg_cmd,	"debug commands"),
+	c_cmd("plugin",		plugin_cmd,	"Plugin a shared object file"),
 
 	c_alias("on",       "enable screen",    "Enable screen updates"),
 	c_alias("off",      "disable screen",   "Disable screen updates"),
@@ -1594,6 +1653,7 @@ init_tree(void)
 	cli_help_add("Debug", dbg_map, dbg_help);
 	cli_help_add("Misc", misc_map, misc_help);
 	cli_help_add("Theme", theme_map, theme_help);
+	cli_help_add("Plugin", plugin_map, plugin_help);
 	cli_help_add("Status", NULL, status_help);
 
 	/* Make sure the pktgen commands are executable in search path */

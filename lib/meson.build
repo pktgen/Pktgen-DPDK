@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2019 Intel Corporation
 
-libraries = ['common', 'utils', 'vec', 'lua']
+libraries = ['common', 'utils', 'vec', 'plugin', 'lua']
 
 # Set default cflags
 #default_cflags = glb_default_cflags
@@ -14,6 +14,7 @@ foreach l:libraries
 	allow_experimental_apis = false
 	sources = []
 	headers = []
+	enabled_libs = []
 	includes = [global_inc]
 	cflags = default_cflags
 	objs = [] # other object files to link against, used e.g. for
@@ -30,7 +31,7 @@ foreach l:libraries
 
 	if build
 		enabled_libs += name
-		pmdk_conf.set('PME_LIB' + name.to_upper(), 1)
+		# pmdk_conf.set('PME_LIB' + name.to_upper(), 1)
 		install_headers(headers)
 
 		libname = name

@@ -10,7 +10,7 @@
 #include <rte_ethdev.h>
 #include <rte_mbuf.h>
 #include <rte_cycles.h>
-#include <rte_vec.h>
+#include <vec.h>
 #include <rte_timer.h>
 #include <rte_version.h>
 

@@ -14,7 +14,7 @@ extern "C" {
 
 #define VEC_DEFAULT_SIZE	8
 
-struct rte_vec {
+struct vec {
 	uint16_t flags;		/**< Flags for Vec structure */
 	uint16_t len;		/**< Number of pointers in vector list */
 	uint16_t tlen;		/**< Total number of vectors */
@@ -33,13 +33,13 @@ enum {
 	VEC_CLEAR_FLAGS	   = 0x0000
 };
 
-#define rte_vec_foreach(idx, var, vec)					\
-	for(idx = 0, var = rte_vec_at_index((vec), idx);		\
-		idx < rte_vec_len((vec));				\
-		idx++, var = rte_vec_at_index((vec), idx))
+#define vec_foreach(idx, var, vec)					\
+	for(idx = 0, var = vec_at_index((vec), idx);		\
+		idx < vec_len((vec));				\
+		idx++, var = vec_at_index((vec), idx))
 
 static inline void
-rte_vec_init(struct rte_vec *v, unsigned int n, uint16_t flags)
+vec_init(struct vec *v, unsigned int n, uint16_t flags)
 {
 	v->len   = 0;
 	v->tlen  = n;
@@ -48,101 +48,101 @@ rte_vec_init(struct rte_vec *v, unsigned int n, uint16_t flags)
 }
 
 static inline unsigned int
-rte_vec_calc_size(unsigned int cnt)
+vec_calc_size(unsigned int cnt)
 {
 	unsigned int size;
 
 	if (cnt == 0)
 		cnt = VEC_DEFAULT_SIZE;
-	size = (cnt * sizeof(void *)) + sizeof(struct rte_vec);
+	size = (cnt * sizeof(void *)) + sizeof(struct vec);
 
 	return RTE_ALIGN_CEIL(size, RTE_CACHE_LINE_SIZE);
 }
 
 static inline uint32_t
-rte_vec_calc_count(struct rte_mempool *mp)
+vec_calc_count(struct rte_mempool *mp)
 {
 	uint32_t size = mp->elt_size;
 
-	size = (size - sizeof(struct rte_vec) - sizeof(void *)) / sizeof(void *);
+	size = (size - sizeof(struct vec) - sizeof(void *)) / sizeof(void *);
 
 	return size;
 }
 
 static inline void
-rte_vec_set_free(struct rte_vec *v)
+vec_set_free(struct vec *v)
 {
 	v->flags |= VEC_FREE_FLAG;
 }
 
 static inline int
-rte_vec_is_free(struct rte_vec *v)
+vec_is_free(struct vec *v)
 {
 	return v->flags & VEC_FREE_FLAG;
 }
 
 static inline int
-rte_vec_is_dont_free(struct rte_vec *vec)
+vec_is_dont_free(struct vec *vec)
 {
 	return vec->flags & VEC_DONT_FREE_FLAG;
 }
 
 static inline void
-rte_vec_set_dont_free(struct rte_vec *vec)
+vec_set_dont_free(struct vec *vec)
 {
 	vec->flags |= VEC_DONT_FREE_FLAG;
 }
 
 static inline void
-rte_vec_clr_dont_free(struct rte_vec *vec)
+vec_clr_dont_free(struct vec *vec)
 {
 	vec->flags &= ~VEC_DONT_FREE_FLAG;
 }
 
 static inline __rte_always_inline uint16_t
-rte_vec_len(struct rte_vec *v)
+vec_len(struct vec *v)
 {
 	return v->len;
 }
 
 static inline __rte_always_inline int
-rte_vec_byte_len(struct rte_vec *v)
+vec_byte_len(struct vec *v)
 {
 	return v->len * sizeof(void *);
 }
 
 static inline __rte_always_inline void
-rte_vec_set_len(struct rte_vec *v, uint16_t n)
+vec_set_len(struct vec *v, uint16_t n)
 {
 	v->len = n;
 }
 
 static inline __rte_always_inline void
-rte_vec_set_max_len(struct rte_vec *v, uint16_t n)
+vec_set_max_len(struct vec *v, uint16_t n)
 {
 	v->tlen = n;
 }
 
 static inline __rte_always_inline void
-rte_vec_dec_len(struct rte_vec *v)
+vec_dec_len(struct vec *v)
 {
 	v->len--;
 }
 
 static inline __rte_always_inline void
-rte_vec_inc_len(struct rte_vec *v)
+vec_inc_len(struct vec *v)
 {
 	v->len++;
 }
 
 static inline __rte_always_inline uint16_t
-rte_vec_max_len(struct rte_vec *v)
+vec_max_len(struct vec *v)
 {
 	return v->tlen;
 }
 
 static inline __rte_always_inline struct rte_mbuf **
-rte_vec_list(struct rte_vec *v)
+vec_list(struct vec *v)
 {
 	return (struct rte_mbuf * *)&v->list[0];
 }
@@ -152,7 +152,7 @@ rte_vec_list(struct rte_vec *v)
 
 /* return -1 on full and index value if OK */
 static inline __rte_always_inline int
-rte_vec_add1(struct rte_vec *vec, void *val)
+vec_add1(struct vec *vec, void *val)
 {
 	if (vec->len >= vec->tlen)
 		return -1;
@@ -162,7 +162,7 @@ rte_vec_add1(struct rte_vec *vec, void *val)
 }
 
 static inline __rte_always_inline int
-rte_vec_add_at_index(struct rte_vec *vec, void *val, uint16_t n)
+vec_add_at_index(struct vec *vec, void *val, uint16_t n)
 {
 	if (vec->len >= vec->tlen)
 		return -1;
@@ -172,7 +172,7 @@ rte_vec_add_at_index(struct rte_vec *vec, void *val, uint16_t n)
 }
 
 static inline __rte_always_inline void *
-rte_vec_at_index(struct rte_vec *vec, uint16_t n)
+vec_at_index(struct vec *vec, uint16_t n)
 {
 	if (n >= vec->len)
 		return NULL;
@@ -180,32 +180,32 @@ rte_vec_at_index(struct rte_vec *vec, uint16_t n)
 }
 
 static inline __rte_always_inline void
-rte_vec_set_at_index(struct rte_vec *vec, uint16_t idx, void *val)
+vec_set_at_index(struct vec *vec, uint16_t idx, void *val)
 {
 	if (idx < vec->tlen)
 		vec->list[idx] = val;
 }
 
 static inline __rte_always_inline struct rte_mbuf **
-rte_vec_addr(struct rte_vec *vec, uint16_t n)
+vec_addr(struct vec *vec, uint16_t n)
 {
 	return (struct rte_mbuf * *)&vec->list[n];
 }
 
 static inline __rte_always_inline struct rte_mbuf **
-rte_vec_end(struct rte_vec *vec)
+vec_end(struct vec *vec)
 {
 	return (struct rte_mbuf * *)&vec->list[vec->len];
 }
 
 static inline __rte_always_inline int
-rte_vec_len_remaining(struct rte_vec *vec)
+vec_len_remaining(struct vec *vec)
 {
 	return vec->tlen - vec->len;
 }
 
 static inline __rte_always_inline int
-rte_vec_is_full(struct rte_vec *v)
+vec_is_full(struct vec *v)
 {
 	return (v->len == v->tlen);
 }
@@ -213,32 +213,32 @@ rte_vec_is_full(struct rte_vec *v)
 #pragma GCC diagnostic pop
 
 static inline void
-rte_vec_reset(struct rte_mempool *mp, struct rte_vec *vec)
+vec_reset(struct rte_mempool *mp, struct vec *vec)
 {
 	uint16_t flags = vec->flags;
 
 	vec->flags = (flags & VEC_RESET_MASK);
 	vec->vpool = mp;
-	rte_vec_set_max_len(vec, rte_vec_calc_count(mp));
-	rte_vec_set_len(vec, 0);
+	vec_set_max_len(vec, vec_calc_count(mp));
+	vec_set_len(vec, 0);
 }
 
 static inline int
-rte_vec_find_index(struct rte_vec *vec, void *v)
+vec_find_index(struct vec *vec, void *v)
 {
 	int i;
 
-	for (i = 0; i < rte_vec_len(vec); i++) {
-		if (rte_vec_at_index(vec, i) == v)
+	for (i = 0; i < vec_len(vec); i++) {
+		if (vec_at_index(vec, i) == v)
 			return i;
 	}
 	return -1;
 }
 
-static inline struct rte_vec *
-rte_vec_alloc(struct rte_mempool *mp)
+static inline struct vec *
+vec_alloc(struct rte_mempool *mp)
 {
-	struct rte_vec *vec;
+	struct vec *vec;
 
 	if (rte_mempool_get(mp, (void * *)&vec))
 		return NULL;
@@ -247,17 +247,17 @@ rte_vec_alloc(struct rte_mempool *mp)
 }
 
 static inline void
-rte_vec_free(struct rte_vec *vec)
+vec_free(struct vec *vec)
 {
 	struct rte_mempool *mp;
 
 	if (!vec)
 		return;
 
-	if (rte_vec_is_free(vec))
+	if (vec_is_free(vec))
 		return;
 
-	rte_vec_set_len(vec, 0);
+	vec_set_len(vec, 0);
 	if (vec->flags & VEC_RESET_MASK) {
 		vec->flags = (vec->flags & VEC_RESET_MASK);
 		return;
@@ -268,7 +268,7 @@ rte_vec_free(struct rte_vec *vec)
 
 	mp = vec->vpool;
 
-	rte_vec_reset(mp, vec);
+	vec_reset(mp, vec);
 
 	rte_mempool_put(mp, vec);
 }
@@ -286,8 +286,8 @@ rte_vec_free(struct rte_vec *vec)
  *   - 0: Success
  */
 static inline int
-rte_vec_alloc_bulk(struct rte_mempool *mp,
-		    struct rte_vec **vecs, unsigned count)
+vec_alloc_bulk(struct rte_mempool *mp,
+		    struct vec **vecs, unsigned count)
 {
 	unsigned idx = 0;
 	int	 rc;
@@ -304,16 +304,16 @@ rte_vec_alloc_bulk(struct rte_mempool *mp,
 	switch (count % 4) {
 	case 0:
 		while (idx != count) {
-			rte_vec_reset(mp, vecs[idx++]);
+			vec_reset(mp, vecs[idx++]);
 			/* fall-through */
 		case 3:
-			rte_vec_reset(mp, vecs[idx++]);
+			vec_reset(mp, vecs[idx++]);
 			/* fall-through */
 		case 2:
-			rte_vec_reset(mp, vecs[idx++]);
+			vec_reset(mp, vecs[idx++]);
 			/* fall-through */
 		case 1:
-			rte_vec_reset(mp, vecs[idx++]);
+			vec_reset(mp, vecs[idx++]);
 			/* fall-through */
 		}
 	}
@@ -321,25 +321,25 @@ rte_vec_alloc_bulk(struct rte_mempool *mp,
 }
 
 static inline void
-rte_vec_free_bulk(struct rte_vec **vecs, uint32_t n)
+vec_free_bulk(struct vec **vecs, uint32_t n)
 {
 	uint32_t i;
 
 	for (i = 0; i < n; i++)
-		rte_vec_free(vecs[i]);
+		vec_free(vecs[i]);
 }
 
 static inline void
-rte_vec_free_mbufs(struct rte_vec *vec)
+vec_free_mbufs(struct vec *vec)
 {
 	unsigned	  idx = 0, count;
 	struct rte_mbuf **mbufs;
 
 	if (!vec)
 		return;
-	count = rte_vec_len(vec);
-	mbufs = rte_vec_list(vec);
-	rte_vec_set_len(vec, 0);
+	count = vec_len(vec);
+	mbufs = vec_list(vec);
+	vec_set_len(vec, 0);
 
 	/* To understand duff's device on loop unwinding optimization, see
 	 * https://en.wikipedia.org/wiki/Duff's_device.
@@ -365,7 +365,7 @@ rte_vec_free_mbufs(struct rte_vec *vec)
 }
 
 static inline void
-rte_vec_clr_at_index(struct rte_vec *vec, uint16_t idx)
+vec_clr_at_index(struct vec *vec, uint16_t idx)
 {
 	/* Assume idx and vec are valid for vec array */
 	vec->list[idx] = NULL;
@@ -373,7 +373,7 @@ rte_vec_clr_at_index(struct rte_vec *vec, uint16_t idx)
 }
 
 static inline void
-rte_vec_compact(struct rte_vec *vec)
+vec_compact(struct vec *vec)
 {
 	void **l1, **l2;
 	uint16_t len;
@@ -406,32 +406,32 @@ rte_vec_compact(struct rte_vec *vec)
 }
 
 static inline void
-rte_vec_find_delete(struct rte_vec *vec, void *val)
+vec_find_delete(struct vec *vec, void *val)
 {
-	int idx = rte_vec_find_index(vec, val);
+	int idx = vec_find_index(vec, val);
 
 	if (idx != -1) {
-		rte_vec_clr_at_index(vec, idx);
-		rte_vec_compact(vec);
+		vec_clr_at_index(vec, idx);
+		vec_compact(vec);
 	}
 }
 
 static inline int
-rte_vec_pop(struct rte_vec *vec, void **val)
+vec_pop(struct vec *vec, void **val)
 {
 	RTE_ASSERT(vec && val);
 
 	if (vec->len) {
-		*val = rte_vec_at_index(vec, 0);
-		rte_vec_clr_at_index(vec, 0);
-		rte_vec_compact(vec);
+		*val = vec_at_index(vec, 0);
+		vec_clr_at_index(vec, 0);
+		vec_compact(vec);
 		return 1;
 	}
 	return 0;
 }
 
 static inline void
-rte_vec_free_mbuf_at_index(struct rte_vec *vec, uint16_t idx)
+vec_free_mbuf_at_index(struct vec *vec, uint16_t idx)
 {
 	void *val;
 
@@ -449,56 +449,56 @@ rte_vec_free_mbuf_at_index(struct rte_vec *vec, uint16_t idx)
 }
 
 static inline int
-rte_vec_move_at_index(struct rte_vec *to, struct rte_vec *from, uint16_t idx)
+vec_move_at_index(struct vec *to, struct vec *from, uint16_t idx)
 {
 	void *v;
 	int   rc;
 
-	v  = rte_vec_at_index(from, idx);
-	rc = rte_vec_add1(to, v);
+	v  = vec_at_index(from, idx);
+	rc = vec_add1(to, v);
 	if (rc >= 0)
-		rte_vec_clr_at_index(from, idx);
+		vec_clr_at_index(from, idx);
 
 	return rc;
 }
 
 static inline void
-rte_vec_copy_at_index(struct rte_vec *to, struct rte_vec *from, uint16_t idx)
+vec_copy_at_index(struct vec *to, struct vec *from, uint16_t idx)
 {
 	void *v;
 
-	v = rte_vec_at_index(from, idx);
-	rte_vec_add1(to, v);
+	v = vec_at_index(from, idx);
+	vec_add1(to, v);
 }
 
 static inline void
-rte_vec_move_mbuf(struct rte_vec *to, struct rte_vec *from, uint16_t idx)
+vec_move_mbuf(struct vec *to, struct vec *from, uint16_t idx)
 {
-	if (rte_vec_move_at_index(to, from, idx))
-		rte_pktmbuf_free(rte_vec_at_index(from, idx));
+	if (vec_move_at_index(to, from, idx))
+		rte_pktmbuf_free(vec_at_index(from, idx));
 }
 
 static inline struct rte_mbuf *
-rte_vec_get_and_clr(struct rte_vec *vec, uint16_t idx)
+vec_get_and_clr(struct vec *vec, uint16_t idx)
 {
 	struct rte_mbuf *m;
 
-	m = rte_vec_at_index(vec, idx);
-	rte_vec_clr_at_index(vec, idx);
+	m = vec_at_index(vec, idx);
+	vec_clr_at_index(vec, idx);
 
 	return m;
 }
 
-struct rte_vec *rte_vec_create(const char *name, unsigned int n, uint16_t flags);
-void rte_vec_destroy(struct rte_vec *vec);
+struct vec *vec_create(const char *name, unsigned int n, uint16_t flags);
+void vec_destroy(struct vec *vec);
 
-struct rte_mempool *rte_vec_create_pool(const char *name, unsigned int n,
+struct rte_mempool *vec_create_pool(const char *name, unsigned int n,
 				unsigned int entries, unsigned int cache_size);
-void rte_vec_destroy_pool(struct rte_mempool *obj);
+void vec_destroy_pool(struct rte_mempool *obj);
 
-int rte_vec_to_data(struct rte_vec *v, char *buf, size_t len);
+int vec_to_data(struct vec *v, char *buf, size_t len);
 
-void rte_vec_print(FILE *f, const char *msg, struct rte_vec *vec);
+void vec_print(FILE *f, const char *msg, struct vec *vec);
 
 #ifdef __cplusplus
 }

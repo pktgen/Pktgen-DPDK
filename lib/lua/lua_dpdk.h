@@ -73,7 +73,7 @@ struct pkt_data {
 
 typedef struct rte_mempool pktmbuf_t;
 typedef struct rte_mempool mempool_t;
-typedef struct rte_vec vec_t;
+typedef struct vec vec_t;
 
 /**************************************************************************//**
  *

@@ -8,23 +8,23 @@
 #include <rte_prefetch.h>
 #include <rte_mbuf.h>
 
-#include "rte_vec.h"
+#include "vec.h"
 
 static void
 vec_obj_init(struct rte_mempool *mp, void *uarg __rte_unused,
 	     void *obj, unsigned idx __rte_unused)
 {
-	struct rte_vec *v = (struct rte_vec *)obj;
+	struct vec *v = (struct vec *)obj;
 
-	rte_vec_reset(mp, v);
+	vec_reset(mp, v);
 }
 
 struct rte_mempool *
-rte_vec_create_pool(const char *name, unsigned int n,
+vec_create_pool(const char *name, unsigned int n,
 		     unsigned int entires, unsigned int cache_size)
 {
 	struct rte_mempool *mp = NULL;
-	unsigned int size = rte_vec_calc_size(entires);
+	unsigned int size = vec_calc_size(entires);
 
 	mp = rte_mempool_create(name, n, size, cache_size, 0,
 		NULL, NULL, NULL, NULL, rte_socket_id(), 0);
@@ -35,18 +35,18 @@ rte_vec_create_pool(const char *name, unsigned int n,
 }
 
 void
-rte_vec_destroy_pool(struct rte_mempool *obj)
+vec_destroy_pool(struct rte_mempool *obj)
 {
 	rte_mempool_free(obj);
 }
 
-struct rte_vec *
-rte_vec_create(const char *name, unsigned int n, uint16_t flags)
+struct vec *
+vec_create(const char *name, unsigned int n, uint16_t flags)
 {
-	struct rte_vec *vec;
+	struct vec *vec;
 	uint32_t vec_size;
 
-	vec_size = rte_vec_calc_size(n);
+	vec_size = vec_calc_size(n);
 
 	vec = rte_zmalloc_socket(name, vec_size,
 				 RTE_CACHE_LINE_SIZE,
@@ -61,21 +61,21 @@ rte_vec_create(const char *name, unsigned int n, uint16_t flags)
 }
 
 void
-rte_vec_destroy(struct rte_vec *vec)
+vec_destroy(struct vec *vec)
 {
 	rte_free(vec);
 }
 
 int
-rte_vec_to_data(struct rte_vec *v, char *buf, size_t len)
+vec_to_data(struct vec *v, char *buf, size_t len)
 {
 	size_t count = 0, cnt;
 	uint16_t vlen;
 	int i;
 
-	vlen = rte_vec_len(v);
+	vlen = vec_len(v);
 	for(i = 0; i < vlen && len; i++) {
-		struct rte_mbuf *m = rte_vec_at_index(v, i);
+		struct rte_mbuf *m = vec_at_index(v, i);
 
 		/* set cnt to number of bytes that will fit in buffer */
 		cnt = RTE_MIN(rte_pktmbuf_pkt_len(m), len);
@@ -90,17 +90,17 @@ rte_vec_to_data(struct rte_vec *v, char *buf, size_t len)
 		buf += cnt;
 
 		if (rte_pktmbuf_pkt_len(m) == 0)
-			rte_vec_free_mbuf_at_index(v, i);
+			vec_free_mbuf_at_index(v, i);
 		else
 			break;
 	}
-	rte_vec_compact(v);
+	vec_compact(v);
 
 	return count;
 }
 
 void
-rte_vec_print(FILE *f, const char *msg, struct rte_vec *v)
+vec_print(FILE *f, const char *msg, struct vec *v)
 {
 	int i, k;
 

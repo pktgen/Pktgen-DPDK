@@ -19,9 +19,9 @@ EXPORT_MAP := vec_version.map
 LIBABIVER := 1
 
 # all source are stored in SRCS-y
-SRCS-y := rte_vec.c
+SRCS-y := vec.c
 
 # install includes
-SYMLINK-y-include += rte_vec.h
+SYMLINK-y-include += vec.h
 
 include $(RTE_SDK)/mk/rte.extlib.mk

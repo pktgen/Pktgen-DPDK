@@ -2,6 +2,6 @@
 # Copyright(c) 2019 Intel Corporation
 
 version = 1
-sources = files('rte_vec.c')
-headers = files('rte_vec.h')
+sources = files('vec.c')
+headers = files('vec.h')
 #rte_deps += ['ethdev']

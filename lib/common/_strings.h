@@ -8,8 +8,8 @@
  * String-related utility functions
  */
 
-#ifndef _RTE_STRINGS_H_
-#define _RTE_STRINGS_H_
+#ifndef __STRINGS_H_
+#define __STRINGS_H_
 
 #include <stdio.h>
 #include <string.h>
@@ -17,6 +17,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <__compat.h>
 #include <rte_compat.h>
 #include <rte_ether.h>
 #include <rte_string_fns.h>
@@ -173,21 +174,21 @@ rte_strcnt(char *s, char c)
  *   String containing the MAC address in two forms
  *      XX:XX:XX:XX:XX:XX or XXXX:XXXX:XXX
  * @param e
- *   pointer to a struct ether_addr to place the return value. If the value
+ *   pointer to a struct __ether_addr to place the return value. If the value
  *   is null then use a static location instead.
  * @return
- *   Pointer to the struct ether_addr structure;
+ *   Pointer to the struct __ether_addr structure;
  */
-static inline struct ether_addr *
-rte_ether_aton(const char *a, struct ether_addr *e)
+static inline struct __ether_addr *
+rte_ether_aton(const char *a, struct __ether_addr *e)
 {
 	int i;
 	char *end;
-	unsigned long o[ETHER_ADDR_LEN];
-	static struct ether_addr ether_addr;
+	unsigned long o[__ETHER_ADDR_LEN];
+	static struct __ether_addr __ether_addr;
 
 	if (!e)
-		e = &ether_addr;
+		e = &__ether_addr;
 
 	i = 0;
 	do {
@@ -203,14 +204,14 @@ rte_ether_aton(const char *a, struct ether_addr *e)
 		return NULL;
 
 	/* Support the format XX:XX:XX:XX:XX:XX */
-	if (i == ETHER_ADDR_LEN) {
+	if (i == __ETHER_ADDR_LEN) {
 		while (i-- != 0) {
 			if (o[i] > UINT8_MAX)
 				return NULL;
 			e->addr_bytes[i] = (uint8_t)o[i];
 		}
 		/* Support the format XXXX:XXXX:XXXX */
-	} else if (i == ETHER_ADDR_LEN / 2) {
+	} else if (i == __ETHER_ADDR_LEN / 2) {
 		while (i-- != 0) {
 			if (o[i] > UINT16_MAX)
 				return NULL;
@@ -226,9 +227,9 @@ rte_ether_aton(const char *a, struct ether_addr *e)
 
 #ifndef _MTOA_
 #define _MTOA_
-/* char * inet_mtoa(char * buff, int len, struct ether_addr * eaddr) - Convert MAC address to ascii */
+/* char * inet_mtoa(char * buff, int len, struct __ether_addr * eaddr) - Convert MAC address to ascii */
 static __inline__ char *
-inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
+inet_mtoa(char *buff, int len, struct __ether_addr *eaddr) {
         snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
                  eaddr->addr_bytes[0], eaddr->addr_bytes[1],
                  eaddr->addr_bytes[2], eaddr->addr_bytes[3],
@@ -282,4 +283,4 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 }
 #endif
 
-#endif /* _RTE_STRINGS_H_ */
+#endif /* __STRINGS_H_ */

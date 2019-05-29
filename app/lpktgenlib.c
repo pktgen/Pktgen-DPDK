@@ -29,6 +29,7 @@
 #include <rte_net.h>
 #include <lua_config.h>
 #include <lua_stdio.h>
+#include <_delay.h>
 #include <_strings.h>
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
@@ -153,7 +154,7 @@ setf_udata(lua_State *L, const char *name, void *value)
 #endif
 
 static __inline__ void
-getf_etheraddr(lua_State *L, const char *field, struct ether_addr *value)
+getf_etheraddr(lua_State *L, const char *field, struct __ether_addr *value)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) )
@@ -277,8 +278,8 @@ set_seq(lua_State *L, uint32_t seqnum)
 	uint32_t pktsize, sport, dport, gtpu_teid;
 	uint16_t vlanid;
 	uint8_t cos, tos;
-	struct ether_addr daddr;
-	struct ether_addr saddr;
+	struct __ether_addr daddr;
+	struct __ether_addr saddr;
 	struct pg_ipaddr ip_daddr;
 	struct pg_ipaddr ip_saddr;
 	char *proto, *ip;
@@ -385,8 +386,8 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	uint32_t pktSize, sport, dport, gtpu_teid;
 	uint16_t vlanid;
 	uint8_t cos, tos;
-	struct ether_addr daddr;
-	struct ether_addr saddr;
+	struct __ether_addr daddr;
+	struct __ether_addr saddr;
 	struct pg_ipaddr ip_daddr;
 	struct pg_ipaddr ip_saddr;
 	char *ipProto, *ethType;
@@ -554,7 +555,7 @@ static int
 pktgen_set_mac(lua_State *L)
 {
 	portlist_t portlist;
-	struct ether_addr mac;
+	struct __ether_addr mac;
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "set_mac, wrong number of arguments");
@@ -1315,7 +1316,7 @@ static int
 range_dst_mac(lua_State *L)
 {
 	portlist_t portlist;
-	struct ether_addr mac;
+	struct __ether_addr mac;
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "dst_mac, wrong number of arguments");
@@ -1348,7 +1349,7 @@ static int
 range_src_mac(lua_State *L)
 {
 	portlist_t portlist;
-	struct ether_addr mac;
+	struct __ether_addr mac;
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "src_mac, wrong number of arguments");
@@ -2768,7 +2769,7 @@ pktgen_portSizes(lua_State *L)
 static void
 pkt_stats(lua_State *L, port_info_t *info)
 {
-	struct ether_addr ethaddr;
+	struct __ether_addr ethaddr;
 	char mac_buf[32];
 	pkt_stats_t stats;
 	uint64_t avg_lat, ticks, jitter;
@@ -2790,7 +2791,7 @@ pkt_stats(lua_State *L, port_info_t *info)
 
 	rte_eth_macaddr_get(info->pid, &ethaddr);
 
-	ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+	__ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
 	setf_string(L, "mac_addr", mac_buf);
 
 	avg_lat = 0;
@@ -3054,13 +3055,13 @@ port_info(lua_State *L, port_info_t *info)
 		setf_integer(L, "tx_count", rte_atomic64_read(&info->transmit_count));
 	setf_integer(L, "tx_rate", info->tx_rate);
 
-	setf_integer(L, "pkt_size", pkt->pktSize + ETHER_CRC_LEN);
+	setf_integer(L, "pkt_size", pkt->pktSize + __ETHER_CRC_LEN);
 	setf_integer(L, "tx_burst", info->tx_burst);
 
 	setf_string(L, "eth_type",
-		(pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
-		(pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
-		(pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other");
+		(pkt->ethType == __ETHER_TYPE_IPv4) ? "IPv4" :
+		(pkt->ethType == __ETHER_TYPE_IPv6) ? "IPv6" :
+		(pkt->ethType == __ETHER_TYPE_ARP) ? "ARP" : "Other");
 	setf_string(L, "proto_type",
 		(pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		(pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" :
@@ -3278,7 +3279,7 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 		    inet_mtoa(buff, sizeof(buff), &p->eth_dst_addr));
 	setf_string(L, "eth_src_addr",
 		    inet_mtoa(buff, sizeof(buff), &p->eth_src_addr));
-	if (p->ethType == ETHER_TYPE_IPv4) {
+	if (p->ethType == __ETHER_TYPE_IPv4) {
 		setf_string(L, "ip_dst_addr",
 			    inet_ntop4(buff, sizeof(buff),
 				       htonl(p->ip_dst_addr.addr.ipv4.s_addr),
@@ -3303,15 +3304,15 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 	setf_string(L,
 		    "ethType",
 		    (char *)(
-			    (p->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
-			    (p->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
+			    (p->ethType == __ETHER_TYPE_IPv4) ? "ipv4" :
+			    (p->ethType == __ETHER_TYPE_IPv6) ? "ipv6" :
 			    (p->ethType ==
-			     ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
+			     __ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
 	setf_string(L, "ipProto", (char *)(
 			    (p->ipProto == PG_IPPROTO_TCP) ? "tcp" :
 			    (p->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp"));
 
-	setf_integer(L, "pktSize", p->pktSize + ETHER_CRC_LEN);
+	setf_integer(L, "pktSize", p->pktSize + __ETHER_CRC_LEN);
 	setf_integer(L, "gtpu_teid", p->gtpu_teid);
 
 	/* Now set the table as an array with pid as the index. */
@@ -3959,8 +3960,8 @@ luaopen_pktgen(lua_State *L)
 	setf_integer(L, "numExtraTxPkts", NUM_EXTRA_TX_PKTS);
 	setf_integer(L, "numTotalPkts", NUM_TOTAL_PKTS);
 
-	setf_integer(L, "minPktSize", MIN_PKT_SIZE + ETHER_CRC_LEN);
-	setf_integer(L, "maxPktSize", MAX_PKT_SIZE + ETHER_CRC_LEN);
+	setf_integer(L, "minPktSize", MIN_PKT_SIZE + __ETHER_CRC_LEN);
+	setf_integer(L, "maxPktSize", MAX_PKT_SIZE + __ETHER_CRC_LEN);
 	setf_integer(L, "minVlanID", MIN_VLAN_ID);
 	setf_integer(L, "maxVlanID", MAX_VLAN_ID);
 	setf_integer(L, "vlanTagSize", VLAN_TAG_SIZE);

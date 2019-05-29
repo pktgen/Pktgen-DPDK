@@ -300,7 +300,7 @@ the environment.
 Before you run the script you will need to run:
 
     # export RTE_SDK=<DPDKinstallDir>
-    # export RTE_TARGET=x86_64-native-linuxapp-gcc
+    # export RTE_TARGET=x86_64-native-linux-gcc
 
 Make sure you run the setup script as root via `./tools/setup.sh`. The setup
 script is a bash script and tries to setup the system correctly, but you may have to
@@ -320,18 +320,18 @@ directory. Your SDK directory maybe named differently, but should point to the D
 SDK directory.
 
     # export RTE_SDK=<DPDKinstallDir>
-    # export RTE_TARGET=x86_64-native-linuxapp-gcc
+    # export RTE_TARGET=x86_64-native-linux-gcc
 
 or use clang if you have it installed
 
-    # export RTE_TARGET=x86_64-native-linuxapp-clang
+    # export RTE_TARGET=x86_64-native-linux-clang
 
 Create the DPDK build tree if you haven't already:
 
     # cd $RTE_SDK
-    # make install T=x86_64-native-linuxapp-gcc -j
+    # make install T=x86_64-native-linux-gcc -j
 
-The above command will create the x86_64-native-linuxapp-gcc directory in the
+The above command will create the x86_64-native-linux-gcc directory in the
 top level of the current-dkdp directory. The above command will build the basic
 DPDK libraries and build tree.
 

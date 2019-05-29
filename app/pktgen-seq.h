@@ -24,8 +24,8 @@ typedef void    *MARKER[0];   /**< generic marker for a point in a structure */
 
 typedef struct pkt_seq_s {
 	/* Packet type and information */
-	struct ether_addr eth_dst_addr;	/**< Destination Ethernet address */
-	struct ether_addr eth_src_addr;	/**< Source Ethernet address */
+	struct __ether_addr eth_dst_addr;	/**< Destination Ethernet address */
+	struct __ether_addr eth_src_addr;	/**< Source Ethernet address */
 
 	struct cmdline_ipaddr ip_src_addr;	/**< Source IPv4 address also used for IPv6 */
 	struct cmdline_ipaddr ip_dst_addr;	/**< Destination IPv4 address */

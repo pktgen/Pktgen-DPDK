@@ -6,8 +6,10 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
+#include <rte_version.h>
 #include <rte_ethdev.h>
 #include <rte_cycles.h>
+#include <_delay.h>
 
 #include "portlist.h"
 #include "link.h"
@@ -120,7 +122,6 @@ link_status_wait(FILE *f, uint64_t port_list, int secs)
 
 		fprintf(f, ".");
 		fflush(f);
-
 		rte_delay_us_sleep(CHECK_INTERVAL * 1000);
 	}
 

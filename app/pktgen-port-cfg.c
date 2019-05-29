@@ -6,6 +6,7 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <_delay.h>
 #include <cli_scrn.h>
 #include <lua_config.h>
 
@@ -42,7 +43,7 @@ static struct rte_eth_conf default_port_conf = {
 #if RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
 	.rxmode = {
 		.mq_mode = ETH_MQ_RX_RSS,
-		.max_rx_pkt_len = ETHER_MAX_LEN,
+		.max_rx_pkt_len = __ETHER_MAX_LEN,
 		.split_hdr_size = 0,
 		.ignore_offload_bitfield = 1,
 		.offloads = (DEV_RX_OFFLOAD_CRC_STRIP |
@@ -79,7 +80,7 @@ pktgen_set_hw_strip_crc(uint8_t val)
 int
 pktgen_get_hw_strip_crc(void)
 {
-	return (hw_strip_crc)? ETHER_CRC_LEN : 0;
+	return (hw_strip_crc)? __ETHER_CRC_LEN : 0;
 }
 
 /**************************************************************************//**

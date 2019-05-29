@@ -9,13 +9,13 @@ name=`uname -n`
 if [ -z ${RTE_SDK} ] ; then
 	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./setup.sh'"
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
-	export RTE_TARGET=x86_64-native-linuxapp-clang
+	export RTE_TARGET=x86_64-native-linux-clang
 fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
     echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./setup.sh'"
-    target=x86_64-native-linuxapp-gcc
+    target=x86_64-native-linux-gcc
 else
     target=${RTE_TARGET}
 fi

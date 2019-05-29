@@ -15,6 +15,7 @@
 #include <rte_timer.h>
 #include <rte_version.h>
 
+#include <_delay.h>
 #include <_strings.h>
 #include <portlist.h>
 
@@ -247,7 +248,7 @@ decompile_pkt(lua_State *L, uint16_t pid)
 		    inet_mtoa(buff, sizeof(buff), &p->eth_dst_addr));
 	setf_string(L, "eth_src_addr",
 		    inet_mtoa(buff, sizeof(buff), &p->eth_src_addr));
-	if (p->ethType == ETHER_TYPE_IPv4) {
+	if (p->ethType == __ETHER_TYPE_IPv4) {
 		setf_string(L, "ip_dst_addr",
 			    inet_ntop4(buff, sizeof(buff),
 			    		htonl(p->ip_dst_addr),
@@ -269,16 +270,15 @@ decompile_pkt(lua_State *L, uint16_t pid)
 	setf_string(L,
 		    "ethType",
 		    (char *)(
-			    (p->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
-			    (p->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
+			    (p->ethType == __ETHER_TYPE_IPv4) ? "ipv4" :
+			    (p->ethType == __ETHER_TYPE_IPv6) ? "ipv6" :
 			    (p->ethType ==
-			     ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
+			     __ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
 	setf_string(L, "ipProto", (char *)(
 			    (p->ipProto == IPPROTO_TCP) ? "tcp" :
 			    (p->ipProto == IPPROTO_ICMP) ? "icmp" : "udp"));
 
-	setf_integer(L, "pktSize", p->pktSize + ETHER_CRC_LEN);
-
+	setf_integer(L, "pktSize", p->pktSize + __ETHER_CRC_LEN);
 	/* Now set the table as an array with pid as the index. */
 	lua_rawset(L, -3);
 }

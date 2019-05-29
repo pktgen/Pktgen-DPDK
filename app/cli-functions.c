@@ -48,18 +48,28 @@ valid_pkt_size(port_info_t *info, char *val)
 	uint16_t pkt_size;
 
 	if (!val)
-		return (MIN_PKT_SIZE + ETHER_CRC_LEN);
+		return (MIN_PKT_SIZE + __ETHER_CRC_LEN);
 
 	pkt_size = atoi(val);
 	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
-		if (pkt_size < (MIN_PKT_SIZE + ETHER_CRC_LEN))
-			pkt_size = (MIN_PKT_SIZE + ETHER_CRC_LEN);
+		if (pkt_size < (MIN_PKT_SIZE + __ETHER_CRC_LEN))
+			pkt_size = (MIN_PKT_SIZE + __ETHER_CRC_LEN);
 	}
 
-	if (pkt_size > (MAX_PKT_SIZE + ETHER_CRC_LEN))
-		pkt_size = MAX_PKT_SIZE + ETHER_CRC_LEN;
+	if (pkt_size > (MAX_PKT_SIZE + __ETHER_CRC_LEN))
+		pkt_size = MAX_PKT_SIZE + __ETHER_CRC_LEN;
 
 	return pkt_size;
+}
+
+static inline uint16_t
+valid_gtpu_teid(port_info_t *info __rte_unused, char *val)
+{
+	uint16_t gtpu_teid;
+
+	gtpu_teid = atoi(val);
+
+	return gtpu_teid;
 }
 
 /**********************************************************/
@@ -120,6 +130,8 @@ static struct cli_map range_map[] = {
 	{ 80, "range %P mpls entry %h" },
 	{ 85, "range %P qinq index %d %d" },
 	{ 90, "range %P gre key %d" },
+	{ 100, "range %P gtpu "SMMI" %d" },
+	{ 101, "range %P gtpu %d %d %d %d" },
 	{ 160, "range %P cos "SMMI" %d" },
 	{ 161, "range %P cos %d %d %d %d" },
 	{ 170, "range %P tos "SMMI" %d" },
@@ -308,6 +320,18 @@ range_cmd(int argc, char **argv)
 		case 90:
 			foreach_port(portlist,
 				range_set_gre_key(info, strtoul(what, NULL, 10)) );
+			break;
+		case 100:
+			foreach_port(portlist,
+				range_set_gtpu_teid(info, argv[3], strcmp("inc", argv[3])? valid_gtpu_teid(info, what) : atoi(what)));
+			break;
+		case 101:
+			foreach_port(portlist,
+				range_set_gtpu_teid(info, (char *)(uintptr_t)"start", valid_gtpu_teid(info, argv[3]));
+				range_set_gtpu_teid(info, (char *)(uintptr_t)"min", valid_gtpu_teid(info, argv[4]));
+				range_set_gtpu_teid(info, (char *)(uintptr_t)"max", valid_gtpu_teid(info, argv[5]));
+				range_set_gtpu_teid(info, (char *)(uintptr_t)"inc", atoi(argv[6]));
+				);
 			break;
 		case 160:
 			foreach_port(portlist,
@@ -1051,7 +1075,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	int seqnum = atoi(argv[1]);
 	portlist_t portlist;
 	struct pg_ipaddr dst, src;
-	struct ether_addr dmac, smac;
+	struct __ether_addr dmac, smac;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -1114,7 +1138,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	int seqnum = atoi(argv[1]);
 	portlist_t portlist;
 	struct pg_ipaddr dst, src;
-	struct ether_addr dmac, smac;
+	struct __ether_addr dmac, smac;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {

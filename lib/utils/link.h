@@ -8,8 +8,8 @@
  * String-related utility functions
  */
 
-#ifndef _RTE_LINK_H_
-#define _RTE_LINK_H_
+#ifndef __LINK_H_
+#define __LINK_H_
 
 #include <rte_compat.h>
 
@@ -72,4 +72,4 @@ void link_status_check_cancel(void);
 }
 #endif
 
-#endif /* _RTE_LINK_H */
+#endif /* __LINK_H */

@@ -18,6 +18,7 @@
 
 #include <arpa/inet.h>
 
+#include <__compat.h>
 #include <rte_ether.h>
 #include <rte_net.h>
 #include <rte_icmp.h>
@@ -53,7 +54,7 @@ struct pg_ipaddr {
 #define PG_OFF_DF       0x4000
 
 /******************************************************************************
- * struct ipv4_hdr.proto values in the IP Header.
+ * struct __ipv4_hdr.proto values in the IP Header.
  *  1     ICMP        Internet Control Message            [RFC792]
  *  2     IGMP        Internet Group Management          [RFC1112]
  *  4     IP          IP in IP (encapsulation)           [RFC2003]
@@ -151,20 +152,20 @@ typedef unsigned int seq_t;	/* TCP Sequence type */
 /* The UDP/IP Pseudo header */
 typedef struct udpip_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	struct udp_hdr udp;	/* UDP header for protocol */
+	struct __udp_hdr udp;	/* UDP header for protocol */
 } __attribute__((__packed__)) udpip_t;
 
 /* The GTP-U/UDP/IP Pseudo header */
 typedef struct gtpuUdpIp_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	struct udp_hdr udp;	/* UDP header for protocol */
+	struct __udp_hdr udp;	/* UDP header for protocol */
 	gtpuHdr_t gtpu;	/* GTP-U header */
 } __attribute__((__packed__)) gtpuUdpIp_t;
 
 /* The UDP/IPv6 Pseudo header */
 typedef struct udpipv6_s {
 	ipv6Overlay_t ip;	/* IPv6 overlay header */
-	struct udp_hdr udp;		/* UDP header for protocol */
+	struct __udp_hdr udp;		/* UDP header for protocol */
 } __attribute__((__packed__)) udpipv6_t;
 
 enum { URG_FLAG = 0x20, ACK_FLAG = 0x10, PSH_FLAG = 0x08, RST_FLAG = 0x04,
@@ -173,20 +174,20 @@ enum { URG_FLAG = 0x20, ACK_FLAG = 0x10, PSH_FLAG = 0x08, RST_FLAG = 0x04,
 /* The TCP/IPv4 Pseudo header */
 typedef struct tcpip_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	struct tcp_hdr tcp;	/* TCP header for protocol */
+	struct __tcp_hdr tcp;	/* TCP header for protocol */
 } __attribute__((__packed__)) tcpip_t;
 
 /* The GTPu/TCP/IPv4 Pseudo header */
 typedef struct gtpuTcpIp_s {
 	ipOverlay_t ip;	/* IPv4 overlay header */
-	struct tcp_hdr tcp;	/* TCP header for protocol */
+	struct __tcp_hdr tcp;	/* TCP header for protocol */
 	gtpuHdr_t gtpu;	/* GTP-U header */
 } __attribute__((__packed__)) gtpuTcpIp_t;
 
 /* The TCP/IPv6 Pseudo header */
 typedef struct tcpipv6_s {
 	ipv6Overlay_t ip;	/* IPv6 overlay header */
-	struct tcp_hdr tcp;		/* TCP header for protocol */
+	struct __tcp_hdr tcp;		/* TCP header for protocol */
 } __attribute__((__packed__)) tcpipv6_t;
 
 /* ICMPv4 Packet data structures */
@@ -309,7 +310,7 @@ typedef struct mplsHdr_s {
  */
 typedef struct qinqHdr_s {
 	uint16_t qinq_tci;	/**< Outer tag PCP, DEI, VID */
-	uint16_t vlan_tpid;	/**< Must be ETHER_TYPE_VLAN (0x8100) */
+	uint16_t vlan_tpid;	/**< Must be __ETHER_TYPE_VLAN (0x8100) */
 	uint16_t vlan_tci;	/**< Inner tag PCP, DEI, VID */
 	uint16_t eth_proto;	/**< EtherType of encapsulated frame */
 } __attribute__ ((__packed__)) qinqHdr_t;
@@ -360,15 +361,15 @@ typedef struct greHdr_s {
 
 /* the GRE/IPv4 header */
 typedef struct greIp_s {
-	struct ipv4_hdr ip;	/* Outer IPv4 header */
+	struct __ipv4_hdr ip;	/* Outer IPv4 header */
 	greHdr_t gre;	/* GRE header for protocol */
 } __attribute__ ((__packed__)) greIp_t;
 
 /* the GRE/Ethernet header */
 typedef struct greEther_s {
-	struct ipv4_hdr ip;		/* Outer IPv4 header */
+	struct __ipv4_hdr ip;		/* Outer IPv4 header */
 	greHdr_t gre;		/* GRE header */
-	struct ether_hdr ether;	/* Inner Ethernet header */
+	struct __ether_hdr ether;	/* Inner Ethernet header */
 } __attribute__ ((__packed__)) greEther_t;
 
 /* Common defines for Ethernet */
@@ -404,14 +405,14 @@ typedef union {
 } ip4_e;
 
 typedef struct pkt_hdr_s {
-	struct ether_hdr eth;	/**< Ethernet header */
+	struct __ether_hdr eth;	/**< Ethernet header */
 	union {
-		struct ipv4_hdr ipv4;		/**< IPv4 Header */
-		struct ipv6_hdr ipv6;		/**< IPv6 Header */
+		struct __ipv4_hdr ipv4;		/**< IPv4 Header */
+		struct __ipv6_hdr ipv6;		/**< IPv6 Header */
 		tcpip_t tip;		/**< TCP + IPv4 Headers */
 		udpip_t uip;		/**< UDP + IPv4 Headers */
 		gtpuUdpIp_t guip;	/**< GTP-U + UDP + IPv4 Header */
-		struct icmp_hdr icmp;	/**< ICMP + IPv4 Headers */
+		struct __icmp_hdr icmp;	/**< ICMP + IPv4 Headers */
 		tcpipv6_t tip6;		/**< TCP + IPv6 Headers */
 		udpipv6_t uip6;		/**< UDP + IPv6 Headers */
 		uint64_t pad[8];	/**< Length of structures */
@@ -592,9 +593,9 @@ inet_ntop6(char *buff, int len, uint8_t *ip6) {
 
 #ifndef _MTOA_
 #define _MTOA_
-/* char * inet_mtoa(char * buff, int len, struct ether_addr * eaddr) - Convert MAC address to ascii */
+/* char * inet_mtoa(char * buff, int len, struct __ether_addr * eaddr) - Convert MAC address to ascii */
 static __inline__ char *
-inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
+inet_mtoa(char *buff, int len, struct __ether_addr *eaddr) {
 	snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
 		 eaddr->addr_bytes[0], eaddr->addr_bytes[1],
 		 eaddr->addr_bytes[2], eaddr->addr_bytes[3],
@@ -605,7 +606,7 @@ inet_mtoa(char *buff, int len, struct ether_addr *eaddr) {
 
 /* convert a MAC address from network byte order to host 64bit number */
 static __inline__ uint64_t
-inet_mtoh64(struct ether_addr *eaddr, uint64_t *value) {
+inet_mtoh64(struct __ether_addr *eaddr, uint64_t *value) {
 	*value = ((uint64_t)eaddr->addr_bytes[5] << 0)
 		+ ((uint64_t)eaddr->addr_bytes[4] << 8)
 		+ ((uint64_t)eaddr->addr_bytes[3] << 16)
@@ -616,8 +617,8 @@ inet_mtoh64(struct ether_addr *eaddr, uint64_t *value) {
 }
 
 /* convert a host 64bit number to MAC address in network byte order */
-static __inline__ struct ether_addr *
-inet_h64tom(uint64_t value, struct ether_addr *eaddr) {
+static __inline__ struct __ether_addr *
+inet_h64tom(uint64_t value, struct __ether_addr *eaddr) {
 	eaddr->addr_bytes[5] = ((value >> 0) & 0xFF);
 	eaddr->addr_bytes[4] = ((value >> 8) & 0xFF);
 	eaddr->addr_bytes[3] = ((value >> 16) & 0xFF);

@@ -163,17 +163,23 @@ Build DPDK and Pktgen
 Set up the environmental variables required by DPDK::
 
    export RTE_SDK=<DPDKInstallDir>
+   export RTE_TARGET=x86_64-native-linux-gcc
+   or
    export RTE_TARGET=x86_64-native-linuxapp-gcc
 
    # or use clang if you have it installed:
+   export RTE_TARGET=x86_64-native-linux-clang
+   or
    export RTE_TARGET=x86_64-native-linuxapp-clang
 
 Create the DPDK build tree::
 
    $ cd $RTE_SDK
+   $ make install T=x86_64-native-linux-gcc
+   or
    $ make install T=x86_64-native-linuxapp-gcc
 
-This above command will create the `x86_64-pktgen-linuxapp-gcc` directory in
+This above command will create the `x86_64-pktgen-linux-gcc` directory in
 the top level of the ``$RTE_SDK`` directory. It will also build the basic DPDK
 libraries, kernel modules and build tree.
 
@@ -223,12 +229,12 @@ Here is the default.cfg file::
         '85:00.0 85:00.1 85:00.2 85:00.3',
         '83:00.0'
         ],
-        
+
     'opts': [
         '-b igb_uio'
         ]
     }
-   
+
    # Run command and options
    run = {
     'dpdk': [
@@ -239,7 +245,7 @@ Here is the default.cfg file::
         '--socket-mem 2048,2048',
         '--file-prefix pg'
         ],
-    
+
     'blacklist': [
         #'-b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3',
         #'-b 85:00.0 -b 85:00.1 -b 85:00.2 -b 85:00.3',
@@ -247,7 +253,7 @@ Here is the default.cfg file::
         '-b 85:00.0 -b 85:00.1',
         '-b 83:00.0'
         ],
-        
+
     'pktgen': [
         '-T',
         '-P',
@@ -257,7 +263,7 @@ Here is the default.cfg file::
         '-m [10:11].2',
         '-m [12:13].3',
         ],
-    
+
     'misc': [
         '-f themes/black-yellow.theme'
        ]
@@ -277,7 +283,9 @@ You may also wish to edit your ``.bashrc``, ``.profile`` or ``.cshrc`` files to
 permanently add the environment variables that you set up above::
 
    export RTE_SDK=<DPDKInstallDir>
-   export RTE_TARGET=x86_64-native-linuxapp-gcc
+   export RTE_TARGET=x86_64-native-linux-gcc
+   or
+   export RTE_TARGET=x86_64-native-linux-appgcc
 
 
 Running the application

@@ -213,6 +213,8 @@ Compiling the Application
 
 .. code-block:: console
 
+       export RTE_TARGET=x86_64-native-linux-gcc
+	   or
        export RTE_TARGET=x86_64-native-linuxapp-gcc
 
    Refer to the *DPDK Getting Started Guide* for possible RTE_TARGET values.
@@ -226,7 +228,7 @@ Compiling the Application
 Running the Application
 -----------------------
 
-To run the application in linuxapp environment, issue the following command:
+To run the application in linux environment, issue the following command:
 
 .. code-block:: console
 
@@ -435,8 +437,8 @@ Example:
 
 	static const char *show_help[] = {
 		"show <portlist>",
-		"show <portlist> mac <ether_addr>",
-		"show <portlist> vlan <vlanid> mac <ether_addr>",
+		"show <portlist> mac <__ether_addr>",
+		"show <portlist> vlan <vlanid> mac <__ether_addr>",
 		"show <portlist> [vlan|mac]",
 		NULL
 	};
@@ -446,7 +448,7 @@ Example:
 	{
 		struct cli_map *m;
 		uint32_t portlist;
-		struct ether_addr mac;
+		struct __ether_addr mac;
 
 		m = cli_mapping(Show_info.map, argc, argv);
 		if (!m)

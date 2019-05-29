@@ -8,8 +8,8 @@
  * String-related utility functions for IP addresses
  */
 
-#ifndef _RTE_ATOIP_H_
-#define _RTE_ATOIP_H_
+#ifndef __ATOIP_H_
+#define __ATOIP_H_
 
 #include <netinet/in.h>
 
@@ -57,4 +57,4 @@ int _atoip(const char *buf, int flags, void *res, unsigned ressize);
 }
 #endif
 
-#endif /* _RTE_ATOIP_H_ */
+#endif /* __ATOIP_H_ */

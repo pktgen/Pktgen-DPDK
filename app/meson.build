@@ -9,7 +9,7 @@ sources = files(
 )
 
 #TODO fixme - assumes previously build lua using make
-lua_dir = '../lib/lua/x86_64-native-linuxapp-gcc'
+lua_dir = '../lib/lua/x86_64-native-linux-gcc'
 lua_inc = include_directories(join_paths(lua_dir, 'include'))
 lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-lrte_lua'])
 
@@ -21,4 +21,3 @@ pktgen = executable('dpdk-pktgen',
 			cc.find_library('dl', required: false),
 			cc.find_library('m', required: false)],
 		install: true)
-

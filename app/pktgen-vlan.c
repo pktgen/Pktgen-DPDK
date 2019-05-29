@@ -30,28 +30,28 @@ void
 pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid)
 {
 	pktType_e pType;
-	struct ether_hdr *eth;
-	struct vlan_hdr  *vlan_hdr;
+	struct __ether_hdr *eth;
+	struct __vlan_hdr  *__vlan_hdr;
 	port_info_t      *info = &pktgen.info[pid];
 
-	eth = rte_pktmbuf_mtod(m, struct ether_hdr *);
+	eth = rte_pktmbuf_mtod(m, struct __ether_hdr *);
 
 	/* Now dealing with the inner header */
-	vlan_hdr = (struct vlan_hdr *)(eth + 1);
+	__vlan_hdr = (struct __vlan_hdr *)(eth + 1);
 
-	pType = ntohs(vlan_hdr->eth_proto);
+	pType = ntohs(__vlan_hdr->eth_proto);
 
 	/* No support for nested tunnel */
 	switch ((int)pType) {
-	case ETHER_TYPE_ARP:
+	case __ETHER_TYPE_ARP:
 		info->stats.arp_pkts++;
 		pktgen_process_arp(m, pid, 1);
 		break;
-	case ETHER_TYPE_IPv4:
+	case __ETHER_TYPE_IPv4:
 		info->stats.ip_pkts++;
 		pktgen_process_ping4(m, pid, 1);
 		break;
-	case ETHER_TYPE_IPv6:
+	case __ETHER_TYPE_IPv6:
 		info->stats.ipv6_pkts++;
 		pktgen_process_ping6(m, pid, 1);
 		break;

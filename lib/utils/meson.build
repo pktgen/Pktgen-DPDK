@@ -7,14 +7,12 @@ headers = files(
 	'_atoip.h',
 	'link.h',
 	'portlist.h',
-	'_strings.h',
 	'heap.h')
 
 sources = files(
 	'_atoip.c',
 	'link.c',
 	'portlist.c',
-	'_strings.c',
 	'heap.c')
 #deps += ['ethdev']
 #deps += ['mbuf', 'dbuf']

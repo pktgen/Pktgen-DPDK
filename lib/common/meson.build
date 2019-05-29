@@ -7,7 +7,27 @@ sources = files(
 	'utils.c',
 	'coremap.c',
 	'_pcap.c',
+	'_string.c',
 	'cksum.c',
 	'l2p.c'
+)
+
+headers = files(
+	'cksum.h',
+	'cmdline_parse_args.h',
+	'__compat.h',
+	'copyright_info.h',
+	'core_info.h',
+	'coremap.h',
+	'_delay.h',
+	'l2p.h',
+	'lscpu.h',
+	'mbuf.h',
+	'_pcap.h',
+	'pg_ether.h',
+	'pg_inet.h',
+	'port_config.h',
+	'_strings.h',
+	'utils.h'
 )
 deps += dpdk_dep

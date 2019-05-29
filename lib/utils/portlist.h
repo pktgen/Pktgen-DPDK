@@ -8,8 +8,8 @@
  * String-related utility function for parsing port mask.
  */
 
-#ifndef _RTE_PORTLIST_H_
-#define _RTE_PORTLIST_H_
+#ifndef __PORTLIST_H_
+#define __PORTLIST_H_
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -54,4 +54,4 @@ char *portlist_print(FILE *f, uint64_t portlist, char *buf, int len);
 }
 #endif
 
-#endif /* _RTE_PORTLIST_H_ */
+#endif /* __PORTLIST_H_ */

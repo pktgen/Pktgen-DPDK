@@ -11,6 +11,7 @@
 
 #include <lua_config.h>
 #include <lua_socket.h>
+#include <_delay.h>
 
 #include "pktgen-main.h"
 

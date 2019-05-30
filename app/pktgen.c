@@ -231,6 +231,9 @@ static inline void
 pktgen_latency_apply(port_info_t *info __rte_unused,
                      struct rte_mbuf **mbufs, int cnt, int32_t seq_idx)
 {
+	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
+	struct __ether_hdr *eth = (struct __ether_hdr *)&pkt->hdr.eth;
+	char *l3_hdr = (char *)&eth[1];	/* Point to l3 hdr location */
 	int i;
 
 	for (i = 0; i < cnt; i++) {
@@ -240,6 +243,12 @@ pktgen_latency_apply(port_info_t *info __rte_unused,
 
 		latency->timestamp  = rte_rdtsc_precise();
 		latency->magic      = LATENCY_MAGIC;
+
+		/* Construct the UDP header */
+		pktgen_udp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+
+		/* IPv4 Header constructor */
+		pktgen_ipv4_ctor(pkt, l3_hdr);
 	}
 }
 

@@ -64,6 +64,14 @@ extern "C" {
 #define __ether_addr_copy	ether_addr_copy
 #endif
 
+#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
+#define __eth_dev_count_avail	rte_eth_dev_count_avail
+#define __eth_dev_count_total	rte_eth_dev_count_total
+#else
+#define __eth_dev_count_avail rte_eth_dev_count
+#define __eth_dev_count_total rte_eth_dev_count
+#endif
+
 #ifdef __cplusplus
 }
 #endif

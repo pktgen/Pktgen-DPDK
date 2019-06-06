@@ -1117,7 +1117,6 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 				nb_pkts);
 		if (rc == 0) {
 			info->q[qid].tx_mbufs.len = info->tx_burst;
-
 			pktgen_send_burst(info, qid);
 		}
 	} else {
@@ -1274,7 +1273,7 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 			pid = get_tx_pid(pktgen.l2p, lid, idx);
 
 		if ((infos[idx] = get_port_private(pktgen.l2p, pid)) == NULL)
-			rte_panic("Config error: No port %d found at %d lcore\n", pid, lid);
+			rte_panic("Config error: No port %d found at lcore %d\n", pid, lid);
 
 		if (qids)
 			qids[idx] = get_txque(pktgen.l2p, lid, pid);
@@ -1317,6 +1316,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	}
 	port_map_info(lid, infos, qids, &txcnt, &rxcnt, "RX/TX");
 
+	curr_tsc = rte_get_tsc_cycles();
 	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
 	tx_bond_cycle = rte_get_tsc_cycles() + rte_get_timer_hz()/10;
 
@@ -1410,6 +1410,7 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	port_map_info(lid, infos, qids, &txcnt, NULL, "TX");
 
+	curr_tsc = rte_get_tsc_cycles();
 	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
 	tx_bond_cycle = rte_get_tsc_cycles() + rte_get_timer_hz()/10;
 
@@ -1428,24 +1429,35 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	for (idx = 0; idx < txcnt; idx++) {
 		uint16_t pid = infos[idx]->pid;
+
 		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
-			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
+			rte_panic("*** port %u on socket ID %u has different socket ID for lcore %u on socket ID %d\n",
 					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}
+
 	idx = 0;
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		curr_tsc = rte_get_tsc_cycles();
+
+		if (infos[0]->tx_cycles == 0) {
+			pktgen_get_link_status(infos[0], infos[0]->pid, 0);
+			if (infos[0]->link.link_status) {
+				pktgen_packet_rate(infos[0]);
+				tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+			}
+		}
 
 		/* Determine when is the next time to send packets */
 		if (curr_tsc >= tx_next_cycle) {
 			tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
 
-			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
+			for (idx = 0; idx < txcnt; idx++) {	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
+			}
 		} else if (curr_tsc >= tx_bond_cycle) {
 			tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
-			for (idx = 0; idx < txcnt; idx++) {	/* Transmit zero pkts for Bonding PMD */
+			for (idx = 0; idx < txcnt; idx++) {	/* Transmit pkts for Bonding PMD */
 				flags = rte_atomic32_read(&infos[idx]->port_flags);
 				if (flags & BONDING_TX_PACKETS) {
 					rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);

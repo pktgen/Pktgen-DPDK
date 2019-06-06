@@ -18,12 +18,11 @@
 
 #include <link.h>
 
-#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
-#define rte_eth_dev_count	rte_eth_dev_count_avail
-#endif
-
 #ifdef RTE_LIBRTE_BONDING_PMD
 #include <rte_eth_bond_8023ad.h>
+#endif
+#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#include <rte_bus_pci.h>
 #endif
 
 enum {
@@ -153,9 +152,52 @@ pktgen_config_ports(void)
 
 	/* Find out the total number of ports in the system. */
 	/* We have already blacklisted the ones we needed to in main routine. */
-	pktgen.nb_ports = rte_eth_dev_count();
+	pktgen.nb_ports = __eth_dev_count_avail();
 	if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
 		pktgen.nb_ports = RTE_MAX_ETHPORTS;
+
+	printf(" %-4s %-12s %-6s %-12s %-5s %s\n", "Port:", "Name", "IfIndex", "Alias", "NUMA", "PCI");
+	for(i = 0; i < pktgen.nb_ports; i++) {
+		struct rte_eth_dev_info dev;
+		char buff[64];
+
+		rte_eth_dev_info_get(i, &dev);
+
+		buff[0] = 0;
+		printf("   %2d: %-12s   %2d    %-12s  %2d   ", i, dev.driver_name,
+			dev.if_index,
+			(dev.device->driver->alias)? dev.device->driver->alias : "",
+			dev.device->numa_node);
+#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+		if (dev.pci_dev) {
+			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+					dev.pci_dev->id.vendor_id,
+					dev.pci_dev->id.device_id,
+					dev.pci_dev->addr.bus,
+					dev.pci_dev->addr.devid,
+					dev.pci_dev->addr.function);
+		}
+#else
+		{
+		struct rte_bus *bus;
+		if (dev.device)
+			bus = rte_bus_find_by_device(dev.device);
+		else
+			bus = NULL;
+		if (bus && !strcmp(bus->name, "pci")) {
+			struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
+			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
+					pci_dev->id.vendor_id,
+					pci_dev->id.device_id,
+					pci_dev->addr.bus,
+					pci_dev->addr.devid,
+					pci_dev->addr.function);
+		}
+		}
+#endif
+		printf("%s\n", buff);
+	}
+	printf("\n");
 
 	if (pktgen.nb_ports == 0)
 		pktgen_log_panic("*** Did not find any ports to use ***");
@@ -330,7 +372,7 @@ pktgen_config_ports(void)
 					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 
 			/* Find out the link speed to program the WTHRESH value correctly. */
-			link_status_check(pid, &info->link);
+			pktgen_get_link_status(&pktgen.info[pid], pid, 0);
 
 			txconf = &info->dev_info.default_txconf;
 #if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
@@ -391,7 +433,8 @@ pktgen_config_ports(void)
 
 		info = get_port_private(pktgen.l2p, pid);
 
-		link_status_check(pid, &info->link);
+		/* Find out the link speed to program the WTHRESH value correctly. */
+		pktgen_get_link_status(&pktgen.info[pid], pid, 0);
 
 		if (info->link.link_status)
 			snprintf(output_buff, sizeof(output_buff),

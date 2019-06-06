@@ -219,7 +219,7 @@ pktgen_print_static_data(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-#define LINK_RETRY  16
+#define LINK_RETRY  8
 /**************************************************************************//**
  *
  * pktgen_get_link_status - Get the port link status.
@@ -237,20 +237,25 @@ void
 pktgen_get_link_status(port_info_t *info, int pid, int wait)
 {
 	int i;
+	uint64_t prev_status = info->link.link_status;
 
 	/* get link status */
 	for (i = 0; i < LINK_RETRY; i++) {
 		memset(&info->link, 0, sizeof(info->link));
+
 		rte_eth_link_get_nowait(pid, &info->link);
-		if (info->link.link_status && info->link.link_speed)
+
+		if (info->link.link_status && info->link.link_speed) {
+			if (prev_status == 0)
+				pktgen_packet_rate(info);
 			return;
+		}
 		if (!wait)
 			break;
+
 		rte_delay_us_sleep(100 * 1000);
 	}
 
-	if (wait)
-		printf("**** Failed to get link UP and speed, use defaults!\n");
 	/* Setup a few default values to prevent problems later. */
 #if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 	info->link.link_speed   = ETH_SPEED_NUM_10G;

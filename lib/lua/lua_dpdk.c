@@ -331,7 +331,7 @@ dpdk_portCount(lua_State *L)
 {
 	validate_arg_count(L, 0);
 
-	lua_pushinteger(L, rte_eth_dev_count_avail());
+	lua_pushinteger(L, __eth_dev_count_avail());
 
 	return 1;
 }
@@ -341,7 +341,7 @@ dpdk_totalPorts(lua_State *L)
 {
 	validate_arg_count(L, 0);
 
-	lua_pushinteger(L, rte_eth_dev_count_total());
+	lua_pushinteger(L, __eth_dev_count_total());
 
 	return 1;
 }

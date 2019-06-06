@@ -22,6 +22,10 @@
 #if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_net.h>
 #endif
+#ifdef RTE_LIBRTE_PMD_BOND
+#include <rte_eth_bond.h>
+#include <rte_eth_bond_8023ad.h>
+#endif
 
 static char hash_line[] = "#######################################################################";
 
@@ -975,7 +979,7 @@ pktgen_flags_string(port_info_t *info)
 	static char buff[32];
 	uint32_t flags = rte_atomic32_read(&info->port_flags);
 
-	snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
+	snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
 		 (pktgen.flags & PROMISCUOUS_ON_FLAG)   ? 'P' : '-',
 		 (flags & ICMP_ECHO_ENABLE_FLAG)	? 'E' : '-',
 		 (flags & SEND_ARP_REQUEST)		? 'A' : '-',
@@ -994,7 +998,8 @@ pktgen_flags_string(port_info_t *info)
 		 (flags & SEND_GRE_IPv4_HEADER)		? 'g' :
 		 (flags & SEND_GRE_ETHER_HEADER)	? 'G' : '-',
 		 (flags & CAPTURE_PKTS)			? 'C' : '-',
-		 (flags & SEND_RANDOM_PKTS)		? 'r' : '-');
+		 (flags & SEND_RANDOM_PKTS)		? 'r' : '-',
+		 (flags & BONDING_TX_PACKETS)	? 'B' : '-');
 
 	return buff;
 }
@@ -1336,6 +1341,15 @@ enable_random(port_info_t *info, uint32_t onOff)
 		pktgen_clr_port_flags(info, SEND_RANDOM_PKTS);
 }
 
+void
+debug_tx_rate(port_info_t *info)
+{
+	printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n",
+	info->pid, info->tx_rate, info->tx_cycles, info->tx_pps,
+	(info->link.link_status)? "UP" : "Down", info->link.link_speed,
+	(info->link.link_duplex == ETH_LINK_FULL_DUPLEX)? "FD" : "HD");
+}
+
 /*
  * Local wrapper function to test mp is NULL and return or continue
  * to call rte_mempool_dump() routine.
@@ -1545,7 +1559,6 @@ enable_pcap(port_info_t *info, uint32_t state)
 			pktgen_set_port_flags(info, SEND_PCAP_PKTS);
 		} else
 			pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
-		pktgen_packet_rate(info);
 	}
 }
 
@@ -1637,6 +1650,7 @@ enable_capture(port_info_t *info, uint32_t state)
 	pktgen_set_capture(info, state);
 }
 
+#ifdef RTE_LIBRTE_PMD_BOND
 /**************************************************************************//**
  *
  * enable_bonding - Enable or disable bonding TX zero packet processing.
@@ -1652,11 +1666,187 @@ enable_capture(port_info_t *info, uint32_t state)
 void
 enable_bonding(port_info_t *info, uint32_t state)
 {
-	if (state == ENABLE_STATE)
-		pktgen_set_port_flags(info, BONDING_TX_PACKETS);
-	else
-		pktgen_clr_port_flags(info, BONDING_TX_PACKETS);
+	struct rte_eth_bond_8023ad_conf conf;
+	uint16_t slaves[RTE_MAX_ETHPORTS];
+	uint16_t active_slaves[RTE_MAX_ETHPORTS];
+	int i, num_slaves, num_active_slaves;
+
+	if (rte_eth_bond_8023ad_conf_get(info->pid, &conf) < 0) {
+		printf("Port %d is not a bonding port\n", info->pid);
+		return;
+	}
+
+	num_slaves = rte_eth_bond_slaves_get(info->pid, slaves, RTE_MAX_ETHPORTS);
+	if (num_slaves < 0) {
+		printf("Failed to get slave list for port = %d\n", info->pid);
+		return;
+	}
+
+	num_active_slaves = rte_eth_bond_active_slaves_get(info->pid, active_slaves,
+			RTE_MAX_ETHPORTS);
+	if (num_active_slaves < 0) {
+		printf("Failed to get active slave list for port = %d\n", info->pid);
+		return;
+	}
+
+	printf("Port %d:\n", info->pid);
+	for(i = 0; i < num_slaves; i++) {
+		if (state == ENABLE_STATE) {
+			pktgen_set_port_flags(info, BONDING_TX_PACKETS);
+			rte_eth_bond_8023ad_ext_distrib(info->pid, slaves[i], 1);
+			printf("   Enable slave %u 802.3ad distributing\n", slaves[i]);
+			rte_eth_bond_8023ad_ext_collect(info->pid, slaves[i], 1);
+			printf("   Enable slave %u 802.3ad collecting\n", slaves[i]);
+		} else {
+			pktgen_clr_port_flags(info, BONDING_TX_PACKETS);
+			rte_eth_bond_8023ad_ext_distrib(info->pid, slaves[i], 0);
+			printf("   Disable slave %u 802.3ad distributing\n", slaves[i]);
+			rte_eth_bond_8023ad_ext_collect(info->pid, slaves[i], 1);
+			printf("   Enable slave %u 802.3ad collecting\n", slaves[i]);
+		}
+	}
 }
+
+static void
+show_states(uint8_t state)
+{
+	const char *states[] = {
+		"LACP_Active",
+		"LACP_Short_timeout",
+		"Aggregation",
+		"Synchronization",
+		"Collecting",
+		"Distributing",
+		"Defaulted",
+		"Expired",
+		NULL
+	};
+	int j;
+
+	for(j = 0; states[j]; j++) {
+		if (state & (1 << j))
+			printf("%s ", states[j]);
+	}
+}
+
+void
+show_bonding_mode(port_info_t *info)
+{
+	int bonding_mode, agg_mode;
+	uint16_t slaves[RTE_MAX_ETHPORTS];
+	int num_slaves, num_active_slaves;
+	int primary_id;
+	int i;
+	uint16_t port_id = info->pid;
+
+	/* Display the bonding mode.*/
+	bonding_mode = rte_eth_bond_mode_get(port_id);
+	if (bonding_mode < 0) {
+		printf("Failed to get bonding mode for port = %d\n", port_id);
+		return;
+	} else
+		printf("\tBonding mode: %d, ", bonding_mode);
+
+	if (bonding_mode == BONDING_MODE_BALANCE) {
+		int balance_xmit_policy;
+
+		balance_xmit_policy = rte_eth_bond_xmit_policy_get(port_id);
+		if (balance_xmit_policy < 0) {
+			printf("\nFailed to get balance xmit policy for port = %d\n",
+					port_id);
+			return;
+		} else {
+			printf("Balance Xmit Policy: ");
+
+			switch (balance_xmit_policy) {
+			case BALANCE_XMIT_POLICY_LAYER2:
+				printf("BALANCE_XMIT_POLICY_LAYER2");
+				break;
+			case BALANCE_XMIT_POLICY_LAYER23:
+				printf("BALANCE_XMIT_POLICY_LAYER23");
+				break;
+			case BALANCE_XMIT_POLICY_LAYER34:
+				printf("BALANCE_XMIT_POLICY_LAYER34");
+				break;
+			}
+			printf(", ");
+		}
+	}
+
+	if (bonding_mode == BONDING_MODE_8023AD) {
+		agg_mode = rte_eth_bond_8023ad_agg_selection_get(port_id);
+		printf("IEEE802.3AD Aggregator Mode: ");
+		switch (agg_mode) {
+		case AGG_BANDWIDTH:
+			printf("bandwidth");
+			break;
+		case AGG_STABLE:
+			printf("stable");
+			break;
+		case AGG_COUNT:
+			printf("count");
+			break;
+		}
+		printf("\n");
+	}
+
+	num_slaves = rte_eth_bond_slaves_get(port_id, slaves, RTE_MAX_ETHPORTS);
+
+	if (num_slaves < 0) {
+		printf("\tFailed to get slave list for port = %d\n", port_id);
+		return;
+	}
+	if (num_slaves > 0) {
+		printf("\tSlaves (%d): [", num_slaves);
+		for (i = 0; i < num_slaves - 1; i++)
+			printf("%d ", slaves[i]);
+
+		printf("%d]\n", slaves[num_slaves - 1]);
+	} else {
+		printf("\tSlaves: []\n");
+
+	}
+
+	num_active_slaves = rte_eth_bond_active_slaves_get(port_id, slaves,
+			RTE_MAX_ETHPORTS);
+
+	if (num_active_slaves < 0) {
+		printf("\tFailed to get active slave list for port = %d\n", port_id);
+		return;
+	}
+	if (num_active_slaves > 0) {
+		printf("\tActive Slaves (%d): [", num_active_slaves);
+		for (i = 0; i < num_active_slaves - 1; i++)
+			printf("%d ", slaves[i]);
+
+		printf("%d]\n", slaves[num_active_slaves - 1]);
+
+	} else {
+		printf("\tActive Slaves: []\n");
+
+	}
+
+	for (i = 0; i < num_active_slaves; i++) {
+		struct rte_eth_bond_8023ad_slave_info conf;
+
+		printf("\t\tSlave %u\n", slaves[i]);
+		rte_eth_bond_8023ad_slave_info(info->pid, slaves[i], &conf);
+		printf("\t\t  %sSelected\n\t\t  Actor States  ( ", conf.selected? "" : "Not ");
+		show_states(conf.actor_state);
+		printf(")\n\t\t  Partner States( ");
+		show_states(conf.partner_state);
+		printf(")\n\t\t  AGG Port %u\n", conf.agg_port_id);
+	}
+
+	primary_id = rte_eth_bond_primary_get(port_id);
+	if (primary_id < 0) {
+		printf("\tFailed to get primary slave for port = %d\n", port_id);
+		return;
+	} else
+		printf("\tPrimary: [%d]\n", primary_id);
+
+}
+#endif
 
 /**************************************************************************//**
  *
@@ -2158,8 +2348,6 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 	info->prime_cnt         = DEFAULT_PRIME_COUNT;
 	info->delta             = 0;
 
-	pktgen_packet_rate(info);
-
 	pkt->ip_mask = DEFAULT_NETMASK;
 	if ( (pid & 1) == 0) {
 		pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR |
@@ -2391,7 +2579,6 @@ pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt)
 		pktgen_set_port_flags(info, SEND_SEQ_PKTS);
 	} else
 		pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
-	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2471,7 +2658,6 @@ single_set_tx_burst(port_info_t *info, uint32_t burst)
 	else if (burst > DEFAULT_PKT_BURST)
 		burst = DEFAULT_PKT_BURST;
 	info->tx_burst = burst;
-	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2525,7 +2711,6 @@ single_set_pkt_size(port_info_t *info, uint16_t size)
 	pkt->pktSize = (size - __ETHER_CRC_LEN);
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
-	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2572,8 +2757,6 @@ single_set_tx_rate(port_info_t *info, const char *r)
 	else if (rate > 100.00)
 		rate = 100.00;
 	info->tx_rate = rate;
-
-	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2664,7 +2847,6 @@ enable_range(port_info_t *info, uint32_t state)
 		pktgen_set_port_flags(info, SEND_RANGE_PKTS);
 	} else
 		pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
-	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**

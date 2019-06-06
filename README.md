@@ -792,6 +792,7 @@ theme save <filename>              - Save the current color theme to a file
                            G   - Perform GRE with Ethernet payload
                             C  - Capture received packets
                              R - Random bitfield(s) are applied
+                              B- Bonding enabled for LACP 802.3ad
 Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Color best seen on a black background for now

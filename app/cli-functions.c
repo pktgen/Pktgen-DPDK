@@ -41,6 +41,10 @@
 #include "pktgen-random.h"
 #include "pktgen-log.h"
 #include "pg_ether.h"
+#ifdef RTE_LIBRTE_PMD_BOND
+#include <rte_eth_bond.h>
+#include <rte_eth_bond_8023ad.h>
+#endif
 
 static inline uint16_t
 valid_pkt_size(port_info_t *info, char *val)
@@ -101,6 +105,7 @@ static const char *status_help[] = {
 	"                           G   - Perform GRE with Ethernet payload",
 	"                            C  - Capture received packets",
 	"                             R - Random bitfield(s) are applied",
+	"                              B- Bonding enabled LACP 802.3ad",
 	"Notes: <state>       - Use enable|disable or on|off to set the state.",
 	"       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'",
 	"       Color best seen on a black background for now",
@@ -909,6 +914,7 @@ en_dis_cmd(int argc, char **argv)
 static struct cli_map dbg_map[] = {
 	{ 10, "dbg l2p" },
 	{ 20, "dbg tx_dbg" },
+	{ 21, "dbg tx_rate %P" },
 	{ 30, "dbg %|mempool|dump %P %s" },
 	{ 40, "dbg pdump %P" },
 	{ 50, "dbg memzone" },
@@ -928,6 +934,7 @@ static const char *dbg_help[] = {
 	"",
 	"dbg l2p                          - Dump out internal lcore to port mapping",
 	"dbg tx_dbg                       - Enable tx debug output",
+	"dbg tx_rate <portlist>           - Show packet rate for all ports",
 	"dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type",
 	"dbg pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
 	"dbg memzone                      - List all of the current memzones",
@@ -1006,6 +1013,11 @@ dbg_cmd(int argc, char **argv)
 			else
 				pktgen.flags &= ~TX_DEBUG_FLAG;
 			pktgen_clear_display();
+			break;
+		case 21:
+			portlist_parse(argv[2], &portlist);
+			foreach_port(portlist,
+				debug_tx_rate(info));
 			break;
 		case 30:
 			portlist_parse(argv[2], &portlist);
@@ -1603,6 +1615,69 @@ plugin_cmd(int argc, char **argv)
 	return 0;
 }
 
+#ifdef RTE_LIBRTE_PMD_BOND
+static struct cli_map bonding_map[] = {
+	{ 10, "bonding %P show" },
+	{ 20, "bonding show" },
+	{ -1, NULL }
+};
+
+static const char *bonding_help[] = {
+	"",
+	"bonding <portlist> show          - Show the bonding configuration for <portlist>",
+	"bonding show                     - Show all bonding configurations",
+	CLI_HELP_PAUSE,
+	NULL
+};
+
+static void
+bonding_dump(port_info_t *info)
+{
+	uint16_t pid;
+
+	RTE_ETH_FOREACH_DEV(pid) {
+		struct rte_eth_bond_8023ad_conf conf;
+
+		if (info->pid != pid)
+			continue;
+
+		if (rte_eth_bond_8023ad_conf_get(pid, &conf) < 0)
+			continue;
+
+		printf("Port %d information:\n", pid);
+		show_bonding_mode(info);
+		printf("\n");
+	}
+}
+
+static int
+bonding_cmd(int argc, char **argv)
+{
+	struct cli_map *m;
+	portlist_t portlist;
+
+	m = cli_mapping(bonding_map, argc, argv);
+	if (!m)
+		return cli_cmd_error("bonding invalid command", "Bonding", argc, argv);
+
+	switch(m->index) {
+		case 10:
+			portlist_parse(argv[1], &portlist);
+			foreach_port(portlist,
+				bonding_dump(info));
+			break;
+		case 20:
+			portlist = 0xFFFFFFFF;
+			foreach_port(portlist,
+				bonding_dump(info));
+			break;
+		default:
+			return cli_cmd_error("Bonding invalid command", "Bonding", argc, argv);
+	}
+	return 0;
+}
+#endif
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
@@ -1648,6 +1723,9 @@ static struct cli_tree default_tree[] = {
 	c_cmd("set", 		set_cmd, 	"set a number of options"),
 	c_cmd("dbg",            dbg_cmd,	"debug commands"),
 	c_cmd("plugin",		plugin_cmd,	"Plugin a shared object file"),
+#ifdef RTE_LIBRTE_PMD_BOND
+	c_cmd("bonding",	bonding_cmd, "Bonding commands"),
+#endif
 
 	c_alias("on",       "enable screen",    "Enable screen updates"),
 	c_alias("off",      "disable screen",   "Disable screen updates"),
@@ -1678,6 +1756,7 @@ init_tree(void)
 	cli_help_add("Misc", misc_map, misc_help);
 	cli_help_add("Theme", theme_map, theme_help);
 	cli_help_add("Plugin", plugin_map, plugin_help);
+	cli_help_add("Bonding", bonding_map, bonding_help);
 	cli_help_add("Status", NULL, status_help);
 
 	/* Make sure the pktgen commands are executable in search path */

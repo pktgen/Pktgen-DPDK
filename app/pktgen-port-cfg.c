@@ -64,6 +64,12 @@ static struct rte_eth_conf default_port_conf = {
 		.offloads = DEV_RX_OFFLOAD_CRC_STRIP,
 #endif
 	},
+	.rx_adv_conf = {
+		.rss_conf = {
+			.rss_key = NULL,
+			.rss_hf = ETH_RSS_IP,
+		},
+	},
 	.txmode = {
 		.mq_mode = ETH_MQ_TX_NONE,
 	},

@@ -36,8 +36,13 @@ extern "C" {
 #define __ETHER_CRC_LEN		RTE_ETHER_CRC_LEN
 #define __ETHER_MIN_LEN		RTE_ETHER_MIN_LEN
 #define __ETHER_MAX_LEN		RTE_ETHER_MAX_LEN
+#if RTE_VERSION == RTE_VERSION_NUM(19,5,0,0)
 #define __ETHER_TYPE_IPv4	RTE_ETHER_TYPE_IPv4
 #define __ETHER_TYPE_IPv6	RTE_ETHER_TYPE_IPv6
+#else
+#define __ETHER_TYPE_IPv4	RTE_ETHER_TYPE_IPV4
+#define __ETHER_TYPE_IPv6	RTE_ETHER_TYPE_IPV6
+#endif
 #define __ETHER_TYPE_VLAN	RTE_ETHER_TYPE_VLAN
 #define __ETHER_TYPE_ARP	RTE_ETHER_TYPE_ARP
 #define __ether_format_addr	rte_ether_format_addr

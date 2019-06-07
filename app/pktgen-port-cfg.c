@@ -147,6 +147,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 void
 pktgen_config_ports(void)
 {
+	struct rte_eth_conf conf;
 	uint32_t lid, pid, i, s, q, sid;
 	rxtx_t rt;
 	pkt_seq_t   *pkt;
@@ -290,11 +291,31 @@ pktgen_config_ports(void)
 		if (pktgen.verbose)
 			rte_eth_dev_info_dump(NULL, pid);
 
-		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE)
-			default_port_conf.txmode.offloads |=
-				DEV_TX_OFFLOAD_MBUF_FAST_FREE;
+		/* Get a clean copy of the configuration structure */
+		rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
 
-		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &default_port_conf)) < 0)
+		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE)
+			conf.txmode.offloads |= DEV_TX_OFFLOAD_MBUF_FAST_FREE;
+
+		if (rt.rx > 1) {
+			conf.rx_adv_conf.rss_conf.rss_key = NULL;
+			conf.rx_adv_conf.rss_conf.rss_hf &=
+				info->dev_info.flow_type_rss_offloads;
+		} else {
+			conf.rx_adv_conf.rss_conf.rss_key = NULL;
+			conf.rx_adv_conf.rss_conf.rss_hf = 0;
+		}
+
+		/* May need to add DCB configuration
+		if (port->dcb_flag == 0) {
+			if( port->dev_conf.rx_adv_conf.rss_conf.rss_hf != 0)
+				port->dev_conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
+			else
+				port->dev_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
+		}
+		*/
+
+		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &conf)) < 0)
 			pktgen_log_panic(
 				"Cannot configure device: port=%d, Num queues %d,%d (%d)%s",
 				pid, rt.rx, rt.tx, -ret, rte_strerror(-ret));

@@ -253,7 +253,7 @@ pktgen_parse_args(int argc, char **argv)
 			pktgen.flags    |= ENABLE_THEME_FLAG;
 			break;
 		case 'v':
-			pktgen.verbose =- 1;
+			pktgen.verbose = 1;
 			break;
 
 		case 'h':	/* print out the help message */

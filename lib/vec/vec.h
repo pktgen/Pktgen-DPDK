@@ -99,49 +99,49 @@ vec_clr_dont_free(struct vec *vec)
 	vec->flags &= ~VEC_DONT_FREE_FLAG;
 }
 
-static inline __rte_always_inline uint16_t
+static __rte_always_inline uint16_t
 vec_len(struct vec *v)
 {
 	return v->len;
 }
 
-static inline __rte_always_inline int
+static __rte_always_inline int
 vec_byte_len(struct vec *v)
 {
 	return v->len * sizeof(void *);
 }
 
-static inline __rte_always_inline void
+static __rte_always_inline void
 vec_set_len(struct vec *v, uint16_t n)
 {
 	v->len = n;
 }
 
-static inline __rte_always_inline void
+static __rte_always_inline void
 vec_set_max_len(struct vec *v, uint16_t n)
 {
 	v->tlen = n;
 }
 
-static inline __rte_always_inline void
+static __rte_always_inline void
 vec_dec_len(struct vec *v)
 {
 	v->len--;
 }
 
-static inline __rte_always_inline void
+static __rte_always_inline void
 vec_inc_len(struct vec *v)
 {
 	v->len++;
 }
 
-static inline __rte_always_inline uint16_t
+static __rte_always_inline uint16_t
 vec_max_len(struct vec *v)
 {
 	return v->tlen;
 }
 
-static inline __rte_always_inline struct rte_mbuf **
+static __rte_always_inline struct rte_mbuf **
 vec_list(struct vec *v)
 {
 	return (struct rte_mbuf * *)&v->list[0];
@@ -151,7 +151,7 @@ vec_list(struct vec *v)
 #pragma GCC diagnostic ignored "-Warray-bounds"
 
 /* return -1 on full and index value if OK */
-static inline __rte_always_inline int
+static __rte_always_inline int
 vec_add1(struct vec *vec, void *val)
 {
 	if (vec->len >= vec->tlen)
@@ -161,7 +161,7 @@ vec_add1(struct vec *vec, void *val)
 	return vec->len - 1;
 }
 
-static inline __rte_always_inline int
+static __rte_always_inline int
 vec_add_at_index(struct vec *vec, void *val, uint16_t n)
 {
 	if (vec->len >= vec->tlen)
@@ -171,7 +171,7 @@ vec_add_at_index(struct vec *vec, void *val, uint16_t n)
 	return 0;
 }
 
-static inline __rte_always_inline void *
+static __rte_always_inline void *
 vec_at_index(struct vec *vec, uint16_t n)
 {
 	if (n >= vec->len)
@@ -179,32 +179,32 @@ vec_at_index(struct vec *vec, uint16_t n)
 	return vec->list[n];
 }
 
-static inline __rte_always_inline void
+static __rte_always_inline void
 vec_set_at_index(struct vec *vec, uint16_t idx, void *val)
 {
 	if (idx < vec->tlen)
 		vec->list[idx] = val;
 }
 
-static inline __rte_always_inline struct rte_mbuf **
+static __rte_always_inline struct rte_mbuf **
 vec_addr(struct vec *vec, uint16_t n)
 {
 	return (struct rte_mbuf * *)&vec->list[n];
 }
 
-static inline __rte_always_inline struct rte_mbuf **
+static __rte_always_inline struct rte_mbuf **
 vec_end(struct vec *vec)
 {
 	return (struct rte_mbuf * *)&vec->list[vec->len];
 }
 
-static inline __rte_always_inline int
+static __rte_always_inline int
 vec_len_remaining(struct vec *vec)
 {
 	return vec->tlen - vec->len;
 }
 
-static inline __rte_always_inline int
+static __rte_always_inline int
 vec_is_full(struct vec *v)
 {
 	return (v->len == v->tlen);

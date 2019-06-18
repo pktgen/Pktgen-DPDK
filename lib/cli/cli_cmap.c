@@ -285,26 +285,3 @@ cmap_free(struct cmap *cmap)
 {
 	free(cmap);
 }
-
-/* Helper for building log strings.
- * The macro takes an existing string, a printf-like format string and optional
- * arguments. It formats the string and appends it to the existing string,
- * while avoiding possible buffer overruns.
- */
-#define strncatf(dest, fmt, ...) do {					\
-		char _buff[1024];					\
-		snprintf(_buff, sizeof(_buff), fmt, ## __VA_ARGS__);	\
-		strncat(dest, _buff, sizeof(dest) - strlen(dest) - 1);	\
-} while (0)
-
-static __inline__ uint8_t
-sct(struct cmap *cm, uint8_t s, uint8_t c, uint8_t t) {
-	lc_info_t   *lc = cm->linfo;
-	uint8_t i;
-
-	for (i = 0; i < cm->num_cores; i++, lc++)
-		if (lc->sid == s && lc->cid == c && lc->tid == t)
-			return lc->lid;
-
-	return 0;
-}

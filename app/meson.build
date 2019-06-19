@@ -11,7 +11,7 @@ sources = files(
 message('Process the app directory')
 
 #TODO fixme - assumes previously build lua using make
-lua_dir = '../lib/lua/x86_64-native-linux-gcc'
+lua_dir = '../lib/lua/build'
 lua_inc = include_directories(join_paths(lua_dir, 'include'))
 lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
 

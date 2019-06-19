@@ -21,4 +21,12 @@ headers = files(
 	'lua_stdio.h',
 	'lua_utils.h',
 	'lua_vec.h')
-#deps += ['eal', 'ethdev', 'mempool']
+deps += ['common', 'vec']
+
+libs = ['eal', 'mbuf']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
+endforeach
+
+ext_deps += cc.find_library('lua5.3', required: true)
+ext_deps += cc.find_library('pthread', required: true)

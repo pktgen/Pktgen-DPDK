@@ -32,14 +32,16 @@ dpdk_static_libraries = []
 dpdk_drivers = []
 dpdk_extra_ldflags = []
 dpdk_app_link_libraries = []
-global_inc = []
 dpdk_dep = []
-pmdk_shared_libraries = []
-pmdk_static_libraries = []
+pktgen_shared_libraries = []
+pktgen_static_libraries = []
+machine_args = ['-mavx']
 
 pver = meson.project_version().split('.')
 major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
 
+add_project_arguments('-include', 'rte_config.h', language: 'c')
+add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')
 add_project_arguments('-D_GNU_SOURCE', '-O3', '-g', language: 'c')
 
 dpdk_incs = include_directories(rte_sdk + '/' + rte_target + '/include')
@@ -81,21 +83,5 @@ foreach lib:enabled_libs
                 output_message += '\n\t'
                 output_count = 0
         endif
-endforeach
-message(output_message + '\n')
-
-output_message = '\n===============\nDrivers Enabled\n===============\n'
-foreach class:driver_classes
-        class_drivers = get_variable(class + '_drivers')
-        output_message += '\n' + class + ':\n\t'
-        output_count = 0
-        foreach drv:class_drivers
-                output_message += drv + ', '
-                output_count += 1
-                if output_count == 8
-                        output_message += '\n\t'
-                        output_count = 0
-                endif
-        endforeach
 endforeach
 message(output_message + '\n')

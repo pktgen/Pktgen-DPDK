@@ -301,7 +301,6 @@ pktgen_page_stats(void)
 		info = &pktgen.info[pid];
 
 		rate = &info->rate_stats;
-		prev = &info->prev_stats;
 
 		cumm->ipackets += rate->ipackets;
 		cumm->opackets += rate->opackets;

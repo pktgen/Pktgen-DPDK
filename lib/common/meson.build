@@ -7,7 +7,7 @@ sources = files(
 	'utils.c',
 	'coremap.c',
 	'_pcap.c',
-	'_string.c',
+	'_strings.c',
 	'cksum.c',
 	'l2p.c'
 )
@@ -30,4 +30,12 @@ headers = files(
 	'_strings.h',
 	'utils.h'
 )
-deps += dpdk_dep
+
+libs = ['eal', 'cmdline']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib,
+		required: true,
+		dirs: [dpdk_libdir])
+endforeach
+
+ext_deps += cc.find_library('bsd', required: true)

@@ -4,4 +4,5 @@
 version = 1
 sources = files('vec.c')
 headers = files('vec.h')
-#rte_deps += ['ethdev']
+
+deps = ['utils']

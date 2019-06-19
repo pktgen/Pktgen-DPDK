@@ -878,7 +878,9 @@ en_dis_cmd(int argc, char **argv)
 					foreach_port(portlist, pktgen_set_capture(info, state));
 					break;
 				case 16:
+#ifdef RTE_LIBRTE_PMD_BOND
 					foreach_port(portlist, enable_bonding(info, state));
+#endif
 					break;
 				case 17:
 					foreach_port(portlist, enable_short_pkts(info, state));
@@ -1756,7 +1758,9 @@ init_tree(void)
 	cli_help_add("Misc", misc_map, misc_help);
 	cli_help_add("Theme", theme_map, theme_help);
 	cli_help_add("Plugin", plugin_map, plugin_help);
+#ifdef RTE_LIBRTE_PMD_BOND
 	cli_help_add("Bonding", bonding_map, bonding_help);
+#endif
 	cli_help_add("Status", NULL, status_help);
 
 	/* Make sure the pktgen commands are executable in search path */

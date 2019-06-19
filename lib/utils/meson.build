@@ -14,5 +14,9 @@ sources = files(
 	'link.c',
 	'portlist.c',
 	'heap.c')
-#deps += ['ethdev']
-#deps += ['mbuf', 'dbuf']
+deps += ['common']
+
+libs = ['eal', 'ethdev', 'mempool']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
+endforeach

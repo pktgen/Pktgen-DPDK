@@ -437,8 +437,8 @@ Example:
 
 	static const char *show_help[] = {
 		"show <portlist>",
-		"show <portlist> mac <__ether_addr>",
-		"show <portlist> vlan <vlanid> mac <__ether_addr>",
+		"show <portlist> mac <pg_ether_addr>",
+		"show <portlist> vlan <vlanid> mac <pg_ether_addr>",
 		"show <portlist> [vlan|mac]",
 		NULL
 	};
@@ -448,7 +448,7 @@ Example:
 	{
 		struct cli_map *m;
 		uint32_t portlist;
-		struct __ether_addr mac;
+		struct pg_ether_addr mac;
 
 		m = cli_mapping(Show_info.map, argc, argv);
 		if (!m)

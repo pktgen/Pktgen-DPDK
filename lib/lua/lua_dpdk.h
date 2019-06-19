@@ -53,8 +53,8 @@ extern "C" {
 
 struct pkt_data {
         /* Packet type and information */
-        struct __ether_addr eth_dst_addr; /**< Destination Ethernet address */
-        struct __ether_addr eth_src_addr; /**< Source Ethernet address */
+        struct pg_ether_addr eth_dst_addr; /**< Destination Ethernet address */
+        struct pg_ether_addr eth_src_addr; /**< Source Ethernet address */
 
         uint32_t ip_src_addr;      /**< Source IPv4 address also used for IPv6 */
         uint32_t ip_dst_addr;      /**< Destination IPv4 address */
@@ -172,7 +172,7 @@ setf_udata(lua_State *L, const char *name, void *value)
 
 #if 0
 static __inline__ void
-getf_etheraddr(lua_State *L, const char *field, struct __ether_addr *value)
+getf_etheraddr(lua_State *L, const char *field, struct pg_ether_addr *value)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) )

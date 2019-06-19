@@ -15,7 +15,7 @@ sources = files(
 headers = files(
 	'cksum.h',
 	'cmdline_parse_args.h',
-	'__compat.h',
+	'pg_compat.h',
 	'copyright_info.h',
 	'core_info.h',
 	'coremap.h',

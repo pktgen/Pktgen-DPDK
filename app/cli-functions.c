@@ -52,16 +52,16 @@ valid_pkt_size(port_info_t *info, char *val)
 	uint16_t pkt_size;
 
 	if (!val)
-		return (MIN_PKT_SIZE + __ETHER_CRC_LEN);
+		return (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 
 	pkt_size = atoi(val);
 	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
-		if (pkt_size < (MIN_PKT_SIZE + __ETHER_CRC_LEN))
-			pkt_size = (MIN_PKT_SIZE + __ETHER_CRC_LEN);
+		if (pkt_size < (MIN_PKT_SIZE + PG_ETHER_CRC_LEN))
+			pkt_size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 	}
 
-	if (pkt_size > (MAX_PKT_SIZE + __ETHER_CRC_LEN))
-		pkt_size = MAX_PKT_SIZE + __ETHER_CRC_LEN;
+	if (pkt_size > (MAX_PKT_SIZE + PG_ETHER_CRC_LEN))
+		pkt_size = MAX_PKT_SIZE + PG_ETHER_CRC_LEN;
 
 	return pkt_size;
 }
@@ -1089,7 +1089,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	int seqnum = atoi(argv[1]);
 	portlist_t portlist;
 	struct pg_ipaddr dst, src;
-	struct __ether_addr dmac, smac;
+	struct pg_ether_addr dmac, smac;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {
@@ -1152,7 +1152,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	int seqnum = atoi(argv[1]);
 	portlist_t portlist;
 	struct pg_ipaddr dst, src;
-	struct __ether_addr dmac, smac;
+	struct pg_ether_addr dmac, smac;
 	uint32_t teid;
 
 	if ( (proto[0] == 'i') && (eth[3] == '6') ) {

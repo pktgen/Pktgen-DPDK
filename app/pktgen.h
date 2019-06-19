@@ -35,7 +35,7 @@
 #include <assert.h>
 #include <time.h>
 
-#include <__compat.h>
+#include <pg_compat.h>
 #include <rte_config.h>
 
 #include <rte_errno.h>
@@ -231,11 +231,11 @@ enum {
 	START_FRAME_DELIMITER	= 1,
 	PKT_PREAMBLE_SIZE       = 7,	/**< in bytes */
 	PKT_OVERHEAD_SIZE	= (INTER_FRAME_GAP + START_FRAME_DELIMITER +
-				   PKT_PREAMBLE_SIZE + __ETHER_CRC_LEN),
+				   PKT_PREAMBLE_SIZE + PG_ETHER_CRC_LEN),
 
-	MIN_PKT_SIZE            = (__ETHER_MIN_LEN - __ETHER_CRC_LEN),
-	MAX_PKT_SIZE            = (__ETHER_MAX_LEN - __ETHER_CRC_LEN),
-	MIN_v6_PKT_SIZE         = (78 - __ETHER_CRC_LEN),
+	MIN_PKT_SIZE            = (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN),
+	MAX_PKT_SIZE            = (PG_ETHER_MAX_LEN - PG_ETHER_CRC_LEN),
+	MIN_v6_PKT_SIZE         = (78 - PG_ETHER_CRC_LEN),
 
 	MAX_RX_QUEUES           = 16,	/**< RX Queues per port */
 	MAX_TX_QUEUES           = 16,	/**< TX Queues per port */
@@ -248,7 +248,7 @@ enum {
 typedef struct rte_mbuf rte_mbuf_t;
 
 typedef union {
-	struct __ether_addr addr;
+	struct pg_ether_addr addr;
 	uint64_t u64;
 } ethaddr_t;
 

@@ -34,8 +34,8 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 	port_info_t *info = &pktgen.info[pid];
 	pkt_seq_t *pkt;
 	struct rte_mbuf *m;
-	struct __ether_hdr *eth;
-	struct __arp_hdr *arp;
+	struct pg_ether_hdr *eth;
+	struct pg_arp_hdr *arp;
 	uint32_t addr;
 	uint8_t qid = 0;
 
@@ -45,15 +45,15 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 		pktgen_log_warning("No packet buffers found");
 		return;
 	}
-	eth = rte_pktmbuf_mtod(m, struct __ether_hdr *);
-	arp = (struct __arp_hdr *)&eth[1];
+	eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
+	arp = (struct pg_arp_hdr *)&eth[1];
 
 	/* src and dest addr */
 	memset(&eth->d_addr, 0xFF, 6);
-	__ether_addr_copy(&pkt->eth_src_addr, &eth->s_addr);
-	eth->ether_type = htons(__ETHER_TYPE_ARP);
+	pg_ether_addr_copy(&pkt->eth_src_addr, &eth->s_addr);
+	eth->ether_type = htons(PG_ETHER_TYPE_ARP);
 
-	memset(arp, 0, sizeof(struct __arp_hdr));
+	memset(arp, 0, sizeof(struct pg_arp_hdr));
 
 	rte_memcpy(&arp->arp_data.arp_sha, &pkt->eth_src_addr, 6);
 	addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
@@ -71,7 +71,7 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 
 	/* Fill in the rest of the ARP packet header */
 	arp->arp_hrd    = htons(ETH_HW_TYPE);
-	arp->arp_pro    = htons(__ETHER_TYPE_IPv4);
+	arp->arp_pro    = htons(PG_ETHER_TYPE_IPv4);
 	arp->arp_hln    = 6;
 	arp->arp_pln    = 4;
 	arp->arp_op     = htons(ARP_REQUEST);
@@ -101,12 +101,12 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 {
 	port_info_t   *info = &pktgen.info[pid];
 	pkt_seq_t     *pkt;
-	struct __ether_hdr *eth = rte_pktmbuf_mtod(m, struct __ether_hdr *);
-	struct __arp_hdr *arp = (struct __arp_hdr *)&eth[1];
+	struct pg_ether_hdr *eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
+	struct pg_arp_hdr *arp = (struct pg_arp_hdr *)&eth[1];
 
 	/* Adjust for a vlan header if present */
 	if (vlan)
-		arp = (struct __arp_hdr *)((char *)arp + sizeof(struct __vlan_hdr));
+		arp = (struct pg_arp_hdr *)((char *)arp + sizeof(struct pg_vlan_hdr));
 
 	/* Process all ARP requests if they are for us. */
 	if (arp->arp_op == htons(ARP_REQUEST) ) {

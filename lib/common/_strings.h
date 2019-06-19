@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <__compat.h>
+#include <pg_compat.h>
 #include <rte_compat.h>
 #include <rte_ether.h>
 #include <rte_string_fns.h>
@@ -174,21 +174,21 @@ rte_strcnt(char *s, char c)
  *   String containing the MAC address in two forms
  *      XX:XX:XX:XX:XX:XX or XXXX:XXXX:XXX
  * @param e
- *   pointer to a struct __ether_addr to place the return value. If the value
+ *   pointer to a struct pg_ether_addr to place the return value. If the value
  *   is null then use a static location instead.
  * @return
- *   Pointer to the struct __ether_addr structure;
+ *   Pointer to the struct pg_ether_addr structure;
  */
-static inline struct __ether_addr *
-rte_ether_aton(const char *a, struct __ether_addr *e)
+static inline struct pg_ether_addr *
+rte_ether_aton(const char *a, struct pg_ether_addr *e)
 {
 	int i;
 	char *end;
-	unsigned long o[__ETHER_ADDR_LEN];
-	static struct __ether_addr __ether_addr;
+	unsigned long o[PG_ETHER_ADDR_LEN];
+	static struct pg_ether_addr pg_ether_addr;
 
 	if (!e)
-		e = &__ether_addr;
+		e = &pg_ether_addr;
 
 	i = 0;
 	do {
@@ -204,14 +204,14 @@ rte_ether_aton(const char *a, struct __ether_addr *e)
 		return NULL;
 
 	/* Support the format XX:XX:XX:XX:XX:XX */
-	if (i == __ETHER_ADDR_LEN) {
+	if (i == PG_ETHER_ADDR_LEN) {
 		while (i-- != 0) {
 			if (o[i] > UINT8_MAX)
 				return NULL;
 			e->addr_bytes[i] = (uint8_t)o[i];
 		}
 		/* Support the format XXXX:XXXX:XXXX */
-	} else if (i == __ETHER_ADDR_LEN / 2) {
+	} else if (i == PG_ETHER_ADDR_LEN / 2) {
 		while (i-- != 0) {
 			if (o[i] > UINT16_MAX)
 				return NULL;
@@ -227,9 +227,9 @@ rte_ether_aton(const char *a, struct __ether_addr *e)
 
 #ifndef _MTOA_
 #define _MTOA_
-/* char * inet_mtoa(char * buff, int len, struct __ether_addr * eaddr) - Convert MAC address to ascii */
+/* char * inet_mtoa(char * buff, int len, struct pg_ether_addr * eaddr) - Convert MAC address to ascii */
 static __inline__ char *
-inet_mtoa(char *buff, int len, struct __ether_addr *eaddr) {
+inet_mtoa(char *buff, int len, struct pg_ether_addr *eaddr) {
         snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
                  eaddr->addr_bytes[0], eaddr->addr_bytes[1],
                  eaddr->addr_bytes[2], eaddr->addr_bytes[3],

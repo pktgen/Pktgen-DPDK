@@ -114,8 +114,8 @@ pktgen_page_seq(uint32_t pid)
 
 		col += 12;
 		snprintf(buff, sizeof(buff), "%s/%s:%04x",
-		         (pkt->ethType == __ETHER_TYPE_IPv4) ? "IPv4" :
-		         (pkt->ethType == __ETHER_TYPE_IPv6) ? "IPv6" : "Other",
+		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :
+		         (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
 		         pkt->vlanid);
@@ -134,7 +134,7 @@ pktgen_page_seq(uint32_t pid)
 		scrn_printf(row, col, "%*s", 16, buff);
 
 		col += 16;
-		scrn_printf(row, col, "%6d", pkt->pktSize + __ETHER_CRC_LEN);
+		scrn_printf(row, col, "%6d", pkt->pktSize + PG_ETHER_CRC_LEN);
 
 		row++;
 	}

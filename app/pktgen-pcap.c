@@ -98,7 +98,7 @@ pktgen_print_pcap(uint16_t pid)
 		}
 		/* Skip packets that are not normal IP packets. */
 		type = ntohs( ((uint16_t *)pkt_buff)[6]);
-		if (unlikely(type == __ETHER_TYPE_VLAN) )
+		if (unlikely(type == PG_ETHER_TYPE_VLAN) )
 			type = ntohs( ((uint16_t *)pkt_buff)[8]);
 
 		if (unlikely(type < MAX_ETHER_TYPE_SIZE) )
@@ -120,13 +120,13 @@ pktgen_print_pcap(uint16_t pid)
 		type = ntohs(hdr->eth.ether_type);
 		proto = hdr->u.ipv4.next_proto_id;
 		vlan = 0;
-		if (type == __ETHER_TYPE_VLAN) {
+		if (type == PG_ETHER_TYPE_VLAN) {
 			vlan = ntohs( ((uint16_t *)&hdr->eth.ether_type)[1]);
 			type = ntohs( ((uint16_t *)&hdr->eth.ether_type)[2]);
-			proto = ((struct __ipv4_hdr *)((char *)&hdr->u.ipv4 + 4))->next_proto_id;
+			proto = ((struct pg_ipv4_hdr *)((char *)&hdr->u.ipv4 + 4))->next_proto_id;
 		}
 
-		if (type == __ETHER_TYPE_IPv4) {
+		if (type == PG_ETHER_TYPE_IPv4) {
 			scrn_printf(row,
 			               col,
 			               "%*s",
@@ -154,8 +154,8 @@ pktgen_print_pcap(uint16_t pid)
 			col += ((2 * COLUMN_WIDTH_1) + 2 + 12);
 		}
 		snprintf(buff, sizeof(buff), "%s/%s:%4d",
-		         (type == __ETHER_TYPE_IPv4) ? "IPv4" :
-		         (type == __ETHER_TYPE_IPv6) ? "IPv6" : "Other",
+		         (type == PG_ETHER_TYPE_IPv4) ? "IPv4" :
+		         (type == PG_ETHER_TYPE_IPv6) ? "IPv6" : "Other",
 		         (type == PG_IPPROTO_TCP) ? "TCP" :
 		         (proto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
 		         (vlan & 0xFFF));
@@ -163,9 +163,9 @@ pktgen_print_pcap(uint16_t pid)
 		col += 15;
 		scrn_printf(row, col, "%5d", len);
 
-		if (skip && (type < __ETHER_TYPE_IPv4) )
+		if (skip && (type < PG_ETHER_TYPE_IPv4) )
 			scrn_printf(row, col + 7, "<<< Skip %04x", type);
-		else if (skip && (type != __ETHER_TYPE_IPv4) )
+		else if (skip && (type != PG_ETHER_TYPE_IPv4) )
 			scrn_printf(row, col + 7, " EthType %04x", type);
 		row++;
 	}

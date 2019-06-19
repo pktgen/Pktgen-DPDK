@@ -142,14 +142,14 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color("stats.stat.values");
-		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + __ETHER_CRC_LEN, info->tx_burst);
+		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
-		         (pkt->ethType == __ETHER_TYPE_IPv4) ? "IPv4" :
-		         (pkt->ethType == __ETHER_TYPE_IPv6) ? "IPv6" :
-		         (pkt->ethType == __ETHER_TYPE_ARP) ? "ARP" : "Other",
+		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :
+		         (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" :
+		         (pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" :
 			 (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN" : "UDP",
@@ -543,7 +543,7 @@ pktgen_page_phys_stats(uint16_t pid)
 {
 	unsigned int col, row, q, hdr;
 	struct rte_eth_stats stats, *s, *r;
-	struct __ether_addr ethaddr;
+	struct pg_ether_addr ethaddr;
 	char buff[32], mac_buf[32];
 
 	s = &stats;
@@ -593,7 +593,7 @@ pktgen_page_phys_stats(uint16_t pid)
 
 	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
 	rte_eth_macaddr_get(pid, &ethaddr);
-	__ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+	pg_ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
 	snprintf(buff, sizeof(buff), "%s", mac_buf);
 	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 	row++;

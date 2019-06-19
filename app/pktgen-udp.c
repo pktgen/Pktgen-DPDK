@@ -29,9 +29,9 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 {
 	uint16_t tlen;
 
-	if (type == __ETHER_TYPE_IPv4) {
-		struct __ipv4_hdr *ipv4 = hdr;
-		struct __udp_hdr *udp = (struct __udp_hdr *)&ipv4[1];
+	if (type == PG_ETHER_TYPE_IPv4) {
+		struct pg_ipv4_hdr *ipv4 = hdr;
+		struct pg_udp_hdr *udp = (struct pg_udp_hdr *)&ipv4[1];
 
 		/* Create the UDP header */
 		ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
@@ -41,7 +41,7 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		ipv4->total_length = htons(tlen);
 		ipv4->next_proto_id = pkt->ipProto;
 
-		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct __ipv4_hdr));
+		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv4_hdr));
 		udp->dgram_len = htons(tlen);
 		udp->src_port = htons(pkt->sport);
 		udp->dst_port = htons(pkt->dport);
@@ -60,8 +60,8 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 			udp->dgram_cksum = 0xFFFF;
 	} else {
 		uint32_t addr;
-		struct __ipv6_hdr *ipv6 = hdr;
-		struct __udp_hdr *udp = (struct __udp_hdr *)&ipv6[1];
+		struct pg_ipv6_hdr *ipv6 = hdr;
+		struct pg_udp_hdr *udp = (struct pg_udp_hdr *)&ipv6[1];
 
 		/* Create the pseudo header and TCP information */
 		addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
@@ -73,7 +73,7 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		ipv6->payload_len = htonl(tlen);
 		ipv6->proto = pkt->ipProto;
 
-		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct __ipv6_hdr));
+		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv6_hdr));
 		udp->dgram_len = htons(tlen);
 		udp->src_port = htons(pkt->sport);
 		udp->dst_port = htons(pkt->dport);

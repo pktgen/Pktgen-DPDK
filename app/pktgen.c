@@ -211,13 +211,13 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
 
 	p = rte_pktmbuf_mtod(m, char *);
 
-	p += sizeof(struct __ether_hdr);
+	p += sizeof(struct pg_ether_hdr);
 
-	p += (info->seq_pkt[seq_idx].ethType == __ETHER_TYPE_IPv4) ?
-	     sizeof(struct __ipv4_hdr) : sizeof(struct __ipv6_hdr);
+	p += (info->seq_pkt[seq_idx].ethType == PG_ETHER_TYPE_IPv4) ?
+	     sizeof(struct pg_ipv4_hdr) : sizeof(struct pg_ipv6_hdr);
 
 	p += (info->seq_pkt[seq_idx].ipProto == PG_IPPROTO_UDP) ?
-	     sizeof(struct __udp_hdr) : sizeof(struct __tcp_hdr);
+	     sizeof(struct pg_udp_hdr) : sizeof(struct pg_tcp_hdr);
 
 	/* Force pointer to be aligned correctly */
 	p = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
@@ -232,7 +232,7 @@ pktgen_latency_apply(port_info_t *info __rte_unused,
                      struct rte_mbuf **mbufs, int cnt, int32_t seq_idx)
 {
 	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
-	struct __ether_hdr *eth = (struct __ether_hdr *)&pkt->hdr.eth;
+	struct pg_ether_hdr *eth = (struct pg_ether_hdr *)&pkt->hdr.eth;
 	char *l3_hdr = (char *)&eth[1];	/* Point to l3 hdr location */
 	int i;
 
@@ -245,7 +245,7 @@ pktgen_latency_apply(port_info_t *info __rte_unused,
 		latency->magic      = LATENCY_MAGIC;
 
 		/* Construct the UDP header */
-		pktgen_udp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+		pktgen_udp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
 
 		/* IPv4 Header constructor */
 		pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -559,7 +559,7 @@ void
 pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 {
 	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
-	struct __ether_hdr *eth = (struct __ether_hdr *)&pkt->hdr.eth;
+	struct pg_ether_hdr *eth = (struct pg_ether_hdr *)&pkt->hdr.eth;
 	uint32_t flags;
 	char *l3_hdr = (char *)&eth[1];	/* Point to l3 hdr location for GRE header */
 
@@ -570,7 +570,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
 	flags = rte_atomic32_read(&info->port_flags);
 
-	/* Add GRE header and adjust __ether_hdr pointer if requested */
+	/* Add GRE header and adjust pg_ether_hdr pointer if requested */
 	if (flags & SEND_GRE_IPv4_HEADER)
 		l3_hdr = pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)l3_hdr);
 	else if (flags & SEND_GRE_ETHER_HEADER)
@@ -578,11 +578,11 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 	else
 		l3_hdr = pktgen_ether_hdr_ctor(info, pkt, eth);
 
-	if (likely(pkt->ethType == __ETHER_TYPE_IPv4)) {
+	if (likely(pkt->ethType == PG_ETHER_TYPE_IPv4)) {
 		if (likely(pkt->ipProto == PG_IPPROTO_TCP)) {
 			if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
 				/* Construct the TCP header */
-				pktgen_tcp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+				pktgen_tcp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -592,7 +592,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				                     GTPu_VERSION | GTPu_PT_FLAG, 0, 0, 0);
 
 				/* Construct the TCP header */
-				pktgen_tcp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+				pktgen_tcp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -601,13 +601,13 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			if (flags & SEND_VXLAN_PACKETS) {
 				/* Construct the UDP header */
 				pkt->dport = VXLAN_PORT_ID;
-				pktgen_udp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, l3_hdr);
 			} else if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
 				/* Construct the UDP header */
-				pktgen_udp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -617,30 +617,30 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 				                     GTPu_VERSION | GTPu_PT_FLAG, 0, 0, 0);
 
 				/* Construct the UDP header */
-				pktgen_udp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv4);
+				pktgen_udp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
 
 				/* IPv4 Header constructor */
 				pktgen_ipv4_ctor(pkt, l3_hdr);
 			}
 		} else if (pkt->ipProto == PG_IPPROTO_ICMP) {
-			struct __ipv4_hdr *ipv4;
-			struct __udp_hdr *udp;
-			struct __icmp_hdr *icmp;
+			struct pg_ipv4_hdr *ipv4;
+			struct pg_udp_hdr *udp;
+			struct pg_icmp_hdr *icmp;
 			uint16_t tlen;
 
 			/* Start from Ethernet header */
-			ipv4 = (struct __ipv4_hdr *)l3_hdr;
-			udp = (struct __udp_hdr *)&ipv4[1];
+			ipv4 = (struct pg_ipv4_hdr *)l3_hdr;
+			udp = (struct pg_udp_hdr *)&ipv4[1];
 
 			/* Create the ICMP header */
 			ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 			ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
-			tlen  = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct __ipv4_hdr));
+			tlen  = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv4_hdr));
 			ipv4->total_length = htons(tlen);
 			ipv4->next_proto_id = pkt->ipProto;
 
-			icmp = (struct __icmp_hdr *)&udp[1];
+			icmp = (struct pg_icmp_hdr *)&udp[1];
 			icmp->icmp_code = 0;
 			if ( (type == -1) || (type == ICMP4_TIMESTAMP)) {
 				union icmp_data *data = (union icmp_data *)&udp[1];
@@ -661,7 +661,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			}
 			icmp->icmp_cksum     = 0;
 			/* ICMP4_TIMESTAMP_SIZE */
-			tlen            = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct __ipv4_hdr));
+			tlen            = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv4_hdr));
 			icmp->icmp_cksum	= rte_raw_cksum(icmp, tlen);
 			if (icmp->icmp_cksum == 0)
 				icmp->icmp_cksum = 0xFFFF;
@@ -669,38 +669,38 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 			/* IPv4 Header constructor */
 			pktgen_ipv4_ctor(pkt, l3_hdr);
 		}
-	} else if (pkt->ethType == __ETHER_TYPE_IPv6) {
+	} else if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
 		if (pkt->ipProto == PG_IPPROTO_TCP) {
 			/* Construct the TCP header */
-			pktgen_tcp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv6);
+			pktgen_tcp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv6);
 
 			/* IPv6 Header constructor */
 			pktgen_ipv6_ctor(pkt, l3_hdr);
 		} else if (pkt->ipProto == PG_IPPROTO_UDP) {
 			/* Construct the UDP header */
-			pktgen_udp_hdr_ctor(pkt, l3_hdr, __ETHER_TYPE_IPv6);
+			pktgen_udp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv6);
 
 			/* IPv6 Header constructor */
 			pktgen_ipv6_ctor(pkt, l3_hdr);
 		}
-	} else if (pkt->ethType == __ETHER_TYPE_ARP) {
+	} else if (pkt->ethType == PG_ETHER_TYPE_ARP) {
 		/* Start from Ethernet header */
-		struct __arp_hdr *arp = (struct __arp_hdr *)l3_hdr;
+		struct pg_arp_hdr *arp = (struct pg_arp_hdr *)l3_hdr;
 
 		arp->arp_hrd = htons(1);
-		arp->arp_pro = htons(__ETHER_TYPE_IPv4);
-		arp->arp_hln = __ETHER_ADDR_LEN;
+		arp->arp_pro = htons(PG_ETHER_TYPE_IPv4);
+		arp->arp_hln = PG_ETHER_ADDR_LEN;
 		arp->arp_pln = 4;
 
 		/* make request/reply operation selectable by user */
 		arp->arp_op  = htons(2);
 
-		__ether_addr_copy(&pkt->eth_src_addr,
-		                (struct __ether_addr *)&arp->arp_data.arp_sha);
+		pg_ether_addr_copy(&pkt->eth_src_addr,
+		                (struct pg_ether_addr *)&arp->arp_data.arp_sha);
 		*((uint32_t *)&arp->arp_data.arp_sha) = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 
-		__ether_addr_copy(&pkt->eth_dst_addr,
-		                (struct __ether_addr *)&arp->arp_data.arp_tha);
+		pg_ether_addr_copy(&pkt->eth_dst_addr,
+		                (struct pg_ether_addr *)&arp->arp_data.arp_tha);
 		*((uint32_t *)&arp->arp_data.arp_tip) = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 	} else
 		pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
@@ -750,9 +750,9 @@ static __inline__ pktType_e
 pktgen_packet_type(struct rte_mbuf *m)
 {
 	pktType_e ret;
-	struct __ether_hdr *eth;
+	struct pg_ether_hdr *eth;
 
-	eth = rte_pktmbuf_mtod(m, struct __ether_hdr *);
+	eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
 
 	ret = ntohs(eth->ether_type);
 
@@ -793,19 +793,19 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 				                 pid);
 
 		switch ((int)pType) {
-		case __ETHER_TYPE_ARP:
+		case PG_ETHER_TYPE_ARP:
 			info->stats.arp_pkts++;
 			pktgen_process_arp(m, pid, 0);
 			break;
-		case __ETHER_TYPE_IPv4:
+		case PG_ETHER_TYPE_IPv4:
 			info->stats.ip_pkts++;
 			pktgen_process_ping4(m, pid, 0);
 			break;
-		case __ETHER_TYPE_IPv6:
+		case PG_ETHER_TYPE_IPv6:
 			info->stats.ipv6_pkts++;
 			pktgen_process_ping6(m, pid, 0);
 			break;
-		case __ETHER_TYPE_VLAN:
+		case PG_ETHER_TYPE_VLAN:
 			info->stats.vlan_pkts++;
 			pktgen_process_vlan(m, pid);
 			break;
@@ -816,16 +816,16 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 	} else
 		/* Count the type of packets found. */
 		switch ((int)pType) {
-		case __ETHER_TYPE_ARP:
+		case PG_ETHER_TYPE_ARP:
 			info->stats.arp_pkts++;
 			break;
-		case __ETHER_TYPE_IPv4:
+		case PG_ETHER_TYPE_IPv4:
 			info->stats.ip_pkts++;
 			break;
-		case __ETHER_TYPE_IPv6:
+		case PG_ETHER_TYPE_IPv6:
 			info->stats.ipv6_pkts++;
 			break;
-		case __ETHER_TYPE_VLAN:
+		case PG_ETHER_TYPE_VLAN:
 			info->stats.vlan_pkts++;
 			break;
 		default:
@@ -835,9 +835,9 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 	plen += pktgen_get_hw_strip_crc();
 
 	/* Count the size of each packet. */
-	if (plen == __ETHER_MIN_LEN)
+	if (plen == PG_ETHER_MIN_LEN)
 		info->sizes._64++;
-	else if ( (plen >= (__ETHER_MIN_LEN + 1)) && (plen <= 127))
+	else if ( (plen >= (PG_ETHER_MIN_LEN + 1)) && (plen <= 127))
 		info->sizes._65_127++;
 	else if ( (plen >= 128) && (plen <= 255))
 		info->sizes._128_255++;
@@ -845,11 +845,11 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 		info->sizes._256_511++;
 	else if ( (plen >= 512) && (plen <= 1023))
 		info->sizes._512_1023++;
-	else if ( (plen >= 1024) && (plen <= __ETHER_MAX_LEN))
+	else if ( (plen >= 1024) && (plen <= PG_ETHER_MAX_LEN))
 		info->sizes._1024_1518++;
-	else if (plen < __ETHER_MIN_LEN)
+	else if (plen < PG_ETHER_MIN_LEN)
 		info->sizes.runt++;
-	else if (plen > __ETHER_MAX_LEN)
+	else if (plen > PG_ETHER_MAX_LEN)
 		info->sizes.jumbo++;
 	else
 		info->sizes.unknown++;
@@ -1001,16 +1001,16 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	d->data_len = m->data_len;
 
 	switch(pkt->ethType) {
-	case __ETHER_TYPE_IPv4:
+	case PG_ETHER_TYPE_IPv4:
 		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_IPV4_CKSUM)
 			pkt->ol_flags = PKT_TX_IP_CKSUM | PKT_TX_IPV4;
 		break;
 
-	case __ETHER_TYPE_IPv6:
+	case PG_ETHER_TYPE_IPv6:
 		pkt->ol_flags = PKT_TX_IP_CKSUM | PKT_TX_IPV6;
 		break;
 
-	case __ETHER_TYPE_VLAN:
+	case PG_ETHER_TYPE_VLAN:
 		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_VLAN_INSERT) {
 			/* TODO */
 		}

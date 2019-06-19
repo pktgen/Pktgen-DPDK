@@ -42,7 +42,7 @@ static struct rte_eth_conf default_port_conf = {
 #if RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
 	.rxmode = {
 		.mq_mode = ETH_MQ_RX_RSS,
-		.max_rx_pkt_len = __ETHER_MAX_LEN,
+		.max_rx_pkt_len = PG_ETHER_MAX_LEN,
 		.split_hdr_size = 0,
 		.ignore_offload_bitfield = 1,
 		.offloads = (DEV_RX_OFFLOAD_CRC_STRIP |
@@ -85,7 +85,7 @@ pktgen_set_hw_strip_crc(uint8_t val)
 int
 pktgen_get_hw_strip_crc(void)
 {
-	return (hw_strip_crc)? __ETHER_CRC_LEN : 0;
+	return (hw_strip_crc)? PG_ETHER_CRC_LEN : 0;
 }
 
 /**************************************************************************//**
@@ -159,7 +159,7 @@ pktgen_config_ports(void)
 
 	/* Find out the total number of ports in the system. */
 	/* We have already blacklisted the ones we needed to in main routine. */
-	pktgen.nb_ports = __eth_dev_count_avail();
+	pktgen.nb_ports = pg_eth_dev_count_avail();
 	if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
 		pktgen.nb_ports = RTE_MAX_ETHPORTS;
 

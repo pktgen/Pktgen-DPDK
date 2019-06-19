@@ -22,7 +22,7 @@ struct port_info_s;
 
 char *pktgen_ether_hdr_ctor(struct port_info_s *info,
 				   pkt_seq_t *pkt,
-				   struct __ether_hdr *eth);
+				   struct pg_ether_hdr *eth);
 
 #ifdef __cplusplus
 }

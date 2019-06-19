@@ -27,7 +27,7 @@ void
 pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 {
 	switch (pkt->ethType) {
-	case __ETHER_TYPE_IPv4:
+	case PG_ETHER_TYPE_IPv4:
 		switch (pkt->ipProto) {
 		case PG_IPPROTO_TCP:
 		case PG_IPPROTO_UDP:
@@ -215,7 +215,7 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 			break;
 		}
 		break;
-	case __ETHER_TYPE_IPv6:
+	case PG_ETHER_TYPE_IPv6:
 		switch (pkt->ipProto) {
 		case PG_IPPROTO_UDP:
 		case PG_IPPROTO_TCP:
@@ -254,7 +254,7 @@ pktgen_print_range(void)
 	char buff[32];
 	int32_t row;
 	int32_t col_0 = COLUMN_WIDTH_0 + 1, col_1 = COLUMN_WIDTH_1 + 4;
-	struct __ether_addr eaddr;
+	struct pg_ether_addr eaddr;
 	char str[64];
 
 	pktgen_display_set_color("top.page");
@@ -420,9 +420,9 @@ pktgen_print_range(void)
 		snprintf(str,
 		         sizeof(str),
 		         "%5d:%5d/%5d/%5d",
-		         range->pkt_size + __ETHER_CRC_LEN,
-		         range->pkt_size_min + __ETHER_CRC_LEN,
-		         range->pkt_size_max + __ETHER_CRC_LEN,
+		         range->pkt_size + PG_ETHER_CRC_LEN,
+		         range->pkt_size_min + PG_ETHER_CRC_LEN,
+		         range->pkt_size_max + PG_ETHER_CRC_LEN,
 		         range->pkt_size_inc);
 		scrn_printf(row++, col, "%*s", col_1, str);
 

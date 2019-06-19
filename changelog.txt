@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.7.0 - Fixed build issues with DPDK 19.08 as DPDK renamed a lot of defines
+           Fixed up the meson files to build pktgen with meson and ninja
+           Minor cleanup
  - 3.6.6 - Add portInfo() function in lua to return most of the port info in
            one structure.
  - 3.6.5 - Fix ldflags order for RHEL, CentOS and other systems to include lua in build

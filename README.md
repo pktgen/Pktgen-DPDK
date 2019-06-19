@@ -42,13 +42,17 @@ SPDX-License-Identifier: BSD-3-Clause
 Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
 ---
 
-
+Note: In DPKD 19.08-rc0 a large number of defines and function names were
+      changed. In Pktgen  3.7.0 I added a pg_compat.h header to help
+      compatibility issues with these name changes. This means versions
+      3.6.6 and below will have trouble builging with DPDK starting with
+      19.08-rc0 or just after the 19.05 release. 
 
 
 *** Pktgen command line directory format ***
 
 ``
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
+-- Pktgen Ver: 3.7.0 (DPDK 19.08.0-rc0)  Powered by DPDK ---------------
 
 
 

@@ -8,8 +8,8 @@
  * Compat file for pktgen
  */
 
-#ifndef _DELAY_H
-#define _DELAY_H_
+#ifndef __DELAY_H_
+#define __DELAY_H_
 
 #include <time.h>
 #include <rte_version.h>
@@ -48,4 +48,4 @@ rte_delay_us_sleep(unsigned int us)
 }
 #endif
 
-#endif /* _DELAY_H_ */
+#endif /* __DELAY_H_ */

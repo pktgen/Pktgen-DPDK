@@ -3,8 +3,8 @@
  */
 /* Created 2018 by Keith Wiles @ intel.com */
 
-#ifndef __RTE_VEC_H
-#define __RTE_VEC_H
+#ifndef __VEC_H
+#define __VEC_H
 
 #include <rte_malloc.h>
 
@@ -504,4 +504,4 @@ void vec_print(FILE *f, const char *msg, struct vec *vec);
 }
 #endif
 
-#endif /* __RTE_VEC_H */
+#endif /* __VEC_H */

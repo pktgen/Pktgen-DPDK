@@ -1344,8 +1344,10 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 	for (idx = 0; idx < rxcnt; idx++) {
 		uint16_t pid = infos[idx]->pid;
-		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
-			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
+		int dev_sock = rte_eth_dev_socket_id(pid);
+
+		if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
+			rte_panic("*** port %u on socket ID %u has different socket ID for lcore %u socket ID %d\n",
 					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}
@@ -1429,8 +1431,9 @@ pktgen_main_tx_loop(uint8_t lid)
 
 	for (idx = 0; idx < txcnt; idx++) {
 		uint16_t pid = infos[idx]->pid;
+		int dev_sock = rte_eth_dev_socket_id(pid);
 
-		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
+		if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
 			rte_panic("*** port %u on socket ID %u has different socket ID for lcore %u on socket ID %d\n",
 					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
@@ -1513,8 +1516,10 @@ pktgen_main_rx_loop(uint8_t lid)
 
 	for (idx = 0; idx < rxcnt; idx++) {
 		uint16_t pid = infos[idx]->pid;
-		if (rte_eth_dev_socket_id(pid) != (int)rte_socket_id())
-			rte_panic("*** port %u socket ID %u has different socket ID for lcore %u socket ID %d\n",
+		int dev_sock = rte_eth_dev_socket_id(pid);
+
+		if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
+			rte_panic("*** port %u on socket ID %u has different socket ID for lcore %u socket ID %d\n",
 					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}

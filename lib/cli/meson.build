@@ -32,4 +32,9 @@ headers = files(
 	'cli_map.h',
 	'cli_scrn.h',
 	'cli_search.h')
-deps += ['ethdev', 'timer', 'pci']
+deps += ['common', 'utils']
+
+libs = ['timer']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
+endforeach

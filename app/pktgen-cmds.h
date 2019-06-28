@@ -17,7 +17,7 @@
 
 #include "pktgen.h"
 #include <rte_string_fns.h>
-#include <rte_portlist.h>
+#include <portlist.h>
 
 #ifdef __cplusplus
 "C" {
@@ -71,8 +71,8 @@ void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_cos(port_info_t *info, uint8_t cos);
 void single_set_tos(port_info_t *info, uint8_t tos);
-void single_set_dst_mac(port_info_t *info, struct ether_addr *mac);
-void single_set_src_mac(port_info_t *info, struct ether_addr *mac);
+void single_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac);
+void single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);
 void single_set_tx_count(port_info_t *info, uint32_t cnt);
 void single_set_tx_burst(port_info_t *info, uint32_t burst);
@@ -96,6 +96,10 @@ void debug_set_rx_cycles(port_info_t *info, uint32_t cycles);
 void debug_matrix_dump(void);
 void debug_mempool_dump(port_info_t *info, char *name);
 void debug_set_port_dump(port_info_t *info, uint32_t cnt);
+void debug_tx_rate(port_info_t *info);
+#ifdef RTE_LIBRTE_PMD_BOND
+void show_bonding_mode(port_info_t *info);
+#endif
 
 /* Enable or toggle types */
 void enable_rx_tap(port_info_t *info, uint32_t state);
@@ -113,7 +117,9 @@ void enable_garp(port_info_t *info, uint32_t state);
 void enable_mac_from_arp(uint32_t state);
 void enable_process(port_info_t *info, int state);
 void enable_capture(port_info_t *info, uint32_t state);
+#ifdef RTE_LIBRTE_PMD_BOND
 void enable_bonding(port_info_t *info, uint32_t state);
+#endif
 void enable_range(port_info_t *info, uint32_t state);
 void enable_pcap(port_info_t *info, uint32_t state);
 void enable_short_pkts(port_info_t *info, uint32_t state);
@@ -124,10 +130,10 @@ void pcap_filter(port_info_t *info, char *str);
 /* Range commands */
 void range_set_dest_mac(port_info_t *info,
 				const char *what,
-				struct ether_addr *mac);
+				struct pg_ether_addr *mac);
 void range_set_src_mac(port_info_t *info,
 			       const char *what,
-			       struct ether_addr *mac);
+			       struct pg_ether_addr *mac);
 void range_set_src_ip(port_info_t *info,
 			      char *what,
 			      struct pg_ipaddr *ip);
@@ -155,8 +161,8 @@ void range_set_gre_key(port_info_t *info, uint32_t gre_key);
 void pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt);
 void pktgen_set_seq(port_info_t *info,
 			   uint32_t seqnum,
-			   struct ether_addr *daddr,
-			   struct ether_addr *saddr,
+			   struct pg_ether_addr *daddr,
+			   struct pg_ether_addr *saddr,
 			   struct pg_ipaddr *ip_daddr,
 			   struct pg_ipaddr *ip_saddr,
 			   uint32_t sport,
@@ -178,8 +184,8 @@ void pktgen_recv_pkt(port_info_t *info);
 
 void pktgen_compile_pkt(port_info_t *info,
 			       uint32_t seqnum,
-			       struct ether_addr *daddr,
-			       struct ether_addr *saddr,
+			       struct pg_ether_addr *daddr,
+			       struct pg_ether_addr *saddr,
 			       struct pg_ipaddr *ip_daddr,
 			       struct pg_ipaddr *ip_saddr,
 			       uint32_t sport,

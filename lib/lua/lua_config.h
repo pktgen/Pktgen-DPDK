@@ -4,8 +4,8 @@
 
 /* Created 2018 by Keith Wiles @ intel.com */
 
-#ifndef _RTE_LUA_H_
-#define _RTE_LUA_H_
+#ifndef _LUA_CONFIG_H_
+#define _LUA_CONFIG_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -99,4 +99,4 @@ luaData_t *lua_find_luaData(lua_State *L);
 }
 #endif
 
-#endif /* _RTE_LUA_H_ */
+#endif /* _LUA_CONFIG_H_ */

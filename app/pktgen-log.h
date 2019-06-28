@@ -97,7 +97,7 @@ extern "C" {
 #define pktgen_log_panic(fmt, ...) do {					       \
 		pktgen_log(LOG_LEVEL_PANIC, __FILE__, __LINE__, __FUNCTION__,	       \
 			   fmt, ## __VA_ARGS__);					   \
-		rte_panic(fmt, ## __VA_ARGS__);						\
+		rte_panic(fmt "\n", ## __VA_ARGS__);						\
 } while (0)
 #else
 #define pktgen_log_panic(fmt, ...) rte_panic(fmt, ## __VA_ARGS__)

@@ -1,12 +1,17 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2019 Intel Corporation
 
-libraries = ['common', 'utils', 'vec', 'plugin', 'lua']
+libraries = ['common', 'utils', 'vec', 'plugin', 'cli', 'lua']
+
+default_cflags = machine_args
+if cc.has_argument('-Wno-format-truncation')
+	default_cflags += '-Wno-format-truncation'
+endif
 
 # Set default cflags
-#default_cflags = glb_default_cflags
-default_cflags = []
+default_cflags += '-D_GNU_SOURCE'
 
+enabled_libs = []
 foreach l:libraries
 	build = true
 	name = l
@@ -14,13 +19,12 @@ foreach l:libraries
 	allow_experimental_apis = false
 	sources = []
 	headers = []
-	enabled_libs = []
-	includes = [global_inc]
+	includes = []
 	cflags = default_cflags
 	objs = [] # other object files to link against, used e.g. for
 	          # instruction-set optimized versions of code
 
-	# use "deps" for internal PMDK dependencies, and "ext_deps" for
+	# use "deps" for internal Pktgen dependencies, and "ext_deps" for
 	# external package/library requirements
 	ext_deps = []
 	deps = []
@@ -31,11 +35,11 @@ foreach l:libraries
 
 	if build
 		enabled_libs += name
-		# pmdk_conf.set('PME_LIB' + name.to_upper(), 1)
 		install_headers(headers)
 
 		libname = name
 		includes += include_directories(dir_name)
+		includes += dpdk_incs
 
 		if sources.length() == 0
 			message('    No sources in '+ libname)
@@ -47,14 +51,14 @@ foreach l:libraries
 			shared_deps = ext_deps
 			static_deps = ext_deps
 			foreach d:deps
-				if not is_variable('static_pme_' + d)
+				if not is_variable('static_pktgen_' + d)
 					error('Missing dependency ' + d +
 						' for library ' + libname)
 				else
 					message('    === Found dependency ' + d)
 				endif
-				shared_deps += [get_variable('shared_pme_' + d)]
-				static_deps += [get_variable('static_pme_' + d)]
+				shared_deps += [get_variable('shared_pktgen_' + d)]
+				static_deps += [get_variable('static_pktgen_' + d)]
 			endforeach
 
 			if allow_experimental_apis
@@ -92,11 +96,11 @@ foreach l:libraries
 					include_directories: includes,
 					dependencies: shared_deps)
 
-			pmdk_shared_libraries = [shared_lib] + pmdk_shared_libraries
-			pmdk_static_libraries = [static_lib] + pmdk_static_libraries
+			pktgen_shared_libraries = [shared_lib] + pktgen_shared_libraries
+			pktgen_static_libraries = [static_lib] + pktgen_static_libraries
 		endif # sources.length() > 0
 
-		set_variable('shared_pme_' + libname, shared_dep)
-		set_variable('static_pme_' + libname, static_dep)
+		set_variable('shared_pktgen_' + libname, shared_dep)
+		set_variable('static_pktgen_' + libname, static_dep)
 	endif # if build
 endforeach

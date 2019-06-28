@@ -3,7 +3,7 @@
  */
 /* Created 2018 by Keith Wiles @ intel.com */
 
-#define rte_lua_dpdk_c
+#define lua_dpdk_c
 #define LUA_LIB
 #define lua_c
 
@@ -11,23 +11,25 @@
 #include <rte_ethdev.h>
 #include <rte_mbuf.h>
 #include <rte_cycles.h>
-#include <rte_vec.h>
+#include <vec.h>
 #include <rte_timer.h>
-#include <rte_strings.h>
 #include <rte_version.h>
-#include <rte_portlist.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
-#include "rte_lua_dpdk.h"
-#include "rte_lua_pktmbuf.h"
+#include <_delay.h>
+#include <_strings.h>
+#include <portlist.h>
+
+#include "lua_config.h"
+#include "lua_stdio.h"
+#include "lua_dpdk.h"
+#include "lua_pktmbuf.h"
 #ifdef RTE_LIBRTE_DAPI
-#include <rte_lua_dapi.h>
+#include <lua_dapi.h>
 #else
 int luaopen_dapi(lua_State *L);
 #endif
-#include "rte_lua_vec.h"
-#include "rte_lua_utils.h"
+#include "lua_vec.h"
+#include "lua_utils.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"
@@ -168,7 +170,7 @@ dpdk_linkState(lua_State *L)
 	validate_arg_count(L, 1);
 
 	portlist = 0;
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -211,7 +213,7 @@ dpdk_portStats(lua_State *L)
 
 	validate_arg_count(L, 1);
 
-	rte_parse_portlist(luaL_checkstring(L, 1), &portlist);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
 
 	lua_newtable(L);
 
@@ -246,7 +248,7 @@ decompile_pkt(lua_State *L, uint16_t pid)
 		    inet_mtoa(buff, sizeof(buff), &p->eth_dst_addr));
 	setf_string(L, "eth_src_addr",
 		    inet_mtoa(buff, sizeof(buff), &p->eth_src_addr));
-	if (p->ethType == ETHER_TYPE_IPv4) {
+	if (p->ethType == PG_ETHER_TYPE_IPv4) {
 		setf_string(L, "ip_dst_addr",
 			    inet_ntop4(buff, sizeof(buff),
 			    		htonl(p->ip_dst_addr),
@@ -268,16 +270,15 @@ decompile_pkt(lua_State *L, uint16_t pid)
 	setf_string(L,
 		    "ethType",
 		    (char *)(
-			    (p->ethType == ETHER_TYPE_IPv4) ? "ipv4" :
-			    (p->ethType == ETHER_TYPE_IPv6) ? "ipv6" :
+			    (p->ethType == PG_ETHER_TYPE_IPv4) ? "ipv4" :
+			    (p->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6" :
 			    (p->ethType ==
-			     ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
+			     PG_ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
 	setf_string(L, "ipProto", (char *)(
 			    (p->ipProto == IPPROTO_TCP) ? "tcp" :
 			    (p->ipProto == IPPROTO_ICMP) ? "icmp" : "udp"));
 
-	setf_integer(L, "pktSize", p->pktSize + ETHER_CRC_LEN);
-
+	setf_integer(L, "pktSize", p->pktSize + PG_ETHER_CRC_LEN);
 	/* Now set the table as an array with pid as the index. */
 	lua_rawset(L, -3);
 }
@@ -290,7 +291,7 @@ dpdk_decompile(lua_State *L)
 
 	validate_arg_count(L, 2);
 
-	rte_parse_portlist(luaL_checkstring(L, 2), &portlist);
+	portlist_parse(luaL_checkstring(L, 2), &portlist);
 
 	lua_newtable(L);
 
@@ -330,7 +331,7 @@ dpdk_portCount(lua_State *L)
 {
 	validate_arg_count(L, 0);
 
-	lua_pushinteger(L, rte_eth_dev_count_avail());
+	lua_pushinteger(L, pg_eth_dev_count_avail());
 
 	return 1;
 }
@@ -340,7 +341,7 @@ dpdk_totalPorts(lua_State *L)
 {
 	validate_arg_count(L, 0);
 
-	lua_pushinteger(L, rte_eth_dev_count_total());
+	lua_pushinteger(L, pg_eth_dev_count_total());
 
 	return 1;
 }

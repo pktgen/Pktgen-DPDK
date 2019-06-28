@@ -3,23 +3,23 @@
  */
 /* Created 2018 by Keith Wiles @ intel.com */
 
-#define rte_lua_dpdk_c
+#define lua_dpdk_c
 #define LUA_LIB
 #define lua_c
 
 #include <rte_ethdev.h>
 #include <rte_mbuf.h>
 #include <rte_cycles.h>
-#include <rte_vec.h>
+#include <vec.h>
 #include <rte_timer.h>
-#include <rte_strings.h>
 #include <rte_version.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
-#include "rte_lua_dpdk.h"
-#include "rte_lua_vec.h"
-#include "rte_lua_utils.h"
+#include <_strings.h>
+#include "lua_config.h"
+#include "lua_stdio.h"
+#include "lua_dpdk.h"
+#include "lua_vec.h"
+#include "lua_utils.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wcast-qual"
@@ -39,11 +39,11 @@ vec_new(lua_State *L)
 	if (top >= 1)
 		size = luaL_checkint(L, 1);
 	if (size == 0)
-		size = rte_vec_calc_size(0);
+		size = vec_calc_size(0);
 
-	v = (struct rte_vec *)lua_newuserdata(L,
-		(sizeof(struct rte_vec) * (size * sizeof(void *))));
-	rte_vec_init(v, size, VEC_CREATE_FLAG);
+	v = (struct vec *)lua_newuserdata(L,
+		(sizeof(struct vec) * (size * sizeof(void *))));
+	vec_init(v, size, VEC_CREATE_FLAG);
 
 	luaL_getmetatable(L, Vec);
 	lua_setmetatable(L, -2);
@@ -52,13 +52,13 @@ vec_new(lua_State *L)
 }
 
 static int
-vec_add1(lua_State *L)
+lvec_add1(lua_State *L)
 {
-	struct rte_vec *v;
+	struct vec *v;
 
 	validate_arg_count(L, 2);
 
-	v = (struct rte_vec *)luaL_checkudata(L, 1, Vec);
+	v = (struct vec *)luaL_checkudata(L, 1, Vec);
 
 	if (v->len >= v->tlen)
 		return 0;
@@ -71,10 +71,10 @@ vec_add1(lua_State *L)
 static int
 vec_tostring(lua_State *L)
 {
-	struct rte_vec *v;
+	struct vec *v;
 	char buff[64];
 
-	v = (struct rte_vec *)luaL_checkudata(L, 1, Vec);
+	v = (struct vec *)luaL_checkudata(L, 1, Vec);
 
 	lua_getmetatable(L, 1);
 	lua_getfield(L, -1, "__name");
@@ -91,25 +91,25 @@ vec_tostring(lua_State *L)
 static int
 vec_gc(lua_State *L)
 {
-	struct rte_vec *v;
+	struct vec *v;
 	struct rte_mbuf *m;
 	int i;
 
 	if (lua_gettop(L) != 1)
                 return luaL_error(L, "vec.gc, Invalid arg count should be 1");
-	v = (struct rte_vec *)lua_touserdata(L, 1);
+	v = (struct vec *)lua_touserdata(L, 1);
 
-	rte_vec_foreach(i, m, v) {
+	vec_foreach(i, m, v) {
 		if (m)
 			rte_pktmbuf_free(m);
 	}
-	rte_vec_free(v);
+	vec_free(v);
 
 	return 0;
 }
 
 static const struct luaL_Reg vec_methods[] = {
-	{ "add1",	vec_add1 },
+	{ "add1",	lvec_add1 },
 	{ NULL, 	NULL }
 };
 

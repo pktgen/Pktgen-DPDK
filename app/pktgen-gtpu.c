@@ -7,7 +7,7 @@
 /* Created 2015 by abhinandan.gujjar@intel.com */
 
 #include <cli_scrn.h>
-#include "rte_lua.h"
+#include "lua_config.h"
 
 #include "pktgen.h"
 
@@ -36,11 +36,11 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto,
 	void *p;
 
 	if (ipProto == PG_IPPROTO_UDP)
-		l4HdrSize = sizeof(struct udp_hdr);
+		l4HdrSize = sizeof(struct pg_udp_hdr);
 	else
-		l4HdrSize = sizeof(struct tcp_hdr);
+		l4HdrSize = sizeof(struct pg_tcp_hdr);
 
-	gtppHdr = (gtpuHdr_t *)RTE_PTR_ADD(hdr, sizeof(struct ipv4_hdr) + l4HdrSize);
+	gtppHdr = (gtpuHdr_t *)RTE_PTR_ADD(hdr, sizeof(struct pg_ipv4_hdr) + l4HdrSize);
 
 	/* Zero out the header space */
 	memset((char *)gtppHdr, 0, sizeof(gtpuHdr_t));

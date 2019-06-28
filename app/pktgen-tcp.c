@@ -6,7 +6,7 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <cli_scrn.h>
-#include <rte_lua.h>
+#include <lua_config.h>
 
 #include "pktgen.h"
 
@@ -29,15 +29,15 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 {
 	uint16_t tlen;
 
-	if (type == ETHER_TYPE_IPv4) {
-		struct ipv4_hdr *ipv4 = (struct ipv4_hdr *)hdr;
-		struct tcp_hdr *tcp = (struct tcp_hdr *)&ipv4[1];
+	if (type == PG_ETHER_TYPE_IPv4) {
+		struct pg_ipv4_hdr *ipv4 = (struct pg_ipv4_hdr *)hdr;
+		struct pg_tcp_hdr *tcp = (struct pg_tcp_hdr *)&ipv4[1];
 
 		/* Create the TCP header */
 		ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 		ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
-		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv4_hdr));
+		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv4_hdr));
 		ipv4->total_length = htons(tlen);
 		ipv4->next_proto_id = pkt->ipProto;
 
@@ -45,7 +45,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 		tcp->dst_port = htons(pkt->dport);
 		tcp->sent_seq = htonl(DEFAULT_PKT_NUMBER);
 		tcp->recv_ack = htonl(DEFAULT_ACK_NUMBER);
-		tcp->data_off = ((sizeof(struct tcp_hdr) / sizeof(uint32_t)) << 4);	/* Offset in words */
+		tcp->data_off = ((sizeof(struct pg_tcp_hdr) / sizeof(uint32_t)) << 4);	/* Offset in words */
 		tcp->tcp_flags = ACK_FLAG;						/* ACK */
 		tcp->rx_win = htons(DEFAULT_WND_SIZE);
 		tcp->tcp_urp = 0;
@@ -54,8 +54,8 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 
 		tcp->cksum = rte_raw_cksum(tcp, tlen);
 	} else {
-		struct ipv6_hdr *ipv6 = (struct ipv6_hdr *)hdr;
-		struct tcp_hdr *tcp = (struct tcp_hdr *)&ipv6[1];
+		struct pg_ipv6_hdr *ipv6 = (struct pg_ipv6_hdr *)hdr;
+		struct pg_tcp_hdr *tcp = (struct pg_tcp_hdr *)&ipv6[1];
 
 		/* Create the pseudo header and TCP information */
 		(void)rte_memcpy(ipv6->dst_addr, &pkt->ip_dst_addr.addr.ipv4.s_addr,
@@ -63,7 +63,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 		(void)rte_memcpy(ipv6->src_addr, &pkt->ip_src_addr.addr.ipv4.s_addr,
 				 sizeof(struct in6_addr));
 
-		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct ipv6_hdr));
+		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv6_hdr));
 		ipv6->payload_len = htonl(tlen);
 		ipv6->proto = pkt->ipProto;
 
@@ -72,7 +72,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 		tcp->sent_seq = htonl(DEFAULT_PKT_NUMBER);
 		tcp->recv_ack = htonl(DEFAULT_ACK_NUMBER);
 		tcp->data_off =
-			((sizeof(struct tcp_hdr) / sizeof(uint32_t)) << 4);   /* Offset in words */
+			((sizeof(struct pg_tcp_hdr) / sizeof(uint32_t)) << 4);   /* Offset in words */
 		tcp->tcp_flags = ACK_FLAG; /* ACK */
 		tcp->rx_win     = htons(DEFAULT_WND_SIZE);
 		tcp->tcp_urp = 0;

@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-#include "rte_lua.h"
+#include "lua_config.h"
 
 #include "pktgen-cmds.h"
 #include "pktgen-display.h"
@@ -114,14 +114,14 @@ pktgen_print_static_data(void)
 		pktgen_transmit_count_rate(pid, buff, sizeof(buff));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + ETHER_CRC_LEN, info->tx_burst);
+		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
-		         (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
-		         (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
-		         (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other",
+		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :
+		         (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" :
+		         (pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
 		         pkt->vlanid);

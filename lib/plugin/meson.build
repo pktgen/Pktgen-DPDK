@@ -5,4 +5,6 @@ version = 1
 sources = files('plugin.c')
 headers = files('plugin.h')
 
-#deps +=['hash']
+deps += ['common']
+
+ext_deps += cc.find_library('dl', required: true)

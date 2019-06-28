@@ -3,7 +3,7 @@
 -- Copyright (c) <2010-2019>, Intel Corporation. All rights reserved., Powered by DPDK
 
 -- Command line arguments: (DPDK args are defaults)
--- ./app/app/x86_64-native-linuxapp-gcc/app/pktgen -c 3fffe -n 3 -m 512 --proc-type primary -- -T -P -m [2-5:6-9].0 -m [10-13:14-17].1 -f themes/black-yellow.theme
+-- ./app/app/x86_64-native-linux-gcc/app/pktgen -c 3fffe -n 3 -m 512 --proc-type primary -- -T -P -m [2-5:6-9].0 -m [10-13:14-17].1 -f themes/black-yellow.theme
 
 -- #######################################################################
 -- Pktgen Configuration script information:

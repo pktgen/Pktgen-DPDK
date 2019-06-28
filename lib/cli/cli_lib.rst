@@ -293,6 +293,8 @@ Compiling the Application
 
 .. code-block:: console
 
+   export RTE_TARGET=x86_64-native-linux-gcc
+   or
    export RTE_TARGET=x86_64-native-linuxapp-gcc
 
 Refer to the *DPDK Getting Started Guide* for possible RTE_TARGET values.
@@ -306,7 +308,7 @@ Refer to the *DPDK Getting Started Guide* for possible RTE_TARGET values.
 Running the Application
 -----------------------
 
-To run the application in linuxapp environment, issue the following command:
+To run the application in linux environment, issue the following command:
 
 .. code-block:: console
 
@@ -513,8 +515,8 @@ Example:
 
 	static const char *show_help[] = {
 		"show <portlist>",
-		"show <portlist> mac <ether_addr>",
-		"show <portlist> vlan <vlanid> mac <ether_addr>",
+		"show <portlist> mac <pg_ether_addr>",
+		"show <portlist> vlan <vlanid> mac <pg_ether_addr>",
 		"show <portlist> [vlan|mac]",
 		CLI_HELP_PAUSE,
 		NULL
@@ -525,7 +527,7 @@ Example:
 	{
 		struct cli_map *m;
 		uint32_t portlist;
-		struct ether_addr mac;
+		struct pg_ether_addr mac;
 
 		m = cli_mapping(Show_info.map, argc, argv);
 		if (!m)
@@ -533,11 +535,11 @@ Example:
 
 		switch(m->index) {
 			case 10:
-				rte_parse_portlist(argv[1], &portlist);
+				portlist_parse(argv[1], &portlist);
 				cli_printf("   Show Portlist: %08x\n", portlist);
 				break;
 			case 20:
-				rte_parse_portlist(argv[1], &portlist);
+				portlist_parse(argv[1], &portlist);
 				rte_ether_aton(argv[3], &mac);
 				cli_printf("   Show Portlist: %08x, MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
 						   portlist,
@@ -549,7 +551,7 @@ Example:
 						   mac.addr_bytes[5]);
 				break;
 			case 30:
-				rte_parse_portlist(argv[1], &portlist);
+				portlist_parse(argv[1], &portlist);
 				rte_ether_aton(argv[5], &mac);
 				cli_printf("   Show Portlist: %08x vlan %d MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
 						   portlist,
@@ -562,7 +564,7 @@ Example:
 						   mac.addr_bytes[5]);
 				break;
 			case 40:
-				rte_parse_portlist(argv[1], &portlist);
+				portlist_parse(argv[1], &portlist);
 				rte_ether_aton("1234:4567:8901", &mac);
 				cli_printf("   Show Portlist: %08x %s: ",
 						   portlist, argv[2]);

@@ -382,9 +382,13 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
 	{ DEV_RX_OFFLOAD_SCATTER,		_(SCATTER) },
 	{ DEV_RX_OFFLOAD_TIMESTAMP,		_(TIMESTAMP) },
 	{ DEV_RX_OFFLOAD_SECURITY,		_(SECURITY) },
+#if RTE_VERSION < RTE_VERSION_NUM(18,11,0,0)
+	{ DEV_RX_OFFLOAD_KEEP_CRC,		_(KEEP_CRC) }
+#else
 	{ DEV_RX_OFFLOAD_KEEP_CRC,		_(KEEP_CRC) },
 	{ DEV_RX_OFFLOAD_SCTP_CKSUM,		_(SCTP_CKSUM) },
 	{ DEV_RX_OFFLOAD_OUTER_UDP_CKSUM, 	_(OUTER_UDP_CKSUM) }
+#endif
 	};
 #undef _
 
@@ -436,9 +440,13 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 	{ DEV_TX_OFFLOAD_MBUF_FAST_FREE,	_(MBUF_FAST_FREE) },
 	{ DEV_TX_OFFLOAD_SECURITY, 		_(SECURITY) },
 	{ DEV_TX_OFFLOAD_UDP_TNL_TSO, 		_(UDP_TNL_TSO) },
+#if RTE_VERSION < RTE_VERSION_NUM(18,11,0,0)
+	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) }
+#else
 	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) },
 	{ DEV_TX_OFFLOAD_OUTER_UDP_CKSUM,	_(OUTER_UDP_CKSUM) },
 	{ DEV_TX_OFFLOAD_MATCH_METADATA,	_(MATCH_METADATA) },
+#endif
 	};
 #undef _
 

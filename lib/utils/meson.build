@@ -4,17 +4,19 @@
 version = 1
 allow_experimental_apis = true
 headers = files(
-	'rte_atoip.h',
-	'rte_link.h',
-	'rte_portlist.h',
-	'rte_strings.h',
-	'rte_heap.h')
+	'_atoip.h',
+	'link.h',
+	'portlist.h',
+	'heap.h')
 
 sources = files(
-	'rte_atoip.c',
-	'rte_link.c',
-	'rte_portlist.c',
-	'rte_strings.c',
-	'rte_heap.c')
-#deps += ['ethdev']
-#deps += ['mbuf', 'dbuf']
+	'_atoip.c',
+	'link.c',
+	'portlist.c',
+	'heap.c')
+deps += ['common']
+
+libs = ['eal', 'ethdev', 'mempool']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
+endforeach

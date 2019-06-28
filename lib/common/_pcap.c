@@ -21,7 +21,7 @@
 #include <assert.h>
 #include <netinet/in.h>
 
-#include <rte_version.h>
+#include <pg_compat.h>
 #include <rte_config.h>
 
 #include <rte_log.h>
@@ -276,9 +276,9 @@ _pcap_close(pcap_info_t *pcap)
 int
 _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 		    unsigned int *length) {
-	const struct ipv4_hdr *iph =
-		(const struct ipv4_hdr *)(pkt_data + sizeof(struct ether_hdr));
-	const struct tcp_hdr *th = NULL;
+	const struct pg_ipv4_hdr *iph =
+		(const struct pg_ipv4_hdr *)(pkt_data + sizeof(struct pg_ether_hdr));
+	const struct pg_tcp_hdr *th = NULL;
 
 	/* Ignore packets that aren't IPv4 */
 	if ( (iph->version_ihl & 0xF0) != 0x40)
@@ -294,18 +294,18 @@ _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 
 	switch (iph->next_proto_id) {
 	case PG_IPPROTO_TCP:
-		th = (const struct tcp_hdr *)((const char *)iph + ihlen);
+		th = (const struct pg_tcp_hdr *)((const char *)iph + ihlen);
 		thlen = (th->data_off >> 4) * 4;
 		break;
 	case PG_IPPROTO_UDP:
-		thlen = sizeof(struct udp_hdr);
+		thlen = sizeof(struct pg_udp_hdr);
 		break;
 	default:
 		return -1;
 	}
 
-	*offset = sizeof(struct ether_hdr) + ihlen + thlen;
-	*length = sizeof(struct ether_hdr) + ntohs(iph->total_length) - *offset;
+	*offset = sizeof(struct pg_ether_hdr) + ihlen + thlen;
+	*length = sizeof(struct pg_ether_hdr) + ntohs(iph->total_length) - *offset;
 
 	return *length != 0;
 }

@@ -42,13 +42,17 @@ SPDX-License-Identifier: BSD-3-Clause
 Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
 ---
 
-
+Note: In DPKD 19.08-rc0 a large number of defines and function names were
+      changed. In Pktgen  3.7.0 I added a pg_compat.h header to help
+      compatibility issues with these name changes. This means versions
+      3.6.6 and below will have trouble builging with DPDK starting with
+      19.08-rc0 or just after the 19.05 release. 
 
 
 *** Pktgen command line directory format ***
 
 ``
--- Pktgen Ver: 3.2.0 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
+-- Pktgen Ver: 3.7.0 (DPDK 19.08.0-rc0)  Powered by DPDK ---------------
 
 
 
@@ -176,7 +180,7 @@ fi
 ** Note: As of DPDK 18.05 using -m or --socket-mem is not required as memory is now
 dynamically allocated.
 
-The pktgen program follows the same format as a standard DPDK linuxapp, meaning
+The pktgen program follows the same format as a standard DPDK linux, meaning
 the first set of arguments '-l 0-4' are the standard DPDK arguments. This option
 defines the number of logical cores to be used by pktgen. The 1f states 5 lcores
 are used and the '3c' is just a bit array for each lcore to be used. The '-P' enables
@@ -253,14 +257,14 @@ Here is an example of the default.cfg file:
 	    'proc': 'auto',
 	    'log': '7',
 	    'prefix': 'pg',
-    
+
 	    'blacklist': (
 		#'81:00.0', '81:00.1', '81:00.2', '81:00.3',
 		#'83:00.0', '83:00.1', '83:00.2', '83:00.3',
 		'81:00.2', '81:00.3',
 		'83:00.2', '83:00.3'
 		),
-		
+
 	    'opts': (
 		'-T',
 		'-P',
@@ -280,11 +284,11 @@ Here is an example of the default.cfg file:
 Usage: ./app/pktgen -l CORELIST [-n NUM] [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
 Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
-./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
+./app/app/x86_64-dnet-linux-gcc/pktgen: invalid option -- 'x'
 EAL: Detected 72 lcore(s)
-./app/app/x86_64-dnet-linuxapp-gcc/pktgen: invalid option -- 'x'
+./app/app/x86_64-dnet-linux-gcc/pktgen: invalid option -- 'x'
 
-Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [options]
+Usage: ./app/app/x86_64-dnet-linux-gcc/pktgen [options]
 
 EAL common options:
   -c COREMASK         Hexadecimal bitmask of cores to run on
@@ -342,7 +346,7 @@ EAL Linux options:
 
 ===== Application Usage =====
 
-Usage: ./app/app/x86_64-dnet-linuxapp-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file[,PCap_file]] [-m <string>]
+Usage: ./app/app/x86_64-dnet-linux-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file[,PCap_file]] [-m <string>]
   -s P:file1,file2    PCAP packet stream file per queue, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename
@@ -405,13 +409,13 @@ name=`uname -n`
 if [ -z ${RTE_SDK} ] ; then
 echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
-	export RTE_TARGET=x86_64-native-linuxapp-clang
+	export RTE_TARGET=x86_64-native-linux-clang
 fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
 echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
-target=x86_64-pktgen-linuxapp-gcc
+target=x86_64-pktgen-linux-gcc
 else
 target=${RTE_TARGET}
 fi
@@ -456,13 +460,13 @@ if [ -z ${RTE_SDK} ] ; then
 	echo "*** RTE_SDK is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
 	echo "Using "${RTE_SDK}
 	export RTE_SDK=/work/home/rkwiles/projects/intel/dpdk
-	export RTE_TARGET=x86_64-native-linuxapp-clang
+	export RTE_TARGET=x86_64-native-linux-clang
 fi
 sdk=${RTE_SDK}
 
 if [ -z ${RTE_TARGET} ]; then
 	echo "*** RTE_TARGET is not set, did you forget to do 'sudo -E ./tools/setup.sh'"
-	target=x86_64-pktgen-linuxapp-gcc
+	target=x86_64-pktgen-linux-gcc
 else
 	target=${RTE_TARGET}
 fi
@@ -526,9 +530,9 @@ Running the run.sh script produces output as follows, but maybe different on you
 system configuration.
 ``
 rkwiles@broadwell (dev):~/.../intel/pktgen$ ./tools/run.py default
->>> sdk '/work/home/rkwiles/projects/intel/dpdk.org', target 'x86_64-native-linuxapp-gcc'
-   Trying ./app/x86_64-native-linuxapp-gcc/pktgen
-sudo -E ./app/x86_64-native-linuxapp-gcc/pktgen -l 14,15-22 -n 4 --proc-type auto --log-level 7 --file-prefix pg -b 81:00.2 -b 81:00.3 -b 85:00.2 -b 85:00.3 -b 83:00.0 -- -T -P --crc-strip -m [15:16].0 -m [17:18].1 -m [19:20].2 -m [21:22].3 -f themes/black-yellow.theme
+>>> sdk '/work/home/rkwiles/projects/intel/dpdk.org', target 'x86_64-native-linux-gcc'
+   Trying ./app/x86_64-native-linux-gcc/pktgen
+sudo -E ./app/x86_64-native-linux-gcc/pktgen -l 14,15-22 -n 4 --proc-type auto --log-level 7 --file-prefix pg -b 81:00.2 -b 81:00.3 -b 85:00.2 -b 85:00.3 -b 83:00.0 -- -T -P --crc-strip -m [15:16].0 -m [17:18].1 -m [19:20].2 -m [21:22].3 -f themes/black-yellow.theme
 
 Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
 EAL: Detected 56 lcore(s)
@@ -792,6 +796,7 @@ theme save <filename>              - Save the current color theme to a file
                            G   - Perform GRE with Ethernet payload
                             C  - Capture received packets
                              R - Random bitfield(s) are applied
+                              B- Bonding enabled for LACP 802.3ad
 Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Color best seen on a black background for now

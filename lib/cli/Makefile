@@ -16,10 +16,10 @@ CFLAGS += -I$(RTE_SRCDIR)/../lua/src
 endif
 ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
 else
-CFLAGS += -I$(RTE_SRCDIR)/../utils
+CFLAGS += -I$(RTE_SRCDIR)/../common
 endif
 
-LDLIBS += -L$(RTE_SRCDIR)/../utils/$(RTE_TARGET)/lib -lrte_eal -lrte_mempool -lrte_mbuf -lrte_timer
+LDLIBS += -L$(RTE_SRCDIR)/../common/$(RTE_TARGET)/lib -lrte_eal -lrte_mempool -lrte_mbuf -lrte_timer
 ifeq ($(CONFIG_RTE_LIBRTE_UTILS),y)
 else
 LDLIBS += -lutils

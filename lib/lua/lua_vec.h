@@ -4,7 +4,7 @@
 /* Created 2018 by Keith Wiles @ intel.com */
 
 #ifndef _RTE_LUA_VEC_H_
-#define _RTE_LUAVEC_H_
+#define _RTE_LUA_VEC_H_
 
 #include <stdint.h>
 #include <netinet/in.h>

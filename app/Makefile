@@ -11,7 +11,7 @@ $(error "Please define RTE_SDK environment variable")
 endif
 
 # Default target, can be overriden by command line or environment
-RTE_TARGET ?= x86_64-native-linuxapp-gcc
+RTE_TARGET ?= x86_64-native-linux-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
@@ -156,7 +156,7 @@ ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 endif
 
 CFLAGS  += $(__CFLAGS)
-LDFLAGS += $(__LDFLAGS) $(__LIBS) -lpcap -lm
+LDFLAGS += $(__LIBS) --start-group $(__LDFLAGS) --end-group -lpcap -lm
 
 #$(info __CLFAGS = $(__CFLAGS))
 #$(info __LIBS = $(__LIBS))

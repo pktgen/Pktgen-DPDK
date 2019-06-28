@@ -1,0 +1,36 @@
+#!/bin/bash
+
+function meson_bld() {
+	echo "Clean Pktgen"
+	rm -fr build
+
+	meson build
+}
+
+function ninja_build() {
+	echo "Do Pktgen build"
+
+	ninja -C build
+
+	if [ $? -ne 0 ] ; then
+	       return 1;
+        fi
+	return 0       
+}
+
+ninja_install() {
+	echo "Do install to $RTE_SDK/$RTE_TARGET"
+
+	DESTDIR=$RTE_SDK ninja -C build install > /dev/null
+
+	if [ $? -ne 0 ] ; then
+		echo "Install failed!!"
+	       return 1;
+        fi
+	return 0       
+}
+
+if [ $# -gt 0 ]; then
+	meson_bld
+fi
+ninja_build

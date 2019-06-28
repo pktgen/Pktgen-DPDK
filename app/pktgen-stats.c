@@ -8,7 +8,8 @@
 
 #include <stdio.h>
 
-#include <rte_lua.h>
+#include <_delay.h>
+#include <lua_config.h>
 
 #include "pktgen-cmds.h"
 #include "pktgen-display.h"
@@ -141,14 +142,14 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color("stats.stat.values");
-		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + ETHER_CRC_LEN, info->tx_burst);
+		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
-		         (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
-		         (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
-		         (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" : "Other",
+		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :
+		         (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" :
+		         (pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" :
 			 (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN" : "UDP",
@@ -218,7 +219,7 @@ pktgen_print_static_data(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-#define LINK_RETRY  16
+#define LINK_RETRY  8
 /**************************************************************************//**
  *
  * pktgen_get_link_status - Get the port link status.
@@ -236,20 +237,25 @@ void
 pktgen_get_link_status(port_info_t *info, int pid, int wait)
 {
 	int i;
+	uint64_t prev_status = info->link.link_status;
 
 	/* get link status */
 	for (i = 0; i < LINK_RETRY; i++) {
 		memset(&info->link, 0, sizeof(info->link));
+
 		rte_eth_link_get_nowait(pid, &info->link);
-		if (info->link.link_status && info->link.link_speed)
+
+		if (info->link.link_status && info->link.link_speed) {
+			if (prev_status == 0)
+				pktgen_packet_rate(info);
 			return;
+		}
 		if (!wait)
 			break;
+
 		rte_delay_us_sleep(100 * 1000);
 	}
 
-	if (wait)
-		printf("**** Failed to get link UP and speed, use defaults!\n");
 	/* Setup a few default values to prevent problems later. */
 #if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 	info->link.link_speed   = ETH_SPEED_NUM_10G;
@@ -295,7 +301,6 @@ pktgen_page_stats(void)
 		info = &pktgen.info[pid];
 
 		rate = &info->rate_stats;
-		prev = &info->prev_stats;
 
 		cumm->ipackets += rate->ipackets;
 		cumm->opackets += rate->opackets;
@@ -538,7 +543,7 @@ pktgen_page_phys_stats(uint16_t pid)
 {
 	unsigned int col, row, q, hdr;
 	struct rte_eth_stats stats, *s, *r;
-	struct ether_addr ethaddr;
+	struct pg_ether_addr ethaddr;
 	char buff[32], mac_buf[32];
 
 	s = &stats;
@@ -588,7 +593,7 @@ pktgen_page_phys_stats(uint16_t pid)
 
 	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
 	rte_eth_macaddr_get(pid, &ethaddr);
-	ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+	pg_ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
 	snprintf(buff, sizeof(buff), "%s", mac_buf);
 	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 	row++;

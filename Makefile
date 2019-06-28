@@ -11,7 +11,7 @@ $(error "Please define RTE_SDK environment variable")
 endif
 
 # Default target, can be overriden by command line or environment
-RTE_TARGET ?= x86_64-native-linuxapp-gcc
+RTE_TARGET ?= x86_64-native-linux-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
@@ -40,7 +40,7 @@ realclean:
 	@if [ -n "$(clean_objs)" ]; then \
 		rm -fr $(clean_objs); \
 	fi
-	rm -fr app/build
+	@rm -fr app/build
 
 docs:
 	@make -C docs html

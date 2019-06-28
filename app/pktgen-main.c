@@ -9,8 +9,9 @@
 #include <execinfo.h>
 #include <signal.h>
 
-#include <rte_lua.h>
-#include <rte_lua_socket.h>
+#include <lua_config.h>
+#include <lua_socket.h>
+#include <_delay.h>
 
 #include "pktgen-main.h"
 
@@ -252,7 +253,7 @@ pktgen_parse_args(int argc, char **argv)
 			pktgen.flags    |= ENABLE_THEME_FLAG;
 			break;
 		case 'v':
-			pktgen.verbose =- 1;
+			pktgen.verbose = 1;
 			break;
 
 		case 'h':	/* print out the help message */

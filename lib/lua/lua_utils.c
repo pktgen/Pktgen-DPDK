@@ -20,12 +20,12 @@
 #include <netdb.h>
 #include <assert.h>
 
-#include "rte_lua.h"
-#include "rte_lua_stdio.h"
-#include "rte_lua_utils.h"
+#include "lua_config.h"
+#include "lua_stdio.h"
+#include "lua_utils.h"
 
 char *
-rte_lua_strtrim(char *str)
+lua_strtrim(char *str)
 {
 	if (!str || !*str)
 		return str;

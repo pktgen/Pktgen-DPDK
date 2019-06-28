@@ -8,8 +8,8 @@
  * String-related utility functions for IP addresses
  */
 
-#ifndef _RTE_ATOIP_H_
-#define _RTE_ATOIP_H_
+#ifndef __ATOIP_H_
+#define __ATOIP_H_
 
 #include <netinet/in.h>
 
@@ -51,10 +51,10 @@ struct rte_ipaddr {
  * @return
  *   0 on OK and -1 on error
  */
-int __rte_experimental  rte_atoip(const char *buf, int flags, void *res, unsigned ressize);
+int _atoip(const char *buf, int flags, void *res, unsigned ressize);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _RTE_ATOIP_H_ */
+#endif /* __ATOIP_H_ */

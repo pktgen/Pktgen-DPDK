@@ -211,6 +211,7 @@ def run_cfg(cfg_file):
 	add_run_options('proc', args, '--proc-type')
 	add_run_options('log', args, '--log-level')
 	add_run_options('prefix', args, '--file-prefix')
+	add_run_options('shared', args, '-d')
 	add_run_options('blacklist', args, '-b')
 	add_run_options('whitelist', args, '-w')
 	add_run_options('vdev', args, '--vdev')
@@ -234,7 +235,7 @@ def run_cfg(cfg_file):
 		return
 
 	if verbose:
-		print("Command line as a set:")
+		print("Command line:")
 		print(args)
 
 	subprocess.call(args)
@@ -415,21 +416,21 @@ def parse_args():
 def main():
 	'''program main function'''
 
-	global sdk, target, pmdk
+	global sdk, target, pme
 
 	sdk = os.getenv('RTE_SDK')
 	if sdk == None:
 		err_exit("Set RTE_SDK environment variable or use 'sudo -E ...'")
 
-	pmdk = os.getenv('PMDK_SDK')
-	if pmdk == None:
-		pmdk = 'pmdk-not-set';
+	pme = os.getenv('PME_SDK')
+	if pme == None:
+		pme = 'pme-sdk-not-set';
 
 	target = os.getenv('RTE_TARGET')
 	if target == None:
 		err_exit("Set the RTE_TARET environment variable or use 'sudo -E ...'")
 
-	print(">>> sdk '%s', target '%s'" % (sdk, target))
+	print(">>> sdk '%s', target '%s', pme '%s'" % (sdk, target, pme))
 
 	cfg_file = parse_args()
 

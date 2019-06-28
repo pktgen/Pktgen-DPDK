@@ -17,7 +17,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#include <rte_lua.h>
+#include <lua_config.h>
 
 #define lua_c
 
@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-char *rte_lua_strtrim(char *str);
+char *lua_strtrim(char *str);
 
 static inline void
 lua_putstring(const char *s)

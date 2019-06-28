@@ -190,7 +190,7 @@ update_port_static_info(unsigned int pid)
 
 		case 3:
 			g_snprintf(buf, sizeof(buf), "%d",
-			           (pkt->pktSize + ETHER_CRC_LEN));
+			           (pkt->pktSize + PG_ETHER_CRC_LEN));
 			break;
 
 		case 4:
@@ -206,9 +206,9 @@ update_port_static_info(unsigned int pid)
 			break;
 		case 7:
 			g_snprintf(buf, sizeof(buf), "%s",
-			        (pkt->ethType == ETHER_TYPE_IPv4) ? "IPv4" :
-			        (pkt->ethType == ETHER_TYPE_IPv6) ? "IPv6" :
-			        (pkt->ethType == ETHER_TYPE_ARP) ? "ARP" :
+			        (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :
+			        (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" :
+			        (pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" :
 			        (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
 			        (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP");
 			break;

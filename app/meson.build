@@ -8,17 +8,29 @@ sources = files(
 	'pktgen-latency.c'
 )
 
-#TODO fixme - assumes previously build lua using make
-lua_dir = '../lib/lua/x86_64-native-linuxapp-gcc'
-lua_inc = include_directories(join_paths(lua_dir, 'include'))
-lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-lrte_lua'])
+message('Process the app directory')
 
+#TODO fixme - assumes previously build lua using make
+lua_dir = '../lib/lua/build'
+lua_inc = include_directories(join_paths(lua_dir, 'include'))
+lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
+
+cflags = machine_args
+if cc.has_argument('-Wno-format-truncation')
+	cflags += '-Wno-format-truncation'
+endif
 pktgen = executable('dpdk-pktgen',
 		sources,
-		c_args: '-Wno-format-truncation',
-		dependencies: [dep_cli, lua,
+		c_args: cflags,
+		dependencies: [lua,
+			cc.find_library('pcap', required: true),
+			get_variable('static_pktgen_cli'),
+			get_variable('static_pktgen_common'),
+			get_variable('static_pktgen_lua'),
+			get_variable('static_pktgen_plugin'),
+			get_variable('static_pktgen_utils'),
+			get_variable('static_pktgen_vec'),
 			dependency('threads'),
 			cc.find_library('dl', required: false),
 			cc.find_library('m', required: false)],
 		install: true)
-

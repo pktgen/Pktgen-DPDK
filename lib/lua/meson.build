@@ -4,22 +4,29 @@
 version = 1
 allow_experimental_apis = true
 sources = files(
-	'rte_lua.c',
-	'rte_lua_dapi.c',
-	'rte_lua_dpdk.c',
-	'rte_lua_pktmbuf.c',
-	'rte_lua_socket.c',
-	'rte_lua_stdio.c',
-	'rte_lua_utils.c',
-	'rte_lua_vec.c')
+	'lua_config.c',
+	'lua_dapi.c',
+	'lua_dpdk.c',
+	'lua_pktmbuf.c',
+	'lua_socket.c',
+	'lua_stdio.c',
+	'lua_utils.c',
+	'lua_vec.c')
 headers = files(
-	'rte_lua_dapi.h',
-	'rte_lua_dpdk.h',
-	'rte_lua.h',
-	'rte_lua_pktmbuf.h',
-	'rte_lua_socket.h',
-	'rte_lua_stdio.h',
-	'rte_lua_utils.h',
-	'rte_lua_vec.h')
-#deps += ['eal', 'ethdev', 'mempool']
+	'lua_dapi.h',
+	'lua_dpdk.h',
+	'lua_config.h',
+	'lua_pktmbuf.h',
+	'lua_socket.h',
+	'lua_stdio.h',
+	'lua_utils.h',
+	'lua_vec.h')
+deps += ['common', 'vec']
 
+libs = ['eal', 'mbuf']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
+endforeach
+
+ext_deps += cc.find_library('lua5.3', required: true)
+ext_deps += cc.find_library('pthread', required: true)

@@ -2,8 +2,8 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
-#ifndef __RTE_HEAP_H
-#define __RTE_HEAP_H
+#ifndef __HEAP_H
+#define __HEAP_H
 
 #include <stdio.h>
 #include <unistd.h>
@@ -19,36 +19,36 @@ extern "C" {
 typedef struct heap_entry {
 	STAILQ_ENTRY(heap_entry) next;		/**< pointer to next entry */
 	size_t size;				/**< size of free entry */
-} rte_heap_entry_t;
+} heap_entry_t;
 
-typedef struct rte_heap {
+typedef struct heap {
 	STAILQ_HEAD(, heap_entry) list;		/**< Heap entry list */
 	void *addr;				/**< Base Heap address pointer */
 	size_t total_space;			/**< total space in heap */
 	rte_spinlock_t sl;			/**< Spinlocl for this heap */
-} rte_heap_t;
+} heap_t;
 
 /**
  * FUNCTION PROTOTYPES.
  */
 
 /* prototypes */
-rte_heap_t *rte_heap_create(void *addr, size_t size);
-int rte_heap_destroy(rte_heap_t *si);
+heap_t *heap_create(void *addr, size_t size);
+int heap_destroy(heap_t *si);
 
-void *rte_heap_alloc(rte_heap_t *si, size_t size);
-int rte_heap_free(rte_heap_t *si, void *addr, size_t size);
+void *heap_alloc(heap_t *si, size_t size);
+int heap_free(heap_t *si, void *addr, size_t size);
 
-void *rte_heap_malloc(rte_heap_t *si, size_t size);
-int rte_heap_mfree(rte_heap_t *si, void *addr);
+void *heap_malloc(heap_t *si, size_t size);
+int heap_mfree(heap_t *si, void *addr);
 
 /**
  * Debug Utility Functions
  */
-void rte_heap_dump(FILE *f, rte_heap_t *si);
+void heap_dump(FILE *f, heap_t *si);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __RTE_HEAP_H */
+#endif /* __HEAP_H */

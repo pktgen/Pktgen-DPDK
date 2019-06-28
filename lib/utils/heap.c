@@ -7,19 +7,19 @@
 
 #include <rte_spinlock.h>
 
-#include "rte_heap.h"
+#include "heap.h"
 
-rte_heap_t *
-rte_heap_create(void *addr, size_t size)
+heap_t *
+heap_create(void *addr, size_t size)
 {
-	rte_heap_t *heap = NULL;
-	rte_heap_entry_t *entry;
+	heap_t *heap = NULL;
+	heap_entry_t *entry;
 
 	/* Make sure the size is greater or equal to sizeof(rte_heap_entry_t) */
-	if (size < sizeof(rte_heap_entry_t))
+	if (size < sizeof(heap_entry_t))
 		return NULL;
 
-	heap = calloc(1, sizeof(rte_heap_t));
+	heap = calloc(1, sizeof(heap_t));
 	if (!heap)
 		return NULL;
 
@@ -45,7 +45,7 @@ rte_heap_create(void *addr, size_t size)
 *   heap - is the free heap structure pointer.
 */
 int
-rte_heap_destroy(rte_heap_t *heap)
+heap_destroy(heap_t *heap)
 {
 	/* Free the rte_heap_t structure */
 	if ( heap )
@@ -55,10 +55,10 @@ rte_heap_destroy(rte_heap_t *heap)
 }
 
 int
-rte_heap_free(rte_heap_t *heap, void *addr, size_t size)
+heap_free(heap_t *heap, void *addr, size_t size)
 {
-	rte_heap_entry_t *p;
-	rte_heap_entry_t *q;
+	heap_entry_t *p;
+	heap_entry_t *q;
 
 	/* the size can not be zero */
 	if (!heap || !addr || size == 0)
@@ -117,30 +117,30 @@ rte_heap_free(rte_heap_t *heap, void *addr, size_t size)
 *   size - is the size of the requested memory.
 */
 void *
-rte_heap_alloc(rte_heap_t *heap, size_t size)
+heap_alloc(heap_t *heap, size_t size)
 {
-	rte_heap_entry_t *hd;		/* pointer to entry free space */
-	rte_heap_entry_t *phd;		/* prev head pointer to free list */
-	rte_heap_entry_t *nxt_hd;	/* temp space for pointer to entry */
-	rte_heap_entry_t *ret_ptr;	/* return pointer to free space */
+	heap_entry_t *hd;		/* pointer to entry free space */
+	heap_entry_t *phd;		/* prev head pointer to free list */
+	heap_entry_t *nxt_hd;	/* temp space for pointer to entry */
+	heap_entry_t *ret_ptr;	/* return pointer to free space */
 
 	if (!heap || size == 0)
 		return NULL;
 
 	rte_spinlock_lock(&heap->sl);
 
-	size = RTE_ALIGN_CEIL(size, sizeof(rte_heap_entry_t));
+	size = RTE_ALIGN_CEIL(size, sizeof(heap_entry_t));
 
 	/*
 	 * If the requested size is less then sizeof(rte_heap_entry_t) then set
 	 * the requested size to sizeof(rte_heap_entry_t)
 	 */
-	if ( size < sizeof(rte_heap_entry_t) )
-		size = sizeof(rte_heap_entry_t);
+	if ( size < sizeof(heap_entry_t) )
+		size = sizeof(heap_entry_t);
 
 	ret_ptr = NULL;
 	hd      = STAILQ_FIRST(&heap->list);
-	phd     = (rte_heap_entry_t *)&heap->list;
+	phd     = (heap_entry_t *)&heap->list;
 	if (hd) {
 		if (size <= heap->total_space) {
 			do {
@@ -163,7 +163,7 @@ rte_heap_alloc(rte_heap_t *heap, size_t size)
 				 * in the left over space in this section.
 				 * nxt_hd is the new pointer to the structure after size.
 				 */
-				if ( size <= (hd->size - sizeof(rte_heap_entry_t)) ) {
+				if ( size <= (hd->size - sizeof(heap_entry_t)) ) {
 					/* take size out of total free space */
 					heap->total_space -= size;
 
@@ -191,17 +191,17 @@ rte_heap_alloc(rte_heap_t *heap, size_t size)
 * simpleMemMalloc - Wrapper routine for simpleMemAlloc insert size into buffer.
 */
 void *
-rte_heap_malloc(rte_heap_t *heap, size_t size)
+heap_malloc(heap_t *heap, size_t size)
 {
 	uint64_t *addr;
 
 	if (!heap || size == 0)
 		return NULL;
 
-	if (size < sizeof(rte_heap_entry_t))
-		size = sizeof(rte_heap_entry_t);
+	if (size < sizeof(heap_entry_t))
+		size = sizeof(heap_entry_t);
 
-	addr = (uint64_t *)rte_heap_alloc(heap, size + sizeof(uint64_t));
+	addr = (uint64_t *)heap_alloc(heap, size + sizeof(uint64_t));
 	if ( addr == NULL )
 		return NULL;
 
@@ -214,7 +214,7 @@ rte_heap_malloc(rte_heap_t *heap, size_t size)
 * simpleMemMFree - Wrapper routine for simpleMemFree extract size from buffer.
 */
 int
-rte_heap_mfree(rte_heap_t *heap, void *addr)
+heap_mfree(heap_t *heap, void *addr)
 {
 	uint64_t *p;
 	uint64_t size;
@@ -235,19 +235,19 @@ rte_heap_mfree(rte_heap_t *heap, void *addr)
 	if (size == 0)
 		return -1;
 
-	return rte_heap_free(heap, p, size);
+	return heap_free(heap, p, size);
 }
 
 /******************************************************************************
 * debug function
 */
 void
-rte_heap_dump(FILE *f, rte_heap_t *heap)
+heap_dump(FILE *f, heap_t *heap)
 {
-	rte_heap_entry_t    *p;
-	uint64_t       total;
-	uint64_t       largest;
-	uint64_t       segCount;
+	heap_entry_t *p;
+	uint64_t total;
+	uint64_t largest;
+	uint64_t segCount;
 
 	if (!f)
 		f = stdout;

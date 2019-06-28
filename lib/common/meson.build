@@ -7,7 +7,35 @@ sources = files(
 	'utils.c',
 	'coremap.c',
 	'_pcap.c',
+	'_strings.c',
 	'cksum.c',
 	'l2p.c'
 )
-deps += dpdk_dep
+
+headers = files(
+	'cksum.h',
+	'cmdline_parse_args.h',
+	'pg_compat.h',
+	'copyright_info.h',
+	'core_info.h',
+	'coremap.h',
+	'_delay.h',
+	'l2p.h',
+	'lscpu.h',
+	'mbuf.h',
+	'_pcap.h',
+	'pg_ether.h',
+	'pg_inet.h',
+	'port_config.h',
+	'_strings.h',
+	'utils.h'
+)
+
+libs = ['eal', 'cmdline']
+foreach lib:libs
+	ext_deps += cc.find_library('rte_' + lib,
+		required: true,
+		dirs: [dpdk_libdir])
+endforeach
+
+ext_deps += cc.find_library('bsd', required: true)

@@ -15,4 +15,5 @@ node_modules
 .vscode
 gulpfile.js
 x86_64-native-linuxapp-gcc
+x86_64-native-linux-gcc
 lib/lua/build

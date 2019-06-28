@@ -255,7 +255,7 @@ key_invalid(void)
 {
 }
 
-/* Order must be maintained see cli_vt100.h */
+/* Order must be maintained see cli_scrn.h */
 static struct vt100_cmds vt100_cmd_list[] = {
 	{ "Invalid",        key_invalid },
 	{ vt100_up_arr,     key_up_arr },	/* Move cursor up one line */

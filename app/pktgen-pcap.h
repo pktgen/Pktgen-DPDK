@@ -8,7 +8,7 @@
 #ifndef _PKTGEN_PCAP_H_
 #define _PKTGEN_PCAP_H_
 
-#include <_pcap.h>
+#include <pg_pcap.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -34,22 +34,6 @@ enum {
 };
 
 /**
- * Trim a set of characters like "[]" or "{}" from the start and end of string.
- *
- * @param str
- *   A null terminated string to be trimmed.
- * @param set
- *   The <set> string is a set of two character values to be removed from the
- *   <str>. Removes only one set at a time, if you have more then one set to
- *   remove then you must call the routine for each set. The <set> string must
- *   be two characters and can be any characters you
- *   want to call a set.
- * @return
- *   Pointer to the trimmed string or NULL on error
- */
-char * __rte_experimental rte_strtrimset(char *str, const char *set);
-
-/**
  * Remove leading and trailing white space from a string.
  *
  * @param str
@@ -58,7 +42,7 @@ char * __rte_experimental rte_strtrimset(char *str, const char *set);
  *   pointer to the trimmed string or NULL if <str> is Null or
  *   if string is empty then return pointer to <str>
  */
-char * __rte_experimental rte_strtrim(char *str);
+char * pg_strtrim(char *str);
 
 /**
  * Parse a string into a argc/argv list using a set of delimiters, but does
@@ -75,7 +59,7 @@ char * __rte_experimental rte_strtrim(char *str);
  * @return
  *   The number of tokens in the <entries> array.
  */
-int __rte_experimental rte_strtok(char *str, const char *delim, char **entries, int maxtokens);
+int pg_strtok(char *str, const char *delim, char **entries, int maxtokens);
 
 /**
  * Parse a string into a argc/argv list using a set of delimiters, but does
@@ -92,7 +76,7 @@ int __rte_experimental rte_strtok(char *str, const char *delim, char **entries, 
  * @return
  *   The number of tokens in the <entries> array.
  */
-int __rte_experimental rte_strqtok(char *str, const char *delim, char **entries, int maxtokens);
+int pg_strqtok(char *str, const char *delim, char **entries, int maxtokens);
 
 /**
  * Parse a string <list> looking for <str> using delim character.
@@ -106,7 +90,7 @@ int __rte_experimental rte_strqtok(char *str, const char *delim, char **entries,
  * @return
  *   The index in the list of option strings, -1 if not found
  */
-int __rte_experimental rte_stropt(const char *list, char *str, const char *delim);
+int pg_stropt(const char *list, char *str, const char *delim);
 
 /**
  * Parse a corelist string and return a list of the lcores.
@@ -120,7 +104,7 @@ int __rte_experimental rte_stropt(const char *list, char *str, const char *delim
  * @return
  *    -1 error or number of cores in the string.
  */
-int __rte_experimental rte_parse_corelist(const char *corelist,
+int pg_parse_corelist(const char *corelist,
 	uint8_t *lcores, int len);
 
 /**
@@ -134,7 +118,7 @@ int __rte_experimental rte_parse_corelist(const char *corelist,
  *   0 failed to compare and 1 strings are equal.
  */
 static inline int
-rte_strmatch(const char * s1, const char * s2)
+pg_strmatch(const char * s1, const char * s2)
 {
 	if (!s1 || !s2)
 		return 0;
@@ -160,11 +144,11 @@ rte_strmatch(const char * s1, const char * s2)
  *   Number of times the character is in string.
  */
 static inline int
-rte_strcnt(char *s, char c)
+pg_strcnt(char *s, char c)
 {
 	return (s == NULL || *s == '\0')
 	       ? 0
-	       : rte_strcnt(s + 1, c) + (*s == c);
+	       : pg_strcnt(s + 1, c) + (*s == c);
 }
 
 /**
@@ -180,7 +164,7 @@ rte_strcnt(char *s, char c)
  *   Pointer to the struct pg_ether_addr structure;
  */
 static inline struct pg_ether_addr *
-rte_ether_aton(const char *a, struct pg_ether_addr *e)
+pg_ether_aton(const char *a, struct pg_ether_addr *e)
 {
 	int i;
 	char *end;

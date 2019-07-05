@@ -20,7 +20,7 @@
 #include <rte_devargs.h>
 #include <rte_ether.h>
 #include <rte_string_fns.h>
-#include <_strings.h>
+#include <pg_strings.h>
 #include <rte_hexdump.h>
 #include <rte_cycles.h>
 #include <rte_malloc.h>
@@ -198,26 +198,26 @@ range_cmd(int argc, char **argv)
 	switch(m->index) {
 		case 20:
 			foreach_port(portlist,
-			     range_set_dest_mac(info, what, rte_ether_aton(val, NULL)));
+			     range_set_dest_mac(info, what, pg_ether_aton(val, NULL)));
 			break;
 		case 21:
 			foreach_port(portlist,
-			     range_set_src_mac(info, what, rte_ether_aton(val, NULL)));
+			     range_set_src_mac(info, what, pg_ether_aton(val, NULL)));
 			break;
 		case 22:
 			foreach_port(portlist,
-			     range_set_dest_mac(info, "start", rte_ether_aton((const char *)argv[4], NULL));
-			     range_set_dest_mac(info, "min", rte_ether_aton((const char *)argv[5], NULL));
-			     range_set_dest_mac(info, "max", rte_ether_aton((const char *)argv[6], NULL));
-			     range_set_dest_mac(info, "inc", rte_ether_aton((const char *)argv[7], NULL))
+			     range_set_dest_mac(info, "start", pg_ether_aton((const char *)argv[4], NULL));
+			     range_set_dest_mac(info, "min", pg_ether_aton((const char *)argv[5], NULL));
+			     range_set_dest_mac(info, "max", pg_ether_aton((const char *)argv[6], NULL));
+			     range_set_dest_mac(info, "inc", pg_ether_aton((const char *)argv[7], NULL))
 				);
 			break;
 		case 23:
 			foreach_port(portlist,
-			     range_set_src_mac(info, "start", rte_ether_aton((const char *)argv[4], NULL));
-			     range_set_src_mac(info, "min", rte_ether_aton((const char *)argv[5], NULL));
-			     range_set_src_mac(info, "max", rte_ether_aton((const char *)argv[6], NULL));
-			     range_set_src_mac(info, "inc", rte_ether_aton((const char *)argv[7], NULL))
+			     range_set_src_mac(info, "start", pg_ether_aton((const char *)argv[4], NULL));
+			     range_set_src_mac(info, "min", pg_ether_aton((const char *)argv[5], NULL));
+			     range_set_src_mac(info, "max", pg_ether_aton((const char *)argv[6], NULL));
+			     range_set_src_mac(info, "inc", pg_ether_aton((const char *)argv[7], NULL))
 				);
 			break;
 		case 30:
@@ -502,11 +502,11 @@ set_cmd(int argc, char **argv)
 			break;
 		case 22:
 			foreach_port(portlist,
-				single_set_src_mac(info, rte_ether_aton(argv[4], NULL)));
+				single_set_src_mac(info, pg_ether_aton(argv[4], NULL)));
 			break;
 		case 23:
 			foreach_port(portlist,
-				single_set_dst_mac(info, rte_ether_aton(argv[4], NULL)));
+				single_set_dst_mac(info, pg_ether_aton(argv[4], NULL)));
 			break;
 		case 24:
 			foreach_port(portlist, pattern_set_type(info, argv[3]));
@@ -1116,8 +1116,8 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	} else
 		_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	portlist_parse(argv[2], &portlist);
-	rte_ether_aton(argv[3], &dmac);
-	rte_ether_aton(argv[4], &smac);
+	pg_ether_aton(argv[3], &dmac);
+	pg_ether_aton(argv[4], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
 				    &dmac, &smac,
@@ -1179,8 +1179,8 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	} else
 		_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
 	portlist_parse(argv[2], &portlist);
-	rte_ether_aton(argv[4], &dmac);
-	rte_ether_aton(argv[6], &smac);
+	pg_ether_aton(argv[4], &dmac);
+	pg_ether_aton(argv[6], &smac);
 	foreach_port(portlist,
 		     pktgen_set_seq(info, seqnum,
 				    &dmac, &smac,

@@ -13,7 +13,7 @@
 #include <rte_cycles.h>
 #include <vec.h>
 #include <rte_timer.h>
-#include <_strings.h>
+#include <pg_strings.h>
 #include <rte_version.h>
 
 #include <dapi.h>

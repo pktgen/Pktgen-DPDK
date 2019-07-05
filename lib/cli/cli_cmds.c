@@ -12,8 +12,8 @@
 #include <rte_debug.h>
 #include <rte_log.h>
 #include <rte_string_fns.h>
-#include <_strings.h>
-#include <_delay.h>
+#include <pg_strings.h>
+#include <pg_delay.h>
 
 #include "cli.h"
 #include "cli_input.h"

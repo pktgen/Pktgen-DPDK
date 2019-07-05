@@ -3,7 +3,7 @@
  */
 
 #include <rte_string_fns.h>
-#include <_strings.h>
+#include <pg_strings.h>
 
 #include "cli.h"
 
@@ -178,7 +178,7 @@ cli_search_dir(struct cli_node *dir, const char *name, uint32_t type)
 		return dir;
 
 	TAILQ_FOREACH(node, &dir->items, next) {
-		if (rte_strmatch(node->name, name) && (node->type & type))
+		if (pg_strmatch(node->name, name) && (node->type & type))
 			return node;
 	}
 
@@ -206,7 +206,7 @@ cli_find_node(const char *path, struct cli_node **ret)
 	if (!my_path)
 		return 0;
 
-	n = rte_strtok(my_path, "/", argv, CLI_MAX_ARGVS);
+	n = pg_strtok(my_path, "/", argv, CLI_MAX_ARGVS);
 
 	/* handle the special case of leading '/' */
 	dir = (path[0] == '/')? get_root() : get_cwd();
@@ -253,7 +253,7 @@ cli_last_dir_in_path(const char *path)
 	if (!my_path)
 		return NULL;
 
-	n = rte_strtok(my_path, "/", argv, CLI_MAX_ARGVS);
+	n = pg_strtok(my_path, "/", argv, CLI_MAX_ARGVS);
 
 	/* handle the special case of leading '/' */
 	if (path[0] == '/')

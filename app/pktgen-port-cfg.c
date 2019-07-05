@@ -6,7 +6,7 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#include <_delay.h>
+#include <pg_delay.h>
 #include <cli_scrn.h>
 #include <lua_config.h>
 

@@ -14,7 +14,7 @@
 #include <rte_timer.h>
 #include <rte_version.h>
 
-#include <_strings.h>
+#include <pg_strings.h>
 #include "lua_config.h"
 #include "lua_stdio.h"
 #include "lua_dpdk.h"

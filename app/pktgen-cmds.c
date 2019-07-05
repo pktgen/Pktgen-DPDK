@@ -17,7 +17,7 @@
 
 #include "pktgen-display.h"
 
-#include <_delay.h>
+#include <pg_delay.h>
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_net.h>

@@ -2,35 +2,12 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
-#include "_strings.h"
+#include "pg_strings.h"
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
 
 char *
-rte_strtrimset(char *str, const char *set)
-{
-
-	if (!str || !*str || !set || (strlen(set) != 2))
-		return NULL;
-
-	/* Find the beginning set character, while trimming white space */
-	while ((*str == set[0]) || isspace(*str))
-		str++;
-
-	if (*str) {
-		char *p = &str[strlen(str) - 1];
-
-		while ((p >= str) && (isspace(*p) || (*p == set[1])))
-			p--;
-
-		p[1] = '\0';
-	}
-
-	return str;
-}
-
-char *
-rte_strtrim(char *str)
+pg_strtrim(char *str)
 {
 	if (!str || !*str)
 		return str;
@@ -53,7 +30,7 @@ rte_strtrim(char *str)
 }
 
 int
-rte_strtok(char *str, const char *delim, char **entries, int maxtokens)
+pg_strtok(char *str, const char *delim, char **entries, int maxtokens)
 {
 	int i = 0;
 	char *saved;
@@ -62,7 +39,7 @@ rte_strtok(char *str, const char *delim, char **entries, int maxtokens)
 		return -1;
 
 	do {
-		entries[i] = rte_strtrim(strtok_r(str, delim, &saved));
+		entries[i] = pg_strtrim(strtok_r(str, delim, &saved));
 		str = NULL;
 	} while(entries[i] && (++i < maxtokens));
 
@@ -70,7 +47,7 @@ rte_strtok(char *str, const char *delim, char **entries, int maxtokens)
 }
 
 int
-rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
+pg_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 {
 	char *p, *start_of_word, *s;
 	int argc = 0;
@@ -80,7 +57,7 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 		return -1;
 
 	/* Remove white space from start and end of string */
-	s = rte_strtrim(str);
+	s = pg_strtrim(str);
 
 	start_of_word = s;
 	for (p = s; (argc < maxtokens) && (*p != '\0'); p++) {
@@ -156,7 +133,7 @@ rte_strqtok(char *str, const char *delim, char *argv[], int maxtokens)
 }
 
 int
-rte_stropt(const char *list, char *str, const char *delim)
+pg_stropt(const char *list, char *str, const char *delim)
 {
 	char *argv[STR_MAX_ARGVS + 1], *buf;
 	size_t n, i;
@@ -176,10 +153,10 @@ rte_stropt(const char *list, char *str, const char *delim)
 	if (buf) {
 		snprintf(buf, n, "%s", list);
 
-		n = rte_strtok(buf, delim, argv, STR_MAX_ARGVS);
+		n = pg_strtok(buf, delim, argv, STR_MAX_ARGVS);
 
 		for (i = 0; i < n; i++)
-			if (rte_strmatch(argv[i], str))
+			if (pg_strmatch(argv[i], str))
 				return i;
 	}
 
@@ -187,7 +164,7 @@ rte_stropt(const char *list, char *str, const char *delim)
 }
 
 int
-rte_parse_corelist(const char *corelist, uint8_t *lcores, int len)
+pg_parse_corelist(const char *corelist, uint8_t *lcores, int len)
 {
 	int idx = 0;
 	unsigned count = 0;
@@ -203,7 +180,7 @@ rte_parse_corelist(const char *corelist, uint8_t *lcores, int len)
 	strlcpy(cl, corelist, sizeof(cl_buf));
 
 	/* Remove all blank characters ahead and after */
-	cl = rte_strtrim(cl);
+	cl = pg_strtrim(cl);
 
 	/* Get list of cores */
 	min = RTE_MAX_LCORE;

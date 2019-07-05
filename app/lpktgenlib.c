@@ -29,8 +29,8 @@
 #include <rte_net.h>
 #include <lua_config.h>
 #include <lua_stdio.h>
-#include <_delay.h>
-#include <_strings.h>
+#include <pg_delay.h>
+#include <pg_strings.h>
 
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
@@ -158,7 +158,7 @@ getf_etheraddr(lua_State *L, const char *field, struct pg_ether_addr *value)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) )
-		rte_ether_aton(luaL_checkstring(L, -1), value);
+		pg_ether_aton(luaL_checkstring(L, -1), value);
 	lua_pop(L, 1);
 }
 
@@ -285,8 +285,8 @@ set_seq(lua_State *L, uint32_t seqnum)
 	char *proto, *ip;
 
 	portlist_parse(luaL_checkstring(L, 2), &portlist);
-	rte_ether_aton(luaL_checkstring(L, 3), &daddr);
-	rte_ether_aton(luaL_checkstring(L, 4), &saddr);
+	pg_ether_aton(luaL_checkstring(L, 3), &daddr);
+	pg_ether_aton(luaL_checkstring(L, 4), &saddr);
 
 	sport   = luaL_checkinteger(L, 7);
 	dport   = luaL_checkinteger(L, 8);
@@ -563,7 +563,7 @@ pktgen_set_mac(lua_State *L)
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	rte_ether_aton(luaL_checkstring(L, 2), &mac);
+	pg_ether_aton(luaL_checkstring(L, 2), &mac);
 
 	foreach_port(portlist,
 	             single_set_dst_mac(info, &mac) );
@@ -1324,7 +1324,7 @@ range_dst_mac(lua_State *L)
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	rte_ether_aton(luaL_checkstring(L, 3), &mac);
+	pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
 	             range_set_dest_mac(info, luaL_checkstring(L, 2), &mac) );
@@ -1357,7 +1357,7 @@ range_src_mac(lua_State *L)
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	rte_ether_aton(luaL_checkstring(L, 3), &mac);
+	pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
 	             range_set_src_mac(info, luaL_checkstring(L, 2), &mac) );

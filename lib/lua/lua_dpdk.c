@@ -15,8 +15,8 @@
 #include <rte_timer.h>
 #include <rte_version.h>
 
-#include <_delay.h>
-#include <_strings.h>
+#include <pg_delay.h>
+#include <pg_strings.h>
 #include <portlist.h>
 
 #include "lua_config.h"

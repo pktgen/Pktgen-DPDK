@@ -416,7 +416,7 @@ static const char *set_help[] = {
 	"set <portlist> seq_cnt|seqcnt|seqCnt <value>",
 	"                                   - Set the number of packet in the sequence to send [0-16]",
 	"set <portlist> prime <value>       - Set the number of packets to send on prime command",
-	"set <portlist> dump <value>        - Dump the next N received packets to the screen",
+	"set <portlist> dump <value>        - Dump the next 1-32 received packets to the screen",
 	"set <portlist> vlan <value>        - Set the VLAN ID value for the portlist",
 	"set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds",
 	"set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format",

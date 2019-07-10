@@ -45,7 +45,7 @@ UTILS_INC  := -I$(RTE_SRCDIR)/../lib/utils
 VEC_INC    := -I$(RTE_SRCDIR)/../lib/vec
 GUI_INC    := -I$(RTE_SRCDIR)/../gui/gui
 PLUGIN_INC := -I$(RTE_SRCDIR)/../lib/plugin
-DFS_INC    := -I$(PME_SDK)/build/inc
+DFS_INC    := -I$(RTE_SDK)/$(RTE_TARGET)/include
 
 COMMON_LIBDIR := $(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)/lib
 LUA_LIBDIR    := $(RTE_SRCDIR)/../lib/lua/$(RTE_TARGET)/lib
@@ -54,7 +54,7 @@ UTILS_LIBDIR  := $(RTE_SRCDIR)/../lib/utils/$(RTE_TARGET)/lib
 VEC_LIBDIR    := $(RTE_SRCDIR)/../lib/vec/$(RTE_TARGET)/lib
 GUI_LIBDIR    := $(RTE_SRCDIR)/../gui/$(RTE_TARGET)/lib
 PLUGIN_LIBDIR := $(RTE_SRCDIR)/../lib/plugin/$(RTE_TARGET)/lib
-DFS_LIBDIR    := $(PME_SDK)/build/lib
+DFS_LIBDIR    := $(RTE_SDK)/$(RTE_TARGET)/lib
 
 COMMON_LIB := -L$(COMMON_LIBDIR)
 LUA_LIB    := -L$(LUA_LIBDIR)
@@ -72,7 +72,7 @@ UTILS_LD   := -lutils
 VEC_LD     := -lvec
 GUI_LD     := -lgui
 PLUGIN_LD  := -lplugin
-DFS_LD     := -ldfs
+DFS_LD     := -lextra_dfs
 
 # default vars to using common information
 __CFLAGS   := $(COMMON_INC) $(PLUGIN_INC)
@@ -165,7 +165,7 @@ else
 __CFLAGS   += $(DFS_INC)
 __LIBS     += $(DFS_LIB)
 __LDFLAGS  += $(DFS_LD)
-__LIB_DEPS += $(DFS_LIBDIR)/libdfs.a
+__LIB_DEPS += $(DFS_LIBDIR)/libextra_dfs.a
 endif
 
 # GUI support is a work in progress

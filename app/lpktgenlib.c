@@ -241,6 +241,8 @@ pktgen_set(lua_State *L) {
 			single_set_port_value(info, what[0], value);
 		else if (!strcasecmp(what, "dport"))
 			single_set_port_value(info, what[0], value);
+		else if (!strcasecmp(what, "ttl"))
+			single_set_ttl_value(info, value);
 		else if (!strcasecmp(what, "seq_cnt"))
 			pktgen_set_port_seqCnt(info, value);
 		else if (!strcasecmp(what, "seqCnt"))
@@ -1472,10 +1474,10 @@ range_dst_port(lua_State *L)
 
 /**************************************************************************//**
  *
- * range_src_port - Set the source port value in the range data.
+ * range_ip_proto - Set the ip proto value in the range data.
  *
  * DESCRIPTION
- * Set the source port value in the range data.
+ * Set the ip proto value in the range data.
  *
  * RETURNS: N/A
  *
@@ -1530,6 +1532,38 @@ range_src_port(lua_State *L)
 	foreach_port(portlist,
 		     range_set_src_port(info, (char *)luaL_checkstring(L, 2),
 					 luaL_checkinteger(L, 3)));
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**************************************************************************//**
+ *
+ * range_ttl - Set the ttl value in the range data.
+ *
+ * DESCRIPTION
+ * Set the ttl value in the range data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+range_ttl(lua_State *L)
+{
+	portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "set ttl, wrong number of arguments");
+	case 3:
+		break;
+	}
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist,
+		     range_set_ttl(info, (char *)luaL_checkstring(L, 2),
+			     luaL_checkinteger(L, 3)));
 
 	pktgen_update_display();
 	return 0;
@@ -3075,6 +3109,7 @@ port_info(lua_State *L, port_info_t *info)
 	lua_newtable(L);
 	setf_integer(L, "src_port", pkt->sport);
 	setf_integer(L, "dst_port", pkt->dport);
+	setf_integer(L, "ttl", pkt->ttl);
 
 	inet_ntop4(buff, sizeof(buff),
 				htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF);
@@ -3300,6 +3335,7 @@ decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
 	}
 	setf_integer(L, "dport", p->dport);
 	setf_integer(L, "sport", p->sport);
+	setf_integer(L, "ttl", p->ttl);
 	setf_integer(L, "vlanid", p->vlanid);
 	setf_integer(L, "cos", p->cos);
 	setf_integer(L, "tos", p->tos);
@@ -3678,6 +3714,7 @@ static const char *lua_help_info[] = {
 	"dst_ip         - Set the destination IP address\n",
 	"src_port       - Set the IP source port number\n",
 	"dst_port       - Set the IP destination port number\n",
+	"ttl            - Set the Time to Live value\n",
 	"vlan_id        - Set the vlan id value\n",
 	"mpls_entry     - Set the MPLS entry\n",
 	"qinqids        - Set the Q-in-Q ID's\n",
@@ -3691,7 +3728,7 @@ static const char *lua_help_info[] = {
 	"port           - select a different port number used for sequence and range pages.\n",
 	"process        - Enable or disable input packet processing on a port\n",
 	"capture        - Enable or disable capture packet processing on a port\n",
-    "bonding        - Enable or disable bonding support for sending zero packets\n",
+        "bonding        - Enable or disable bonding support for sending zero packets\n",
 	"garp           - Enable or disable GARP packet processing on a port\n",
 	"blink          - Blink an led on a port\n",
 	"help           - Return the help text\n",
@@ -3794,11 +3831,14 @@ static const luaL_Reg pktgenlib_range[] = {
 	{"ip_proto",      range_ip_proto},	/* Set the IP Protocol type */
 	{"src_port",      range_src_port},	/* Set the IP source port number */
 	{"dst_port",      range_dst_port},	/* Set the IP destination port number */
+	{"ttl",           range_ttl},		/* Set the IP TTL value */
 	{"vlan_id",       range_vlan_id},	/* Set the vlan id value */
 	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
 	{"qinqids",       range_qinqids},	/* Set the Q-in-Q ID values */
 	{"gre_key",       range_gre_key},	/* Set the GRE key */
 	{"pkt_size",      range_pkt_size},	/* the packet size for a range port */
+	{"cos",           range_cos},		/* Set the COS value */
+	{"tos",           range_tos},		/* Set the COS value */
 	{NULL, NULL}
 };
 
@@ -3868,13 +3908,13 @@ static const luaL_Reg pktgenlib[] = {
 	{"src_port",      range_src_port},		/* Set the IP source port number */
 	{"dst_port",      range_dst_port},		/* Set the IP destination port number */
 	{"vlan_id",       range_vlan_id},		/* Set the vlan id value */
-	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
+	{"mpls_entry",    range_mpls_entry},		/* Set the MPLS entry value */
 	{"qinqids",       range_qinqids},		/* Set the Q-in-Q ID values */
 	{"gre_key",       range_gre_key},		/* Set the GRE key */
 	{"pkt_size",      range_pkt_size},		/* the packet size for a range port */
 	{"cos",           range_cos},			/* Set the COS value */
 	{"tos",           range_tos},			/* Set the COS value */
-	{"set_range",     range},				/* Enable or disable sending range data on a port. */
+	{"set_range",     range},			/* Enable or disable sending range data on a port. */
 
 	{"ports_per_page", pktgen_ports_per_page},	/* Set the number of ports per page */
 	{"page",          pktgen_page},			/* Select a page to display, seq, range, pcap and a number from 0-N */

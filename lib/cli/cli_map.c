@@ -34,7 +34,7 @@ is_map_valid(const char *fmt, char *arg)
 {
 	int ret = 0;
 
-	if (strchr("%dDhHsn46mkPC|l", fmt[1]) == NULL)
+	if (strchr("%bdDhHsn46mkPC|l", fmt[1]) == NULL)
 		return ret;
 
 	/* validate all of the characters matching the format */
@@ -43,6 +43,9 @@ is_map_valid(const char *fmt, char *arg)
 		switch (fmt[1]) {
 		case '%':
 			ret = 1;
+			break;
+		case 'b':
+			if (isdigit(*arg)) ret = 1;
 			break;
 		case 'd':
 			if (isdigit(*arg)) ret = 1;
@@ -160,6 +163,9 @@ decode_map(const char *fmt)
 	switch (fmt[1]) {
 	case '%':
 		cli_printf("%% ");
+		break;
+	case 'b':
+		cli_printf("<8bit number> ");
 		break;
 	case 'd':
 		cli_printf("<32bit number> ");

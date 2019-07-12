@@ -79,6 +79,7 @@ void single_set_tx_burst(port_info_t *info, uint32_t burst);
 void single_set_pkt_size(port_info_t *info, uint16_t size);
 void single_set_tx_rate(port_info_t *info, const char *rate);
 void single_set_jitter(port_info_t *info, uint64_t threshold);
+void single_set_ttl_value(port_info_t *info, uint8_t ttl);
 void single_set_port_value(port_info_t *info,
 				  char type, uint32_t portValue);
 void single_set_qinqids(port_info_t *info,
@@ -156,6 +157,7 @@ void range_set_qinqids(port_info_t *info,
 			       uint16_t outerid,
 			       uint16_t innerid);
 void range_set_gre_key(port_info_t *info, uint32_t gre_key);
+void range_set_ttl(port_info_t *info, char *what, uint8_t ttl);
 
 /* Sequence */
 void pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt);

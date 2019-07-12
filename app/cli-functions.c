@@ -128,6 +128,8 @@ static struct cli_map range_map[] = {
 	{ 51, "range %P src port "SMMI" %d" },
 	{ 52, "range %P dst port %d %d %d %d" },
 	{ 53, "range %P src port %d %d %d %d" },
+	{ 55, "range %P ttl "SMMI" %b" },
+	{ 56, "range %P ttl %b %b %b %b" },
 	{ 60, "range %P vlan "SMMI" %d" },
 	{ 61, "range %P vlan %d %d %d %d" },
 	{ 70, "range %P size "SMMI" %d" },
@@ -290,6 +292,18 @@ range_cmd(int argc, char **argv)
 					range_set_src_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
 					);
 			break;
+		case 55:
+			foreach_port(portlist,
+				range_set_ttl(info, argv[3], atoi(argv[4])) );
+			break;
+		case 56:
+			foreach_port(portlist,
+					range_set_ttl(info, (char *)(uintptr_t)"start", atoi(argv[3]));
+					range_set_ttl(info, (char *)(uintptr_t)"min", atoi(argv[4]));
+					range_set_ttl(info, (char *)(uintptr_t)"max", atoi(argv[5]));
+					range_set_ttl(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
+					);
+			break;
 		case 60:
 			foreach_port(portlist,
 				range_set_vlan_id(info, argv[3], atoi(what)) );
@@ -381,7 +395,8 @@ range_cmd(int argc, char **argv)
 			"vlan|"			/*  9 */ \
 			"seq_cnt|"		/* 10 */ \
 			"seqCnt|"		/* 11 */ \
-			"seqcnt"		/* 12 */
+			"seqcnt|"		/* 12 */ \
+			"ttl"			/* 13 */
 
 static struct cli_map set_map[] = {
 	{ 10, "set %P %|" set_types " %d" },
@@ -413,10 +428,12 @@ static const char *set_help[] = {
 	"set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst",
 	"set <portlist> sport <value>       - Source port number for TCP",
 	"set <portlist> dport <value>       - Destination port number for TCP",
+	"set <portlist> ttl <value>         - Set the TTL value for the single port more",
 	"set <portlist> seq_cnt|seqcnt|seqCnt <value>",
 	"                                   - Set the number of packet in the sequence to send [0-16]",
 	"set <portlist> prime <value>       - Set the number of packets to send on prime command",
 	"set <portlist> dump <value>        - Dump the next 1-32 received packets to the screen",
+	"                                     Dumped packets are in the log, use 'page log' to view",
 	"set <portlist> vlan <value>        - Set the VLAN ID value for the portlist",
 	"set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds",
 	"set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format",
@@ -486,6 +503,7 @@ set_cmd(int argc, char **argv)
 					case 11:
 						/* FALLTHRU */
 					case 12: pktgen_set_port_seqCnt(info, value); break;
+					case 13: single_set_ttl_value(info, value); break;
 					default:
 						return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 				}) );

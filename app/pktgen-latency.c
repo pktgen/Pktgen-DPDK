@@ -116,7 +116,7 @@ pktgen_print_static_data(void)
 
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
+		snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
 		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :

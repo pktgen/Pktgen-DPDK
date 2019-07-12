@@ -318,6 +318,12 @@ pktgen_script_save(char *path)
 		fprintf(fd, "range %d dport inc %d\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
+		fprintf(fd, "range %d ttl start %d\n", i, range->ttl);
+		fprintf(fd, "range %d ttl min %d\n", i, range->ttl_min);
+		fprintf(fd, "range %d ttl max %d\n", i, range->ttl_max);
+		fprintf(fd, "range %d ttl inc %d\n", i, range->ttl_inc);
+
+		fprintf(fd, "\n");
 		fprintf(fd, "range %d vlan start %d\n", i, range->vlan_id);
 		fprintf(fd, "range %d vlan min %d\n", i, range->vlan_id_min);
 		fprintf(fd, "range %d vlan max %d\n", i, range->vlan_id_max);
@@ -662,6 +668,12 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.dst_port('%d', 'min', %d);\n", i, range->dst_port_min);
 		fprintf(fd, "pktgen.dst_port('%d', 'max', %d);\n", i, range->dst_port_max);
 		fprintf(fd, "pktgen.dst_port('%d', 'inc', %d);\n", i, range->dst_port_inc);
+
+		fprintf(fd, "\n");
+		fprintf(fd, "pktgen.ttl('%d', 'start', %d);\n", i, range->ttl);
+		fprintf(fd, "pktgen.ttl('%d', 'min', %d);\n", i, range->ttl_min);
+		fprintf(fd, "pktgen.ttl('%d', 'max', %d);\n", i, range->ttl_max);
+		fprintf(fd, "pktgen.ttl('%d', 'inc', %d);\n", i, range->ttl_inc);
 
 		fprintf(fd, "\n");
 		fprintf(fd, "pktgen.vlan_id('%d', 'start', %d);\n", i, range->vlan_id);
@@ -2330,6 +2342,7 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 	pkt->pktSize            = MIN_PKT_SIZE;
 	pkt->sport              = DEFAULT_SRC_PORT;
 	pkt->dport              = DEFAULT_DST_PORT;
+	pkt->ttl		= DEFAULT_TTL;
 	pkt->ipProto            = PG_IPPROTO_TCP;
 	pkt->ethType            = PG_ETHER_TYPE_IPv4;
 	pkt->vlanid             = DEFAULT_VLAN_ID;
@@ -2824,6 +2837,25 @@ single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
 
 /**************************************************************************//**
  *
+ * single_set_ttl_ttl - Setup the Time to Live
+ *
+ * DESCRIPTION
+ * Set the TTL  for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_ttl_value(port_info_t *info, uint8_t ttl)
+{
+	info->seq_pkt[SINGLE_PKT].ttl = ttl;
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
  * enable_range - Enable or disable range packet sending.
  *
  * DESCRIPTION
@@ -3142,6 +3174,31 @@ range_set_dst_port(port_info_t *info, char *what, uint16_t port)
 		else if (!strcmp(what, "start") )
 			info->range.dst_port = port;
 	}
+}
+
+/**************************************************************************//**
+ *
+ * range_set_ttl - Set the ttl value
+ *
+ * DESCRIPTION
+ * Set the Time to Live values
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_ttl(port_info_t *info, char *what, uint8_t ttl)
+{
+	if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+		info->range.ttl_inc = ttl;
+	else if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+		info->range.ttl_min = ttl;
+	else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+		info->range.ttl_max = ttl;
+	else if (!strcmp(what, "start") )
+		info->range.ttl = ttl;
 }
 
 /**************************************************************************//**

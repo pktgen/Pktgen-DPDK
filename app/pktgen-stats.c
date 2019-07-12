@@ -96,7 +96,7 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Size/Tx Burst");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port Src/Dest");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TTL/Port Src/Dest");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "802.1p CoS/DSCP/IPP");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VxLAN Flg/Grp/vid");
@@ -144,7 +144,7 @@ pktgen_print_static_data(void)
 		pktgen_display_set_color("stats.stat.values");
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-		snprintf(buff, sizeof(buff), "%d /%5d", pkt->sport, pkt->dport);
+		snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%s / %s:%04x",
 		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :

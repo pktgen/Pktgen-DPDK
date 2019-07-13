@@ -42,6 +42,7 @@ pktgen_print_static_data(void)
 	char buff[32];
 	int display_cnt;
 
+	pktgen_display_set_color("default");
 	pktgen_display_set_color("top.page");
 	display_topline("<Main Page>");
 
@@ -54,12 +55,15 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Flags:Port");
 
 	/* Labels for dynamic fields (update every second) */
-	pktgen_display_set_color("stats.dyn.label");
+	pktgen_display_set_color("stats.port.linklbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Link State");
+
+	pktgen_display_set_color("stats.port.ratelbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Max/Rx");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Max/Tx");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
+	pktgen_display_set_color("stats.port.sizelbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Broadcast");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Multicast");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Sizes 64");
@@ -70,8 +74,9 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      1024-1518");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Runts/Jumbos");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
-
+	pktgen_display_set_color("stats.port.errlbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Errors Rx/Tx");
+	pktgen_display_set_color("stats.port.totlbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx Pkts");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx Pkts");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs");
@@ -212,7 +217,7 @@ pktgen_print_static_data(void)
 	/* Display the string for total pkts/s rate of all ports */
 	col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
 	pktgen_display_set_color("stats.total.label");
-	scrn_printf(LINK_STATE_ROW, col, "%*s", COLUMN_WIDTH_3, "----TotalRate----");
+	scrn_printf(LINK_STATE_ROW, col, "%*s", COLUMN_WIDTH_3, "---Total Rate---");
 	scrn_eol();
 	pktgen_display_set_color(NULL);
 
@@ -357,7 +362,7 @@ pktgen_page_stats(void)
 		rate = &info->rate_stats;
 		prev = &info->prev_stats;
 
-		pktgen_display_set_color("stats.port.data");
+		pktgen_display_set_color("stats.port.rate");
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
 		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
@@ -375,6 +380,7 @@ pktgen_page_stats(void)
 
 		/* Packets Sizes */
 		row = PKT_SIZE_ROW;
+		pktgen_display_set_color("stats.port.sizes");
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.broadcast);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.multicast);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._64);
@@ -393,11 +399,13 @@ pktgen_page_stats(void)
 
 		/* Rx/Tx Errors */
 		row = PKT_TOTALS_ROW;
+		pktgen_display_set_color("stats.port.errors");
 		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
 		         prev->ierrors, prev->oerrors);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		/* Total Rx/Tx */
+		pktgen_display_set_color("stats.port.totals");
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.ipackets);
 		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
 

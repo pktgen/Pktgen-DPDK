@@ -123,7 +123,7 @@ void enable_bonding(port_info_t *info, uint32_t state);
 #endif
 void enable_range(port_info_t *info, uint32_t state);
 void enable_pcap(port_info_t *info, uint32_t state);
-void enable_short_pkts(port_info_t *info, uint32_t state);
+void enable_rate(port_info_t *info, uint32_t state);
 
 /* PCAP */
 void pcap_filter(port_info_t *info, char *str);

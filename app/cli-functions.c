@@ -47,7 +47,7 @@
 #endif
 
 static inline uint16_t
-valid_pkt_size(port_info_t *info, char *val)
+valid_pkt_size(char *val)
 {
 	uint16_t pkt_size;
 
@@ -55,10 +55,8 @@ valid_pkt_size(port_info_t *info, char *val)
 		return (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 
 	pkt_size = atoi(val);
-	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
-		if (pkt_size < (MIN_PKT_SIZE + PG_ETHER_CRC_LEN))
-			pkt_size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
-	}
+	if (pkt_size < (MIN_PKT_SIZE + PG_ETHER_CRC_LEN))
+		pkt_size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 
 	if (pkt_size > (MAX_PKT_SIZE + PG_ETHER_CRC_LEN))
 		pkt_size = MAX_PKT_SIZE + PG_ETHER_CRC_LEN;
@@ -318,13 +316,13 @@ range_cmd(int argc, char **argv)
 			break;
 		case 70:
 			foreach_port(portlist,
-				range_set_pkt_size(info, argv[3], strcmp("inc", argv[3])? valid_pkt_size(info, what) : atoi(what)));
+				range_set_pkt_size(info, argv[3], strcmp("inc", argv[3])? valid_pkt_size(what) : atoi(what)));
 			break;
 		case 71:
 			foreach_port(portlist,
-				range_set_pkt_size(info, (char *)(uintptr_t)"start", valid_pkt_size(info, argv[3]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"min", valid_pkt_size(info, argv[4]));
-				range_set_pkt_size(info, (char *)(uintptr_t)"max", valid_pkt_size(info, argv[5]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"start", valid_pkt_size(argv[3]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"min", valid_pkt_size(argv[4]));
+				range_set_pkt_size(info, (char *)(uintptr_t)"max", valid_pkt_size(argv[5]));
 				range_set_pkt_size(info, (char *)(uintptr_t)"inc", atoi(argv[6]));
 				);
 			break;
@@ -489,7 +487,7 @@ set_cmd(int argc, char **argv)
 			foreach_port(portlist, _do(
 				switch(n) {
 					case 0: single_set_tx_count(info, value); break;
-					case 1: single_set_pkt_size(info, valid_pkt_size(info, argv[3])); break;
+					case 1: single_set_pkt_size(info, valid_pkt_size(argv[3])); break;
 					case 2: single_set_tx_rate(info, argv[3]); break;
 					case 3: single_set_tx_burst(info, value); break;
 					case 4: debug_set_tx_cycles(info, value); break;
@@ -731,7 +729,7 @@ static struct cli_map theme_map[] = {
 	{  0, "theme" },
 	{ 10, "theme %|on|off" },
 	{ 20, "theme %s %s %s %s" },
-	{ 30, "theme save" },
+	{ 30, "theme save %s" },
 	{ -1, NULL }
 };
 
@@ -764,24 +762,24 @@ theme_cmd(int argc, char **argv)
 }
 
 #define ed_type	"process|"		/*  0 */	\
-				"mpls|" 		/*  1 */	\
-				"qinq|" 		/*  2 */	\
-				"gre|" 			/*  3 */	\
-				"gre_eth|"		/*  4 */	\
-				"vlan|" 		/*  5 */	\
-				"garp|" 		/*  6 */	\
-				"random|" 		/*  7 */	\
-				"latency|" 		/*  8 */	\
-				"pcap|" 		/*  9 */	\
-				"blink|" 		/* 10 */	\
-				"rx_tap|" 		/* 11 */	\
-				"tx_tap|"		/* 12 */	\
-				"icmp|"			/* 13 */	\
-				"range|"		/* 14 */	\
-				"capture|"		/* 15 */	\
-				"bonding|"		/* 16 */	\
-				"short|"		/* 17 */	\
-				"vxlan"			/* 18 */
+		"mpls|" 		/*  1 */	\
+		"qinq|" 		/*  2 */	\
+		"gre|" 			/*  3 */	\
+		"gre_eth|"		/*  4 */	\
+		"vlan|" 		/*  5 */	\
+		"garp|" 		/*  6 */	\
+		"random|" 		/*  7 */	\
+		"latency|" 		/*  8 */	\
+		"pcap|" 		/*  9 */	\
+		"blink|" 		/* 10 */	\
+		"rx_tap|" 		/* 11 */	\
+		"tx_tap|"		/* 12 */	\
+		"icmp|"			/* 13 */	\
+		"range|"		/* 14 */	\
+		"capture|"		/* 15 */	\
+		"bonding|"		/* 16 */	\
+		"vxlan|"		/* 17 */	\
+		"rate"			/* 18 */
 
 static struct cli_map enable_map[] = {
 	{ 10, "enable %P %|" ed_type },
@@ -811,8 +809,8 @@ static const char *enable_help[] = {
 	"enable|disable <portlist> capture  - Enable/disable packet capturing on a portlist, disable to save capture",
 	"                                     Disable capture on a port to save the data into the currect working directory.",
 	"enable|disable <portlist> bonding  - Enable call TX with zero packets for bonding driver",
-	"enable|disable <portlist> short    - Allow shorter then 64 byte frames to be sent",
 	"enable|disable <portlist> vxlan    - Send VxLAN packets",
+	"enable|disable <portlist> rate     - Enable/Disable Rate Packing on given ports",
 	"enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",
 	"enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
 	"    off                            - screen off shortcut",
@@ -901,10 +899,10 @@ en_dis_cmd(int argc, char **argv)
 #endif
 					break;
 				case 17:
-					foreach_port(portlist, enable_short_pkts(info, state));
+					foreach_port(portlist, enable_vxlan(info, state));
 					break;
 				case 18:
-					foreach_port(portlist, enable_vxlan(info, state));
+					foreach_port(portlist, enable_rate(info, state));
 					break;
 				default:
 					return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
@@ -1535,7 +1533,7 @@ misc_cmd(int argc, char **argv)
 
 static struct cli_map page_map[] = {
 	{ 10, "page %d" },
-	{ 11, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|log|latency|stats|xstats" },
+	{ 11, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|log|latency|stats|xstats|rate|rate-pacing" },
 	{ -1, NULL }
 };
 
@@ -1556,6 +1554,7 @@ static const char *page_help[] = {
 	"page latency                       - Display the latency page",
 	"page stats                         - Display physical ports stats for all ports",
 	"page xstats                        - Display port XSTATS values",
+	"page rate                          - Display Rate Pacing values",
 	CLI_HELP_PAUSE,
 	NULL
 };
@@ -1698,6 +1697,65 @@ bonding_cmd(int argc, char **argv)
 }
 #endif
 
+static struct cli_map rate_map[] = {
+	{ 10, "rate %P fps %d" },
+	{ 20, "rate %P color %d" },
+	{ 30, "rate %P overhead %d" },
+	{ 40, "rate %P mbps %d" },
+	{ 50, "rate %P frame size %d" },
+	{ 60, "rate %P payload size %d" },
+	{ -1, NULL }
+};
+
+static const char *rate_help[] = {
+	"",
+	"rate <portlist> fps <value>          - Set the frame per second value e.g. 60fps",
+	"rate <portlist> color <value>        - Set the color bit size 8, 16, 24, ...",
+	"rate <portlist> overhead <value>     - Set the packet overhead + payload = total packet size",
+	"rate <portlist> mbps <value>         - Set the MBytes per second",
+	"rate <portlist> frame size <value>   - Set the video frame size",
+	"rate <portlist> payload size <value> - Set the payload size",
+	CLI_HELP_PAUSE,
+	NULL
+};
+
+static int
+rate_cmd(int argc, char **argv)
+{
+	struct cli_map *m;
+	portlist_t portlist;
+
+	m = cli_mapping(rate_map, argc, argv);
+	if (!m)
+		return cli_cmd_error("Rate invalid command", "Rate", argc, argv);
+
+	portlist_parse(argv[1], &portlist);
+
+	switch(m->index) {
+		case 10:		/* fps */
+			foreach_port(portlist, rate_set_value(info, "fps", atoi(argv[3])));
+			break;
+		case 20:		/* color bits */
+			foreach_port(portlist, rate_set_value(info, "color", atoi(argv[3])));
+			break;
+		case 30:		/* overhead */
+			foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));
+			break;
+		case 40:		/* mbps */
+			foreach_port(portlist, rate_set_value(info, "mbps", atoi(argv[3])));
+			break;
+		case 50:		/* frame size */
+			foreach_port(portlist, rate_set_value(info, "frame", atoi(argv[4])));
+			break;
+		case 60:		/* payload size */
+			foreach_port(portlist, rate_set_value(info, "payload", atoi(argv[4])));
+			break;
+		default:
+			return cli_cmd_error("Rate invalid command", "Rate", argc, argv);
+	}
+	return 0;
+}
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
@@ -1746,6 +1804,7 @@ static struct cli_tree default_tree[] = {
 #ifdef RTE_LIBRTE_PMD_BOND
 	c_cmd("bonding",	bonding_cmd, "Bonding commands"),
 #endif
+	c_cmd("rate",		rate_cmd, "Rate setup commands"),
 
 	c_alias("on",       "enable screen",    "Enable screen updates"),
 	c_alias("off",      "disable screen",   "Disable screen updates"),
@@ -1776,6 +1835,7 @@ init_tree(void)
 	cli_help_add("Misc", misc_map, misc_help);
 	cli_help_add("Theme", theme_map, theme_help);
 	cli_help_add("Plugin", plugin_map, plugin_help);
+	cli_help_add("Rate", rate_map, rate_help);
 #ifdef RTE_LIBRTE_PMD_BOND
 	cli_help_add("Bonding", bonding_map, bonding_help);
 #endif

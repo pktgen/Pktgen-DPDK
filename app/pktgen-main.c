@@ -399,6 +399,7 @@ main(int argc, char **argv)
 	/* Initialize the screen and logging */
 	pktgen_init_log();
 	pktgen_cpu_init();
+	pktgen_rate_init();
 
 	/* initialize EAL */
 	ret = rte_eal_init(argc, argv);

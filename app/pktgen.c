@@ -29,6 +29,7 @@
 #include "pktgen-log.h"
 #include "pktgen-gtpu.h"
 #include "pktgen-cfg.h"
+#include "pktgen-rate.h"
 
 #define PKTGEN_RETRY_COUNT	1000
 
@@ -281,7 +282,7 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, retry, i;
+	uint32_t ret, cnt, retry;
 
 	cnt = mtab->len;
 	mtab->len = 0;
@@ -307,6 +308,8 @@ _send_burst_fast(port_info_t *info, uint16_t qid)
 		}
 	}
 	if (cnt) {
+		uint32_t i;
+
 		for (i = 0; i < cnt; i++)
 			mtab->m_table[i] = pkts[i];
 		mtab->len = cnt;
@@ -330,10 +333,9 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, sav, flags, retry;
+	uint32_t ret, cnt, flags, retry;
 
 	cnt         = mtab->len;
-	sav	    = cnt;
 	mtab->len   = 0;
 	pkts        = mtab->m_table;
 
@@ -360,8 +362,51 @@ _send_burst_random(port_info_t *info, uint16_t qid)
 			cnt -= ret;
 		}
 	if (cnt) {
-		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
-		           sizeof(char *) * cnt);
+		uint32_t i;
+
+		for (i = 0; i < cnt; i++)
+			mtab->m_table[i] = pkts[i];
+		mtab->len = cnt;
+	}
+}
+
+/**************************************************************************//**
+ *
+ * _send_rate_packets - Send a packets for a given rate
+ *
+ * DESCRIPTION
+ * Transmit a packets at a given rate
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static __inline__ void
+_send_rate_packets(port_info_t *info, uint16_t qid, int32_t seq_idx __rte_unused)
+{
+	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
+	struct rte_mbuf **pkts;
+	uint32_t cnt, retry;
+
+	cnt         = mtab->len;
+	mtab->len   = 0;
+	pkts        = mtab->m_table;
+	retry       = PKTGEN_RETRY_COUNT;
+
+	while (cnt && retry--) {
+		int ret;
+
+		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+		pkts += ret;
+		cnt -= ret;
+	}
+	if (cnt) {
+		uint32_t i;
+
+		for (i = 0; i < cnt; i++)
+			mtab->m_table[i] = pkts[i];
 		mtab->len = cnt;
 	}
 }
@@ -420,7 +465,9 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	else
 		seq_idx = SINGLE_PKT;
 
-	if (flags & SEND_LATENCY_PKTS)
+	if (flags & SEND_RATE_PACKETS)
+		_send_rate_packets(info, qid, seq_idx);
+	else if (flags & SEND_LATENCY_PKTS)
 		_send_burst_latency(info, qid, seq_idx);
 	else if (flags & SEND_RANDOM_PKTS)
 		_send_burst_random(info, qid);
@@ -1599,6 +1646,8 @@ _page_display(void)
 		pktgen_page_phys_stats(pktgen.portNum);
 	else if (pktgen.flags & XSTATS_PAGE_FLAG)
 		pktgen_page_xstats(pktgen.portNum);
+	else if (pktgen.flags & RATE_PAGE_FLAG)
+		pktgen_page_rate();
 	else
 		pktgen_page_stats();
 }

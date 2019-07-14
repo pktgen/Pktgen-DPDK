@@ -195,9 +195,9 @@ typedef struct port_info_s {
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
-	uint64_t max_latency;	/**< TX Latency sequence */
+	uint64_t max_avg_latency;	/**< TX Latency sequence */
 	uint64_t avg_latency;	/**< Latency delta in clock ticks */
-	uint64_t min_latency;	/**< RX Latency sequence */
+	uint64_t min_avg_latency;	/**< RX Latency sequence */
 
 	RTE_STD_C11
 	union {
@@ -215,6 +215,7 @@ typedef struct port_info_s {
 	uint64_t jitter_threshold_clks;
 	uint64_t jitter_count;
 	uint64_t prev_latency;
+	uint64_t max_latency;
 
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */

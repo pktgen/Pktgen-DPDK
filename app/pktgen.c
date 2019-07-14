@@ -204,10 +204,10 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 	return pkt;
 }
 
-static __inline__ latency_t *
-pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
+static __inline__ tstamp_t *
+pktgen_tstamp_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
 {
-	latency_t *latency;
+	tstamp_t *tstamp;
 	char *p;
 
 	p = rte_pktmbuf_mtod(m, char *);
@@ -223,13 +223,13 @@ pktgen_latency_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
 	/* Force pointer to be aligned correctly */
 	p = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
 
-	latency = (latency_t *)p;
+	tstamp = (tstamp_t *)p;
 
-	return latency;
+	return tstamp;
 }
 
 static inline void
-pktgen_latency_apply(port_info_t *info __rte_unused,
+pktgen_tstamp_apply(port_info_t *info __rte_unused,
                      struct rte_mbuf **mbufs, int cnt, int32_t seq_idx)
 {
 	pkt_seq_t *pkt = &info->seq_pkt[seq_idx];
@@ -238,12 +238,12 @@ pktgen_latency_apply(port_info_t *info __rte_unused,
 	int i;
 
 	for (i = 0; i < cnt; i++) {
-		latency_t *latency;
+		tstamp_t *tstamp;
 
-		latency = pktgen_latency_pointer(info, mbufs[i], seq_idx);
+		tstamp = pktgen_tstamp_pointer(info, mbufs[i], seq_idx);
 
-		latency->timestamp  = rte_rdtsc_precise();
-		latency->magic      = LATENCY_MAGIC;
+		tstamp->timestamp  = rte_rdtsc_precise();
+		tstamp->magic      = TSTAMP_MAGIC;
 
 		/* Construct the UDP header */
 		pktgen_udp_hdr_ctor(pkt, l3_hdr, PG_ETHER_TYPE_IPv4);
@@ -413,7 +413,7 @@ _send_rate_packets(port_info_t *info, uint16_t qid, int32_t seq_idx __rte_unused
 
 /**************************************************************************//**
  *
- * _send_burst_latency - Send a burst of packets with latency time.
+ * _send_burst_tstamp - Send a burst of packets with tstamp time.
  *
  * DESCRIPTION
  * Transmit a burst of packets to a given port.
@@ -424,7 +424,7 @@ _send_rate_packets(port_info_t *info, uint16_t qid, int32_t seq_idx __rte_unused
  */
 
 static __inline__ void
-_send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
+_send_burst_tstamp(port_info_t *info, uint16_t qid, int32_t seq_idx)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
@@ -438,7 +438,48 @@ _send_burst_latency(port_info_t *info, uint16_t qid, int32_t seq_idx)
 	while (cnt && retry--) {
 		int ret;
 
-		pktgen_latency_apply(info, pkts, cnt, seq_idx);
+		pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
+
+		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+		pkts += ret;
+		cnt -= ret;
+	}
+	if (cnt) {
+		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
+		           sizeof(char *) * cnt);
+		mtab->len = cnt;
+	}
+}
+
+/**************************************************************************//**
+ *
+ * _send_burst_rate - Send a burst of packets with tstamp time.
+ *
+ * DESCRIPTION
+ * Transmit a burst of packets to a given port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static __inline__ void
+_send_burst_rate(port_info_t *info, uint16_t qid, int32_t seq_idx)
+{
+	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
+	struct rte_mbuf **pkts;
+	uint32_t cnt, sav, retry;
+
+	cnt         = mtab->len;
+	sav         = cnt;
+	mtab->len   = 0;
+	pkts        = mtab->m_table;
+	retry       = PKTGEN_RETRY_COUNT;
+	while (cnt && retry--) {
+		int ret;
+
+		pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
 
 		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -468,7 +509,9 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	if (flags & SEND_RATE_PACKETS)
 		_send_rate_packets(info, qid, seq_idx);
 	else if (flags & SEND_LATENCY_PKTS)
-		_send_burst_latency(info, qid, seq_idx);
+		_send_burst_tstamp(info, qid, seq_idx);
+	else if (flags & SEND_RATE_PACKETS)
+		_send_burst_rate(info, qid, seq_idx);
 	else if (flags & SEND_RANDOM_PKTS)
 		_send_burst_random(info, qid);
 	else
@@ -476,7 +519,7 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 }
 
 static __inline__ void
-pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
+pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
 	uint32_t flags;
 	int32_t seq_idx;
@@ -488,21 +531,23 @@ pktgen_recv_latency(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 	else
 		seq_idx = SINGLE_PKT;
 
-	if (flags & SEND_LATENCY_PKTS) {
+	if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS)) {
 		int i;
 		uint64_t lat, jitter;
 
 		for (i = 0; i < nb_pkts; i++) {
-			latency_t *latency;
-			latency = pktgen_latency_pointer(info, pkts[i], seq_idx);
+			tstamp_t *tstamp;
+			tstamp = pktgen_tstamp_pointer(info, pkts[i], seq_idx);
 
-			if (latency->magic == LATENCY_MAGIC) {
-				lat = (rte_rdtsc_precise() - latency->timestamp);
+			if (tstamp->magic == TSTAMP_MAGIC) {
+				lat = (rte_rdtsc_precise() - tstamp->timestamp);
 				info->avg_latency += lat;
 				if (lat > info->prev_latency)
 					jitter = lat - info->prev_latency;
 				else
 					jitter = info->prev_latency - lat;
+				if (lat > info->max_latency)
+					info->max_latency = lat;
 				if (jitter > info->jitter_threshold_clks)
 					info->jitter_count++;
 				info->prev_latency = lat;
@@ -1227,14 +1272,13 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
 				mp = info->q[qid].pcap_mp;
 		}
 
-		if (rte_atomic32_read(&info->q[qid].flags) & CLEAR_FAST_ALLOC_FLAG)
+		if (pktgen_tst_q_flags(info, qid, CLEAR_FAST_ALLOC_FLAG))
 			pktgen_setup_packets(info, mp, qid);
 
 		pktgen_send_pkts(info, qid, mp);
 	}
 
-	flags = rte_atomic32_read(&info->q[qid].flags);
-	if (flags & DO_TX_FLUSH)
+	if (pktgen_tst_q_flags(info, qid, DO_TX_FLUSH))
 		pktgen_tx_flush(info, qid);
 }
 
@@ -1269,7 +1313,7 @@ pktgen_main_receive(port_info_t *info,
 	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, info->tx_burst)) == 0)
 		return;
 
-	pktgen_recv_latency(info, pkts_burst, nb_rx);
+	pktgen_recv_tstamp(info, pkts_burst, nb_rx);
 
 	/* packets are not freed in the next call. */
 	pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid);

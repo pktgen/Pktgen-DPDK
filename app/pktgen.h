@@ -379,6 +379,13 @@ void pktgen_input_start(void);
 
 void rte_timer_setup(void);
 
+typedef struct {
+	uint64_t timestamp;
+	uint16_t magic;
+} tstamp_t;
+
+#define TSTAMP_MAGIC   (('T' << 8) + 's')
+
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags) {
 	uint32_t val;
@@ -417,6 +424,14 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 		val = rte_atomic32_read(&info->q[q].flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
 				   val, (val & ~flags)) == 0);
+}
+
+static __inline__ int
+pktgen_tst_q_flags(port_info_t *info, uint8_t q, uint32_t flags)
+{
+	if (rte_atomic32_read(&info->q[q].flags) & flags)
+		return 1;
+	return 0;
 }
 
 /* onOff values */

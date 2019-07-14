@@ -29,9 +29,13 @@ typedef struct {
 	uint16_t	pad0;
 	uint32_t	mbps;
 	uint32_t	pps;
+	double		fps_rate;
+	uint64_t	next_tsc;
 } rate_info_t;
 
 #define RATE_MAGIC   (('R' << 8) + 'y')
+
+extern rate_info_t rates[RTE_MAX_ETHPORTS];
 
 void pktgen_rate_init(void);
 void pktgen_page_rate(void);

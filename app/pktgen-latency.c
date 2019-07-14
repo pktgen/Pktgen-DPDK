@@ -277,16 +277,16 @@ pktgen_page_latency(void)
 		avg_lat = 0;
 		if (info->latency_nb_pkts) {
 			avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
-			if (avg_lat > info->max_latency)
-				info->max_latency = avg_lat;
-			if (info->min_latency == 0)
-				info->min_latency = avg_lat;
-			else if (avg_lat < info->min_latency)
-				info->min_latency = avg_lat;
+			if (avg_lat > info->max_avg_latency)
+				info->max_avg_latency = avg_lat;
+			if (info->min_avg_latency == 0)
+				info->min_avg_latency = avg_lat;
+			else if (avg_lat < info->min_avg_latency)
+				info->min_avg_latency = avg_lat;
 			info->latency_nb_pkts = 0;
 			info->avg_latency     = 0;
 		}
-		snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
+		snprintf(buff, sizeof(buff), %" PRIu64, avg_lat);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);

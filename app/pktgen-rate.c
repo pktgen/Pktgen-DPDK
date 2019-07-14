@@ -19,7 +19,7 @@
 #include <rte_bus_pci.h>
 #endif
 
-static rate_info_t rates[RTE_MAX_ETHPORTS];
+rate_info_t rates[RTE_MAX_ETHPORTS];
 
 void
 rate_set_value(port_info_t *info, const char *what, uint32_t value)
@@ -32,6 +32,7 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		if (value > 120)
 			value = 120;
 		rate->fps = value;
+		rate->fps_rate = ((double)((double)1/(double)rate->fps))*1000;
 	} else if (!strcmp(what, "color")) {
 		if (value > 60)
 			value = 60;
@@ -65,6 +66,8 @@ pktgen_rate_init(void)
 	rate_info_t *rate;
 	int i;
 
+	memset(rates, 0, sizeof(rates));
+
 	for(i = 0; i < RTE_MAX_ETHPORTS; i++) {
 		rate = &rates[i];
 
@@ -75,6 +78,7 @@ pktgen_rate_init(void)
 		rate->overhead = 62;
 		rate->mbps = 5;
 		rate->pps = (rate->mbps * Million)/rate->payload_size;
+		rate->fps_rate = (double)(1.0/(double)rate->fps);
 	}
 }
 
@@ -353,17 +357,17 @@ pktgen_page_rate(void)
 		avg_lat = 0;
 		if (info->latency_nb_pkts) {
 			avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
-			if (avg_lat > info->max_latency)
-				info->max_latency = avg_lat;
-			if (info->min_latency == 0)
-				info->min_latency = avg_lat;
-			else if (avg_lat < info->min_latency)
-				info->min_latency = avg_lat;
+			if (avg_lat > info->max_avg_latency)
+				info->max_avg_latency = avg_lat;
+			if (info->min_avg_latency == 0)
+				info->min_avg_latency = avg_lat;
+			else if (avg_lat < info->min_avg_latency)
+				info->min_avg_latency = avg_lat;
 			info->latency_nb_pkts = 0;
 			info->avg_latency     = 0;
 		}
 		pktgen_display_set_color("stats.port.sizes");
-		snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
+		snprintf(buff, sizeof(buff), "%"PRIu64"/%" PRIu64, info->max_latency, avg_lat);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);
@@ -385,7 +389,7 @@ pktgen_page_rate(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		row++;
-		snprintf(buff, sizeof(buff), "%d/%4.2fms", rate->fps, ((double)((double)1/(double)rate->fps))*1000);
+		snprintf(buff, sizeof(buff), "%d/%4.2fms", rate->fps, rate->fps_rate * 1000.0);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%dp/%d", rate->frame_size, rate->color_bits);

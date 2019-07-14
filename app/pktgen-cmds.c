@@ -1440,6 +1440,8 @@ pktgen_start_transmitting(port_info_t *info)
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 
+		
+
 		rte_atomic64_set(&info->current_tx_count,
 				 rte_atomic64_read(&info->transmit_count));
 
@@ -1598,6 +1600,7 @@ enable_rate(port_info_t *info, uint32_t state)
 		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
 		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RATE_PACKETS);
+		pktgen_set_xyz
 	} else
 		pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
 }
@@ -2316,7 +2319,8 @@ pktgen_clear_stats(port_info_t *info)
 	info->stats.vlan_pkts       = 0;
 	info->stats.unknown_pkts    = 0;
 	info->stats.tx_failed       = 0;
-	info->min_latency           = 0;
+	info->min_avg_latency       = 0;
+	info->max_avg_latency       = 0;
 	info->max_latency           = 0;
 	info->avg_latency           = 0;
 	info->jitter_count          = 0;
@@ -2903,8 +2907,18 @@ enable_latency(port_info_t *info, uint32_t state)
 		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
 		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
-	} else
+
+		if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+			info->seq_pkt[SINGLE_PKT].pktsize += sizeof(tstamp_t);
+		}
+	} else {
+		if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+			info->seq_pkt[SINGLE_PKT].pktsize -= sizeof(tstamp_t);
 		pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
+	}
+
+	info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
+	pktgen_packet_ctor(info, SINGLE_PKT, -1)
 }
 
 /**************************************************************************//**

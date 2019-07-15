@@ -42,11 +42,11 @@ SPDX-License-Identifier: BSD-3-Clause
 Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
 ---
 
-Note: In DPKD 19.08-rc0 a large number of defines and function names were
+Note: In DPDK 19.08-rc0 a large number of defines and function names were
       changed. In Pktgen  3.7.0 I added a pg_compat.h header to help
       compatibility issues with these name changes. This means versions
-      3.6.6 and below will have trouble builging with DPDK starting with
-      19.08-rc0 or just after the 19.05 release. 
+      3.6.6 and below will have trouble building with DPDK starting with
+      19.08-rc0 or just after the 19.05 release.
 
 
 *** Pktgen command line directory format ***
@@ -623,6 +623,7 @@ $
 ------------------------------------------------------------------------
 ``
                                                   ** Pktgen Help Information **
+
 page [0-7]                         - Show the port pages or configuration or sequence page
 page main                          - Display page zero
 page range                         - Display the range packet page
@@ -638,6 +639,7 @@ page log                           - Display the log messages page
 page latency                       - Display the latency page
 page stats                         - Display physical ports stats for all ports
 page xstats                        - Display port XSTATS values
+page rate                          - Display Rate Pacing values
 
 enable|disable <portlist> process  - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
 enable|disable <portlist> mpls     - Enable/disable sending MPLS entry in packets
@@ -645,7 +647,7 @@ enable|disable <portlist> qinq     - Enable/disable sending Q-in-Q header in pac
 enable|disable <portlist> gre      - Enable/disable GRE support
 enable|disable <portlist> gre_eth  - Enable/disable GRE with Ethernet frame payload
 enable|disable <portlist> vlan     - Enable/disable VLAN tagging
-enable|disable <portlist> garp     - Enable or Disable GARP packet processing and update MAC address
+enable|disable <portlist> garp     - Enable or Disable Gratuitous ARP packet processing
 enable|disable <portlist> random   - Enable/disable Random packet support
 enable|disable <portlist> latency  - Enable/disable latency testing
 enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist
@@ -657,8 +659,8 @@ enable|disable <portlist> range    - Enable or Disable the given portlist for se
 enable|disable <portlist> capture  - Enable/disable packet capturing on a portlist, disable to save capture
                                      Disable capture on a port to save the data into the currect working directory.
 enable|disable <portlist> bonding  - Enable call TX with zero packets for bonding driver
-enable|disable <portlist> short    - Allow shorter then 64 byte frames to be sent
 enable|disable <portlist> vxlan    - Send VxLAN packets
+enable|disable <portlist> rate     - Enable/Disable Rate Packing on given ports
 enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet
 enable|disable screen              - Enable/disable updating the screen and unlock/lock window
     off                            - screen off shortcut
@@ -672,11 +674,12 @@ set <portlist> burst <value>       - number of packets in a burst
 set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
 set <portlist> sport <value>       - Source port number for TCP
 set <portlist> dport <value>       - Destination port number for TCP
+set <portlist> ttl <value>         - Set the TTL value for the single port more
 set <portlist> seq_cnt|seqcnt|seqCnt <value>
                                    - Set the number of packet in the sequence to send [0-16]
 set <portlist> prime <value>       - Set the number of packets to send on prime command
 set <portlist> dump <value>        - Dump the next 1-32 received packets to the screen
-                                     Dumped packets are printed to the log, use 'page log' to view
+                                     Dumped packets are in the log, use 'page log' to view
 set <portlist> vlan <value>        - Set the VLAN ID value for the portlist
 set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds
 set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format
@@ -704,7 +707,7 @@ set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values
 set ports_per_page <value>         - Set ports per page value 1 - 6
 
   -- Setup the packet range values --
-   note: SMMI = start|min|max|inc (start, minimum, maximum, increment)
+     note: SMMI = start|min|max|inc (start, minimum, maximum, increment)
 
 range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address
       e.g: range 0 src mac start 00:00:00:00:00:00
@@ -734,6 +737,7 @@ range <portlist> tos <SMMI> <value>           - Set tos value
 sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]
 sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
 sequence <seq#> <portlist> cos <cos> tos <tos>
+sequence <seq#> <portlist> vxlan <flags> gid <group_id> vid <vxlan_id>
                                    - Set the sequence packet information, make sure the src-IP
                                      has the netmask value eg 1.2.3.4/24
 
@@ -751,6 +755,7 @@ start <portlist> arp <type>        - Send a ARP type packet
 
 dbg l2p                          - Dump out internal lcore to port mapping
 dbg tx_dbg                       - Enable tx debug output
+dbg tx_rate <portlist>           - Show packet rate for all ports
 dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type
 dbg pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only
 dbg memzone                      - List all of the current memzones
@@ -777,31 +782,33 @@ theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and att
 theme show                         - List the item strings, colors and attributes to the items
 theme save <filename>              - Save the current color theme to a file
 
-       Flags: P--------------- - Promiscuous mode enabled
-               E               - ICMP Echo enabled
-                A              - Send ARP Request flag
-                 G             - Send Gratuitous ARP flag
-                  C            - TX Cleanup flag
-                   p           - PCAP enabled flag
-                    S          - Send Sequence packets enabled
-                     R         - Send Range packets enabled
-                      D        - DPI Scanning enabled (If Enabled)
-                       I       - Process packets on input enabled
-                        *      - Using TAP interface for this port can be [-rt*]
-                         L     - Send Latency packets
-                          V    - Send VLAN ID tag
-                          X    - Send VxLAN packets
-                          M    - Send MPLS header
-                          Q    - Send Q-in-Q tags
-                           g   - Perform GRE with IPv4 payload
-                           G   - Perform GRE with Ethernet payload
-                            C  - Capture received packets
-                             R - Random bitfield(s) are applied
-                              B- Bonding enabled for LACP 802.3ad
+plugin                             - Show the plugins currently installed
+plugin load <filename>             - Load a plugin file
+plugin load <filename> <path>      - Load a plugin file at path
+plugin rm|delete <plugin>          - Remove or delete a plugin
+
+rate <portlist> fps <value>          - Set the frame per second value e.g. 60fps
+rate <portlist> color <value>        - Set the color bit size 8, 16, 24, ...
+rate <portlist> overhead <value>     - Set the packet overhead + payload = total packet size
+rate <portlist> mbps <value>         - Set the MBytes per second
+rate <portlist> frame size <value>   - Set the video frame size
+rate <portlist> payload size <value> - Set the payload size
+
+bonding <portlist> show          - Show the bonding configuration for <portlist>
+bonding show                     - Show all bonding configurations
+
+       Flags: P------------------ - Promiscuous mode enabled
+               E                  - ICMP Echo enabled
+                B                 - Bonding enabled LACP 802.3ad
+                 I                - Process packets on input enabled
+                  *               - Using TAP interface for this port can be [-rt*]
+                   g              - Process GARP packets
+                    C             - Capture received packets
+                     ------       - Single, pcap, sequence, latency, random, Rate
+                           ------ - VLANm VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH
 Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
-       Color best seen on a black background for now
-
+       Colors best seen on a black background for now
 ``
 ---------------------------------------------------------------------------
 ``

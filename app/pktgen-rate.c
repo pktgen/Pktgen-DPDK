@@ -73,7 +73,7 @@ pktgen_rate_init(void)
 
 		rate->fps = 60;
 		rate->frame_size = 720;
-		rate->color_bits = 8;
+		rate->color_bits = 12;
 		rate->payload_size = 800;
 		rate->overhead = 62;
 		rate->mbps = 5;

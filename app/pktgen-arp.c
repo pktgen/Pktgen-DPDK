@@ -110,8 +110,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 
 	/* Process all ARP requests if they are for us. */
 	if (arp->arp_op == htons(ARP_REQUEST) ) {
-		if ((rte_atomic32_read(&info->port_flags) &
-		     PROCESS_GARP_PKTS) &&
+		if (pktgen_tst_port_flags(info, PROCESS_GARP_PKTS) &&
 		    (arp->arp_data.arp_tip == arp->arp_data.arp_sip) ) {	/* Must be a GARP packet */
 			pkt = pktgen_find_matching_ipdst(info, arp->arp_data.arp_sip);
 

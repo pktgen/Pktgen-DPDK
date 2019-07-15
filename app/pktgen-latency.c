@@ -286,7 +286,7 @@ pktgen_page_latency(void)
 			info->latency_nb_pkts = 0;
 			info->avg_latency     = 0;
 		}
-		snprintf(buff, sizeof(buff), %" PRIu64, avg_lat);
+		snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);

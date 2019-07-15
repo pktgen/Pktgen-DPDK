@@ -1440,7 +1440,7 @@ pktgen_start_transmitting(port_info_t *info)
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 
-		
+
 
 		rte_atomic64_set(&info->current_tx_count,
 				 rte_atomic64_read(&info->transmit_count));
@@ -1578,6 +1578,7 @@ enable_pcap(port_info_t *info, uint32_t state)
 			pktgen_set_port_flags(info, SEND_PCAP_PKTS);
 		} else
 			pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
+		info->tx_cycles = 0;
 	}
 }
 
@@ -1600,7 +1601,6 @@ enable_rate(port_info_t *info, uint32_t state)
 		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
 		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RATE_PACKETS);
-		pktgen_set_xyz
 	} else
 		pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
 }
@@ -2680,6 +2680,7 @@ single_set_tx_burst(port_info_t *info, uint32_t burst)
 	else if (burst > DEFAULT_PKT_BURST)
 		burst = DEFAULT_PKT_BURST;
 	info->tx_burst = burst;
+	info->tx_cycles = 0;
 }
 
 /**************************************************************************//**
@@ -2777,6 +2778,7 @@ single_set_tx_rate(port_info_t *info, const char *r)
 	else if (rate > 100.00)
 		rate = 100.00;
 	info->tx_rate = rate;
+	info->tx_cycles = 0;
 }
 
 /**************************************************************************//**
@@ -2909,16 +2911,17 @@ enable_latency(port_info_t *info, uint32_t state)
 		pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
 
 		if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
-			info->seq_pkt[SINGLE_PKT].pktsize += sizeof(tstamp_t);
+			info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
 		}
 	} else {
 		if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
-			info->seq_pkt[SINGLE_PKT].pktsize -= sizeof(tstamp_t);
+			info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
+		}
 		pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
 	}
 
 	info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
-	pktgen_packet_ctor(info, SINGLE_PKT, -1)
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
 /**************************************************************************//**

@@ -30,6 +30,8 @@ typedef struct {
 	uint32_t	mbps;
 	uint32_t	pps;
 	double		fps_rate;
+	uint64_t	curr_tsc;
+	uint64_t	cycles_per_packet;
 	uint64_t	next_tsc;
 } rate_info_t;
 

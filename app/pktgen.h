@@ -406,6 +406,14 @@ pktgen_clr_port_flags(port_info_t *info, uint32_t flags) {
 				   val, (val & ~flags)) == 0);
 }
 
+static __inline__ int
+pktgen_tst_port_flags(port_info_t *info, uint32_t flags)
+{
+	if (rte_atomic32_read(&info->port_flags) & flags)
+		return 1;
+	return 0;
+}
+
 static __inline__ void
 pktgen_set_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 	uint32_t val;

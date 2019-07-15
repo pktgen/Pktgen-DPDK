@@ -53,7 +53,7 @@ pktgen_wire_size(port_info_t *info)
 {
 	uint64_t i, size = 0;
 
-	if (rte_atomic32_read(&info->port_flags) & SEND_PCAP_PKTS)
+	if (pktgen_tst_port_flags(info, SEND_PCAP_PKTS))
 		size = info->pcap->pkt_size + PKT_OVERHEAD_SIZE;
 	else {
 		if (unlikely(info->seqCnt > 0)) {
@@ -88,6 +88,7 @@ pktgen_packet_rate(port_info_t *info)
 
 	info->tx_pps    = pps;
 	info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid));
+printf("tx_cycles %ld\n", info->tx_cycles);
 }
 
 /**************************************************************************//**
@@ -278,210 +279,36 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
  */
 
 static __inline__ void
-_send_burst_fast(port_info_t *info, uint16_t qid)
+_send_burst_fast(port_info_t *info, uint16_t qid, int32_t seq_idx)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, retry;
+	uint32_t ret, cnt, sav, retry, tap, rnd, tstamp;
 
 	cnt = mtab->len;
+	sav = cnt;
 	mtab->len = 0;
 
 	pkts = mtab->m_table;
 
 	retry = PKTGEN_RETRY_COUNT;
-	if (rte_atomic32_read(&info->port_flags) & PROCESS_TX_TAP_PKTS) {
-		while (cnt && retry--) {
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
-			pktgen_do_tx_tap(info, pkts, ret);
+	tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
+	rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
+	tstamp = pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS));
 
-			pkts += ret;
-			cnt -= ret;
-		}
-	} else {
-		while (cnt && retry--) {
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+	while (cnt && retry--) {
 
-			pkts += ret;
-			cnt -= ret;
-		}
-	}
-	if (cnt) {
-		uint32_t i;
-
-		for (i = 0; i < cnt; i++)
-			mtab->m_table[i] = pkts[i];
-		mtab->len = cnt;
-	}
-}
-
-/**************************************************************************//**
- *
- * _send_burst_random - Send a burst of packets with random bits.
- *
- * DESCRIPTION
- * Transmit a burst of packets to a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-_send_burst_random(port_info_t *info, uint16_t qid)
-{
-	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
-	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, flags, retry;
-
-	cnt         = mtab->len;
-	mtab->len   = 0;
-	pkts        = mtab->m_table;
-
-	retry = PKTGEN_RETRY_COUNT;
-
-	flags   = rte_atomic32_read(&info->port_flags);
-	if (unlikely(flags & PROCESS_TX_TAP_PKTS))
-		while (cnt && retry--) {
+		if (rnd)
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+		if (tstamp)
+			pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
 
+		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+		if (tap)
 			pktgen_do_tx_tap(info, pkts, ret);
-
-			pkts += ret;
-			cnt -= ret;
-		} else
-		while (cnt && retry--) {
-			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
-
-			ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-			pkts += ret;
-			cnt -= ret;
-		}
-	if (cnt) {
-		uint32_t i;
-
-		for (i = 0; i < cnt; i++)
-			mtab->m_table[i] = pkts[i];
-		mtab->len = cnt;
-	}
-}
-
-/**************************************************************************//**
- *
- * _send_rate_packets - Send a packets for a given rate
- *
- * DESCRIPTION
- * Transmit a packets at a given rate
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-_send_rate_packets(port_info_t *info, uint16_t qid, int32_t seq_idx __rte_unused)
-{
-	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
-	struct rte_mbuf **pkts;
-	uint32_t cnt, retry;
-
-	cnt         = mtab->len;
-	mtab->len   = 0;
-	pkts        = mtab->m_table;
-	retry       = PKTGEN_RETRY_COUNT;
-
-	while (cnt && retry--) {
-		int ret;
-
-		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-		pkts += ret;
-		cnt -= ret;
-	}
-	if (cnt) {
-		uint32_t i;
-
-		for (i = 0; i < cnt; i++)
-			mtab->m_table[i] = pkts[i];
-		mtab->len = cnt;
-	}
-}
-
-/**************************************************************************//**
- *
- * _send_burst_tstamp - Send a burst of packets with tstamp time.
- *
- * DESCRIPTION
- * Transmit a burst of packets to a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-_send_burst_tstamp(port_info_t *info, uint16_t qid, int32_t seq_idx)
-{
-	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
-	struct rte_mbuf **pkts;
-	uint32_t cnt, sav, retry;
-
-	cnt         = mtab->len;
-	sav         = cnt;
-	mtab->len   = 0;
-	pkts        = mtab->m_table;
-	retry       = PKTGEN_RETRY_COUNT;
-	while (cnt && retry--) {
-		int ret;
-
-		pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
-
-		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-		pkts += ret;
-		cnt -= ret;
-	}
-	if (cnt) {
-		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
-		           sizeof(char *) * cnt);
-		mtab->len = cnt;
-	}
-}
-
-/**************************************************************************//**
- *
- * _send_burst_rate - Send a burst of packets with tstamp time.
- *
- * DESCRIPTION
- * Transmit a burst of packets to a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-_send_burst_rate(port_info_t *info, uint16_t qid, int32_t seq_idx)
-{
-	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
-	struct rte_mbuf **pkts;
-	uint32_t cnt, sav, retry;
-
-	cnt         = mtab->len;
-	sav         = cnt;
-	mtab->len   = 0;
-	pkts        = mtab->m_table;
-	retry       = PKTGEN_RETRY_COUNT;
-	while (cnt && retry--) {
-		int ret;
-
-		pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
-
-		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 		pkts += ret;
 		cnt -= ret;
@@ -496,26 +323,14 @@ _send_burst_rate(port_info_t *info, uint16_t qid, int32_t seq_idx)
 static __inline__ void
 pktgen_send_burst(port_info_t *info, uint16_t qid)
 {
-	uint32_t flags;
 	int32_t seq_idx;
 
-	flags = rte_atomic32_read(&info->port_flags);
-
-	if (flags & SEND_RANGE_PKTS)
+	if (pktgen_tst_port_flags(info, SEND_RANGE_PKTS))
 		seq_idx = RANGE_PKT;
 	else
 		seq_idx = SINGLE_PKT;
 
-	if (flags & SEND_RATE_PACKETS)
-		_send_rate_packets(info, qid, seq_idx);
-	else if (flags & SEND_LATENCY_PKTS)
-		_send_burst_tstamp(info, qid, seq_idx);
-	else if (flags & SEND_RATE_PACKETS)
-		_send_burst_rate(info, qid, seq_idx);
-	else if (flags & SEND_RANDOM_PKTS)
-		_send_burst_random(info, qid);
-	else
-		_send_burst_fast(info, qid);
+	_send_burst_fast(info, qid, seq_idx);
 }
 
 static __inline__ void
@@ -1194,12 +1009,9 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 static __inline__ void
 pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 {
-	uint32_t flags;
 	int rc = 0;
 
-	flags = rte_atomic32_read(&info->port_flags);
-
-	if (flags & SEND_FOREVER) {
+	if (pktgen_tst_port_flags(info, SEND_FOREVER)) {
 		uint16_t saved = info->q[qid].tx_mbufs.len;
 		uint16_t nb_pkts = info->tx_burst - saved;
 
@@ -1321,7 +1133,7 @@ pktgen_main_receive(port_info_t *info,
 	if (unlikely(info->dump_count > 0))
 		pktgen_packet_dump_bulk(pkts_burst, nb_rx, pid);
 
-	if (unlikely(rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS)) {
+	if (unlikely(pktgen_tst_port_flags(info, CAPTURE_PKTS))) {
 		capture = &pktgen.capture[pktgen.core_info[lid].s.socket_id];
 		if (unlikely((capture->port == pid) &&
 		                (capture->lcore == lid)))
@@ -1396,7 +1208,6 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	uint64_t curr_tsc;
 	uint64_t tx_next_cycle;	/**< Next cycle to send a burst of traffic */
 	uint64_t tx_bond_cycle;
-	uint32_t flags;
 
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
@@ -1448,6 +1259,14 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
 		curr_tsc = rte_get_tsc_cycles();
 
+		if (infos[0]->tx_cycles == 0) {
+			pktgen_get_link_status(infos[0], infos[0]->pid, 0);
+			if (infos[0]->link.link_status) {
+				pktgen_packet_rate(infos[0]);
+				tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+			}
+		}
+
 		/* Determine when is the next time to send packets */
 		if (curr_tsc >= tx_next_cycle) {
 			tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
@@ -1457,10 +1276,8 @@ pktgen_main_rxtx_loop(uint8_t lid)
 		} else if (curr_tsc >= tx_bond_cycle) {
 			tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
 			for (idx = 0; idx < txcnt; idx++) {	/* Transmit zero pkts for Bonding PMD */
-				flags = rte_atomic32_read(&infos[idx]->port_flags);
-				if (flags & BONDING_TX_PACKETS) {
+				if (pktgen_tst_port_flags(infos[idx], BONDING_TX_PACKETS))
 					rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
-				}
 			}
 		}
 	}
@@ -1491,7 +1308,6 @@ pktgen_main_tx_loop(uint8_t lid)
 	uint64_t curr_tsc;
 	uint64_t tx_next_cycle;	/**< Next cycle to send a burst of traffic */
 	uint64_t tx_bond_cycle;
-	uint32_t flags;
 
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
@@ -1504,8 +1320,8 @@ pktgen_main_tx_loop(uint8_t lid)
 	port_map_info(lid, infos, qids, &txcnt, NULL, "TX");
 
 	curr_tsc = rte_get_tsc_cycles();
-	tx_next_cycle = rte_get_tsc_cycles() + infos[0]->tx_cycles;
-	tx_bond_cycle = rte_get_tsc_cycles() + rte_get_timer_hz()/10;
+	tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+	tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
 
 	pg_start_lcore(pktgen.l2p, lid);
 
@@ -1536,10 +1352,11 @@ pktgen_main_tx_loop(uint8_t lid)
 
 		if (infos[0]->tx_cycles == 0) {
 			pktgen_get_link_status(infos[0], infos[0]->pid, 0);
-			if (infos[0]->link.link_status) {
+			if (infos[0]->link.link_status) {	/* wait for link up */
 				pktgen_packet_rate(infos[0]);
 				tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
 			}
+			continue;
 		}
 
 		/* Determine when is the next time to send packets */
@@ -1552,10 +1369,8 @@ pktgen_main_tx_loop(uint8_t lid)
 		} else if (curr_tsc >= tx_bond_cycle) {
 			tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
 			for (idx = 0; idx < txcnt; idx++) {	/* Transmit pkts for Bonding PMD */
-				flags = rte_atomic32_read(&infos[idx]->port_flags);
-				if (flags & BONDING_TX_PACKETS) {
+				if (pktgen_tst_port_flags(infos[idx], BONDING_TX_PACKETS))
 					rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
-				}
 			}
 		}
 	}

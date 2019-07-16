@@ -1205,9 +1205,8 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
  */
 
 static __inline__ void
-pktgen_main_receive(port_info_t *info,
-                    uint8_t lid,
-                    struct rte_mbuf *pkts_burst[])
+pktgen_main_receive(port_info_t *info, uint8_t lid,
+                    struct rte_mbuf *pkts_burst[], uint16_t nb_pkts)
 {
 	uint8_t pid;
 	uint16_t qid, nb_rx;
@@ -1219,7 +1218,7 @@ pktgen_main_receive(port_info_t *info,
 	/*
 	 * Read packet from RX queues and free the mbufs
 	 */
-	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, info->tx_burst)) == 0)
+	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, nb_pkts)) == 0)
 		return;
 
 	pktgen_recv_latency(info, pkts_burst, nb_rx);
@@ -1353,7 +1352,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	}
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		for (idx = 0; idx < rxcnt; idx++)	/* Read Packets */
-			pktgen_main_receive(infos[idx], lid, pkts_burst);
+			pktgen_main_receive(infos[idx], lid, pkts_burst, DEFAULT_PKT_BURST);
 
 		curr_tsc = rte_get_tsc_cycles();
 
@@ -1525,7 +1524,7 @@ pktgen_main_rx_loop(uint8_t lid)
 	}
 	while (pg_lcore_is_running(pktgen.l2p, lid))
 		for (idx = 0; idx < rxcnt; idx++)	/* Read packet */
-			pktgen_main_receive(infos[idx], lid, pkts_burst);
+			pktgen_main_receive(infos[idx], lid, pkts_burst, DEFAULT_PKT_BURST);
 
 	pktgen_log_debug("Exit %d", lid);
 

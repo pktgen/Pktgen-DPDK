@@ -29,7 +29,7 @@ SRCS-y := \
 	pktgen-port-cfg.c pktgen-ipv6.c pktgen-ipv4.c pktgen-arp.c \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
-	pktgen-latency.c
+	pktgen-latency.c pktgen-rate.c
 
 dpdk_ver   := $(RTE_SDK)/xusertools/dpdk-version.sh
 pktgen_ver := $(RTE_SRCDIR)/../tools/dpdk-version.sh

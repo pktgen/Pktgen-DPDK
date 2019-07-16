@@ -22,11 +22,14 @@ typedef struct range_info_s {
 	uint16_t src_port_inc;	/**< Source port increment */
 	uint16_t dst_port_inc;	/**< Destination port increment */
 	uint16_t vlan_id_inc;	/**< VLAN id increment */
-	uint16_t tos_inc;		/**< tos val increment */
-	uint16_t cos_inc;		/**< prio val increment */
+	uint16_t tos_inc;	/**< tos val increment */
+	uint16_t cos_inc;	/**< prio val increment */
 	uint16_t pkt_size_inc;	/**< PKT size increment */
 	uint64_t src_mac_inc;	/**< Source MAC increment */
 	uint64_t dst_mac_inc;	/**< Destination MAC increment */
+	uint8_t ttl_inc;	/**< TTL inc */
+
+	uint8_t pad0[3];
 
 	uint32_t src_ip;	/**< Source starting IP address */
 	uint32_t src_ip_min;	/**< Source IP minimum */
@@ -69,6 +72,10 @@ typedef struct range_info_s {
 	uint64_t src_mac;	/**< Source starting MAC address */
 	uint64_t src_mac_min;	/**< Source minimum MAC address */
 	uint64_t src_mac_max;	/**< Source maximum MAC address */
+
+	uint8_t ttl;		/**< TTL starting */
+	uint8_t ttl_min;	/**< TTL minimum */
+	uint8_t ttl_max;	/**< TTL maximum */
 
 	uint32_t gtpu_teid;	/**< GTP-U TEID starting */
 	uint32_t gtpu_teid_inc;	/**< GTP-U TEID inc */

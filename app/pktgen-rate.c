@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-/* Created 2016 by Keith Wiles @ intel.com */
+/* Created 2019 by Keith Wiles @ intel.com */
 
 #include <stdio.h>
 
@@ -18,6 +18,69 @@
 #if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
 #endif
+
+rate_info_t rates[RTE_MAX_ETHPORTS];
+
+void
+rate_set_value(port_info_t *info, const char *what, uint32_t value)
+{
+	rate_info_t *rate = &rates[info->pid];
+
+	if (!strcmp(what, "fps")) {
+		if (value < 1)
+			value = 1;
+		if (value > 120)
+			value = 120;
+		rate->fps = value;
+		rate->fps_rate = ((double)((double)1/(double)rate->fps))*1000;
+	} else if (!strcmp(what, "color")) {
+		if (value > 60)
+			value = 60;
+		if (value < 1)
+			value = 1;
+		rate->color_bits = value;
+	} else if (!strcmp(what, "overhead")) {
+		if ((rate->payload + value) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
+			rate->overhead = value;
+	} else if (!strcmp(what, "mbps")) {
+		if (value < 1)
+			value = 1;
+		if (value > 100)
+			value = 100;
+		rate->mbps = value;
+	} else if (!strcmp(what, "frame")) {
+		if (value < 360)
+			value = 360;
+		if (value > (8 * 1024))
+			value = (8 * 1024);
+		rate->frame_size = value;
+	} else if (!strcmp(what, "payload")) {
+		if ((value + rate->overhead) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
+			rate->payload = value;
+	}
+}
+
+void
+pktgen_rate_init(void)
+{
+	rate_info_t *rate;
+	int i;
+
+	memset(rates, 0, sizeof(rates));
+
+	for(i = 0; i < RTE_MAX_ETHPORTS; i++) {
+		rate = &rates[i];
+
+		rate->fps = 60;
+		rate->frame_size = 720;
+		rate->color_bits = 12;
+		rate->payload = 800;
+		rate->overhead = 62;
+		rate->mbps = 5;
+		rate->pps = (rate->mbps * Million)/rate->payload;
+		rate->fps_rate = (double)(1.0/(double)rate->fps);
+	}
+}
 
 /**************************************************************************//**
  *
@@ -42,7 +105,7 @@ pktgen_print_static_data(void)
 	int display_cnt;
 
 	pktgen_display_set_color("top.page");
-	display_topline("<Latency Page>");
+	display_topline("<Rate-Pacing Page>");
 
 	pktgen_display_set_color("top.ports");
 	scrn_printf(1, 3, "Ports %d-%d of %d", pktgen.starting_port,
@@ -53,18 +116,28 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Flags:Port");
 
 	/* Labels for dynamic fields (update every second) */
-	pktgen_display_set_color("stats.dyn.label");
+	pktgen_display_set_color("stats.port.linklbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Link State");
+
+	pktgen_display_set_color("stats.port.ratelbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Max/Rx");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Max/Tx");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
 	row++;
+	pktgen_display_set_color("stats.port.sizelbl");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency usec");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter Threshold");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter count");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx pkts");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");
+
+	row++;
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Video FPS/rate");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FrameSz/ColorBits");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Payload/Overhead");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Packet/s");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBps Rate");
 
 	/* Labels for static fields */
 	pktgen_display_set_color("stats.stat.label");
@@ -111,9 +184,12 @@ pktgen_print_static_data(void)
 		        (info->fill_pattern_type == NO_FILL_PATTERN) ? "None" :
 		        (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" :
 		        info->user_pattern);
+
+		pktgen_display_set_color("stats.rate.count");
 		pktgen_transmit_count_rate(pid, buff, sizeof(buff));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		pktgen_display_set_color("stats.stat.values");
 		snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
@@ -127,6 +203,7 @@ pktgen_print_static_data(void)
 		         pkt->vlanid);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+		pktgen_display_set_color("stats.ip");
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_ntop4(buff, sizeof(buff),
 					  htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
@@ -138,6 +215,7 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		rte_eth_dev_info_get(pid, &dev);
+		pktgen_display_set_color("stats.mac");
 #if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 		snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 			dev.pci_dev->id.vendor_id,
@@ -180,7 +258,7 @@ pktgen_print_static_data(void)
 
 /**************************************************************************//**
  *
- * pktgen_page_latency - Display the latency on the screen for all ports.
+ * pktgen_page_rate - Display the rate pacing on the screen for all ports.
  *
  * DESCRIPTION
  * Display the port latency on the screen for all ports.
@@ -191,9 +269,10 @@ pktgen_print_static_data(void)
  */
 
 void
-pktgen_page_latency(void)
+pktgen_page_rate(void)
 {
 	port_info_t *info;
+	rate_info_t *rate;
 	unsigned int pid, col, row;
 	unsigned sp;
 	char buff[32];
@@ -212,6 +291,7 @@ pktgen_page_latency(void)
 			continue;
 
 		info = &pktgen.info[pid + sp];
+		rate = &rates[pid + sp];
 
 		/* Display the disable string when port is not enabled. */
 		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
@@ -234,7 +314,7 @@ pktgen_page_latency(void)
 		scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
 		pktgen_display_set_color(NULL);
 
-		pktgen_display_set_color("stats.stat.values");
+		pktgen_display_set_color("stats.port.rate");
 		/* Rx/Tx pkts/s rate */
 		row = LINK_STATE_ROW + 1;
 		snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
@@ -286,7 +366,8 @@ pktgen_page_latency(void)
 			info->latency_nb_pkts = 0;
 			info->avg_latency     = 0;
 		}
-		snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
+		pktgen_display_set_color("stats.port.sizes");
+		snprintf(buff, sizeof(buff), "%"PRIu64"/%" PRIu64, info->max_latency, avg_lat);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);
@@ -305,6 +386,22 @@ pktgen_page_latency(void)
 		else
 			snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
 
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		row++;
+		snprintf(buff, sizeof(buff), "%d/%4.2fms", rate->fps, rate->fps_rate * 1000.0);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%dp/%d", rate->frame_size, rate->color_bits);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d/%d", rate->payload, rate->overhead);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d MBps", rate->mbps);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%d pps", rate->pps);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;

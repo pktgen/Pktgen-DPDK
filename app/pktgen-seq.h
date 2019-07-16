@@ -47,7 +47,7 @@ typedef struct pkt_seq_s {
 
 	uint16_t pktSize;	/**< Size of packet in bytes not counting FCS */
 	uint8_t seq_enabled;	/**< Enable or disable this sequence through GUI */
-	uint8_t pad0;
+	uint8_t ttl;		/**< TTL value for IPv4 headers */
 	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
 
         RTE_STD_C11

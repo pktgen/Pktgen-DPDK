@@ -25,7 +25,7 @@ typedef struct string_color_map_s {
 
 string_color_map_t string_color_map[] = {
 	{ "black",      SCRN_BLACK       },
-	{ "black",      SCRN_DEFAULT_FG  },
+	{ "white",      SCRN_DEFAULT_FG  },
 	{ "red",        SCRN_RED         },
 	{ "green",      SCRN_GREEN       },
 	{ "yellow",     SCRN_YELLOW      },
@@ -33,12 +33,12 @@ string_color_map_t string_color_map[] = {
 	{ "magenta",    SCRN_MAGENTA     },
 	{ "cyan",       SCRN_CYAN        },
 	{ "white",      SCRN_WHITE       },
-	{ "white",      SCRN_DEFAULT_BG  },
-	{ "default",    SCRN_WHITE       },	/* alias */
+	{ "black",      SCRN_DEFAULT_BG  },
+	{ "default",    SCRN_BLACK       },	/* alias */
 
 	{ "none",       SCRN_NO_CHANGE   },
-	{ "default_fg", SCRN_NO_CHANGE   },
-	{ "default_bg", SCRN_NO_CHANGE   },
+	{ "default_fg", SCRN_WHITE       },
+	{ "default_bg", SCRN_BLACK       },
 	{ NULL, 0 }
 };
 
@@ -94,29 +94,40 @@ theme_color_map_t theme_color_map[] = {
 	/* Port related */
 	{ "stats.port.label",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 	{ "stats.port.flags",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
-	{ "stats.port.status",  SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_BOLD    },
-	{ "stats.port.data",    SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.port.data",    SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_OFF     },
+
+	{ "stats.port.status",  SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.port.linklbl", SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.link",    SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.port.ratelbl", SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.rate",    SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.port.sizelbl", SCRN_CYAN,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.sizes",   SCRN_CYAN,       SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.port.errlbl",  SCRN_RED,        SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.errors",  SCRN_RED,        SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.port.totlbl",  SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.port.totals",  SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_OFF     },
 
 	/* Dynamic elements (updated every second) */
-	{ "stats.dyn.label",    SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_OFF     },
-	{ "stats.dyn.values",   SCRN_YELLOW,     SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.dyn.label",    SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.dyn.values",   SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_OFF     },
 
 	/* Static elements (only update when explicitly set to different value) */
 	{ "stats.stat.label",   SCRN_MAGENTA,    SCRN_NO_CHANGE,  SCRN_OFF     },
-	{ "stats.stat.values",  SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.stat.values",  SCRN_WHITE,      SCRN_NO_CHANGE,  SCRN_OFF    },
 
 	/* Total statistics */
 	{ "stats.total.label",  SCRN_RED,        SCRN_NO_CHANGE,  SCRN_BOLD    },
-	{ "stats.total.data",   SCRN_RED,        SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.total.data",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/* Colon separating labels and values */
 	{ "stats.colon",        SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
 
 	/* Highlight some static values */
-	{ "stats.rate.count",   SCRN_MAGENTA,    SCRN_NO_CHANGE,  SCRN_BOLD    },
-	{ "stats.bdf",          SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
-	{ "stats.mac",          SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_BOLD    },
-	{ "stats.ip",           SCRN_CYAN,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.rate.count",   SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_BOLD    },
+	{ "stats.bdf",          SCRN_BLUE,       SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.mac",          SCRN_GREEN,      SCRN_NO_CHANGE,  SCRN_OFF     },
+	{ "stats.ip",           SCRN_CYAN,       SCRN_NO_CHANGE,  SCRN_OFF     },
 
 	/*
 	 * Misc.

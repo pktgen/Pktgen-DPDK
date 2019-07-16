@@ -40,7 +40,7 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 			value = 1;
 		rate->color_bits = value;
 	} else if (!strcmp(what, "overhead")) {
-		if ((rate->payload_size + value) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
+		if ((rate->payload + value) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
 			rate->overhead = value;
 	} else if (!strcmp(what, "mbps")) {
 		if (value < 1)
@@ -56,7 +56,7 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		rate->frame_size = value;
 	} else if (!strcmp(what, "payload")) {
 		if ((value + rate->overhead) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
-			rate->payload_size = value;
+			rate->payload = value;
 	}
 }
 
@@ -74,10 +74,10 @@ pktgen_rate_init(void)
 		rate->fps = 60;
 		rate->frame_size = 720;
 		rate->color_bits = 12;
-		rate->payload_size = 800;
+		rate->payload = 800;
 		rate->overhead = 62;
 		rate->mbps = 5;
-		rate->pps = (rate->mbps * Million)/rate->payload_size;
+		rate->pps = (rate->mbps * Million)/rate->payload;
 		rate->fps_rate = (double)(1.0/(double)rate->fps);
 	}
 }
@@ -133,7 +133,7 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");
 
 	row++;
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FPS/rate");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Video FPS/rate");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FrameSz/ColorBits");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Payload/Overhead");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Packet/s");
@@ -395,7 +395,7 @@ pktgen_page_rate(void)
 		snprintf(buff, sizeof(buff), "%dp/%d", rate->frame_size, rate->color_bits);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d/%d", rate->payload_size, rate->overhead);
+		snprintf(buff, sizeof(buff), "%d/%d", rate->payload, rate->overhead);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%d MBps", rate->mbps);

@@ -24,7 +24,7 @@ typedef struct {
 	uint16_t	fps;
 	uint16_t	frame_size;
 	uint16_t	color_bits;
-	uint16_t	payload_size;
+	uint16_t	payload;
 	uint16_t	overhead;
 	uint16_t	pad0;
 	uint32_t	mbps;

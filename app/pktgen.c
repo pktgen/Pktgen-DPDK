@@ -14,6 +14,7 @@
 #include <lua_config.h>
 #include <rte_net.h>
 #include <rte_arp.h>
+#include <rte_cycles.h>
 
 #include "pktgen.h"
 #include "pktgen-gre.h"
@@ -30,6 +31,9 @@
 #include "pktgen-gtpu.h"
 #include "pktgen-cfg.h"
 #include "pktgen-rate.h"
+
+#include <pthread.h>
+#include <sched.h>
 
 #define PKTGEN_RETRY_COUNT	1000
 
@@ -88,7 +92,6 @@ pktgen_packet_rate(port_info_t *info)
 
 	info->tx_pps    = pps;
 	info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid));
-printf("tx_cycles %ld\n", info->tx_cycles);
 }
 
 /**************************************************************************//**
@@ -268,7 +271,7 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 
 /**************************************************************************//**
  *
- * _send_burst_fast - Send a burst of packet as fast as possible.
+ * pktgen_send_burst - Send a burst of packet as fast as possible.
  *
  * DESCRIPTION
  * Transmit a burst of packets to a given port.
@@ -279,25 +282,27 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
  */
 
 static __inline__ void
-_send_burst_fast(port_info_t *info, uint16_t qid, int32_t seq_idx)
+pktgen_send_burst(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, sav, retry, tap, rnd, tstamp;
+	uint32_t ret, cnt, tap, rnd, tstamp;
+	int32_t seq_idx;
+
+	if (pktgen_tst_port_flags(info, SEND_RANGE_PKTS))
+		seq_idx = RANGE_PKT;
+	else
+		seq_idx = SINGLE_PKT;
 
 	cnt = mtab->len;
-	sav = cnt;
 	mtab->len = 0;
-
 	pkts = mtab->m_table;
-
-	retry = PKTGEN_RETRY_COUNT;
 
 	tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
 	rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
 	tstamp = pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS));
 
-	while (cnt && retry--) {
+	while (cnt && pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 
 		if (rnd)
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
@@ -314,23 +319,11 @@ _send_burst_fast(port_info_t *info, uint16_t qid, int32_t seq_idx)
 		cnt -= ret;
 	}
 	if (cnt) {
-		rte_memcpy(&mtab->m_table[0], &mtab->m_table[sav - cnt],
-		           sizeof(char *) * cnt);
-		mtab->len = cnt;
+		int i;
+
+		for (i = 0; i < mtab->len; i++)
+			rte_pktmbuf_free(mtab->m_table[i]);
 	}
-}
-
-static __inline__ void
-pktgen_send_burst(port_info_t *info, uint16_t qid)
-{
-	int32_t seq_idx;
-
-	if (pktgen_tst_port_flags(info, SEND_RANGE_PKTS))
-		seq_idx = RANGE_PKT;
-	else
-		seq_idx = SINGLE_PKT;
-
-	_send_burst_fast(info, qid, seq_idx);
 }
 
 static __inline__ void
@@ -1012,15 +1005,16 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 	int rc = 0;
 
 	if (pktgen_tst_port_flags(info, SEND_FOREVER)) {
-		uint16_t saved = info->q[qid].tx_mbufs.len;
-		uint16_t nb_pkts = info->tx_burst - saved;
+		uint16_t len = info->q[qid].tx_mbufs.len, cnt = 0;
 
-		if (likely(nb_pkts > 0))
+		if (len < info->tx_burst) {
+			cnt = info->tx_burst - len;
 			rc = pg_pktmbuf_alloc_bulk(mp,
-				&info->q[qid].tx_mbufs.m_table[saved],
-				nb_pkts);
+				&info->q[qid].tx_mbufs.m_table[len], cnt);
+		}
+
 		if (rc == 0) {
-			info->q[qid].tx_mbufs.len = info->tx_burst;
+			info->q[qid].tx_mbufs.len += cnt;
 			pktgen_send_burst(info, qid);
 		}
 	} else {
@@ -1029,12 +1023,11 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count, info->tx_burst);
 		if (txCnt > 0) {
 			uint16_t saved = info->q[qid].tx_mbufs.len;
-			uint16_t nb_pkts = txCnt - saved;
 
-			if (likely(nb_pkts > 0))
+			if (saved < info->tx_burst)
 				rc = pg_pktmbuf_alloc_bulk(mp,
 					&info->q[qid].tx_mbufs.m_table[saved],
-					nb_pkts);
+					txCnt - saved);
 			if (rc == 0) {
 				info->q[qid].tx_mbufs.len = txCnt;
 
@@ -1108,9 +1101,8 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
  */
 
 static __inline__ void
-pktgen_main_receive(port_info_t *info,
-                    uint8_t lid,
-                    struct rte_mbuf *pkts_burst[])
+pktgen_main_receive(port_info_t *info, uint8_t lid,
+                    struct rte_mbuf *pkts_burst[], uint16_t nb_pkts)
 {
 	uint8_t pid;
 	uint16_t qid, nb_rx;
@@ -1122,7 +1114,7 @@ pktgen_main_receive(port_info_t *info,
 	/*
 	 * Read packet from RX queues and free the mbufs
 	 */
-	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, info->tx_burst)) == 0)
+	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, nb_pkts)) == 0)
 		return;
 
 	pktgen_recv_tstamp(info, pkts_burst, nb_rx);
@@ -1255,7 +1247,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	}
 	while (pg_lcore_is_running(pktgen.l2p, lid)) {
 		for (idx = 0; idx < rxcnt; idx++)	/* Read Packets */
-			pktgen_main_receive(infos[idx], lid, pkts_burst);
+			pktgen_main_receive(infos[idx], lid, pkts_burst, DEFAULT_PKT_BURST);
 
 		curr_tsc = rte_get_tsc_cycles();
 
@@ -1431,7 +1423,7 @@ pktgen_main_rx_loop(uint8_t lid)
 	}
 	while (pg_lcore_is_running(pktgen.l2p, lid))
 		for (idx = 0; idx < rxcnt; idx++)	/* Read packet */
-			pktgen_main_receive(infos[idx], lid, pkts_burst);
+			pktgen_main_receive(infos[idx], lid, pkts_burst, DEFAULT_PKT_BURST);
 
 	pktgen_log_debug("Exit %d", lid);
 
@@ -1563,22 +1555,25 @@ _timer_thread(void *arg)
 	process_timo = pktgen.hz;
 	page_timo = UPDATE_DISPLAY_TICK_RATE;
 
-	process = rte_rdtsc() + process_timo;
-	page = rte_rdtsc() + page_timo;
+	page = rte_get_tsc_cycles();
+	process = page + process_timo;
+	page += page_timo;
+
 	pktgen.timer_running = 1;
 
 	while(pktgen.timer_running) {
 		uint64_t curr;
 
-		curr = rte_rdtsc();
+		curr = rte_get_tsc_cycles();
 
 		if (curr >= process) {
+			process = curr + process_timo;
 			pktgen_process_stats(NULL, NULL);
-			process += process_timo;
 		}
+
 		if (curr >= page) {
-			pktgen_page_display(NULL, NULL);
 			page = curr + page_timo;
+			pktgen_page_display(NULL, NULL);
 		}
 
 		rte_pause();
@@ -1601,7 +1596,14 @@ _timer_thread(void *arg)
 void
 rte_timer_setup(void)
 {
+	rte_cpuset_t cpuset_data;
+	rte_cpuset_t *cpuset = &cpuset_data;
 	pthread_t tid;
 
+	CPU_ZERO(cpuset);
+
 	pthread_create(&tid, NULL, _timer_thread, this_scrn);
+
+	CPU_SET(rte_get_master_lcore(), cpuset);
+	pthread_setaffinity_np(tid, sizeof(cpuset), cpuset);
 }

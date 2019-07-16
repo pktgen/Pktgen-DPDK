@@ -291,6 +291,7 @@ pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 
 	do {
 		int64_t tmp1 = v->cnt;
+		
 		if (tmp1 == 0)
 			return 0;
 		tmp2 = likely(tmp1 > burst) ? burst : tmp1;

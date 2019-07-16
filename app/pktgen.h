@@ -376,6 +376,8 @@ pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 int pktgen_launch_one_lcore(void *arg);
 uint64_t pktgen_wire_size(port_info_t *info);
 void pktgen_input_start(void);
+void stat_timer_dump(void);
+void stat_timer_clear(void);
 
 void rte_timer_setup(void);
 

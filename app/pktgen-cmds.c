@@ -847,8 +847,7 @@ pktgen_save(char *path)
 int
 pktgen_port_transmitting(int port)
 {
-	return rte_atomic32_read(&pktgen.info[port].port_flags) &
-	       SENDING_PACKETS;
+	return pktgen_tst_port_flags(&pktgen.info[port], SENDING_PACKETS);
 }
 
 /**************************************************************************//**
@@ -1436,7 +1435,7 @@ pktgen_start_transmitting(port_info_t *info)
 {
 	uint8_t q;
 
-	if (!(rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) ) {
+	if (!pktgen_tst_port_flags(info, SENDING_PACKETS) ) {
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 
@@ -1469,7 +1468,7 @@ pktgen_stop_transmitting(port_info_t *info)
 {
 	uint8_t q;
 
-	if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
+	if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, DO_TX_FLUSH);
@@ -1597,12 +1596,20 @@ enable_pcap(port_info_t *info, uint32_t state)
 void
 enable_rate(port_info_t *info, uint32_t state)
 {
+	pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
+	rate_info_t *rate = &rates[info->pid];
+
 	if (state == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
 		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RATE_PACKETS);
-	} else
+		info->tx_burst = 1;
+		pkt->pktSize = (rate->payload + rate->overhead) - PG_ETHER_CRC_LEN;
+	} else {
 		pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
+		info->tx_burst = DEFAULT_PKT_BURST;
+		pkt->pktSize = PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN;
+	}
 }
 
 /**************************************************************************//**
@@ -2879,7 +2886,7 @@ void
 enable_range(port_info_t *info, uint32_t state)
 {
 	if (state == ENABLE_STATE) {
-		if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
+		if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 			pktgen_log_warning("Cannot enable the range settings while sending packets!");
 			return;
 		}

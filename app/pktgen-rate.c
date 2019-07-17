@@ -19,12 +19,64 @@
 #include <rte_bus_pci.h>
 #endif
 
-rate_info_t rates[RTE_MAX_ETHPORTS];
+/**************************************************************************//**
+ *
+ * pktgen_wire_size - Calculate the wire size of the data to be sent.
+ *
+ * DESCRIPTION
+ * Calculate the number of bytes/bits in a burst of traffic.
+ *
+ * RETURNS: Number of bytes in a burst of packets.
+ *
+ * SEE ALSO:
+ */
+
+static uint64_t
+wire_size(rate_info_t *rate)
+{
+	return (uint64_t)((rate->payload + rate->overhead + PKT_OVERHEAD_SIZE) * 8);
+}
+
+/**************************************************************************//**
+ *
+ * pktgen_cycles_per_pkt - Calculate the transmit bit rate
+ *
+ * DESCRIPTION
+ * Calculate the number of cycles to wait between sending bursts of traffic.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static uint64_t
+cycles_per_pkt(rate_info_t *rate)
+{
+	uint64_t bpp = wire_size(rate);
+	uint64_t pps = (rate->mbps * Million) / bpp;
+	double spp = 1.0/(double)pps;
+	uint64_t hz = pktgen.hz;
+
+//	printf("%s: pkt size %lu bits, rate %d Mbps, %lu pps\n", __func__, bpp, rate->mbps, pps);
+//	printf("%s: cycles/s %lu cycles/ms %lu, cycles/us %lu\n", __func__, hz, hz/1000, hz/1000000);
+//	printf("%s: %lu cycles/s * %.5f spp = %.0f cycles/p\n", __func__, hz, spp, (double)hz * spp);
+
+	return (uint64_t)((double)hz * spp);
+}
+
+static void
+calculate_rate(rate_info_t *rate)
+{
+	rate->pps = (rate->mbps * Million)/rate->payload;
+	rate->fps_rate = (double)(1.0/(double)rate->fps);
+
+	rate->cycles_per_pkt = cycles_per_pkt(rate);
+}
 
 void
 rate_set_value(port_info_t *info, const char *what, uint32_t value)
 {
-	rate_info_t *rate = &rates[info->pid];
+	rate_info_t *rate = &info->rate;
 
 	if (!strcmp(what, "fps")) {
 		if (value < 1)
@@ -34,8 +86,8 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		rate->fps = value;
 		rate->fps_rate = ((double)((double)1/(double)rate->fps))*1000;
 	} else if (!strcmp(what, "color")) {
-		if (value > 60)
-			value = 60;
+		if (value > 32)
+			value = 32;
 		if (value < 1)
 			value = 1;
 		rate->color_bits = value;
@@ -58,28 +110,28 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		if ((value + rate->overhead) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
 			rate->payload = value;
 	}
+	calculate_rate(rate);
 }
 
 void
-pktgen_rate_init(void)
+pktgen_rate_init(port_info_t *info)
 {
-	rate_info_t *rate;
-	int i;
+	rate_info_t *rate = &info->rate;
 
-	memset(rates, 0, sizeof(rates));
+	rate->fps = 60;
+	rate->frame_size = 800;
+	rate->color_bits = 12;
+	rate->payload = 800;
+	rate->overhead = 62;
+	rate->mbps = 5;
 
-	for(i = 0; i < RTE_MAX_ETHPORTS; i++) {
-		rate = &rates[i];
+	calculate_rate(rate);
+}
 
-		rate->fps = 60;
-		rate->frame_size = 720;
-		rate->color_bits = 12;
-		rate->payload = 800;
-		rate->overhead = 62;
-		rate->mbps = 5;
-		rate->pps = (rate->mbps * Million)/rate->payload;
-		rate->fps_rate = (double)(1.0/(double)rate->fps);
-	}
+void
+update_rate_values(port_info_t *info)
+{
+	calculate_rate(&info->rate);
 }
 
 /**************************************************************************//**
@@ -136,8 +188,8 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Video FPS/rate");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FrameSz/ColorBits");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Payload/Overhead");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Packet/s");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBps Rate");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Packets / sec");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Mbps : Cycles/p");
 
 	/* Labels for static fields */
 	pktgen_display_set_color("stats.stat.label");
@@ -291,7 +343,7 @@ pktgen_page_rate(void)
 			continue;
 
 		info = &pktgen.info[pid + sp];
-		rate = &rates[pid + sp];
+		rate = &info->rate;
 
 		/* Display the disable string when port is not enabled. */
 		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
@@ -398,10 +450,10 @@ pktgen_page_rate(void)
 		snprintf(buff, sizeof(buff), "%d/%d", rate->payload, rate->overhead);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d MBps", rate->mbps);
+		snprintf(buff, sizeof(buff), "%d pps", rate->pps);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d pps", rate->pps);
+		snprintf(buff, sizeof(buff), "%d : %lu", rate->mbps, rate->cycles_per_pkt);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;

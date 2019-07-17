@@ -20,28 +20,12 @@ typedef struct {
 	uint16_t magic;
 } rate_stamp_t;
 
-typedef struct {
-	uint16_t	fps;
-	uint16_t	frame_size;
-	uint16_t	color_bits;
-	uint16_t	payload;
-	uint16_t	overhead;
-	uint16_t	pad0;
-	uint32_t	mbps;
-	uint32_t	pps;
-	double		fps_rate;
-	uint64_t	curr_tsc;
-	uint64_t	cycles_per_packet;
-	uint64_t	next_tsc;
-} rate_info_t;
-
 #define RATE_MAGIC   (('R' << 8) + 'y')
 
-extern rate_info_t rates[RTE_MAX_ETHPORTS];
-
-void pktgen_rate_init(void);
+void pktgen_rate_init(port_info_t *info);
 void pktgen_page_rate(void);
 void rate_set_value(port_info_t *info, const char *what, uint32_t value);
+void update_rate_values(port_info_t *info);
 
 #ifdef __cplusplus
 }

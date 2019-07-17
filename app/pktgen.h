@@ -84,6 +84,7 @@
 #include "pktgen-capture.h"
 #include "pktgen-log.h"
 #include "pktgen-latency.h"
+#include "pktgen-random.h"
 #include "pktgen-rate.h"
 #include "pktgen-seq.h"
 
@@ -378,7 +379,6 @@ uint64_t pktgen_wire_size(port_info_t *info);
 void pktgen_input_start(void);
 void stat_timer_dump(void);
 void stat_timer_clear(void);
-
 void rte_timer_setup(void);
 
 typedef struct {

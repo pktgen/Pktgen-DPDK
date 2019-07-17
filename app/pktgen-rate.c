@@ -110,7 +110,7 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		if ((value + rate->overhead) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
 			rate->payload = value;
 	}
-	calculate_rate(rate);
+	update_rate_values(info);
 }
 
 void
@@ -131,7 +131,14 @@ pktgen_rate_init(port_info_t *info)
 void
 update_rate_values(port_info_t *info)
 {
-	calculate_rate(&info->rate);
+	rate_info_t *rate = &info->rate;
+
+	calculate_rate(rate);
+
+	info->tx_cycles = info->rate.cycles_per_pkt;
+	info->tx_pps = info->rate.pps;
+	info->tx_burst = 1;
+	info->seq_pkt[SINGLE_PKT].pktSize = (rate->payload + rate->overhead) - PG_ETHER_CRC_LEN;
 }
 
 /**************************************************************************//**

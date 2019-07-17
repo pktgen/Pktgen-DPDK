@@ -461,7 +461,7 @@ Example:
 				break;
 			case 20:
 				portlist_parse(argv[1], &portlist);
-				rte_ether_aton(argv[3], &mac);
+				pg_ether_aton(argv[3], &mac);
 				cli_printf("   Show Portlist: %08x, MAC: "
 						"%02x:%02x:%02x:%02x:%02x:%02x\n",
 						   portlist,
@@ -474,7 +474,7 @@ Example:
 				break;
 			case 30:
 				portlist_parse(argv[1], &portlist);
-				rte_ether_aton(argv[5], &mac);
+				pg_ether_aton(argv[5], &mac);
 				cli_printf("   Show Portlist: %08x vlan %d MAC: "
 						"%02x:%02x:%02x:%02x:%02x:%02x\n",
 						   portlist,
@@ -488,7 +488,7 @@ Example:
 				break;
 			case 40:
 				portlist_parse(argv[1], &portlist);
-				rte_ether_aton("1234:4567:8901", &mac);
+				pg_ether_aton("1234:4567:8901", &mac);
 				cli_printf("   Show Portlist: %08x %s: ",
 						   portlist, argv[2]);
 				if (argv[2][0] == 'm')

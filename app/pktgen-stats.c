@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-#include <_delay.h>
+#include <pg_delay.h>
 #include <lua_config.h>
 
 #include "pktgen-cmds.h"

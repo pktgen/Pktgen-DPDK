@@ -57,7 +57,7 @@
 #include <rte_byteorder.h>
 #include <rte_errno.h>
 
-#include "_pcap.h"
+#include "pg_pcap.h"
 #include "pg_inet.h"
 
 /**************************************************************************//**

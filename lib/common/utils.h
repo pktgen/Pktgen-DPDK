@@ -24,13 +24,20 @@ pg_strdupf(char *str, char *new) {
 	return (new == NULL) ? NULL : strdup(new);
 }
 
-/**************************************************************************//**
+/**
  * Trim a set of characters like "[]" or "{}" from the start and end of string.
- * The <set> string is a set of two character values to be removed from the string.
- * The <set> string must be an even number of characters long as each set is
- * two characters and can be any characters you want to call a set.
+ *
+ * @param str
+ *   A null terminated string to be trimmed.
+ * @param set
+ *   The <set> string is a set of two character values to be removed from the
+ *   <str>. Removes only one set at a time, if you have more then one set to
+ *   remove then you must call the routine for each set. The <set> string must
+ *   be two characters and can be any characters you
+ *   want to call a set.
+ * @return
+ *   Pointer to the trimmed string or NULL on error
  */
-
 static __inline__ char *
 pg_strtrimset(char *str, const char *set)
 {
@@ -58,7 +65,9 @@ uint32_t pg_strparse(char *s,
 			    const char *delim,
 			    char **entries,
 			    uint32_t max_entries);
+#if 0
 char *pg_strtrim(char *line);
+#endif
 char *pg_strccpy(char *t, char *f, const char *str);
 
 #ifdef __cplusplus

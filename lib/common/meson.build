@@ -6,8 +6,8 @@ sources = files(
 	'lscpu.c',
 	'utils.c',
 	'coremap.c',
-	'_pcap.c',
-	'_strings.c',
+	'pg_pcap.c',
+	'pg_strings.c',
 	'cksum.c',
 	'l2p.c'
 )
@@ -19,15 +19,15 @@ headers = files(
 	'copyright_info.h',
 	'core_info.h',
 	'coremap.h',
-	'_delay.h',
+	'pg_delay.h',
 	'l2p.h',
 	'lscpu.h',
 	'mbuf.h',
-	'_pcap.h',
+	'pg_pcap.h',
 	'pg_ether.h',
 	'pg_inet.h',
 	'port_config.h',
-	'_strings.h',
+	'pg_strings.h',
 	'utils.h'
 )
 

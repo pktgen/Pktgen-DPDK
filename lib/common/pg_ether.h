@@ -33,7 +33,7 @@ extern "C" {
  *   Pointer to the struct pg_ether_addr structure;
  */
 static inline struct pg_ether_addr *
-rte_ether_aton(const char *a, struct pg_ether_addr *e)
+pg_ether_aton(const char *a, struct pg_ether_addr *e)
 {
     int i;
     char *end;

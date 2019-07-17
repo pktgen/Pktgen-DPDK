@@ -2,7 +2,7 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
-#include "_strings.h"
+#include "pg_strings.h"
 #include "_atoip.h"
 
 /* isblank() needs _XOPEN_SOURCE >= 600 || _ISOC99_SOURCE, so use our own. */

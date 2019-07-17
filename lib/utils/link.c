@@ -9,7 +9,7 @@
 #include <rte_version.h>
 #include <rte_ethdev.h>
 #include <rte_cycles.h>
-#include <_delay.h>
+#include <pg_delay.h>
 
 #include "portlist.h"
 #include "link.h"

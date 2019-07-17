@@ -22,6 +22,7 @@
 #include <getopt.h>
 #include <termios.h>
 
+#include <pg_strings.h>
 #include "utils.h"
 
 #define MAX_PARSE_SIZE      256
@@ -44,8 +45,8 @@
  *
  * \NOMANUAL
  */
-char *
-pg_strtrim(char *str)
+static char *
+_strtrim(char *str)
 {
 	char      *p;
 	int len;
@@ -90,7 +91,7 @@ pg_strparse(char *str, const char *delim, char **entries, uint32_t max_entries)
 		if (entries[i] == NULL)	/* We are done. */
 			break;
 
-		entries[i] = pg_strtrim(entries[i]);
+		entries[i] = _strtrim(entries[i]);
 	}
 
 	return i;

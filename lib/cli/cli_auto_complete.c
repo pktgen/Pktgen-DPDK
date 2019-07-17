@@ -5,7 +5,7 @@
 #include <fnmatch.h>
 
 #include <rte_string_fns.h>
-#include <_strings.h>
+#include <pg_strings.h>
 
 #include "cli.h"
 #include "cli_input.h"
@@ -106,7 +106,7 @@ complete_args(int argc, char **argv, uint32_t types)
 		char *p;
 
 		/* Count the number of slashes in the path */
-		slashes = rte_strcnt(match, '/');
+		slashes = pg_strcnt(match, '/');
 
 		if (slashes) {
 			/* full path to command given */
@@ -194,7 +194,7 @@ cli_auto_complete(void)
 
 	gb_copy_to_buf(this_cli->gb, line, size);
 
-	argc = rte_strtok(line, " \r\n", argv, CLI_MAX_ARGVS);
+	argc = pg_strtok(line, " \r\n", argv, CLI_MAX_ARGVS);
 
 	if (argc == 0) {
 		ret = complete_args(argc, argv, CLI_ALL_TYPE);

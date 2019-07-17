@@ -176,7 +176,7 @@ getf_etheraddr(lua_State *L, const char *field, struct pg_ether_addr *value)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) )
-		rte_ether_aton(luaL_checkstring(L, -1), value);
+		pg_ether_aton(luaL_checkstring(L, -1), value);
 	lua_pop(L, 1);
 }
 

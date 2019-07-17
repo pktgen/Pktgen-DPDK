@@ -5,6 +5,8 @@ project('pktgen', 'C',
 	meson_version: '>= 0.47.1'
 )
 
+pktgen_conf = configuration_data()
+
 cmd = run_command('sh', '-c', 'echo $RTE_SDK')
 if cmd.returncode() == 0
 	rte_sdk = cmd.stdout().strip()
@@ -23,10 +25,29 @@ else
   error('Please set RTE_TARGET')
 endif
 
+dfs_libraries = []
+dfs_libdir = []
+dfs_incs = []
+if get_option('link_dfs') == true
+	cmd = run_command('sh', '-c', 'echo $PME_SDK')
+	if cmd.returncode() == 0
+		pme_sdk = cmd.stdout().strip()
+		dfs_libdir = pme_sdk + '/build/lib'
+		dfs_incs = include_directories(pme_sdk + '/build/inc')
+	elif get_option('dfs_libdir') != ''
+		dfs_libdir = get_option('dfs_libdir')
+		dfs_incs = include_directories(get_option('dfs_incdir'))
+	else
+	  # not found, do fallback
+	  error('Please set PME_SDK or dfs_libdir in meson_options.txt file')
+	endif
+	message('PME_SDK=' + pme_sdk)
+	message('dfs_libdir=' + dfs_libdir)
+endif
+
 # set up some global vars for compiler, platform, configuration, etc.
 cc = meson.get_compiler('c')
 
-pktgen_conf = configuration_data()
 dpdk_libraries = []
 dpdk_static_libraries = []
 dpdk_drivers = []
@@ -52,7 +73,7 @@ if get_option('lib_dir') != ''
 	endif
 endif
 
-message('Using dpkd_libdir = ' + dpdk_libdir)
+message('Using dpdk_libdir = ' + dpdk_libdir)
 
 subdir('lib')
 subdir('app')
@@ -61,7 +82,7 @@ pkg = import('pkgconfig')
 pkg.generate(name: meson.project_name(),
         filebase: 'lib' + meson.project_name().to_lower(),
         version: meson.project_version(),
-        libraries: dpdk_libraries,
+        libraries: [dpdk_libraries, dfs_libraries],
         libraries_private: dpdk_drivers + dpdk_static_libraries +
                         ['-Wl,-Bdynamic'] + dpdk_extra_ldflags,
         description: '''The Data Plane Development Kit (DPDK).

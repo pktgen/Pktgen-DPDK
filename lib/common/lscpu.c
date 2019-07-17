@@ -11,6 +11,7 @@
 #include <getopt.h>
 #include <stdint.h>
 
+#include <pg_strings.h>
 #include "utils.h"
 #include "lscpu.h"
 

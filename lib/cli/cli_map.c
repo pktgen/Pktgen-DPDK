@@ -3,7 +3,7 @@
  */
 
 #include <rte_string_fns.h>
-#include <_strings.h>
+#include <pg_strings.h>
 
 #include "cli.h"
 
@@ -23,10 +23,10 @@ cli_map_list_search(const char *fmt, char *item, int index)
 	memset(opts, '\0', sizeof(opts));
 
 	snprintf(buf, size, "%s", fmt);
-	rte_strtok(buf, " ", opts, CLI_MAX_ARGVS);
+	pg_strtok(buf, " ", opts, CLI_MAX_ARGVS);
 
 	/* Skip the %| in the string options */
-	return rte_stropt(&opts[index][2], item, "|");
+	return pg_stropt(&opts[index][2], item, "|");
 }
 
 static int
@@ -85,7 +85,7 @@ is_map_valid(const char *fmt, char *arg)
 			if (isdigit(*arg) || (*arg == 'a')) ret = 1;
 			break;
 		case '|':
-			return (rte_stropt(&fmt[1], arg, "|") == -1) ? 0 : 1;
+			return (pg_stropt(&fmt[1], arg, "|") == -1) ? 0 : 1;
 		case 'l':
 			ret = 1;
 			break;
@@ -112,7 +112,7 @@ cli_mapping(struct cli_map *maps, int argc, char **argv)
 	for (i = 0; (m = maps[i].fmt) != NULL; i++) {
 		strcpy(p, m);
 
-		nb_args = rte_strtok(p, " ", map, CLI_MAX_ARGVS);
+		nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
 		/* display the cli MAP if present as some help */
 		if (!strcmp("-?", argv[argc - 1]) ||
@@ -131,7 +131,7 @@ cli_mapping(struct cli_map *maps, int argc, char **argv)
 				if (!is_map_valid(map[j], argv[j]))
 					ok = 0;
 				/* a constant string match valid */
-			} else if (!rte_strmatch(map[j], argv[j]))
+			} else if (!pg_strmatch(map[j], argv[j]))
 				ok = 0;
 		}
 
@@ -196,7 +196,7 @@ decode_map(const char *fmt)
 		break;
 	case '|':
 		cli_printf("[");
-		n = rte_strtok(&line[2], "|", argv, CLI_MAX_ARGVS);
+		n = pg_strtok(&line[2], "|", argv, CLI_MAX_ARGVS);
 		for (i = 0; i < n; i++)
 			cli_printf("%s%s", argv[i], (i < (n - 1)) ? "|" : "");
 		cli_printf("] ");
@@ -223,7 +223,7 @@ cli_map_show(struct cli_map *m)
 
 	strcpy(p, m->fmt);
 
-	nb_args = rte_strtok(p, " ", map, CLI_MAX_ARGVS);
+	nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
 	cli_printf("  %s ", map[0]);
 	for (i = 1; i < nb_args; i++)
@@ -248,7 +248,7 @@ cli_maps_show(struct cli_map *maps, int argc, char **argv)
 
 		strcpy(line, m->fmt);
 
-		nb_args = rte_strtok(line, " ", map, CLI_MAX_ARGVS);
+		nb_args = pg_strtok(line, " ", map, CLI_MAX_ARGVS);
 
 		if (nb_args && !strcmp(argv[0], map[0]))
 			cli_map_show(m);
@@ -280,7 +280,7 @@ cli_map_dump(struct cli_map *maps, int argc, char **argv)
 
 	strcpy(p, m->fmt);
 
-	nb_args = rte_strtok(p, " ", map, CLI_MAX_ARGVS);
+	nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
 	cli_printf("%4d - %s == %s\n", m->index, argv[0], map[0]);
 	for (i = 1; i < argc && i < nb_args; i++)

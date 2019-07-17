@@ -25,6 +25,7 @@
 #include <rte_debug.h>
 #include <rte_memory.h>
 
+#include <pg_strings.h>
 #include "l2p.h"
 #include "core_info.h"
 #include "utils.h"
@@ -179,8 +180,10 @@ pg_parse_lcore_list(char *list, ls_t *ls)
 
 	/* trim the two character sets from the front/end of string. */
 	p = pg_strtrimset(list, "[]{}");
-	if ( (p == NULL) || (*p == '\0') )
+	if ( (p == NULL) || (*p == '\0') ) {
+		fprintf(stderr, "*** List %s\n", list);
 		return 1;
+	}
 
 	/* Split up the string based on the ':' for Rx:Tx pairs */
 	k = pg_strparse(p, ":", arr, countof(arr) );
@@ -193,11 +196,15 @@ pg_parse_lcore_list(char *list, ls_t *ls)
 		pg_parse_rt_list(arr[0], ls->rbits);		/* Parse the list with no ':' character */
 		pg_parse_rt_list(arr[0], ls->tbits);		/* Parse the list with no ':' character */
 	} else {	/* k == 2 Must be a <rx-list>:<tx-list> pair */
-		if (pg_parse_rt_list(arr[0], ls->rbits) )		/* parse <rx-list> */
+		if (pg_parse_rt_list(arr[0], ls->rbits) ) {	/* parse <rx-list> */
+			fprintf(stderr, "*** Unable to parse rx-list\n");
 			return 1;
+		}
 
-		if (pg_parse_rt_list(arr[1], ls->tbits) )	/* parse <tx-list> */
+		if (pg_parse_rt_list(arr[1], ls->tbits) ) {	/* parse <tx-list> */
+			fprintf(stderr, "*** Unable to parse tx-list\n");
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -228,7 +235,7 @@ pg_parse_port_list(char *list, ps_t *ps)
 	/* Split up the string based on the ':' for Rx:Tx pairs */
 	k = pg_strparse(p, ":", arr, countof(arr) );
 	if ( (k == 0) || (k == 3) ) {
-		fprintf(stderr, "*** Invalid string (%s)\n", p);
+		fprintf(stderr, "%s: *** Invalid string (%s)\n", __func__, p);
 		return 1;
 	}
 
@@ -236,11 +243,15 @@ pg_parse_port_list(char *list, ps_t *ps)
 		pg_parse_rt_list(arr[0], ps->rbits);		/* Parse the list with no ':' character */
 		pg_parse_rt_list(arr[0], ps->tbits);		/* Parse the list with no ':' character */
 	} else {	/* k == 2 Must be a <rx-list>:<tx-list> pair */
-		if (pg_parse_rt_list(arr[0], ps->rbits) )	/* parse <rx-list> */
+		if (pg_parse_rt_list(arr[0], ps->rbits) ) {	/* parse <rx-list> */
+			fprintf(stderr, "%s: *** parse <rx-list] (%s)\n", __func__, arr[0]);
 			return 1;
+		}
 
-		if (pg_parse_rt_list(arr[1], ps->tbits) )	/* parse <tx-list> */
+		if (pg_parse_rt_list(arr[1], ps->tbits) ) {	/* parse <tx-list> */
+			fprintf(stderr, "%s: *** parse <tx-list> (%s)\n", __func__, arr[0]);
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -328,7 +339,7 @@ pg_parse_matrix(l2p_t *l2p, char *str)
 		}
 
 		if (pg_parse_lcore_list(arr[0], &lp->lcores) ) {
-			fprintf(stderr, "%s: could not parse <lcore-list> (%s) string\n",
+			fprintf(stderr, "%s: Could not parse <lcore-list> (%s) string\n",
 				__func__, arr[0]);
 			goto leave;
 		}

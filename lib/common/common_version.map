@@ -3,3 +3,7 @@ DPDK_18.02 {
 
 	local: *;
 };
+
+EXPERIMENTAL {
+	global: *;
+}

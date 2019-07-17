@@ -2,7 +2,7 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
-#include "_strings.h"
+#include "pg_strings.h"
 #include "portlist.h"
 
 #define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
@@ -64,7 +64,7 @@ portlist_parse(const char *str, portlist_t *portlist)
 	memcpy(s, str, n);
 	s[n] = '\0';
 
-	n = rte_strtok(s, ",", split, MAX_SPLIT);
+	n = pg_strtok(s, ",", split, MAX_SPLIT);
 	if (!n)
 		return 0;
 

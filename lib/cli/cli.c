@@ -11,7 +11,7 @@
 #include <rte_timer.h>
 #include <rte_log.h>
 #include <rte_string_fns.h>
-#include <_strings.h>
+#include <pg_strings.h>
 #include <rte_pause.h>
 
 #include "cli.h"
@@ -297,7 +297,7 @@ cli_add_dir(const char *name, struct cli_node *dir)
 		path[0] = '/';	/* Add root to the path */
 	}
 
-	cnt = rte_strtok(p, "/", argv, CLI_MAX_ARGVS);
+	cnt = pg_strtok(p, "/", argv, CLI_MAX_ARGVS);
 
 	n = NULL;
 	for (i = 0; i < cnt; i++) {
@@ -473,7 +473,7 @@ cli_execute(void)
 	gb_copy_to_buf(gb, line, sz);
 
 	/* Trim the string of whitspace on front and back */
-	p = rte_strtrim(line);
+	p = pg_strtrim(line);
 	if (!strlen(p))
 		return 0;
 
@@ -500,7 +500,7 @@ cli_execute(void)
 	/* Process the line for environment variable substitution */
 	cli_env_substitution(cli->env, p, sz - (p - line));
 
-	argc = rte_strqtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
+	argc = pg_strqtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
 
 	if (!argc)
 		return 0;

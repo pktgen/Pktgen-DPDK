@@ -71,7 +71,7 @@
 #include <port_config.h>
 #include <core_info.h>
 
-#include <_pcap.h>
+#include <pg_pcap.h>
 #include <pg_inet.h>
 #include <cksum.h>
 

@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#if RTE_VERSION >= RTE_VERSION_NUM(19,5,0,0)
+#if RTE_VERSION >= RTE_VERSION_NUM(19,8,0,0)
 #define pg_ether_addr			rte_ether_addr
 #define pg_ether_hdr			rte_ether_hdr
 #define pg_ipv4_hdr			rte_ipv4_hdr

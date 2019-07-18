@@ -176,6 +176,7 @@ typedef struct {
 	uint32_t	mbps;
 	uint32_t	pps;
 	double		fps_rate;
+	double		sec_per_pkt;
 	uint64_t	curr_tsc;
 	uint64_t	cycles_per_pkt;
 	uint64_t	next_tsc;

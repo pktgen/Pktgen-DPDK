@@ -34,7 +34,11 @@
 static uint64_t
 wire_size(rate_info_t *rate)
 {
+#if 0
 	return (uint64_t)((rate->payload + rate->overhead + PKT_OVERHEAD_SIZE) * 8);
+#else
+	return (uint64_t)(rate->payload * 8);
+#endif
 }
 
 /**************************************************************************//**
@@ -60,6 +64,8 @@ cycles_per_pkt(rate_info_t *rate)
 //	printf("%s: pkt size %lu bits, rate %d Mbps, %lu pps\n", __func__, bpp, rate->mbps, pps);
 //	printf("%s: cycles/s %lu cycles/ms %lu, cycles/us %lu\n", __func__, hz, hz/1000, hz/1000000);
 //	printf("%s: %lu cycles/s * %.5f spp = %.0f cycles/p\n", __func__, hz, spp, (double)hz * spp);
+
+	rate->sec_per_pkt = spp;
 
 	return (uint64_t)((double)hz * spp);
 }
@@ -195,8 +201,8 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Video FPS/rate");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FrameSz/ColorBits");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Payload/Overhead");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Packets / sec");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Mbps : Cycles/p");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PPS / Interval");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Mbps / Cycles");
 
 	/* Labels for static fields */
 	pktgen_display_set_color("stats.stat.label");
@@ -457,10 +463,11 @@ pktgen_page_rate(void)
 		snprintf(buff, sizeof(buff), "%d/%d", rate->payload, rate->overhead);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d pps", rate->pps);
+		snprintf(buff, sizeof(buff), "%d pps / %.2fms", rate->pps, rate->sec_per_pkt * 1000.0);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d : %lu", rate->mbps, rate->cycles_per_pkt);
+		snprintf(buff, sizeof(buff), "%d / %lu", rate->mbps,
+				rate->cycles_per_pkt);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;

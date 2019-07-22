@@ -24,7 +24,6 @@
 #include "pktgen-pcap.h"
 #include "pktgen-dump.h"
 #include "pktgen-ether.h"
-#include "pktgen-random.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -167,6 +166,22 @@ typedef enum {
 
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
+typedef struct {
+	uint16_t	fps;
+	uint16_t	frame_size;
+	uint16_t	color_bits;
+	uint16_t	payload;
+	uint16_t	overhead;
+	uint16_t	pad0;
+	uint32_t	mbps;
+	uint32_t	pps;
+	double		fps_rate;
+	double		sec_per_pkt;
+	uint64_t	curr_tsc;
+	uint64_t	cycles_per_pkt;
+	uint64_t	next_tsc;
+} rate_info_t;
+
 typedef struct port_info_s {
 	uint16_t pid;		/**< Port ID value */
 	uint16_t tx_burst;	/**< Number of TX burst packets */
@@ -198,6 +213,8 @@ typedef struct port_info_s {
 	uint64_t max_avg_latency;	/**< TX Latency sequence */
 	uint64_t avg_latency;	/**< Latency delta in clock ticks */
 	uint64_t min_avg_latency;	/**< RX Latency sequence */
+
+	rate_info_t rate;
 
 	RTE_STD_C11
 	union {
@@ -291,7 +308,7 @@ pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 
 	do {
 		int64_t tmp1 = v->cnt;
-		
+
 		if (tmp1 == 0)
 			return 0;
 		tmp2 = likely(tmp1 > burst) ? burst : tmp1;

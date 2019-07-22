@@ -161,7 +161,6 @@ __LIB_DEPS += $(VEC_LIBDIR)/libvec.a
 endif
 
 ifeq ($(CONFIG_RTE_LIBRTE_DFS),y)
-else
 __CFLAGS   += $(DFS_INC)
 __LIBS     += $(DFS_LIB)
 __LDFLAGS  += $(DFS_LD)

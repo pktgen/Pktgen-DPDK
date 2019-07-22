@@ -35,8 +35,6 @@
 #include <pthread.h>
 #include <sched.h>
 
-#define PKTGEN_RETRY_COUNT	1000
-
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
@@ -47,7 +45,7 @@ pktgen_t pktgen;
  * DESCRIPTION
  * Calculate the number of bytes/bits in a burst of traffic.
  *
- * RETURNS: Number of bits in burst of packets.
+ * RETURNS: Number of bytes in a burst of packets.
  *
  * SEE ALSO:
  */

@@ -264,6 +264,8 @@ pktgen_config_ports(void)
 
 		rte_spinlock_init(&info->port_lock);
 
+		pktgen_rate_init(info);
+
 		/* Create the pkt header structures for transmitting sequence of packets. */
 		snprintf(buff, sizeof(buff), "seq_hdr_%u", pid);
 		info->seq_pkt = rte_zmalloc_socket(buff,

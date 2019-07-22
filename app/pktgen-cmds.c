@@ -1596,19 +1596,19 @@ enable_pcap(port_info_t *info, uint32_t state)
 void
 enable_rate(port_info_t *info, uint32_t state)
 {
-	pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
-	rate_info_t *rate = &rates[info->pid];
-
 	if (state == ENABLE_STATE) {
 		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
 		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RATE_PACKETS);
-		info->tx_burst = 1;
-		pkt->pktSize = (rate->payload + rate->overhead) - PG_ETHER_CRC_LEN;
+		update_rate_values(info);
 	} else {
+		pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
+
 		pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
 		info->tx_burst = DEFAULT_PKT_BURST;
 		pkt->pktSize = PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN;
+
+		pktgen_packet_rate(info);
 	}
 }
 

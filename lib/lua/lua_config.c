@@ -20,6 +20,7 @@
 #include <netdb.h>
 #include <assert.h>
 
+#include <rte_version.h>
 #include <rte_eal.h>
 #include <rte_eal_memconfig.h>
 #include <rte_rwlock.h>
@@ -170,9 +171,18 @@ lua_create_instance(void)
 	memset(te, 0, sizeof(*te));
 	te->data = ld;
 
+#if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+#else
+	rte_mcfg_tailq_read_lock();
+#endif
 	TAILQ_INSERT_TAIL(luaData_list, te, next);
+
+#if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
+#else
+	rte_mcfg_tailq_read_unlock();
+#endif
 
 	// Make sure we display the copyright string for Lua.
 	lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
@@ -192,7 +202,11 @@ lua_destroy_instance(luaData_t *ld)
 
 	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
 
+#if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+#else
+	rte_mcfg_tailq_write_lock();
+#endif
 
 	TAILQ_FOREACH(te, luaData_list, next) {
 		if (te->data == (void *)ld)
@@ -203,7 +217,11 @@ lua_destroy_instance(luaData_t *ld)
 		free(te);
 	}
 
+#if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
+#else
+	rte_mcfg_tailq_write_unlock();
+#endif
 
 	free(ld);
 }
@@ -220,7 +238,11 @@ lua_find_luaData(lua_State *L)
 
 	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
 
+#if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+#else
+	rte_mcfg_tailq_write_lock();
+#endif
 
 	TAILQ_FOREACH(te, luaData_list, next) {
 		luaData_t *ld = (luaData_t *)te->data;
@@ -230,7 +252,11 @@ lua_find_luaData(lua_State *L)
 		}
 	}
 
+#if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
+#else
+	rte_mcfg_tailq_write_unlock();
+#endif
 
 	return ret_ld;
 }

@@ -42,7 +42,7 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
 	ip->version_ihl = (IPv4_VERSION << 4) | (sizeof(struct pg_ipv4_hdr) / 4);
 
 	ip->total_length = htons(tlen);
-	ip->time_to_live = 4;
+	ip->time_to_live = pkt->ttl;
 	ip->type_of_service = pkt->tos;
 
 	pktgen.ident += 27;	/* bump by a prime number */

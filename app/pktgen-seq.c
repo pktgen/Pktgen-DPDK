@@ -109,7 +109,7 @@ pktgen_page_seq(uint32_t pid)
 		                          pkt->ip_mask));
 
 		col += 18;
-		snprintf(buff, sizeof(buff), "%d/%d", pkt->sport, pkt->dport);
+		snprintf(buff, sizeof(buff), "%d/%d/%d", pkt->ttl, pkt->sport, pkt->dport);
 		scrn_printf(row, col, "%*s", 12, buff);
 
 		col += 12;

@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#if RTE_VERSION >= RTE_VERSION_NUM(19,5,0,0)
+#if RTE_VERSION >= RTE_VERSION_NUM(19,8,0,0)
 #define pg_ether_addr			rte_ether_addr
 #define pg_ether_hdr			rte_ether_hdr
 #define pg_ipv4_hdr			rte_ipv4_hdr
@@ -75,6 +75,33 @@ extern "C" {
 #else
 #define pg_eth_dev_count_avail rte_eth_dev_count
 #define pg_eth_dev_count_total rte_eth_dev_count
+#endif
+
+#if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
+/**
+ * Run after main() with low priority.
+ *
+ * @param func
+ *   Destructor function name.
+ * @param prio
+ *   Priority number must be above 100.
+ *   Lowest number is the last to run.
+ */
+#ifndef RTE_FINI_PRIO /* Allow to override from EAL */
+#define RTE_FINI_PRIO(func, prio) \
+static void __attribute__((destructor(RTE_PRIO(prio)), used)) func(void)
+#endif
+
+/**
+ * Run after main() with high priority.
+ *
+ * The destructor will be run *before* prioritized destructors.
+ *
+ * @param func
+ *   Destructor function name.
+ */
+#define RTE_FINI(func) \
+        RTE_FINI_PRIO(func, LAST)
 #endif
 
 #ifdef PG_cplusplus

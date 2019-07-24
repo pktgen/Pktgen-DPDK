@@ -67,6 +67,7 @@
 #include <rte_errno.h>
 
 #include "copyright_info.h"
+#include "pg_compat.h"
 #include "port_config.h"
 
 #include "pg_inet.h"

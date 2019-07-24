@@ -24,7 +24,6 @@
 #include "pktgen-pcap.h"
 #include "pktgen-dump.h"
 #include "pktgen-ether.h"
-#include "pktgen-random.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,35 +52,63 @@ struct mbuf_table {
 };
 
 enum {						/* Per port flag bits */
-	SEND_ARP_REQUEST        = 0x00000001,	/**< Send a ARP request */
-	SEND_GRATUITOUS_ARP     = 0x00000002,	/**< Send a Gratuitous ARP */
-	ICMP_ECHO_ENABLE_FLAG   = 0x00000004,	/**< Enable ICMP Echo support */
-	SEND_PCAP_PKTS          = 0x00000008,	/**< Send a pcap file of packets */
-	SEND_RANGE_PKTS         = 0x00000010,	/**< Send a range of packets */
-	SEND_SEQ_PKTS           = 0x00000020,	/**< Send a sequence of packets */
-	PROCESS_INPUT_PKTS      = 0x00000040,	/**< Process input packets */
-	SEND_PING4_REQUEST      = 0x00000080,	/**< Send a IPv4 Ping request */
-	SEND_PING6_REQUEST      = 0x00000100,	/**< Send a IPv6 Ping request */
-	PROCESS_RX_TAP_PKTS     = 0x00000200,	/**< Handle RX TAP interface packets */
-	PROCESS_TX_TAP_PKTS     = 0x00000400,	/**< Handle TX TAP interface packets */
-	SEND_VLAN_ID            = 0x00000800,	/**< Send packets with VLAN ID */
-	PROCESS_GARP_PKTS       = 0x00001000,	/**< Process GARP packets and update the dst MAC address */
-	CAPTURE_PKTS            = 0x00002000,	/**< Capture received packets */
-	SEND_MPLS_LABEL         = 0x00004000,	/**< Send MPLS label */
-	SEND_Q_IN_Q_IDS         = 0x00008000,	/**< Send packets with Q-in-Q */
-	SEND_GRE_IPv4_HEADER    = 0x00010000,	/**< Encapsulate IPv4 in GRE */
-	SEND_RANDOM_PKTS        = 0x00020000,	/**< Send random bitfields in packets */
-	SEND_GRE_ETHER_HEADER   = 0x00040000,	/**< Encapsulate Ethernet frame in GRE */
-	SEND_LATENCY_PKTS       = 0x00080000,	/**< Send latency packets */
-	BONDING_TX_PACKETS	= 0x00100000,	/**< Bonding driver send zero pkts */
-	SEND_SHORT_PACKETS	= 0x00200000,	/**< Allow port to send short packets */
-	SEND_VXLAN_PACKETS	= 0x00400000,	/**< Send VxLAN Packets */
-	SENDING_PACKETS         = 0x40000000,	/**< sending packets on this port */
-	SEND_FOREVER            = 0x80000000,	/**< Send packets forever */
+	/* Supported packet modes non-exclusive */
+	SEND_ARP_REQUEST        = (1 <<  0),	/**< Send a ARP request */
+	SEND_GRATUITOUS_ARP     = (1 <<  1),	/**< Send a Gratuitous ARP */
+	ICMP_ECHO_ENABLE_FLAG   = (1 <<  2),	/**< Enable ICMP Echo support */
+	BONDING_TX_PACKETS      = (1 <<  3),	/**< Bonding driver send zero pkts */
+
+	PROCESS_INPUT_PKTS      = (1 <<  4),	/**< Process input packets */
+	CAPTURE_PKTS            = (1 <<  5),	/**< Capture received packets */
+	SEND_PING4_REQUEST      = (1 <<  6),	/**< Send a IPv4 Ping request */
+	SEND_PING6_REQUEST      = (1 <<  7),	/**< Send a IPv6 Ping request */
+
+	PROCESS_RX_TAP_PKTS     = (1 <<  8),	/**< Handle RX TAP interface packets */
+	PROCESS_TX_TAP_PKTS     = (1 <<  9),	/**< Handle TX TAP interface packets */
+	PROCESS_GARP_PKTS       = (1 << 10),	/**< Process GARP packets and update the dst MAC address */
+
+	/* Exclusive Packet sending modes */
+	SEND_PCAP_PKTS          = (1 << 12),	/**< Send a pcap file of packets */
+	SEND_RANGE_PKTS         = (1 << 13),	/**< Send a range of packets */
+	SEND_SEQ_PKTS           = (1 << 14),	/**< Send a sequence of packets */
+	SEND_LATENCY_PKTS       = (1 << 15),	/**< Send latency packets */
+
+	SEND_RATE_PACKETS       = (1 << 16),	/**< Send rate pacing packets */
+	SEND_RANDOM_PKTS        = (1 << 17),	/**< Send random bitfields in packets */
+
+	/* Exclusive Packet type modes */
+	SEND_VLAN_ID            = (1 << 20),	/**< Send packets with VLAN ID */
+	SEND_MPLS_LABEL         = (1 << 21),	/**< Send MPLS label */
+	SEND_Q_IN_Q_IDS         = (1 << 22),	/**< Send packets with Q-in-Q */
+	SEND_GRE_IPv4_HEADER    = (1 << 23),	/**< Encapsulate IPv4 in GRE */
+
+	SEND_GRE_ETHER_HEADER   = (1 << 24),	/**< Encapsulate Ethernet frame in GRE */
+	SEND_VXLAN_PACKETS      = (1 << 25),	/**< Send VxLAN Packets */
+
+	/* Sending flags */
+	SENDING_PACKETS         = (1 << 30),	/**< sending packets on this port */
+	SEND_FOREVER            = (1 << 31),	/**< Send packets forever */
+
 	SEND_ARP_PING_REQUESTS  =
 		(SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST |
 		 SEND_PING6_REQUEST)
 };
+
+#define EXCLUSIVE_MODES		( \
+	SEND_PCAP_PKTS | \
+	SEND_RANGE_PKTS | \
+	SEND_SEQ_PKTS | \
+	SEND_RANDOM_PKTS | \
+	SEND_LATENCY_PKTS | \
+	SEND_RATE_PACKETS )
+
+#define EXCLUSIVE_PKT_MODES ( \
+	SEND_VLAN_ID | \
+	SEND_VXLAN_PACKETS | \
+	SEND_MPLS_LABEL | \
+	SEND_Q_IN_Q_IDS | \
+	SEND_GRE_IPv4_HEADER | \
+	SEND_GRE_ETHER_HEADER )
 
 #define RTE_PMD_PARAM_UNSET -1
 
@@ -139,6 +166,22 @@ typedef enum {
 
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
+typedef struct {
+	uint16_t	fps;
+	uint16_t	frame_size;
+	uint16_t	color_bits;
+	uint16_t	payload;
+	uint16_t	overhead;
+	uint16_t	pad0;
+	uint32_t	mbps;
+	uint32_t	pps;
+	double		fps_rate;
+	double		sec_per_pkt;
+	uint64_t	curr_tsc;
+	uint64_t	cycles_per_pkt;
+	uint64_t	next_tsc;
+} rate_info_t;
+
 typedef struct port_info_s {
 	uint16_t pid;		/**< Port ID value */
 	uint16_t tx_burst;	/**< Number of TX burst packets */
@@ -167,9 +210,11 @@ typedef struct port_info_s {
 	uint32_t gre_key;	/**< GRE key if used */
 
 	uint16_t nb_mbufs;	/**< Number of mbufs in the system */
-	uint64_t max_latency;	/**< TX Latency sequence */
+	uint64_t max_avg_latency;	/**< TX Latency sequence */
 	uint64_t avg_latency;	/**< Latency delta in clock ticks */
-	uint64_t min_latency;	/**< RX Latency sequence */
+	uint64_t min_avg_latency;	/**< RX Latency sequence */
+
+	rate_info_t rate;
 
 	RTE_STD_C11
 	union {
@@ -187,6 +232,7 @@ typedef struct port_info_s {
 	uint64_t jitter_threshold_clks;
 	uint64_t jitter_count;
 	uint64_t prev_latency;
+	uint64_t max_latency;
 
 	pkt_stats_t stats;	/**< Statistics for a number of stats */
 	port_sizes_t sizes;	/**< Stats for the different packets sizes */
@@ -262,6 +308,7 @@ pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
 
 	do {
 		int64_t tmp1 = v->cnt;
+
 		if (tmp1 == 0)
 			return 0;
 		tmp2 = likely(tmp1 > burst) ? burst : tmp1;
@@ -383,7 +430,7 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
 	{ DEV_RX_OFFLOAD_TIMESTAMP,		_(TIMESTAMP) },
 	{ DEV_RX_OFFLOAD_SECURITY,		_(SECURITY) },
 #if RTE_VERSION < RTE_VERSION_NUM(18,11,0,0)
-	{ DEV_RX_OFFLOAD_KEEP_CRC,		_(KEEP_CRC) }
+	{ DEV_RX_OFFLOAD_CRC_STRIP,		_(KEEP_CRC) }
 #else
 	{ DEV_RX_OFFLOAD_KEEP_CRC,		_(KEEP_CRC) },
 	{ DEV_RX_OFFLOAD_SCTP_CKSUM,		_(SCTP_CKSUM) },

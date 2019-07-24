@@ -84,6 +84,8 @@
 #include "pktgen-capture.h"
 #include "pktgen-log.h"
 #include "pktgen-latency.h"
+#include "pktgen-random.h"
+#include "pktgen-rate.h"
 #include "pktgen-seq.h"
 
 #include <cli.h>
@@ -92,7 +94,7 @@
 extern "C" {
 #endif
 
-#define PKTGEN_VERSION          "3.7.0"
+#define PKTGEN_VERSION          "3.7.1"
 #define PKTGEN_APP_NAME         "Pktgen"
 #define PKTGEN_CREATED_BY       "Keith Wiles"
 
@@ -174,7 +176,7 @@ enum {
 	MAX_SCRN_COLS           = 132,
 
 	COLUMN_WIDTH_0          = 22,
-	COLUMN_WIDTH_1          = 20,
+	COLUMN_WIDTH_1          = 22,
 	COLUMN_WIDTH_3          = 22,
 
 	/* Row locations for start of data */
@@ -197,6 +199,7 @@ enum {
 	DEFAULT_PRIME_COUNT     = 1,
 	DEFAULT_SRC_PORT        = 1234,
 	DEFAULT_DST_PORT        = 5678,
+	DEFAULT_TTL		= 4,
 	DEFAULT_PKT_NUMBER      = 0x012345678,
 	DEFAULT_ACK_NUMBER      = 0x012345690,
 	DEFAULT_WND_SIZE        = 8192,
@@ -341,6 +344,7 @@ enum {						/* Pktgen flags bits */
 	LATENCY_PAGE_FLAG       = (1 << 23),	/**< Display latency page */
 	STATS_PAGE_FLAG         = (1 << 24),	/**< Display the physical port stats */
 	XSTATS_PAGE_FLAG        = (1 << 25),	/**< Display the physical port stats */
+	RATE_PAGE_FLAG          = (1 << 26),	/**< Display the Rate Pacing stats */
 
 	UPDATE_DISPLAY_FLAG     = (1 << 31)
 };
@@ -355,7 +359,7 @@ enum {						/* Pktgen flags bits */
 			 PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
 			 RND_BITFIELD_PAGE_FLAG | \
 			 LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | \
-			 XSTATS_PAGE_FLAG | STATS_PAGE_FLAG)
+			 XSTATS_PAGE_FLAG | STATS_PAGE_FLAG | RATE_PAGE_FLAG)
 
 extern pktgen_t pktgen;
 
@@ -373,8 +377,16 @@ pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 int pktgen_launch_one_lcore(void *arg);
 uint64_t pktgen_wire_size(port_info_t *info);
 void pktgen_input_start(void);
-
+void stat_timer_dump(void);
+void stat_timer_clear(void);
 void rte_timer_setup(void);
+
+typedef struct {
+	uint64_t timestamp;
+	uint16_t magic;
+} tstamp_t;
+
+#define TSTAMP_MAGIC   (('T' << 8) + 's')
 
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags) {
@@ -396,6 +408,14 @@ pktgen_clr_port_flags(port_info_t *info, uint32_t flags) {
 				   val, (val & ~flags)) == 0);
 }
 
+static __inline__ int
+pktgen_tst_port_flags(port_info_t *info, uint32_t flags)
+{
+	if (rte_atomic32_read(&info->port_flags) & flags)
+		return 1;
+	return 0;
+}
+
 static __inline__ void
 pktgen_set_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 	uint32_t val;
@@ -414,6 +434,14 @@ pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags) {
 		val = rte_atomic32_read(&info->q[q].flags);
 	while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt,
 				   val, (val & ~flags)) == 0);
+}
+
+static __inline__ int
+pktgen_tst_q_flags(port_info_t *info, uint8_t q, uint32_t flags)
+{
+	if (rte_atomic32_read(&info->q[q].flags) & flags)
+		return 1;
+	return 0;
 }
 
 /* onOff values */

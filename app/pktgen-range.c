@@ -67,6 +67,17 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 			} else
 				pkt->dport = range->dst_port;
 
+			if (unlikely(range->ttl_inc != 0) ) {
+				uint8_t ttl = pkt->ttl;
+				ttl += range->ttl_inc;
+				if (ttl < range->ttl_min)
+					ttl = range->ttl_max;
+				if (ttl > range->ttl_max)
+					ttl = range->ttl_min;
+				pkt->ttl = ttl;
+			} else
+				pkt->ttl = range->ttl;
+
 			if (unlikely(range->src_ip_inc != 0)) {
 				uint32_t p = pkt->ip_src_addr.addr.ipv4.s_addr;
 				p += range->src_ip_inc;
@@ -284,6 +295,7 @@ pktgen_print_range(void)
 	row++;
 	scrn_printf(row++, 1, "%-*s", col_0, "dst.port :min/max/inc");
 	scrn_printf(row++, 1, "%-*s", col_0, "src.port :min/max/inc");
+	scrn_printf(row++, 1, "%-*s", col_0, "ttl      :min/max/inc");
 	scrn_printf(row++, 1, "%-*s", col_0, "vlan.id  :min/max/inc");
 	scrn_printf(row++, 1, "%-*s", col_0, "cos      :min/max/inc");
 	scrn_printf(row++, 1, "%-*s", col_0, "tos      :min/max/inc");
@@ -388,6 +400,15 @@ pktgen_print_range(void)
 			 range->src_port_min,
 			 range->src_port_max,
 		         range->src_port_inc);
+		scrn_printf(row++, col, "%*s", col_1, str);
+
+		snprintf(str,
+		         sizeof(str),
+		         "%5d:%5d/%5d/%5d",
+		         range->ttl,
+			 range->ttl_min,
+			 range->ttl_max,
+		         range->ttl_inc);
 		scrn_printf(row++, col, "%*s", col_1, str);
 
 		snprintf(str,
@@ -550,6 +571,11 @@ pktgen_range_setup(port_info_t *info)
 	range->src_port_inc = 0x0001;
 	range->src_port_min = 0;
 	range->src_port_max = 65535;
+
+	range->ttl     = info->seq_pkt[SINGLE_PKT].ttl;
+	range->ttl_inc = 0;
+	range->ttl_min = 0;
+	range->ttl_max = 255;
 
 	range->vlan_id      = info->seq_pkt[SINGLE_PKT].vlanid;
 	range->vlan_id_inc  = 0;

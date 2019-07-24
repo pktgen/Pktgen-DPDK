@@ -318,6 +318,12 @@ pktgen_script_save(char *path)
 		fprintf(fd, "range %d dport inc %d\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
+		fprintf(fd, "range %d ttl start %d\n", i, range->ttl);
+		fprintf(fd, "range %d ttl min %d\n", i, range->ttl_min);
+		fprintf(fd, "range %d ttl max %d\n", i, range->ttl_max);
+		fprintf(fd, "range %d ttl inc %d\n", i, range->ttl_inc);
+
+		fprintf(fd, "\n");
 		fprintf(fd, "range %d vlan start %d\n", i, range->vlan_id);
 		fprintf(fd, "range %d vlan min %d\n", i, range->vlan_id_min);
 		fprintf(fd, "range %d vlan max %d\n", i, range->vlan_id_max);
@@ -664,6 +670,12 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.dst_port('%d', 'inc', %d);\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
+		fprintf(fd, "pktgen.ttl('%d', 'start', %d);\n", i, range->ttl);
+		fprintf(fd, "pktgen.ttl('%d', 'min', %d);\n", i, range->ttl_min);
+		fprintf(fd, "pktgen.ttl('%d', 'max', %d);\n", i, range->ttl_max);
+		fprintf(fd, "pktgen.ttl('%d', 'inc', %d);\n", i, range->ttl_inc);
+
+		fprintf(fd, "\n");
 		fprintf(fd, "pktgen.vlan_id('%d', 'start', %d);\n", i, range->vlan_id);
 		fprintf(fd, "pktgen.vlan_id('%d', 'min', %d);\n", i, range->vlan_id_min);
 		fprintf(fd, "pktgen.vlan_id('%d', 'max', %d);\n", i, range->vlan_id_max);
@@ -835,8 +847,7 @@ pktgen_save(char *path)
 int
 pktgen_port_transmitting(int port)
 {
-	return rte_atomic32_read(&pktgen.info[port].port_flags) &
-	       SENDING_PACKETS;
+	return pktgen_tst_port_flags(&pktgen.info[port], SENDING_PACKETS);
 }
 
 /**************************************************************************//**
@@ -979,27 +990,30 @@ pktgen_flags_string(port_info_t *info)
 	static char buff[32];
 	uint32_t flags = rte_atomic32_read(&info->port_flags);
 
-	snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
-		 (pktgen.flags & PROMISCUOUS_ON_FLAG)   ? 'P' : '-',
-		 (flags & ICMP_ECHO_ENABLE_FLAG)	? 'E' : '-',
-		 (flags & SEND_ARP_REQUEST)		? 'A' : '-',
-		 (flags & SEND_GRATUITOUS_ARP)		? 'G' : '-',
-		 (flags & SEND_PCAP_PKTS)		? 'p' : '-',
-		 (flags & SEND_SEQ_PKTS)		? 'S' : '-',
-		 (flags & SEND_RANGE_PKTS)		? 'R' : '-',
-		 (flags & PROCESS_INPUT_PKTS)		? 'I' : '-',
+	snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%-6s%6s",
+		 (pktgen.flags & PROMISCUOUS_ON_FLAG)       ? 'P' : '-',
+		 (flags & ICMP_ECHO_ENABLE_FLAG)            ? 'E' : '-',
+		 (flags & BONDING_TX_PACKETS)               ? 'B' : '-',
+		 (flags & PROCESS_INPUT_PKTS)               ? 'I' : '-',
 		 	"-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
-		 (flags & SEND_LATENCY_PKTS)		? 'L' : '-',
-		 (flags & SEND_VLAN_ID)			? 'V' :
-		 	(flags & SEND_VXLAN_PACKETS)	? 'X' :
-		 	(flags & SEND_MPLS_LABEL)	? 'M' :
-		 	(flags & SEND_Q_IN_Q_IDS)	? 'Q' : '-',
-		 (flags & PROCESS_GARP_PKTS)		? 'g' : '-',
-		 (flags & SEND_GRE_IPv4_HEADER)		? 'g' :
-		 (flags & SEND_GRE_ETHER_HEADER)	? 'G' : '-',
-		 (flags & CAPTURE_PKTS)			? 'C' : '-',
-		 (flags & SEND_RANDOM_PKTS)		? 'r' : '-',
-		 (flags & BONDING_TX_PACKETS)	? 'B' : '-');
+		 (flags & PROCESS_GARP_PKTS)                ? 'g' : '-',
+		 (flags & CAPTURE_PKTS)                     ? 'c' : '-',
+
+		 (flags & SEND_PCAP_PKTS)                   ? "PCAP" :
+		 (flags & SEND_SEQ_PKTS)                      ? "Seq" :
+		 (flags & SEND_RANGE_PKTS)                    ? "Range" :
+		 (flags & SEND_LATENCY_PKTS)                  ? "Lat" :
+		 (flags & SEND_RANDOM_PKTS)                   ? "Rand" :
+		 (flags & SEND_RATE_PACKETS)                  ? "Rate" : "Single",
+
+		 (flags & SEND_VLAN_ID)                     ? "VLAN" :
+		 	(flags & SEND_VXLAN_PACKETS)              ? "VxLAN" :
+		 	(flags & SEND_MPLS_LABEL)                 ? "MPLS" :
+		 	(flags & SEND_Q_IN_Q_IDS)                 ? "QnQ" :
+		 	(flags & SEND_GRE_IPv4_HEADER)            ? "GREip" :
+		 	(flags & SEND_GRE_ETHER_HEADER)           ? "GREet" : "");
+
+	/* single, range, sequence, random, pcap, latency, rate */
 
 	return buff;
 }
@@ -1335,9 +1349,11 @@ enable_mac_from_arp(uint32_t onOff)
 void
 enable_random(port_info_t *info, uint32_t onOff)
 {
-	if (onOff == ENABLE_STATE)
+	if (onOff == ENABLE_STATE) {
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RANDOM_PKTS);
-	else
+	} else
 		pktgen_clr_port_flags(info, SEND_RANDOM_PKTS);
 }
 
@@ -1419,9 +1435,11 @@ pktgen_start_transmitting(port_info_t *info)
 {
 	uint8_t q;
 
-	if (!(rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) ) {
+	if (!pktgen_tst_port_flags(info, SENDING_PACKETS) ) {
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
+
+
 
 		rte_atomic64_set(&info->current_tx_count,
 				 rte_atomic64_read(&info->transmit_count));
@@ -1450,7 +1468,7 @@ pktgen_stop_transmitting(port_info_t *info)
 {
 	uint8_t q;
 
-	if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
+	if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, DO_TX_FLUSH);
@@ -1539,7 +1557,7 @@ range_set_proto(port_info_t *info, const char *type)
 
 /**************************************************************************//**
  *
- * pcap_enable_disable - Enable or disable PCAP sending of packets.
+ * enable_pcap - Enable or disable PCAP sending of packets.
  *
  * DESCRIPTION
  * Enable or disable PCAP packet sending.
@@ -1554,11 +1572,43 @@ enable_pcap(port_info_t *info, uint32_t state)
 {
 	if ( (info->pcap != NULL) && (info->pcap->pkt_count != 0) ) {
 		if (state == ENABLE_STATE) {
-			pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
-			pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
+			pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+			pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 			pktgen_set_port_flags(info, SEND_PCAP_PKTS);
 		} else
 			pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
+		info->tx_cycles = 0;
+	}
+}
+
+/**************************************************************************//**
+ *
+ * enable_rate - Enable or disable Rate sending of packets.
+ *
+ * DESCRIPTION
+ * Enable or disable Rate packet sending.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+enable_rate(port_info_t *info, uint32_t state)
+{
+	if (state == ENABLE_STATE) {
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
+		pktgen_set_port_flags(info, SEND_RATE_PACKETS);
+		update_rate_values(info);
+	} else {
+		pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
+
+		pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
+		info->tx_burst = DEFAULT_PKT_BURST;
+		pkt->pktSize = PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN;
+
+		pktgen_packet_rate(info);
 	}
 }
 
@@ -1850,27 +1900,6 @@ show_bonding_mode(port_info_t *info)
 
 /**************************************************************************//**
  *
- * enable_short_pkts - Enable or disable sending short packets.
- *
- * DESCRIPTION
- * Enable or disable sending short packets
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-enable_short_pkts(port_info_t *info, uint32_t state)
-{
-	if (state == ENABLE_STATE)
-		pktgen_set_port_flags(info, SEND_SHORT_PACKETS);
-	else
-		pktgen_clr_port_flags(info, SEND_SHORT_PACKETS);
-}
-
-/**************************************************************************//**
- *
  * enable_garp - Enable or disable GARP packet processing.
  *
  * DESCRIPTION
@@ -1967,9 +1996,8 @@ void
 enable_vxlan(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
-		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
-		pktgen_clr_port_flags(info, SEND_VLAN_ID);
-		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_VXLAN_PACKETS);
 	} else
 		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
@@ -1992,9 +2020,8 @@ void
 enable_vlan(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
-		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
-		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
-		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_VLAN_ID);
 	} else
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
@@ -2105,9 +2132,8 @@ void
 enable_mpls(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
-		pktgen_clr_port_flags(info, SEND_VLAN_ID);
-		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
-		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_MPLS_LABEL);
 	} else
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
@@ -2150,9 +2176,8 @@ void
 enable_qinq(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
-		pktgen_clr_port_flags(info, SEND_VLAN_ID);
-		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
-		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_Q_IN_Q_IDS);
 	} else
 		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
@@ -2217,7 +2242,8 @@ void
 enable_gre(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
-		pktgen_clr_port_flags(info, SEND_GRE_ETHER_HEADER);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_GRE_IPv4_HEADER);
 	} else
 		pktgen_clr_port_flags(info, SEND_GRE_IPv4_HEADER);
@@ -2240,7 +2266,8 @@ void
 enable_gre_eth(port_info_t *info, uint32_t onOff)
 {
 	if (onOff == ENABLE_STATE) {
-		pktgen_clr_port_flags(info, SEND_GRE_IPv4_HEADER);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_GRE_ETHER_HEADER);
 	} else
 		pktgen_clr_port_flags(info, SEND_GRE_ETHER_HEADER);
@@ -2299,7 +2326,8 @@ pktgen_clear_stats(port_info_t *info)
 	info->stats.vlan_pkts       = 0;
 	info->stats.unknown_pkts    = 0;
 	info->stats.tx_failed       = 0;
-	info->min_latency           = 0;
+	info->min_avg_latency       = 0;
+	info->max_avg_latency       = 0;
 	info->max_latency           = 0;
 	info->avg_latency           = 0;
 	info->jitter_count          = 0;
@@ -2330,6 +2358,7 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 	pkt->pktSize            = MIN_PKT_SIZE;
 	pkt->sport              = DEFAULT_SRC_PORT;
 	pkt->dport              = DEFAULT_DST_PORT;
+	pkt->ttl                = DEFAULT_TTL;
 	pkt->ipProto            = PG_IPPROTO_TCP;
 	pkt->ethType            = PG_ETHER_TYPE_IPv4;
 	pkt->vlanid             = DEFAULT_VLAN_ID;
@@ -2574,8 +2603,8 @@ pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt)
 
 	info->seqCnt = cnt;
 	if (cnt) {
-		pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
-		pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_SEQ_PKTS);
 	} else
 		pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
@@ -2658,6 +2687,7 @@ single_set_tx_burst(port_info_t *info, uint32_t burst)
 	else if (burst > DEFAULT_PKT_BURST)
 		burst = DEFAULT_PKT_BURST;
 	info->tx_burst = burst;
+	info->tx_cycles = 0;
 }
 
 /**************************************************************************//**
@@ -2698,10 +2728,8 @@ single_set_pkt_size(port_info_t *info, uint16_t size)
 	if (size < PG_ETHER_CRC_LEN)
 		size = PG_ETHER_CRC_LEN;
 
-	if (!(rte_atomic32_read(&info->port_flags) & SEND_SHORT_PACKETS)) {
-		if ( (size - PG_ETHER_CRC_LEN) < MIN_PKT_SIZE)
-			size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
-	}
+	if ( (size - PG_ETHER_CRC_LEN) < MIN_PKT_SIZE)
+		size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 	if ( (size - PG_ETHER_CRC_LEN) > MAX_PKT_SIZE)
 		size = MAX_PKT_SIZE + PG_ETHER_CRC_LEN;
 
@@ -2757,6 +2785,7 @@ single_set_tx_rate(port_info_t *info, const char *r)
 	else if (rate > 100.00)
 		rate = 100.00;
 	info->tx_rate = rate;
+	info->tx_cycles = 0;
 }
 
 /**************************************************************************//**
@@ -2824,6 +2853,25 @@ single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
 
 /**************************************************************************//**
  *
+ * single_set_ttl_ttl - Setup the Time to Live
+ *
+ * DESCRIPTION
+ * Set the TTL  for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_ttl_value(port_info_t *info, uint8_t ttl)
+{
+	info->seq_pkt[SINGLE_PKT].ttl = ttl;
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+}
+
+/**************************************************************************//**
+ *
  * enable_range - Enable or disable range packet sending.
  *
  * DESCRIPTION
@@ -2838,12 +2886,12 @@ void
 enable_range(port_info_t *info, uint32_t state)
 {
 	if (state == ENABLE_STATE) {
-		if (rte_atomic32_read(&info->port_flags) & SENDING_PACKETS) {
+		if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 			pktgen_log_warning("Cannot enable the range settings while sending packets!");
 			return;
 		}
-		pktgen_clr_port_flags(info, SEND_SEQ_PKTS);
-		pktgen_clr_port_flags(info, SEND_PCAP_PKTS);
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RANGE_PKTS);
 	} else
 		pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
@@ -2864,10 +2912,23 @@ enable_range(port_info_t *info, uint32_t state)
 void
 enable_latency(port_info_t *info, uint32_t state)
 {
-	if (state == ENABLE_STATE)
+	if (state == ENABLE_STATE) {
+		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
+		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
-	else
+
+		if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+			info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
+		}
+	} else {
+		if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+			info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
+		}
 		pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
+	}
+
+	info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
+	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 }
 
 /**************************************************************************//**
@@ -3146,6 +3207,31 @@ range_set_dst_port(port_info_t *info, char *what, uint16_t port)
 
 /**************************************************************************//**
  *
+ * range_set_ttl - Set the ttl value
+ *
+ * DESCRIPTION
+ * Set the Time to Live values
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_ttl(port_info_t *info, char *what, uint8_t ttl)
+{
+	if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+		info->range.ttl_inc = ttl;
+	else if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+		info->range.ttl_min = ttl;
+	else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+		info->range.ttl_max = ttl;
+	else if (!strcmp(what, "start") )
+		info->range.ttl = ttl;
+}
+
+/**************************************************************************//**
+ *
  * range_set_vlan_id - Set the VLAN id value
  *
  * DESCRIPTION
@@ -3362,6 +3448,9 @@ pktgen_set_page(char *str)
 	} else if (_cp("latency") || _cp("lat")) {
 		pktgen.flags &= ~PAGE_MASK_BITS;
 		pktgen.flags |= LATENCY_PAGE_FLAG;
+	} else if (_cp("rate-pacing") || _cp("rate")) {
+		pktgen.flags &= ~PAGE_MASK_BITS;
+		pktgen.flags |= RATE_PAGE_FLAG;
 	} else {
 		uint16_t start_port;
 		if (_cp("main"))

@@ -6,6 +6,12 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.7.1 - Add TTL support to single and range modes. Better docs for dump packets
+         - Pktgen 3.7.1 will build with DPDK 18.02 to 19.08-rc2, but 18.08 has
+	   a problem with vhost.h VRING_EVENT_F_AVAIL not defined and appears
+	   the Ubuntu 19.04 version I am running does not define it correctly.
+         - fixed the RX side using TX count for rx_burst command.
+	 - General cleanup
  - 3.7.0 - Fixed build issues with DPDK 19.08 as DPDK renamed a lot of defines
            Fixed up the meson files to build pktgen with meson and ninja
            Minor cleanup

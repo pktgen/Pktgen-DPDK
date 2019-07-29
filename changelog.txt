@@ -6,6 +6,12 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 3.7.2 - Fix linking of Lua library when no pkg-config file is found and
+           linking liblua.a
+	   Fixed and issue with packet rate not being changed when the packet
+	   size is changed
+           updated code to adjust the packet tx interval based on command
+	   changes on the packet size and other areas.
  - 3.7.1 - Add TTL support to single and range modes. Better docs for dump packets
          - Pktgen 3.7.1 will build with DPDK 18.02 to 19.08-rc2, but 18.08 has
 	   a problem with vhost.h VRING_EVENT_F_AVAIL not defined and appears

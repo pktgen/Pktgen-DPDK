@@ -2,6 +2,7 @@
  * Copyright(c) 2019 Intel Corporation.
  */
 
+#ifdef FIX_LATER
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -136,3 +137,4 @@ link_status_check_cancel(void)
 {
 	lsc_cancel = 1;
 }
+#endif

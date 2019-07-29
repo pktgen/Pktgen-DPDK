@@ -17,6 +17,7 @@
 extern "C" {
 #endif
 
+#ifdef FIX_LATER
 /**
  * print the port link status to the given file pointer.
  *
@@ -67,6 +68,7 @@ void link_status_wait(FILE *f, uint64_t port_list, int secs);
  * break out of the waiting loop. Normally used inside a signal hander routine.
  */
 void link_status_check_cancel(void);
+#endif
 
 #ifdef __cplusplus
 }

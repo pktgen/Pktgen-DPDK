@@ -74,6 +74,9 @@ static struct rte_eth_conf default_port_conf = {
 		.mq_mode = ETH_MQ_TX_NONE,
 	},
 #endif
+	.intr_conf = {
+		.lsc = 0,
+	},
 };
 
 void
@@ -308,14 +311,13 @@ pktgen_config_ports(void)
 			conf.rx_adv_conf.rss_conf.rss_hf = 0;
 		}
 
-		/* May need to add DCB configuration
-		if (port->dcb_flag == 0) {
-			if( port->dev_conf.rx_adv_conf.rss_conf.rss_hf != 0)
-				port->dev_conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
-			else
-				port->dev_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
-		}
-		*/
+		if( conf.rx_adv_conf.rss_conf.rss_hf != 0)
+			conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
+		else
+			conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
+
+		if (rte_eth_devices[pid].data->dev_flags & RTE_ETH_DEV_INTR_LSC)
+			conf.intr_conf.lsc = 1;
 
 		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &conf)) < 0)
 			pktgen_log_panic(

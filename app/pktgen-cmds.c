@@ -55,6 +55,14 @@ convert_bitfield(bf_spec_t *bf)
 	return rnd_bitmask;
 }
 
+static void
+pktgen_set_tx_update(port_info_t *info)
+{
+	uint16_t q;
+
+	for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
+		pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
+}
 /**************************************************************************//**
  *
  * pktgen_save - Save a configuration as a startup script
@@ -114,20 +122,6 @@ pktgen_script_save(char *path)
 	fprintf(fd, "#   Promiscuous mode is %s\n\n",
 		(pktgen.flags & PROMISCUOUS_ON_FLAG) ? "Enabled" : "Disabled");
 
-#if 0
-	fprintf(fd, "# Port Descriptions (-- = blacklisted port):\n");
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++)
-		if (pktgen.portdesc[i] &&
-		    strlen((char *)pktgen.portdesc[i]) ) {
-			if ( (pktgen.enabled_port_mask & (1 << i)) == 0)
-				strcpy(buff, "--");
-			else
-				strcpy(buff, "++");
-
-			fprintf(fd, "#   %s %s\n", buff, pktgen.portdesc[i]);
-		}
-
-#endif
 	fprintf(fd, "\n# Global configuration:\n");
 	uint16_t rows, cols;
 	pktgen_display_get_geometry(&rows, &cols);
@@ -1439,8 +1433,6 @@ pktgen_start_transmitting(port_info_t *info)
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 
-
-
 		rte_atomic64_set(&info->current_tx_count,
 				 rte_atomic64_read(&info->transmit_count));
 
@@ -1527,6 +1519,7 @@ single_set_proto(port_info_t *info, char *type)
 		info->seq_pkt[SINGLE_PKT].ethType = PG_ETHER_TYPE_IPv4;
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -1978,6 +1971,7 @@ single_set_pkt_type(port_info_t *info, const char *type)
 	}
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2002,6 +1996,7 @@ enable_vxlan(port_info_t *info, uint32_t onOff)
 	} else
 		pktgen_clr_port_flags(info, SEND_VXLAN_PACKETS);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2026,6 +2021,7 @@ enable_vlan(port_info_t *info, uint32_t onOff)
 	} else
 		pktgen_clr_port_flags(info, SEND_VLAN_ID);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2046,6 +2042,7 @@ single_set_vlan_id(port_info_t *info, uint16_t vlanid)
 	info->vlanid = vlanid;
 	info->seq_pkt[SINGLE_PKT].vlanid = info->vlanid;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 
@@ -2068,6 +2065,7 @@ single_set_cos(port_info_t *info, uint8_t cos)
 	info->cos = cos;
 	info->seq_pkt[SINGLE_PKT].cos = info->cos;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 
@@ -2089,6 +2087,7 @@ single_set_tos(port_info_t *info, uint8_t tos)
 	info->tos = tos;
 	info->seq_pkt[SINGLE_PKT].tos = info->tos;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2114,6 +2113,7 @@ single_set_vxlan(port_info_t *info, uint16_t flags, uint16_t group_id,
 	info->seq_pkt[SINGLE_PKT].group_id = info->group_id;
 	info->seq_pkt[SINGLE_PKT].vxlan_id = info->vxlan_id;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2138,6 +2138,7 @@ enable_mpls(port_info_t *info, uint32_t onOff)
 	} else
 		pktgen_clr_port_flags(info, SEND_MPLS_LABEL);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2158,6 +2159,7 @@ range_set_mpls_entry(port_info_t *info, uint32_t mpls_entry)
 	info->mpls_entry = mpls_entry;
 	info->seq_pkt[SINGLE_PKT].mpls_entry = info->mpls_entry;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2182,6 +2184,7 @@ enable_qinq(port_info_t *info, uint32_t onOff)
 	} else
 		pktgen_clr_port_flags(info, SEND_Q_IN_Q_IDS);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2203,6 +2206,7 @@ single_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
 	info->seq_pkt[SINGLE_PKT].qinq_innerid = innerid;
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2224,6 +2228,7 @@ range_set_qinqids(port_info_t *info, uint16_t outerid, uint16_t innerid)
 	info->seq_pkt[RANGE_PKT].qinq_innerid = innerid;
 
 	pktgen_packet_ctor(info, RANGE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2248,6 +2253,7 @@ enable_gre(port_info_t *info, uint32_t onOff)
 	} else
 		pktgen_clr_port_flags(info, SEND_GRE_IPv4_HEADER);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2272,6 +2278,7 @@ enable_gre_eth(port_info_t *info, uint32_t onOff)
 	} else
 		pktgen_clr_port_flags(info, SEND_GRE_ETHER_HEADER);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2292,6 +2299,7 @@ range_set_gre_key(port_info_t *info, uint32_t gre_key)
 	info->gre_key = gre_key;
 	info->seq_pkt[SINGLE_PKT].gre_key = info->gre_key;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2399,6 +2407,7 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 		memset(&pkt->eth_dst_addr, 0, sizeof(pkt->eth_dst_addr));
 
 	pktgen_packet_ctor(info, seq, -1);
+	pktgen_set_tx_update(info);
 
 	pktgen.flags    |= PRINT_LABELS_FLAG;
 }
@@ -2423,6 +2432,7 @@ pktgen_ping4(port_info_t *info)
 	info->seq_pkt[PING_PKT].ipProto = PG_IPPROTO_ICMP;
 	pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO);
 	pktgen_set_port_flags(info, SEND_PING4_REQUEST);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2484,6 +2494,7 @@ pktgen_ping6(port_info_t *info)
 	info->pkt[PING_PKT].ipProto = PG_IPPROTO_ICMP;
 	pktgen_packet_ctor(info, PING_PKT, ICMP6_ECHO);
 	pktgen_set_port_flags(info, SEND_PING6_REQUEST);
+	pktgen_set_tx_update(info);
 }
 
 #endif
@@ -2688,6 +2699,8 @@ single_set_tx_burst(port_info_t *info, uint32_t burst)
 		burst = DEFAULT_PKT_BURST;
 	info->tx_burst = burst;
 	info->tx_cycles = 0;
+
+	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2739,6 +2752,8 @@ single_set_pkt_size(port_info_t *info, uint16_t size)
 	pkt->pktSize = (size - PG_ETHER_CRC_LEN);
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_packet_rate(info);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2761,6 +2776,7 @@ single_set_port_value(port_info_t *info, char type, uint32_t portValue)
 	else
 		info->seq_pkt[SINGLE_PKT].sport = (uint16_t)portValue;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2786,6 +2802,8 @@ single_set_tx_rate(port_info_t *info, const char *r)
 		rate = 100.00;
 	info->tx_rate = rate;
 	info->tx_cycles = 0;
+
+	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2811,6 +2829,7 @@ single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip)
 		info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
 		                ip->ipv4.s_addr);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2830,6 +2849,7 @@ single_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac)
 {
 	memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2849,6 +2869,7 @@ single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
 {
 	memcpy(&info->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2868,6 +2889,7 @@ single_set_ttl_value(port_info_t *info, uint8_t ttl)
 {
 	info->seq_pkt[SINGLE_PKT].ttl = ttl;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2895,6 +2917,8 @@ enable_range(port_info_t *info, uint32_t state)
 		pktgen_set_port_flags(info, SEND_RANGE_PKTS);
 	} else
 		pktgen_clr_port_flags(info, SEND_RANGE_PKTS);
+
+	pktgen_packet_rate(info);
 }
 
 /**************************************************************************//**
@@ -2929,6 +2953,7 @@ enable_latency(port_info_t *info, uint32_t state)
 
 	info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -3525,6 +3550,7 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum,
 	pkt->vlanid         = vlanid;
 	pkt->gtpu_teid      = gtpu_teid;
 	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_set_tx_update(info);
 }
 
 void
@@ -3536,6 +3562,7 @@ pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum, uint32_t cos, uint32_
 	pkt->cos      = cos;
 	pkt->tos      = tos;
 	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_set_tx_update(info);
 }
 
 void
@@ -3548,6 +3575,7 @@ pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum, uint32_t flag, uint32_t
 	pkt->group_id = gid;
 	pkt->vxlan_id = vid;
 	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -3595,6 +3623,7 @@ pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
 	pkt->vlanid         = vlanid;
 	pkt->gtpu_teid          = gtpu_teid;
 	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_set_tx_update(info);
 }
 
 void
@@ -3610,6 +3639,7 @@ pktgen_add_cos_tos(port_info_t *info, uint32_t seqnum, uint32_t cos, uint32_t to
 	pkt->cos          = cos;
 	pkt->tos          = tos;
 	pktgen_packet_ctor(info, seqnum, -1);
+	pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**

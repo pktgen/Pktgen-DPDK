@@ -45,7 +45,6 @@ UTILS_INC  := -I$(RTE_SRCDIR)/../lib/utils
 VEC_INC    := -I$(RTE_SRCDIR)/../lib/vec
 GUI_INC    := -I$(RTE_SRCDIR)/../gui/gui
 PLUGIN_INC := -I$(RTE_SRCDIR)/../lib/plugin
-DFS_INC    := -I$(RTE_SDK)/$(RTE_TARGET)/include
 
 COMMON_LIBDIR := $(RTE_SRCDIR)/../lib/common/$(RTE_TARGET)/lib
 LUA_LIBDIR    := $(RTE_SRCDIR)/../lib/lua/$(RTE_TARGET)/lib
@@ -54,7 +53,6 @@ UTILS_LIBDIR  := $(RTE_SRCDIR)/../lib/utils/$(RTE_TARGET)/lib
 VEC_LIBDIR    := $(RTE_SRCDIR)/../lib/vec/$(RTE_TARGET)/lib
 GUI_LIBDIR    := $(RTE_SRCDIR)/../gui/$(RTE_TARGET)/lib
 PLUGIN_LIBDIR := $(RTE_SRCDIR)/../lib/plugin/$(RTE_TARGET)/lib
-DFS_LIBDIR    := $(RTE_SDK)/$(RTE_TARGET)/lib
 
 COMMON_LIB := -L$(COMMON_LIBDIR)
 LUA_LIB    := -L$(LUA_LIBDIR)
@@ -63,7 +61,6 @@ UTILS_LIB  := -L$(UTILS_LIBDIR)
 VEC_LIB    := -L$(VEC_LIBDIR)
 GUI_LIB    := -L$(GUI_LIBDIR)
 PLUGIN_LIB := -L$(PLUGIN_LIBDIR)
-DFS_LIB    := -L$(DFS_LIBDIR)
 
 COMMON_LD  := -lcommon
 LUA_LD     := -lpktgen_lua
@@ -72,7 +69,6 @@ UTILS_LD   := -lutils
 VEC_LD     := -lvec
 GUI_LD     := -lgui
 PLUGIN_LD  := -lplugin
-DFS_LD     := -lextra_dfs
 
 # default vars to using common information
 __CFLAGS   := $(COMMON_INC) $(PLUGIN_INC)
@@ -160,13 +156,6 @@ __LDFLAGS  += $(VEC_LD)
 __LIB_DEPS += $(VEC_LIBDIR)/libvec.a
 endif
 
-ifeq ($(CONFIG_RTE_LIBRTE_DFS),y)
-__CFLAGS   += $(DFS_INC)
-__LIBS     += $(DFS_LIB)
-__LDFLAGS  += $(DFS_LD)
-__LIB_DEPS += $(DFS_LIBDIR)/libextra_dfs.a
-endif
-
 # GUI support is a work in progress
 ifeq ($(GUI),true)
 	__CFLAGS += -DGUI $(GUI_INC)
@@ -182,7 +171,7 @@ ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 endif
 
 CFLAGS  += $(__CFLAGS)
-LDFLAGS += $(__LIBS) --start-group $(__LDFLAGS) --end-group -lpcap -lm
+LDFLAGS += $(__LDFLAGS) --start-group $(__LIBS) --end-group -lpcap -lm
 
 DEP_pktgen := $(__LIB_DEPS)
 

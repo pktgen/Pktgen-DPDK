@@ -157,8 +157,10 @@ pktgen_config_ports(void)
 	port_info_t     *info;
 	char buff[RTE_MEMZONE_NAMESIZE];
 	int32_t ret, cache_size;
-	char output_buff[256] = { 0 };
+	char output_buff[1024];
 	uint64_t ticks;
+
+	memset(output_buff, 0, sizeof(output_buff));
 
 	/* Find out the total number of ports in the system. */
 	/* We have already blacklisted the ones we needed to in main routine. */
@@ -257,8 +259,7 @@ pktgen_config_ports(void)
 
 		pktgen.port_cnt++;
 		snprintf(output_buff, sizeof(output_buff),
-			 "Initialize Port %u -- TxQ %u, RxQ %u",
-			 pid, rt.tx, rt.rx);
+			 "Initialize Port %u -- TxQ %u, RxQ %u", pid, rt.tx, rt.rx);
 
 		info = get_port_private(pktgen.l2p, pid);
 
@@ -316,8 +317,11 @@ pktgen_config_ports(void)
 		else
 			conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
 
-		if (rte_eth_devices[pid].data->dev_flags & RTE_ETH_DEV_INTR_LSC)
+		info->lsc_enabled = 0;
+		if (rte_eth_devices[pid].data->dev_flags & RTE_ETH_DEV_INTR_LSC) {
 			conf.intr_conf.lsc = 1;
+			info->lsc_enabled = 1;
+		}
 
 		if ( (ret = rte_eth_dev_configure(pid, rt.rx, rt.tx, &conf)) < 0)
 			pktgen_log_panic(
@@ -395,15 +399,11 @@ pktgen_config_ports(void)
 			if (pktgen.info[pid].pcaps[q] != NULL) {
 				if (pktgen_pcap_parse(pktgen.info[pid].pcaps[q], info, q) == -1) {
 					pktgen_log_panic(
-						"Cannot load PCAP file for port %d queue %d",
-						pid, q);
+						"Cannot load PCAP file for port %d queue %d", pid, q);
 				}
 			} else if (pktgen.info[pid].pcap != NULL)
 				if (pktgen_pcap_parse(pktgen.info[pid].pcap, info, q) == -1)
 					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
-
-			/* Find out the link speed to program the WTHRESH value correctly. */
-			pktgen_get_link_status(&pktgen.info[pid], pid, 0);
 
 			txconf = &info->dev_info.default_txconf;
 #if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
@@ -424,14 +424,22 @@ pktgen_config_ports(void)
 
 		/* Grab the source MAC addresses */
 		rte_eth_macaddr_get(pid, &pkt->eth_src_addr);
-		pktgen_log_info("%s,  Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
-				output_buff,
+
+		strncatf(output_buff, ", Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
 				pkt->eth_src_addr.addr_bytes[0],
 				pkt->eth_src_addr.addr_bytes[1],
 				pkt->eth_src_addr.addr_bytes[2],
 				pkt->eth_src_addr.addr_bytes[3],
 				pkt->eth_src_addr.addr_bytes[4],
 				pkt->eth_src_addr.addr_bytes[5]);
+
+		/* If enabled, put device in promiscuous mode. */
+		if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
+			strncatf(output_buff, " <Promiscuous mode Enabled>");
+			rte_eth_promiscuous_enable(pid);
+		}
+
+		pktgen_log_info("%s", output_buff);
 
 		/* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
 		for (i = 0; i < NUM_SEQ_PKTS; i++)
@@ -452,10 +460,7 @@ pktgen_config_ports(void)
 		if ( (ret = rte_eth_dev_start(pid)) < 0)
 			pktgen_log_panic("rte_eth_dev_start: port=%d, %s",
 					 pid, rte_strerror(-ret));
-		rte_delay_us_sleep(200000);
 	}
-
-	rte_delay_us_sleep(100000);
 
 	/* Start up the ports and display the port Link status */
 	RTE_ETH_FOREACH_DEV(pid) {
@@ -464,25 +469,6 @@ pktgen_config_ports(void)
 
 		info = get_port_private(pktgen.l2p, pid);
 
-		/* Find out the link speed to program the WTHRESH value correctly. */
-		pktgen_get_link_status(&pktgen.info[pid], pid, 0);
-
-		if (info->link.link_status)
-			snprintf(output_buff, sizeof(output_buff),
-				 "Port %2u: Link Up - speed %u Mbps - %s",
-				 pid, (uint32_t)info->link.link_speed,
-				 (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ?
-				 ("full-duplex") : ("half-duplex"));
-		else
-			snprintf(output_buff, sizeof(output_buff), "Port %2u: Link Down", pid);
-
-		/* If enabled, put device in promiscuous mode. */
-		if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
-			strncatf(output_buff, " <Enable promiscuous mode>");
-			rte_eth_promiscuous_enable(pid);
-		}
-
-		pktgen_log_info("%s", output_buff);
 		pktgen.info[pid].seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
 
 		/* Setup the port and packet defaults. (must be after link speed is found) */

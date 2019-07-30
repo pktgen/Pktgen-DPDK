@@ -185,6 +185,8 @@ typedef struct {
 typedef struct port_info_s {
 	uint16_t pid;		/**< Port ID value */
 	uint16_t tx_burst;	/**< Number of TX burst packets */
+	uint16_t lsc_enabled;
+	uint16_t pad0;
 	double tx_rate;		/**< Percentage rate for tx packets with fractions */
 	rte_atomic32_t port_flags;	/**< Special send flags for ARP and other */
 

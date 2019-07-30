@@ -248,7 +248,7 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
 	for (i = 0; i < LINK_RETRY; i++) {
 		memset(&info->link, 0, sizeof(info->link));
 
-		rte_eth_link_get_nowait(pid, &info->link);
+		rte_eth_link_get(pid, &info->link);
 
 		if (info->link.link_status && info->link.link_speed) {
 			if (prev_status == 0)
@@ -257,8 +257,6 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
 		}
 		if (!wait)
 			break;
-
-		rte_delay_us_sleep(100 * 1000);
 	}
 
 	/* Setup a few default values to prevent problems later. */
@@ -351,8 +349,10 @@ pktgen_page_stats(void)
 
 		row = LINK_STATE_ROW;
 
-		/* Grab the link state of the port and display Duplex/Speed and UP/Down */
-		pktgen_get_link_status(info, pid + sp, 0);
+		if (info->lsc_enabled == 0) {
+			/* Grab the link state of the port and display Duplex/Speed and UP/Down */
+			pktgen_get_link_status(info, pid + sp, 0);
+		}
 
 		pktgen_link_state(pid + sp, buff, sizeof(buff));
 		pktgen_display_set_color("stats.port.status");

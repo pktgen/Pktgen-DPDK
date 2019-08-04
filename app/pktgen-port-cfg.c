@@ -383,6 +383,12 @@ pktgen_config_ports(void)
 			if (info->q[q].range_mp == NULL)
 				pktgen_log_panic("Cannot init port %d for Range TX mbufs", pid);
 
+			/* Create and initialize the rate Transmit buffers. */
+			info->q[q].rate_mp = pktgen_mbuf_pool_create("Rate TX", pid, q,
+								      MAX_MBUFS_PER_PORT, sid, 0);
+			if (info->q[q].rate_mp == NULL)
+				pktgen_log_panic("Cannot init port %d for Rate TX mbufs", pid);
+
 			/* Create and initialize the sequence Transmit buffers. */
 			info->q[q].seq_mp = pktgen_mbuf_pool_create("Sequence TX", pid, q,
 								    MAX_MBUFS_PER_PORT, sid, cache_size);
@@ -424,6 +430,7 @@ pktgen_config_ports(void)
 
 		/* Grab the source MAC addresses */
 		rte_eth_macaddr_get(pid, &pkt->eth_src_addr);
+		rte_eth_macaddr_get(pid, &info->seq_pkt[RATE_PKT].eth_src_addr);
 
 		strncatf(output_buff, ", Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
 				pkt->eth_src_addr.addr_bytes[0],
@@ -444,6 +451,7 @@ pktgen_config_ports(void)
 		/* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
 		for (i = 0; i < NUM_SEQ_PKTS; i++)
 			ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
+		ethAddrCopy(&info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_src_addr);
 	}
 	if (pktgen.verbose)
 		pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ",
@@ -470,6 +478,7 @@ pktgen_config_ports(void)
 		info = get_port_private(pktgen.l2p, pid);
 
 		pktgen.info[pid].seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
+		pktgen.info[pid].seq_pkt[RATE_PKT].pktSize = MIN_PKT_SIZE;
 
 		/* Setup the port and packet defaults. (must be after link speed is found) */
 		for (s = 0; s < NUM_TOTAL_PKTS; s++)

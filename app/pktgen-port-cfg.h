@@ -168,15 +168,20 @@ typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
 typedef struct {
 	uint16_t	fps;
-	uint16_t	frame_size;
+	uint16_t	vlines;
+	uint16_t    pixels;
 	uint16_t	color_bits;
 	uint16_t	payload;
 	uint16_t	overhead;
-	uint16_t	pad0;
-	uint32_t	mbps;
-	uint32_t	pps;
-	double		fps_rate;
-	double		sec_per_pkt;
+	uint32_t	pad0;
+
+	uint32_t    bytes_per_vframe;
+	uint32_t    bits_per_sec;
+	uint32_t	pkts_per_vframe;		/* bytes_per_vframe/payload */
+	uint32_t	total_pkts_per_sec;		/* pkts_per_vframe * fps */
+
+	double		pps_rate;
+
 	uint64_t	curr_tsc;
 	uint64_t	cycles_per_pkt;
 	uint64_t	next_tsc;
@@ -253,6 +258,7 @@ typedef struct port_info_s {
 		struct mbuf_table tx_mbufs;	/**< mbuf holder for transmit packets */
 		struct rte_mempool *rx_mp;	/**< Pool pointer for port RX mbufs */
 		struct rte_mempool *tx_mp;	/**< Pool pointer for default TX mbufs */
+		struct rte_mempool *rate_mp;	/**< Pool pointer for port Rate TX mbufs */
 		struct rte_mempool *range_mp;	/**< Pool pointer for port Range TX mbufs */
 		struct rte_mempool *seq_mp;	/**< Pool pointer for port Sequence TX mbufs */
 		struct rte_mempool *pcap_mp;	/**< Pool pointer for port PCAP TX mbufs */

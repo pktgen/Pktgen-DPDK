@@ -19,64 +19,50 @@
 #include <rte_bus_pci.h>
 #endif
 
-/**************************************************************************//**
- *
- * pktgen_wire_size - Calculate the wire size of the data to be sent.
- *
- * DESCRIPTION
- * Calculate the number of bytes/bits in a burst of traffic.
- *
- * RETURNS: Number of bytes in a burst of packets.
- *
- * SEE ALSO:
- */
-
-static uint64_t
-wire_size(rate_info_t *rate)
-{
-#if 0
-	return (uint64_t)((rate->payload + rate->overhead + PKT_OVERHEAD_SIZE) * 8);
-#else
-	return (uint64_t)(rate->payload * 8);
-#endif
-}
-
-/**************************************************************************//**
- *
- * pktgen_cycles_per_pkt - Calculate the transmit bit rate
- *
- * DESCRIPTION
- * Calculate the number of cycles to wait between sending bursts of traffic.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static uint64_t
-cycles_per_pkt(rate_info_t *rate)
-{
-	uint64_t bpp = wire_size(rate);
-	uint64_t pps = (rate->mbps * Million) / bpp;
-	double spp = 1.0/(double)pps;
-	uint64_t hz = pktgen.hz;
-
-//	printf("%s: pkt size %lu bits, rate %d Mbps, %lu pps\n", __func__, bpp, rate->mbps, pps);
-//	printf("%s: cycles/s %lu cycles/ms %lu, cycles/us %lu\n", __func__, hz, hz/1000, hz/1000000);
-//	printf("%s: %lu cycles/s * %.5f spp = %.0f cycles/p\n", __func__, hz, spp, (double)hz * spp);
-
-	rate->sec_per_pkt = spp;
-
-	return (uint64_t)((double)hz * spp);
-}
-
 static void
-calculate_rate(rate_info_t *rate)
+calculate_rate(port_info_t *info)
 {
-	rate->pps = (rate->mbps * Million)/rate->payload;
-	rate->fps_rate = (double)(1.0/(double)rate->fps);
+	rate_info_t *rate = &info->rate;
 
-	rate->cycles_per_pkt = cycles_per_pkt(rate);
+	rate->bytes_per_vframe = (rate->vlines * rate->pixels * rate->color_bits)/8;
+	rate->bits_per_sec = (rate->bytes_per_vframe * rate->fps)*8;
+
+	rate->pkts_per_vframe = rate->bytes_per_vframe/rate->payload;
+	rate->total_pkts_per_sec = rate->pkts_per_vframe * rate->fps;
+	rate->pps_rate = 1.0/(double)rate->total_pkts_per_sec;
+
+	rate->cycles_per_pkt = (pktgen.hz/rate->total_pkts_per_sec);
+
+	info->tx_cycles = info->rate.cycles_per_pkt;
+}
+
+void
+pktgen_rate_init(port_info_t *info)
+{
+	rate_info_t *rate = &info->rate;
+
+	rate->fps = 60;
+	rate->vlines = 720;
+	rate->pixels = 1280;
+	rate->color_bits = 20;
+
+	rate->payload = 800;
+	rate->overhead = 62;
+
+	calculate_rate(info);
+}
+
+void
+update_rate_values(port_info_t *info)
+{
+	rate_info_t *rate = &info->rate;
+
+	info->seq_pkt[RATE_PKT].ipProto = PG_IPPROTO_UDP;
+	info->seq_pkt[RATE_PKT].pktSize = (rate->payload + rate->overhead) - PG_ETHER_CRC_LEN;
+
+	info->tx_burst = 1;
+
+	calculate_rate(info);
 }
 
 void
@@ -90,61 +76,44 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		if (value > 120)
 			value = 120;
 		rate->fps = value;
-		rate->fps_rate = ((double)((double)1/(double)rate->fps))*1000;
+	} else if (!strcmp(what, "lines")) {
+		rate->vlines = value;
+	} else if (!strcmp(what, "pixels")) {
+		rate->pixels = value;
 	} else if (!strcmp(what, "color")) {
 		if (value > 32)
 			value = 32;
 		if (value < 1)
 			value = 1;
 		rate->color_bits = value;
-	} else if (!strcmp(what, "overhead")) {
-		if ((rate->payload + value) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
-			rate->overhead = value;
-	} else if (!strcmp(what, "mbps")) {
-		if (value < 1)
-			value = 1;
-		if (value > 100)
-			value = 100;
-		rate->mbps = value;
-	} else if (!strcmp(what, "frame")) {
-		if (value < 360)
-			value = 360;
-		if (value > (8 * 1024))
-			value = (8 * 1024);
-		rate->frame_size = value;
 	} else if (!strcmp(what, "payload")) {
 		if ((value + rate->overhead) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
 			rate->payload = value;
+	} else if (!strcmp(what, "overhead")) {
+		if ((rate->payload + value) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
+			rate->overhead = value;
 	}
 	update_rate_values(info);
 }
 
-void
-pktgen_rate_init(port_info_t *info)
-{
-	rate_info_t *rate = &info->rate;
-
-	rate->fps = 60;
-	rate->frame_size = 800;
-	rate->color_bits = 12;
-	rate->payload = 800;
-	rate->overhead = 62;
-	rate->mbps = 5;
-
-	calculate_rate(rate);
-}
+/**************************************************************************//**
+ *
+ * pktgen_rate_setup - Setup the default values for a rate port.
+ *
+ * DESCRIPTION
+ * Setup the default rate data for a given port.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 
 void
-update_rate_values(port_info_t *info)
+pktgen_rate_setup(port_info_t *info)
 {
-	rate_info_t *rate = &info->rate;
+	rte_memcpy(&info->seq_pkt[RATE_PKT], &info->seq_pkt[SINGLE_PKT], sizeof(pkt_seq_t));
 
-	calculate_rate(rate);
-
-	info->tx_cycles = info->rate.cycles_per_pkt;
-	info->tx_pps = info->rate.pps;
-	info->tx_burst = 1;
-	info->seq_pkt[SINGLE_PKT].pktSize = (rate->payload + rate->overhead) - PG_ETHER_CRC_LEN;
+	pktgen_rate_init(info);
 }
 
 /**************************************************************************//**
@@ -160,7 +129,7 @@ update_rate_values(port_info_t *info)
  */
 
 static void
-pktgen_print_static_data(void)
+rate_print_static_data(void)
 {
 	port_info_t *info;
 	struct rte_eth_dev_info dev = { 0 };
@@ -198,20 +167,19 @@ pktgen_print_static_data(void)
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");
 
 	row++;
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Video FPS/rate");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FrameSz/ColorBits");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "FPS/Line/Pixel/Color");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Payload/Overhead");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PPS / Interval");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Mbps / Cycles");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bpf/bps");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts per Frame/Total");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Rate/Cycles per Pkt");
 
 	/* Labels for static fields */
 	pktgen_display_set_color("stats.stat.label");
 	ip_row = ++row;
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Tx Burst");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src/Dest Port");
-	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TTL/Port Src/Dst");
+	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt / Type");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst  IP Address");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src  IP Address");
 	scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
@@ -237,21 +205,15 @@ pktgen_print_static_data(void)
 
 		info    = &pktgen.info[pid + sp];
 
-		pkt     = &info->seq_pkt[SINGLE_PKT];
+		pkt     = &info->seq_pkt[RATE_PKT];
 
 		pktgen_display_set_color("stats.stat.values");
 		/* Display Port information Src/Dest IP addr, Netmask, Src/Dst MAC addr */
 		col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
 		row = ip_row;
 
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		        (info->fill_pattern_type == ABC_FILL_PATTERN) ? "abcd..." :
-		        (info->fill_pattern_type == NO_FILL_PATTERN) ? "None" :
-		        (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero" :
-		        info->user_pattern);
-
 		pktgen_display_set_color("stats.rate.count");
-		pktgen_transmit_count_rate(pid, buff, sizeof(buff));
+		rate_transmit_count_rate(pid, buff, sizeof(buff));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color("stats.stat.values");
@@ -259,13 +221,12 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-		snprintf(buff, sizeof(buff), "%s / %s:%04x",
+		snprintf(buff, sizeof(buff), "%s / %s",
 		         (pkt->ethType == PG_ETHER_TYPE_IPv4) ? "IPv4" :
-		         (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" :
-		         (pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" : "Other",
+		         	(pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6" :
+		         		(pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" : "Other",
 		         (pkt->ipProto == PG_IPPROTO_TCP) ? "TCP" :
-		         (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP",
-		         pkt->vlanid);
+		         	(pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP" : "UDP");
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color("stats.ip");
@@ -345,7 +306,7 @@ pktgen_page_rate(void)
 	uint64_t avg_lat, ticks;
 
 	if (pktgen.flags & PRINT_LABELS_FLAG)
-		pktgen_print_static_data();
+		rate_print_static_data();
 
 	memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 
@@ -454,20 +415,23 @@ pktgen_page_rate(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		row++;
-		snprintf(buff, sizeof(buff), "%d/%4.2fms", rate->fps, rate->fps_rate * 1000.0);
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-		snprintf(buff, sizeof(buff), "%dp/%d", rate->frame_size, rate->color_bits);
+		snprintf(buff, sizeof(buff), "%d/%d/%d/%d",
+			rate->fps, rate->vlines, rate->pixels, rate->color_bits);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		snprintf(buff, sizeof(buff), "%d/%d", rate->payload, rate->overhead);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d pps / %.2fms", rate->pps, rate->sec_per_pkt * 1000.0);
+		snprintf(buff, sizeof(buff), "%d/%ld Mbps",
+			rate->bytes_per_vframe, ((uint64_t)rate->bits_per_sec/Million));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		snprintf(buff, sizeof(buff), "%d / %lu", rate->mbps,
-				rate->cycles_per_pkt);
+		snprintf(buff, sizeof(buff), "%d/%d",
+			rate->pkts_per_vframe, rate->total_pkts_per_sec);
+		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		snprintf(buff, sizeof(buff), "%.2fus/%ld",
+			rate->pps_rate*1000000.0, rate->cycles_per_pkt);
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		display_cnt++;

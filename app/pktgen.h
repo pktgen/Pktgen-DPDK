@@ -220,15 +220,14 @@ enum {
 	MAX_PRIME_COUNT         = 4,
 
 	NUM_SEQ_PKTS            = 16,	/* Number of buffers to support in sequence */
-	NUM_EXTRA_TX_PKTS       = 8,	/* Number of extra TX packets */
 
 	FIRST_SEQ_PKT           = 0,
 	SINGLE_PKT              = (FIRST_SEQ_PKT + NUM_SEQ_PKTS),	/* 16 */
 	PING_PKT                = (SINGLE_PKT + 1),			/* 17 */
 	RANGE_PKT               = (PING_PKT + 1),			/* 18 */
 	DUMP_PKT                = (RANGE_PKT + 1),			/* 19 */
-	EXTRA_TX_PKT            = (DUMP_PKT + 1),			/* 20 */
-	NUM_TOTAL_PKTS          = (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
+	RATE_PKT				= (DUMP_PKT + 1),			/* 20 */
+	NUM_TOTAL_PKTS          = (RATE_PKT + 1),
 
 	INTER_FRAME_GAP         = 12,	/**< in bytes */
 	START_FRAME_DELIMITER	= 1,

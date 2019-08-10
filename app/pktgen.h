@@ -87,16 +87,13 @@
 #include "pktgen-random.h"
 #include "pktgen-rate.h"
 #include "pktgen-seq.h"
+#include "pktgen-version.h"
 
 #include <cli.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define PKTGEN_VERSION          "19.09.0"
-#define PKTGEN_APP_NAME         "Pktgen"
-#define PKTGEN_CREATED_BY       "Keith Wiles"
 
 #define MAX_MATRIX_ENTRIES      128
 #define MAX_STRING              256
@@ -461,10 +458,13 @@ estate(const char *state) {
  */
 static inline const char *
 pktgen_version(void) {
-	static char pkt_version[128];
+	static char pkt_version[64];
+
+	if (pkt_version[0] != 0)
+		return pkt_version;
 
 	snprintf(pkt_version, sizeof(pkt_version),
-		 "Ver: %s (%s)", PKTGEN_VERSION, rte_version());
+		 "%s (%s)", PKTGEN_VERSION, rte_version());
 	return pkt_version;
 }
 

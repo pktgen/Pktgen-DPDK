@@ -97,7 +97,7 @@ pktgen_script_save(char *path)
 		if (rte_lcore_is_enabled(i) )
 			lcore |= (1 << i);
 
-	fprintf(fd, "#\n# Pktgen - %s\n", pktgen_version());
+	fprintf(fd, "#\n# %s\n", pktgen_version());
 	fprintf(fd, "# %s, %s\n\n", copyright_msg(), powered_by());
 
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
@@ -456,7 +456,7 @@ pktgen_lua_save(char *path)
 		if (rte_lcore_is_enabled(i) )
 			lcore |= (1 << i);
 
-	fprintf(fd, "--\n-- Pktgen - %s\n", pktgen_version());
+	fprintf(fd, "--\n-- %s\n", pktgen_version());
 	fprintf(fd, "-- %s, %s\n\n", copyright_msg(), powered_by());
 
 	fprintf(fd, "package.path = package.path ..\";?.lua;test/?.lua;app/?.lua;\"\n");

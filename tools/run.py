@@ -416,21 +416,17 @@ def parse_args():
 def main():
 	'''program main function'''
 
-	global sdk, target, pme
+	global sdk, target
 
 	sdk = os.getenv('RTE_SDK')
 	if sdk == None:
 		err_exit("Set RTE_SDK environment variable or use 'sudo -E ...'")
 
-	pme = os.getenv('PME_SDK')
-	if pme == None:
-		pme = 'pme-sdk-not-set';
-
 	target = os.getenv('RTE_TARGET')
 	if target == None:
 		err_exit("Set the RTE_TARET environment variable or use 'sudo -E ...'")
 
-	print(">>> sdk '%s', target '%s', pme '%s'" % (sdk, target, pme))
+	print(">>> sdk '%s', target '%s'" % (sdk, target))
 
 	cfg_file = parse_args()
 

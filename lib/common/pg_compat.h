@@ -78,6 +78,14 @@ extern "C" {
 #endif
 
 #if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
+#define RTE_PRIORITY_LOG 101
+#define RTE_PRIORITY_BUS 110
+#define RTE_PRIORITY_CLASS 120
+#define RTE_PRIORITY_LAST 65535
+
+#define RTE_PRIO(prio) \
+        RTE_PRIORITY_ ## prio
+
 /**
  * Run after main() with low priority.
  *

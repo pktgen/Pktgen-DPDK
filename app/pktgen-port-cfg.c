@@ -178,8 +178,13 @@ pktgen_config_ports(void)
 		buff[0] = 0;
 		printf("   %2d: %-12s   %2d    %-12s  %2d   ", i, dev.driver_name,
 			dev.if_index,
+#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+			(dev.pci_dev->driver->driver.alias)? dev.pci_dev->driver->driver.alias : "",
+			dev.pci_dev->device.numa_node);
+#else
 			(dev.device->driver->alias)? dev.device->driver->alias : "",
 			dev.device->numa_node);
+#endif
 #if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 		if (dev.pci_dev) {
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",

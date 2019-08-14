@@ -175,7 +175,7 @@ ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 endif
 
 CFLAGS  += $(__CFLAGS)
-LDFLAGS += $(__LDFLAGS) --start-group $(__LIBS) --end-group -lpcap -lm
+LDFLAGS += --start-group $(__LDFLAGS) $(__LIBS) -lrte_timer --end-group -lpcap -lm
 
 DEP_pktgen := $(__LIB_DEPS)
 

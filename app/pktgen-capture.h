@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 typedef struct cap_hdr_s {
+	uint64_t tstamp;
 	uint16_t pkt_len;
 	uint16_t data_len;
 	uint8_t pkt[0];

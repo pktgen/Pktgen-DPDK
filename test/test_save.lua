@@ -39,7 +39,7 @@ pktgen.set_type('0', 'ipv4');
 pktgen.set_proto('0', 'tcp');
 pktgen.set_ipaddr('0', 'dst', '192.168.1.1');
 pktgen.set_ipaddr('0', 'src','192.168.0.1/24');
-pktgen.set_mac('0', '3c:fd:fe:9e:2c:b8');
+pktgen.set_mac('0', 'dst', '3c:fd:fe:9e:2c:b8');
 pktgen.vlanid('0', 1);
 
 pktgen.pattern('0', 'abc');
@@ -195,7 +195,7 @@ pktgen.set_type('1', 'ipv4');
 pktgen.set_proto('1', 'tcp');
 pktgen.set_ipaddr('1', 'dst', '192.168.0.1');
 pktgen.set_ipaddr('1', 'src','192.168.1.1/24');
-pktgen.set_mac('1', '3c:fd:fe:9e:29:78');
+pktgen.set_mac('1', 'dst', '3c:fd:fe:9e:29:78');
 pktgen.vlanid('1', 1);
 
 pktgen.pattern('1', 'abc');

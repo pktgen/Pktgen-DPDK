@@ -161,7 +161,7 @@ display_dashline(int last_row)
 	for (i = 0; i < 79; i++)
 		scrn_fprintf(0, 0, stdout, "-");
 	pktgen_display_set_color("sep.text");
-	scrn_printf(last_row, 3, " Pktgen %s ", pktgen_version());
+	scrn_printf(last_row, 3, " %s ", pktgen_version());
 	pktgen_display_set_color("top.poweredby");
 	scrn_puts(" %s ", powered_by());
 	scrn_puts(" (pid:%d) ", getpid());
@@ -242,7 +242,7 @@ __set_prompt(void)
 		return;
 
 	/* Set default return value. */
-	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_APP_NAME);
+	snprintf(prompt_str, sizeof(prompt_str), "%s> ", PKTGEN_VER_PREFIX);
 
 	if ( (this_scrn->theme == SCRN_THEME_ON) && !scrn_is_paused() ) {
 		/* Look up the default and prompt values */
@@ -260,7 +260,7 @@ __set_prompt(void)
 				 prompt->attr,
 				 30 + prompt->fg_color,
 				 40 + prompt->bg_color,
-				 PKTGEN_APP_NAME,
+				 PKTGEN_VER_PREFIX,
 				 def->attr,
 				 30 + def->fg_color,
 				 40 + def->bg_color);

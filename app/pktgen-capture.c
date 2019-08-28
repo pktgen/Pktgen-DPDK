@@ -318,6 +318,7 @@ pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
 		 * data. */
 		cap->tail->pkt_len  = pkt->pkt_len;
 		cap->tail->data_len = plen;
+		cap->tail->tstamp   = rte_rdtsc();
 
 		rte_memcpy(cap->tail->pkt,
 			   (uint8_t *)pkt->buf_addr + pkt->data_off,

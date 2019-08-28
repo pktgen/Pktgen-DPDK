@@ -439,7 +439,7 @@ main(int argc, char **argv)
 
 	rte_delay_us_sleep(100 * 1000);	/* Wait a bit for things to settle. */
 
-	print_copyright(PKTGEN_APP_NAME, PKTGEN_CREATED_BY);
+	print_copyright(PKTGEN_VER_PREFIX, PKTGEN_VER_CREATED_BY);
 
 	if (pktgen.verbose)
 		pktgen_log_info(

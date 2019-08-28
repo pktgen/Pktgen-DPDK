@@ -81,6 +81,7 @@ pktgen_script_save(char *path)
 	port_info_t   *info;
 	pkt_seq_t     *pkt;
 	range_info_t  *range;
+	rate_info_t   *rate;
 	uint32_t flags;
 	char buff[64];
 	FILE      *fd;
@@ -96,7 +97,7 @@ pktgen_script_save(char *path)
 		if (rte_lcore_is_enabled(i) )
 			lcore |= (1 << i);
 
-	fprintf(fd, "#\n# Pktgen - %s\n", pktgen_version());
+	fprintf(fd, "#\n# %s\n", pktgen_version());
 	fprintf(fd, "# %s, %s\n\n", copyright_msg(), powered_by());
 
 	/* TODO: Determine DPDK arguments for rank and memory, default for now. */
@@ -133,6 +134,7 @@ pktgen_script_save(char *path)
 		info = &pktgen.info[i];
 		pkt = &info->seq_pkt[SINGLE_PKT];
 		range = &info->range;
+		rate = &info->rate;
 
 		if (info->tx_burst == 0)
 			continue;
@@ -238,6 +240,8 @@ pktgen_script_save(char *path)
 			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis", i);
 		fprintf(fd, "%sable %d vlan\n\n",
 			(flags & SEND_VLAN_ID) ? "en" : "dis", i);
+		fprintf(fd, "%sable %d vlan\n\n",
+			(flags & SEND_RATE_PACKETS) ? "en" : "dis", i);
 
 		fprintf(fd, "#\n# Range packet information:\n");
 		fprintf(fd, "range %d mac src start %s\n", i,
@@ -345,6 +349,14 @@ pktgen_script_save(char *path)
 			range->pkt_size_max + PG_ETHER_CRC_LEN);
 		fprintf(fd, "range %d size inc %d\n\n", i, range->pkt_size_inc);
 
+		fprintf(fd, "#\n# Set up the rate data for the port.\n");
+		fprintf(fd, "rate %d fps %d\n", i, rate->fps);
+		fprintf(fd, "rate %d lines %d\n", i, rate->vlines);
+		fprintf(fd, "rate %d pixels %d\n", i, rate->pixels);
+		fprintf(fd, "rate %d color %d\n", i, rate->color_bits);
+		fprintf(fd, "rate %d payload size %d\n\n", i, rate->payload);
+		fprintf(fd, "rate %d overhead %d\n", i, rate->overhead);
+
 		fprintf(fd, "#\n# Set up the sequence data for the port.\n");
 		fprintf(fd, "set %d seq_cnt %d\n", info->pid, info->seqCnt);
 		for (j = 0; j < info->seqCnt; j++) {
@@ -444,7 +456,7 @@ pktgen_lua_save(char *path)
 		if (rte_lcore_is_enabled(i) )
 			lcore |= (1 << i);
 
-	fprintf(fd, "--\n-- Pktgen - %s\n", pktgen_version());
+	fprintf(fd, "--\n-- %s\n", pktgen_version());
 	fprintf(fd, "-- %s, %s\n\n", copyright_msg(), powered_by());
 
 	fprintf(fd, "package.path = package.path ..\";?.lua;test/?.lua;app/?.lua;\"\n");
@@ -531,8 +543,10 @@ pktgen_lua_save(char *path)
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
-		fprintf(fd, "pktgen.set_mac('%d', '%s');\n", info->pid,
+		fprintf(fd, "pktgen.set_mac('%d', 'dst', '%s');\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
+		fprintf(fd, "pktgen.set_mac('%d', 'src', '%s');\n", info->pid,
+			inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		fprintf(fd, "pktgen.vlanid('%d', %d);\n\n", i, pkt->vlanid);
 
 		fprintf(fd, "pktgen.pattern('%d', '%s');\n", i,
@@ -686,7 +700,6 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.tos('%d', 'min', %d);\n", i, range->tos_min);
 		fprintf(fd, "pktgen.tos('%d', 'max', %d);\n", i, range->tos_max);
 		fprintf(fd, "pktgen.tos('%d', 'inc', %d);\n", i, range->tos_inc);
-
 
 		fprintf(fd, "\n");
 		fprintf(fd, "pktgen.pkt_size('%d', 'start', %d);\n", i,
@@ -895,6 +908,32 @@ pktgen_transmit_count_rate(int port, char *buff, int len)
 		snprintf(buff, len, "%" PRIu64 " /%g%%",
 			 rte_atomic64_read(&info->transmit_count),
 			 info->tx_rate);
+
+	return buff;
+}
+
+/**************************************************************************//**
+ *
+ * rate_transmit_count_rate - Get a string for the current transmit count and rate
+ *
+ * DESCRIPTION
+ * Current value of the transmit count/%rate as a string.
+ *
+ * RETURNS: String pointer to transmit count/%rate.
+ *
+ * SEE ALSO:
+ */
+
+char *
+rate_transmit_count_rate(int port, char *buff, int len)
+{
+	port_info_t *info = &pktgen.info[port];
+
+	if (rte_atomic64_read(&info->transmit_count) == 0)
+		snprintf(buff, len, "Forever");
+	else
+		snprintf(buff, len, "%" PRIu64 "",
+			 rte_atomic64_read(&info->transmit_count));
 
 	return buff;
 }
@@ -1403,6 +1442,8 @@ debug_mempool_dump(port_info_t *info, char *name)
 			__mempool_dump(stdout, info->q[q].tx_mp);
 		if (all || !strcmp(name, "range") )
 			__mempool_dump(stdout, info->q[q].range_mp);
+		if (all || !strcmp(name, "rate") )
+			__mempool_dump(stdout, info->q[q].rate_mp);
 		if (all || !strcmp(name, "seq") )
 			__mempool_dump(stdout, info->q[q].seq_mp);
 		if (all || !strcmp(name, "arp") )
@@ -1496,7 +1537,7 @@ pktgen_prime_ports(port_info_t *info)
 
 /**************************************************************************//**
  *
- * pktgen_set_proto - Set up the protocol type for a port/packet.
+ * single_set_proto - Set up the protocol type for a port/packet.
  *
  * DESCRIPTION
  * Setup all single packets with a protocol types with the port list.
@@ -1519,6 +1560,34 @@ single_set_proto(port_info_t *info, char *type)
 		info->seq_pkt[SINGLE_PKT].ethType = PG_ETHER_TYPE_IPv4;
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * rate_set_proto - Set up the protocol type for a port/packet.
+ *
+ * DESCRIPTION
+ * Setup all rate packets with a protocol types with the port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_proto(port_info_t *info, char *type)
+{
+	info->seq_pkt[RATE_PKT].ipProto = (type[0] == 'u') ? PG_IPPROTO_UDP :
+		(type[0] == 'i') ? PG_IPPROTO_ICMP :
+		(type[0] == 't') ? PG_IPPROTO_TCP :
+		/* TODO print error: unknown type */ PG_IPPROTO_TCP;
+
+	/* ICMP only works on IPv4 packets. */
+	if (type[0] == 'i')
+		info->seq_pkt[RATE_PKT].ethType = PG_ETHER_TYPE_IPv4;
+
+	pktgen_packet_ctor(info, RATE_PKT, -1);
 	pktgen_set_tx_update(info);
 }
 
@@ -1593,9 +1662,11 @@ enable_rate(port_info_t *info, uint32_t state)
 		pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
 		pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
 		pktgen_set_port_flags(info, SEND_RATE_PACKETS);
+
+		single_set_proto(info, (char *)(uintptr_t)"udp");
 		update_rate_values(info);
 	} else {
-		pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
+		pkt_seq_t *pkt = &info->seq_pkt[RATE_PKT];
 
 		pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
 		info->tx_burst = DEFAULT_PKT_BURST;
@@ -1971,6 +2042,45 @@ single_set_pkt_type(port_info_t *info, const char *type)
 	}
 
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * rate_set_pkt_type - Set the packet type value.
+ *
+ * DESCRIPTION
+ * Set the packet type value for the given port list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_pkt_type(port_info_t *info, const char *type)
+{
+	pkt_seq_t *pkt = &info->seq_pkt[RATE_PKT];
+	uint16_t ethtype = pkt->ethType;
+
+	pkt->ethType =
+		(type[0] == 'a') ? PG_ETHER_TYPE_ARP  :
+		(type[3] == '4') ? PG_ETHER_TYPE_IPv4 :
+		(type[3] == '6') ? PG_ETHER_TYPE_IPv6 :
+		(type[2] == '4') ? PG_ETHER_TYPE_IPv4 :
+		(type[2] == '6') ? PG_ETHER_TYPE_IPv6 :
+		/* TODO print error: unknown type */ PG_ETHER_TYPE_IPv4;
+
+	if ((ethtype == PG_ETHER_TYPE_IPv6) && (pkt->ethType == PG_ETHER_TYPE_IPv4)) {
+		if (pkt->pktSize >= MIN_v6_PKT_SIZE)
+			pkt->pktSize = MIN_PKT_SIZE + (pkt->pktSize - MIN_v6_PKT_SIZE);
+	}
+	if ((ethtype == PG_ETHER_TYPE_IPv4) && (pkt->ethType == PG_ETHER_TYPE_IPv6)) {
+		if (pkt->pktSize < MIN_v6_PKT_SIZE)
+			pkt->pktSize = MIN_v6_PKT_SIZE + (pkt->pktSize - MIN_PKT_SIZE);
+	}
+
+	pktgen_packet_ctor(info, RATE_PKT, -1);
 	pktgen_set_tx_update(info);
 }
 
@@ -2400,10 +2510,12 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
 		dst_info = info - 1;
 	}
 
-	if (dst_info->seq_pkt != NULL)
+	if (dst_info->seq_pkt != NULL) {
 		pg_ether_addr_copy(&dst_info->seq_pkt[SINGLE_PKT].eth_src_addr,
 				&pkt->eth_dst_addr);
-	else
+		pg_ether_addr_copy(&dst_info->seq_pkt[RATE_PKT].eth_src_addr,
+				&pkt->eth_dst_addr);
+	} else
 		memset(&pkt->eth_dst_addr, 0, sizeof(pkt->eth_dst_addr));
 
 	pktgen_packet_ctor(info, seq, -1);
@@ -2460,7 +2572,7 @@ debug_pdump(port_info_t *info)
 		pktgen_log_warning("No packet buffers found");
 		return;
 	}
-	*ppkt = *spkt;	/* Copy the sequence setup to the ping setup. */
+	*ppkt = *spkt;	/* Copy the sequence setup to the dump setup. */
 	pktgen_packet_ctor(info, DUMP_PKT, -1);
 	rte_memcpy((uint8_t *)m->buf_addr + m->data_off,
 		   (uint8_t *)&ppkt->hdr, ppkt->pktSize);
@@ -2528,14 +2640,17 @@ pktgen_reset(port_info_t *info)
 	/* Make sure the port is active and enabled. */
 	if (info->seq_pkt) {
 		info->seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
+		info->seq_pkt[RATE_PKT].pktSize = MIN_PKT_SIZE;
 
 		for (s = 0; s < NUM_TOTAL_PKTS; s++)
 			pktgen_port_defaults(info->pid, s);
 
 		pktgen_range_setup(info);
+		pktgen_rate_setup(info);
 		pktgen_clear_stats(info);
 
 		enable_range(info, estate(off));
+		enable_rate(info, estate(off));
 		memset(info->rnd_bitfields, 0, sizeof(struct rnd_bits_s));
 		pktgen_rnd_bits_init(&info->rnd_bitfields);
 		pktgen_set_port_seqCnt(info, 0);
@@ -2590,6 +2705,24 @@ pktgen_port_restart(port_info_t *info)
 
 void
 single_set_tx_count(port_info_t *info, uint32_t cnt)
+{
+	rte_atomic64_set(&info->transmit_count, cnt);
+}
+
+/**************************************************************************//**
+ *
+ * rate_set_tx_count - Set the number of packets to transmit on a port.
+ *
+ * DESCRIPTION
+ * Set the transmit count for all ports in the list.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_tx_count(port_info_t *info, uint32_t cnt)
 {
 	rte_atomic64_set(&info->transmit_count, cnt);
 }
@@ -2705,6 +2838,31 @@ single_set_tx_burst(port_info_t *info, uint32_t burst)
 
 /**************************************************************************//**
  *
+ * rate_set_tx_burst - Set the transmit burst count.
+ *
+ * DESCRIPTION
+ * Set the transmit burst count for all packets.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_tx_burst(port_info_t *info, uint32_t burst)
+{
+	if (burst == 0)
+		burst = 1;
+	else if (burst > DEFAULT_PKT_BURST)
+		burst = DEFAULT_PKT_BURST;
+	info->tx_burst = burst;
+	info->tx_cycles = 0;
+
+	pktgen_packet_rate(info);
+}
+
+/**************************************************************************//**
+ *
  * debug_set_tx_cycles - Set the number of Transmit cycles to use.
  *
  * DESCRIPTION
@@ -2758,6 +2916,41 @@ single_set_pkt_size(port_info_t *info, uint16_t size)
 
 /**************************************************************************//**
  *
+ * rate_set_pkt_size - Set the size of the packets to send.
+ *
+ * DESCRIPTION
+ * Set the pkt size for the single packet transmit.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_pkt_size(port_info_t *info, uint16_t size)
+{
+	pkt_seq_t * pkt = &info->seq_pkt[RATE_PKT];
+
+	if (size < PG_ETHER_CRC_LEN)
+		size = PG_ETHER_CRC_LEN;
+
+	if ( (size - PG_ETHER_CRC_LEN) < MIN_PKT_SIZE)
+		size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
+	if ( (size - PG_ETHER_CRC_LEN) > MAX_PKT_SIZE)
+		size = MAX_PKT_SIZE + PG_ETHER_CRC_LEN;
+
+	if ((pkt->ethType == PG_ETHER_TYPE_IPv6) && (size < (MIN_v6_PKT_SIZE + PG_ETHER_CRC_LEN)))
+		size = MIN_v6_PKT_SIZE + PG_ETHER_CRC_LEN;
+
+	pkt->pktSize = (size - PG_ETHER_CRC_LEN);
+
+	pktgen_packet_ctor(info, RATE_PKT, -1);
+	pktgen_packet_rate(info);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
  * single_set_port_value - Set the port value for single or sequence packets.
  *
  * DESCRIPTION
@@ -2776,6 +2969,29 @@ single_set_port_value(port_info_t *info, char type, uint32_t portValue)
 	else
 		info->seq_pkt[SINGLE_PKT].sport = (uint16_t)portValue;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * rate_set_port_value - Set the port value for single or sequence packets.
+ *
+ * DESCRIPTION
+ * Set the port value for single or sequence packets for the ports listed.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_port_value(port_info_t *info, char type, uint32_t portValue)
+{
+	if (type == 'd')
+		info->seq_pkt[RATE_PKT].dport = (uint16_t)portValue;
+	else
+		info->seq_pkt[RATE_PKT].sport = (uint16_t)portValue;
+	pktgen_packet_ctor(info, RATE_PKT, -1);
 	pktgen_set_tx_update(info);
 }
 
@@ -2834,6 +3050,57 @@ single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip)
 
 /**************************************************************************//**
  *
+ * rate_set_ipaddr - Set the IP address for all ports listed
+ *
+ * DESCRIPTION
+ * Set an IP address for all ports listed in the call.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip)
+{
+	if (type == 's') {
+		info->seq_pkt[RATE_PKT].ip_mask = size_to_mask(ip->prefixlen);
+		info->seq_pkt[RATE_PKT].ip_src_addr.addr.ipv4.s_addr = ntohl(
+		                ip->ipv4.s_addr);
+	} else
+		info->seq_pkt[RATE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
+		                ip->ipv4.s_addr);
+	pktgen_packet_ctor(info, RATE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * single_set_mac - Setup the MAC address
+ *
+ * DESCRIPTION
+ * Set the MAC address for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_mac(port_info_t *info, const char *which, struct pg_ether_addr *mac)
+{
+        if (!strcmp(which, "dst")){
+            memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
+            pktgen_packet_ctor(info, SINGLE_PKT, -1);
+        } else if (!strcmp(which, "src")){
+            memcpy(&info->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
+            pktgen_packet_ctor(info, SINGLE_PKT, -1);
+        }
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
  * single_set_dst_mac - Setup the destination MAC address
  *
  * DESCRIPTION
@@ -2874,6 +3141,46 @@ single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
 
 /**************************************************************************//**
  *
+ * rate_set_dst_mac - Setup the destination MAC address
+ *
+ * DESCRIPTION
+ * Set the destination MAC address for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac)
+{
+	memcpy(&info->seq_pkt[RATE_PKT].eth_dst_addr, mac, 6);
+	pktgen_packet_ctor(info, RATE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * rate_set_src_mac - Setup the source MAC address
+ *
+ * DESCRIPTION
+ * Set the source MAC address for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
+{
+	memcpy(&info->seq_pkt[RATE_PKT].eth_src_addr, mac, 6);
+	pktgen_packet_ctor(info, RATE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
  * single_set_ttl_ttl - Setup the Time to Live
  *
  * DESCRIPTION
@@ -2889,6 +3196,26 @@ single_set_ttl_value(port_info_t *info, uint8_t ttl)
 {
 	info->seq_pkt[SINGLE_PKT].ttl = ttl;
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * rateset_ttl_ttl - Setup the Time to Live
+ *
+ * DESCRIPTION
+ * Set the TTL  for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_ttl_value(port_info_t *info, uint8_t ttl)
+{
+	info->seq_pkt[RATE_PKT].ttl = ttl;
+	pktgen_packet_ctor(info, RATE_PKT, -1);
 	pktgen_set_tx_update(info);
 }
 
@@ -3576,107 +3903,6 @@ pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum, uint32_t flag, uint32_t
 	pkt->vxlan_id = vid;
 	pktgen_packet_ctor(info, seqnum, -1);
 	pktgen_set_tx_update(info);
-}
-
-/**************************************************************************//**
- *
- * pktgen_compile_pkt - Compile a packet for a given port.
- *
- * DESCRIPTION
- * Compile a packet for a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_compile_pkt(port_info_t *info, uint32_t seqnum,
-		   struct pg_ether_addr *daddr, struct pg_ether_addr *saddr,
-		   struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
-		   uint32_t sport, uint32_t dport, char type, char proto,
-		   uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid)
-{
-	pkt_seq_t     *pkt;
-
-	if (seqnum >= NUM_EXTRA_TX_PKTS)
-		return;
-
-	pkt = &info->seq_pkt[seqnum + EXTRA_TX_PKT];
-
-	memcpy(&pkt->eth_dst_addr, daddr, 6);
-	memcpy(&pkt->eth_src_addr, saddr, 6);
-	pkt->ip_mask        = size_to_mask(ip_saddr->prefixlen);
-	pkt->ip_src_addr.addr.ipv4.s_addr    = htonl(ip_saddr->ipv4.s_addr);
-	pkt->ip_dst_addr.addr.ipv4.s_addr    = htonl(ip_daddr->ipv4.s_addr);
-	pkt->dport          = dport;
-	pkt->sport          = sport;
-	pkt->pktSize        = pktsize - PG_ETHER_CRC_LEN;
-	pkt->ipProto        = (proto == 'u') ? PG_IPPROTO_UDP :
-		(proto == 'i') ? PG_IPPROTO_ICMP : PG_IPPROTO_TCP;
-	/* Force the IP protocol to IPv4 if this is a ICMP packet. */
-	if (proto == 'i')
-		type = '4';
-	pkt->ethType        = (type == '4') ? PG_ETHER_TYPE_IPv4 :
-		(type == '6') ? PG_ETHER_TYPE_IPv6 :
-		(type == 'n') ? PG_ETHER_TYPE_VLAN : PG_ETHER_TYPE_IPv4;
-	pkt->vlanid         = vlanid;
-	pkt->gtpu_teid          = gtpu_teid;
-	pktgen_packet_ctor(info, seqnum, -1);
-	pktgen_set_tx_update(info);
-}
-
-void
-pktgen_add_cos_tos(port_info_t *info, uint32_t seqnum, uint32_t cos, uint32_t tos)
-{
-	pkt_seq_t     *pkt;
-
-	if (seqnum >= NUM_EXTRA_TX_PKTS)
-		return;
-
-	pkt = &info->seq_pkt[seqnum + EXTRA_TX_PKT];
-
-	pkt->cos          = cos;
-	pkt->tos          = tos;
-	pktgen_packet_ctor(info, seqnum, -1);
-	pktgen_set_tx_update(info);
-}
-
-/**************************************************************************//**
- *
- * pktgen_send_pkt - Send a packet from the sequence array.
- *
- * DESCRIPTION
- * Send a packet from the special pkt_seq_t structures. Seqnum is the 0-N
- * index value into the info.seq_pkt[] array for EXTRA_TX_PKTS.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_send_pkt(port_info_t *info, uint32_t seqnum)
-{
-	pktgen_send_seq_pkt(info, seqnum + EXTRA_TX_PKT);
-}
-
-/**************************************************************************//**
- *
- * pktgen_recv_pkt - Receive a packet from the sequence array.
- *
- * DESCRIPTION
- * Receive a packet from the special pkt_seq_t structures.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_recv_pkt(port_info_t *info __rte_unused)
-{
-	pktgen_log_warning("Not working yet!");
 }
 
 /**************************************************************************//**

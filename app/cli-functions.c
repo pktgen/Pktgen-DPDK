@@ -369,11 +369,12 @@ range_cmd(int argc, char **argv)
 	return 0;
 }
 
-#define set_types	"count|"		/*  0 */ \
+#define set_types	\
+			"count|"		/*  0 */ \
 			"size|"			/*  1 */ \
 			"rate|"			/*  2 */ \
 			"burst|"		/*  3 */ \
-			"tx_cycles|"		/*  4 */ \
+			"tx_cycles|"	/*  4 */ \
 			"sport|"		/*  5 */ \
 			"dport|"		/*  6 */ \
 			"prime|"		/*  7 */ \
@@ -1686,24 +1687,52 @@ bonding_cmd(int argc, char **argv)
 }
 #endif
 
+#define rate_types	\
+			"count|"		/*  0 */ \
+			"size|"			/*  1 */ \
+			"burst|"		/*  2 */ \
+			"sport|"		/*  3 */ \
+			"dport|"		/*  4 */ \
+			"ttl"			/*  5 */
+
 static struct cli_map rate_map[] = {
-	{ 10, "rate %P fps %d" },
-	{ 20, "rate %P color %d" },
-	{ 30, "rate %P overhead %d" },
-	{ 40, "rate %P mbps %d" },
-	{ 50, "rate %P frame size %d" },
+	{ 10, "rate %P %|" rate_types " %d" },
+	{ 20, "rate %P type %|arp|ipv4|ipv6|ip4|ip6|vlan" },
+	{ 21, "rate %P proto %|udp|tcp|icmp" },
+	{ 22, "rate %P src mac %m" },
+	{ 23, "rate %P dst mac %m" },
+	{ 30, "rate %P src ip %4" },
+	{ 31, "rate %P dst ip %4" },
+
+	{ 40, "rate %P fps %d" },
+	{ 45, "rate %P lines %d" },
+	{ 46, "rate %P pixels %d" },
+	{ 50, "rate %P color bits %d" },
 	{ 60, "rate %P payload size %d" },
+	{ 70, "rate %P overhead %d" },
 	{ -1, NULL }
 };
 
 static const char *rate_help[] = {
 	"",
+	"rate <portlist> count <value>        - number of packets to transmit",
+	"rate <portlist> size <value>         - size of the packet to transmit",
+	"rate <portlist> rate <percent>       - Packet rate in percentage",
+	"rate <portlist> burst <value>        - number of packets in a burst",
+	"rate <portlist> sport <value>        - Source port number for TCP",
+	"rate <portlist> dport <value>        - Destination port number for TCP",
+	"rate <portlist> ttl <value>          - Set the TTL value for the single port more",
+	"rate <portlist> src|dst mac <addr>   - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format",
+	"rate <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
+	"rate <portlist> proto udp|tcp|icmp   - Set the packet protocol to UDP or TCP or ICMP per port",
+	"rate <portlist> [src|dst] ip ipaddr  - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24",
+
 	"rate <portlist> fps <value>          - Set the frame per second value e.g. 60fps",
-	"rate <portlist> color <value>        - Set the color bit size 8, 16, 24, ...",
-	"rate <portlist> overhead <value>     - Set the packet overhead + payload = total packet size",
-	"rate <portlist> mbps <value>         - Set the MBytes per second",
-	"rate <portlist> frame size <value>   - Set the video frame size",
+	"rate <portlist> lines <value>        - Set the number of video lines, e.g. 720",
+	"rate <portlist> pixels <value>       - Set the number of pixels per line, e.g. 1280",
+	"rate <portlist> color bits <value>   - Set the color bit size 8, 16, 24, ...",
 	"rate <portlist> payload size <value> - Set the payload size",
+	"rate <portlist> overhead <value>     - Set the packet overhead + payload = total packet size",
 	CLI_HELP_PAUSE,
 	NULL
 };
@@ -1712,7 +1741,10 @@ static int
 rate_cmd(int argc, char **argv)
 {
 	struct cli_map *m;
+	char *what, *p;
+	struct pg_ipaddr ip;
 	portlist_t portlist;
+	int value, n;
 
 	m = cli_mapping(rate_map, argc, argv);
 	if (!m)
@@ -1720,28 +1752,91 @@ rate_cmd(int argc, char **argv)
 
 	portlist_parse(argv[1], &portlist);
 
+	what = argv[2];
+	value = atoi(argv[3]);
+
 	switch(m->index) {
-		case 10:		/* fps */
+		case 10:
+			n = cli_map_list_search(m->fmt, argv[2], 2);
+			foreach_port(portlist, _do(
+				switch(n) {
+					case 0: rate_set_tx_count(info, value); break;
+					case 1: rate_set_pkt_size(info, valid_pkt_size(argv[3])); break;
+					case 2: rate_set_tx_burst(info, value); break;
+					case 3: rate_set_port_value(info, what[0], value); break;
+					case 4: rate_set_port_value(info, what[0], value); break;
+					case 5: rate_set_ttl_value(info, value); break;
+					default:
+						return cli_cmd_error("Set rate command is invalid", "Rate", argc, argv);
+				}) );
+			break;
+		case 20:
+			foreach_port(portlist, rate_set_pkt_type(info, argv[3]));
+			break;
+		case 21:
+			foreach_port(portlist, rate_set_proto(info, argv[3]));
+			break;
+		case 22:
+			foreach_port(portlist,
+				rate_set_src_mac(info, pg_ether_aton(argv[4], NULL)));
+			break;
+		case 23:
+			foreach_port(portlist,
+				rate_set_dst_mac(info, pg_ether_aton(argv[4], NULL)));
+			break;
+		case 24:
+			foreach_port(portlist, pattern_set_type(info, argv[3]));
+			break;
+		case 30:
+			p = strchr(argv[4], '/');
+			if (!p) {
+				char buf[32];
+				snprintf(buf, sizeof(buf), "%s/32", argv[4]);
+				cli_printf("src IP address should contain /NN subnet value, default /32\n");
+				_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			} else
+				_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			foreach_port(portlist, rate_set_ipaddr(info, 's', &ip));
+			break;
+		case 31:
+			/* Remove the /XX mask value if supplied */
+			p = strchr(argv[4], '/');
+			if (p) {
+				cli_printf("Subnet mask not required, removing subnet mask value\n");
+				*p = '\0';
+			}
+			_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+			foreach_port(portlist, rate_set_ipaddr(info, 'd', &ip));
+			break;
+		case 40:		/* fps */
 			foreach_port(portlist, rate_set_value(info, "fps", atoi(argv[3])));
 			break;
-		case 20:		/* color bits */
+		case 45:		/* lines */
+			foreach_port(portlist, rate_set_value(info, "lines", atoi(argv[3])));
+			break;
+		case 46:		/* pixels */
+			foreach_port(portlist, rate_set_value(info, "pixels", atoi(argv[3])));
+			break;
+		case 50:		/* color bits */
 			foreach_port(portlist, rate_set_value(info, "color", atoi(argv[3])));
 			break;
-		case 30:		/* overhead */
+		case 60:		/* overhead */
 			foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));
 			break;
-		case 40:		/* mbps */
+		case 70:		/* mbps */
 			foreach_port(portlist, rate_set_value(info, "mbps", atoi(argv[3])));
 			break;
-		case 50:		/* frame size */
+		case 80:		/* frame size */
 			foreach_port(portlist, rate_set_value(info, "frame", atoi(argv[4])));
 			break;
-		case 60:		/* payload size */
+		case 90:		/* payload size */
 			foreach_port(portlist, rate_set_value(info, "payload", atoi(argv[4])));
 			break;
 		default:
 			return cli_cmd_error("Rate invalid command", "Rate", argc, argv);
 	}
+
+	pktgen_update_display();
 	return 0;
 }
 

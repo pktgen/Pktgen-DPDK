@@ -18,9 +18,12 @@ include $(RTE_SDK)/mk/rte.vars.mk
 # binary name
 APP = pktgen
 
+VER := $(shell cat $(RTE_SRCDIR)/../VERSION | \
+	sed -e 's/-rc/.-rc/' -e 's/$$/..99/' | \
+	awk -F '.' '{print "-D__YEAR="int($$1), "-D__MONTH="int($$2), "-D__MINOR="int($$3), "-D__SUFFIX=\\\""$$4"\\\"", "-D__RELEASE="int($$5)}')
 CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -D_GNU_SOURCE
-CFLAGS += -DALLOW_EXPERIMENTAL_API
+CFLAGS += -DALLOW_EXPERIMENTAL_API $(VER)
 
 SRCS-y := \
 	cli-functions.c lpktgenlib.c pktgen-cmds.c pktgen.c pktgen-cfg.c \
@@ -30,6 +33,7 @@ SRCS-y := \
 	pktgen-gre.c pktgen-ether.c pktgen-tcp.c pktgen-udp.c pktgen-vlan.c \
 	pktgen-random.c pktgen-display.c pktgen-log.c pktgen-gtpu.c \
 	pktgen-latency.c pktgen-rate.c
+
 
 dpdk_ver   := $(RTE_SDK)/xusertools/dpdk-version.sh
 pktgen_ver := $(RTE_SRCDIR)/../tools/dpdk-version.sh
@@ -171,7 +175,7 @@ ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 endif
 
 CFLAGS  += $(__CFLAGS)
-LDFLAGS += $(__LDFLAGS) --start-group $(__LIBS) --end-group -lpcap -lm
+LDFLAGS += --start-group $(__LDFLAGS) $(__LIBS) -lrte_timer --end-group -lpcap -lm
 
 DEP_pktgen := $(__LIB_DEPS)
 

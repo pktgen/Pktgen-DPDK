@@ -168,15 +168,20 @@ typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
 typedef struct {
 	uint16_t	fps;
-	uint16_t	frame_size;
+	uint16_t	vlines;
+	uint16_t    pixels;
 	uint16_t	color_bits;
 	uint16_t	payload;
 	uint16_t	overhead;
-	uint16_t	pad0;
-	uint32_t	mbps;
-	uint32_t	pps;
-	double		fps_rate;
-	double		sec_per_pkt;
+	uint32_t	pad0;
+
+	uint32_t    bytes_per_vframe;
+	uint32_t    bits_per_sec;
+	uint32_t	pkts_per_vframe;		/* bytes_per_vframe/payload */
+	uint32_t	total_pkts_per_sec;		/* pkts_per_vframe * fps */
+
+	double		pps_rate;
+
 	uint64_t	curr_tsc;
 	uint64_t	cycles_per_pkt;
 	uint64_t	next_tsc;
@@ -185,6 +190,8 @@ typedef struct {
 typedef struct port_info_s {
 	uint16_t pid;		/**< Port ID value */
 	uint16_t tx_burst;	/**< Number of TX burst packets */
+	uint16_t lsc_enabled;
+	uint16_t pad0;
 	double tx_rate;		/**< Percentage rate for tx packets with fractions */
 	rte_atomic32_t port_flags;	/**< Special send flags for ARP and other */
 
@@ -251,6 +258,7 @@ typedef struct port_info_s {
 		struct mbuf_table tx_mbufs;	/**< mbuf holder for transmit packets */
 		struct rte_mempool *rx_mp;	/**< Pool pointer for port RX mbufs */
 		struct rte_mempool *tx_mp;	/**< Pool pointer for default TX mbufs */
+		struct rte_mempool *rate_mp;	/**< Pool pointer for port Rate TX mbufs */
 		struct rte_mempool *range_mp;	/**< Pool pointer for port Range TX mbufs */
 		struct rte_mempool *seq_mp;	/**< Pool pointer for port Sequence TX mbufs */
 		struct rte_mempool *pcap_mp;	/**< Pool pointer for port PCAP TX mbufs */
@@ -486,10 +494,8 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 	{ DEV_TX_OFFLOAD_MULTI_SEGS, 		_(MULTI_SEGS) },
 	{ DEV_TX_OFFLOAD_MBUF_FAST_FREE,	_(MBUF_FAST_FREE) },
 	{ DEV_TX_OFFLOAD_SECURITY, 		_(SECURITY) },
+#if RTE_VERSION >= RTE_VERSION_NUM(18,11,0,0)
 	{ DEV_TX_OFFLOAD_UDP_TNL_TSO, 		_(UDP_TNL_TSO) },
-#if RTE_VERSION < RTE_VERSION_NUM(18,11,0,0)
-	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) }
-#else
 	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) },
 	{ DEV_TX_OFFLOAD_OUTER_UDP_CKSUM,	_(OUTER_UDP_CKSUM) },
 	{ DEV_TX_OFFLOAD_MATCH_METADATA,	_(MATCH_METADATA) },

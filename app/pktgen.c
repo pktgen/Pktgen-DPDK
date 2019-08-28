@@ -57,6 +57,8 @@ pktgen_wire_size(port_info_t *info)
 
 	if (pktgen_tst_port_flags(info, SEND_PCAP_PKTS))
 		size = info->pcap->pkt_size + PKT_OVERHEAD_SIZE;
+	else if (pktgen_tst_port_flags(info, SEND_RATE_PACKETS))
+		size = info->seq_pkt[RATE_PKT].pktSize + PKT_OVERHEAD_SIZE;
 	else {
 		if (unlikely(info->seqCnt > 0)) {
 			for (i = 0; i < info->seqCnt; i++)
@@ -289,6 +291,8 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 
 	if (pktgen_tst_port_flags(info, SEND_RANGE_PKTS))
 		seq_idx = RANGE_PKT;
+	else if (pktgen_tst_port_flags(info, SEND_RATE_PACKETS))
+		seq_idx = RATE_PKT;
 	else
 		seq_idx = SINGLE_PKT;
 
@@ -334,6 +338,8 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 
 	if (flags & SEND_RANGE_PKTS)
 		seq_idx = RANGE_PKT;
+	else if (flags & SEND_RATE_PACKETS)
+		seq_idx = RATE_PKT;
 	else
 		seq_idx = SINGLE_PKT;
 
@@ -869,6 +875,8 @@ pktgen_setup_cb(struct rte_mempool *mp,
 
 	if (mp == info->q[qid].tx_mp)
 		idx = SINGLE_PKT;
+	else if (mp == info->q[qid].rate_mp)
+		idx = RATE_PKT;
 	else if (mp == info->q[qid].range_mp)
 		idx = RANGE_PKT;
 	else if (mp == info->q[qid].seq_mp) {
@@ -1066,11 +1074,13 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
 	if (flags & SENDING_PACKETS) {
 		mp = info->q[qid].tx_mp;
 
-		if (flags & (SEND_RANGE_PKTS | SEND_PCAP_PKTS | SEND_SEQ_PKTS)) {
+		if (flags & (SEND_RANGE_PKTS | SEND_PCAP_PKTS | SEND_SEQ_PKTS | SEND_RATE_PACKETS)) {
 			if (flags & SEND_RANGE_PKTS)
 				mp = info->q[qid].range_mp;
 			else if (flags & SEND_SEQ_PKTS)
 				mp = info->q[qid].seq_mp;
+			else if (flags & SEND_RATE_PACKETS)
+				mp = info->q[qid].rate_mp;
 			else if (flags & SEND_PCAP_PKTS)
 				mp = info->q[qid].pcap_mp;
 		}
@@ -1353,9 +1363,8 @@ pktgen_main_tx_loop(uint8_t lid)
 		if (curr_tsc >= tx_next_cycle) {
 			tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
 
-			for (idx = 0; idx < txcnt; idx++) {	/* Transmit packets */
+			for (idx = 0; idx < txcnt; idx++)	/* Transmit packets */
 				pktgen_main_transmit(infos[idx], qids[idx]);
-			}
 		} else if (curr_tsc >= tx_bond_cycle) {
 			tx_bond_cycle = curr_tsc + rte_get_timer_hz()/10;
 			for (idx = 0; idx < txcnt; idx++) {	/* Transmit pkts for Bonding PMD */

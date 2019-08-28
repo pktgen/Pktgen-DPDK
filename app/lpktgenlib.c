@@ -561,14 +561,14 @@ pktgen_set_mac(lua_State *L)
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "set_mac, wrong number of arguments");
-	case 2:
+	case 3:
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	pg_ether_aton(luaL_checkstring(L, 2), &mac);
+	pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
-	             single_set_dst_mac(info, &mac) );
+	             single_set_mac(info, luaL_checkstring(L, 2), &mac) );
 
 	pktgen_update_display();
 	return 0;
@@ -3261,178 +3261,6 @@ pktgen_help(lua_State *L)
 
 /**************************************************************************//**
  *
- * pktgen_compile - Compile a packet data structure into a real packet.
- *
- * DESCRIPTION
- * Compile a packet data structure into real packet data.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_compile(lua_State *L)
-{
-	uint32_t seqnum;
-
-	switch (lua_gettop(L) ) {
-	default: return luaL_error(L, "compile, wrong number of arguments");
-	case 3:
-		break;
-	}
-	seqnum = luaL_checkinteger(L, 1);
-	if (seqnum >= NUM_SEQ_PKTS)
-		return -1;
-
-	return set_seqTable(L, seqnum);
-}
-
-/**************************************************************************//**
- *
- * decompile_pkt - Convert a packet to a data structure.
- *
- * DESCRIPTION
- * Convert a packet to a data structure.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static void
-decompile_pkt(lua_State *L, port_info_t *info, uint32_t seqnum)
-{
-	char buff[128];
-	pkt_seq_t *p;
-
-	p = &info->seq_pkt[seqnum];
-
-	lua_pushinteger(L, info->pid);	/* Push the table index */
-	lua_newtable(L);		/* Create the structure table for a packet */
-
-	/* Add each member to the packet table indexed with port id. */
-	setf_string(L, "eth_dst_addr",
-		    inet_mtoa(buff, sizeof(buff), &p->eth_dst_addr));
-	setf_string(L, "eth_src_addr",
-		    inet_mtoa(buff, sizeof(buff), &p->eth_src_addr));
-	if (p->ethType == PG_ETHER_TYPE_IPv4) {
-		setf_string(L, "ip_dst_addr",
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(p->ip_dst_addr.addr.ipv4.s_addr),
-				       0xFFFFFFFF));
-		setf_string(L, "ip_src_addr",
-			    inet_ntop4(buff, sizeof(buff),
-				       htonl(p->ip_dst_addr.addr.ipv4.s_addr),
-				       p->ip_mask));
-	} else {
-		setf_string(L, "ip_dst_addr",
-			    inet_ntop6(buff, sizeof(buff),
-				       p->ip_dst_addr.addr.ipv6.s6_addr));
-		setf_string(L, "ip_src_addr",
-			    inet_ntop6(buff, sizeof(buff),
-				       p->ip_dst_addr.addr.ipv6.s6_addr));
-	}
-	setf_integer(L, "dport", p->dport);
-	setf_integer(L, "sport", p->sport);
-	setf_integer(L, "ttl", p->ttl);
-	setf_integer(L, "vlanid", p->vlanid);
-	setf_integer(L, "cos", p->cos);
-	setf_integer(L, "tos", p->tos);
-	setf_string(L,
-		    "ethType",
-		    (char *)(
-			    (p->ethType == PG_ETHER_TYPE_IPv4) ? "ipv4" :
-			    (p->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6" :
-			    (p->ethType ==
-			     PG_ETHER_TYPE_VLAN) ? "vlan" : "unknown"));
-	setf_string(L, "ipProto", (char *)(
-			    (p->ipProto == PG_IPPROTO_TCP) ? "tcp" :
-			    (p->ipProto == PG_IPPROTO_ICMP) ? "icmp" : "udp"));
-
-	setf_integer(L, "pktSize", p->pktSize + PG_ETHER_CRC_LEN);
-	setf_integer(L, "gtpu_teid", p->gtpu_teid);
-
-	/* Now set the table as an array with pid as the index. */
-	lua_rawset(L, -3);
-}
-
-/**************************************************************************//**
- *
- * pktgen_decompile - Convert a packet to a data structure.
- *
- * DESCRIPTION
- * Convert a packet to a data structure.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_decompile(lua_State *L)
-{
-	portlist_t portlist;
-	uint32_t seqnum, n;
-
-	switch (lua_gettop(L) ) {
-	default: return luaL_error(L, "decompile, wrong number of arguments");
-	case 2:
-		break;
-	}
-	seqnum = luaL_checkinteger(L, 1);
-	if (seqnum >= NUM_SEQ_PKTS)
-		return 0;
-	portlist_parse(luaL_checkstring(L, 2), &portlist);
-
-	lua_newtable(L);
-
-	n = 0;
-	foreach_port(portlist,
-	             _do(decompile_pkt(L, info, seqnum); n++) );
-
-	setf_integer(L, "n", n);
-
-	return 1;
-}
-
-/**************************************************************************//**
- *
- * pktgen_sendPkt - send the compiled packet to a given port.
- *
- * DESCRIPTION
- * Send the compiled packet to the given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_sendPkt(lua_State *L)
-{
-	portlist_t portlist;
-	uint32_t seqnum;
-
-	switch (lua_gettop(L) ) {
-	default: return luaL_error(L, "sendPkt, wrong number of arguments");
-	case 2:
-		break;
-	}
-	portlist_parse(luaL_checkstring(L, 1), &portlist);
-
-	seqnum = luaL_checkinteger(L, 2);
-	if ( (seqnum >= NUM_EXTRA_TX_PKTS) || (portlist == 0) )
-		return 0;
-
-	foreach_port(portlist,
-	             pktgen_send_pkt(info, seqnum) );
-
-	return 0;
-}
-
-/**************************************************************************//**
- *
  * pktgen_portCount - Return number of ports used
  *
  * DESCRIPTION
@@ -3469,38 +3297,6 @@ pktgen_totalPorts(lua_State *L)
 	lua_pushinteger(L, pktgen.nb_ports);
 
 	return 1;
-}
-
-/**************************************************************************//**
- *
- * pktgen_recvPkt - Receive a packet from a port.
- *
- * DESCRIPTION
- * Receive a packer from a port to be decompiled later.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_recvPkt(lua_State *L)
-{
-	portlist_t portlist;
-
-	switch (lua_gettop(L) ) {
-	default: return luaL_error(L, "recvPkt, wrong number of arguments");
-	case 1:
-		break;
-	}
-	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	if (portlist == 0)
-		return 0;
-
-	foreach_port(portlist,
-	             pktgen_recv_pkt(info) );
-
-	return 0;
 }
 
 /**************************************************************************//**
@@ -3937,11 +3733,6 @@ static const luaL_Reg pktgenlib[] = {
 	{"portStats",     pktgen_portStats},	/* return the current port stats */
 	{"portInfo",      pktgen_portInfo},		/* return the current port stats */
 
-	{"compile",       pktgen_compile},		/* Convert a structure into a frame to be sent */
-	{"decompile",     pktgen_decompile},	/* decompile a frame into Ethernet, IP, TCP, UDP or other protocols */
-	{"sendPkt",       pktgen_sendPkt},		/* Not working. */
-	{"recvPkt",       pktgen_recvPkt},		/* Not working. */
-
 	{"run",           pktgen_run},			/* Load a Lua string or command file and execute it. */
 	{"continue",      pktgen_continue},		/* Display a message and wait for keyboard key and return */
 	{"input",         pktgen_input},		/* Wait for a keyboard input line and return line. */
@@ -3998,10 +3789,9 @@ luaopen_pktgen(lua_State *L)
 	setf_integer(L, "singlePktIdx", SINGLE_PKT);
 	setf_integer(L, "rangePktIdx", RANGE_PKT);
 	setf_integer(L, "pingPktIdx", PING_PKT);
-	setf_integer(L, "startExtraTxIdx", EXTRA_TX_PKT);
+	setf_integer(L, "ratePktIdx", RATE_PKT);
 
 	setf_integer(L, "numSeqPkts", NUM_SEQ_PKTS);
-	setf_integer(L, "numExtraTxPkts", NUM_EXTRA_TX_PKTS);
 	setf_integer(L, "numTotalPkts", NUM_TOTAL_PKTS);
 
 	setf_integer(L, "minPktSize", MIN_PKT_SIZE + PG_ETHER_CRC_LEN);

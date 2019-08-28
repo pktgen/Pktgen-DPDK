@@ -71,6 +71,7 @@ void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_cos(port_info_t *info, uint8_t cos);
 void single_set_tos(port_info_t *info, uint8_t tos);
+void single_set_mac(port_info_t *info, const char *which, struct pg_ether_addr *mac);
 void single_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac);
 void single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);
@@ -87,6 +88,20 @@ void single_set_qinqids(port_info_t *info,
 			       uint16_t innerid);
 void single_set_vxlan(port_info_t *info, uint16_t flags,
 		uint16_t group_id, uint32_t vxlan_id);
+
+/* Rate */
+char *rate_transmit_count_rate(int port, char *buff, int len);
+void rate_set_tx_count(port_info_t *info, uint32_t cnt);
+void rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip);
+void rate_set_proto(port_info_t *info, char *type);
+void rate_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac);
+void rate_set_src_mac(port_info_t *info, struct pg_ether_addr *mac);
+void rate_set_pkt_type(port_info_t *info, const char *type);
+void rate_set_pkt_size(port_info_t *info, uint16_t size);
+void rate_set_ttl_value(port_info_t *info, uint8_t ttl);
+void rate_set_port_value(port_info_t *info,
+				  char type, uint32_t portValue);
+void rate_set_tx_burst(port_info_t *info, uint32_t burst);
 
 /* Debug */
 void debug_dump(port_info_t *info, char *str);
@@ -178,28 +193,6 @@ void pktgen_set_cos_tos_seq(port_info_t *info, uint32_t seqnum,
 				uint32_t cos, uint32_t tos);
 void pktgen_set_vxlan_seq(port_info_t *info, uint32_t seqnum,
 			uint32_t flag, uint32_t gid, uint32_t vid);
-
-
-/* Packet */
-void pktgen_send_pkt(port_info_t *info, uint32_t seqnum);
-void pktgen_recv_pkt(port_info_t *info);
-
-void pktgen_compile_pkt(port_info_t *info,
-			       uint32_t seqnum,
-			       struct pg_ether_addr *daddr,
-			       struct pg_ether_addr *saddr,
-			       struct pg_ipaddr *ip_daddr,
-			       struct pg_ipaddr *ip_saddr,
-			       uint32_t sport,
-			       uint32_t dport,
-			       char type,
-			       char proto,
-			       uint16_t vlanid,
-			       uint32_t pktsize,
-			       uint32_t gtpu_teid);
-void pktgen_add_cos_tos(port_info_t *info, uint32_t seqnum,
-		uint32_t cos, uint32_t tos);
-
 
 /* Pattern */
 void pattern_set_type(port_info_t *info, char *str);

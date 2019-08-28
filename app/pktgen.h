@@ -87,16 +87,13 @@
 #include "pktgen-random.h"
 #include "pktgen-rate.h"
 #include "pktgen-seq.h"
+#include "pktgen-version.h"
 
 #include <cli.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define PKTGEN_VERSION          "3.7.1"
-#define PKTGEN_APP_NAME         "Pktgen"
-#define PKTGEN_CREATED_BY       "Keith Wiles"
 
 #define MAX_MATRIX_ENTRIES      128
 #define MAX_STRING              256
@@ -220,15 +217,14 @@ enum {
 	MAX_PRIME_COUNT         = 4,
 
 	NUM_SEQ_PKTS            = 16,	/* Number of buffers to support in sequence */
-	NUM_EXTRA_TX_PKTS       = 8,	/* Number of extra TX packets */
 
 	FIRST_SEQ_PKT           = 0,
 	SINGLE_PKT              = (FIRST_SEQ_PKT + NUM_SEQ_PKTS),	/* 16 */
 	PING_PKT                = (SINGLE_PKT + 1),			/* 17 */
 	RANGE_PKT               = (PING_PKT + 1),			/* 18 */
 	DUMP_PKT                = (RANGE_PKT + 1),			/* 19 */
-	EXTRA_TX_PKT            = (DUMP_PKT + 1),			/* 20 */
-	NUM_TOTAL_PKTS          = (EXTRA_TX_PKT + NUM_EXTRA_TX_PKTS),
+	RATE_PKT				= (DUMP_PKT + 1),			/* 20 */
+	NUM_TOTAL_PKTS          = (RATE_PKT + 1),
 
 	INTER_FRAME_GAP         = 12,	/**< in bytes */
 	START_FRAME_DELIMITER	= 1,
@@ -462,10 +458,13 @@ estate(const char *state) {
  */
 static inline const char *
 pktgen_version(void) {
-	static char pkt_version[128];
+	static char pkt_version[64];
+
+	if (pkt_version[0] != 0)
+		return pkt_version;
 
 	snprintf(pkt_version, sizeof(pkt_version),
-		 "Ver: %s (%s)", PKTGEN_VERSION, rte_version());
+		 "%s (%s)", PKTGEN_VERSION, rte_version());
 	return pkt_version;
 }
 

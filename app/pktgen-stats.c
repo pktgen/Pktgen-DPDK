@@ -727,7 +727,9 @@ _xstats_display(uint16_t port_id)
 void
 pktgen_page_xstats(uint16_t pid)
 {
+#if RTE_VERSION >= RTE_VERSION_NUM(18,4,0,0)
 	uint64_t p;
+#endif
 	int k;
 
 	pktgen_display_set_color("top.page");
@@ -745,6 +747,13 @@ pktgen_page_xstats(uint16_t pid)
 	pktgen_display_set_color("stats.stat.label");
 
 	k = 0;
+#if RTE_VERSION < RTE_VERSION_NUM(18,4,0,0)
+	RTE_ETH_FOREACH_DEV(pid) {
+		_xstats_display(pid);
+		if (k++ >= pktgen.nb_ports_per_page)
+			break;
+	}
+#else
 	for (p = rte_eth_find_next_owned_by(pid, RTE_ETH_DEV_NO_OWNER);
 	     (unsigned int)p < (unsigned int)RTE_MAX_ETHPORTS;
 	     p = rte_eth_find_next_owned_by(p + 1, RTE_ETH_DEV_NO_OWNER)) {
@@ -753,6 +762,7 @@ pktgen_page_xstats(uint16_t pid)
 		if (k++ >= pktgen.nb_ports_per_page)
 			break;
 	}
+#endif
 
 	pktgen_display_set_color(NULL);
 	scrn_eol();

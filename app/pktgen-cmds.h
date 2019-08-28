@@ -71,6 +71,7 @@ void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_cos(port_info_t *info, uint8_t cos);
 void single_set_tos(port_info_t *info, uint8_t tos);
+void single_set_mac(port_info_t *info, const char *which, struct pg_ether_addr *mac);
 void single_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac);
 void single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac);
 void single_set_pkt_type(port_info_t *info, const char *type);

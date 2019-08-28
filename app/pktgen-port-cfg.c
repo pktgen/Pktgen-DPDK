@@ -59,6 +59,7 @@ static struct rte_eth_conf default_port_conf = {
 	},
 #else
 	.rxmode = {
+		.mq_mode = ETH_MQ_RX_RSS,
 		.split_hdr_size = 0,
 #if RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
 		.offloads = DEV_RX_OFFLOAD_CRC_STRIP,
@@ -67,11 +68,11 @@ static struct rte_eth_conf default_port_conf = {
 	.rx_adv_conf = {
 		.rss_conf = {
 			.rss_key = NULL,
-			.rss_hf = ETH_RSS_IP,
+			.rss_hf = ETH_RSS_IP | ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_SCTP | ETH_RSS_L2_PAYLOAD,
 		},
 	},
 	.txmode = {
-		.mq_mode = ETH_MQ_TX_NONE,
+		.mq_mode = ETH_MQ_TX_VMDQ_DCB,
 	},
 #endif
 	.intr_conf = {

@@ -561,14 +561,14 @@ pktgen_set_mac(lua_State *L)
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "set_mac, wrong number of arguments");
-	case 2:
+	case 3:
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	pg_ether_aton(luaL_checkstring(L, 2), &mac);
+	pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
 	foreach_port(portlist,
-	             single_set_dst_mac(info, &mac) );
+	             single_set_mac(info, luaL_checkstring(L, 2), &mac) );
 
 	pktgen_update_display();
 	return 0;

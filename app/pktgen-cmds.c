@@ -543,8 +543,10 @@ pktgen_lua_save(char *path)
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
-		fprintf(fd, "pktgen.set_mac('%d', '%s');\n", info->pid,
+		fprintf(fd, "pktgen.set_mac('%d', 'dst', '%s');\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
+		fprintf(fd, "pktgen.set_mac('%d', 'src', '%s');\n", info->pid,
+			inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		fprintf(fd, "pktgen.vlanid('%d', %d);\n\n", i, pkt->vlanid);
 
 		fprintf(fd, "pktgen.pattern('%d', '%s');\n", i,
@@ -3069,6 +3071,31 @@ rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip)
 		info->seq_pkt[RATE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
 		                ip->ipv4.s_addr);
 	pktgen_packet_ctor(info, RATE_PKT, -1);
+	pktgen_set_tx_update(info);
+}
+
+/**************************************************************************//**
+ *
+ * single_set_mac - Setup the MAC address
+ *
+ * DESCRIPTION
+ * Set the MAC address for all ports given.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_mac(port_info_t *info, const char *which, struct pg_ether_addr *mac)
+{
+        if (!strcmp(which, "dst")){
+            memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
+            pktgen_packet_ctor(info, SINGLE_PKT, -1);
+        } else if (!strcmp(which, "src")){
+            memcpy(&info->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
+            pktgen_packet_ctor(info, SINGLE_PKT, -1);
+        }
 	pktgen_set_tx_update(info);
 }
 

@@ -6,7 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
- - 19.09.0 - Fix linking of Lua library when no pkg-config file is found and
+ - 19.08.0 - Fix linking of Lua library when no pkg-config file is found and
            linking liblua.a
 	   Fixed and issue with packet rate not being changed when the packet
 	   size is changed

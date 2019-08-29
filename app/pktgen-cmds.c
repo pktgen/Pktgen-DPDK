@@ -184,7 +184,7 @@ pktgen_script_save(char *path)
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
 		fprintf(fd, "set %d src mac %s\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
-		fprintf(fd, "set %d vlanid %d\n\n", i, pkt->vlanid);
+		fprintf(fd, "set %d vlan %d\n\n", i, pkt->vlanid);
 
 		fprintf(fd, "set %d pattern %s\n", i,
 			(info->fill_pattern_type == ABC_FILL_PATTERN) ? "abc" :
@@ -238,35 +238,36 @@ pktgen_script_save(char *path)
 			(flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis", i);
 		fprintf(fd, "%sable %d tx_tap\n",
 			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis", i);
-		fprintf(fd, "%sable %d vlan\n\n",
+		fprintf(fd, "%sable %d vlan\n",
 			(flags & SEND_VLAN_ID) ? "en" : "dis", i);
-		fprintf(fd, "%sable %d vlan\n\n",
+		fprintf(fd, "%sable %d rate\n\n",
 			(flags & SEND_RATE_PACKETS) ? "en" : "dis", i);
 
 		fprintf(fd, "#\n# Range packet information:\n");
-		fprintf(fd, "range %d mac src start %s\n", i,
+		fprintf(fd, "range %d src mac start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac, &eaddr)));
-		fprintf(fd, "range %d mac src min %s\n", i,
+		fprintf(fd, "range %d src mac min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_min, &eaddr)));
-		fprintf(fd, "range %d mac src max %s\n", i,
+		fprintf(fd, "range %d src mac max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_max, &eaddr)));
-		fprintf(fd, "range %d mac src inc %s\n", i,
+		fprintf(fd, "range %d src mac inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_inc, &eaddr)));
 
-		fprintf(fd, "range %d mac dst start %s\n", i,
+		fprintf(fd, "\n");
+		fprintf(fd, "range %d dst mac start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac, &eaddr)));
-		fprintf(fd, "range %d mac dst min %s\n", i,
+		fprintf(fd, "range %d dst mac min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_min, &eaddr)));
-		fprintf(fd, "range %d mac dst max %s\n", i,
+		fprintf(fd, "range %d dst mac max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_max, &eaddr)));
-		fprintf(fd, "range %d mac dst inc %s\n", i,
+		fprintf(fd, "range %d dst mac inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_inc, &eaddr)));
 
@@ -304,16 +305,16 @@ pktgen_script_save(char *path)
 			(range->ip_proto == PG_IPPROTO_ICMP) ? "icmp" : "tcp");
 
 		fprintf(fd, "\n");
-		fprintf(fd, "range %d sport start %d\n", i, range->src_port);
-		fprintf(fd, "range %d sport min %d\n", i, range->src_port_min);
-		fprintf(fd, "range %d sport max %d\n", i, range->src_port_max);
-		fprintf(fd, "range %d sport inc %d\n", i, range->src_port_inc);
+		fprintf(fd, "range %d src port start %d\n", i, range->src_port);
+		fprintf(fd, "range %d src port min %d\n", i, range->src_port_min);
+		fprintf(fd, "range %d src port max %d\n", i, range->src_port_max);
+		fprintf(fd, "range %d src port inc %d\n", i, range->src_port_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "range %d dport start %d\n", i, range->dst_port);
-		fprintf(fd, "range %d dport min %d\n", i, range->dst_port_min);
-		fprintf(fd, "range %d dport max %d\n", i, range->dst_port_max);
-		fprintf(fd, "range %d dport inc %d\n", i, range->dst_port_inc);
+		fprintf(fd, "range %d dst port start %d\n", i, range->dst_port);
+		fprintf(fd, "range %d dst port min %d\n", i, range->dst_port_min);
+		fprintf(fd, "range %d dst port max %d\n", i, range->dst_port_max);
+		fprintf(fd, "range %d dst port inc %d\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
 		fprintf(fd, "range %d ttl start %d\n", i, range->ttl);
@@ -353,7 +354,7 @@ pktgen_script_save(char *path)
 		fprintf(fd, "rate %d fps %d\n", i, rate->fps);
 		fprintf(fd, "rate %d lines %d\n", i, rate->vlines);
 		fprintf(fd, "rate %d pixels %d\n", i, rate->pixels);
-		fprintf(fd, "rate %d color %d\n", i, rate->color_bits);
+		fprintf(fd, "rate %d color bits %d\n", i, rate->color_bits);
 		fprintf(fd, "rate %d payload size %d\n\n", i, rate->payload);
 		fprintf(fd, "rate %d overhead %d\n", i, rate->overhead);
 

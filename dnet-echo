@@ -49,7 +49,7 @@ disable 0 qinq
 set 0 qinqids 0 0
 disable 0 gre
 disable 0 gre_eth
-set 0 gre_key 0
+range 0 gre_key 0
 disable 0 vxlan
 set 0 vxlan 0x0 0 0
 #
@@ -151,7 +151,7 @@ disable 1 qinq
 set 1 qinqids 0 0
 disable 1 gre
 disable 1 gre_eth
-set 1 gre_key 0
+range 1 gre_key 0
 disable 1 vxlan
 set 1 vxlan 0x0 0 0
 #

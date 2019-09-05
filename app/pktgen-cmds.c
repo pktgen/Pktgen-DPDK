@@ -214,7 +214,6 @@ pktgen_script_save(char *path)
 			(flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis", i);
 		fprintf(fd, "%sable %d gre_eth\n",
 			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis", i);
-		fprintf(fd, "set %d gre_key %d\n", i, pkt->gre_key);
 
 		fprintf(fd, "%sable %d vxlan\n",
 			(flags & SEND_VXLAN_PACKETS) ? "en" : "dis", i);
@@ -339,7 +338,7 @@ pktgen_script_save(char *path)
 		fprintf(fd, "range %d tos min %d\n", i, range->tos_min);
 		fprintf(fd, "range %d tos max %d\n", i, range->tos_max);
 		fprintf(fd, "range %d tos inc %d\n", i, range->tos_inc);
-
+		fprintf(fd, "range %d gre key %d\n", i, pkt->gre_key);
 
 		fprintf(fd, "\n");
 		fprintf(fd, "range %d size start %d\n", i,
@@ -1265,6 +1264,7 @@ enable_rx_tap(port_info_t *info, uint32_t onOff)
 		ifr.ifr_flags = IFF_UP | IFF_RUNNING;
 		if (ioctl(sockfd, SIOCSIFFLAGS, (void *)&ifr) < 0) {
 			pktgen_log_error("Unable to set SIOCSIFFLAGS for %s",
+
 					 ifr.ifr_name);
 			close(sockfd);
 			close(info->rx_tapfd);

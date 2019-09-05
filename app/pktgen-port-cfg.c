@@ -233,7 +233,7 @@ pktgen_config_ports(void)
 		pg_port_matrix_dump(pktgen.l2p);
 
 		pktgen_log_info(
-			"Configuring %d ports, MBUF Size %d, MBUF Cache Size %d",
+			">>>> Configuring %d ports, MBUF Size %d, MBUF Cache Size %d",
 			pktgen.nb_ports,
 			DEFAULT_MBUF_SIZE,
 			MBUF_CACHE_SIZE);
@@ -264,8 +264,7 @@ pktgen_config_ports(void)
 			continue;
 
 		pktgen.port_cnt++;
-		snprintf(output_buff, sizeof(output_buff),
-			 "Initialize Port %u -- TxQ %u, RxQ %u", pid, rt.tx, rt.rx);
+		pktgen_log_info("Initialize Port %u -- TxQ %u, RxQ %u", pid, rt.tx, rt.rx);
 
 		info = get_port_private(pktgen.l2p, pid);
 
@@ -438,7 +437,7 @@ pktgen_config_ports(void)
 		rte_eth_macaddr_get(pid, &pkt->eth_src_addr);
 		rte_eth_macaddr_get(pid, &info->seq_pkt[RATE_PKT].eth_src_addr);
 
-		strncatf(output_buff, ", Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
+		pktgen_log_info("Src MAC %02x:%02x:%02x:%02x:%02x:%02x",
 				pkt->eth_src_addr.addr_bytes[0],
 				pkt->eth_src_addr.addr_bytes[1],
 				pkt->eth_src_addr.addr_bytes[2],

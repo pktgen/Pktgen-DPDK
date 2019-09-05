@@ -29,12 +29,17 @@ scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 {
 	va_list vaList;
 
-	if ( (r != 0) && (c != 0) )
-		scrn_pos(r, c);
-	va_start(vaList, fmt);
-	vfprintf(this_scrn->fd_out, fmt, vaList);
-	va_end(vaList);
-	fflush(this_scrn->fd_out);
+	/* In some cases a segfault was reported when this_scrn
+	 * would become null.
+	 */
+	if (this_scrn && this_scrn->fd_out) {
+		if ( (r != 0) && (c != 0) )
+			scrn_pos(r, c);
+		va_start(vaList, fmt);
+		vfprintf(this_scrn->fd_out, fmt, vaList);
+		va_end(vaList);
+		fflush(this_scrn->fd_out);
+	}
 }
 
 void

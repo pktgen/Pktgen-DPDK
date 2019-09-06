@@ -29,6 +29,7 @@ void
 pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
 {
 	struct pg_ipv6_hdr *ip = hdr;
+	uint32_t addr;
 	uint16_t tlen;
 
 	/* IPv6 Header constructor */
@@ -41,12 +42,10 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
 	ip->hop_limits = 4;
 	ip->proto = pkt->ipProto;
 
-	rte_memcpy(&ip->dst_addr[8],
-		   pkt->ip_dst_addr.addr.ipv6.s6_addr,
-		   sizeof(struct in6_addr));
-	rte_memcpy(&ip->src_addr[8],
-		   pkt->ip_dst_addr.addr.ipv6.s6_addr,
-		   sizeof(struct in6_addr));
+	addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+	(void)rte_memcpy(&ip->dst_addr[8], &addr, sizeof(uint32_t));
+	addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
+	(void)rte_memcpy(&ip->src_addr[8], &addr, sizeof(uint32_t));
 }
 
 /**************************************************************************//**

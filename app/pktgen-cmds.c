@@ -130,7 +130,7 @@ pktgen_script_save(char *path)
 	fprintf(fd, "%s mac_from_arp\n\n",
 		(pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
+	for (i = 0; i < pktgen.nb_ports; i++) {
 		info = &pktgen.info[i];
 		pkt = &info->seq_pkt[SINGLE_PKT];
 		range = &info->range;
@@ -402,19 +402,20 @@ pktgen_script_save(char *path)
 				pktgen.info[i].pcap->filename);
 		}
 		fprintf(fd, "\n");
-	}
-	if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
-		uint32_t active = info->rnd_bitfields->active_specs;
-		bf_spec_t *bf;
-		fprintf(fd, "\n-- Rnd bitfeilds\n");
-		for (j = 0; j < MAX_RND_BITFIELDS; j++) {
-			if ((active & (1 << j)) == 0)
-				continue;
-			bf = &info->rnd_bitfields->specs[j];
-			fprintf(fd, "set %d rnd %d %d %s\n",
-				i, j, bf->offset, convert_bitfield(bf));
+		
+		if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
+			uint32_t active = info->rnd_bitfields->active_specs;
+			bf_spec_t *bf;
+			fprintf(fd, "\n-- Rnd bitfeilds\n");
+			for (j = 0; j < MAX_RND_BITFIELDS; j++) {
+				if ((active & (1 << j)) == 0)
+					continue;
+				bf = &info->rnd_bitfields->specs[j];
+				fprintf(fd, "set %d rnd %d %d %s\n",
+					i, j, bf->offset, convert_bitfield(bf));
+			}
+			fprintf(fd, "\n");
 		}
-		fprintf(fd, "\n");
 	}
 	fprintf(fd, "################################ Done #################################\n");
 

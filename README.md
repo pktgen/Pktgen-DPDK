@@ -49,74 +49,73 @@ Note: In DPDK 19.08-rc0 a large number of defines and function names were
       19.08-rc0 or just after the 19.05 release.
 
 
-*** Pktgen command line directory format ***
+## Pktgen command line directory format ***
 
-``
--- Pktgen Ver: 3.7.0 (DPDK 19.08.0-rc0)  Powered by DPDK ---------------
-
+    -- Pktgen Ver: 3.7.0 (DPDK 19.08.0-rc0)  Powered by DPDK ---------------
 
 
-Pktgen:/> ls
-[pktgen]        [sbin]          copyright
-Pktgen:/> ls pktgen/bin
-off             on              debug           set             pcap
-stp             str             stop            start           disable
-enable          range           theme           page            seq
-sequence        ping4           port            restart         rst
-reset           cls             redisplay       save            lua
-script          load            geom            geometry        clr
-clear.stats     help
-Pktgen:/>
-``
+
+    Pktgen:/> ls
+    [pktgen]        [sbin]          copyright
+    Pktgen:/> ls pktgen/bin
+    off             on              debug           set             pcap
+    stp             str             stop            start           disable
+    enable          range           theme           page            seq
+    sequence        ping4           port            restart         rst
+    reset           cls             redisplay       save            lua
+    script          load            geom            geometry        clr
+    clear.stats     help
+    Pktgen:/>
+
 -------------------------------------------------------------------------------
-``
-Pktgen:/> ls
-[pktgen]        [sbin]          copyright
-Pktgen:/> ls sbin
-env             dbg             path            hugepages       cmap
-sizes           more            history         quit            clear
-pwd             cd              ls              rm              mkdir
-chelp           sleep           delay
-Pktgen:/>
-``
--------------------------------------------------------------------------------
-``
-Pktgen:/> cd sbin
-Pktgen:/sbin/>
-Pktgen:/sbin/> ls -l
-  env              Command : Set up environment variables
-  dbg              Command : debug commands
-  path             Command : display the command path list
-  hugepages        Command : hugepages # display hugepage info
-  cmap             Command : cmap # display the core mapping
-  sizes            Command : sizes # display some internal sizes
-  more             Command : more <file> # display a file content
-  history          Command : history # display the current history
-  quit             Command : quit # quit the application
-  clear            Command : clear # clear the screen
-  pwd              Command : pwd # display current working directory
-  cd               Command : cd <dir> # change working directory
-  ls               Command : ls [-lr] <dir> # list current directory
-  rm               Command : remove a file or directory
-  mkdir            Command : create a directory
-  chelp            Command : CLI help - display information for DPDK
-  sleep            Command : delay a number of seconds
-  delay            Command : delay a number of milliseconds
 
-Pktgen:/sbin/>
-Pktgen:/sbin/> cd ..
-Pktgen:/>
-``
+    Pktgen:/> ls
+    [pktgen]        [sbin]          copyright
+    Pktgen:/> ls sbin
+    env             dbg             path            hugepages       cmap
+    sizes           more            history         quit            clear
+    pwd             cd              ls              rm              mkdir
+    chelp           sleep           delay
+    Pktgen:/>
+
 -------------------------------------------------------------------------------
-``
-Pktgen:/pktgen/> cd bin
-Pktgen:/pktgen/bin/> ls -l
-  off              Alias : disable screen
-  on               Alias : enable screen
-  debug            Command : debug commands
-  set              Command : set a number of options
-  pcap             Command : pcap commands
-  stp              Alias : stop all
+
+    Pktgen:/> cd sbin
+    Pktgen:/sbin/>
+    Pktgen:/sbin/> ls -l
+       env              Command : Set up environment variables
+       dbg              Command : debug commands
+       path             Command : display the command path list
+       hugepages        Command : hugepages # display hugepage info
+       cmap             Command : cmap # display the core mapping
+       sizes            Command : sizes # display some internal sizes
+       more             Command : more <file> # display a file content
+       history          Command : history # display the current history
+       quit             Command : quit # quit the application
+       clear            Command : clear # clear the screen
+       pwd              Command : pwd # display current working directory
+       cd               Command : cd <dir> # change working directory
+       ls               Command : ls [-lr] <dir> # list current directory
+       rm               Command : remove a file or directory
+       mkdir            Command : create a directory
+       chelp            Command : CLI help - display information for DPDK
+       sleep            Command : delay a number of seconds
+       delay            Command : delay a number of milliseconds
+
+    Pktgen:/sbin/>
+    Pktgen:/sbin/> cd ..
+    Pktgen:/>
+
+-------------------------------------------------------------------------------
+
+    Pktgen:/pktgen/> cd bin
+    Pktgen:/pktgen/bin/> ls -l
+       off              Alias : disable screen
+       on               Alias : enable screen
+       debug            Command : debug commands
+       set              Command : set a number of options
+       pcap             Command : pcap commands
+       stp              Alias : stop all
   str              Alias : start all
   stop             Command : stop features
   start            Command : start features
@@ -145,7 +144,6 @@ Pktgen:/pktgen/bin/> ls -l
   help             Command : help command
 
 Pktgen:/pktgen/bin/>
-``
 
 
 run pktgen type `sudo -E ./tools/run.sh`.
@@ -218,7 +216,7 @@ $ ./tools/run.py default     # Run the default configuration
 The configuration files are python scripts or a set of variables that run.py uses to initialize and run pktgen.
 Here is an example of the default.cfg file:
 
-``
+```
 	description = 'A Pktgen default simple configuration'
 
 	# Setup configuration
@@ -278,9 +276,9 @@ Here is an example of the default.cfg file:
 
 	    'theme': 'themes/black-yellow.theme'
 	}
-``
+```
 
-``
+```
 Usage: ./app/pktgen -l CORELIST [-n NUM] [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
 Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
@@ -391,12 +389,12 @@ Usage: ./app/app/x86_64-dnet-linux-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-
                                       core 3 handles port 1 rx & core 4 handles port 0-7 tx
       BTW: you can use "{}" instead of "[]" as it does not matter to the syntax.
   -h           Display the help information
-``
+```
 A new feature for pktgen and DPDK is to run multiple instances of pktgen. This
 allows the developer to share ports on the same machine.
 
 ------------- run.sh script ----------------
-``
+```
 #!/bin/bash
 
 # Normal setup
@@ -447,11 +445,11 @@ fi
 if [ $name == "rkwiles-mini-i7" ]; then
 ./app/app/${target}/pktgen -l 0-4 -n 3 --proc-type auto --file-prefix pg -- -T -P -m "1.0, 2.1, 3.2, 4.3" -f themes/black-yellow.theme
 fi
-``
+```
 ------------- run.sh script ----------------
 
 ------------- setup.sh script ----------------
-``
+```
 #!/bin/bash
 
 # Use './tools/setup.sh' to include environment variables
@@ -520,7 +518,7 @@ if [ $name == "rkwilesmini-i7" ]; then
 fi
 $sdk/tools/dpdk_nic_bind.py --status
 lspci |grep Ether
-``
+```
 ------------- setup script ----------------
 
 If you have run pktgen before then remove the files in /mnt/huge/* before
@@ -528,7 +526,7 @@ running the new version.
 
 Running the run.sh script produces output as follows, but maybe different on your
 system configuration.
-``
+```
 rkwiles@broadwell (dev):~/.../intel/pktgen$ ./tools/run.py default
 >>> sdk '/work/home/rkwiles/projects/intel/dpdk.org', target 'x86_64-native-linux-gcc'
    Trying ./app/x86_64-native-linux-gcc/pktgen
@@ -619,9 +617,9 @@ PCI Vendor/Addr     :   8086:1572/81:00.0   8086:1572/81:00.1   8086:1572/85:00.
 
 Pktgen:/> quit
 $
-``
+```
 ------------------------------------------------------------------------
-``
+```
                                                   ** Pktgen Help Information **
 
 page [0-7]                         - Show the port pages or configuration or sequence page
@@ -809,9 +807,9 @@ bonding show                     - Show all bonding configurations
 Notes: <state>       - Use enable|disable or on|off to set the state.
        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
        Colors best seen on a black background for now
-``
+```
 ---------------------------------------------------------------------------
-``
+```
 \                  <Sequence Page>  Copyright (c) <2010-2019>, Intel Corporation
 Port:  0, Sequence Count:  4 of 16                                                                             GTPu
   Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
@@ -859,9 +857,9 @@ Port:  0, Sequence Count:  4 of 16                                              
 
 Pktgen:/> set all seq_cnt 4
 Pktgen:/>
-``
+```
 ---------------------------------------------------------------------------
-``
+```
 | Port 0           <Random bitfield Page>  Copyright (c) <2010-2019>, Intel Corporation
    Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
@@ -909,16 +907,16 @@ Pktgen:/>
 
 
 Pktgen:/>
-``
+```
 ---------------------------------------------------------------------------
 -- Example command lines.
-``
+```
 ./app/pktgen -l 0-8 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/large.pcap
 ./app/pktgen -l 0-4 -n 3 --proc-type auto --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
 ./app/pktgen -l 0-4 -n 3 --proc-type auto --file-prefix pg -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3" -s 0:pcap/test1.pcap -s 1:pcap/large.pcap
 ./app/pktgen -l 1-3 -n 3 --proc-type auto --file-prefix pg -- -P -m "2.0, 3.1"
 ./app/pktgen -l 0-8 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1, [5:7].2, [6:8].3"
-``
+```
 
 A command line passing in a pktgen/test/set_seq.pkt file to help initialize pktgen with some
 default values and configurations. You can also replace the filename using the '-f' command

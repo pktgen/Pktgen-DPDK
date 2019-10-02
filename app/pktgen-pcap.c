@@ -315,7 +315,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 	if ( (pcap == NULL) || (info == NULL) )
 		return -1;
 
-	_pcap_rewind(pcap);
+	_pcap_rewind(pcap);		/* Rewind the file is needed */
 
 	snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP TX", info->pid, qid);
 	scrn_printf(0, 0, "    Process: %-*s ", 18, name);
@@ -349,13 +349,10 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
 		_pcap_rewind(pcap);
 
-		/* Removed to allow for all of the PCAP file to be replayed */
-#if 0
 		/* Round up the count and size to allow for TX ring size. */
 		if (elt_count < MAX_MBUFS_PER_PORT)
 			elt_count = MAX_MBUFS_PER_PORT;
 		elt_count = rte_align32pow2(elt_count);
-#endif
 
 		scrn_printf(0, 0, "\r    Create: %-*s   \b", 16, name);
 		info->q[qid].pcap_mp = rte_mempool_create(

@@ -6,6 +6,14 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 19.10.0 - Fix up the save/load commands to get correct as in GRE key
+             command
+	     Fix up the problem with pcap files not getting sent if the
+	     number of packets was small
+	     fix up a crash if the scrn pointer was invalid on startup
+	     fixed the log output in startup
+	     Fixed the save/load scripts to use the correct commands.
+	     Fix the IPv4/6 checksum calculations
  - 19.08.0 - Fix linking of Lua library when no pkg-config file is found and
            linking liblua.a
 	   Fixed and issue with packet rate not being changed when the packet

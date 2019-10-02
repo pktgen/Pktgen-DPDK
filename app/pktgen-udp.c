@@ -64,16 +64,18 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
 		struct pg_udp_hdr *udp = (struct pg_udp_hdr *)&ipv6[1];
 
 		/* Create the pseudo header and TCP information */
+		memset(ipv6->dst_addr, 0, sizeof(struct in6_addr));
+		memset(ipv6->src_addr, 0, sizeof(struct in6_addr));
 		addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 		(void)rte_memcpy(&ipv6->dst_addr[8], &addr, sizeof(uint32_t));
 		addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 		(void)rte_memcpy(&ipv6->src_addr[8], &addr, sizeof(uint32_t));
 
-		tlen = pkt->pktSize - pkt->ether_hdr_size;
-		ipv6->payload_len = htonl(tlen);
+		tlen = pkt->pktSize - (pkt->ether_hdr_size +
+				       sizeof(struct pg_ipv6_hdr));
+		ipv6->payload_len = htons(tlen);
 		ipv6->proto = pkt->ipProto;
 
-		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv6_hdr));
 		udp->dgram_len = htons(tlen);
 		udp->src_port = htons(pkt->sport);
 		udp->dst_port = htons(pkt->dport);

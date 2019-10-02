@@ -93,7 +93,6 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 		if ((rate->payload + value) <= (ETH_MAX_PKT - PG_ETHER_CRC_LEN))
 			rate->overhead = value;
 	}
-	update_rate_values(info);
 }
 
 /**************************************************************************//**

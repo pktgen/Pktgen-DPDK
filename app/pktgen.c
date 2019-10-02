@@ -289,6 +289,12 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	uint32_t ret, cnt, tap, rnd, tstamp;
 	int32_t seq_idx;
 
+	if ((cnt = mtab->len) == 0)
+		return;
+
+	mtab->len = 0;
+	pkts = mtab->m_table;
+
 	if (pktgen_tst_port_flags(info, SEND_RANGE_PKTS))
 		seq_idx = RANGE_PKT;
 	else if (pktgen_tst_port_flags(info, SEND_RATE_PACKETS))
@@ -296,14 +302,11 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	else
 		seq_idx = SINGLE_PKT;
 
-	cnt = mtab->len;
-	mtab->len = 0;
-	pkts = mtab->m_table;
-
 	tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
 	rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
 	tstamp = pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS));
 
+	/* Send all of the packets before we can exit this function */
 	while (cnt && pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 
 		if (rnd)
@@ -319,12 +322,6 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 
 		pkts += ret;
 		cnt -= ret;
-	}
-	if (cnt) {
-		int i;
-
-		for (i = 0; i < mtab->len; i++)
-			rte_pktmbuf_free(mtab->m_table[i]);
 	}
 }
 
@@ -1008,40 +1005,31 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 static __inline__ void
 pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 {
-	int rc = 0;
+	uint64_t txCnt;
+	uint16_t txLen, cnt;
+	struct rte_mbuf **pkts;
 
-	if (pktgen_tst_port_flags(info, SEND_FOREVER)) {
-		uint16_t len = info->q[qid].tx_mbufs.len, cnt = 0;
-
-		if (len < info->tx_burst) {
-			cnt = info->tx_burst - len;
-			rc = pg_pktmbuf_alloc_bulk(mp,
-				&info->q[qid].tx_mbufs.m_table[len], cnt);
-		}
-
-		if (rc == 0) {
-			info->q[qid].tx_mbufs.len += cnt;
-			pktgen_send_burst(info, qid);
-		}
-	} else {
-		int64_t txCnt;
-
+	if (!pktgen_tst_port_flags(info, SEND_FOREVER)) {
 		txCnt = pkt_atomic64_tx_count(&info->current_tx_count, info->tx_burst);
-		if (txCnt > 0) {
-			uint16_t saved = info->q[qid].tx_mbufs.len;
-
-			if (saved < info->tx_burst)
-				rc = pg_pktmbuf_alloc_bulk(mp,
-					&info->q[qid].tx_mbufs.m_table[saved],
-					txCnt - saved);
-			if (rc == 0) {
-				info->q[qid].tx_mbufs.len = txCnt;
-
-				pktgen_send_burst(info, qid);
-			}
-		} else
+		if (txCnt == 0) {
 			pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
-	}
+			pktgen_send_burst(info, qid);
+			return;
+		}
+	} else
+		txCnt = info->tx_burst;
+
+	txLen = info->q[qid].tx_mbufs.len;
+	pkts = &info->q[qid].tx_mbufs.m_table[txLen];
+
+	/* calculate the number of pkts to add that are below tx_burst count */
+	cnt = txCnt - txLen;
+	if (cnt > info->tx_burst)
+		cnt = info->tx_burst;
+
+	info->q[qid].tx_mbufs.len += pg_pktmbuf_alloc_bulk(mp, pkts, cnt);
+
+	pktgen_send_burst(info, qid);
 }
 
 /**************************************************************************//**

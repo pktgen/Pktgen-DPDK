@@ -123,6 +123,7 @@ static struct cli_map range_map[] = {
 	{ 80, "range %P mpls entry %h" },
 	{ 85, "range %P qinq index %d %d" },
 	{ 90, "range %P gre key %d" },
+	{ 91, "range %P gre_key %d" },
 	{ 100, "range %P gtpu "SMMI" %d" },
 	{ 101, "range %P gtpu %d %d %d %d" },
 	{ 160, "range %P cos "SMMI" %d" },
@@ -323,6 +324,7 @@ range_cmd(int argc, char **argv)
 				range_set_qinqids(info, atoi(what), atoi(val)) );
 			break;
 		case 90:
+		case 91:
 			foreach_port(portlist,
 				range_set_gre_key(info, strtoul(what, NULL, 10)) );
 			break;
@@ -380,10 +382,11 @@ range_cmd(int argc, char **argv)
 			"prime|"		/*  7 */ \
 			"dump|"			/*  8 */ \
 			"vlan|"			/*  9 */ \
-			"seq_cnt|"		/* 10 */ \
-			"seqCnt|"		/* 11 */ \
-			"seqcnt|"		/* 12 */ \
-			"ttl"			/* 13 */
+			"vlanid|"		/* 10 */ \
+			"seq_cnt|"		/* 11 */ \
+			"seqCnt|"		/* 12 */ \
+			"seqcnt|"		/* 13 */ \
+			"ttl"			/* 14 */
 
 static struct cli_map set_map[] = {
 	{ 10, "set %P %|" set_types " %d" },
@@ -421,7 +424,7 @@ static const char *set_help[] = {
 	"set <portlist> prime <value>       - Set the number of packets to send on prime command",
 	"set <portlist> dump <value>        - Dump the next 1-32 received packets to the screen",
 	"                                     Dumped packets are in the log, use 'page log' to view",
-	"set <portlist> vlan <value>        - Set the VLAN ID value for the portlist",
+	"set <portlist> vlan|vlanid <value> - Set the VLAN ID value for the portlist",
 	"set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds",
 	"set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format",
 	"set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
@@ -484,13 +487,14 @@ set_cmd(int argc, char **argv)
 					case 6: single_set_port_value(info, what[0], value); break;
 					case 7: pktgen_set_port_prime(info, value); break;
 					case 8: debug_set_port_dump(info, value); break;
-					case 9: single_set_vlan_id(info, value); break;
-					case 10:
-						/* FALLTHRU */
+					case 9:	/* vlanid and vlan are valid */
+					case 10: single_set_vlan_id(info, value); break;
 					case 11:
 						/* FALLTHRU */
-					case 12: pktgen_set_port_seqCnt(info, value); break;
-					case 13: single_set_ttl_value(info, value); break;
+					case 12:
+						/* FALLTHRU */
+					case 13: pktgen_set_port_seqCnt(info, value); break;
+					case 14: single_set_ttl_value(info, value); break;
 					default:
 						return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 				}) );

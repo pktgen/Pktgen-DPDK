@@ -3514,7 +3514,7 @@ static const char *lua_help_info[] = {
 	"vlan_id        - Set the vlan id value\n",
 	"mpls_entry     - Set the MPLS entry\n",
 	"qinqids        - Set the Q-in-Q ID's\n",
-	"gre_key        - Set the GRE key\n",
+	"gre_key        - Set the range GRE key\n",
 	"pkt_size       - the packet size for a range port\n",
 	"range          - Enable or disable sending range data on a port.\n",
 	"rxtap          - Enable or disable RX Tap packet processing on a port\n",

@@ -56,18 +56,33 @@ static inline int
 pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 		      struct rte_mbuf **mbufs, unsigned count)
 {
-	unsigned idx = 0;
+	unsigned idx;
 	int rc;
 
+	if (count == 0)
+		return 0;
+
 	rc = rte_mempool_get_bulk(pool, (void **)mbufs, count);
-	if (unlikely(rc))
-		return rc;
+	if (unlikely(rc)) {
+		struct rte_mbuf *m;
+
+		for(idx = 0; idx < count; idx++) {
+			rc = rte_mempool_get(pool, (void **)&m);
+			if (unlikely(rc))
+				break;
+			pktmbuf_reset(m);
+			mbufs[idx] = m;
+		}
+		return idx;
+	}
+
 
 	/* To understand duff's device on loop unwinding optimization, see
 	 * https://en.wikipedia.org/wiki/Duff's_device.
 	 * Here while() loop is used rather than do() while{} to avoid extra
 	 * check if count is zero.
 	 */
+	idx = 0;
 	switch (count % 4) {
 	case 0:
 		while (idx != count) {
@@ -88,7 +103,8 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 			/* fall-through */
 		}
 	}
-	return 0;
+
+	return idx;
 }
 
 /**

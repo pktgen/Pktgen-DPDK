@@ -130,7 +130,7 @@ pktgen_script_save(char *path)
 	fprintf(fd, "%s mac_from_arp\n\n",
 		(pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
+	for (i = 0; i < pktgen.nb_ports; i++) {
 		info = &pktgen.info[i];
 		pkt = &info->seq_pkt[SINGLE_PKT];
 		range = &info->range;
@@ -184,7 +184,7 @@ pktgen_script_save(char *path)
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
 		fprintf(fd, "set %d src mac %s\n", info->pid,
 			inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
-		fprintf(fd, "set %d vlanid %d\n\n", i, pkt->vlanid);
+		fprintf(fd, "set %d vlan %d\n\n", i, pkt->vlanid);
 
 		fprintf(fd, "set %d pattern %s\n", i,
 			(info->fill_pattern_type == ABC_FILL_PATTERN) ? "abc" :
@@ -214,7 +214,6 @@ pktgen_script_save(char *path)
 			(flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis", i);
 		fprintf(fd, "%sable %d gre_eth\n",
 			(flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis", i);
-		fprintf(fd, "set %d gre_key %d\n", i, pkt->gre_key);
 
 		fprintf(fd, "%sable %d vxlan\n",
 			(flags & SEND_VXLAN_PACKETS) ? "en" : "dis", i);
@@ -238,35 +237,36 @@ pktgen_script_save(char *path)
 			(flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis", i);
 		fprintf(fd, "%sable %d tx_tap\n",
 			(flags & PROCESS_TX_TAP_PKTS) ? "en" : "dis", i);
-		fprintf(fd, "%sable %d vlan\n\n",
+		fprintf(fd, "%sable %d vlan\n",
 			(flags & SEND_VLAN_ID) ? "en" : "dis", i);
-		fprintf(fd, "%sable %d vlan\n\n",
+		fprintf(fd, "%sable %d rate\n\n",
 			(flags & SEND_RATE_PACKETS) ? "en" : "dis", i);
 
 		fprintf(fd, "#\n# Range packet information:\n");
-		fprintf(fd, "range %d mac src start %s\n", i,
+		fprintf(fd, "range %d src mac start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac, &eaddr)));
-		fprintf(fd, "range %d mac src min %s\n", i,
+		fprintf(fd, "range %d src mac min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_min, &eaddr)));
-		fprintf(fd, "range %d mac src max %s\n", i,
+		fprintf(fd, "range %d src mac max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_max, &eaddr)));
-		fprintf(fd, "range %d mac src inc %s\n", i,
+		fprintf(fd, "range %d src mac inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->src_mac_inc, &eaddr)));
 
-		fprintf(fd, "range %d mac dst start %s\n", i,
+		fprintf(fd, "\n");
+		fprintf(fd, "range %d dst mac start %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac, &eaddr)));
-		fprintf(fd, "range %d mac dst min %s\n", i,
+		fprintf(fd, "range %d dst mac min %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_min, &eaddr)));
-		fprintf(fd, "range %d mac dst max %s\n", i,
+		fprintf(fd, "range %d dst mac max %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_max, &eaddr)));
-		fprintf(fd, "range %d mac dst inc %s\n", i,
+		fprintf(fd, "range %d dst mac inc %s\n", i,
 			inet_mtoa(buff, sizeof(buff),
 				  inet_h64tom(range->dst_mac_inc, &eaddr)));
 
@@ -304,16 +304,16 @@ pktgen_script_save(char *path)
 			(range->ip_proto == PG_IPPROTO_ICMP) ? "icmp" : "tcp");
 
 		fprintf(fd, "\n");
-		fprintf(fd, "range %d sport start %d\n", i, range->src_port);
-		fprintf(fd, "range %d sport min %d\n", i, range->src_port_min);
-		fprintf(fd, "range %d sport max %d\n", i, range->src_port_max);
-		fprintf(fd, "range %d sport inc %d\n", i, range->src_port_inc);
+		fprintf(fd, "range %d src port start %d\n", i, range->src_port);
+		fprintf(fd, "range %d src port min %d\n", i, range->src_port_min);
+		fprintf(fd, "range %d src port max %d\n", i, range->src_port_max);
+		fprintf(fd, "range %d src port inc %d\n", i, range->src_port_inc);
 
 		fprintf(fd, "\n");
-		fprintf(fd, "range %d dport start %d\n", i, range->dst_port);
-		fprintf(fd, "range %d dport min %d\n", i, range->dst_port_min);
-		fprintf(fd, "range %d dport max %d\n", i, range->dst_port_max);
-		fprintf(fd, "range %d dport inc %d\n", i, range->dst_port_inc);
+		fprintf(fd, "range %d dst port start %d\n", i, range->dst_port);
+		fprintf(fd, "range %d dst port min %d\n", i, range->dst_port_min);
+		fprintf(fd, "range %d dst port max %d\n", i, range->dst_port_max);
+		fprintf(fd, "range %d dst port inc %d\n", i, range->dst_port_inc);
 
 		fprintf(fd, "\n");
 		fprintf(fd, "range %d ttl start %d\n", i, range->ttl);
@@ -338,7 +338,7 @@ pktgen_script_save(char *path)
 		fprintf(fd, "range %d tos min %d\n", i, range->tos_min);
 		fprintf(fd, "range %d tos max %d\n", i, range->tos_max);
 		fprintf(fd, "range %d tos inc %d\n", i, range->tos_inc);
-
+		fprintf(fd, "range %d gre key %d\n", i, pkt->gre_key);
 
 		fprintf(fd, "\n");
 		fprintf(fd, "range %d size start %d\n", i,
@@ -353,7 +353,7 @@ pktgen_script_save(char *path)
 		fprintf(fd, "rate %d fps %d\n", i, rate->fps);
 		fprintf(fd, "rate %d lines %d\n", i, rate->vlines);
 		fprintf(fd, "rate %d pixels %d\n", i, rate->pixels);
-		fprintf(fd, "rate %d color %d\n", i, rate->color_bits);
+		fprintf(fd, "rate %d color bits %d\n", i, rate->color_bits);
 		fprintf(fd, "rate %d payload size %d\n\n", i, rate->payload);
 		fprintf(fd, "rate %d overhead %d\n", i, rate->overhead);
 
@@ -402,19 +402,20 @@ pktgen_script_save(char *path)
 				pktgen.info[i].pcap->filename);
 		}
 		fprintf(fd, "\n");
-	}
-	if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
-		uint32_t active = info->rnd_bitfields->active_specs;
-		bf_spec_t *bf;
-		fprintf(fd, "\n-- Rnd bitfeilds\n");
-		for (j = 0; j < MAX_RND_BITFIELDS; j++) {
-			if ((active & (1 << j)) == 0)
-				continue;
-			bf = &info->rnd_bitfields->specs[j];
-			fprintf(fd, "set %d rnd %d %d %s\n",
-				i, j, bf->offset, convert_bitfield(bf));
+		
+		if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
+			uint32_t active = info->rnd_bitfields->active_specs;
+			bf_spec_t *bf;
+			fprintf(fd, "\n-- Rnd bitfeilds\n");
+			for (j = 0; j < MAX_RND_BITFIELDS; j++) {
+				if ((active & (1 << j)) == 0)
+					continue;
+				bf = &info->rnd_bitfields->specs[j];
+				fprintf(fd, "set %d rnd %d %d %s\n",
+					i, j, bf->offset, convert_bitfield(bf));
+			}
+			fprintf(fd, "\n");
 		}
-		fprintf(fd, "\n");
 	}
 	fprintf(fd, "################################ Done #################################\n");
 
@@ -1264,6 +1265,7 @@ enable_rx_tap(port_info_t *info, uint32_t onOff)
 		ifr.ifr_flags = IFF_UP | IFF_RUNNING;
 		if (ioctl(sockfd, SIOCSIFFLAGS, (void *)&ifr) < 0) {
 			pktgen_log_error("Unable to set SIOCSIFFLAGS for %s",
+
 					 ifr.ifr_name);
 			close(sockfd);
 			close(info->rx_tapfd);

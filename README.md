@@ -116,37 +116,38 @@ Note: In DPDK 19.08-rc0 a large number of defines and function names were
        set              Command : set a number of options
        pcap             Command : pcap commands
        stp              Alias : stop all
-  str              Alias : start all
-  stop             Command : stop features
-  start            Command : start features
-  disable          Command : disable features
-  enable           Command : enable features
-  range            Command : Range commands
-  theme            Command : Set, save, show the theme
-  page             Command : change page displays
-  seq              Alias : sequence
-  sequence         Command : sequence command
-  ping4            Command : Send a ping packet for IPv4
-  port             Command : Switch between ports
-  restart          Command : restart port
-  rst              Alias : reset all
-  reset            Command : reset pktgen configuration
-  cls              Alias : redisplay
-  redisplay        Command : redisplay the screen
-  save             Command : save the current state
-  lua              Command : execute a Lua string
-  script           Command : run a Lua script
-  load             Command : load command file
-  geom             Alias : geometry
-  geometry         Command : set the screen geometry
-  clr              Alias : clear.stats all
-  clear.stats      Command : clear stats
-  help             Command : help command
+       str              Alias : start all
+       stop             Command : stop features
+       start            Command : start features
+       disable          Command : disable features
+       enable           Command : enable features
+       range            Command : Range commands
+       theme            Command : Set, save, show the theme
+       page             Command : change page displays
+       seq              Alias : sequence
+       sequence         Command : sequence command
+       ping4            Command : Send a ping packet for IPv4
+       port             Command : Switch between ports
+       restart          Command : restart port
+       rst              Alias : reset all
+       reset            Command : reset pktgen configuration
+       cls              Alias : redisplay
+       redisplay        Command : redisplay the screen
+       save             Command : save the current state
+       lua              Command : execute a Lua string
+       script           Command : run a Lua script
+       load             Command : load command file
+       geom             Alias : geometry
+       geometry         Command : set the screen geometry
+       clr              Alias : clear.stats all
+       clear.stats      Command : clear stats
+       help             Command : help command
 
-Pktgen:/pktgen/bin/>
+    Pktgen:/pktgen/bin/>
 
 
-run pktgen type `sudo -E ./tools/run.sh`.
+    run pktgen type `sudo -E ./tools/run.sh`
+
 `run.sh` is a script designed to help you with the command line options of pktgen.
 You may need to modify this script for your system and configuration.
 
@@ -166,10 +167,10 @@ You may need to modify this script for your system and configuration.
     #89:00.0 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
     #89:00.1 Ethernet controller: Intel Corporation Ethernet Converged Network Adapter X520-Q1 (rev 01)
 
-if [ $name == "rkwiles-supermicro" ]; then
-./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
-fi
-``
+    if [ $name == "rkwiles-supermicro" ]; then
+      ./app/app/${target}/pktgen -l 4-12 -n 3 --proc-type auto --file-prefix pg -b 06:00.0 -b 06:00.1 -b 08:00.0 -b 08:00.1 -b 09:00.0 -b 09:00.1 -b 83:00.1 -- -T -P -m "[5:7].0, [6:8].1, [9:11].2, [10:12].3" -f themes/black-yellow.theme
+    fi
+
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
  The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
  case). Do not use the '-m NNN' and '--socket-mem NN,NN' commands on the same command
@@ -208,11 +209,11 @@ single physical core will be trying to do both Rx/Tx functions.
 Using the new tools/run.py script to setup and run pktgen with different configurations. The configuration files are located in the cfg directory with filenames ending in .cfg.
 
 To use a configuration file;
-``
+```
 $ ./tools/run.py -s default  # to setup the ports and attach them to DPDK (only needed once per boot)
 
 $ ./tools/run.py default     # Run the default configuration
-``
+```
 The configuration files are python scripts or a set of variables that run.py uses to initialize and run pktgen.
 Here is an example of the default.cfg file:
 
@@ -276,9 +277,7 @@ Here is an example of the default.cfg file:
 
 	    'theme': 'themes/black-yellow.theme'
 	}
-```
 
-```
 Usage: ./app/pktgen -l CORELIST [-n NUM] [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
 Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
@@ -926,10 +925,10 @@ other then .lua it is treated as a .pkt file.
 `./app/pktgen -l 0-4 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.pkt`
 
 -- test/set_seq.pkt
-``
-seq 0 all 0000:4455:6677 0000:1234:5678 10.11.0.1 10.10.0.1/16 5 6 ipv4 udp 1 128
-set all seqCnt 1
-``
+
+    seq 0 all 0000:4455:6677 0000:1234:5678 10.11.0.1 10.10.0.1/16 5 6 ipv4 udp 1 128
+    set all seqCnt 1
+
 The set_seq.pkt command file can also be one of the files in pktgen/test directory,
 which are Lua based scripts instead of command line scripts as in set_seq.pkt file.
 
@@ -937,7 +936,7 @@ which are Lua based scripts instead of command line scripts as in set_seq.pkt fi
 The Lua version is easier to remember the layout of the agruments if you want to
 use that one instead of set_seq.pkt file.
 
-``
+```
 ./app/pktgen -l 0-4 -n 3 --proc-type auto -- -P -m "[1:3].0, [2:4].1" -f test/set_seq.lua`
 
 -- The '--' is a comment in Lua
@@ -956,7 +955,7 @@ local seq_table = {			-- entries can be in any order
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );
 pktgen.set("all", "seqCnt", 1);
-``
+```
 ------------------------------------------------------------------------------------------
 -- Two Pktgens running on the same machine with connected via a loopback ports
 

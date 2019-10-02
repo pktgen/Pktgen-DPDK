@@ -986,55 +986,57 @@ To exit this command type Control-D to exit and close the connection.
 You can also just send Pktgen a script file and display the ouptut.
 
 ---------
-$ socat - TCP4:localhost:22022 < test/hello-world.lua
+    $ socat - TCP4:localhost:22022 < test/hello-world.lua
 
-Lua Version: Lua 5.3
-Pktgen Version : 3.6.1
-Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
-Pktgen Authors : Keith Wiles @ Intel Corporation
+    Lua Version: Lua 5.3
+    Pktgen Version : 3.6.1
+    Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
+    Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
 --------
 
 Here is the program I sent Pktgen:
 
-$ cat test/hello-world.lua
-package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
+    $ cat test/hello-world.lua
+    package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 
-printf("Lua Vesrion: %s\n", pktgen.info.Lua_Version);
-printf("Pktgen Version : %s\n", pktgen.info.Pktgen_Version);
-printf("Pktgen Copyright : %s\n", pktgen.info.Pktgen_Copyright);
-printf("Pktgen Authors : %s\n", pktgen.info.Pktgen_Authors);
+    printf("Lua Vesrion: %s\n", pktgen.info.Lua_Version);
+    printf("Pktgen Version : %s\n", pktgen.info.Pktgen_Version);
+    printf("Pktgen Copyright : %s\n", pktgen.info.Pktgen_Copyright);
+    printf("Pktgen Authors : %s\n", pktgen.info.Pktgen_Authors);
 
-printf("\nHello World!!!!\n");
+    printf("\nHello World!!!!\n");
 -----------
 
 Here is a command from my Mac Book pro laptop, which loads a file from the local
 disk where Pktgen is running and then we execute the file with 'f()'.
 
 ------------------
-$ socat READLINE TCP4:172.25.40.163:22022
-f,e = loadfile("test/hello-world.lua")
-f()
-Lua Version: Lua 5.3
-Pktgen Version : 3.6.1
-Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
-Pktgen Authors : Keith Wiles @ Intel Corporation
 
-Hello World!!!!
-<Control-D>
+    $ socat READLINE TCP4:172.25.40.163:22022
+    f,e = loadfile("test/hello-world.lua")
+    f()
+    Lua Version: Lua 5.3
+    Pktgen Version : 3.6.1
+    Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
+    Pktgen Authors : Keith Wiles @ Intel Corporation
+
+    Hello World!!!!
+    <Control-D>
 ------------------
 
 You can also just send it commands via echo.
 
 -----------------
-$ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
-Lua Version: Lua 5.3
-Pktgen Version : 3.6.1
-Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
-Pktgen Authors : Keith Wiles @ Intel Corporation
 
-Hello World!!!!
+    $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
+    Lua Version: Lua 5.3
+    Pktgen Version : 3.6.1
+    Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
+    Pktgen Authors : Keith Wiles @ Intel Corporation
+
+    Hello World!!!!
 ----------------------
 
 Keith Wiles @ Intel Corporation

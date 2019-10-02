@@ -39,7 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 SPDX-License-Identifier: BSD-3-Clause
 
-Pktgen: Created 2010-2018 by Keith Wiles @ Intel.com
+Pktgen: Created 2010-2019 by Keith Wiles @ Intel.com
 ---
 
 Note: In DPDK 19.08-rc0 a large number of defines and function names were

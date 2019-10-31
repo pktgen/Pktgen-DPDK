@@ -2436,7 +2436,7 @@ pktgen_clear_stats(port_info_t *info)
 
 	/* Normalize the stats to a zero base line */
 	rte_eth_stats_get(info->pid, &info->prev_stats);
-	rte_memcpy(&info->base_stats, &info->prev_stats, sizeof(eth_stats_t));
+	rte_eth_stats_get(info->pid, &info->base_stats);
 
 	pktgen.max_total_ipackets   = 0;
 	pktgen.max_total_opackets   = 0;

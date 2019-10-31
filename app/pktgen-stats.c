@@ -406,12 +406,14 @@ pktgen_page_stats(void)
 
 		/* Total Rx/Tx */
 		pktgen_display_set_color("stats.port.totals");
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.ipackets);
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.ipackets - info->base_stats.ipackets);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.opackets - info->base_stats.opackets);
 
 		/* Total Rx/Tx mbits */
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->curr_stats) / Million);
-		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->curr_stats) / Million);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1,
+			(iBitsTotal(info->curr_stats) - iBitsTotal(info->base_stats)) / Million);
+		scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1,
+			(oBitsTotal(info->curr_stats) - oBitsTotal(info->base_stats)) / Million);
 
 		if (pktgen.flags & TX_DEBUG_FLAG) {
 			snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);

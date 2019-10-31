@@ -370,7 +370,7 @@ typedef struct greEther_s {
 	struct pg_ipv4_hdr ip;		/* Outer IPv4 header */
 	greHdr_t gre;		/* GRE header */
 	struct pg_ether_hdr ether;	/* Inner Ethernet header */
-} __attribute__ ((__packed__)) greEther_t;
+} greEther_t;
 
 /* Common defines for Ethernet */
 #define ETH_HW_TYPE                 1		/* Ethernet hardware type */
@@ -417,7 +417,7 @@ typedef struct pkt_hdr_s {
 		udpipv6_t uip6;		/**< UDP + IPv6 Headers */
 		uint64_t pad[8];	/**< Length of structures */
 	} u;
-} __attribute__((__packed__)) pkt_hdr_t;
+} pkt_hdr_t;
 
 typedef struct ipv4_5tuple {
 	uint32_t ip_dst;
@@ -430,7 +430,7 @@ typedef struct ipv4_5tuple {
 typedef struct l3_4route_s {
 	ipv4_5tuple_t key;
 	uint8_t ifid;
-} __attribute__ ((packed)) l3_4route_t;
+} __attribute__ ((__packed__)) l3_4route_t;
 
 typedef struct ipv6_5tuple_s {
 	uint8_t dst[IPV6_ADDR_LEN];
@@ -438,12 +438,12 @@ typedef struct ipv6_5tuple_s {
 	uint16_t sport;
 	uint16_t dport;
 	uint8_t proto;
-} __attribute__ ((packed)) ipv6_5tuple_t;
+} __attribute__ ((__packed__)) ipv6_5tuple_t;
 
 typedef struct l3_6route_s {
 	ipv6_5tuple_t key;
 	uint8_t ifid;
-} __attribute__ ((packed)) l3_6route_t;
+} __attribute__ ((__packed__)) l3_6route_t;
 
 /*********************************************************************************/
 /**

@@ -143,6 +143,7 @@ extern "C" {
 		}							\
 	} while ((0))
 
+#if RTE_VERSION < RTE_VERSION_NUM(19, 11, 0, 0)
 /**
  * Free a list of packet mbufs back into its original mempool.
  *
@@ -164,6 +165,7 @@ rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
 		m->next = 0;
 	}
 }
+#endif
 
 typedef enum { PACKET_CONSUMED = 0, UNKNOWN_PACKET = 0xEEEE,
 	       DROP_PACKET = 0xFFFE, FREE_PACKET = 0xFFFF } pktType_e;

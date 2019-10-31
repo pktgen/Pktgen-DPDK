@@ -482,7 +482,9 @@ pktgen_config_ports(void)
 
 		pktgen_range_setup(info);
 
+		/* set the previous and base stats values at init */
 		rte_eth_stats_get(pid, &info->prev_stats);
+		rte_memcpy(&info->base_stats, &info->prev_stats, sizeof(eth_stats_t));
 
 		pktgen_rnd_bits_init(&pktgen.info[pid].rnd_bitfields);
 	}

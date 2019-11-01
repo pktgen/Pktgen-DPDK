@@ -123,8 +123,6 @@ lua_create_instance(void)
 	struct rte_luaData_list *luaData_list = NULL;
 	struct rte_tailq_entry *te;
 
-printf("%s: Called %p\n", __func__, luaData_list);
-printf("%s: First Link %p -> %s\n", __func__, rte_luaData_tailq.head, rte_luaData_tailq.name);
 	ld = (luaData_t *)malloc(sizeof(luaData_t));
 	if (!ld)
 		return NULL;
@@ -160,7 +158,6 @@ printf("%s: First Link %p -> %s\n", __func__, rte_luaData_tailq.head, rte_luaDat
 	luaL_openlibs(ld->L);
 	lua_newlibs_init(ld);
 
-printf("%s: Link %p -> %s\n", __func__, rte_luaData_tailq.head, rte_luaData_tailq.name);
 	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
 
 	/* try to allocate tailq entry */
@@ -174,7 +171,6 @@ printf("%s: Link %p -> %s\n", __func__, rte_luaData_tailq.head, rte_luaData_tail
 	memset(te, 0, sizeof(*te));
 	te->data = ld;
 
-printf("%s: Link in to list %p\n", __func__, luaData_list);
 #if RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
 #else

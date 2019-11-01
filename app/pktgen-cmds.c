@@ -402,7 +402,7 @@ pktgen_script_save(char *path)
 				pktgen.info[i].pcap->filename);
 		}
 		fprintf(fd, "\n");
-		
+
 		if (info->rnd_bitfields && info->rnd_bitfields->active_specs) {
 			uint32_t active = info->rnd_bitfields->active_specs;
 			bf_spec_t *bf;
@@ -2433,6 +2433,8 @@ pktgen_clear_stats(port_info_t *info)
 	memset(&info->sizes, 0, sizeof(port_sizes_t));
 	memset(&info->prev_stats, 0, sizeof(eth_stats_t));
 	memset(&info->rate_stats, 0, sizeof(eth_stats_t));
+
+	memset(&info->qstats, 0, sizeof(info->qstats));
 
 	/* Normalize the stats to a zero base line */
 	rte_eth_stats_get(info->pid, &info->prev_stats);

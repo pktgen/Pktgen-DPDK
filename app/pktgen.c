@@ -286,7 +286,8 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	uint32_t ret, cnt, tap, rnd, tstamp;
+	struct qstats_s *qstats;
+	uint32_t ret, cnt, tap, rnd, tstamp, i;
 	int32_t seq_idx;
 
 	if ((cnt = mtab->len) == 0)
@@ -305,6 +306,11 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
 	rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
 	tstamp = pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS));
+
+	qstats = &info->qstats[qid];
+	qstats->txpkts += cnt;
+	for (i = 0; i < cnt; i++)
+		qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
 
 	/* Send all of the packets before we can exit this function */
 	while (cnt && pktgen_tst_port_flags(info, SENDING_PACKETS)) {
@@ -1103,15 +1109,23 @@ pktgen_main_receive(port_info_t *info, uint8_t lid,
 	uint8_t pid;
 	uint16_t qid, nb_rx;
 	capture_t *capture;
+	struct qstats_s *qstats;
+	int i;
 
 	pid = info->pid;
 	qid = get_rxque(pktgen.l2p, lid, pid);
+
+	qstats = &info->qstats[qid];
 
 	/*
 	 * Read packet from RX queues and free the mbufs
 	 */
 	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, nb_pkts)) == 0)
 		return;
+
+	qstats->rxpkts += nb_rx;
+	for(i = 0; i < nb_rx; i++)
+		qstats->rxbytes += rte_pktmbuf_data_len(pkts_burst[i]);
 
 	pktgen_recv_tstamp(info, pkts_burst, nb_rx);
 

@@ -251,6 +251,12 @@ typedef struct port_info_s {
 	uint64_t max_ipackets;	/**< Max seen input packet rate */
 	uint64_t max_opackets;	/**< Max seen output packet rate */
 	uint64_t max_missed;	/**< Max missed packets seen */
+	struct qstats_s {
+		uint64_t rxpkts;
+		uint64_t txpkts;
+		uint64_t rxbytes;
+		uint64_t txbytes;
+	} qstats[NUM_Q];
 
 	struct rte_eth_link link;	/**< Link Information like speed and duplex */
 

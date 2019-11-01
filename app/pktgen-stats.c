@@ -551,6 +551,7 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 void
 pktgen_page_phys_stats(uint16_t pid)
 {
+	port_info_t *info;
 	unsigned int col, row, q, hdr;
 	struct rte_eth_stats stats, *s, *r;
 	struct pg_ether_addr ethaddr;
@@ -562,22 +563,22 @@ pktgen_page_phys_stats(uint16_t pid)
 	pktgen_display_set_color("top.page");
 	display_topline("<Real Port Stats Page>");
 
-        row = 3;
-        col = 1;
-        pktgen_display_set_color("stats.port.status");
-        scrn_printf(row, col, "Port %u", pid);
+	row = 3;
+	col = 1;
+	pktgen_display_set_color("stats.port.status");
+	scrn_printf(row, col, "Port %u", pid);
 
-        col = COLUMN_WIDTH_0 - 3;
-        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
+	col = COLUMN_WIDTH_0 - 3;
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Pkts Rx/Tx");
 
-        col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 1)) - 3;
-        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
+	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 1)) - 3;
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Rx Errors/Missed");
 
-        col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
-        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
+	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "Rate Rx/Tx");
 
-        col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
-        scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
+	col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
+	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, "MAC Address");
 
 	rte_eth_stats_get(pid, &stats);
 
@@ -608,8 +609,12 @@ pktgen_page_phys_stats(uint16_t pid)
 	scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 	row++;
 
+	info = &pktgen.info[pid];
+
 	hdr = 0;
 	for(q = 0; q < RTE_ETHDEV_QUEUE_STAT_CNTRS; q++) {
+		uint64_t rxpkts, txpkts, txbytes, rxbytes;
+
 		if (!hdr) {
 			hdr = 1;
 			row++;
@@ -618,12 +623,22 @@ pktgen_page_phys_stats(uint16_t pid)
 					"ipackets", "opackets", "ibytes", "obytes", "errors");
 			pktgen_display_set_color("stats.stat.values");
 		}
+
+		rxpkts = stats.q_ipackets[q];
+		if (rxpkts == 0)
+			rxpkts = info->qstats[q].rxpkts;
+		txpkts = stats.q_opackets[q];
+		if (txpkts == 0)
+			txpkts = info->qstats[q].txpkts;
+		rxbytes = stats.q_ibytes[q];
+		if (rxbytes == 0)
+			rxbytes = info->qstats[q].rxbytes;
+		txbytes = stats.q_obytes[q];
+		if (txbytes == 0)
+			txbytes = info->qstats[q].txbytes;
+
 		scrn_printf(row++, 1, "     Q %2d: %14lu %14lu %14lu %14lu %14lu", q,
-				stats.q_ipackets[q],
-				stats.q_opackets[q],
-				stats.q_ibytes[q],
-				stats.q_obytes[q],
-				stats.q_errors[q]);
+				rxpkts, txpkts, rxbytes, txbytes, stats.q_errors[q]);
 	}
 	pktgen_display_set_color(NULL);
 	display_dashline(++row);

@@ -8,29 +8,76 @@ sources = files(
 	'pktgen-latency.c', 'pktgen-rate.c'
 )
 
+message('*** dpdk_libdir=' + dpdk_libdir)
 message('Process the app directory')
 
-#TODO fixme - assumes previously build lua using make
-lua_dir = '../lib/lua/build'
-lua_inc = include_directories(join_paths(lua_dir, 'include'))
+lua_dir = '../lib/'
+lua_inc = include_directories(join_paths(lua_dir, 'lua'))
 lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
 
 cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	cflags += '-Wno-format-truncation'
 endif
+
+# set the major version, which might be used by drivers and libraries
+# depending on the configuration options
+pver = meson.project_version().split('.')
+major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
+
+cflags += '-D__YEAR=' + pver.get(0)
+cflags += '-D__MONTH=' + pver.get(1)
+if pver.get(2).contains('-rc')
+	rc_ver = pver.get(2).split('-rc')
+	cflags += '-D__MINOR=' + rc_ver.get(0)
+	cflags += '-D__SUFFIX="-rc"'
+	cflags += '-D__RELEASE=' + rc_ver.get(1)
+else
+	cflags += '-D__MINOR=' + pver.get(2)
+	cflags += '-D__SUFFIX='
+	cflags += '-D__RELEASE=99'
+endif
+
+#cmd = run_command('/bin/ls', dpdk_libdir)
+#if cmd.returncode() != 0
+#	message('*** Failed to list libraries')
+#endif
+#output = cmd.stdout().strip().split('\n')
+
+#deps = [lua]
+#foreach f:output
+#	if f.endswith('.a')
+#		base = f.split('lib')
+#		base = base[1].split('.a')
+#		if base[0] == 'rte_pmd_z'
+#			v = base[0] + 'lib'
+#		else
+#			v = base[0]
+#		endif
+#		deps += cc.find_library(v, required:true, dirs: [dpdk_libdir])
+#	endif
+#endforeach
+
+deps = []
+foreach lib:['ethdev', 'net', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci', 'pmd_i40e', 'pmd_ixgbe']
+	deps += [cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])]
+endforeach
+
+deps += [get_variable('static_pktgen_common')]
+deps += [get_variable('static_pktgen_lua')]
+deps += [get_variable('static_pktgen_plugin')]
+deps += [get_variable('static_pktgen_utils')]
+deps += [get_variable('static_pktgen_vec')]
+deps += [get_variable('static_pktgen_cli')]
+
+deps += [dependency('threads')]
+deps += [cc.find_library('lua', required: true)]
+deps += [cc.find_library('numa', required: true)]
+deps += [cc.find_library('pcap', required: true)]
+deps += [cc.find_library('dl', required: false)]
+deps += [cc.find_library('m', required: false)]
+
 pktgen = executable('dpdk-pktgen',
 		sources,
-		c_args: cflags,
-		dependencies: [lua,
-			cc.find_library('pcap', required: true),
-			get_variable('static_pktgen_cli'),
-			get_variable('static_pktgen_common'),
-			get_variable('static_pktgen_lua'),
-			get_variable('static_pktgen_plugin'),
-			get_variable('static_pktgen_utils'),
-			get_variable('static_pktgen_vec'),
-			dependency('threads'),
-			cc.find_library('dl', required: false),
-			cc.find_library('m', required: false)],
-		install: true)
+		c_args: [cflags, '-pthread'],
+		dependencies: deps)

@@ -27,6 +27,7 @@
 #include <lualib.h>
 
 #include <rte_net.h>
+#include <rte_ether.h>
 #include <lua_config.h>
 #include <lua_stdio.h>
 #include <pg_delay.h>

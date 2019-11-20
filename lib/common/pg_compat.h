@@ -45,7 +45,7 @@ extern "C" {
 #endif
 #define PG_ETHER_TYPE_VLAN		RTE_ETHER_TYPE_VLAN
 #define PG_ETHER_TYPE_ARP		RTE_ETHER_TYPE_ARP
-#define pg_ether_format_addr	rte_ether_format_addr
+#define pg_ether_format_addr		rte_ether_format_addr
 #define pg_ether_addr_copy		rte_ether_addr_copy
 #else
 #define pg_ether_addr			ether_addr

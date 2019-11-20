@@ -505,7 +505,10 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 	{ DEV_TX_OFFLOAD_UDP_TNL_TSO, 		_(UDP_TNL_TSO) },
 	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) },
 	{ DEV_TX_OFFLOAD_OUTER_UDP_CKSUM,	_(OUTER_UDP_CKSUM) },
+
+#if RTE_VERSION < RTE_VERSION_NUM(19,11,0,0)
 	{ DEV_TX_OFFLOAD_MATCH_METADATA,	_(MATCH_METADATA) },
+#endif
 #endif
 	};
 #undef _

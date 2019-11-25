@@ -168,12 +168,23 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color("stats.ip");
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		            inet_ntop4(buff, sizeof(buff),
-		                       htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		            inet_ntop4(buff, sizeof(buff),
-		                       htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
+		if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+				inet_ntop6(buff, sizeof(buff),
+				pkt->ip_dst_addr.addr.ipv6.s6_addr));
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+				inet_ntop6(buff, sizeof(buff),
+				pkt->ip_src_addr.addr.ipv6.s6_addr));
+		} else {
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+				inet_ntop4(buff, sizeof(buff),
+				htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+				0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+				inet_ntop4(buff, sizeof(buff),
+				htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
+				pkt->ip_mask));
+		}
 		pktgen_display_set_color("stats.mac");
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		            inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));

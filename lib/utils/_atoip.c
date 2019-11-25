@@ -228,6 +228,7 @@ _atoip(const char *buf, int flags, void *res, unsigned ressize)
 	struct rte_ipaddr ipaddr;
 	char *prefix, *prefix_end;
 	long prefixlen = 0;
+	int default_max_prefix = 0;
 
 	if (res && ressize < sizeof(struct rte_ipaddr))
 		return -1;
@@ -247,35 +248,37 @@ _atoip(const char *buf, int flags, void *res, unsigned ressize)
 	/* convert the network prefix */
 	if (flags & RTE_IPADDR_NETWORK) {
 		prefix = strrchr(ip_str, '/');
-		if (prefix == NULL)
-			return -1;
-		*prefix = '\0';
-		prefix++;
-		errno = 0;
-		prefixlen = strtol(prefix, &prefix_end, 10);
-		if (errno || (*prefix_end != '\0')
-		    || prefixlen < 0 || prefixlen > RTE_PREFIXMAX)
-			return -1;
-		ipaddr.prefixlen = prefixlen;
+		if (prefix == NULL) {
+			default_max_prefix = 1;
+		}	else {
+			*prefix = '\0';
+			prefix++;
+			errno = 0;
+			prefixlen = strtol(prefix, &prefix_end, 10);
+			if (errno || (*prefix_end != '\0')
+			    || prefixlen < 0 || prefixlen > RTE_PREFIXMAX)
+				return -1;
+			ipaddr.prefixlen = prefixlen;
+		}
 	} else
 		ipaddr.prefixlen = 0;
 
 	/* convert the IP addr */
-	if ((flags & RTE_IPADDR_V4) &&
-	    inet_ipton(AF_INET, ip_str, &ipaddr.ipv4) == 1 &&
+	if (inet_ipton(AF_INET, ip_str, &ipaddr.ipv4) == 1 &&
 	    prefixlen <= RTE_V4PREFIXMAX) {
+		if (default_max_prefix)
+			ipaddr.prefixlen = RTE_V4PREFIXMAX;
 		ipaddr.family = AF_INET;
 		if (res)
 			memcpy(res, &ipaddr, sizeof(ipaddr));
-		return token_len;
-	}
-
-	if ((flags & RTE_IPADDR_V6) &&
-	    inet_ipton(AF_INET6, ip_str, &ipaddr.ipv6) == 1) {
+		return 4;
+	} else if (inet_ipton(AF_INET6, ip_str, &ipaddr.ipv6) == 1) {
 		ipaddr.family = AF_INET6;
+		if (default_max_prefix)
+			ipaddr.prefixlen = RTE_PREFIXMAX;
 		if (res)
 			memcpy(res, &ipaddr, sizeof(ipaddr));
-		return token_len;
+		return 6;
 	}
 	return -1;
 

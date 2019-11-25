@@ -296,19 +296,11 @@ set_seq(lua_State *L, uint32_t seqnum)
 
 	/* Determine if we are IPv4 or IPv6 packets */
 	ip      = (char *)luaL_checkstring(L, 9);
-	if (ip[3] == '6') {
-		_atoip(luaL_checkstring(L, 5), PG_IPADDR_V6,
-				  &ip_daddr, sizeof(struct pg_ipaddr));
-		_atoip(luaL_checkstring(L, 6),
-				  PG_IPADDR_NETWORK | PG_IPADDR_V6,
-				  &ip_saddr, sizeof(struct pg_ipaddr));
-	} else {
-		_atoip(luaL_checkstring(L, 5), PG_IPADDR_V4,
-				  &ip_daddr, sizeof(struct pg_ipaddr));
-		_atoip(luaL_checkstring(L, 6),
-				  PG_IPADDR_NETWORK | PG_IPADDR_V4,
-				  &ip_saddr, sizeof(struct pg_ipaddr));
-	}
+	_atoip(luaL_checkstring(L, 5), 0,
+			&ip_daddr, sizeof(struct pg_ipaddr));
+	_atoip(luaL_checkstring(L, 6),
+			PG_IPADDR_NETWORK,
+			&ip_saddr, sizeof(struct pg_ipaddr));
 	proto   = (char *)luaL_checkstring(L, 10);
 	vlanid  = luaL_checkinteger(L, 11);
 	pktsize = luaL_checkinteger(L, 12);
@@ -658,6 +650,7 @@ pktgen_set_ip_addr(lua_State *L) {
 	struct pg_ipaddr ipaddr;
 	int flags;
 	char      *type;
+	int ip_ver;
 
 	switch (lua_gettop(L) ) {
 	default: return luaL_error(L, "set_ipaddr, wrong number of arguments");
@@ -666,14 +659,13 @@ pktgen_set_ip_addr(lua_State *L) {
 	}
 	type = (char *)luaL_checkstring(L, 2);
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	flags = PG_IPADDR_V4;
 	if (type[0] == 's')
-		flags |= PG_IPADDR_NETWORK;
-	_atoip(luaL_checkstring(L, 3), flags,
+		flags = PG_IPADDR_NETWORK;
+	ip_ver = _atoip(luaL_checkstring(L, 3), flags,
 			  &ipaddr, sizeof(struct pg_ipaddr));
 
 	foreach_port(portlist,
-	             single_set_ipaddr(info, type[0], &ipaddr) );
+		single_set_ipaddr(info, type[0], &ipaddr, ip_ver));
 
 	pktgen_update_display();
 	return 0;

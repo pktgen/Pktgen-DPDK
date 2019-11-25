@@ -49,7 +49,7 @@ struct rte_ipaddr {
  * @param ressize
  *   Length of res in bytes.
  * @return
- *   0 on OK and -1 on error
+ *   4 or 6 on OK, indicating an IPv4/v6 address, respectively, and -1 on error
  */
 int _atoip(const char *buf, int flags, void *res, unsigned ressize);
 

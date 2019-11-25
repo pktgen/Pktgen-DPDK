@@ -55,15 +55,14 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 	} else {
 		struct pg_ipv6_hdr *ipv6 = (struct pg_ipv6_hdr *)hdr;
 		struct pg_tcp_hdr *tcp = (struct pg_tcp_hdr *)&ipv6[1];
-		uint32_t addr;
 
 		/* Create the pseudo header and TCP information */
 		memset(ipv6->dst_addr, 0, sizeof(struct in6_addr));
 		memset(ipv6->src_addr, 0, sizeof(struct in6_addr));
-		addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
-		(void)rte_memcpy(&ipv6->dst_addr[8], &addr, sizeof(uint32_t));
-		addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
-		(void)rte_memcpy(&ipv6->src_addr[8], &addr, sizeof(uint32_t));
+		rte_memcpy(ipv6->dst_addr, &pkt->ip_dst_addr.addr.ipv6.s6_addr,
+				sizeof(struct in6_addr));
+		rte_memcpy(ipv6->src_addr, &pkt->ip_src_addr.addr.ipv6.s6_addr,
+				sizeof(struct in6_addr));
 
 		tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv6_hdr));
 		ipv6->payload_len = htons(tlen);

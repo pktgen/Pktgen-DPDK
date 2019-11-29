@@ -55,11 +55,11 @@ valid_pkt_size(char *val)
 		return (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 
 	pkt_size = atoi(val);
-	if (pkt_size < (MIN_PKT_SIZE + PG_ETHER_CRC_LEN))
-		pkt_size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
+	if (pkt_size < pktgen.eth_min_pkt)
+		pkt_size = pktgen.eth_min_pkt;
 
-	if (pkt_size > (MAX_PKT_SIZE + PG_ETHER_CRC_LEN))
-		pkt_size = MAX_PKT_SIZE + PG_ETHER_CRC_LEN;
+	if (pkt_size > pktgen.eth_max_pkt)
+		pkt_size = pktgen.eth_max_pkt;
 
 	return pkt_size;
 }

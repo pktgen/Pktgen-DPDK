@@ -3787,8 +3787,8 @@ luaopen_pktgen(lua_State *L)
 	setf_integer(L, "numSeqPkts", NUM_SEQ_PKTS);
 	setf_integer(L, "numTotalPkts", NUM_TOTAL_PKTS);
 
-	setf_integer(L, "minPktSize", MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
-	setf_integer(L, "maxPktSize", MAX_PKT_SIZE + PG_ETHER_CRC_LEN);
+	setf_integer(L, "minPktSize", pktgen.eth_min_pkt);
+	setf_integer(L, "maxPktSize", pktgen.eth_max_pkt);
 	setf_integer(L, "minVlanID", MIN_VLAN_ID);
 	setf_integer(L, "maxVlanID", MAX_VLAN_ID);
 	setf_integer(L, "vlanTagSize", VLAN_TAG_SIZE);

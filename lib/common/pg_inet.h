@@ -376,9 +376,6 @@ typedef struct greEther_s {
 #define ETH_HW_TYPE                 1		/* Ethernet hardware type */
 #define ETH_HDR_SIZE                14		/* Ethernet MAC header length */
 #define ETH_ADDR_SIZE               6		/* Ethernet MAC address length */
-#define ETH_MTU                     1500	/* Max MTU for Ethernet */
-#define ETH_MAX_PKT                 1518	/* Max Ethernet frame size */
-#define ETH_MIN_PKT                 60		/* Min frame size minus CRC */
 #define IPV6_ADDR_LEN               16		/* IPv6 Address length */
 
 #define ETH_VLAN_ENCAP_LEN          4		/* 802.1Q VLAN encap. length */

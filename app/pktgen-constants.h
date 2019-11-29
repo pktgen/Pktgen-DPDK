@@ -29,10 +29,10 @@ enum {
 	MBUF_CACHE_SIZE         = (MAX_MBUFS_PER_PORT / 8),
 
 	DEFAULT_PRIV_SIZE       = 0,
-	DEFAULT_MBUF_SIZE	= RTE_MBUF_DEFAULT_BUF_SIZE + DEFAULT_PRIV_SIZE, /* See: http://dpdk.org/dev/patchwork/patch/4479/ */
 
 	NUM_Q                   = 16,	/**< Number of cores per port. */
 };
+#define DEFAULT_MBUF_SIZE	(PG_ETHER_MAX_JUMBO_FRAME_LEN + DEFAULT_PRIV_SIZE) /* See: http://dpdk.org/dev/patchwork/patch/4479/ */
 
 #ifdef __cplusplus
 }

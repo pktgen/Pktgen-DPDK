@@ -322,6 +322,7 @@ EAL common options:
   --syslog            Set syslog facility
   --log-level         Set default log level
   -v                  Display version information on startup
+  -j                  Enable 9600 byte jumbo frames
   -h, --help          This help
 
 EAL options for DEBUG use only:
@@ -354,6 +355,7 @@ Usage: ./app/app/x86_64-dnet-linux-gcc/pktgen [EAL options] -- [-h] [-v] [-P] [-
   -N           Enable NUMA support
   -T           Enable the color output
   -v           Verbose flags for startup messages
+  -j           Enable 9600 byte jumbo frames
   --crc-strip  Strip CRC on all ports
   -m <string>  matrix for mapping ports to logical cores
       BNF: (or kind of BNF)

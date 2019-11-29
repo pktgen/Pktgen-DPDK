@@ -12,9 +12,23 @@
 #define PG_COMPAT_H_
 
 #include <rte_version.h>
+#include <rte_ethdev.h>
+#include <rte_ether.h>
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#define PG_JUMBO_FRAME_LEN	(9600 + RTE_ETHER_CRC_LEN + RTE_ETHER_HDR_LEN)
+
+#ifndef RTE_JUMBO_ETHER_MTU
+#define RTE_JUMBO_ETHER_MTU       \
+        (PG_JUMBO_FRAME_LEN - RTE_ETHER_HDR_LEN - \
+                RTE_ETHER_CRC_LEN) /**< Ethernet MTU. */
+#endif
+
+#ifndef RTE_ETHER_MTU
+#define RTE_ETHER_MTU
 #endif
 
 #if RTE_VERSION >= RTE_VERSION_NUM(19,8,0,0)
@@ -36,6 +50,9 @@ extern "C" {
 #define PG_ETHER_CRC_LEN		RTE_ETHER_CRC_LEN
 #define PG_ETHER_MIN_LEN		RTE_ETHER_MIN_LEN
 #define PG_ETHER_MAX_LEN		RTE_ETHER_MAX_LEN
+#define PG_ETHER_MTU			RTE_ETHER_MTU
+#define PG_ETHER_MAX_JUMBO_FRAME_LEN PG_JUMBO_FRAME_LEN
+#define PG_JUMBO_ETHER_MTU      RTE_JUMBO_ETHER_MTU
 #if RTE_VERSION == RTE_VERSION_NUM(19,5,0,0)
 #define PG_ETHER_TYPE_IPv4		RTE_ETHER_TYPE_IPv4
 #define PG_ETHER_TYPE_IPv6		RTE_ETHER_TYPE_IPv6
@@ -61,6 +78,9 @@ extern "C" {
 #define PG_ETHER_CRC_LEN		ETHER_CRC_LEN
 #define PG_ETHER_MIN_LEN		ETHER_MIN_LEN
 #define PG_ETHER_MAX_LEN		ETHER_MAX_LEN
+#define PG_ETHER_MTU			RTE_ETHER_MTU
+#define PG_ETHER_MAX_JUMBO_FRAME_LEN PG_JUMBO_FRAME_LEN
+#define PG_JUMBO_ETHER_MTU      RTE_JUMBO_ETHER_MTU
 #define PG_ETHER_TYPE_IPv4		ETHER_TYPE_IPv4
 #define PG_ETHER_TYPE_IPv6		ETHER_TYPE_IPv6
 #define PG_ETHER_TYPE_VLAN		ETHER_TYPE_VLAN

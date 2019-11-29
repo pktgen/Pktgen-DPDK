@@ -1178,7 +1178,7 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 			pid = get_tx_pid(pktgen.l2p, lid, idx);
 
 		if ((infos[idx] = get_port_private(pktgen.l2p, pid)) == NULL)
-			rte_panic("Config error: No port %d found at lcore %d\n", pid, lid);
+			rte_panic("Config error: No port %d found on lcore %d\n", pid, lid);
 
 		if (qids)
 			qids[idx] = get_txque(pktgen.l2p, lid, pid);
@@ -1251,7 +1251,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 		int dev_sock = rte_eth_dev_socket_id(pid);
 
 		if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
-			rte_panic("*** port %u on socket ID %u has different socket ID for lcore %u socket ID %d\n",
+			rte_panic("*** port %u on socket ID %u has different socket ID on lcore %u socket ID %d\n",
 					pid, rte_eth_dev_socket_id(pid),
 					rte_lcore_id(), rte_socket_id());
 	}

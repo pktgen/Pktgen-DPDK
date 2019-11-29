@@ -38,28 +38,10 @@ else
 	cflags += '-D__RELEASE=99'
 endif
 
-#cmd = run_command('/bin/ls', dpdk_libdir)
-#if cmd.returncode() != 0
-#	message('*** Failed to list libraries')
-#endif
-#output = cmd.stdout().strip().split('\n')
-
-#deps = [lua]
-#foreach f:output
-#	if f.endswith('.a')
-#		base = f.split('lib')
-#		base = base[1].split('.a')
-#		if base[0] == 'rte_pmd_z'
-#			v = base[0] + 'lib'
-#		else
-#			v = base[0]
-#		endif
-#		deps += cc.find_library(v, required:true, dirs: [dpdk_libdir])
-#	endif
-#endforeach
-
 deps = []
-foreach lib:['ethdev', 'net', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci', 'pmd_i40e', 'pmd_ixgbe']
+
+flib = ['ethdev', 'net', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci', 'pmd_i40e', 'pmd_ixgbe', 'pmd_ice']
+foreach lib:flib
 	deps += [cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])]
 endforeach
 
@@ -77,7 +59,12 @@ deps += [cc.find_library('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]
 deps += [cc.find_library('m', required: false)]
 
+pmd_subdir_opt = get_option('drivers_install_subdir')
+driver_install_path = join_paths(get_option('libdir'), pmd_subdir_opt)
+
 pktgen = executable('dpdk-pktgen',
 		sources,
 		c_args: [cflags, '-pthread'],
+		install_rpath: join_paths(get_option('prefix'), driver_install_path),
+		install: true,
 		dependencies: deps)

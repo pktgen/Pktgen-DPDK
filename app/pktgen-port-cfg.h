@@ -247,9 +247,16 @@ typedef struct port_info_s {
 	eth_stats_t curr_stats;	/**< current port statistics */
 	eth_stats_t prev_stats;	/**< previous port statistics */
 	eth_stats_t rate_stats;	/**< current packet rate statistics */
+	eth_stats_t base_stats;	/**< base port statistics */
 	uint64_t max_ipackets;	/**< Max seen input packet rate */
 	uint64_t max_opackets;	/**< Max seen output packet rate */
 	uint64_t max_missed;	/**< Max missed packets seen */
+	struct qstats_s {
+		uint64_t rxpkts;
+		uint64_t txpkts;
+		uint64_t rxbytes;
+		uint64_t txbytes;
+	} qstats[NUM_Q];
 
 	struct rte_eth_link link;	/**< Link Information like speed and duplex */
 
@@ -498,7 +505,10 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 	{ DEV_TX_OFFLOAD_UDP_TNL_TSO, 		_(UDP_TNL_TSO) },
 	{ DEV_TX_OFFLOAD_IP_TNL_TSO, 		_(IP_TNL_TSO) },
 	{ DEV_TX_OFFLOAD_OUTER_UDP_CKSUM,	_(OUTER_UDP_CKSUM) },
+
+#if RTE_VERSION < RTE_VERSION_NUM(19,11,0,0)
 	{ DEV_TX_OFFLOAD_MATCH_METADATA,	_(MATCH_METADATA) },
+#endif
 #endif
 	};
 #undef _

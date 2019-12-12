@@ -51,6 +51,7 @@ static struct rte_eth_conf default_port_conf = {
 #else
 	.rxmode = {
 		.mq_mode = ETH_MQ_RX_RSS,
+		.max_rx_pkt_len = PG_ETHER_MAX_LEN,
 		.split_hdr_size = 0,
 #if RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
 		.offloads = DEV_RX_OFFLOAD_CRC_STRIP,
@@ -296,6 +297,11 @@ pktgen_config_ports(void)
 		/* Get a clean copy of the configuration structure */
 		rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
 
+		if (pktgen.enable_jumbo > 0) {
+			conf.rxmode.max_rx_pkt_len = pktgen.eth_max_pkt;
+			conf.rxmode.offloads |= DEV_RX_OFFLOAD_JUMBO_FRAME;
+			conf.txmode.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
+		}
 		if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE)
 			conf.txmode.offloads |= DEV_TX_OFFLOAD_MBUF_FAST_FREE;
 
@@ -482,7 +488,9 @@ pktgen_config_ports(void)
 
 		pktgen_range_setup(info);
 
+		/* set the previous and base stats values at init */
 		rte_eth_stats_get(pid, &info->prev_stats);
+		rte_eth_stats_get(pid, &info->base_stats);
 
 		pktgen_rnd_bits_init(&pktgen.info[pid].rnd_bitfields);
 	}

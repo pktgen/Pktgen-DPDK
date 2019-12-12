@@ -11,4 +11,4 @@ prints("isSending", pktgen.isSending("all"));
 prints("portSizes", pktgen.portSizes("all"));
 prints("pktStats", pktgen.pktStats("all"));
 prints("portRates", pktgen.portStats("all", "rate"));
-prints("portStats", pktgen.portStats("all", "port"));
+prints("portStats", pktgen.portStats('2', 'port'));

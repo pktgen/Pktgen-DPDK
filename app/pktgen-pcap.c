@@ -327,9 +327,9 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		/* Skip any jumbo packets or packets that are too small */
 		len = hdr.incl_len;
 
-		if (len < MIN_PKT_SIZE)
+		if (len < (uint32_t)MIN_PKT_SIZE)
 			len = MIN_PKT_SIZE;
-		else if (len > MAX_PKT_SIZE)
+		else if (len > (uint32_t)MAX_PKT_SIZE)
 			len = MAX_PKT_SIZE;
 
 		elt_count++;

@@ -66,7 +66,8 @@ void pktgen_port_defaults(uint32_t pid, uint8_t seq);
 struct pg_ipaddr;
 
 /* Single */
-void single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip);
+void single_set_ipaddr(port_info_t *info, char type,
+					struct pg_ipaddr *ip, int ip_ver);
 void single_set_proto(port_info_t *info, char *type);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_cos(port_info_t *info, uint8_t cos);

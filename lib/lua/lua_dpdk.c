@@ -237,7 +237,7 @@ dpdk_compile(lua_State *L)
 static void
 decompile_pkt(lua_State *L, uint16_t pid)
 {
-	char buff[128];
+	char buff[256];
 	struct pkt_data *p = NULL;
 
 	lua_pushinteger(L, pid);	/* Push the table index */

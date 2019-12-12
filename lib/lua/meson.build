@@ -30,3 +30,4 @@ endforeach
 
 ext_deps += cc.find_library('lua5.3', required: true)
 ext_deps += cc.find_library('pthread', required: true)
+ext_deps += cc.find_library('m', required: true)

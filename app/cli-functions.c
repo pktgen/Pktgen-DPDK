@@ -55,11 +55,11 @@ valid_pkt_size(char *val)
 		return (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
 
 	pkt_size = atoi(val);
-	if (pkt_size < (MIN_PKT_SIZE + PG_ETHER_CRC_LEN))
-		pkt_size = (MIN_PKT_SIZE + PG_ETHER_CRC_LEN);
+	if (pkt_size < pktgen.eth_min_pkt)
+		pkt_size = pktgen.eth_min_pkt;
 
-	if (pkt_size > (MAX_PKT_SIZE + PG_ETHER_CRC_LEN))
-		pkt_size = MAX_PKT_SIZE + PG_ETHER_CRC_LEN;
+	if (pkt_size > pktgen.eth_max_pkt)
+		pkt_size = pktgen.eth_max_pkt;
 
 	return pkt_size;
 }
@@ -214,7 +214,7 @@ range_cmd(int argc, char **argv)
 			p = strchr(argv[4], '/');
 			if (p)
 				*p = '\0';
-			_atoip(val, PG_IPADDR_V4, &ip, sizeof(ip));
+			_atoip(val, 0, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_dst_ip(info, what, &ip));
 			break;
@@ -223,7 +223,7 @@ range_cmd(int argc, char **argv)
 			p = strchr(argv[4], '/');
 			if (p)
 				*p = '\0';
-			_atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
+			_atoip(argv[5], 0, &ip, sizeof(ip));
 			foreach_port(portlist,
 			     range_set_src_ip(info, what, &ip));
 			break;
@@ -463,6 +463,7 @@ set_cmd(int argc, char **argv)
 	struct pg_ipaddr ip;
 	uint16_t id1, id2;
 	uint32_t u1;
+	int ip_ver;
 
 	m = cli_mapping(set_map, argc, argv);
 	if (!m)
@@ -527,13 +528,13 @@ set_cmd(int argc, char **argv)
 		case 30:
 			p = strchr(argv[4], '/');
 			if (!p) {
-				char buf[32];
-				snprintf(buf, sizeof(buf), "%s/32", argv[4]);
-				cli_printf("src IP address should contain /NN subnet value, default /32\n");
-				_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-			} else
-				_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-			foreach_port(portlist, single_set_ipaddr(info, 's', &ip));
+				cli_printf("src IP address should contain subnet value, default /32 for IPv4, /128 for IPv6\n");
+			}
+			ip_ver = _atoip(argv[4],
+				PG_IPADDR_V4 | PG_IPADDR_NETWORK,
+				&ip, sizeof(ip));
+			foreach_port(portlist,
+				single_set_ipaddr(info, 's', &ip, ip_ver));
 			break;
 		case 31:
 			/* Remove the /XX mask value if supplied */
@@ -542,8 +543,9 @@ set_cmd(int argc, char **argv)
 				cli_printf("Subnet mask not required, removing subnet mask value\n");
 				*p = '\0';
 			}
-			_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
-			foreach_port(portlist, single_set_ipaddr(info, 'd', &ip));
+			ip_ver = _atoip(argv[4], 0, &ip, sizeof(ip));
+			foreach_port(portlist,
+				single_set_ipaddr(info, 'd', &ip, ip_ver));
 			break;
 		case 40:
 			pktgen_set_page_size(atoi(argv[2]));
@@ -1116,15 +1118,12 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	p = strchr(argv[5], '/'); /* remove subnet if found */
 	if (p)
 		*p = '\0';
-	_atoip(argv[5], PG_IPADDR_V4, &dst, sizeof(dst));
+	_atoip(argv[5], 0, &dst, sizeof(dst));
 	p = strchr(argv[6], '/');
 	if (!p) {
-		char buf[32];
-		cli_printf("src IP address should contain /NN subnet value, default /32\n");
-		snprintf(buf, sizeof(buf), "%s/32", argv[6]);
-		_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	} else
-		_atoip(argv[6], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+		cli_printf("src IP address should contain subnet value, default /32 for IPv4, /128 for IPv6\n");
+	}
+	_atoip(argv[6], PG_IPADDR_NETWORK, &src, sizeof(src));
 	portlist_parse(argv[2], &portlist);
 	pg_ether_aton(argv[3], &dmac);
 	pg_ether_aton(argv[4], &smac);
@@ -1179,15 +1178,12 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	p = strchr(argv[8], '/'); /* remove subnet if found */
 	if (p)
 		*p = '\0';
-	_atoip(argv[8], PG_IPADDR_V4, &dst, sizeof(dst));
+	_atoip(argv[8], 0, &dst, sizeof(dst));
 	p = strchr(argv[10], '/');
 	if (p == NULL) {
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%s/32", argv[10]);
-		cli_printf("src IP address should contain /NN subnet value, default /32");
-		_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
-	} else
-		_atoip(argv[10], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &src, sizeof(src));
+		cli_printf("src IP address should contain subnet value, default /32 for IPv4, /128 for IPv6\n");
+	}
+	_atoip(argv[10], PG_IPADDR_NETWORK, &src, sizeof(src));
 	portlist_parse(argv[2], &portlist);
 	pg_ether_aton(argv[4], &dmac);
 	pg_ether_aton(argv[6], &smac);

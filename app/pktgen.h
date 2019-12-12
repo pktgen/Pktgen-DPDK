@@ -143,6 +143,7 @@ extern "C" {
 		}							\
 	} while ((0))
 
+#if RTE_VERSION < RTE_VERSION_NUM(19, 11, 0, 0)
 /**
  * Free a list of packet mbufs back into its original mempool.
  *
@@ -164,6 +165,7 @@ rte_pktmbuf_free_bulk(struct rte_mbuf *m_list[], int16_t npkts)
 		m->next = 0;
 	}
 }
+#endif
 
 typedef enum { PACKET_CONSUMED = 0, UNKNOWN_PACKET = 0xEEEE,
 	       DROP_PACKET = 0xFFFE, FREE_PACKET = 0xFFFF } pktType_e;
@@ -232,8 +234,6 @@ enum {
 	PKT_OVERHEAD_SIZE	= (INTER_FRAME_GAP + START_FRAME_DELIMITER +
 				   PKT_PREAMBLE_SIZE + PG_ETHER_CRC_LEN),
 
-	MIN_PKT_SIZE            = (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN),
-	MAX_PKT_SIZE            = (PG_ETHER_MAX_LEN - PG_ETHER_CRC_LEN),
 	MIN_v6_PKT_SIZE         = (78 - PG_ETHER_CRC_LEN),
 
 	MAX_RX_QUEUES           = 16,	/**< RX Queues per port */
@@ -243,6 +243,9 @@ enum {
 
 	SOCKET0                 = 0	/**< Socket ID value for allocation */
 };
+
+#define MIN_PKT_SIZE		(pktgen.eth_min_pkt - PG_ETHER_CRC_LEN)
+#define MAX_PKT_SIZE        (pktgen.eth_max_pkt - PG_ETHER_CRC_LEN)
 
 typedef struct rte_mbuf rte_mbuf_t;
 
@@ -269,6 +272,13 @@ typedef struct pktgen_s {
 	uint8_t starting_port;		/**< Starting port to display */
 	uint8_t ending_port;		/**< Ending port to display */
 	uint8_t nb_ports_per_page;	/**< Number of ports to display per page */
+	uint8_t enable_jumbo;		/* >0 if jumbo is enabled */
+
+	uint16_t eth_min_pkt;	/* Minimum Ethernet packet size without CRC */
+	uint16_t eth_mtu;		/* MTU size, could be jumbo or not */
+	uint16_t eth_max_pkt;	/* Max packet size, could be jumbo or not */
+	uint16_t mbuf_dataroom;	/* Size of data room in mbuf */
+	uint16_t mbuf_buf_size;	/* MBUF default buf size */
 
 	uint16_t nb_rxd;	/**< Number of receive descriptors */
 	uint16_t nb_txd;	/**< Number of transmit descriptors */

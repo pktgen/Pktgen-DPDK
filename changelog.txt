@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 19.12.0 - Add per queue stats when the hardware does not support it. Use
+             the 'page stats' command to see data and use 'port X' to switch
+	     ports.
  - 19.10.0 - Fix up the save/load commands to get correct as in GRE key
              command
 	     Fix up the problem with pcap files not getting sent if the

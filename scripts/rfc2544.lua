@@ -12,8 +12,8 @@ local delayTime		= 30;		-- Time in seconds to wait for tx to stop
 local pauseTime		= 1;
 local sendport		= "0";
 local recvport		= "2";
-local dstip			= "10.10.0.100";
-local srcip			= "10.10.0.101";
+local dstip		= "10.10.0.100";
+local srcip		= "10.10.0.101";
 local netmask		= "/24";
 local pktCnt		= 4000000;
 local foundRate;

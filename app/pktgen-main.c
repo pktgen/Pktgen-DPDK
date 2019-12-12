@@ -92,6 +92,7 @@ pktgen_usage(const char *prgname)
 		"  -N           Enable NUMA support\n"
 		"  -T           Enable the color output\n"
 		"  -v           Verbose output\n"
+		"  -j           Enable jumbo frames of 9600 bytes\n"
 		"  --no-crc-strip  Do not strip CRC on all ports, (Default is to strip crc)\n"
 		"  -m <string>  matrix for mapping ports to logical cores\n"
 		"      BNF: (or kind of BNF)\n"
@@ -165,10 +166,27 @@ pktgen_parse_args(int argc, char **argv)
 
 	pktgen_set_hw_strip_crc(1);
 
+	pktgen.enable_jumbo = 0;
+	pktgen.eth_min_pkt = PG_ETHER_MIN_LEN;
+	pktgen.eth_mtu = PG_ETHER_MTU;
+	pktgen.eth_max_pkt = PG_ETHER_MAX_LEN;
+	pktgen.mbuf_dataroom = RTE_MBUF_DEFAULT_DATAROOM;
+	pktgen.mbuf_buf_size = RTE_MBUF_DEFAULT_BUF_SIZE;
+
 	pktgen.verbose = 0;
-	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTv",
+	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTvj",
 				  lgopts, &option_index)) != EOF)
 		switch (opt) {
+		case 'j':
+			pktgen.enable_jumbo = 1;
+			pktgen.eth_mtu = PG_JUMBO_ETHER_MTU;
+			pktgen.eth_max_pkt = PG_ETHER_MAX_JUMBO_FRAME_LEN;
+			pktgen.mbuf_dataroom = PG_ETHER_MAX_JUMBO_FRAME_LEN;
+			pktgen.mbuf_buf_size = pktgen.mbuf_dataroom + RTE_PKTMBUF_HEADROOM;
+			
+			pktgen_log_info("**** Jumbo Frames of %d enabled.", pktgen.eth_max_pkt);
+			break;
+
 		case 'p':
 			/* Port mask not used anymore */
 			break;

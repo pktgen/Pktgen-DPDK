@@ -34,7 +34,6 @@ headers = files(
 	'cli_search.h')
 deps += ['common', 'utils']
 
-libs = ['timer']
-foreach lib:libs
+foreach lib:['timer']
 	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
 endforeach

@@ -420,11 +420,13 @@ def main():
 
 	sdk = os.getenv('RTE_SDK')
 	if sdk == None:
-		err_exit("Set RTE_SDK environment variable or use 'sudo -E ...'")
+		print("Set RTE_SDK environment variable or use 'sudo -E ...'")
+                sdk = "."
 
 	target = os.getenv('RTE_TARGET')
 	if target == None:
-		err_exit("Set the RTE_TARET environment variable or use 'sudo -E ...'")
+		print("Set the RTE_TARET environment variable or use 'sudo -E ...'")
+                target = "x86_64-native-linux-gcc"
 
 	print(">>> sdk '%s', target '%s'" % (sdk, target))
 

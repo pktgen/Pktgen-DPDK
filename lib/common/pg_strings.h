@@ -256,8 +256,8 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 
         inet_ntop(AF_INET, &ip_addr, buff, len);
         if (mask != 0xFFFFFFFF) {
-                snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, mask_size(mask));
-                rte_strlcpy(buff, lbuf, len);
+                snprintf(lbuf, sizeof(lbuf), "/%d", mask_size(mask));
+                rte_strlcat(buff, lbuf, len);
         }
         return buff;
 }

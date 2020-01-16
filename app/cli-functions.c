@@ -1305,7 +1305,7 @@ seq_cmd(int argc, char **argv)
 
 	m = cli_mapping(seq_map, argc, argv);
 	if (!m)
-		return cli_cmd_error("Sequence invalid command", "Seq", argc, argv);
+		return cli_cmd_error("Sequence invalid command", "Sequence", argc, argv);
 
 	switch(m->index) {
 		case 10:
@@ -1316,7 +1316,7 @@ seq_cmd(int argc, char **argv)
 		case 16:
 		case 17: seq_4_set_cmd(argc, argv); break;
 		default:
-			return cli_cmd_error("Sequence invalid command", "Seq", argc, argv);
+			return cli_cmd_error("Sequence invalid command", "Sequence", argc, argv);
 	}
 	return 0;
 }

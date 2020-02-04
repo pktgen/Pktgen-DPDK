@@ -122,7 +122,7 @@ Get the DPDK and pktgen source code from github.com or dpdk.org repo via:
 
     # cd <InstallDir>
     # git clone git://dpdk.org/dpdk.git
-    # git clone git://dpdk.org/pktgen-dpdk.git
+    # git clone http://dpdk.org/git/apps/pktgen-dpdk
 
 **NOTE:** While on the dpdk site you must also pull down the dpdk SDK itself. git://dpdk.org/dpdk
 

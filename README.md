@@ -51,7 +51,7 @@ Note: In DPDK 19.08-rc0 a large number of defines and function names were
 
 ## Pktgen command line directory format ***
 
-    -- Pktgen Ver: 3.7.0 (DPDK 19.08.0-rc0)  Powered by DPDK ---------------
+    -- Pktgen Ver: 20.02.0 (DPDK 20.02.0)  Powered by DPDK ---------------
 
 
 

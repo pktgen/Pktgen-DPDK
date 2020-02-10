@@ -31,7 +31,7 @@ CFLAGS += -D_GNU_SOURCE $(WERROR_FLAGS) -I$(RTE_SRCDIR) -fno-stack-protector
 CFLAGS += -I$(SRCDIR)/../common/$(RTE_TARGET)/include
 
 LDLIBS += -lrte_eal -lrte_mempool -lrte_ethdev -lrte_mbuf -lrte_timer
-LDLIBS += -L/work/projects/intel/pktgen/lib/utils/$(RTE_TARGET)/lib -lutils
+LDLIBS += -L../utils/$(RTE_TARGET)/lib -lutils
 
 ifeq ($(CONFIG_RTE_LIBRTE_VEC),y)
 else

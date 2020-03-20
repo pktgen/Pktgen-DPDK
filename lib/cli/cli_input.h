@@ -264,13 +264,13 @@ cli_display_line(void)
 	if (cli_tst_flag(DELETE_CHAR)) {
 		cli_clr_flag(DELETE_CHAR);
 		cli_write(" \b", 2);
-		cli_set_flag(DISPLAY_LINE | CLEAR_TO_EOL);
+		cli_set_flag(CLEAR_TO_EOL);
 	}
 	if (cli_tst_flag(CLEAR_LINE)) {
 		cli_clr_flag(CLEAR_LINE);
 		scrn_bol();
 		cli_clear_to_eol();
-		cli_set_flag(DISPLAY_LINE | DISPLAY_PROMPT);
+		cli_set_flag(DISPLAY_PROMPT);
 	}
 	if (cli_tst_flag(CLEAR_TO_EOL)) {
 		cli_clr_flag(CLEAR_TO_EOL);

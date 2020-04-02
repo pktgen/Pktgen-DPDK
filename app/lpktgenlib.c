@@ -6,6 +6,7 @@
 
 /* Created 2011 by Keith Wiles @ intel.com */
 
+#ifdef LUA_ENABLED
 #define lpktgenlib_c
 #define LUA_LIB
 #define lua_c
@@ -3839,3 +3840,4 @@ pktgen_lua_openlib(lua_State *L)
 
 	lua_gc(L, LUA_GCRESTART, 0);
 }
+#endif

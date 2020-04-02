@@ -31,7 +31,7 @@ headers = files(
 	'utils.h'
 )
 
-libs = ['eal', 'kvargs', 'cmdline', 'process_info']
+libs = ['eal', 'kvargs', 'cmdline', 'telemetry']
 foreach lib:libs
 	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
 endforeach

@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.04.0 - Disable Lua by default in meson_options.tst file for meson/ninja builds.
+             Lua support is disabled by default now as we move to meson/ninja builds only.
+             When building with meson/ninja DPDK needs to be built meson/ninja and installed.
  - 20.03.0 - Fix a typo in run.py and add af_xdp config file.
  - 20.02.0 - Fix link variable to be lk to not conflect with global link struct.
              fix generating sequences with vlan header

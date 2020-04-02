@@ -333,10 +333,8 @@ def setup_cfg(cfg_file):
 					 'echo %s > %s' % (nb_hugepages, fn)])
 
 	# locate the binding tool
-	if os.path.exists("%s/usertools/dpdk-devbind.py" % sdk):
-		script = "%s/usertools/dpdk-devbind.py" % sdk
-	elif os.path.exists("%s/tools/dpdk_nic_bind.py" % sdk):
-		script = "%s/tools/dpdk_nic_bind.py" % sdk
+	if os.path.exists("%s/bin/dpdk-devbind.py" % sdk):
+		script = "%s/bin/dpdk-devbind.py" % sdk
 	else:
 		err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")
 
@@ -418,15 +416,9 @@ def main():
 
 	global sdk, target
 
-	sdk = os.getenv('RTE_SDK')
-	if sdk == None:
-		print("Set RTE_SDK environment variable or use 'sudo -E ...'")
-                sdk = "."
+	sdk = '/usr/local'
 
-	target = os.getenv('RTE_TARGET')
-	if target == None:
-		print("Set the RTE_TARGET environment variable or use 'sudo -E ...'")
-                target = "x86_64-native-linux-gcc"
+	target = 'x86_64-linux-gnu'
 
 	print(">>> sdk '%s', target '%s'" % (sdk, target))
 

@@ -47,9 +47,9 @@ handle_input_display(char c)
 		/* Add the character to the buffer */
 		gb_insert(this_cli->gb, c);
 		if (!gb_point_at_end(this_cli->gb))
-			cli_set_flag(DISPLAY_LINE);
+			cli_set_flag(0);
 		else if (!gb_point_at_start(this_cli->gb))
-			cli_set_flag(DISPLAY_LINE);
+			cli_set_flag(0);
 	}
 	cli_display_line();
 }

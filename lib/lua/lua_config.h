@@ -7,6 +7,7 @@
 #ifndef _LUA_CONFIG_H_
 #define _LUA_CONFIG_H_
 
+#ifdef LUA_ENABLED
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -26,11 +27,13 @@
 #define LUA_COMPAT_APIINTCASTS
 #include <lauxlib.h>
 #include <lualib.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifdef LUA_ENABLED
 #if !defined(LUA_PROGNAME)
 #define LUA_PROGNAME		"lua-shell"
 #endif
@@ -94,6 +97,9 @@ void lua_set_progname(const char *name);
 
 void lua_destroy_instance(luaData_t *ld);
 luaData_t *lua_find_luaData(lua_State *L);
+#else
+void lua_execute_close(void *ld);
+#endif
 
 #ifdef __cplusplus
 }

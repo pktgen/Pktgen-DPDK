@@ -4,6 +4,7 @@
 
 /* Create from lua.c 2018 by Keith Wiles @ intel.com */
 
+#ifdef LUA_ENABLED
 #include <sys/queue.h>
 #include <netinet/in.h>
 #include <net/if.h>
@@ -378,3 +379,10 @@ lua_execute_close(luaData_t *ld)
 	if ( ld->L )
 		lua_close(ld->L);
 }
+#else
+void
+lua_execute_close(void *ld)
+{
+	(void)ld;
+}
+#endif

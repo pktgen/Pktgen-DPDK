@@ -865,15 +865,17 @@ cli_execute_cmdfile(const char *filename)
 			cli_printf(">>> Lua is not enabled in configuration!\n");
 	} else {
 		FILE    *fd;
-		char buff[256];
+		char buff[1024];
 
 		fd = fopen(filename, "r");
 		if (fd == NULL)
 			return -1;
 
 		/* Read and feed the lines to the cmdline parser. */
-		while (fgets(buff, sizeof(buff), fd))
-			cli_input(buff, strlen(buff));
+    while (fgets(buff, sizeof(buff), fd)) {
+        cli_input(buff, strlen(buff));
+        memset(buff, 0, sizeof(buff));
+    }
 
 		fclose(fd);
 	}

@@ -17,7 +17,7 @@ key_up_arr(void)
 	if (line) {
 		gb_reset_buf(gb);
 		gb_set_point(gb, gb_str_insert(gb, line, 0));
-		cli_set_flag(DISPLAY_LINE | CLEAR_LINE);
+		cli_set_flag(CLEAR_LINE);
 	}
 }
 
@@ -31,7 +31,7 @@ key_down_arr(void)
 	if (line) {
 		gb_reset_buf(gb);
 		gb_set_point(gb, gb_str_insert(gb, line, 0));
-		cli_set_flag(DISPLAY_LINE | CLEAR_LINE);
+		cli_set_flag(CLEAR_LINE);
 	}
 }
 

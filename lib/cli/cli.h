@@ -156,12 +156,11 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define this_cli RTE_PER_LCORE(cli)
 
 /* cli.flags */
-#define DISPLAY_LINE		(1 << 0)
-#define CLEAR_TO_EOL		(1 << 1)
-#define DISPLAY_PROMPT		(1 << 2)
-#define PROMPT_CONTINUE		(1 << 3)
-#define DELETE_CHAR		(1 << 4)
-#define CLEAR_LINE		(1 << 5)
+#define CLEAR_TO_EOL		(1 << 0)
+#define DISPLAY_PROMPT		(1 << 1)
+#define PROMPT_CONTINUE		(1 << 2)
+#define DELETE_CHAR			(1 << 3)
+#define CLEAR_LINE			(1 << 4)
 
 #define CLI_USE_TIMERS 		(1 << 8)	/**< call rte_timer_manage() on input */
 #define CLI_NODES_UNLIMITED	(1 << 9)	/**< Allocate nodes with no limit */

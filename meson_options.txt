@@ -1,11 +1,2 @@
-option('lib_dir', type: 'string', value: 'x86_64-linux-gnu',
-	description: 'Set the directory where the libs are located in x86_64-native-linux-gcc')
-option('include_subdir_arch', type: 'string', value: '',
-        description: 'subdirectory where to install arch-dependent headers')
-
-option('link_dfs', type: 'boolean', value: true,
-        description: 'Link to the dfs library')
-option('dfs_incdir', type: 'string', value: '',
-        description: 'DFS include path, used if PME_SDK is not set')
-option('dfs_libdir', type: 'string', value: '',
-        description: 'DFS library path, used if PME_SDK is not set')
+option('is_lua_enabled', type: 'boolean', value: false,
+        description: 'Enable Lua support')

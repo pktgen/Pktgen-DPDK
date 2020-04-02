@@ -19,6 +19,9 @@ cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	cflags += '-Wno-format-truncation'
 endif
+if get_option('is_lua_enabled')
+    cflags += '-DLUA_ENABLED'
+endif
 
 # set the major version, which might be used by drivers and libraries
 # depending on the configuration options
@@ -40,12 +43,13 @@ endif
 
 deps = []
 
-flib = ['ethdev', 'net', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci', 'pmd_i40e', 'pmd_ixgbe', 'pmd_ice']
+flib = ['ethdev', 'mbuf', 'net', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci', 'pmd_i40e', 'pmd_ixgbe', 'pmd_ice']
 foreach lib:flib
 	deps += [cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])]
 endforeach
 
 deps += [get_variable('static_pktgen_common')]
+
 deps += [get_variable('static_pktgen_lua')]
 deps += [get_variable('static_pktgen_plugin')]
 deps += [get_variable('static_pktgen_utils')]
@@ -53,18 +57,20 @@ deps += [get_variable('static_pktgen_vec')]
 deps += [get_variable('static_pktgen_cli')]
 
 deps += [dependency('threads')]
-deps += [cc.find_library('lua', required: true)]
+if get_option('is_lua_enabled')
+	deps += [cc.find_library('lua', required: true)]
+endif
 deps += [cc.find_library('numa', required: true)]
 deps += [cc.find_library('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]
 deps += [cc.find_library('m', required: false)]
 
-pmd_subdir_opt = get_option('drivers_install_subdir')
-driver_install_path = join_paths(get_option('libdir'), pmd_subdir_opt)
+#pmd_subdir_opt = get_option('drivers_install_subdir')
+#driver_install_path = join_paths(get_option('libdir'), pmd_subdir_opt)
 
 pktgen = executable('dpdk-pktgen',
 		sources,
 		c_args: [cflags, '-pthread'],
-		install_rpath: join_paths(get_option('prefix'), driver_install_path),
+#		install_rpath: join_paths(get_option('prefix'), driver_install_path),
 		install: true,
 		dependencies: deps)

@@ -7,6 +7,9 @@ default_cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	default_cflags += '-Wno-format-truncation'
 endif
+if get_option('is_lua_enabled')
+    default_cflags += '-DLUA_ENABLED'
+endif
 
 # Set default cflags
 default_cflags += '-D_GNU_SOURCE'
@@ -35,6 +38,7 @@ foreach l:libraries
 
 	if build
 		enabled_libs += name
+		message('    Install Headers')
 		install_headers(headers)
 
 		libname = name

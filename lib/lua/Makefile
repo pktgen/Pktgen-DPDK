@@ -38,6 +38,7 @@ else
 	CFLAGS += -I$(SRCDIR)/../vec/$(RTE_TARGET)/include
 endif
 
+CFLAGS += -DLUA_ENABLED
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
 else
 PKG := $(shell which pkg-config)

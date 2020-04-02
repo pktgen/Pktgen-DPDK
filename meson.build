@@ -7,22 +7,30 @@ project('pktgen', 'C',
 
 pktgen_conf = configuration_data()
 
+rte_sdk = ''
 cmd = run_command('sh', '-c', 'echo $RTE_SDK')
 if cmd.returncode() == 0
 	rte_sdk = cmd.stdout().strip()
-	message('RTE_SDK=' + rte_sdk)
+endif
+if rte_sdk == ''
+	# not found, do fallback
+	message('default rte_sdk to /usr/local')
+	rte_sdk='/usr/local'
 else
-  # not found, do fallback
-  error('Please set RTE_SDK env')
+	message('RTE_SDK=' + rte_sdk)
 endif
 
+rte_target = ''
 cmd = run_command('sh', '-c', 'echo $RTE_TARGET')
 if cmd.returncode() == 0
 	rte_target = cmd.stdout().strip()
-	message('RTE_TARGET=' + rte_target)
+endif
+if rte_target == ''
+	# not found, do fallback
+	message('default rte_target to x86_64-linux-gnu')
+	rte_target='x86_64-linux-gnu'
 else
-  # not found, do fallback
-  error('Please set RTE_TARGET')
+	message('RTE_TARGET=' + rte_target)
 endif
 
 # set up some global vars for compiler, platform, configuration, etc.
@@ -45,13 +53,13 @@ add_project_arguments('-include', 'rte_config.h', language: 'c')
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')
 add_project_arguments('-D_GNU_SOURCE', '-O3', '-g', language: 'c')
 
-dpdk_incs = include_directories(rte_sdk + '/' + rte_target + '/include')
-dpdk_libdir = rte_sdk + '/' + rte_target + '/lib'
-if get_option('lib_dir') != ''
-	if run_command('[', '-d', dpdk_libdir + '/' + get_option('lib_dir'), ']').returncode() == 0
-		dpdk_libdir = dpdk_libdir + '/' + get_option('lib_dir')
-	endif
-endif
+dpdk_incs = include_directories(rte_sdk + '/include')
+dpdk_libdir = rte_sdk + '/lib/' + rte_target
+#if get_option('lib_dir') != ''
+#	if run_command('[', '-d', dpdk_libdir + '/' + get_option('lib_dir'), ']').returncode() == 0
+#		dpdk_libdir = dpdk_libdir + '/' + get_option('lib_dir')
+#	endif
+#endif
 
 message('Using dpdk_libdir = ' + dpdk_libdir)
 
@@ -70,7 +78,7 @@ pkg.generate(name: meson.project_name(),
         description: '''The Data Plane Development Kit (DPDK).
 Note that CFLAGS might contain an -march flag higher than typical baseline.
 This is required for a number of static inline functions in the public headers.''',
-        subdirs: [get_option('include_subdir_arch'), '.'],
+        subdirs: '.',
         extra_cflags: ['-include', 'rte_config.h'] + machine_args
 )
 

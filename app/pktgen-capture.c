@@ -12,7 +12,9 @@
 #include <rte_memzone.h>
 #include <rte_string_fns.h>
 
+#ifdef LUA_ENABLED
 #include <lua_config.h>
+#endif
 
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"

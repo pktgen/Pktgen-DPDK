@@ -258,8 +258,10 @@ typedef union {
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
 	struct cmdline *cl;	/**< Command Line information pointer */
+#ifdef LUA_ENABLED
 	luaData_t *ld;		/**< General Lua Data pointer */
 	luaData_t *ld_sock;	/**< Info for Lua Socket */
+#endif
 	char *hostname;		/**< GUI hostname */
 	int verbose;		/**< Verbose flag */
 

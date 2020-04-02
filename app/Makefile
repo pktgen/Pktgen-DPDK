@@ -84,6 +84,7 @@ __LIB_DEPS += $(PLUGIN_LIBDIR)/libplugin.a
 __LIB_DEPS += $(CLI_LIBDIR)/libcli.a
 
 ifeq ($(CONFIG_RTE_LIBRTE_LUA),y)
+	__CFLAGS += -DLUA_ENABLED
 else
 PKG := $(shell which pkg-config)
 ifeq (x$(PKG),x)

@@ -7,7 +7,7 @@
 # Created 2010-2018 by Keith Wiles @ intel.com
 
 ifeq ($(RTE_SDK),)
-$(error "Please define RTE_SDK environment variable")
+export RTE_SDK=/usr/local/include
 endif
 
 # Default target, can be overriden by command line or environment

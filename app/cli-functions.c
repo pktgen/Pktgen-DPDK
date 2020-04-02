@@ -1321,6 +1321,7 @@ seq_cmd(int argc, char **argv)
 	return 0;
 }
 
+#ifdef LUA_ENABLED
 /**************************************************************************//**
  *
  * script_cmd - Command to execute a script.
@@ -1400,14 +1401,18 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 		pktgen_log_error("%s", lua_tostring(L, -1));
 	return 0;
 }
+#endif
 
 static struct cli_map misc_map[] = {
 	{ 10, "clear %P stats" },
 	{ 20, "geometry %s" },
 	{ 21, "geometry" },
 	{ 30, "load %s" },
+
+#ifdef LUA_ENABLED
 	{ 40, "script %l" },
 	{ 50, "lua %l" },
+#endif
 	{ 60, "save %s" },
 	{ 70, "redisplay" },
 	{ 100, "reset %P" },
@@ -1425,8 +1430,11 @@ static const char *misc_help[] = {
 	"",
 	"save <path-to-file>                - Save a configuration file using the filename",
 	"load <path-to-file>                - Load a command/script file from the given path",
+
+#ifdef LUA_ENABLED
 	"script <filename>                  - Execute the Lua script code in file (www.lua.org).",
 	"lua 'lua string'                   - Execute the Lua code in the string needs quotes",
+#endif
 	"geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
 	"clear <portlist> stats             - Clear the statistics",
 	"clr                                - Clear all Statistices",
@@ -1487,8 +1495,10 @@ misc_cmd(int argc, char **argv)
 			else
 				scrn_resume();
 			break;
+#ifdef LUA_ENABLED
 		case 40: script_cmd(argc, argv); break;
 		case 50: exec_lua_cmd(argc, argv); break;
+#endif
 		case 60: pktgen_save(argv[1]); break;
 		case 70: pktgen_clear_display(); break;
 		case 100:
@@ -1855,8 +1865,10 @@ static struct cli_tree default_tree[] = {
 	c_cmd("geometry",	misc_cmd, 	"set the screen geometry"),
 	c_alias("geom",		"geometry",	"set or show screen geometry"),
 	c_cmd("load",		misc_cmd, 	"load command file"),
+#ifdef LUA_ENABLED
 	c_cmd("script", 	misc_cmd,	"run a Lua script"),
 	c_cmd("lua", 		misc_cmd,	"execute a Lua string"),
+#endif
 	c_cmd("save", 		misc_cmd,	"save the current state"),
 	c_cmd("redisplay",	misc_cmd,	"redisplay the screen"),
 	c_alias("cls",		"redisplay",	"redraw screen"),

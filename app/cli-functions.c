@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2019>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2020>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -949,7 +949,7 @@ static const char *dbg_help[] = {
 	"dbg tx_dbg                       - Enable tx debug output",
 	"dbg tx_rate <portlist>           - Show packet rate for all ports",
 	"dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type",
-	"                                   types - rx|tx|range|seq|rate|arp|pcap"
+	"                                   types - rx|tx|range|seq|rate|arp|pcap",
 	"dbg pdump <portlist>             - Hex dump the first packet to be sent, single packet mode only",
 	"dbg memzone                      - List all of the current memzones",
 	"dbg memseg                       - List all of the current memsegs",

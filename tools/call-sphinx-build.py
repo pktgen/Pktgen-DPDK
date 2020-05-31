@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) 2019 Intel Corporation
+# Copyright(c) 2020 Intel Corporation
 #
 
 import sys

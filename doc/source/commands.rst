@@ -1,12 +1,12 @@
 .. _commands:
 
 ``*** Pktgen ***``
-Copyright &copy \<2015-2019\>, Intel Corporation.
+Copyright &copy \<2015-2020\>, Intel Corporation.
 
-README for setting up Pktgen with DPDK on Ubuntu 10.04 to 16.10 desktop, it
+README for setting up Pktgen with DPDK on Ubuntu 10.04 to 20.04 desktop, it
 should work on most Linux systems as long as the kernel has hugeTLB page support.
 
-Note: Tested with Ubuntu 13.10 and up to 16.10 kernel versions
+Note: Tested with Ubuntu 18.04 and up to 20.04 versions
 Linux 3.5.0-25-generic #39-Ubuntu SMP Mon Feb 25 18:26:58 UTC 2013 x86_64
 
 I am using Ubuntu 16.10 x86_64 (64 bit support) for running Pktgen-DPDK on a
@@ -14,7 +14,7 @@ Crownpass Dual socket board running at 2.4GHz with 32GB of ram 16GB per socket.
 The current kernel version is 4.4.0-66-generic (as of 2018-04-01) support, but should
 work on just about any new Linux kernel version.
 
-Currently using as of 2018-04-01 Ubuntu 16.10 Kernel 4.4.0-66-generic system.
+Currently using as of 2020-05 Ubuntu 20.04 Kernel 5.6.0+ system.
 
 To get hugeTLB page support your Linux kernel must be at least 2.6.33 and in the
 DPDK documents it talks about how you can upgrade your Linux kernel.
@@ -24,7 +24,7 @@ Ubuntu 10.04 is 2.6.32 by default so upgraded to kernel 2.6.34 using this HOWTO:
 http://usablesoftware.wordpress.com/2010/05/26/switch-to-a-newer-kernel-in-ubuntu-10-04/
 
 The pktgen output display needs 132 columns and about 42 lines to display
-currentlyt. I am using an xterm of 132x42, but you can have a larger display
+currently. I am using an xterm of 132x42, but you can have a larger display
 and maybe a bit smaller. If you are displaying more then 4-6 ports then you
 will need a wider display. Pktgen allows you to view a set of ports if they
 do not all fit on the screen at one time via the 'page' command.
@@ -61,95 +61,88 @@ Pktgen command line directory format
 Show the commands inside the ``pktgen/bin`` directory::
 
 	Pktgen:/> ls
-	[pktgen]        [sbin]          copyright
-	Pktgen:/> ls pktgen/bin
-	off             on              debug           set             pcap
-	stp             str             stop            start           disable
-	enable          range           theme           page            seq
-	sequence        ping4           port            restart         rst
-	reset           cls             redisplay       save            lua
-	script          load            geom            geometry        clr
-	clear.stats     help
-	Pktgen:/>
+	[pktgen]        [sbin]          dpdk-version    copyright
+    Pktgen:/> ls pktgen/bin
+    off             on              rate            plugin          dbg
+    set             pcap            stp             str             stop
+    start           disable         enable          range           theme
+    page            seq             sequence        ping4           port
+    restart         rst             reset           cls             redisplay
+    save            load            geom            geometry        clr
+    clear           help
 
 Showin the ``1s`` command at root::
 
 	Pktgen:/> ls
 	[pktgen]        [sbin]          copyright
-	Pktgen:/> ls sbin
-	env             dbg             path            hugepages       cmap
-	sizes           more            history         quit            clear
-	pwd             cd              ls              rm              mkdir
-	chelp           sleep           delay
-	Pktgen:/>
+    Pktgen:/> ls sbin
+    version         echo            script          env             path
+    hugepages       cmap            more            history         quit
+    screen.clear    pwd             cd              ls              rm
+    mkdir           chelp           sleep           delay
 
 The case of using ``ls -l`` in a subdirectory::
 
-	Pktgen:/> cd sbin
-	Pktgen:/sbin/>
-	Pktgen:/sbin/> ls -l
-	  env              Command : Set up environment variables
-	  dbg              Command : debug commands
-	  path             Command : display the command path list
-	  hugepages        Command : hugepages # display hugepage info
-	  cmap             Command : cmap # display the core mapping
-	  sizes            Command : sizes # display some internal sizes
-	  more             Command : more <file> # display a file content
-	  history          Command : history # display the current history
-	  quit             Command : quit # quit the application
-	  clear            Command : clear # clear the screen
-	  pwd              Command : pwd # display current working directory
-	  cd               Command : cd <dir> # change working directory
-	  ls               Command : ls [-lr] <dir> # list current directory
-	  rm               Command : remove a file or directory
-	  mkdir            Command : create a directory
-	  chelp            Command : CLI help - display information for DPDK
-	  sleep            Command : delay a number of seconds
-	  delay            Command : delay a number of milliseconds
-
-	Pktgen:/sbin/>
-	Pktgen:/sbin/> cd ..
-	Pktgen:/>
+    Pktgen:/> cd sbin
+    Pktgen:/sbin/> ls -l
+    version          Command : Display version information
+    echo             Command : simple echo a string to the screen
+    script           Command : load and process cli command files
+    env              Command : Show/del/get/set environment variables
+    path             Command : display the execution path for commands
+    hugepages        Command : hugepages # display hugepage info
+    cmap             Command : cmap # display the core mapping
+    more             Command : more <file> # display a file content
+    history          Command : history # display the current history
+    quit             Command : quit # quit the application
+    screen.clear     Command : screen.clear # clear the screen
+    pwd              Command : pwd # display current working directory
+    cd               Command : cd <dir> # change working directory
+    ls               Command : ls [-lr] <dir> # list current directory
+    rm               Command : remove a file or directory
+    mkdir            Command : create a directory
+    chelp            Command : CLI help - display information for DPDK
+    sleep            Command : delay a number of seconds
+    delay            Command : delay a number of milliseconds
 
 Show help using ``ls -l`` command in pktgen directory::
 
-	Pktgen:/pktgen/> cd bin
-	Pktgen:/pktgen/bin/> ls -l
-	  off              Alias : disable screen
-	  on               Alias : enable screen
-	  debug            Command : debug commands
-	  set              Command : set a number of options
-	  pcap             Command : pcap commands
-	  stp              Alias : stop all
-	  str              Alias : start all
-	  stop             Command : stop features
-	  start            Command : start features
-	  disable          Command : disable features
-	  enable           Command : enable features
-	  range            Command : Range commands
-	  theme            Command : Set, save, show the theme
-	  page             Command : change page displays
-	  seq              Alias : sequence
-	  sequence         Command : sequence command
-	  ping4            Command : Send a ping packet for IPv4
-	  port             Command : Switch between ports
-	  restart          Command : restart port
-	  rst              Alias : reset all
-	  reset            Command : reset pktgen configuration
-	  cls              Alias : redisplay
-	  redisplay        Command : redisplay the screen
-	  save             Command : save the current state
-	  lua              Command : execute a Lua string
-	  script           Command : run a Lua script
-	  load             Command : load command file
-	  geom             Alias : geometry
-	  geometry         Command : set the screen geometry
-	  clr              Alias : clear.stats all
-	  clear.stats      Command : clear stats
-	  help             Command : help command
+    Pktgen:/sbin/> cd ../pktgen/bin
+    Pktgen:/pktgen/bin/> ls -l
+    off              Alias : disable screen
+    on               Alias : enable screen
+    rate             Command : Rate setup commands
+    plugin           Command : Plugin a shared object file
+    dbg              Command : debug commands
+    set              Command : set a number of options
+    pcap             Command : pcap commands
+    stp              Alias : stop all
+    str              Alias : start all
+    stop             Command : stop features
+    start            Command : start features
+    disable          Command : disable features
+    enable           Command : enable features
+    range            Command : Range commands
+    theme            Command : Set, save, show the theme
+    page             Command : change page displays
+    seq              Alias : sequence
+    sequence         Command : sequence command
+    ping4            Command : Send a ping packet for IPv4
+    port             Command : Switch between ports
+    restart          Command : restart port
+    rst              Alias : reset all
+    reset            Command : reset pktgen configuration
+    cls              Alias : redisplay
+    redisplay        Command : redisplay the screen
+    save             Command : save the current state
+    load             Command : load command file
+    geom             Alias : geometry
+    geometry         Command : set the screen geometry
+    clr              Alias : clear all stats
+    clear            Command : clear stats, ...
+    help             Command : help command
 
-	Pktgen:/pktgen/bin/>
-
+    Pktgen:/pktgen/bin/>
 
 Runtime Options and Commands
 ============================
@@ -173,129 +166,132 @@ From this you can get help or issue runtime commands::
 
 The ``page`` commands to show different screens::
 
-   page <pages>                      - Show the port pages or configuration or sequence page
-       [0-7]                         - Page of different ports
-       main                          - Display page zero
-       range                         - Display the range packet page
-       config | cfg                  - Display the configuration page
-       pcap                          - Display the pcap page
-       cpu                           - Display some information about the CPU system
-       next                          - Display next page of PCAP packets.
-       sequence | seq                - sequence will display a set of packets for a given port
-                                       Note: use the 'port <number>' to display a new port sequence
-       rnd                           - Display the random bitfields to packets for a given port
-                                       Note: use the 'port <number>' to display a new port sequence
-       log                           - Display the log messages page
-       latency                       - Display the latency page
-       stats                         - Display physical ports stats for all ports
-       xstats                        - Display the extended stats per port
+        ** Pktgen Help Information **
+
+    page [0-7]                         - Show the port pages or configuration or sequence page
+    page main                          - Display page zero
+    page range                         - Display the range packet page
+    page config | cfg                  - Display the configuration page
+    page pcap                          - Display the pcap page
+    page cpu                           - Display some information about the CPU system
+    page next                          - Display next page of PCAP packets.
+    page sequence | seq                - sequence will display a set of packets for a given port
+                                        Note: use the 'port <number>' to display a new port sequence
+    page rnd                           - Display the random bitfields to packets for a given port
+                                        Note: use the 'port <number>' to display a new port sequence
+    page log                           - Display the log messages page
+    page latency                       - Display the latency page
+    page stats                         - Display physical ports stats for all ports
+    page xstats                        - Display port XSTATS values
+    page rate                          - Display Rate Pacing values
 
 List of the ``enable/disable`` commands::
 
-    enable|disable <portlist> <features>
-        Feature - process              - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
-                  mpls                 - Enable/disable sending MPLS entry in packets
-                  qinq                 - Enable/disable sending Q-in-Q header in packets
-                  gre                  - Enable/disable GRE support
-                  gre_eth              - Enable/disable GRE with Ethernet frame payload
-                  vlan                 - Enable/disable VLAN tagging
-                  garp                 - Enable or Disable Gratuitous ARP packet processing
-                  random               - Enable/disable Random packet support
-                  latency              - Enable/disable latency testing
-                  pcap                 - Enable or Disable sending pcap packets on a portlist
-                  blink                - Blink LED on port(s)
-                  rx_tap               - Enable/Disable RX Tap support
-                  tx_tap               - Enable/Disable TX Tap support
-                  icmp                 - Enable/Disable sending ICMP packets
-                  range                - Enable or Disable the given portlist for sending a range of packets
-                  capture              - Enable/disable packet capturing on a portlist
-                  bonding              - Enable call TX with zero packets for bonding driver
-                  short                - Allow shorter then 64 byte frames to be sent
-                  vxlan                - Send VxLAN packets
-
+    enable|disable <portlist> process  - Enable or Disable processing of ARP/ICMP/IPv4/IPv6 packets
+    enable|disable <portlist> mpls     - Enable/disable sending MPLS entry in packets
+    enable|disable <portlist> qinq     - Enable/disable sending Q-in-Q header in packets
+    enable|disable <portlist> gre      - Enable/disable GRE support
+    enable|disable <portlist> gre_eth  - Enable/disable GRE with Ethernet frame payload
+    enable|disable <portlist> vlan     - Enable/disable VLAN tagging
+    enable|disable <portlist> garp     - Enable or Disable Gratuitous ARP packet processing
+    enable|disable <portlist> random   - Enable/disable Random packet support
+    enable|disable <portlist> latency  - Enable/disable latency testing
+    enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist
+    enable|disable <portlist> blink    - Blink LED on port(s)
+    enable|disable <portlist> rx_tap   - Enable/Disable RX Tap support
+    enable|disable <portlist> tx_tap   - Enable/Disable TX Tap support
+    enable|disable <portlist> icmp     - Enable/Disable sending ICMP packets
+    enable|disable <portlist> range    - Enable or Disable the given portlist for sending a range of packets
+    enable|disable <portlist> capture  - Enable/disable packet capturing on a portlist, disable to save capture
+                                        Disable capture on a port to save the data into the currect working directory.
+    enable|disable <portlist> bonding  - Enable call TX with zero packets for bonding driver
+    enable|disable <portlist> vxlan    - Send VxLAN packets
+    enable|disable <portlist> rate     - Enable/Disable Rate Packing on given ports
+    enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet
     enable|disable screen              - Enable/disable updating the screen and unlock/lock window
-                   mac_from_arp        - Enable/disable MAC address from ARP packet
-    off                                - screen off shortcut
-    on                                 - screen on shortcut
+        off                            - screen off shortcut
+        on                             - screen on shortcut
 
 List of the ``set`` commands::
 
-   note: <portlist> - a list of ports (no spaces) e.g. 2,4,6-9,12 or the word 'all'
-   set <portlist> count <value>       - number of packets to transmit
-   set <portlist> size <value>        - size of the packet to transmit
-   set <portlist> rate <percent>      - Packet rate in percentage
-   set <portlist> burst <value>       - number of packets in a burst
-   set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
-   set <portlist> sport <value>       - Source port number for TCP
-   set <portlist> dport <value>       - Destination port number for TCP
-   set <portlist> seq_cnt|seqcnt|seqCnt <value>
-                                      - Set the number of packet in the sequence to send [0-16]
-   set <portlist> prime <value>       - Set the number of packets to send on prime command
-   set <portlist> dump <value>        - Dump the next N received packets to the screen
-   set <portlist> vlan <value>        - Set the VLAN ID value for the portlist
-   set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds
-   set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format
-   set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
-   set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port
-   set <portlist> pattern <type>      - Set the fill pattern type
+        note: <portlist>               - a list of ports (no spaces) e.g. 2,4,6-9,12 or the word 'all'
+    set <portlist> count <value>       - number of packets to transmit
+    set <portlist> size <value>        - size of the packet to transmit
+    set <portlist> rate <percent>      - Packet rate in percentage
+    set <portlist> burst <value>       - number of packets in a burst
+    set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
+    set <portlist> sport <value>       - Source port number for TCP
+    set <portlist> dport <value>       - Destination port number for TCP
+    set <portlist> ttl <value>         - Set the TTL value for the single port more
+    set <portlist> seq_cnt|seqcnt|seqCnt <value>
+                                    - Set the number of packet in the sequence to send [0-16]
+    set <portlist> prime <value>       - Set the number of packets to send on prime command
+    set <portlist> dump <value>        - Dump the next 1-32 received packets to the screen
+                                        Dumped packets are in the log, use 'page log' to view
+    set <portlist> vlan|vlanid <value> - Set the VLAN ID value for the portlist
+    set <portlist> jitter <value>      - Set the jitter threshold in micro-seconds
+    set <portlist> src|dst mac <addr>  - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format
+    set <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
+    set <portlist> proto udp|tcp|icmp  - Set the packet protocol to UDP or TCP or ICMP per port
+    set <portlist> pattern <type>      - Set the fill pattern type
                     type - abc        - Default pattern of abc string
-                           none       - No fill pattern, maybe random data
-                           zero       - Fill of zero bytes
-                           user       - User supplied string of max 16 bytes
-   set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
-   set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24
-   set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
-   set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
-       idx: random mask index slot
-       off: offset in bytes to apply mask value
-       mask: up to 32 bit long mask specification (empty to disable):
-             0: bit will be 0
-             1: bit will be 1
-             .: bit will be ignored (original value is retained)
-             X: bit will get random value
-   set <portlist> cos <value>         - Set the CoS value for the portlist
-   set <portlist> tos <value>         - Set the ToS value for the portlist
-   set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values
-   set ports_per_page <value>         - Set ports per page value 1 - 6
-
+                            none       - No fill pattern, maybe random data
+                            zero       - Fill of zero bytes
+                            user       - User supplied string of max 16 bytes
+    set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command
+    set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24
+    set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist
+    set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist
+        idx: random mask index slot
+        off: offset in bytes to apply mask value
+        mask: up to 32 bit long mask specification (empty to disable):
+            0: bit will be 0
+            1: bit will be 1
+            .: bit will be ignored (original value is retained)
+            X: bit will get random value
+    set <portlist> cos <value>         - Set the CoS value for the portlist
+    set <portlist> tos <value>         - Set the ToS value for the portlist
+    set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values
+    set ports_per_page <value>         - Set ports per page value 1 - 6
 
 The ``range`` commands::
 
-   -- Setup the packet range values --
-      note: SMMI = start|min|max|inc (start, minimum, maximum, increment)
+  -- Setup the packet range values --
+     note: SMMI = start|min|max|inc (start, minimum, maximum, increment)
 
-   range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address
-         e.g: range 0 src mac start 00:00:00:00:00:00
-              range 0 dst mac max 00:12:34:56:78:90
-         or  range 0 src mac 00:00:00:00:00:00 00:00:00:00:00:00 00:12:34:56:78:90 00:00:00:01:01:01
-   range <portlist> src|dst ip <SMMI> <ipaddr>   - Set source IP start address
-         e.g: range 0 dst ip start 0.0.0.0
-              range 0 dst ip min 0.0.0.0
-              range 0 dst ip max 1.2.3.4
-              range 0 dst ip inc 0.0.1.0
-          or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0
-   range <portlist> proto tcp|udp                - Set the IP protocol type
-   range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number
-          or  range <portlist> src|dst port <start> <min> <max> <inc>
-   range <portlist> vlan <SMMI> <value>          - Set vlan id start address
-         or  range <portlist> vlan <start> <min> <max> <inc>
-   range <portlist> size <SMMI> <value>          - Set pkt size start address
-         or  range <portlist> size <start> <min> <max> <inc>
-   range <portlist> teid <SMMI> <value>          - Set TEID value
-         or  range <portlist> teid <start> <min> <max> <inc>
-   range <portlist> mpls entry <hex-value>       - Set MPLS entry value
-   range <portlist> qinq index <val1> <val2>     - Set QinQ index values
-   range <portlist> gre key <value>              - Set GRE key value
-   range <portlist> cos <SMMI> <value>           - Set cos value
-   range <portlist> tos <SMMI> <value>           - Set tos value
+    range <portlist> src|dst mac <SMMI> <etheraddr> - Set destination/source MAC address
+        e.g: range 0 src mac start 00:00:00:00:00:00
+            range 0 dst mac max 00:12:34:56:78:90
+        or  range 0 src mac 00:00:00:00:00:00 00:00:00:00:00:00 00:12:34:56:78:90 00:00:00:01:01:01
+    range <portlist> src|dst ip <SMMI> <ipaddr>   - Set source IP start address
+        e.g: range 0 dst ip start 0.0.0.0
+            range 0 dst ip min 0.0.0.0
+            range 0 dst ip max 1.2.3.4
+            range 0 dst ip inc 0.0.1.0
+        or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0
+    range <portlist> proto tcp|udp                - Set the IP protocol type
+    range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number
+        or  range <portlist> src|dst port <start> <min> <max> <inc>
+    range <portlist> vlan <SMMI> <value>          - Set vlan id start address
+        or  range <portlist> vlan <start> <min> <max> <inc>
+    range <portlist> size <SMMI> <value>          - Set pkt size start address
+        or  range <portlist> size <start> <min> <max> <inc>
+    range <portlist> teid <SMMI> <value>          - Set TEID value
+        or  range <portlist> teid <start> <min> <max> <inc>
+    range <portlist> mpls entry <hex-value>       - Set MPLS entry value
+    range <portlist> qinq index <val1> <val2>     - Set QinQ index values
+    range <portlist> gre key <value>              - Set GRE key value
+    range <portlist> cos <SMMI> <value>           - Set cos value
+    range <portlist> tos <SMMI> <value>           - Set tos value
 
 The ``sequence`` commands::
 
-   sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]
-   sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
-   sequence <seq#> <portlist> cos <cos> tos <tos>
-       - Set the sequence packet information, make sure the src-IP
-         has the netmask value eg 1.2.3.4/24
+    sequence <seq#> <portlist> dst <Mac> src <Mac> dst <IP> src <IP> sport <val> dport <val> ipv4|ipv6 udp|tcp|icmp vlan <val> size <val> [teid <val>]
+    sequence <seq#> <portlist> <dst-Mac> <src-Mac> <dst-IP> <src-IP> <sport> <dport> ipv4|ipv6 udp|tcp|icmp <vlanid> <pktsize> [<teid>]
+    sequence <seq#> <portlist> cos <cos> tos <tos>
+    sequence <seq#> <portlist> vxlan <flags> gid <group_id> vid <vxlan_id>
+                                    - Set the sequence packet information, make sure the src-IP
+                                        has the netmask value eg 1.2.3.4/24
 
 
 The ``pcap`` commands::
@@ -329,8 +325,8 @@ The odd or special commands::
 
     save <path-to-file>                - Save a configuration file using the filename
     load <path-to-file>                - Load a command/script file from the given path
-    script <filename>                  - Execute the Lua script code in file (www.lua.org).
-    lua 'lua string'                   - Execute the Lua code in the string needs quotes
+    script <filename>                  - Execute the Lua script code in file (www.lua.org). (if Lua is enabled)
+    lua 'lua string'                   - Execute the Lua code in the string needs quotes (if Lua is enabled)
     geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)
     clear <portlist> stats             - Clear the statistics
     clr                                - Clear all Statistices
@@ -345,6 +341,48 @@ The ``theme`` commands::
     theme <item> <fg> <bg> <attr>      - Set color for item with fg/bg color and attribute value
     theme show                         - List the item strings, colors and attributes to the items
     theme save <filename>              - Save the current color theme to a file
+
+The ``plugin`` commands::
+    plugin                             - Show the plugins currently installed
+    plugin load <filename>             - Load a plugin file
+    plugin load <filename> <path>      - Load a plugin file at path
+    plugin rm|delete <plugin>          - Remove or delete a plugin
+
+The ``rate` commands for packet pacing::
+
+    rate <portlist> count <value>        - number of packets to transmit
+    rate <portlist> size <value>         - size of the packet to transmit
+    rate <portlist> rate <percent>       - Packet rate in percentage
+    rate <portlist> burst <value>        - number of packets in a burst
+    rate <portlist> sport <value>        - Source port number for TCP
+    rate <portlist> dport <value>        - Destination port number for TCP
+    rate <portlist> ttl <value>          - Set the TTL value for the single port more
+    rate <portlist> src|dst mac <addr>   - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 format
+    rate <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN
+    rate <portlist> proto udp|tcp|icmp   - Set the packet protocol to UDP or TCP or ICMP per port
+    rate <portlist> [src|dst] ip ipaddr  - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24
+    rate <portlist> fps <value>          - Set the frame per second value e.g. 60fps
+    rate <portlist> lines <value>        - Set the number of video lines, e.g. 720
+    rate <portlist> pixels <value>       - Set the number of pixels per line, e.g. 1280
+    rate <portlist> color bits <value>   - Set the color bit size 8, 16, 24, ...
+    rate <portlist> payload size <value> - Set the payload size
+    rate <portlist> overhead <value>     - Set the packet overhead + payload = total packet size
+
+The flags::
+
+        Flags: P------------------ - Promiscuous mode enabled
+                E                  - ICMP Echo enabled
+                 B                 - Bonding enabled LACP 802.3ad
+                  I                - Process packets on input enabled
+                   *               - Using TAP interface for this port can be [-rt*]
+                    g              - Process GARP packets
+                     C             - Capture received packets
+                      ------       - Modes Single, pcap, sequence, latency, random, Rate
+                            ------ - Modes VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH
+    Notes: <state>    - Use enable|disable or on|off to set the state.
+        <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word 'all'
+        Colors best seen on a black background for now
+
 
 Several commands take common arguments such as:
 
@@ -435,7 +473,7 @@ pages
 The Random or rnd page.
 ::
 
-  Port 0           <Random bitfield Page>  Copyright (c) <2010-2019>, Intel Corporation
+  Port 0           <Random bitfield Page>  Copyright (c) <2010-2020>, Intel Corporation
     Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -474,7 +512,7 @@ The Random or rnd page.
 The sequence or seq page.
 ::
 
-	<Sequence Page>  Copyright (c) <2010-2019>, Intel Corporation
+	<Sequence Page>  Copyright (c) <2010-2020>, Intel Corporation
 	  Port   :  0, Sequence Count:  8 of 16                                                                            GTPu
 	    * Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 	    *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -491,7 +529,7 @@ The sequence or seq page.
 The CPU information page.
 ::
 
-	<CPU Page>  Copyright (c) <2010-2019>, Intel Corporation
+	<CPU Page>  Copyright (c) <2010-2020>, Intel Corporation
 
 	Kernel: Linux rkwiles-DESK1.intel.com 4.4.0-66-generic #87-Ubuntu SMP Fri Mar 3 15:29:05 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
 
@@ -524,7 +562,7 @@ The CPU information page.
 The latency page.
 ::
 
-	-- Ports 0-3 of 8   <Main Page>  Copyright (c) <2010-2019>, Intel Corporation
+	-- Ports 0-3 of 8   <Main Page>  Copyright (c) <2010-2020>, Intel Corporation
 		Flags:Port        :   P----S---------:0   P--------------:1   P--------------:2   P--------------:3
 		Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 		Pkts/s Max/Rx     :                 0/0                 0/0                 0/0                 0/0                   0/0
@@ -553,7 +591,7 @@ The latency page.
 The config or cfg page.
 ::
 
-	<CPU Page>  Copyright (c) <2010-2019>, Intel Corporation
+	<CPU Page>  Copyright (c) <2010-2020>, Intel Corporation
 	 2 sockets, 18 cores, 2 threads
 	  Socket   :    0         1      Port description
 	  Core   0 : [ 0,36]   [18,54]   0000:04:00.0 : Intel Corporation X710 for 10GbE SFP+ (rev 01)

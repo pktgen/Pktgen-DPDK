@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
+ * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -191,7 +191,7 @@ pktgen_parse_args(int argc, char **argv)
 			pktgen.eth_max_pkt = PG_ETHER_MAX_JUMBO_FRAME_LEN;
 			pktgen.mbuf_dataroom = PG_ETHER_MAX_JUMBO_FRAME_LEN;
 			pktgen.mbuf_buf_size = pktgen.mbuf_dataroom + RTE_PKTMBUF_HEADROOM;
-			
+
 			pktgen_log_info("**** Jumbo Frames of %d enabled.", pktgen.eth_max_pkt);
 			break;
 

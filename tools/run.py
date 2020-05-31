@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-#   Copyright(c) 2019 Intel Corporation. All rights reserved.
+#   Copyright(c) 2020 Intel Corporation. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 #
@@ -90,7 +90,7 @@ def mk_tuple(lst, s):
 
 def add_ld_options(s, arg_list):
 	''' Append LD_LIBRARY_PATH option to arg list '''
-	if s in cfg.run:            
+	if s in cfg.run:
             str = 'LD_LIBRARY_PATH=.'
             for a in mk_tuple(cfg.run, s):
                 _p = a % globals()

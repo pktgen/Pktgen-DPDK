@@ -39,7 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 SPDX-License-Identifier: BSD-3-Clause
 
-Pktgen: Created 2010-2019 by Keith Wiles @ Intel.com
+Pktgen: Created 2010-2020 by Keith Wiles @ Intel.com
 ---
 
 Note: In DPDK 19.08-rc0 a large number of defines and function names were
@@ -280,7 +280,7 @@ Here is an example of the default.cfg file:
 
 Usage: ./app/pktgen -l CORELIST [-n NUM] [-m NB] [-r NUM] [-b <domain:bus:devid.func>][--proc-type primary|secondary|auto]
 
-Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
+Copyright (c) <2010-2020>, Intel Corporation. All rights reserved. Powered by DPDK
 ./app/app/x86_64-dnet-linux-gcc/pktgen: invalid option -- 'x'
 EAL: Detected 72 lcore(s)
 ./app/app/x86_64-dnet-linux-gcc/pktgen: invalid option -- 'x'
@@ -533,7 +533,7 @@ rkwiles@broadwell (dev):~/.../intel/pktgen$ ./tools/run.py default
    Trying ./app/x86_64-native-linux-gcc/pktgen
 sudo -E ./app/x86_64-native-linux-gcc/pktgen -l 14,15-22 -n 4 --proc-type auto --log-level 7 --file-prefix pg -b 81:00.2 -b 81:00.3 -b 85:00.2 -b 85:00.3 -b 83:00.0 -- -T -P --crc-strip -m [15:16].0 -m [17:18].1 -m [19:20].2 -m [21:22].3 -f themes/black-yellow.theme
 
-Copyright (c) <2010-2019>, Intel Corporation. All rights reserved. Powered by DPDK
+Copyright (c) <2010-2020>, Intel Corporation. All rights reserved. Powered by DPDK
 EAL: Detected 56 lcore(s)
 EAL: Detected 2 NUMA nodes
 EAL: Auto-detected process type: PRIMARY
@@ -564,7 +564,7 @@ EAL: PCI device 0000:85:00.3 on NUMA socket 1
 EAL:   Device is blacklisted, not initializing
 Lua 5.3.5  Copyright (C) 1994-2018 Lua.org, PUC-Rio
 
-*** Copyright (c) <2010-2019>, Intel Corporation. All rights reserved.
+*** Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
 *** Pktgen created by: Keith Wiles -- >>> Powered by DPDK <<<
 
 Initialize Port 0 -- TxQ 1, RxQ 1,  Src MAC 3c:fd:fe:a1:2b:40
@@ -578,7 +578,7 @@ Port  2: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 Port  3: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
 
 
-- Ports 0-3 of 4   <Main Page>  Copyright (c) <2010-2019>, Intel Corporation
+- Ports 0-3 of 4   <Main Page>  Copyright (c) <2010-2020>, Intel Corporation
   Flags:Port        :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
 Link State          :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 Pkts/s Max/Rx       :                 0/0                 0/0                 0/0                 0/0                   0/0
@@ -811,7 +811,7 @@ Notes: <state>       - Use enable|disable or on|off to set the state.
 ```
 ---------------------------------------------------------------------------
 ```
-\                  <Sequence Page>  Copyright (c) <2010-2019>, Intel Corporation
+\                  <Sequence Page>  Copyright (c) <2010-2020>, Intel Corporation
 Port:  0, Sequence Count:  4 of 16                                                                             GTPu
   Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -861,7 +861,7 @@ Pktgen:/>
 ```
 ---------------------------------------------------------------------------
 ```
-| Port 0           <Random bitfield Page>  Copyright (c) <2010-2019>, Intel Corporation
+| Port 0           <Random bitfield Page>  Copyright (c) <2010-2020>, Intel Corporation
    Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -992,7 +992,7 @@ You can also just send Pktgen a script file and display the ouptut.
 
     Lua Version: Lua 5.3
     Pktgen Version : 3.6.1
-    Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
+    Pktgen Copyright : Copyright (c) `<2010-2020>`, Intel Corporation
     Pktgen Authors : Keith Wiles @ Intel Corporation
 
 Hello World!!!!
@@ -1021,7 +1021,7 @@ disk where Pktgen is running and then we execute the file with 'f()'.
     f()
     Lua Version: Lua 5.3
     Pktgen Version : 3.6.1
-    Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
+    Pktgen Copyright : Copyright (c) `<2010-2020>`, Intel Corporation
     Pktgen Authors : Keith Wiles @ Intel Corporation
 
     Hello World!!!!
@@ -1035,7 +1035,7 @@ You can also just send it commands via echo.
     $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
     Lua Version: Lua 5.3
     Pktgen Version : 3.6.1
-    Pktgen Copyright : Copyright (c) `<2010-2019>`, Intel Corporation
+    Pktgen Copyright : Copyright (c) `<2010-2020>`, Intel Corporation
     Pktgen Authors : Keith Wiles @ Intel Corporation
 
     Hello World!!!!

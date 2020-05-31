@@ -1,52 +1,45 @@
-#   BSD LICENSE
-#
-#   Copyright(c) <2010-2019> Intel Corporation. All rights reserved.
-#
 # SPDX-License-Identifier: BSD-3-Clause
+# Copyright(c) 2019-2020 Intel Corporation
+
 #
-# Created 2010-2018 by Keith Wiles @ intel.com
+# Head Makefile for compiling Pktgen-DPDK, but just a wrapper around
+# meson and ninja using the tools/pktgen-build.sh script.
+#
+# Use 'make' or 'make build' to build Pktgen-DPDK. If the build directory does
+# not exist it will be created with these two build types.
+#
 
-ifeq ($(RTE_SDK),)
-export RTE_SDK=/usr/local/include
-endif
+Build=./tools/pktgen-build.sh
 
-# Default target, can be overriden by command line or environment
-RTE_TARGET ?= x86_64-native-linux-gcc
+all: FORCE
+	${Build} build
 
-include $(RTE_SDK)/mk/rte.vars.mk
+build: FORCE
+	${Build} build
 
-# GUI is a work in progress
-ifeq ($(GUI),true)
-DIRS-y += lib gui app
-else
-DIRS-y += lib app
-endif
+rebuild: FORCE
+	${Build} clean
+	${Build} build
 
-DEPDIRS-app += lib gui
+debug: FORCE
+	${Build} debug
 
-export GUI
+debugopt: FORCE
+	${Build} debugopt
 
-.PHONY: docs
+clean: FORCE
+	${Build} clean
 
-include $(RTE_SDK)/mk/rte.extsubdir.mk
+install: FORCE
+	${Build} install
 
-clean_objs = $(shell find . -name "*.a")
-clean_objs += $(shell find . -name "x86_64*")
-clean_objs += $(shell find . -name "*.d")
-clean_objs += $(shell find . -name "*.o")
-clean_objs += $(shell find . -name "*.cmd")
+dist-clean: FORCE
+	${Build} dist-clean
 
-realclean:
-	@if [ -n "$(clean_objs)" ]; then \
-		rm -fr $(clean_objs); \
-	fi
-	@rm -fr app/build
+docs: FORCE
+	${Build} docs
 
-docs:
-	@make -C docs html
+help: FORCE
+	${Build} help
 
-pdf:
-	@make -C docs latexpdf
-
-cleandocs:
-	@make -C docs clean
+FORCE:

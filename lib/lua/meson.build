@@ -25,14 +25,8 @@ if get_option('is_lua_enabled')
 		'lua_vec.h')
 	deps += ['common', 'vec']
 
-	libs = ['eal', 'mbuf']
-	foreach lib:libs
-		ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
-	endforeach
-
 	ext_deps += cc.find_library('lua5.3', required: true)
 	ext_deps += cc.find_library('pthread', required: true)
-	ext_deps += cc.find_library('m', required: true)
 else
 	sources = files('lua_config.c')
 	headers = files('lua_config.h')

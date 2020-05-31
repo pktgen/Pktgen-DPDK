@@ -1,2 +1,2 @@
-option('is_lua_enabled', type: 'boolean', value: false,
+option('is_lua_enabled', type: 'boolean', value: true,
         description: 'Enable Lua support')

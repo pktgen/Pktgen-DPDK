@@ -33,7 +33,3 @@ headers = files(
 	'cli_scrn.h',
 	'cli_search.h')
 deps += ['common', 'utils']
-
-foreach lib:['timer']
-	ext_deps += cc.find_library('rte_' + lib, required: true)
-endforeach

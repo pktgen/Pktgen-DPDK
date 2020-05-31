@@ -30,13 +30,3 @@ headers = files(
 	'pg_strings.h',
 	'utils.h'
 )
-
-libs = ['eal', 'kvargs', 'cmdline', 'telemetry']
-foreach lib:libs
-	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
-endforeach
-
-#ext_deps += dependency('threads')
-ext_deps += cc.find_library('bsd', required: true)
-#ext_deps += cc.find_library('numa', required: true)
-#ext_deps += cc.find_library('dl', required: true)

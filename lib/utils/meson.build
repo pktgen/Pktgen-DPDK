@@ -18,5 +18,5 @@ deps += ['common']
 
 libs = ['eal', 'ethdev', 'mempool']
 foreach lib:libs
-	ext_deps += cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])
+	ext_deps += cc.find_library('rte_' + lib, required: true)
 endforeach

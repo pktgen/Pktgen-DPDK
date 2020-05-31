@@ -8,7 +8,6 @@ sources = files(
 	'pktgen-latency.c', 'pktgen-rate.c'
 )
 
-message('*** dpdk_libdir=' + dpdk_libdir)
 message('Process the app directory')
 
 lua_dir = '../lib/'
@@ -22,6 +21,8 @@ endif
 if get_option('is_lua_enabled')
     cflags += '-DLUA_ENABLED'
 endif
+
+cflags += '-DALLOW_EXPERIMENTAL_API'
 
 # set the major version, which might be used by drivers and libraries
 # depending on the configuration options
@@ -37,19 +38,13 @@ if pver.get(2).contains('-rc')
 	cflags += '-D__RELEASE=' + rc_ver.get(1)
 else
 	cflags += '-D__MINOR=' + pver.get(2)
-	cflags += '-D__SUFFIX='
+	cflags += '-D__SUFFIX=""'
 	cflags += '-D__RELEASE=99'
 endif
 
-deps = []
-
-flib = ['ethdev', 'mbuf', 'net', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci', 'pmd_i40e', 'pmd_ixgbe', 'pmd_ice']
-foreach lib:flib
-	deps += [cc.find_library('rte_' + lib, required: true, dirs: [dpdk_libdir])]
-endforeach
+deps = [dpdk_dep]
 
 deps += [get_variable('static_pktgen_common')]
-
 deps += [get_variable('static_pktgen_lua')]
 deps += [get_variable('static_pktgen_plugin')]
 deps += [get_variable('static_pktgen_utils')]
@@ -65,12 +60,8 @@ deps += [cc.find_library('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]
 deps += [cc.find_library('m', required: false)]
 
-#pmd_subdir_opt = get_option('drivers_install_subdir')
-#driver_install_path = join_paths(get_option('libdir'), pmd_subdir_opt)
-
-pktgen = executable('dpdk-pktgen',
+pktgen = executable('pktgen',
 		sources,
 		c_args: [cflags, '-pthread'],
-#		install_rpath: join_paths(get_option('prefix'), driver_install_path),
 		install: true,
 		dependencies: deps)

@@ -29,7 +29,7 @@ foreach l:libraries
 
 	# use "deps" for internal Pktgen dependencies, and "ext_deps" for
 	# external package/library requirements
-	ext_deps = []
+	ext_deps = [dpdk_dep]
 	deps = []
 
 	dir_name = l
@@ -43,7 +43,6 @@ foreach l:libraries
 
 		libname = name
 		includes += include_directories(dir_name)
-		includes += dpdk_incs
 
 		if sources.length() == 0
 			message('    No sources in '+ libname)

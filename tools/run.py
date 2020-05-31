@@ -336,7 +336,10 @@ def setup_cfg(cfg_file):
 	if os.path.exists("%s/bin/dpdk-devbind.py" % sdk):
 		script = "%s/bin/dpdk-devbind.py" % sdk
 	else:
-		err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")
+		if os.path.exists("%s/usertools/dpdk-devbind.py" % sdk):
+			script = "%s/usertools/dpdk-devbind.py" % sdk
+		else:
+			err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")
 
 	# build up the system command line to be executed
 	args = []
@@ -416,9 +419,9 @@ def main():
 
 	global sdk, target
 
-	sdk = '/usr/local'
+	sdk = os.getenv("RTE_SDK")
 
-	target = 'x86_64-linux-gnu'
+	target = os.getenv("RTE_TARGET")
 
 	print(">>> sdk '%s', target '%s'" % (sdk, target))
 

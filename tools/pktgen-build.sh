@@ -10,12 +10,12 @@
 # using 'pktgen-build.sh help' or 'pktgen-build.sh -h' or 'pktgen-build.sh --help' to see help information.
 #
 
-currdir=`pwd`
-export sdk_dir="${PKTGEN_SDK:-$currdir}"
-export target_dir="${PKTGEN_TARGET:-usr/local}"
-export build_dir="${PKTGEN_BUILD_DIR:-build}"
-
 buildtype="release"
+currdir=`pwd`
+
+export sdk_dir="${PKTGEN_SDK:-$currdir}"
+export target_dir="${PKTGEN_TARGET:-usr}"
+export build_dir="${PKTGEN_BUILD_DIR:-Builddir}"
 
 build_path=$sdk_dir/$build_dir
 target_path=$sdk_dir/$target_dir
@@ -27,7 +27,8 @@ echo ""
 
 function run_meson() {
     btype="-Dbuildtype="$buildtype
-	meson $btype --prefix=/$target_dir $build_dir
+
+	meson $btype $build_dir
 }
 
 function ninja_build() {
@@ -78,16 +79,18 @@ usage() {
     echo "     This tool is in tools/pktgen-build.sh, but use 'make' which calls this script"
 	echo "     Use 'make' to build Pktgen as it allows for multiple targets i.e. 'make clean debug'"
     echo ""
-    echo "  pktgen-build.sh - create the '"$build_dir"' directory if not present and compile Pktgen"
-    echo "                   If the '"$build_dir"' directory exists it will use ninja to build Pktgen without"
-    echo "                   running meson unless one of the meson.build files were changed"
-    echo "  pktgen-build.sh build       - remove the '"$build_dir"' and '"$target_dir"' directories then build Pktgen"
-    echo "  pktgen-build.sh debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
-    echo "  pktgen-build.sh debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
-    echo "  pktgen-build.sh clean       - remove the '"$build_dir"' and '"$target_dir"' directories then exit"
-    echo "  pktgen-build.sh dist-clean  - remove the '"$build_dir"' directory leaving '"$target_dir"'"
-    echo "  pktgen-build.sh install     - install the includes/libraries into '"$target_dir"' directory"
-    echo "  pktgen-build.sh docs        - create the document files"
+    echo "  Command Options:"
+    echo "  <no args>   - create the '"$build_dir"' directory if not present and compile Pktgen"
+    echo "                If the '"$build_dir"' directory exists it will use ninja to build Pktgen without"
+    echo "                running meson unless one of the meson.build files were changed"
+    echo "  build       - same as 'make' with no arguments"
+    echo "  rebuild     - remove the '"$build_dir"' and '"$target_dir"' directories then build Pktgen"
+    echo "  debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
+    echo "  debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
+    echo "  clean       - remove the '"$build_dir"' and '"$target_dir"' directories then exit"
+    echo "  dist-clean  - remove the '"$build_dir"' directory leaving '"$target_dir"'"
+    echo "  install     - install the includes/libraries into '"$target_dir"' directory"
+    echo "  docs        - create the document files"
     exit
 }
 
@@ -132,13 +135,6 @@ case "$1" in
 'docs')
     echo ">>> Create the documents '"$build_path"' directory"
 	ninja_build_docs
-    ;;
-
-'run')
-    echo ">>> Build, install and run txgen Go application"
-    ninja_build && ninja_install
-
-    (cd go/Pktgen.org/txgen; go clean -i -cache; go build)
     ;;
 
 *)

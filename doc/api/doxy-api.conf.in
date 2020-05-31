@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2019-2020 Intel Corperation Inc.
+
+PROJECT_NAME            = Pktgen-DPDK
+PROJECT_NUMBER          = @VERSION@
+USE_MDFILE_AS_MAINPAGE  = @TOPDIR@/doc/api/doxy-api-index.md
+INPUT                   = @TOPDIR@/doc/api/doxy-api-index.md \
+                          @TOPDIR@/lib/common \
+                          @TOPDIR@/lib/cli \
+                          @TOPDIR@/lib/lua \
+                          @TOPDIR@/lib/plugin \
+                          @TOPDIR@/lib/utils \
+                          @TOPDIR@/lib/vec \
+                          @TOPDIR@/app 
+INPUT                   += @API_EXAMPLES@
+FILE_PATTERNS           = pktgen-*.h
+PREDEFINED              = __DOXYGEN__ \
+			   VFIO_PRESENT \
+                          __attribute__(x)=
+
+OPTIMIZE_OUTPUT_FOR_C   = YES
+ENABLE_PREPROCESSING    = YES
+MACRO_EXPANSION         = YES
+EXPAND_ONLY_PREDEF      = YES
+EXTRACT_STATIC          = YES
+DISTRIBUTE_GROUP_DOC    = YES
+HIDE_UNDOC_MEMBERS      = YES
+HIDE_UNDOC_CLASSES      = YES
+HIDE_SCOPE_NAMES        = YES
+GENERATE_DEPRECATEDLIST = YES
+VERBATIM_HEADERS        = NO
+ALPHABETICAL_INDEX      = NO
+
+HTML_TIMESTAMP          = NO
+HTML_DYNAMIC_SECTIONS   = YES
+SEARCHENGINE            = YES
+SORT_MEMBER_DOCS        = NO
+SOURCE_BROWSER          = YES
+
+EXAMPLE_PATH            = @TOPDIR@/examples
+EXAMPLE_PATTERNS        = *.c
+EXAMPLE_RECURSIVE       = YES
+
+OUTPUT_DIRECTORY        = @OUTPUT@
+STRIP_FROM_PATH         = @STRIP_FROM_PATH@
+GENERATE_HTML           = YES
+HTML_OUTPUT             = @HTML_OUTPUT@
+GENERATE_LATEX          = NO
+GENERATE_MAN            = NO
+
+HAVE_DOT                = NO

@@ -30,13 +30,16 @@ debugopt: FORCE
 clean: FORCE
 	${Build} clean
 
-install: FORCE
-	${Build} install
-
 dist-clean: FORCE
 	${Build} dist-clean
 
+install: FORCE
+	${Build} install
+
 docs: FORCE
+	${Build} docs
+
+doc: FORCE
 	${Build} docs
 
 help: FORCE

@@ -32,9 +32,13 @@ bsd_dep = dependency('libbsd', required: true)
 
 dpdk_dep = dependency('libdpdk', required: true)
 
+subdir('tools')
+
 subdir('lib')
 
 subdir('app')
+
+subdir('doc')
 
 pkg = import('pkgconfig')
 pkg.generate(name: meson.project_name(),

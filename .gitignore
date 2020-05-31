@@ -16,5 +16,6 @@ node_modules
 gulpfile.js
 x86_64-*
 lib/lua/build
-Builddir
+Builddir/
+builddir/
 usr/local

@@ -313,7 +313,7 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 		qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
 
 	/* Send all of the packets before we can exit this function */
-	while (cnt && pktgen_tst_port_flags(info, SENDING_PACKETS)) {
+	while (cnt) {
 
 		if (rnd)
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);

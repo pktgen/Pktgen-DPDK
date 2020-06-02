@@ -11,6 +11,7 @@
 
 Build=./tools/pktgen-build.sh
 
+
 all: FORCE
 	${Build} build
 
@@ -46,3 +47,4 @@ help: FORCE
 	${Build} help
 
 FORCE:
+	@echo ">>> Use 'make help' for more commands\n"

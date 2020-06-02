@@ -579,7 +579,7 @@ vlan_enable_callback(GtkWidget *widget, gpointer *data)
 	info = &pktgen.info[*pid];
 
 	g_object_get(G_OBJECT(widget), "active", &active, NULL);
-	pktgen_set_vlan(info, (uint32_t)active);
+	enable_vlan(info, (uint32_t)active);
 }
 
 /**************************************************************************//**

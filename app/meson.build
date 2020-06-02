@@ -8,6 +8,14 @@ sources = files(
 	'pktgen-latency.c', 'pktgen-rate.c'
 )
 
+if get_option('enable_gui')
+    sources += files(
+        'pktgen-gui.c',
+        'pktgen-gui-misc.c',
+        'pktgen-gui-streams.c',
+    )
+endif
+
 message('Process the app directory')
 
 lua_dir = '../lib/'
@@ -50,6 +58,12 @@ deps += [get_variable('static_pktgen_plugin')]
 deps += [get_variable('static_pktgen_utils')]
 deps += [get_variable('static_pktgen_vec')]
 deps += [get_variable('static_pktgen_cli')]
+
+if get_option('enable_gui')
+    deps += dependency('glib-2.0', required: true)
+    deps += dependency('gtk+-2.0', required: true)
+    cflags += '-Wno-deprecated-declarations'
+endif
 
 deps += [dependency('threads')]
 if get_option('is_lua_enabled')

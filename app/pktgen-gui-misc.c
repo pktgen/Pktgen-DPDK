@@ -191,17 +191,19 @@ stream_apply(GtkTreeModel  *model,
 	port_info_t *info = NULL;
 	unsigned int pid;
 	guint *flag = (guint *)userdata;
+    char buff[64];
 
 	gtk_tree_model_get(model, iter, COL_CHASSIS_PORTS, &name, -1);
 
+    snprintf(buff, sizeof(buff), "%d", tx_rate);
 	if (0 != g_strcmp0(name, "[127.0.0.1]")) {
 		int offset = strlen(name);
 		pid = atoi((name + offset) - 1);
 		info = &pktgen.info[pid];
 		if ((info != NULL) && (*flag == 1))
-			pktgen_set_tx_rate(info, tx_rate);
+			single_set_tx_rate(info, buff);
 	} else if (*flag == 1)
-		forall_ports(pktgen_set_tx_rate(info, tx_rate));
+		forall_ports(single_set_tx_rate(info, buff));
 }
 
 /**************************************************************************//**

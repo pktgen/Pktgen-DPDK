@@ -6,6 +6,13 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.06.0 - Convert to using meson/ninja only builds.
+             Fix the default mbuf size.
+             Fix sending of special or ARP packets.
+             Add Makefile to use tools/pktgen-build.sh script for meson/ninja
+             Fix up building the docs using meson/ninja.
+             New target directory for install is $PKTGEN_DIR/usr/local, need to build and
+             install DPDK using meson/ninja. 
  - 20.04.0 - Disable Lua by default in meson_options.tst file for meson/ninja builds.
              Lua support is disabled by default now as we move to meson/ninja builds only.
              When building with meson/ninja DPDK needs to be built meson/ninja and installed.

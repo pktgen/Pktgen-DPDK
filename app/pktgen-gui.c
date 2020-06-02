@@ -185,7 +185,7 @@ update_port_static_info(unsigned int pid)
 			break;
 
 		case 2:
-			g_snprintf(buf, sizeof(buf), "%d", info->tx_rate);
+			g_snprintf(buf, sizeof(buf), "%f", info->tx_rate);
 			break;
 
 		case 3:
@@ -417,7 +417,7 @@ about_dialog_callback(void)
 
 	GtkWidget *about_dialog = gtk_about_dialog_new();
 
-	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_APP_NAME);
+	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_GUI_APP_NAME);
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(about_dialog), PKTGEN_VERSION);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(about_dialog), COPYRIGHT_MSG);
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(about_dialog), POWERED_BY_DPDK);
@@ -941,8 +941,8 @@ console_callback(GtkWidget *widget, GtkWidget *entry)
 	gtk_text_buffer_insert(buffer, &buffer_iter,
 	                       g_strconcat(cmd_prompt, entry_text, NULL), -1);
 
-	cmdline_in(pktgen.cl, entry_text, strlen(entry_text));
-	cmdline_in(pktgen.cl, "\r", 1);
+	cli_input((char*)(uintptr_t)entry_text, strlen(entry_text));
+	cli_input((char *)(uintptr_t)"\r", 1);
 
 	/* scroll to end iter */
 	vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(entry));

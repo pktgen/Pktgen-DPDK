@@ -6,19 +6,16 @@
 import sys
 import os
 from os.path import join
-from subprocess import run, PIPE
+from subprocess import run, PIPE, STDOUT
 from distutils.version import StrictVersion
 
 (sphinx, src, dst) = sys.argv[1:]  # assign parameters to variables
 
 # for sphinx version >= 1.7 add parallelism using "-j auto"
-_ver = run([sphinx, '--version'], stdout=PIPE, stderr=PIPE).stdout.split()
-print('Sphinx Version: '+str(_ver))
-sphinx_cmd = [sphinx]
-if len(_ver) != 0:
-    ver = _ver[-1]
-    if StrictVersion(ver) >= StrictVersion('1.7'):
-        sphinx_cmd += ['-j', 'auto']
+ver = run([sphinx, '--version'], stdout=PIPE, stderr=STDOUT).stdout.decode().split()[-1]
+sphinx_cmd =[sphinx]
+if StrictVersion(ver) >= StrictVersion('1.7'):
+	sphinx_cmd += ['-j', 'auto']
 
 # find all the files sphinx will process so we can write them as dependencies
 srcfiles = []

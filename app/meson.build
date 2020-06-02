@@ -63,6 +63,7 @@ if get_option('enable_gui')
     deps += dependency('glib-2.0', required: true)
     deps += dependency('gtk+-2.0', required: true)
     cflags += '-Wno-deprecated-declarations'
+    cflags += '-DGUI'
 endif
 
 deps += [dependency('threads')]

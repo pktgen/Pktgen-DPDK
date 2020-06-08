@@ -25,10 +25,13 @@ echo ">>> Build Directory  : '"$build_path"'"
 echo ">>> Target Directory : '"$target_path"'"
 echo ""
 
+lua_enabled="-Denable_lua=false"
+gui_enabled="-Denable_gui=false"
+
 function run_meson() {
     btype="-Dbuildtype="$buildtype
 
-	meson $btype $build_dir
+	meson $btype $lua_enabled $gui_enabled $build_dir
 }
 
 function ninja_build() {
@@ -84,13 +87,14 @@ usage() {
     echo "                If the '"$build_dir"' directory exists it will use ninja to build Pktgen without"
     echo "                running meson unless one of the meson.build files were changed"
     echo "  build       - same as 'make' with no arguments"
-    echo "  rebuild     - remove the '"$build_dir"' and '"$target_dir"' directories then build Pktgen"
+    echo "  buildgui    - same as 'make build' except enable gui build"
     echo "  debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
     echo "  debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
     echo "  clean       - remove the '"$build_dir"' and '"$target_dir"' directories then exit"
     echo "  dist-clean  - remove the '"$build_dir"' directory leaving '"$target_dir"'"
     echo "  install     - install the includes/libraries into '"$target_dir"' directory"
     echo "  docs        - create the document files"
+    echo "--- Make targets:"
     exit
 }
 
@@ -102,6 +106,11 @@ case "$1" in
 'build')
     ninja_build && ninja_install
     ;;
+
+'buildgui')
+	gui_enabled="-Denable_qui=true"
+    ninja_build && ninja_install
+	;;
 
 'debug')
 	buildtype="debug"

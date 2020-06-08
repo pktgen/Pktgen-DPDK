@@ -26,7 +26,7 @@ cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	cflags += '-Wno-format-truncation'
 endif
-if get_option('is_lua_enabled')
+if get_option('enable_lua')
     cflags += '-DLUA_ENABLED'
 endif
 
@@ -67,7 +67,7 @@ if get_option('enable_gui')
 endif
 
 deps += [dependency('threads')]
-if get_option('is_lua_enabled')
+if get_option('enable_lua')
 	deps += [cc.find_library('lua', required: true)]
 endif
 deps += [cc.find_library('numa', required: true)]

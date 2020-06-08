@@ -1,4 +1,4 @@
-option('is_lua_enabled', type: 'boolean', value: false,
+option('enable_lua', type: 'boolean', value: false,
         description: 'Enable Lua support')
 option('enable_docs', type: 'boolean', value: false,
     description: 'build documentation')

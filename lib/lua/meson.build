@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2017 Intel Corporation
 
-if get_option('is_lua_enabled')
+if get_option('enable_lua')
 	version = 1
 	allow_experimental_apis = true
 

@@ -7,7 +7,7 @@ default_cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	default_cflags += '-Wno-format-truncation'
 endif
-if get_option('is_lua_enabled')
+if get_option('enable_lua')
     default_cflags += '-DLUA_ENABLED'
 endif
 

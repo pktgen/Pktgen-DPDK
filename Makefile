@@ -22,6 +22,13 @@ rebuild: FORCE
 	${Build} clean
 	${Build} build
 
+buildgui: FORCE
+	${Build} buildgui
+
+rebuildgui: FORCE
+	${Build} clean
+	${Build} buildgui
+
 debug: FORCE
 	${Build} debug
 

@@ -1809,42 +1809,42 @@ void
 enable_bonding(port_info_t *info, uint32_t state)
 {
 	struct rte_eth_bond_8023ad_conf conf;
-	uint16_t slaves[RTE_MAX_ETHPORTS];
-	uint16_t active_slaves[RTE_MAX_ETHPORTS];
-	int i, num_slaves, num_active_slaves;
+	uint16_t workers[RTE_MAX_ETHPORTS];
+	uint16_t active_workers[RTE_MAX_ETHPORTS];
+	int i, num_workers, num_active_workers;
 
 	if (rte_eth_bond_8023ad_conf_get(info->pid, &conf) < 0) {
 		printf("Port %d is not a bonding port\n", info->pid);
 		return;
 	}
 
-	num_slaves = rte_eth_bond_slaves_get(info->pid, slaves, RTE_MAX_ETHPORTS);
-	if (num_slaves < 0) {
-		printf("Failed to get slave list for port = %d\n", info->pid);
+	num_workers = rte_eth_bond_workers_get(info->pid, workers, RTE_MAX_ETHPORTS);
+	if (num_workers < 0) {
+		printf("Failed to get worker list for port = %d\n", info->pid);
 		return;
 	}
 
-	num_active_slaves = rte_eth_bond_active_slaves_get(info->pid, active_slaves,
+	num_active_workers = rte_eth_bond_active_workers_get(info->pid, active_workers,
 			RTE_MAX_ETHPORTS);
-	if (num_active_slaves < 0) {
-		printf("Failed to get active slave list for port = %d\n", info->pid);
+	if (num_active_workers < 0) {
+		printf("Failed to get active worker list for port = %d\n", info->pid);
 		return;
 	}
 
 	printf("Port %d:\n", info->pid);
-	for(i = 0; i < num_slaves; i++) {
+	for(i = 0; i < num_workers; i++) {
 		if (state == ENABLE_STATE) {
 			pktgen_set_port_flags(info, BONDING_TX_PACKETS);
-			rte_eth_bond_8023ad_ext_distrib(info->pid, slaves[i], 1);
-			printf("   Enable slave %u 802.3ad distributing\n", slaves[i]);
-			rte_eth_bond_8023ad_ext_collect(info->pid, slaves[i], 1);
-			printf("   Enable slave %u 802.3ad collecting\n", slaves[i]);
+			rte_eth_bond_8023ad_ext_distrib(info->pid, workers[i], 1);
+			printf("   Enable worker %u 802.3ad distributing\n", workers[i]);
+			rte_eth_bond_8023ad_ext_collect(info->pid, workers[i], 1);
+			printf("   Enable worker %u 802.3ad collecting\n", workers[i]);
 		} else {
 			pktgen_clr_port_flags(info, BONDING_TX_PACKETS);
-			rte_eth_bond_8023ad_ext_distrib(info->pid, slaves[i], 0);
-			printf("   Disable slave %u 802.3ad distributing\n", slaves[i]);
-			rte_eth_bond_8023ad_ext_collect(info->pid, slaves[i], 1);
-			printf("   Enable slave %u 802.3ad collecting\n", slaves[i]);
+			rte_eth_bond_8023ad_ext_distrib(info->pid, workers[i], 0);
+			printf("   Disable worker %u 802.3ad distributing\n", workers[i]);
+			rte_eth_bond_8023ad_ext_collect(info->pid, workers[i], 1);
+			printf("   Enable worker %u 802.3ad collecting\n", workers[i]);
 		}
 	}
 }
@@ -1875,8 +1875,8 @@ void
 show_bonding_mode(port_info_t *info)
 {
 	int bonding_mode, agg_mode;
-	uint16_t slaves[RTE_MAX_ETHPORTS];
-	int num_slaves, num_active_slaves;
+	uint16_t workers[RTE_MAX_ETHPORTS];
+	int num_workers, num_active_workers;
 	int primary_id;
 	int i;
 	uint16_t port_id = info->pid;
@@ -1932,47 +1932,47 @@ show_bonding_mode(port_info_t *info)
 		printf("\n");
 	}
 
-	num_slaves = rte_eth_bond_slaves_get(port_id, slaves, RTE_MAX_ETHPORTS);
+	num_workers = rte_eth_bond_workers_get(port_id, workers, RTE_MAX_ETHPORTS);
 
-	if (num_slaves < 0) {
-		printf("\tFailed to get slave list for port = %d\n", port_id);
+	if (num_workers < 0) {
+		printf("\tFailed to get worker list for port = %d\n", port_id);
 		return;
 	}
-	if (num_slaves > 0) {
-		printf("\tSlaves (%d): [", num_slaves);
-		for (i = 0; i < num_slaves - 1; i++)
-			printf("%d ", slaves[i]);
+	if (num_workers > 0) {
+		printf("\tSlaves (%d): [", num_workers);
+		for (i = 0; i < num_workers - 1; i++)
+			printf("%d ", workers[i]);
 
-		printf("%d]\n", slaves[num_slaves - 1]);
+		printf("%d]\n", workers[num_workers - 1]);
 	} else {
 		printf("\tSlaves: []\n");
 
 	}
 
-	num_active_slaves = rte_eth_bond_active_slaves_get(port_id, slaves,
+	num_active_workers = rte_eth_bond_active_workers_get(port_id, workers,
 			RTE_MAX_ETHPORTS);
 
-	if (num_active_slaves < 0) {
-		printf("\tFailed to get active slave list for port = %d\n", port_id);
+	if (num_active_workers < 0) {
+		printf("\tFailed to get active worker list for port = %d\n", port_id);
 		return;
 	}
-	if (num_active_slaves > 0) {
-		printf("\tActive Slaves (%d): [", num_active_slaves);
-		for (i = 0; i < num_active_slaves - 1; i++)
-			printf("%d ", slaves[i]);
+	if (num_active_workers > 0) {
+		printf("\tActive Slaves (%d): [", num_active_workers);
+		for (i = 0; i < num_active_workers - 1; i++)
+			printf("%d ", workers[i]);
 
-		printf("%d]\n", slaves[num_active_slaves - 1]);
+		printf("%d]\n", workers[num_active_workers - 1]);
 
 	} else {
 		printf("\tActive Slaves: []\n");
 
 	}
 
-	for (i = 0; i < num_active_slaves; i++) {
-		struct rte_eth_bond_8023ad_slave_info conf;
+	for (i = 0; i < num_active_workers; i++) {
+		struct rte_eth_bond_8023ad_worker_info conf;
 
-		printf("\t\tSlave %u\n", slaves[i]);
-		rte_eth_bond_8023ad_slave_info(info->pid, slaves[i], &conf);
+		printf("\t\tSlave %u\n", workers[i]);
+		rte_eth_bond_8023ad_worker_info(info->pid, workers[i], &conf);
 		printf("\t\t  %sSelected\n\t\t  Actor States  ( ", conf.selected? "" : "Not ");
 		show_states(conf.actor_state);
 		printf(")\n\t\t  Partner States( ");
@@ -1982,7 +1982,7 @@ show_bonding_mode(port_info_t *info)
 
 	primary_id = rte_eth_bond_primary_get(port_id);
 	if (primary_id < 0) {
-		printf("\tFailed to get primary slave for port = %d\n", port_id);
+		printf("\tFailed to get primary worker for port = %d\n", port_id);
 		return;
 	} else
 		printf("\tPrimary: [%d]\n", primary_id);

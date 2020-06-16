@@ -12,7 +12,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
              Add Makefile to use tools/pktgen-build.sh script for meson/ninja
              Fix up building the docs using meson/ninja.
              New target directory for install is $PKTGEN_DIR/usr/local, need to build and
-             install DPDK using meson/ninja. 
+             install DPDK using meson/ninja.
  - 20.04.0 - Disable Lua by default in meson_options.tst file for meson/ninja builds.
              Lua support is disabled by default now as we move to meson/ninja builds only.
              When building with meson/ninja DPDK needs to be built meson/ninja and installed.
@@ -75,7 +75,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
          - Limit the pcap packets to the number of mbufs used.
          - Added new 'page xstats' screen to view extended stats for ports.
          - other minor patches
- - 3.5.8 - Add code to check for using master lcore for ports
+ - 3.5.8 - Add code to check for using initial lcore for ports
  - 3.5.7 - Fix CentOS building with Lua, fixed cli building as was not linking cli
  - 3.5.6 - Minor fixes to cleanup builds sync cli,vec,utils and lua code bases.
  - 3.5.5 - Minor fixes to run pktgen without libs in DPDK.
@@ -103,7 +103,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
            does not require a ifdef for the version.
            Convert the run.py to dpdk-run.py script and convert the scripts to /bin/sh.
  - 3.3.8 - reverse change causing TX to stop sending traffic.
- - 3.3.7 - Fix BLACKLIST and WHITELIST macro change for 17.08 DPDK
+ - 3.3.7 - Fix BLOCKLIST and WHITELIST macro change for 17.08 DPDK
  - 3.3.6 - Add flag to enable bonding PMD to do TX calls with zero packets.
            New command 'enable|disable bonding'
            Cleanup some of the copyright dates to use 2018
@@ -117,7 +117,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
  - 3.2.11- Fixed location of libs for per v17.05 releases
  - 3.2.10- Fixed the problem with set <portlist> src/dst ip <addr> needing /XX for subnet
            mask values.
-           Add a test for using the master lcore for a port and error out.
+           Add a test for using the initial lcore for a port and error out.
  - 3.2.9 - fixed a number of problems and some code cleanup
            Fixed the problem when running a lua script the ports stats were not updated.
            The problem is a rte_timer_manage() call was remove my mistake.
@@ -242,9 +242,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
  - 2.7.4 - Removed old printf_info() calls for printf_status() calls.
  - 2.7.3 - Fixed race condition with updating the TX count value with a small count.
  - 2.7.1 - Add a command line option '-T' to enable themes and set themes off by default.
- - 2.7.0 - Update to DPDK 1.7.0, Note: DPDK 1.7.0 changed how ports are detected and blacklisted,
-           which means the port index is now different. You will need to blacklist or whitelist ports
-           with the DPDK '-b' or '--pci-blacklist or --pci-whitelist' options. Pktgen does not blacklist
+ - 2.7.0 - Update to DPDK 1.7.0, Note: DPDK 1.7.0 changed how ports are detected and blocklisted,
+           which means the port index is now different. You will need to blocklist or allowlist ports
+           with the DPDK '-b' or '--pci-blocklist or --pci-allowlist' options. Pktgen does not blocklist
            ports anymore.
            - Moved pktgen to the examples directory plus removed the libwr_* from the lib directory
            - Pktgen now supports ANSI color terminals only the main screen ATM, but more later.

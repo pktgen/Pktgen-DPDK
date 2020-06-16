@@ -456,10 +456,10 @@ main(int argc, char **argv)
 	if (ret < 0)
 		return -1;
 
-	i = rte_get_master_lcore();
+	i = pg_get_initial_lcore();
 	if (get_lcore_rxcnt(pktgen.l2p, i) || get_lcore_txcnt(pktgen.l2p, i)) {
-		cli_printf("*** Error can not use master lcore for a port\n");
-		cli_printf("    The master lcore is %d\n", rte_get_master_lcore());
+		cli_printf("*** Error can not use initial lcore for a port\n");
+		cli_printf("    The initial lcore is %d\n", pg_get_initial_lcore());
 		exit(-1);
 	}
 
@@ -488,7 +488,7 @@ main(int argc, char **argv)
 		pktgen_log_info("=== Display processing on lcore %d", rte_lcore_id());
 	}
 
-	/* launch per-lcore init on every lcore except master and master + 1 lcores */
+	/* launch per-lcore init on every lcore except initial and initial + 1 lcores */
 	ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MASTER);
 	if (ret != 0)
 		pktgen_log_error("Failed to start lcore %d, return %d", i, ret);

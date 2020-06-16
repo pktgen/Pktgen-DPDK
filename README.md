@@ -257,7 +257,7 @@ Here is an example of the default.cfg file:
 	    'log': '7',
 	    'prefix': 'pg',
 
-	    'blacklist': (
+	    'blocklist': (
 		#'81:00.0', '81:00.1', '81:00.2', '81:00.3',
 		#'83:00.0', '83:00.1', '83:00.2', '83:00.3',
 		'81:00.2', '81:00.3',
@@ -300,18 +300,18 @@ EAL common options:
                       ',' is used for single number separator.
                       '( )' can be omitted for single element group,
                       '@' can be omitted if cpus and lcores have the same value
-  --master-lcore ID   Core ID that is used as master
+  --initial-lcore ID   Core ID that is used as initial
   -n CHANNELS         Number of memory channels
   -m MB               Memory to allocate (see also --socket-mem)
   -r RANKS            Force number of memory ranks (don't detect)
-  -b, --pci-blacklist Add a PCI device in black list.
+  -b, --pci-blocklist Add a PCI device in block list.
                       Prevent EAL from using this PCI device. The argument
                       format is <domain:bus:devid.func>.
-  -w, --pci-whitelist Add a PCI device in white list.
+  -w, --pci-allowlist Add a PCI device in allow list.
                       Only use the specified PCI devices. The argument format
                       is <[domain:]bus:devid.func>. This option can be present
                       several times (once per device).
-                      [NOTE: PCI whitelist cannot be used with -b option]
+                      [NOTE: PCI allowlist cannot be used with -b option]
   --vdev              Add a virtual device.
                       The argument format is <driver><id>[,key=val,...]
                       (ex: --vdev=net_pcap0,iface=eth2).
@@ -549,19 +549,19 @@ EAL:   probe driver: 8086:1572 net_i40e
 EAL: PCI device 0000:81:00.1 on NUMA socket 1
 EAL:   probe driver: 8086:1572 net_i40e
 EAL: PCI device 0000:81:00.2 on NUMA socket 1
-EAL:   Device is blacklisted, not initializing
+EAL:   Device is blocklisted, not initializing
 EAL: PCI device 0000:81:00.3 on NUMA socket 1
-EAL:   Device is blacklisted, not initializing
+EAL:   Device is blocklisted, not initializing
 EAL: PCI device 0000:83:00.0 on NUMA socket 1
-EAL:   Device is blacklisted, not initializing
+EAL:   Device is blocklisted, not initializing
 EAL: PCI device 0000:85:00.0 on NUMA socket 1
 EAL:   probe driver: 8086:1572 net_i40e
 EAL: PCI device 0000:85:00.1 on NUMA socket 1
 EAL:   probe driver: 8086:1572 net_i40e
 EAL: PCI device 0000:85:00.2 on NUMA socket 1
-EAL:   Device is blacklisted, not initializing
+EAL:   Device is blocklisted, not initializing
 EAL: PCI device 0000:85:00.3 on NUMA socket 1
-EAL:   Device is blacklisted, not initializing
+EAL:   Device is blocklisted, not initializing
 Lua 5.3.5  Copyright (C) 1994-2018 Lua.org, PUC-Rio
 
 *** Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
@@ -961,7 +961,7 @@ pktgen.set("all", "seqCnt", 1);
 ------------------------------------------------------------------------------------------
 -- Two Pktgens running on the same machine with connected via a loopback ports
 
-Look at the two new files pktgen-master.sh and pktgen-slave.sh for some help on
+Look at the two new files pktgen-initial.sh and pktgen-worker.sh for some help on
 the configuration to run two pktgens at the same time on the same machine.
 
 ------------------------------------------------------------------------------------------

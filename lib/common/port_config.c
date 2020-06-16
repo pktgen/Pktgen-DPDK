@@ -138,10 +138,10 @@ free_portdesc(uint8_t **portdesc, uint32_t num)
 
 /**************************************************************************//**
  *
- * create_blacklist - Create a port blacklist.
+ * create_blocklist - Create a port blocklist.
  *
  * DESCRIPTION
- * Create a port blacklist from the port and port descriptions.
+ * Create a port blocklist from the port and port descriptions.
  *
  * RETURNS: Number of ports in list.
  *
@@ -149,7 +149,7 @@ free_portdesc(uint8_t **portdesc, uint32_t num)
  */
 
 uint32_t
-create_blacklist(uint64_t portmask,
+create_blocklist(uint64_t portmask,
 		 struct rte_pci_addr *portlist,
 		 uint32_t port_cnt,
 		 uint8_t *desc[]) {
@@ -161,7 +161,7 @@ create_blacklist(uint64_t portmask,
 		return 0;
 
 	fprintf(stdout,
-		"Ports: Port Mask: %016" PRIx64 " blacklisted = --, not-blacklisted = ++\n",
+		"Ports: Port Mask: %016" PRIx64 " blocklisted = --, not-blocklisted = ++\n",
 		portmask);
 	idx = 0;
 	for (i = 0; i < port_cnt; i++) {
@@ -169,7 +169,7 @@ create_blacklist(uint64_t portmask,
 		if ( (portmask & (1ULL << i)) == 0) {
 			fprintf(stdout, "-- %s\n", desc[i]);
 			snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);
-			rte_eal_devargs_add(RTE_DEVTYPE_BLACKLISTED_PCI, pci_addr_str);
+			rte_eal_devargs_add(PG_DEVTYPE_BLOCKLISTED_PCI, pci_addr_str);
 			idx++;
 		} else {
 			snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);

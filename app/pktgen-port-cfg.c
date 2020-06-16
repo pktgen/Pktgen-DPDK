@@ -156,7 +156,7 @@ pktgen_config_ports(void)
 	memset(output_buff, 0, sizeof(output_buff));
 
 	/* Find out the total number of ports in the system. */
-	/* We have already blacklisted the ones we needed to in main routine. */
+	/* We have already blocklisted the ones we needed to in main routine. */
 	pktgen.nb_ports = pg_eth_dev_count_avail();
 	if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
 		pktgen.nb_ports = RTE_MAX_ETHPORTS;

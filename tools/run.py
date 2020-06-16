@@ -212,8 +212,8 @@ def run_cfg(cfg_file):
 	add_run_options('log', args, '--log-level')
 	add_run_options('prefix', args, '--file-prefix')
 	add_run_options('shared', args, '-d')
-	add_run_options('blacklist', args, '-b')
-	add_run_options('whitelist', args, '-w')
+	add_run_options('blocklist', args, '-b')
+	add_run_options('allowlist', args, '-w')
 	add_run_options('vdev', args, '--vdev')
 	add_run_options('plugin', args, '-d')
 	args.extend(["--"])
@@ -333,13 +333,16 @@ def setup_cfg(cfg_file):
 					 'echo %s > %s' % (nb_hugepages, fn)])
 
 	# locate the binding tool
-	if os.path.exists("%s/bin/dpdk-devbind.py" % sdk):
-		script = "%s/bin/dpdk-devbind.py" % sdk
+	if os.path.exists("/usr/local/bin/dpdk-devbind.py"):
+		script ="/usr/local/bin/dpdk-devbind.py"
 	else:
-		if os.path.exists("%s/usertools/dpdk-devbind.py" % sdk):
-			script = "%s/usertools/dpdk-devbind.py" % sdk
+		if os.path.exists("%s/bin/dpdk-devbind.py" % sdk):
+			script = "%s/bin/dpdk-devbind.py" % sdk
 		else:
-			err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")
+			if os.path.exists("%s/usertools/dpdk-devbind.py" % sdk):
+				script = "%s/usertools/dpdk-devbind.py" % sdk
+			else:
+				err_exit("Error: Failed to find dpdk-devbind.py or dpdk_nic_bind.py")
 
 	# build up the system command line to be executed
 	args = []

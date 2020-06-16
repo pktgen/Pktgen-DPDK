@@ -146,7 +146,7 @@ have 1024 hugepages per socket for a total of 2048.
 		-T -P -m "[12:16].0, [13:17].1, [14:18].2, [15:19].3" \
 		-f themes/black-yellow.theme
 
-Notice I black list the three onboard devices and then black list the
+Notice I block list the three onboard devices and then block list the
 other 4 ports I will not be using for each of the pktgen instances.
 
 I need 8+1 lcores for each instance for Pktgen use. The -c option of ff2
@@ -155,7 +155,7 @@ used because pktgen needs the first lcore for display and timers.
 
 The -m option then assigns lcores to the ports.
 
-The information from above is taken from two new files pktgen-master.sh
-and pktgen-slave.sh, have a look at them and adjust as you need.
+The information from above is taken from two new files pktgen-initial.sh
+and pktgen-worker.sh, have a look at them and adjust as you need.
 
 Pktgen can also be configured using the :ref:`commands`.

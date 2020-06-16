@@ -38,14 +38,14 @@ The full list of EAL arguments are::
      --huge-dir          : Directory where hugetlbfs is mounted
      --proc-type         : Type of this process
      --file-prefix       : Prefix for hugepage filenames
-     --pci-blacklist, -b : Add a PCI device in black list.
+     --pci-blocklist, -b : Add a PCI device in block list.
                            Prevent EAL from using this PCI device. The argument
                            format is <domain:bus:devid.func>.
-     --pci-whitelist, -w : Add a PCI device in white list.
+     --pci-allowlist, -w : Add a PCI device in allow list.
                            Only use the specified PCI devices. The argument
                            format is <[domain:]bus:devid.func>. This option
                            can be present several times (once per device).
-                           NOTE: PCI whitelist cannot be used with -b option
+                           NOTE: PCI allowlist cannot be used with -b option
      --vdev              : Add a virtual device.
                            The argument format is <driver><id>[,key=val,...]
                            (ex: --vdev=eth_pcap0,iface=eth2).

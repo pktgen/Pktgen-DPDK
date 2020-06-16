@@ -1214,9 +1214,9 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
 
-	if (lid == rte_get_master_lcore()) {
-		printf("Using %d master lcore for Rx/Tx\n", lid);
-		rte_exit(0, "using master lcore for port");
+	if (lid == pg_get_initial_lcore()) {
+		printf("Using %d initial lcore for Rx/Tx\n", lid);
+		rte_exit(0, "using initial lcore for port");
 	}
 	port_map_info(lid, infos, qids, &txcnt, &rxcnt, "RX/TX");
 
@@ -1314,9 +1314,9 @@ pktgen_main_tx_loop(uint8_t lid)
 	memset(infos, '\0', sizeof(infos));
 	memset(qids, '\0', sizeof(qids));
 
-	if (lid == rte_get_master_lcore()) {
-		printf("Using %d master lcore for Rx/Tx\n", lid);
-		rte_exit(0, "Invalid master lcore assigned a port");
+	if (lid == pg_get_initial_lcore()) {
+		printf("Using %d initial lcore for Rx/Tx\n", lid);
+		rte_exit(0, "Invalid initial lcore assigned a port");
 	}
 
 	port_map_info(lid, infos, qids, &txcnt, NULL, "TX");
@@ -1402,9 +1402,9 @@ pktgen_main_rx_loop(uint8_t lid)
 	port_info_t   *infos[RTE_MAX_ETHPORTS];
 
 	memset(infos, '\0', sizeof(infos));
-	if (lid == rte_get_master_lcore()) {
-		printf("Using %d master lcore for Rx/Tx\n", lid);
-		rte_exit(0, "using master lcore for ports");
+	if (lid == pg_get_initial_lcore()) {
+		printf("Using %d initial lcore for Rx/Tx\n", lid);
+		rte_exit(0, "using initial lcore for ports");
 	}
 
 	port_map_info(lid, infos, NULL, NULL, &rxcnt, "RX");
@@ -1613,6 +1613,6 @@ rte_timer_setup(void)
 
 	pthread_create(&tid, NULL, _timer_thread, this_scrn);
 
-	CPU_SET(rte_get_master_lcore(), cpuset);
+	CPU_SET(pg_get_initial_lcore(), cpuset);
 	pthread_setaffinity_np(tid, sizeof(cpuset), cpuset);
 }

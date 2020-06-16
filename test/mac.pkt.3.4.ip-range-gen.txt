@@ -2,9 +2,9 @@
 #
 # Contributed by gkenaley
 
-# /home/demo/Projects/pktgen-2.8.6/pktgen -c 0xee --master-lcore 1 -n 2 -m 1024 --proc-type auto --file-prefix pg -- -p 0x6 -m "[6:3].0,[7:2].1" -f ./mac.pkt.3.4.ip-range-gen
+# /home/demo/Projects/pktgen-2.8.6/pktgen -c 0xee --initial-lcore 1 -n 2 -m 1024 --proc-type auto --file-prefix pg -- -p 0x6 -m "[6:3].0,[7:2].1" -f ./mac.pkt.3.4.ip-range-gen
 #   OR
-#./app/app/${target}/pktgen -c 0xff --master-lcore 1 -n 4 -m 1024 --proc-type auto --file-prefix pg -- -P -T -p 0x3 -m "[6:3].0,[7:2].1" -f ./themes/black-yellow.theme -f ./mac.pkt.3.4.ip-range-gen
+#./app/app/${target}/pktgen -c 0xff --initial-lcore 1 -n 4 -m 1024 --proc-type auto --file-prefix pg -- -P -T -p 0x3 -m "[6:3].0,[7:2].1" -f ./themes/black-yellow.theme -f ./mac.pkt.3.4.ip-range-gen
 
 # seq   <seq#>   <portlist>  dst-Mac  src-Mac  dst-IP    src-IP/nm    sport   dport   ipv4|ipv6   udp|tcp|icmp   vid   pktsize
 

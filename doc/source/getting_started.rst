@@ -246,7 +246,7 @@ Here is the default.cfg file::
         '--file-prefix pg'
         ],
 
-    'blacklist': [
+    'blocklist': [
         #'-b 81:00.0 -b 81:00.1 -b 81:00.2 -b 81:00.3',
         #'-b 85:00.0 -b 85:00.1 -b 85:00.2 -b 85:00.3',
         '-b 81:00.0 -b 81:00.1',

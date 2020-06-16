@@ -448,7 +448,7 @@ pg_port_matrix_dump(l2p_t *l2p)
 		printf("port  %2d:", pid);
 		for (lid = first; lid <= last; lid++) {
 			cnt.rxtx = get_map(l2p, pid, lid);
-			if (lid == rte_get_master_lcore() )
+			if (lid == pg_get_initial_lcore() )
 				printf(" (%s:%s)", " D", " T");
 			else
 				printf(" (%2d:%2d)", cnt.rx, cnt.tx);
@@ -463,7 +463,7 @@ pg_port_matrix_dump(l2p_t *l2p)
 	}
 
 	printf("\n  Display and Timer on lcore %d, rx:tx counts per port/lcore\n\n",
-		rte_get_master_lcore());
+		pg_get_initial_lcore());
 
 	fflush(stdout);
 }

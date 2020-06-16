@@ -295,11 +295,11 @@ typedef struct pktgen_s {
 	int (*callout)(void *callout_arg);
 	void *callout_arg;
 
-	struct rte_pci_addr blacklist[RTE_MAX_ETHPORTS];
+	struct rte_pci_addr blocklist[RTE_MAX_ETHPORTS];
 	struct rte_pci_addr portlist[RTE_MAX_ETHPORTS];
 	uint8_t *portdesc[RTE_MAX_ETHPORTS];
 	uint32_t portdesc_cnt;
-	uint32_t blacklist_cnt;
+	uint32_t blocklist_cnt;
 
 	/* port to lcore mapping */
 	l2p_t *l2p;

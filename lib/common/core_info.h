@@ -9,6 +9,8 @@
 #ifndef _CORE_INFO_H
 #define _CORE_INFO_H
 
+#include <pg_compat.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,7 +25,7 @@ static __inline__ uint32_t
 lcore_mask(uint16_t *first, uint16_t *last) {
 	int32_t cnt, lid;
 
-	lid  = rte_get_master_lcore();
+	lid  = pg_get_initial_lcore();
 	if (first)
 		*first  = lid;
 

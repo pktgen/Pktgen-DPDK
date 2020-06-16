@@ -11,7 +11,7 @@ version = '3.2.4'
 release = version
 
 source_suffix = '.rst'
-master_doc = 'index'
+initial_doc = 'index'
 pygments_style = 'sphinx'
 html_theme = 'default'
 html_add_permalinks = ''

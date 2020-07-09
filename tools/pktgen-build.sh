@@ -16,22 +16,34 @@ currdir=`pwd`
 export sdk_dir="${PKTGEN_SDK:-$currdir}"
 export target_dir="${PKTGEN_TARGET:-usr}"
 export build_dir="${PKTGEN_BUILD_DIR:-Builddir}"
+export lua_enabled="-Denable_lua=false"
+export gui_enabled="-Denable_gui=false"
+
+if [[ -n ${enable_lua} ]]; then
+	export lua_enabled="-Denable_lua=true"
+fi
+if [[ -n ${enable_gui} ]]; then
+	export gui_enabled="-Denable_gui=true"
+fi
 
 build_path=$sdk_dir/$build_dir
 target_path=$sdk_dir/$target_dir
 
+echo ">>> lua_enabled      : '"$lua_enabled"'"
+echo ">>> gui_enabled      : '"$gui_enabled"'"
 echo ">>> SDK Directory    : '"$sdk_dir"'"
 echo ">>> Build Directory  : '"$build_path"'"
 echo ">>> Target Directory : '"$target_path"'"
 echo ""
 
-lua_enabled="-Denable_lua=false"
-gui_enabled="-Denable_gui=false"
+#lua_enabled="-Denable_lua=false"
+#gui_enabled="-Denable_gui=false"
 
 function run_meson() {
     btype="-Dbuildtype="$buildtype
 
-	meson $btype $lua_enabled $gui_enabled $build_dir
+    echo meson $btype $lua_enabled $gui_enabled $build_dir
+    meson $btype $lua_enabled $gui_enabled $build_dir
 }
 
 function ninja_build() {

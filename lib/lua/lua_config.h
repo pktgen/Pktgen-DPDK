@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 #ifdef LUA_ENABLED
+
 #if !defined(LUA_PROGNAME)
 #define LUA_PROGNAME		"lua-shell"
 #endif

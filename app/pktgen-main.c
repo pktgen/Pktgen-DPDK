@@ -18,8 +18,10 @@
 #include "pktgen-main.h"
 
 #include "pktgen.h"
+#ifdef LUA_ENABLED
 #include "lpktgenlib.h"
 #include "lauxlib.h"
+#endif
 #include "pktgen-cmds.h"
 #include "pktgen-cpu.h"
 #include "pktgen-display.h"

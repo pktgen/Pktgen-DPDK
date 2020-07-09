@@ -6,5 +6,3 @@ sources = files('plugin.c')
 headers = files('plugin.h')
 
 deps += ['common']
-
-ext_deps += cc.find_library('dl', required: true)

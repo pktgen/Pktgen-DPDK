@@ -8,19 +8,23 @@
 #ifndef LPKTGENLIB_H_
 #define LPKTGENLIB_H_
 
+#ifdef LUA_ENABLED
 #define lua_c
 #include <lua.h>
 #include <lauxlib.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifdef LUA_ENABLED
 #define LUA_PKTGENLIBNAME   "pktgen"
 #define PKTGEN_SHORTCUTS    "Pktgen"
 
 LUALIB_API int luaopen_pktgen(lua_State *L);
 void pktgen_lua_openlib(lua_State *L);
+#endif
 
 #ifdef __cplusplus
 }

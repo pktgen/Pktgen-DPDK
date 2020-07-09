@@ -7,9 +7,6 @@ default_cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	default_cflags += '-Wno-format-truncation'
 endif
-if get_option('enable_lua')
-    default_cflags += '-DLUA_ENABLED'
-endif
 
 # Set default cflags
 default_cflags += '-D_GNU_SOURCE'
@@ -29,7 +26,7 @@ foreach l:libraries
 
 	# use "deps" for internal Pktgen dependencies, and "ext_deps" for
 	# external package/library requirements
-	ext_deps = [dpdk_dep]
+	ext_deps = [global_deps]
 	deps = []
 
 	dir_name = l

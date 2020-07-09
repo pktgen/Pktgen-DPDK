@@ -12,10 +12,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "pktgen.h"
 #include "pktgen-port-cfg.h"
 #include "pktgen-cmds.h"
-#include "lauxlib.h"
 #include "cli_input.h"
 
 #define PKTGEN_GUI_MAX_STATS    22

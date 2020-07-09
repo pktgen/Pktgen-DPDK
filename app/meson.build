@@ -18,19 +18,10 @@ endif
 
 message('Process the app directory')
 
-lua_dir = '../lib/'
-lua_inc = include_directories(join_paths(lua_dir, 'lua'))
-lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
-
 cflags = machine_args
 if cc.has_argument('-Wno-format-truncation')
 	cflags += '-Wno-format-truncation'
 endif
-if get_option('enable_lua')
-    cflags += '-DLUA_ENABLED'
-endif
-
-cflags += '-DALLOW_EXPERIMENTAL_API'
 
 # set the major version, which might be used by drivers and libraries
 # depending on the configuration options
@@ -50,7 +41,7 @@ else
 	cflags += '-D__RELEASE=99'
 endif
 
-deps = [dpdk_dep]
+deps = [global_deps]
 
 deps += [get_variable('static_pktgen_common')]
 deps += [get_variable('static_pktgen_lua')]
@@ -59,24 +50,10 @@ deps += [get_variable('static_pktgen_utils')]
 deps += [get_variable('static_pktgen_vec')]
 deps += [get_variable('static_pktgen_cli')]
 
-if get_option('enable_gui')
-    deps += dependency('glib-2.0', required: true)
-    deps += dependency('gtk+-2.0', required: true)
-    cflags += '-Wno-deprecated-declarations'
-    cflags += '-DGUI'
-endif
-
 deps += [dependency('threads')]
-if get_option('enable_lua')
-	deps += [cc.find_library('lua', required: true)]
-endif
-deps += [cc.find_library('numa', required: true)]
-deps += [cc.find_library('pcap', required: true)]
-deps += [cc.find_library('dl', required: false)]
-deps += [cc.find_library('m', required: false)]
 
 pktgen = executable('pktgen',
 		sources,
-		c_args: [cflags, '-pthread'],
+		c_args: cflags,
 		install: true,
 		dependencies: deps)

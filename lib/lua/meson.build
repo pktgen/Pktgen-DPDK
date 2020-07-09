@@ -24,9 +24,6 @@ if get_option('enable_lua')
 		'lua_utils.h',
 		'lua_vec.h')
 	deps += ['common', 'vec']
-
-	ext_deps += cc.find_library('lua5.3', required: true)
-	ext_deps += cc.find_library('pthread', required: true)
 else
 	sources = files('lua_config.c')
 	headers = files('lua_config.h')

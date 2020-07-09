@@ -71,6 +71,12 @@ ninja -C build
 sudo ninja -C build install
 ```
 
+DPDK places the libdpdk.pc (pkg-config file) in a non-standard location and you need to set enviroment variable PKG_CONFIG_PATH to the location of the file. On Ubuntu 20.04 build of DPDK it places the file here /usr/local/lib/x86_64-linux-gnu/pkgconfig/libdpdk.pc
+
+```console
+$ export PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig
+```
+
 Building Pktgen after you have built and installed DPDK. The new build system uses meson/ninja, but Pktgen has a build script
 called 'tools/pktgen-build.sh' and uses a very simple Makefile to help build Pktgen without having to fully understand meson/ninja command line.
 

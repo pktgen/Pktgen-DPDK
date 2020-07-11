@@ -11,23 +11,17 @@
 
 Build=./tools/pktgen-build.sh
 
-
-all: FORCE
-	${Build} build
-
 build: FORCE
 	${Build} build
 
 rebuild: FORCE
-	${Build} clean
-	${Build} build
+	${Build} clean build
 
 buildgui: FORCE
 	${Build} buildgui
 
 rebuildgui: FORCE
-	${Build} clean
-	${Build} buildgui
+	${Build} clean buildgui
 
 debug: FORCE
 	${Build} debug

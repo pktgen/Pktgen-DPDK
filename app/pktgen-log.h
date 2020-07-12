@@ -42,7 +42,7 @@ extern "C" {
 #define pktgen_log_trace(fmt, ...) pktgen_log(LOG_LEVEL_TRACE, \
 					      __FILE__,	\
 					      __LINE__,	\
-					      __FUNCTION__, \
+					      __func__, \
 					      fmt, \
 					      ## __VA_ARGS__)
 #else
@@ -53,7 +53,7 @@ extern "C" {
 #define pktgen_log_debug(fmt, ...) pktgen_log(LOG_LEVEL_DEBUG, \
 					      __FILE__,	\
 					      __LINE__,	\
-					      __FUNCTION__, \
+					      __func__, \
 					      fmt, \
 					      ## __VA_ARGS__)
 #else
@@ -64,7 +64,7 @@ extern "C" {
 #define pktgen_log_info(fmt, ...) pktgen_log(LOG_LEVEL_INFO, \
 					     __FILE__, \
 					     __LINE__, \
-					     __FUNCTION__, \
+					     __func__, \
 					     fmt, \
 					     ## __VA_ARGS__)
 #else
@@ -75,7 +75,7 @@ extern "C" {
 #define pktgen_log_warning(fmt, ...) pktgen_log(LOG_LEVEL_WARNING, \
 						__FILE__, \
 						__LINE__, \
-						__FUNCTION__, \
+						__func__, \
 						fmt, \
 						## __VA_ARGS__)
 #else
@@ -86,7 +86,7 @@ extern "C" {
 #define pktgen_log_error(fmt, ...) pktgen_log(LOG_LEVEL_ERROR, \
 					      __FILE__,	\
 					      __LINE__,	\
-					      __FUNCTION__, \
+					      __func__, \
 					      fmt, \
 					      ## __VA_ARGS__)
 #else
@@ -95,7 +95,7 @@ extern "C" {
 
 #if LOG_LEVEL <= LOG_LEVEL_PANIC
 #define pktgen_log_panic(fmt, ...) do {					       \
-		pktgen_log(LOG_LEVEL_PANIC, __FILE__, __LINE__, __FUNCTION__,	       \
+		pktgen_log(LOG_LEVEL_PANIC, __FILE__, __LINE__, __func__,	       \
 			   fmt, ## __VA_ARGS__);					   \
 		rte_panic(fmt "\n", ## __VA_ARGS__);						\
 } while (0)

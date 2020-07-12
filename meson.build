@@ -1,7 +1,12 @@
 project('pktgen', 'C',
    	version: run_command(find_program('cat', 'more'), files('VERSION')).stdout().strip(),
 	license: 'BSD',
-	default_options: ['buildtype=release', 'default_library=static'],
+	default_options: [
+		'buildtype=release',
+		'default_library=static',
+		'warning_level=3',
+		'werror=true'
+	],
 	meson_version: '>= 0.47.1'
 )
 
@@ -23,6 +28,35 @@ global_deps = []
 
 pver = meson.project_version().split('.')
 major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
+
+# enable extra warnings and disable any unwanted warnings
+warning_flags = [
+	# additional warnings in alphabetical order
+	'-Wno-pedantic',
+	'-Wcast-qual',
+	'-Wdeprecated',
+	'-Wformat-nonliteral',
+	'-Wformat-security',
+	'-Wmissing-declarations',
+	'-Wmissing-prototypes',
+	'-Wnested-externs',
+	'-Wold-style-definition',
+	'-Wpointer-arith',
+	'-Wsign-compare',
+	'-Wstrict-prototypes',
+	'-Wundef',
+	'-Wwrite-strings',
+
+	# globally disabled warnings
+	'-Wno-address-of-packed-member',
+	'-Wno-packed-not-aligned',
+	'-Wno-missing-field-initializers'
+]
+foreach arg: warning_flags
+	if cc.has_argument(arg)
+		add_project_arguments(arg, language: 'c')
+	endif
+endforeach
 
 add_project_arguments('-include', 'rte_config.h', language: 'c')
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')

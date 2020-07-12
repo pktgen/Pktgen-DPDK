@@ -257,7 +257,7 @@ heap_dump(FILE *f, heap_t *heap)
 		return;
 	}
 
-	fprintf(f, "  Free Header       = %p\n", heap);
+	fprintf(f, "  Free Header       = %p\n", (void *)heap);
 	fprintf(f, "  Address of Heap   = %p\n", heap->addr);
 	fprintf(f, "  Total free space  = %lu\n", heap->total_space);
 

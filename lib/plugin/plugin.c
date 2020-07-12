@@ -118,6 +118,9 @@ plugin_find_inst(struct plugin *pin)
 	return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
 /**
  * Routine to search for and open a plugin.
  *

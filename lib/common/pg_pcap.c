@@ -78,7 +78,7 @@ _pcap_open(char *filename, uint16_t port)
 	pcap_info_t   *pcap = NULL;
 
 	if (filename == NULL) {
-		printf("%s: filename is NULL\n", __FUNCTION__);
+		printf("%s: filename is NULL\n", __func__);
 		goto leave;
 	}
 
@@ -88,20 +88,20 @@ _pcap_open(char *filename, uint16_t port)
 					 rte_socket_id());
 	if (pcap == NULL) {
 		printf("%s: malloc failed for pcap_info_t structure\n",
-		       __FUNCTION__);
+		       __func__);
 		goto leave;
 	}
 	memset((char *)pcap, 0, sizeof(pcap_info_t));
 
 	pcap->fd = fopen((const char *)filename, "r");
 	if (pcap->fd == NULL) {
-		printf("%s: failed for (%s)\n", __FUNCTION__, filename);
+		printf("%s: failed for (%s)\n", __func__, filename);
 		goto leave;
 	}
 
 	if (fread(&pcap->info, 1, sizeof(pcap_hdr_t),
 		  pcap->fd) != sizeof(pcap_hdr_t) ) {
-		printf("%s: failed to read the file header\n", __FUNCTION__);
+		printf("%s: failed to read the file header\n", __func__);
 		goto leave;
 	}
 
@@ -112,7 +112,7 @@ _pcap_open(char *filename, uint16_t port)
 	/* Make sure we have a valid PCAP file for Big or Little Endian formats. */
 	if ( (pcap->info.magic_number != PCAP_MAGIC_NUMBER) &&
 	     (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER)) ) {
-		printf("%s: Magic Number does not match!\n", __FUNCTION__);
+		printf("%s: Magic Number does not match!\n", __func__);
 		fflush(stdout);
 		goto leave;
 	}

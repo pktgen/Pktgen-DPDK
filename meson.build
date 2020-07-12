@@ -3,7 +3,12 @@ project('pktgen', 'C',
         files('VERSION')).stdout().strip(),
 
 	license: 'BSD',
-	default_options: ['buildtype=release', 'default_library=static'],
+	default_options: [
+		'buildtype=release',
+		'default_library=static',
+		'warning_level=3',
+		'werror=true'
+	],
 	meson_version: '>= 0.47.1'
 )
 

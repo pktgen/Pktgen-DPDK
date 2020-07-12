@@ -118,6 +118,9 @@ plugin_find_inst(struct plugin *pin)
 	return -1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
 /**
  * Routine to search for and open a plugin.
  *
@@ -150,6 +153,7 @@ plugin_open(struct plugin *pin)
 	}
 	return -1;
 }
+#pragma GCC diagnostic pop
 
 int
 plugin_get_symbol(struct plugin *pin, const char *sym, char **ret)

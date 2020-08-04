@@ -2462,6 +2462,71 @@ pktgen_txtap(lua_State *L)
 	return 0;
 }
 
+
+/**************************************************************************//**
+ *
+ * pktgen_latsampler_params - Set latency sampler params.
+ *
+ * DESCRIPTION
+ * Set latency sampler params.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_latsampler_params(lua_State *L)
+{
+    portlist_t portlist;
+
+    switch (lua_gettop(L) ) {
+    default: return luaL_error(L, "latsampler_params, wrong number of arguments");
+    case 5:
+        break;
+    }
+    portlist_parse(luaL_checkstring(L, 1), &portlist);
+
+    foreach_port(portlist,
+             single_set_latsampler_params(info, (char *)luaL_checkstring(L, 2), 
+                 (uint32_t)luaL_checkinteger(L, 3), (uint32_t)luaL_checkinteger(L, 4), (char *)luaL_checkstring(L, 5)));
+
+    pktgen_update_display();
+    return 0;
+}
+
+
+/**************************************************************************//**
+ *
+ * pktgen_latsampler - Enable or Disable latency sampler.
+ *
+ * DESCRIPTION
+ * Enable or disable latency sampler.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_latsampler(lua_State *L)
+{
+    portlist_t portlist;
+
+    switch (lua_gettop(L) ) {
+    default: return luaL_error(L, "latsampler, wrong number of arguments");
+    case 2:
+        break;
+    }
+    portlist_parse(luaL_checkstring(L, 1), &portlist);
+
+    foreach_port(portlist,
+             pktgen_start_stop_latency_sampler(info, estate((char *)luaL_checkstring(L, 2))));
+
+    pktgen_update_display();
+    return 0;
+}
+
 /**************************************************************************//**
  *
  * pktgen_garp - Enable or Disable GARP packet processing.
@@ -3666,6 +3731,9 @@ static const luaL_Reg pktgenlib[] = {
 	{"rxtap",         pktgen_rxtap},		/* enable or disable rxtap */
 	{"txtap",         pktgen_txtap},		/* enable or disable rxtap */
 
+    {"latsampler_params",	pktgen_latsampler_params},		/*set latency sampler params */
+    {"latsampler",	pktgen_latsampler},		/* enable or disable latency sampler */
+	
 	{NULL, NULL}
 };
 

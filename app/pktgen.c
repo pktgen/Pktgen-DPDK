@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 #include <time.h>
+#include <inttypes.h>
+#include <math.h>
 
 #include <pg_delay.h>
 #include <rte_lcore.h>
@@ -35,6 +37,11 @@
 #include <pthread.h>
 #include <sched.h>
 
+
+double next_poisson_time(double rateParameter)
+{
+    return -logf(1.0f - ((double) random()) / (double) (RAND_MAX)) / rateParameter;
+}
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
@@ -336,40 +343,75 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
 	uint32_t flags;
 	int32_t seq_idx;
+    int lid = rte_lcore_id();
+    int qid = get_rxque(pktgen.l2p, lid, info->pid);
+    int i;
+    uint64_t lat, jitter;
 
-	flags = rte_atomic32_read(&info->port_flags);
+    flags = rte_atomic32_read(&info->port_flags);
 
-	if (flags & SEND_RANGE_PKTS)
-		seq_idx = RANGE_PKT;
-	else if (flags & SEND_RATE_PACKETS)
-		seq_idx = RATE_PKT;
-	else
-		seq_idx = SINGLE_PKT;
+    if (flags & SEND_RANGE_PKTS)
+        seq_idx = RANGE_PKT;
+    else if (flags & SEND_RATE_PACKETS)
+        seq_idx = RATE_PKT;
+    else
+        seq_idx = SINGLE_PKT;
 
-	if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS)) {
-		int i;
-		uint64_t lat, jitter;
+    for (i = 0; i < nb_pkts; i++) {
 
-		for (i = 0; i < nb_pkts; i++) {
+        if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES)) {
 			tstamp_t *tstamp;
 			tstamp = pktgen_tstamp_pointer(info, pkts[i], seq_idx);
 
 			if (tstamp->magic == TSTAMP_MAGIC) {
 				lat = (rte_rdtsc_precise() - tstamp->timestamp);
-				info->avg_latency += lat;
-				if (lat > info->prev_latency)
-					jitter = lat - info->prev_latency;
-				else
-					jitter = info->prev_latency - lat;
-				if (lat > info->max_latency)
-					info->max_latency = lat;
-				if (jitter > info->jitter_threshold_clks)
-					info->jitter_count++;
-				info->prev_latency = lat;
+				
+                if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS))
+                {
+					info->avg_latency += lat;
+					if (lat > info->prev_latency)
+						jitter = lat - info->prev_latency;
+					else
+						jitter = info->prev_latency - lat;
+					if (lat > info->max_latency)
+						info->max_latency = lat;
+					if (jitter > info->jitter_threshold_clks)
+						info->jitter_count++;
+					info->prev_latency = lat;
+					}
+                else if (flags & (SAMPLING_LATENCIES))
+                {
+                    /* Record latency if it's time for sampling (seperately per lcore) */
+                    latsamp_stats_t* stats = &info->latsamp_stats[qid];
+                    uint64_t now = rte_rdtsc_precise();
+                    stats->pkt_counter++;
+                    if (stats->next == 0 || now >= stats->next) {
+                        if (stats->idx < stats->num_samples) {
+                            // stats->data[stats->idx] = lat;
+                            stats->data[stats->idx] = lat * 1000000000 / rte_get_tsc_hz();		/* Do we want to keep it as cycles? */
+                            stats->idx++;
+                        }
+
+                        /* Calculate next sampling point TODO: Use poisson */
+                        if (info->latsamp_type == LATSAMPLER_POISSON){
+                            // TODO: Write poisson
+                            double next_possion_time_ns = next_poisson_time(info->latsamp_rate);
+                            stats->next = now + next_possion_time_ns * (double) rte_get_tsc_hz();		// Time based
+                            //pktgen_log_warning("core %d, queue %d next poisson time %lf, ms: %lu", lid, qid, next_possion_time_ns, stats->next*1000/rte_get_tsc_hz());
+                        }
+                        else 
+                        {	// LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
+                            stats->next = now + rte_get_tsc_hz()/info->latsamp_rate;		// Time based
+                            // stats->next = stats->pkt_counter + info->latsamp_rate;		// Packet count based
+                        }
+                    }
+                }
+
 			} else
 				info->magic_errors++;
-		}
-		info->latency_nb_pkts += nb_pkts;
+            
+            info->latency_nb_pkts++;
+        }
 	}
 }
 

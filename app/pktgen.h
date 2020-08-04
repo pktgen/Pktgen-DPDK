@@ -397,6 +397,7 @@ void pktgen_input_start(void);
 void stat_timer_dump(void);
 void stat_timer_clear(void);
 void rte_timer_setup(void);
+double next_poisson_time(double rateParameter);
 
 typedef struct {
 	uint64_t timestamp;
@@ -471,6 +472,9 @@ estate(const char *state) {
 		 !strcasecmp(state, "start") ) ?
 	       ENABLE_STATE : DISABLE_STATE;
 }
+
+/* LatSampler types */
+enum { LATSAMPLER_UNSPEC= 0, LATSAMPLER_SIMPLE = 1, LATSAMPLER_POISSON = 2 } ;
 
 /**
  * Function returning string of version number: "- Version:x.y.x (DPDK-x.y.z)"

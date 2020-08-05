@@ -727,6 +727,12 @@ start_stop_cmd(int argc, char **argv)
 				foreach_port(portlist,
 				     pktgen_send_arp_requests(info, 0) );
 			break;
+        case 60:
+            foreach_port(portlist, pktgen_start_latency_sampler(info));
+            break;
+        case 70:
+            foreach_port(portlist, pktgen_stop_latency_sampler(info));
+            break;
 		default:
 			return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
 	}

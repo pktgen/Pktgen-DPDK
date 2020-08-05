@@ -193,7 +193,6 @@ typedef struct {
 
 typedef struct {
     uint64_t data[MAX_LATENCY_ENTRIES];		/** Record for latencies */	
-    uint8_t cfgid[MAX_LATENCY_ENTRIES];		/** Pktcfg id of each latency sampled, if applicable */	
     uint32_t idx;							/**< Index to the latencies array */
     uint64_t next;							/**< Next latency entry */
     uint64_t pkt_counter;					/**< Pkt counter */

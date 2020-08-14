@@ -31,6 +31,8 @@ extern "C" {
 
 #define MAX_PORT_DESC_SIZE  132
 #define USER_PATTERN_SIZE   16
+#define MAX_LATENCY_ENTRIES 50100		// Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
+#define MAX_LATENCY_QUEUES 	10
 
 typedef struct port_sizes_s {
 	uint64_t _64;		/**< Number of 64 byte packets */
@@ -84,6 +86,8 @@ enum {						/* Per port flag bits */
 
 	SEND_GRE_ETHER_HEADER   = (1 << 24),	/**< Encapsulate Ethernet frame in GRE */
 	SEND_VXLAN_PACKETS      = (1 << 25),	/**< Send VxLAN Packets */
+
+    SAMPLING_LATENCIES		= (1 << 26),	/**< Sampling latency measurements> */
 
 	/* Sending flags */
 	SENDING_PACKETS         = (1 << 30),	/**< sending packets on this port */
@@ -186,6 +190,14 @@ typedef struct {
 	uint64_t	cycles_per_pkt;
 	uint64_t	next_tsc;
 } rate_info_t;
+
+typedef struct {
+    uint64_t data[MAX_LATENCY_ENTRIES];		/** Record for latencies */	
+    uint32_t idx;							/**< Index to the latencies array */
+    uint64_t next;							/**< Next latency entry */
+    uint64_t pkt_counter;					/**< Pkt counter */
+    uint32_t num_samples;
+} latsamp_stats_t __rte_cache_aligned;
 
 typedef struct port_info_s {
 	uint16_t pid;		/**< Port ID value */
@@ -295,6 +307,16 @@ typedef struct port_info_s {
 	struct rte_eth_dev_info dev_info;	/**< PCI info + driver name */
 	char user_pattern[USER_PATTERN_SIZE];	/**< User set pattern values */
 	fill_t fill_pattern_type;		/**< Type of pattern to fill with */
+	    
+    /* Latency sampling data */
+    /* Depending on MAX_LATENCY_ENTRIES, this could blow up static array memory usage 
+     * over the limit allowed by x86_64 architecture */ 
+    latsamp_stats_t latsamp_stats[MAX_LATENCY_QUEUES];	/**< Per core stats */
+    uint32_t latsamp_type;								/**< Type of lat sampler  */
+    uint32_t latsamp_rate;								/**< Sampling rate i.e., samples per second  */
+    uint32_t latsamp_num_samples;						/**< Number of samples to collect  */
+    char latsamp_outfile[256];							/**< Path to file for dumping latency samples */
+
 } port_info_t;
 
 struct vxlan {

@@ -45,6 +45,9 @@ void pktgen_screen(int state);
 void pktgen_force_update(void);
 void pktgen_update_display(void);
 void pktgen_clear_display(void);
+void pktgen_start_stop_latency_sampler(port_info_t *info, uint32_t state);
+void pktgen_start_latency_sampler(port_info_t *info);
+void pktgen_stop_latency_sampler(port_info_t *info);
 
 int pktgen_save(char *path);
 void pktgen_cls(void);
@@ -89,6 +92,8 @@ void single_set_qinqids(port_info_t *info,
 			       uint16_t innerid);
 void single_set_vxlan(port_info_t *info, uint16_t flags,
 		uint16_t group_id, uint32_t vxlan_id);
+void single_set_latsampler_params(port_info_t *info, char* type, 
+		uint32_t num_samples, uint32_t sampling_rate, char outfile[]);	
 
 /* Rate */
 char *rate_transmit_count_rate(int port, char *buff, int len);

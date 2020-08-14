@@ -474,7 +474,7 @@ estate(const char *state) {
 }
 
 /* LatSampler types */
-enum { LATSAMPLER_UNSPEC= 0, LATSAMPLER_SIMPLE = 1, LATSAMPLER_POISSON = 2 } ;
+enum { LATSAMPLER_UNSPEC, LATSAMPLER_SIMPLE, LATSAMPLER_POISSON } ;
 
 /**
  * Function returning string of version number: "- Version:x.y.x (DPDK-x.y.z)"

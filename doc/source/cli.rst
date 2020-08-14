@@ -1,1 +1,1 @@
-../../lib/cli/cli.rst
+/work/projects/intel/pktgen/lib/cli/cli.rst

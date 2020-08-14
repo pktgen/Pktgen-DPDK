@@ -37,13 +37,13 @@
 #include <pthread.h>
 #include <sched.h>
 
+/* Allocated the pktgen structure for global use */
+pktgen_t pktgen;
 
 double next_poisson_time(double rateParameter)
 {
     return -logf(1.0f - ((double) random()) / (double) (RAND_MAX)) / rateParameter;
 }
-/* Allocated the pktgen structure for global use */
-pktgen_t pktgen;
 
 /**************************************************************************//**
  *
@@ -348,14 +348,14 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
     int i;
     uint64_t lat, jitter;
 
-    flags = rte_atomic32_read(&info->port_flags);
+	flags = rte_atomic32_read(&info->port_flags);
 
-    if (flags & SEND_RANGE_PKTS)
-        seq_idx = RANGE_PKT;
-    else if (flags & SEND_RATE_PACKETS)
-        seq_idx = RATE_PKT;
-    else
-        seq_idx = SINGLE_PKT;
+	if (flags & SEND_RANGE_PKTS)
+		seq_idx = RANGE_PKT;
+	else if (flags & SEND_RATE_PACKETS)
+		seq_idx = RATE_PKT;
+	else
+		seq_idx = SINGLE_PKT;
 
     for (i = 0; i < nb_pkts; i++) {
 
@@ -369,7 +369,7 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                 if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS))
                 {
 					info->avg_latency += lat;
-					if (lat > info->prev_latency)
+				    if (lat > info->prev_latency)
 						jitter = lat - info->prev_latency;
 					else
 						jitter = info->prev_latency - lat;

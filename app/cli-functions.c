@@ -405,7 +405,7 @@ static struct cli_map set_map[] = {
 	{ 70, "set %P cos %d" },
 	{ 80, "set %P tos %d" },
 	{ 90, "set %P vxlan %h %d %d" },
-    { 100, "set %P latsampler %simple|poisson %d %d %s" },
+    { 100, "set %P latsampler %|simple|poisson %d %d %s" },
 	{ -1, NULL }
 };
 

@@ -1585,11 +1585,6 @@ pktgen_start_latency_sampler(port_info_t *info)
         return;
     }
 
-    // if (pktgen_tst_port_flags(info, SENDING_PACKETS) == 0) {
-    // 	pktgen_log_warning("Start sending packets to enable latency collection!");
-    // 	return;
-    // }
-
     if (info->latsamp_rate == 0 || 
         info->latsamp_outfile == NULL || 
         info->latsamp_type == LATSAMPLER_UNSPEC ||
@@ -1604,8 +1599,7 @@ pktgen_start_latency_sampler(port_info_t *info)
         return;
     }
 
-    for (q = 0; q < rxq; q++)
-    {
+    for (q = 0; q < rxq; q++) {
         info->latsamp_stats[q].pkt_counter = 0;
         info->latsamp_stats[q].next = 0;
         info->latsamp_stats[q].idx = 0;
@@ -1613,17 +1607,14 @@ pktgen_start_latency_sampler(port_info_t *info)
         pktgen_log_info("Assigning %d sample latencies to queue %d", info->latsamp_num_samples / rxq, q);
     }
 
-    if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+    if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
         info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
-    }
 
     info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
     pktgen_set_tx_update(info);
 
     /* Start sampling */
-    // pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
-    // pktgen_clr_port_flags(info, EXCLUSIVE_PKT_MODES);
     pktgen_set_port_flags(info, SAMPLING_LATENCIES);
 }
 
@@ -1656,14 +1647,11 @@ pktgen_stop_latency_sampler(port_info_t *info)
     /* Dump stats to file */
     outfile = fopen(info->latsamp_outfile, "w");
     if (outfile == NULL)
-    {
         pktgen_log_error("Cannot open the latcol outfile!");
-    }
     else {
         pktgen_log_info("Writing to file %s", info->latsamp_outfile);
         fprintf(outfile, "Latency\n");
-        for (q = 0, count = 0; q < rxq; q++)
-        {
+        for (q = 0, count = 0; q < rxq; q++) {
             pktgen_log_info("Writing sample latencies of queue %d", q);	
             for (i = 0; i < info->latsamp_stats[q].idx; i++){
                 fprintf(outfile,"%" PRIu64 "\n", info->latsamp_stats[q].data[i]); 
@@ -1675,17 +1663,15 @@ pktgen_stop_latency_sampler(port_info_t *info)
     }
 
     /* Reset stats data */
-    for (q = 0; q < rxq; q++)
-    {
+    for (q = 0; q < rxq; q++) {
         info->latsamp_stats[q].pkt_counter = 0;
         info->latsamp_stats[q].next = 0;
         info->latsamp_stats[q].idx = 0;
         info->latsamp_stats[q].num_samples = 0;
     }
     
-    if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+    if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
         info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
-    }
 
     info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
     pktgen_packet_ctor(info, SINGLE_PKT, -1);

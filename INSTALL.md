@@ -93,6 +93,13 @@ or
 make rebuild  # Rebuild Pktgen, which removes the Builddir then builds it again via meson/ninja
 
 # Use 'make help' to read the help message for building.
+
+# DPDK does not add a /etc/ld.so.conf.d/<dpdk-libs> like file. This means you may need to
+# edit /etc/ld.so.conf.d/x86_64-linux-gnu.conf file and add /usr/local/lib/x86_64-linux-gnu
+# Then do 'sudo ldconfig' to locate the DPDK libraries.
+
+# If you want to use vfio-pci then edit /etc/default/grub and add 'intel_iommu=on' to the LINUX default line
+# Then use 'update-grub' command then reboot the system.
 ```
 
 Editing the meson_options.txt can be done, but normally you should use a meson command line options to enable/disable options.
@@ -169,6 +176,13 @@ Next we build pktgen:
 
     # cd <PktgenInstallDir>
     # make -j
+
+For CentOS and pcap support you may need to try:
+For libpcap-devel
+
+    # yum install dnf-plugins-core
+    # yum config-manager --set-enabled PowerTools
+    # yum repolist
 
 You should now have pktgen built.
 

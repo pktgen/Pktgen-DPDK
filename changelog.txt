@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.08.0 - Add better latency support with saving the results to a file.
+             Updated the INSTALL.md to help building DPDK and Pktgen.
+             Number of minor bugs or cleanup.
  - 20.07.0 - Fix lua/gui builds to find the lua lib/headers on ubuntu 20.04
              Update the INSTALL text to locate DPDK pkg-config, this also fixes Lua (I hope in all cases)
  - 20.06.0 - Convert to using meson/ninja only builds.

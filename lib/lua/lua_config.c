@@ -189,7 +189,7 @@ lua_create_instance(void)
 	rte_mcfg_tailq_read_unlock();
 #endif
 
-	// Make sure we display the copyright string for Lua.
+	/*Make sure we display the copyright string for Lua.*/
 	lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
 	lua_writeline();
 

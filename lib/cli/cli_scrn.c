@@ -21,7 +21,7 @@
 #include "cli_scrn.h"
 #include "cli_input.h"
 
-RTE_DEFINE_PER_LCORE(struct cli_scrn *, scrn);
+struct cli_scrn *this_scrn;
 
 void
 __attribute__((format(printf, 3, 4)))
@@ -165,10 +165,9 @@ scrn_create(int scrn_type, int theme)
 	sigaction(SIGWINCH, &sa, NULL);
 
 	if (!scrn) {
-		scrn = malloc(sizeof(struct cli_scrn));
+		scrn = calloc(1, sizeof(struct cli_scrn));
 		if (!scrn)
 			return -1;
-		memset(scrn, 0, sizeof(struct cli_scrn));
 
 		this_scrn = scrn;
 	}

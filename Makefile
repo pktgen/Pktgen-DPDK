@@ -17,6 +17,9 @@ build: FORCE
 rebuild: FORCE
 	${Build} clean build
 
+buildlua: FORCE
+	${Build} buildlua
+
 buildgui: FORCE
 	${Build} buildgui
 

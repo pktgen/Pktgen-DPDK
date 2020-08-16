@@ -97,6 +97,7 @@ usage() {
 	echo "                running meson unless one of the meson.build files were changed"
 	echo "  build       - same as 'make' with no arguments"
 	echo "  buildgui    - same as 'make build' except enable gui build"
+	echo "  buildlua    - same as 'make build' except enable Lua build"
 	echo "  debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
 	echo "  debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
 	echo "  clean       - remove the '"$build_dir"' and '"$target_dir"' directories then exit"
@@ -119,7 +120,12 @@ do
 		;;
 
 	'buildgui')
-		gui_enabled="-Denable_qui=true"
+		gui_enabled="-Denable_gui=true"
+		ninja_build && ninja_install
+		;;
+
+	'buildlua')
+		gui_enabled="-Denable_lua=true"
 		ninja_build && ninja_install
 		;;
 

@@ -28,7 +28,7 @@
 static int
 server_startup(luaData_t *ld)
 {
-	char *err_msg = NULL;
+	const char *err_msg = NULL;
 	struct sockaddr_in ipaddr;
 	struct hostent *pHost;
 	int linger = 1;

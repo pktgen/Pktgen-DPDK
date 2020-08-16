@@ -151,8 +151,7 @@ struct cli_scrn {
 /** A single byte to hold port of a Red/Green/Blue color value */
 typedef uint8_t scrn_rgb_t;
 
-RTE_DECLARE_PER_LCORE(struct cli_scrn *, scrn);
-#define this_scrn		RTE_PER_LCORE(scrn)
+extern struct cli_scrn *this_scrn;
 
 /** Enable or disable the screen from being updated */
 enum { SCRN_SCRN_RUNNING = 0, SCRN_SCRN_PAUSED = 1 };

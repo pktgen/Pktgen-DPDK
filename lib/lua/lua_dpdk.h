@@ -205,14 +205,14 @@ getf_integer(lua_State *L, const char *field)
 	return value;
 }
 
-static __inline__ char *
+static __inline__ const char *
 getf_string(lua_State *L, const char *field)
 {
-	char      *value = NULL;
+	const char      *value = NULL;
 
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) )
-		value   = (char *)luaL_checkstring(L, -1);
+		value   = luaL_checkstring(L, -1);
 	lua_pop(L, 1);
 
 	return value;

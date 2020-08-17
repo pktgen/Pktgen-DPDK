@@ -13,6 +13,7 @@ import glob
 import types
 import importlib.machinery
 import importlib.util
+import shutil
 
 def usage():
         '''Print usage information for the program'''
@@ -141,6 +142,7 @@ def load_cfg(fname):
         print(cfg)
 
         configuration_file.close()
+        shutil.rmtree('cfg/__pycache__')
 
         return cfg
 

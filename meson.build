@@ -14,13 +14,20 @@ cc = meson.get_compiler('c')
 
 pktgen_shared_libraries = []
 pktgen_static_libraries = []
-machine_args = ['-mavx']
 
 pver = meson.project_version().split('.')
 major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
 
+add_project_arguments('-mavx', language: 'c')
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
+if cc.has_argument('-Wno-format-truncation')
+    add_project_arguments('-Wno-format-truncation', language: 'c')
+endif
+if get_option('enable_lua')
+    add_project_arguments('-DLUA_ENABLED', language: 'c')
+endif
+
 
 bsd_dep = dependency('libbsd', required: true)
 

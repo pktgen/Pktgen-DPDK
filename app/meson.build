@@ -22,21 +22,12 @@ lua_dir = '../lib/'
 lua_inc = include_directories(join_paths(lua_dir, 'lua'))
 lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
 
-cflags = machine_args
-if cc.has_argument('-Wno-format-truncation')
-	cflags += '-Wno-format-truncation'
-endif
-if get_option('enable_lua')
-    cflags += '-DLUA_ENABLED'
-endif
-
-cflags += '-DALLOW_EXPERIMENTAL_API'
-
 # set the major version, which might be used by drivers and libraries
 # depending on the configuration options
 pver = meson.project_version().split('.')
 major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
 
+cflags = []
 cflags += '-D__YEAR=' + pver.get(0)
 cflags += '-D__MONTH=' + pver.get(1)
 if pver.get(2).contains('-rc')
@@ -77,6 +68,6 @@ deps += [cc.find_library('m', required: false)]
 
 pktgen = executable('pktgen',
 		sources,
-		c_args: [cflags, '-pthread'],
+		c_args: cflags,
 		install: true,
 		dependencies: deps)

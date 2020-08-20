@@ -3,17 +3,6 @@
 
 libraries = ['common', 'utils', 'vec', 'plugin', 'cli', 'lua']
 
-default_cflags = machine_args
-if cc.has_argument('-Wno-format-truncation')
-	default_cflags += '-Wno-format-truncation'
-endif
-if get_option('enable_lua')
-    default_cflags += '-DLUA_ENABLED'
-endif
-
-# Set default cflags
-default_cflags += '-D_GNU_SOURCE'
-
 enabled_libs = []
 foreach l:libraries
 	build = true
@@ -23,7 +12,7 @@ foreach l:libraries
 	sources = []
 	headers = []
 	includes = []
-	cflags = default_cflags
+	cflags = []
 	objs = [] # other object files to link against, used e.g. for
 	          # instruction-set optimized versions of code
 

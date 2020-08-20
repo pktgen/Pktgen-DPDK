@@ -2,9 +2,6 @@
 # Copyright(c) 2017 Intel Corporation
 
 if get_option('enable_lua')
-	version = 1
-	allow_experimental_apis = true
-
 	sources = files(
 		'lua_config.c',
 		'lua_dapi.c',

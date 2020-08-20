@@ -7,7 +7,6 @@ enabled_libs = []
 foreach l:libraries
 	build = true
 	name = l
-	allow_experimental_apis = false
 	sources = []
 	includes = []
 	cflags = []
@@ -39,10 +38,6 @@ foreach l:libraries
 			endif
 			static_deps += [get_variable('static_pktgen_' + d)]
 		endforeach
-
-		if allow_experimental_apis
-			cflags += '-DALLOW_EXPERIMENTAL_API'
-		endif
 
 		# first build static lib
 		static_lib = static_library(libname,

@@ -12,7 +12,6 @@ pktgen_conf = configuration_data()
 # set up some global vars for compiler, platform, configuration, etc.
 cc = meson.get_compiler('c')
 
-pktgen_shared_libraries = []
 pktgen_static_libraries = []
 
 pver = meson.project_version().split('.')

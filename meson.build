@@ -19,7 +19,6 @@ machine_args = ['-mavx']
 pver = meson.project_version().split('.')
 major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
 
-add_project_arguments('-include', 'rte_config.h', language: 'c')
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
 

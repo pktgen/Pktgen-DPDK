@@ -32,42 +32,35 @@ foreach l:libraries
 		libname = name
 		includes += include_directories(dir_name)
 
-		if sources.length() == 0
-			message('    No sources in '+ libname)
-			# if no C files, just set a dependency on header path
-			shared_dep = declare_dependency(include_directories: includes)
-			static_dep = shared_dep
-		else
-			message('    Sources in '+ libname)
-			static_deps = ext_deps
-			foreach d:deps
-				if not is_variable('static_pktgen_' + d)
-					error('Missing dependency ' + d +
-						' for library ' + libname)
-				else
-					message('    === Found dependency ' + d)
-				endif
-				static_deps += [get_variable('static_pktgen_' + d)]
-			endforeach
-
-			if allow_experimental_apis
-				cflags += '-DALLOW_EXPERIMENTAL_API'
+		message('    Sources in '+ libname)
+		static_deps = ext_deps
+		foreach d:deps
+			if not is_variable('static_pktgen_' + d)
+				error('Missing dependency ' + d +
+					' for library ' + libname)
+			else
+				message('    === Found dependency ' + d)
 			endif
+			static_deps += [get_variable('static_pktgen_' + d)]
+		endforeach
 
-			# first build static lib
-			static_lib = static_library(libname,
-					sources,
-					objects: objs,
-					c_args: cflags,
-					dependencies: static_deps,
-					include_directories: includes,
-					install: true)
-			static_dep = declare_dependency(link_with: static_lib,
-					include_directories: includes,
-					dependencies: static_deps)
+		if allow_experimental_apis
+			cflags += '-DALLOW_EXPERIMENTAL_API'
+		endif
 
-			pktgen_static_libraries = [static_lib] + pktgen_static_libraries
-		endif # sources.length() > 0
+		# first build static lib
+		static_lib = static_library(libname,
+				sources,
+				objects: objs,
+				c_args: cflags,
+				dependencies: static_deps,
+				include_directories: includes,
+				install: true)
+		static_dep = declare_dependency(link_with: static_lib,
+				include_directories: includes,
+				dependencies: static_deps)
+
+		pktgen_static_libraries = [static_lib] + pktgen_static_libraries
 
 		set_variable('static_pktgen_' + libname, static_dep)
 	endif # if build

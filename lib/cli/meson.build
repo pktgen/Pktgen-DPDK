@@ -17,19 +17,4 @@ sources = files(
 	'cli_scrn.c',
 	'cli_search.c',
 	'cli_vt100.c')
-headers = files(
-	'cli_auto_complete.h',
-	'cli_cmap.h',
-	'cli_cmds.h',
-	'cli_common.h',
-	'cli_env.h',
-	'cli_file.h',
-	'cli_gapbuf.h',
-	'cli.h',
-	'cli_help.h',
-	'cli_history.h',
-	'cli_input.h',
-	'cli_map.h',
-	'cli_scrn.h',
-	'cli_search.h')
 deps += ['common', 'utils']

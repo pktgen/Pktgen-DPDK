@@ -3,7 +3,6 @@
 
 version = 1
 sources = files('plugin.c')
-headers = files('plugin.h')
 
 deps += ['common']
 

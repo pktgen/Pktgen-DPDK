@@ -3,11 +3,6 @@
 
 version = 1
 allow_experimental_apis = true
-headers = files(
-	'_atoip.h',
-	'link.h',
-	'portlist.h',
-	'heap.h')
 
 sources = files(
 	'_atoip.c',

@@ -9,7 +9,6 @@ foreach l:libraries
 	name = l
 	allow_experimental_apis = false
 	sources = []
-	headers = []
 	includes = []
 	cflags = []
 	objs = [] # other object files to link against, used e.g. for
@@ -26,9 +25,6 @@ foreach l:libraries
 
 	if build
 		enabled_libs += name
-		message('    Install Headers')
-		install_headers(headers)
-
 		libname = name
 		includes += include_directories(dir_name)
 

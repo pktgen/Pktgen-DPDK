@@ -11,22 +11,3 @@ sources = files(
 	'cksum.c',
 	'l2p.c'
 )
-
-headers = files(
-	'cksum.h',
-	'cmdline_parse_args.h',
-	'pg_compat.h',
-	'copyright_info.h',
-	'core_info.h',
-	'coremap.h',
-	'pg_delay.h',
-	'l2p.h',
-	'lscpu.h',
-	'mbuf.h',
-	'pg_pcap.h',
-	'pg_ether.h',
-	'pg_inet.h',
-	'port_config.h',
-	'pg_strings.h',
-	'utils.h'
-)

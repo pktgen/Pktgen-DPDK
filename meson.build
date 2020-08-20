@@ -12,9 +12,6 @@ pktgen_conf = configuration_data()
 # set up some global vars for compiler, platform, configuration, etc.
 cc = meson.get_compiler('c')
 
-pver = meson.project_version().split('.')
-major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
-
 add_project_arguments('-mavx', language: 'c')
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')
 add_project_arguments('-D_GNU_SOURCE', language: 'c')

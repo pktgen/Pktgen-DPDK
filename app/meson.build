@@ -22,24 +22,7 @@ lua_dir = '../lib/'
 lua_inc = include_directories(join_paths(lua_dir, 'lua'))
 lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
 
-# set the major version, which might be used by drivers and libraries
-# depending on the configuration options
-pver = meson.project_version().split('.')
-major_version = '@0@.@1@'.format(pver.get(0), pver.get(1))
-
-cflags = []
-cflags += '-D__YEAR=' + pver.get(0)
-cflags += '-D__MONTH=' + pver.get(1)
-if pver.get(2).contains('-rc')
-	rc_ver = pver.get(2).split('-rc')
-	cflags += '-D__MINOR=' + rc_ver.get(0)
-	cflags += '-D__SUFFIX="-rc"'
-	cflags += '-D__RELEASE=' + rc_ver.get(1)
-else
-	cflags += '-D__MINOR=' + pver.get(2)
-	cflags += '-D__SUFFIX=""'
-	cflags += '-D__RELEASE=99'
-endif
+cflags = ['-D__PROJECT_VERSION="' + meson.project_version() + '"']
 
 deps = [dpdk_dep]
 

@@ -35,15 +35,6 @@ subdir('app')
 
 subdir('doc')
 
-pkg = import('pkgconfig')
-pkg.generate(name: meson.project_name(),
-        filebase: 'lib' + meson.project_name().to_lower(),
-        version: meson.project_version(),
-        description: 'Pktgen a Data Plane Development Kit (DPDK) application.',
-        subdirs: '.',
-        extra_cflags: ['-include', 'rte_config.h'] + machine_args
-)
-
 # final output, list all the libs and drivers to be built
 # this does not affect any part of the build, for information only.
 output_message = '\n=================\nLibraries Enabled\n=================\n'

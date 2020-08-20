@@ -60,8 +60,6 @@ foreach l:libraries
 				include_directories: includes,
 				dependencies: static_deps)
 
-		pktgen_static_libraries = [static_lib] + pktgen_static_libraries
-
 		set_variable('static_pktgen_' + libname, static_dep)
 	endif # if build
 endforeach

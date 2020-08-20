@@ -6,4 +6,7 @@ sources = files(
 	'link.c',
 	'portlist.c',
 	'heap.c')
-deps += ['common']
+libutils = library('utils', sources,
+	dependencies: common)
+utils = declare_dependency(link_with: libutils,
+	include_directories: include_directories('.'))

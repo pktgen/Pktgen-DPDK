@@ -91,6 +91,10 @@
 
 #include <cli.h>
 
+#ifdef LUA_ENABLED
+#include <lua_config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

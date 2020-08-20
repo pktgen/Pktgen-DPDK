@@ -2,5 +2,7 @@
 # Copyright(c) 2020 Intel Corporation
 
 sources = files('vec.c')
-
-deps = ['utils']
+libvec = library('vec', sources,
+	dependencies: utils)
+vec = declare_dependency(link_with: libvec,
+	include_directories: include_directories('.'))

@@ -2,7 +2,7 @@
 # Copyright(c) 2018 Intel Corporation
 
 sources = files('plugin.c')
-
-deps += ['common']
-
-ext_deps += cc.find_library('dl', required: true)
+libplugin = library('plugin', sources,
+	dependencies: common)
+plugin = declare_dependency(link_with: libplugin,
+	include_directories: include_directories('.'))

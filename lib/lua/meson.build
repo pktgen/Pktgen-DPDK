@@ -11,10 +11,13 @@ if get_option('enable_lua')
 		'lua_stdio.c',
 		'lua_utils.c',
 		'lua_vec.c')
-	deps += ['common', 'vec']
-
-	ext_deps += cc.find_library('lua5.3', required: true)
-	ext_deps += cc.find_library('pthread', required: true)
+	liblua = library('lua', sources,
+		dependencies: [common, utils, vec,
+			cc.find_library('lua5.3', required: true)])
 else
 	sources = files('lua_config.c')
+	liblua = library('lua', sources)
 endif
+
+lua = declare_dependency(link_with: liblua,
+	include_directories: include_directories('.'))

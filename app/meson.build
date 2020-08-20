@@ -16,22 +16,9 @@ if get_option('enable_gui')
     )
 endif
 
-message('Process the app directory')
-
-lua_dir = '../lib/'
-lua_inc = include_directories(join_paths(lua_dir, 'lua'))
-lua = declare_dependency(include_directories: lua_inc, link_args: ['-L' + lua_dir, '-llua5.3'])
-
 cflags = ['-D__PROJECT_VERSION="' + meson.project_version() + '"']
 
-deps = [dpdk_dep]
-
-deps += [get_variable('static_pktgen_common')]
-deps += [get_variable('static_pktgen_lua')]
-deps += [get_variable('static_pktgen_plugin')]
-deps += [get_variable('static_pktgen_utils')]
-deps += [get_variable('static_pktgen_vec')]
-deps += [get_variable('static_pktgen_cli')]
+deps = [dpdk, common, utils, vec, plugin, cli, lua]
 
 if get_option('enable_gui')
     deps += dependency('glib-2.0', required: true)
@@ -41,9 +28,6 @@ if get_option('enable_gui')
 endif
 
 deps += [dependency('threads')]
-if get_option('enable_lua')
-	deps += [cc.find_library('lua', required: true)]
-endif
 deps += [cc.find_library('numa', required: true)]
 deps += [cc.find_library('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]

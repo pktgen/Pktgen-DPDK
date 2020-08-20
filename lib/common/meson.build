@@ -11,3 +11,7 @@ sources = files(
 	'cksum.c',
 	'l2p.c'
 )
+libcommon = library('common', sources,
+	dependencies: dpdk)
+common = declare_dependency(link_with: libcommon,
+	include_directories: include_directories('.'))

@@ -22,10 +22,7 @@ if get_option('enable_lua')
     add_project_arguments('-DLUA_ENABLED', language: 'c')
 endif
 
-
-bsd_dep = dependency('libbsd', required: true)
-
-dpdk_dep = dependency('libdpdk', required: true)
+dpdk = dependency('libdpdk', required: true)
 
 subdir('tools')
 
@@ -34,18 +31,3 @@ subdir('lib')
 subdir('app')
 
 subdir('doc')
-
-# final output, list all the libs and drivers to be built
-# this does not affect any part of the build, for information only.
-output_message = '\n=================\nLibraries Enabled\n=================\n'
-output_message += '\nlibs:\n\t'
-output_count = 0
-foreach lib:enabled_libs
-        output_message += lib + ', '
-        output_count += 1
-        if output_count == 8
-                output_message += '\n\t'
-                output_count = 0
-        endif
-endforeach
-message(output_message + '\n')

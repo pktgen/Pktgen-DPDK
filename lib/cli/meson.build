@@ -16,4 +16,7 @@ sources = files(
 	'cli_scrn.c',
 	'cli_search.c',
 	'cli_vt100.c')
-deps += ['common', 'utils']
+libcli = library('cli', sources,
+	dependencies: [common, utils])
+cli = declare_dependency(link_with: libcli,
+	include_directories: include_directories('.'))

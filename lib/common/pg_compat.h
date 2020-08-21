@@ -31,13 +31,8 @@ extern "C" {
 #define RTE_ETHER_MTU
 #endif
 
-#if RTE_VERSION >= RTE_VERSION_NUM(21,2,0,0)
-#define pg_get_initial_lcore    rte_get_initial_lcore
-#define PG_DEVTYPE_BLOCKLISTED_PCI RTE_DEVTYPE_BLOCKLISTED_PCI
-#else
 #define pg_get_initial_lcore    rte_get_master_lcore
 #define PG_DEVTYPE_BLOCKLISTED_PCI RTE_DEVTYPE_BLACKLISTED_PCI
-#endif
 
 #if RTE_VERSION >= RTE_VERSION_NUM(19,8,0,0)
 #define pg_ether_addr			rte_ether_addr

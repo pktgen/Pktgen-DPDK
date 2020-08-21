@@ -8,17 +8,15 @@
 #ifndef LPKTGENLIB_H_
 #define LPKTGENLIB_H_
 
-#ifdef LUA_ENABLED
-#define lua_c
-#include <lua.h>
-#include <lauxlib.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifdef LUA_ENABLED
+#define lua_c
+#include <lua.h>
+#include <lauxlib.h>
+
 #define LUA_PKTGENLIBNAME   "pktgen"
 #define PKTGEN_SHORTCUTS    "Pktgen"
 

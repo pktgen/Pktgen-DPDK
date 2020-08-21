@@ -80,11 +80,6 @@
 #include <lscpu.h>
 #include <utils.h>
 
-#ifdef LUA_ENABLED
-#include "lua_config.h"
-#include "lauxlib.h"
-#endif
-
 #include "pktgen-port-cfg.h"
 #include "pktgen-capture.h"
 #include "pktgen-log.h"

@@ -74,27 +74,6 @@ setf_integer(lua_State *L, const char *name, lua_Integer value)
 	lua_setfield(L, -2, name);
 }
 
-#if 0 /* not used */
-/**************************************************************************//**
- *
- * setf_integer - Helper routine to set Lua variables.
- *
- * DESCRIPTION
- * Helper routine to a set Lua variables.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-setf_function(lua_State *L, const char *name, lua_CFunction fn)
-{
-	lua_pushcclosure(L, fn, 0);
-	lua_setfield(L, -2, name);
-}
-#endif
-
 /**************************************************************************//**
  *
  * setf_string - Helper routine to set Lua variables.
@@ -113,47 +92,6 @@ setf_string(lua_State *L, const char *name, const char *value)
 	lua_pushstring(L, value);
 	lua_setfield(L, -2, name);
 }
-
-#if 0
-/**************************************************************************//**
- *
- * setf_stringLen - Helper routine to set Lua variables.
- *
- * DESCRIPTION
- * Helper routine to a set Lua variables.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-setf_stringLen(lua_State *L, const char *name, char *value, int len)
-{
-	lua_pushlstring(L, value, len);
-	lua_setfield(L, -2, name);
-}
-
-/**************************************************************************//**
- *
- * setf_udata - Helper routine to set Lua variables.
- *
- * DESCRIPTION
- * Helper routine to a set Lua variables.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static __inline__ void
-setf_udata(lua_State *L, const char *name, void *value)
-{
-	lua_pushlightuserdata(L, value);
-	lua_setfield(L, -2, name);
-}
-
-#endif
 
 static __inline__ void
 getf_etheraddr(lua_State *L, const char *field, struct pg_ether_addr *value)

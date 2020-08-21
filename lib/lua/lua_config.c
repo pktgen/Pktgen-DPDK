@@ -29,11 +29,7 @@
 #include "lua_config.h"
 #include "lua_stdio.h"
 #include "lua_utils.h"
-#else
-#include "lua_config.h"
-#endif
 
-#ifdef LUA_ENABLED
 TAILQ_HEAD(rte_luaData_list, rte_tailq_entry);
 
 static struct rte_tailq_elem rte_luaData_tailq = {

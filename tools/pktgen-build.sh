@@ -121,11 +121,12 @@ do
 
 	'buildgui')
 		gui_enabled="-Denable_gui=true"
+		lua_enabled="-Denable_lua=true"
 		ninja_build && ninja_install
 		;;
 
 	'buildlua')
-		gui_enabled="-Denable_lua=true"
+		lua_enabled="-Denable_lua=true"
 		ninja_build && ninja_install
 		;;
 

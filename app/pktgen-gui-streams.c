@@ -607,8 +607,8 @@ pktsize_enter_callback(GtkWidget *widget, gpointer *data)
 	entry_text = gtk_entry_get_text(GTK_ENTRY(widget));
 	size = atoi(entry_text);
 
-	if (( (size - PG_ETHER_CRC_LEN) < MIN_PKT_SIZE) ||
-	    ( (size - PG_ETHER_CRC_LEN) > MAX_PKT_SIZE)) {
+	if (( (size - PG_ETHER_CRC_LEN) < (unsigned int)MIN_PKT_SIZE) ||
+	    ( (size - PG_ETHER_CRC_LEN) > (unsigned int)MAX_PKT_SIZE)) {
 		GtkWidget *dialog;
 		dialog = gtk_message_dialog_new(
 		                GTK_WINDOW(stream_window),

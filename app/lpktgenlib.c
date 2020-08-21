@@ -3840,4 +3840,6 @@ pktgen_lua_openlib(lua_State *L)
 
 	lua_gc(L, LUA_GCRESTART, 0);
 }
+#else
+int dummy_data = 0;
 #endif

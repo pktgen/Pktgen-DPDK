@@ -17,12 +17,41 @@ pktgen_conf = configuration_data()
 # set up some global vars for compiler, platform, configuration, etc.
 cc = meson.get_compiler('c')
 
+add_project_arguments('-march=native', language: 'c')
 add_project_arguments('-mavx', language: 'c')
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
-if cc.has_argument('-Wno-format-truncation')
-    add_project_arguments('-Wno-format-truncation', language: 'c')
-endif
+
+# enable extra warnings and disable any unwanted warnings
+warning_flags = [
+	# additional warnings in alphabetical order
+	'-Wno-pedantic',
+	'-Wno-format-truncation',
+#	'-Wcast-qual',
+#	'-Wdeprecated',
+#	'-Wformat-nonliteral',
+#	'-Wformat-security',
+#	'-Wmissing-declarations',
+#	'-Wmissing-prototypes',
+#	'-Wnested-externs',
+#	'-Wold-style-definition',
+#	'-Wpointer-arith',
+#	'-Wsign-compare',
+#	'-Wstrict-prototypes',
+#	'-Wundef',
+#	'-Wwrite-strings',
+
+	# globally disabled warnings
+#	'-Wno-address-of-packed-member',
+#	'-Wno-packed-not-aligned',
+#	'-Wno-missing-field-initializers'
+]
+foreach arg: warning_flags
+	if cc.has_argument(arg)
+		add_project_arguments(arg, language: 'c')
+	endif
+endforeach
+
 if get_option('enable_lua')
     add_project_arguments('-DLUA_ENABLED', language: 'c')
 endif

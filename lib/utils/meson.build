@@ -3,7 +3,6 @@
 
 sources = files(
 	'_atoip.c',
-	'link.c',
 	'portlist.c',
 	'heap.c')
 libutils = library('utils', sources,

@@ -31,7 +31,7 @@ extern "C" {
 #define RTE_ETHER_MTU
 #endif
 
-#if RTE_VERSION >= RTE_VERSION_NUM(20,11,0,0)
+#if RTE_VERSION >= RTE_VERSION_NUM(21,2,0,0)
 #define pg_get_initial_lcore    rte_get_initial_lcore
 #define PG_DEVTYPE_BLOCKLISTED_PCI RTE_DEVTYPE_BLOCKLISTED_PCI
 #else

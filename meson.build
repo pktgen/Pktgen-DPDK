@@ -35,6 +35,22 @@ endforeach
 
 if get_option('enable_lua')
 	add_project_arguments('-DLUA_ENABLED', language: 'c')
+
+	lua_names = ['lua-5.3', 'lua5.3', 'lua-5.4', 'lua5.4']
+	foreach n:lua_names
+		lua_dep = dependency(n, required: false)
+		if not lua_dep.found()
+			lua_dep = cc.find_library(n, required: false)
+		endif
+		if lua_dep.found()
+			break
+		endif
+	endforeach
+	if not lua_dep.found()
+		error('unable to find Lua')
+	endif
+else
+	lua_dep = dependency('', required: false)
 endif
 
 dpdk = dependency('libdpdk', required: true)

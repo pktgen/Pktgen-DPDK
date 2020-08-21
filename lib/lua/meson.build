@@ -11,9 +11,9 @@ if get_option('enable_lua')
 		'lua_stdio.c',
 		'lua_utils.c',
 		'lua_vec.c')
+
 	liblua = library('lua', sources,
-		dependencies: [common, utils, vec,
-			cc.find_library('lua5.3', required: true)])
+		dependencies: [common, utils, vec, lua_dep])
 else
 	sources = files('lua_config.c')
 	liblua = library('lua', sources)

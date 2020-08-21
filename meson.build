@@ -24,27 +24,8 @@ add_project_arguments('-D_GNU_SOURCE', language: 'c')
 
 # enable extra warnings and disable any unwanted warnings
 warning_flags = [
-	# additional warnings in alphabetical order
 	'-Wno-pedantic',
 	'-Wno-format-truncation',
-#	'-Wcast-qual',
-#	'-Wdeprecated',
-#	'-Wformat-nonliteral',
-#	'-Wformat-security',
-#	'-Wmissing-declarations',
-#	'-Wmissing-prototypes',
-#	'-Wnested-externs',
-#	'-Wold-style-definition',
-#	'-Wpointer-arith',
-#	'-Wsign-compare',
-#	'-Wstrict-prototypes',
-#	'-Wundef',
-#	'-Wwrite-strings',
-
-	# globally disabled warnings
-#	'-Wno-address-of-packed-member',
-#	'-Wno-packed-not-aligned',
-#	'-Wno-missing-field-initializers'
 ]
 foreach arg: warning_flags
 	if cc.has_argument(arg)

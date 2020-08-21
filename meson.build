@@ -34,7 +34,7 @@ foreach arg: warning_flags
 endforeach
 
 if get_option('enable_lua')
-    add_project_arguments('-DLUA_ENABLED', language: 'c')
+	add_project_arguments('-DLUA_ENABLED', language: 'c')
 endif
 
 dpdk = dependency('libdpdk', required: true)

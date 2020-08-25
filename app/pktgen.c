@@ -40,11 +40,6 @@
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
-double next_poisson_time(double rateParameter)
-{
-    return -logf(1.0f - ((double) random()) / (double) (RAND_MAX)) / rateParameter;
-}
-
 /**************************************************************************//**
  *
  * pktgen_wire_size - Calculate the wire size of the data to be sent.
@@ -378,31 +373,36 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 					if (jitter > info->jitter_threshold_clks)
 						info->jitter_count++;
 					info->prev_latency = lat;
-					}
+				}
                 else if (flags & (SAMPLING_LATENCIES))
                 {
                     /* Record latency if it's time for sampling (seperately per lcore) */
                     latsamp_stats_t* stats = &info->latsamp_stats[qid];
-                    uint64_t now = rte_rdtsc_precise();
                     stats->pkt_counter++;
-                    if (stats->next == 0 || now >= stats->next) {
+                    uint64_t now = rte_rdtsc_precise();		/* WARNING: This may be expensive and may affect receive throughput */
+
+					/* If it the first time, set the initial delay. */
+					if (stats->next == 0) {
+						stats->next = now + rte_get_tsc_hz() * stats->delay_secs; 
+					}
+
+                    if (now >= stats->next) {
                         if (stats->idx < stats->num_samples) {
-                            // stats->data[stats->idx] = lat;
-                            stats->data[stats->idx] = lat * 1000000000 / rte_get_tsc_hz();		/* Do we want to keep it as cycles? */
+                            // stats->data[stats->idx] = lat;							/* Save it as cycles */
+                            stats->data[stats->idx] = lat * 1e9 / rte_get_tsc_hz();		/* Save it as time (nanoseconds) */
                             stats->idx++;
                         }
 
-                        /* Calculate next sampling point TODO: Use poisson */
+                        /* Calculate next sampling point */
                         if (info->latsamp_type == LATSAMPLER_POISSON){
-                            // TODO: Write poisson
-                            double next_possion_time_ns = next_poisson_time(info->latsamp_rate);
-                            stats->next = now + next_possion_time_ns * (double) rte_get_tsc_hz();		// Time based
+                            // Estimate next sampling time using poisson distribution
+                            double next_possion_time_ns = -logf(1.0f - ((double) random()) / (double) (RAND_MAX)) / info->latsamp_rate;
+                            stats->next = now + next_possion_time_ns * (double) rte_get_tsc_hz();
                             //pktgen_log_warning("core %d, queue %d next poisson time %lf, ms: %lu", lid, qid, next_possion_time_ns, stats->next*1000/rte_get_tsc_hz());
                         }
                         else 
                         {	// LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
-                            stats->next = now + rte_get_tsc_hz()/info->latsamp_rate;		// Time based
-                            // stats->next = stats->pkt_counter + info->latsamp_rate;		// Packet count based
+                            stats->next = now + rte_get_tsc_hz()/info->latsamp_rate;
                         }
                     }
                 }

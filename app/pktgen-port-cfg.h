@@ -31,8 +31,8 @@ extern "C" {
 
 #define MAX_PORT_DESC_SIZE  132
 #define USER_PATTERN_SIZE   16
-#define MAX_LATENCY_ENTRIES 50100		// Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
-#define MAX_LATENCY_QUEUES 	10
+#define MAX_LATENCY_ENTRIES 50100		// Limited by (MAX_LATENCY_QUEUES * MAX_LATENCY_ENTRIES * 64B), size of latsamp_stats_t.data[]
+#define MAX_LATENCY_QUEUES 	10			// Limited by (MAX_LATENCY_QUEUES * MAX_LATENCY_ENTRIES * 64B), size of latsamp_stats_t.data[]
 
 typedef struct port_sizes_s {
 	uint64_t _64;		/**< Number of 64 byte packets */
@@ -196,7 +196,8 @@ typedef struct {
     uint32_t idx;							/**< Index to the latencies array */
     uint64_t next;							/**< Next latency entry */
     uint64_t pkt_counter;					/**< Pkt counter */
-    uint32_t num_samples;
+    uint32_t num_samples;					/**< Number of sampler to be collected on this core/queue */
+	uint32_t delay_secs;					/**< Initial delay in seconds */
 } latsamp_stats_t __rte_cache_aligned;
 
 typedef struct port_info_s {
@@ -314,6 +315,7 @@ typedef struct port_info_s {
     latsamp_stats_t latsamp_stats[MAX_LATENCY_QUEUES];	/**< Per core stats */
     uint32_t latsamp_type;								/**< Type of lat sampler  */
     uint32_t latsamp_rate;								/**< Sampling rate i.e., samples per second  */
+    uint32_t latsamp_delay;								/**< Initial delay in seconds  */
     uint32_t latsamp_num_samples;						/**< Number of samples to collect  */
     char latsamp_outfile[256];							/**< Path to file for dumping latency samples */
 

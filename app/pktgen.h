@@ -393,7 +393,6 @@ void pktgen_input_start(void);
 void stat_timer_dump(void);
 void stat_timer_clear(void);
 void rte_timer_setup(void);
-double next_poisson_time(double rateParameter);
 
 typedef struct {
 	uint64_t timestamp;

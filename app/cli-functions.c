@@ -405,7 +405,7 @@ static struct cli_map set_map[] = {
 	{ 70, "set %P cos %d" },
 	{ 80, "set %P tos %d" },
 	{ 90, "set %P vxlan %h %d %d" },
-    { 100, "set %P latsampler %|simple|poisson %d %d %s" },
+    { 100, "set %P latsampler %|uniform|poisson %d %d %d %s" },
 	{ -1, NULL }
 };
 
@@ -449,10 +449,13 @@ static const char *set_help[] = {
 	"set <portlist> cos <value>         - Set the CoS value for the portlist",
 	"set <portlist> tos <value>         - Set the ToS value for the portlist",
 	"set <portlist> vxlan <flags> <group id> <vxlan_id> - Set the vxlan values",
-    "set <portlist> latsampler [simple|poisson] <num-samples> <rate> <outfile>	- Set latency sampler parameters",
-    "		num-samples: number of samples.",
-    "		rate: sampling rate i.e., samples per second.",
-    "		outfile: path to output file to dump all sampled latencies",
+    "set <portlist> latsampler [simple|poisson] <num-samples> <rate> <delay> <outfile>	",
+	"									- Set latency sampler settings for the next packet send",
+	"									- Starts sampling on next tx start, dumps to file on tx stop",
+    "	num-samples: number of samples.",
+    "	rate: sampling rate i.e., samples per second.",
+    "	delay: time to wait (after starting sending packets) before collecting latencies",
+    "	outfile: path to output file to dump all sampled latencies",
 	"set ports_per_page <value>         - Set ports per page value 1 - 6",
 	CLI_HELP_PAUSE,
 	NULL
@@ -467,7 +470,7 @@ set_cmd(int argc, char **argv)
 	struct cli_map *m;
 	struct pg_ipaddr ip;
 	uint16_t id1, id2;
-	uint32_t u1, u2;
+	uint32_t u1, u2, u3;
 	int ip_ver;
 
 	m = cli_mapping(set_map, argc, argv);
@@ -598,7 +601,8 @@ set_cmd(int argc, char **argv)
         case 100:
             u1 = strtol(argv[4], NULL, 0);
             u2 = strtol(argv[5], NULL, 0);
-            foreach_port(portlist, single_set_latsampler_params(info, argv[3], u1, u2, argv[6]));
+            u3 = strtol(argv[6], NULL, 0);
+            foreach_port(portlist, single_set_latsampler_params(info, argv[3], u1, u2, u3, argv[7]));
             break;
 		default:
 			return cli_cmd_error("Command invalid", "Set", argc, argv);
@@ -677,8 +681,6 @@ static struct cli_map start_map[] = {
 	{  20, "stop %P" },
 	{  40, "start %P prime" },
 	{  50, "start %P arp %|request|gratuitous|req|grat" },
-    {  60, "start %P latsampler" },
-    {  70, "stop %P latsampler" },
     { -1, NULL }
 };
 
@@ -691,8 +693,6 @@ static const char *start_help[] = {
 	"start <portlist> prime             - Transmit packets on each port listed. See set prime command above",
 	"start <portlist> arp <type>        - Send a ARP type packet",
 	"    type - request | gratuitous | req | grat",
-    "start <portlist> latsampler        - Start latency sampler, make sure to set sampling parameters before starting",
-    "stop <portlist> latsampler        	- Stop latency sampler, dumps to file if specified",
 	CLI_HELP_PAUSE,
 	NULL
 };
@@ -727,12 +727,6 @@ start_stop_cmd(int argc, char **argv)
 				foreach_port(portlist,
 				     pktgen_send_arp_requests(info, 0) );
 			break;
-        case 60:
-            foreach_port(portlist, pktgen_start_latency_sampler(info));
-            break;
-        case 70:
-            foreach_port(portlist, pktgen_stop_latency_sampler(info));
-            break;
 		default:
 			return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
 	}

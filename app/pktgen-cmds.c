@@ -1531,151 +1531,43 @@ void
 pktgen_stop_transmitting(port_info_t *info)
 {
 	uint8_t q;
+    FILE * outfile;
+    uint32_t i, count;
 
 	if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
 		pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
 		for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
 			pktgen_set_q_flags(info, q, DO_TX_FLUSH);
 	}
-}
 
-
-
-/**************************************************************************//**
- *
- * pktgen_start_stop_latency_sampler - Starts or stops latency sampler.
- *
- * DESCRIPTION
- * Starts or stops latency sampler.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_start_stop_latency_sampler(port_info_t *info, uint32_t state)
-{
-    if (state == ENABLE_STATE)
-        pktgen_start_latency_sampler(info);
-    else if (state == DISABLE_STATE)
-        pktgen_stop_latency_sampler(info);
-}
-
-/**************************************************************************//**
- *
- * start_latency_sampler - Starts latency sampler.
- *
- * DESCRIPTION
- * Starts latency sampler.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_start_latency_sampler(port_info_t *info)
-{
-    uint16_t q, rxq;
-
-    /* Start sampler */
+    /* If latency sampling was ON, turn it off and dump collected latencies to file */
     if (pktgen_tst_port_flags(info, SAMPLING_LATENCIES)) {
-        pktgen_log_info("Latency sampler is already running, stop it first!");
-        return;
-    }
+        pktgen_clr_port_flags(info, SAMPLING_LATENCIES);
 
-    if (info->latsamp_rate == 0 || 
-        info->latsamp_outfile == NULL || 
-        info->latsamp_type == LATSAMPLER_UNSPEC ||
-        info->latsamp_num_samples == 0) {
-        pktgen_log_error("Set proper sampling type, number, rate and outfile!");
-        return;
-    }
-
-    rxq = get_port_rxcnt(pktgen.l2p, info->pid);
-    if (rxq == 0 || rxq > MAX_LATENCY_QUEUES) {
-        pktgen_log_error("no rx queues or rx queues over limit (%d) to sample on this port!", MAX_LATENCY_QUEUES);
-        return;
-    }
-
-    for (q = 0; q < rxq; q++) {
-        info->latsamp_stats[q].pkt_counter = 0;
-        info->latsamp_stats[q].next = 0;
-        info->latsamp_stats[q].idx = 0;
-        info->latsamp_stats[q].num_samples = info->latsamp_num_samples / rxq;
-        pktgen_log_info("Assigning %d sample latencies to queue %d", info->latsamp_num_samples / rxq, q);
-    }
-
-    if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
-        info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
-
-    info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
-    pktgen_packet_ctor(info, SINGLE_PKT, -1);
-    pktgen_set_tx_update(info);
-
-    /* Start sampling */
-    pktgen_set_port_flags(info, SAMPLING_LATENCIES);
-}
-
-/**************************************************************************//**
- *
- * stop_latency_sampler - Stops latency sampler
- *
- * DESCRIPTION
- * Stops latency sampler
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-void
-pktgen_stop_latency_sampler(port_info_t *info)
-{
-    FILE * outfile;
-    uint32_t i, count;
-    uint16_t q, rxq = get_port_rxcnt(pktgen.l2p, info->pid);
-
-    if (pktgen_tst_port_flags(info, SAMPLING_LATENCIES) == 0) {
-        pktgen_log_info("Latency sampler is not running, nothing to do!");
-        return;
-    }
-
-    /* Stop sampling */
-    pktgen_clr_port_flags(info, SAMPLING_LATENCIES);
-
-    /* Dump stats to file */
-    outfile = fopen(info->latsamp_outfile, "w");
-    if (outfile == NULL)
-        pktgen_log_error("Cannot open the latcol outfile!");
-    else {
-        pktgen_log_info("Writing to file %s", info->latsamp_outfile);
-        fprintf(outfile, "Latency\n");
-        for (q = 0, count = 0; q < rxq; q++) {
-            pktgen_log_info("Writing sample latencies of queue %d", q);	
-            for (i = 0; i < info->latsamp_stats[q].idx; i++){
-                fprintf(outfile,"%" PRIu64 "\n", info->latsamp_stats[q].data[i]); 
-                count++;
+        /* Dump stats to file */
+        outfile = fopen(info->latsamp_outfile, "w");
+        if (outfile == NULL)
+            pktgen_log_error("Failed to write latencies. Cannot open the latsampler outfile!");
+        else {
+            pktgen_log_info("Writing to file %s", info->latsamp_outfile);
+            fprintf(outfile, "Latency (ns)\n");
+            for (q = 0, count = 0; q < get_port_rxcnt(pktgen.l2p, info->pid); q++) {
+                pktgen_log_info("Writing sample latencies of queue %d", q);	
+                for (i = 0; i < info->latsamp_stats[q].idx; i++){
+                    fprintf(outfile,"%" PRIu64 "\n", info->latsamp_stats[q].data[i]); 
+                    count++;
+                }
             }
+            fclose(outfile);
+            pktgen_log_warning("Wrote %d sampled latencies to file %s", count, info->latsamp_outfile);
         }
-        fclose(outfile);
-        pktgen_log_warning("Wrote %d sample latencies to file %s", count, info->latsamp_outfile);
-    }
+        
+        if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
+            info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
 
-    /* Reset stats data */
-    for (q = 0; q < rxq; q++) {
-        info->latsamp_stats[q].pkt_counter = 0;
-        info->latsamp_stats[q].next = 0;
-        info->latsamp_stats[q].idx = 0;
-        info->latsamp_stats[q].num_samples = 0;
+        pktgen_packet_ctor(info, SINGLE_PKT, -1);
+        pktgen_set_tx_update(info);
     }
-    
-    if (info->seq_pkt[SINGLE_PKT].pktSize >= (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
-        info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
-
-    info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
-    pktgen_packet_ctor(info, SINGLE_PKT, -1);
-    pktgen_set_tx_update(info);
 }
 
 /**************************************************************************//**
@@ -2405,23 +2297,24 @@ single_set_vxlan(port_info_t *info, uint16_t flags, uint16_t group_id,
  */
 
 void
-single_set_latsampler_params(port_info_t *info, char* type, uint32_t num_samples, uint32_t sampling_rate, char outfile[])
+single_set_latsampler_params(port_info_t *info, char* type, uint32_t num_samples, uint32_t sampling_rate, uint32_t delay_secs, char outfile[])
 {
     FILE* fp = NULL;
     uint32_t sampler_type;
+    uint16_t q, rxq;
 
-    /* Stop if latency sampler is running */
-    if (pktgen_tst_port_flags(info, SAMPLING_LATENCIES)) {
-        pktgen_log_warning("Latency sampler is already running, stop it first!");
+	if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
+        pktgen_log_warning("Cannot update latsampler settings while sending packets!");
         return;
-    }
-    /* Validate sampler type*/
-    if (!strcasecmp(type, "simple"))
+	}
+
+    /* Validate sampler type */
+    if (!strcasecmp(type, "uniform"))
         sampler_type = LATSAMPLER_SIMPLE;
     else if (!strcasecmp(type, "poisson"))
         sampler_type = LATSAMPLER_POISSON;
     else {
-        pktgen_log_error("Unknown latsampler type %s! Valid values: simple, poisson", type);
+        pktgen_log_error("Unknown latsampler type %s! Valid values: uniform, poisson", type);
         return;
     }
 
@@ -2433,18 +2326,51 @@ single_set_latsampler_params(port_info_t *info, char* type, uint32_t num_samples
     }
     fclose(fp);
 
-    if (num_samples > MAX_LATENCY_ENTRIES) {
-        pktgen_log_error("Too many samples requested. Max %d!", MAX_LATENCY_ENTRIES);
+    /* Validate sampling settings */
+    if (num_samples == 0 || num_samples > MAX_LATENCY_ENTRIES) {
+        pktgen_log_error("Invalid number of samples requested. Min 1, Max %d!", MAX_LATENCY_ENTRIES);
+        return;
+    }
+    
+    /* Validate sampling settings */
+    if (sampling_rate == 0) {
+        pktgen_log_error("Invalid sampling rate");
+        return;
+    }
+    
+    rxq = get_port_rxcnt(pktgen.l2p, info->pid);
+    if (rxq == 0 || rxq > MAX_LATENCY_QUEUES) {
+        pktgen_log_error("no rx queues or rx queues over the limit (%d) to sample on this port!", MAX_LATENCY_QUEUES);
         return;
     }
 
+    /* Persist settings in port info */
     info->latsamp_type = sampler_type;
     info->latsamp_rate = sampling_rate;
+    info->latsamp_delay = delay_secs;
     info->latsamp_num_samples = num_samples;
     strcpy(info->latsamp_outfile, outfile);
 
+    /* Reset all the counters */
+    for (q = 0; q < rxq; q++) {
+        info->latsamp_stats[q].pkt_counter = 0;
+        info->latsamp_stats[q].next = 0;
+        info->latsamp_stats[q].idx = 0;
+        info->latsamp_stats[q].num_samples = info->latsamp_num_samples / rxq;
+        info->latsamp_stats[q].delay_secs = info->latsamp_delay;
+        pktgen_log_info("Assigning %d sample latencies to queue %d", info->latsamp_num_samples / rxq, q);
+    }
+
+    /* Latency sampler adds an extra timestamp header */
+    if (info->seq_pkt[SINGLE_PKT].pktSize < (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
+        info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
+
+    info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
     pktgen_set_tx_update(info);
+
+    /* Start sampling */
+    pktgen_set_port_flags(info, SAMPLING_LATENCIES);
 }
 
 

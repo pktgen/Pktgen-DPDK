@@ -2450,6 +2450,8 @@ range_set_gre_key(port_info_t *info, uint32_t gre_key)
 void
 pktgen_clear_stats(port_info_t *info)
 {
+    eth_stats_t *base;
+
 	/* curr_stats are reset each time the stats are read */
 	memset(&info->sizes, 0, sizeof(port_sizes_t));
 	memset(&info->prev_stats, 0, sizeof(eth_stats_t));
@@ -2457,9 +2459,12 @@ pktgen_clear_stats(port_info_t *info)
 
 	memset(&info->qstats, 0, sizeof(info->qstats));
 
+    base = &info->base_stats;
+
 	/* Normalize the stats to a zero base line */
-	rte_eth_stats_get(info->pid, &info->prev_stats);
-	rte_eth_stats_get(info->pid, &info->base_stats);
+	rte_eth_stats_get(info->pid, base);
+    memset(&info->curr_stats, 0, sizeof(eth_stats_t));
+    memset(&info->prev_stats, 0, sizeof(eth_stats_t));
 
 	pktgen.max_total_ipackets   = 0;
 	pktgen.max_total_opackets   = 0;

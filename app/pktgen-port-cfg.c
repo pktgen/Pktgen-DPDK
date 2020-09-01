@@ -488,9 +488,7 @@ pktgen_config_ports(void)
 
 		pktgen_range_setup(info);
 
-		/* set the previous and base stats values at init */
-		rte_eth_stats_get(pid, &info->prev_stats);
-		rte_eth_stats_get(pid, &info->base_stats);
+        pktgen_clear_stats(info);
 
 		pktgen_rnd_bits_init(&pktgen.info[pid].rnd_bitfields);
 	}

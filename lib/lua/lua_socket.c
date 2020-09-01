@@ -133,6 +133,7 @@ pushline(luaData_t *ld, int firstline)
 		return 0;
 
 	l = strlen(b);
+printf("%s", b);
 	if (l > 0 && b[l - 1] == '\n')	/* line ends with newline? */
 		b[--l] = '\0';	/* remove it */
 	if (firstline && b[0] == '=')	/* for compatibility with 5.2, ... */

@@ -52,7 +52,7 @@ extern "C" {
 				} while(0)
 
 #define MAX_NEW_LIBS		16
-#define LUA_BUFFER_SIZE		2048
+#define LUA_BUFFER_SIZE		8192
 #define MAX_NEW_LIBS		16
 #define LUA_EOF			-1
 

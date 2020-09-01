@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.09.0 - Fix the clearing of the port stats.
  - 20.08.0 - Add better latency support with saving the results to a file.
              Updated the INSTALL.md to help building DPDK and Pktgen.
              Number of minor bugs or cleanup.

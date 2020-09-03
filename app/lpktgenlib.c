@@ -3627,21 +3627,6 @@ static const luaL_Reg pktgenlib[] = {
 	{"gre",           pktgen_gre},			/* Enable or disable GRE with IPv4 payload */
 	{"gre_eth",       pktgen_gre_eth},		/* Enable or disable GRE with Ethernet payload */
 
-	/* Range commands */
-	{"dst_mac",       range_dst_mac},		/* Set the destination MAC address for a port */
-	{"src_mac",       range_src_mac},		/* Set the src MAC address for a port */
-	{"src_ip",        range_src_ip},		/* Set the source IP address and netmask value */
-	{"dst_ip",        range_dst_ip},		/* Set the destination IP address */
-	{"ip_proto",      range_ip_proto},		/* Set the IP Protocol type */
-	{"src_port",      range_src_port},		/* Set the IP source port number */
-	{"dst_port",      range_dst_port},		/* Set the IP destination port number */
-	{"vlan_id",       range_vlan_id},		/* Set the vlan id value */
-	{"mpls_entry",    range_mpls_entry},		/* Set the MPLS entry value */
-	{"qinqids",       range_qinqids},		/* Set the Q-in-Q ID values */
-	{"gre_key",       range_gre_key},		/* Set the GRE key */
-	{"pkt_size",      range_pkt_size},		/* the packet size for a range port */
-	{"cos",           range_cos},			/* Set the COS value */
-	{"tos",           range_tos},			/* Set the COS value */
 	{"set_range",     range},			/* Enable or disable sending range data on a port. */
 
 	{"ports_per_page", pktgen_ports_per_page},	/* Set the number of ports per page */

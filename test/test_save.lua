@@ -66,46 +66,46 @@ pktgen.vlan('0', 'disable');
 
 --
 -- Range packet information:
-pktgen.src_mac('0', 'start', '3c:fd:fe:9e:29:78');
-pktgen.src_mac('0', 'min', '00:00:00:00:00:00');
-pktgen.src_mac('0', 'max', '00:00:00:00:00:00');
-pktgen.src_mac('0', 'inc', '00:00:00:00:00:00');
-pktgen.dst_mac('0', 'start', '3c:fd:fe:9e:2c:b8');
-pktgen.dst_mac('0', 'min', '00:00:00:00:00:00');
-pktgen.dst_mac('0', 'max', '00:00:00:00:00:00');
-pktgen.dst_mac('0', 'inc', '00:00:00:00:00:00');
+pktgen.range.src_mac('0', 'start', '3c:fd:fe:9e:29:78');
+pktgen.range.src_mac('0', 'min', '00:00:00:00:00:00');
+pktgen.range.src_mac('0', 'max', '00:00:00:00:00:00');
+pktgen.range.src_mac('0', 'inc', '00:00:00:00:00:00');
+pktgen.range.dst_mac('0', 'start', '3c:fd:fe:9e:2c:b8');
+pktgen.range.dst_mac('0', 'min', '00:00:00:00:00:00');
+pktgen.range.dst_mac('0', 'max', '00:00:00:00:00:00');
+pktgen.range.dst_mac('0', 'inc', '00:00:00:00:00:00');
 
-pktgen.src_ip('0', 'start', '192.168.0.1');
-pktgen.src_ip('0', 'min', '192.168.0.1');
-pktgen.src_ip('0', 'max', '192.168.0.254');
-pktgen.src_ip(';0', 'inc', '0.0.0.0');
+pktgen.range.src_ip('0', 'start', '192.168.0.1');
+pktgen.range.src_ip('0', 'min', '192.168.0.1');
+pktgen.range.src_ip('0', 'max', '192.168.0.254');
+pktgen.range.src_ip(';0', 'inc', '0.0.0.0');
 
-pktgen.dst_ip('0', 'start', '192.168.1.1');
-pktgen.dst_ip('0', 'min', '192.168.1.1');
-pktgen.dst_ip('0', 'max', '192.168.1.254');
-pktgen.dst_ip('0', 'inc', '0.0.0.1');
+pktgen.range.dst_ip('0', 'start', '192.168.1.1');
+pktgen.range.dst_ip('0', 'min', '192.168.1.1');
+pktgen.range.dst_ip('0', 'max', '192.168.1.254');
+pktgen.range.dst_ip('0', 'inc', '0.0.0.1');
 
 pktgen.ip_proto('0', 'tcp');
 
-pktgen.src_port('0', 'start', 0);
-pktgen.src_port('0', 'min', 0);
-pktgen.src_port('0', 'max', 254);
-pktgen.src_port('0', 'inc', 1);
+pktgen.range.src_port('0', 'start', 0);
+pktgen.range.src_port('0', 'min', 0);
+pktgen.range.src_port('0', 'max', 254);
+pktgen.range.src_port('0', 'inc', 1);
 
-pktgen.dst_port('0', 'start', 0);
-pktgen.dst_port('0', 'min', 0);
-pktgen.dst_port('0', 'max', 254);
-pktgen.dst_port('0', 'inc', 1);
+pktgen.range.dst_port('0', 'start', 0);
+pktgen.range.dst_port('0', 'min', 0);
+pktgen.range.dst_port('0', 'max', 254);
+pktgen.range.dst_port('0', 'inc', 1);
 
-pktgen.vlan_id('0', 'start', 1);
-pktgen.vlan_id('0', 'min', 1);
-pktgen.vlan_id('0', 'max', 4095);
-pktgen.vlan_id('0', 'inc', 0);
+pktgen.range.vlan_id('0', 'start', 1);
+pktgen.range.vlan_id('0', 'min', 1);
+pktgen.range.vlan_id('0', 'max', 4095);
+pktgen.range.vlan_id('0', 'inc', 0);
 
-pktgen.pkt_size('0', 'start', 64);
-pktgen.pkt_size('0', 'min', 64);
-pktgen.pkt_size('0', 'max', 1518);
-pktgen.pkt_size('0', 'inc', 0);
+pktgen.range.pkt_size('0', 'start', 64);
+pktgen.range.pkt_size('0', 'min', 64);
+pktgen.range.pkt_size('0', 'max', 1518);
+pktgen.range.pkt_size('0', 'inc', 0);
 
 --
 -- Set up the sequence data for the port.
@@ -222,46 +222,46 @@ pktgen.vlan('1', 'disable');
 
 --
 -- Range packet information:
-pktgen.src_mac('1', 'start', '3c:fd:fe:9e:2c:b8');
-pktgen.src_mac('1', 'min', '00:00:00:00:00:00');
-pktgen.src_mac('1', 'max', '00:00:00:00:00:00');
-pktgen.src_mac('1', 'inc', '00:00:00:00:00:00');
-pktgen.dst_mac('1', 'start', '3c:fd:fe:9e:29:78');
-pktgen.dst_mac('1', 'min', '00:00:00:00:00:00');
-pktgen.dst_mac('1', 'max', '00:00:00:00:00:00');
-pktgen.dst_mac('1', 'inc', '00:00:00:00:00:00');
+pktgen.range.src_mac('1', 'start', '3c:fd:fe:9e:2c:b8');
+pktgen.range.src_mac('1', 'min', '00:00:00:00:00:00');
+pktgen.range.src_mac('1', 'max', '00:00:00:00:00:00');
+pktgen.range.src_mac('1', 'inc', '00:00:00:00:00:00');
+pktgen.range.dst_mac('1', 'start', '3c:fd:fe:9e:29:78');
+pktgen.range.dst_mac('1', 'min', '00:00:00:00:00:00');
+pktgen.range.dst_mac('1', 'max', '00:00:00:00:00:00');
+pktgen.range.dst_mac('1', 'inc', '00:00:00:00:00:00');
 
-pktgen.src_ip('1', 'start', '192.168.1.1');
-pktgen.src_ip('1', 'min', '192.168.1.1');
-pktgen.src_ip('1', 'max', '192.168.1.254');
-pktgen.src_ip(';1', 'inc', '0.0.0.0');
+pktgen.range.src_ip('1', 'start', '192.168.1.1');
+pktgen.range.src_ip('1', 'min', '192.168.1.1');
+pktgen.range.src_ip('1', 'max', '192.168.1.254');
+pktgen.range.src_ip(';1', 'inc', '0.0.0.0');
 
-pktgen.dst_ip('1', 'start', '192.168.2.1');
-pktgen.dst_ip('1', 'min', '192.168.2.1');
-pktgen.dst_ip('1', 'max', '192.168.2.254');
-pktgen.dst_ip('1', 'inc', '0.0.0.1');
+pktgen.range.dst_ip('1', 'start', '192.168.2.1');
+pktgen.range.dst_ip('1', 'min', '192.168.2.1');
+pktgen.range.dst_ip('1', 'max', '192.168.2.254');
+pktgen.range.dst_ip('1', 'inc', '0.0.0.1');
 
 pktgen.ip_proto('1', 'tcp');
 
-pktgen.src_port('1', 'start', 256);
-pktgen.src_port('1', 'min', 256);
-pktgen.src_port('1', 'max', 510);
-pktgen.src_port('1', 'inc', 1);
+pktgen.range.src_port('1', 'start', 256);
+pktgen.range.src_port('1', 'min', 256);
+pktgen.range.src_port('1', 'max', 510);
+pktgen.range.src_port('1', 'inc', 1);
 
-pktgen.dst_port('1', 'start', 256);
-pktgen.dst_port('1', 'min', 256);
-pktgen.dst_port('1', 'max', 510);
-pktgen.dst_port('1', 'inc', 1);
+pktgen.range.dst_port('1', 'start', 256);
+pktgen.range.dst_port('1', 'min', 256);
+pktgen.range.dst_port('1', 'max', 510);
+pktgen.range.dst_port('1', 'inc', 1);
 
-pktgen.vlan_id('1', 'start', 1);
-pktgen.vlan_id('1', 'min', 1);
-pktgen.vlan_id('1', 'max', 4095);
-pktgen.vlan_id('1', 'inc', 0);
+pktgen.range.vlan_id('1', 'start', 1);
+pktgen.range.vlan_id('1', 'min', 1);
+pktgen.range.vlan_id('1', 'max', 4095);
+pktgen.range.vlan_id('1', 'inc', 0);
 
-pktgen.pkt_size('1', 'start', 64);
-pktgen.pkt_size('1', 'min', 64);
-pktgen.pkt_size('1', 'max', 1518);
-pktgen.pkt_size('1', 'inc', 0);
+pktgen.range.pkt_size('1', 'start', 64);
+pktgen.range.pkt_size('1', 'min', 64);
+pktgen.range.pkt_size('1', 'max', 1518);
+pktgen.range.pkt_size('1', 'inc', 0);
 
 --
 -- Set up the sequence data for the port.

@@ -47,50 +47,50 @@ pktgen.dst_mac("all", "start", "0000:0100:0600");
 pktgen.src_mac("all", "start", "0000:0100:0700");
 
 pktgen.delay(1000);
-pktgen.dst_ip("all", "start", "10.10.10.1");
-pktgen.dst_ip("all", "inc", "0.0.0.1");
-pktgen.dst_ip("all", "min", "10.10.10.1");
-pktgen.dst_ip("all", "max", "10.10.10.4");
+pktgen.range.dst_ip("all", "start", "10.10.10.1");
+pktgen.range.dst_ip("all", "inc", "0.0.0.1");
+pktgen.range.dst_ip("all", "min", "10.10.10.1");
+pktgen.range.dst_ip("all", "max", "10.10.10.4");
 
 pktgen.delay(1000);
-pktgen.src_ip("all", "start", "20.20.20.1");
-pktgen.src_ip("all", "inc", "0.0.0.1");
-pktgen.src_ip("all", "min", "20.20.20.1");
-pktgen.src_ip("all", "max", "20.20.20.8");
+pktgen.range.src_ip("all", "start", "20.20.20.1");
+pktgen.range.src_ip("all", "inc", "0.0.0.1");
+pktgen.range.src_ip("all", "min", "20.20.20.1");
+pktgen.range.src_ip("all", "max", "20.20.20.8");
 
 pktgen.set_type("all", "ipv4");
 pktgen.set_proto("all", "udp");
 
 -- GTPU on UDP port 2152
 pktgen.delay(1000);
-pktgen.dst_port("all", "start", 2152);
-pktgen.dst_port("all", "inc", 0);
-pktgen.dst_port("all", "min", 2152);
-pktgen.dst_port("all", "max", 2152);
+pktgen.range.dst_port("all", "start", 2152);
+pktgen.range.dst_port("all", "inc", 0);
+pktgen.range.dst_port("all", "min", 2152);
+pktgen.range.dst_port("all", "max", 2152);
 
 pktgen.delay(1000);
-pktgen.src_port("all", "start", 1234);
-pktgen.src_port("all", "inc", 1);
-pktgen.src_port("all", "min", 1234);
-pktgen.src_port("all", "max", 1244);
+pktgen.range.src_port("all", "start", 1234);
+pktgen.range.src_port("all", "inc", 1);
+pktgen.range.src_port("all", "min", 1234);
+pktgen.range.src_port("all", "max", 1244);
 
 pktgen.delay(1000);
-pktgen.gtpu_teid("all", "start", 100);
-pktgen.gtpu_teid("all", "inc", 1);
-pktgen.gtpu_teid("all", "min", 100);
-pktgen.gtpu_teid("all", "max", 200);
+pktgen.range.gtpu_teid("all", "start", 100);
+pktgen.range.gtpu_teid("all", "inc", 1);
+pktgen.range.gtpu_teid("all", "min", 100);
+pktgen.range.gtpu_teid("all", "max", 200);
 
 pktgen.delay(1000);
-pktgen.vlan_id("all", "start", 100);
-pktgen.vlan_id("all", "inc", 1);
-pktgen.vlan_id("all", "min", 100);
-pktgen.vlan_id("all", "max", 150);
+pktgen.range.vlan_id("all", "start", 100);
+pktgen.range.vlan_id("all", "inc", 1);
+pktgen.range.vlan_id("all", "min", 100);
+pktgen.range.vlan_id("all", "max", 150);
 
 pktgen.delay(1000);
-pktgen.pkt_size("all", "start", 150);
-pktgen.pkt_size("all", "inc", 5);
-pktgen.pkt_size("all", "min", 150);
-pktgen.pkt_size("all", "max", 200);
+pktgen.range.pkt_size("all", "start", 150);
+pktgen.range.pkt_size("all", "inc", 5);
+pktgen.range.pkt_size("all", "min", 150);
+pktgen.range.pkt_size("all", "max", 200);
 
 
 pktgen.set_range("all", "on");

@@ -413,7 +413,7 @@ typedef struct pkt_hdr_s {
 		tcpipv6_t tip6;		/**< TCP + IPv6 Headers */
 		udpipv6_t uip6;		/**< UDP + IPv6 Headers */
 		uint64_t pad[8];	/**< Length of structures */
-	} u;
+	} __attribute__((packed)) u;
 } pkt_hdr_t;
 
 typedef struct ipv4_5tuple {

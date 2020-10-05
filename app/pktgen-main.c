@@ -103,6 +103,8 @@ pktgen_usage(const char *prgname)
 		"  -T           Enable the color output\n"
 		"  -v           Verbose output\n"
 		"  -j           Enable jumbo frames of 9600 bytes\n"
+		"  --txd=N      set the number of descriptors in Tx rings to N \n"
+		"  --rxd=N      set the number of descriptors in Rx rings to N \n"
 		"  --no-crc-strip  Do not strip CRC on all ports, (Default is to strip crc)\n"
 		"  -m <string>  matrix for mapping ports to logical cores\n"
 		"      BNF: (or kind of BNF)\n"
@@ -162,6 +164,8 @@ pktgen_parse_args(int argc, char **argv)
 	static struct option lgopts[] = {
 		{"crc-strip", 0, 0, 0},
 		{"no-crc-strip", 0, 0, 0},
+		{"txd", required_argument, 0, 't'},
+		{"rxd", required_argument, 0, 'r'},
 		{NULL, 0, 0, 0}
 	};
 
@@ -184,9 +188,19 @@ pktgen_parse_args(int argc, char **argv)
 	pktgen.mbuf_buf_size = RTE_MBUF_DEFAULT_BUF_SIZE;
 
 	pktgen.verbose = 0;
-	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTvj",
+	while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTvjtr",
 				  lgopts, &option_index)) != EOF)
 		switch (opt) {
+		case 't':
+			pktgen.nb_txd = atoi(optarg);
+			pktgen_log_info(">>> Tx Descriptor set to %d", pktgen.nb_txd);
+			break;
+
+		case 'r':
+			pktgen.nb_rxd = atoi(optarg);
+			pktgen_log_info(">>> Rx Descriptor set to %d", pktgen.nb_rxd);
+			break;
+
 		case 'j':
 			pktgen.enable_jumbo = 1;
 			pktgen.eth_mtu = PG_JUMBO_ETHER_MTU;

@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.10.0 - fix ENA memory allocation and add setting rx/tx descriptor rings from cmdline.
  - 20.09.0 - Fix the clearing of the port stats.
              Fix the lua range commands to be a table only. Use pktgen.range.XYZ() to set range values.
              Removed the use of pktgen.XYZ() type commands and require the range table to be used.

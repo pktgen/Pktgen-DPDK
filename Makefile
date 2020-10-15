@@ -20,6 +20,9 @@ rebuild: FORCE
 buildlua: FORCE
 	${Build} buildlua
 
+debuglua: FORCE
+	${Build} debuglua
+
 buildgui: FORCE
 	${Build} buildgui
 

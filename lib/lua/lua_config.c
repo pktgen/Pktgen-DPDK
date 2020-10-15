@@ -322,7 +322,7 @@ lua_dofile(luaData_t *ld, const char *name)
 	status = luaL_loadfile(ld->L, name);
 
 	if (status == LUA_OK)
-		status = lua_docall(ld->L, 0, 0);
+		status = lua_docall(ld->L, 0, LUA_MULTRET);
 	else
 		printf("lua_docall(%s) failed\n", name);
 

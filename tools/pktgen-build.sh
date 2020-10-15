@@ -130,6 +130,12 @@ do
 		ninja_build && ninja_install
 		;;
 
+	'debuglua')
+		lua_enabled="-Denable_lua=true"
+		buildtype="debug"
+		ninja_build && ninja_install
+		;;
+
 	'debug')
 		buildtype="debug"
 		ninja_build && ninja_install

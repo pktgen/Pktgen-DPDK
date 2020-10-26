@@ -18,7 +18,8 @@ pktgen_conf = configuration_data()
 cc = meson.get_compiler('c')
 
 add_project_arguments('-march=native', language: 'c')
-if cc.has_argument('-mavx2')
+
+if get_option('enable-avx2') and cc.has_argument('-mavx2')
 	add_project_arguments('-mavx2', language: 'c')
 endif
 add_project_arguments('-DALLOW_EXPERIMENTAL_API', language: 'c')

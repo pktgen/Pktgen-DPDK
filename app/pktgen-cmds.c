@@ -1818,13 +1818,13 @@ enable_bonding(port_info_t *info, uint32_t state)
 		return;
 	}
 
-	num_workers = rte_eth_bond_workers_get(info->pid, workers, RTE_MAX_ETHPORTS);
+	num_workers = pg_eth_bond_workers_get(info->pid, workers, RTE_MAX_ETHPORTS);
 	if (num_workers < 0) {
 		printf("Failed to get worker list for port = %d\n", info->pid);
 		return;
 	}
 
-	num_active_workers = rte_eth_bond_active_workers_get(info->pid, active_workers,
+	num_active_workers = pg_eth_bond_active_workers_get(info->pid, active_workers,
 			RTE_MAX_ETHPORTS);
 	if (num_active_workers < 0) {
 		printf("Failed to get active worker list for port = %d\n", info->pid);
@@ -1932,7 +1932,7 @@ show_bonding_mode(port_info_t *info)
 		printf("\n");
 	}
 
-	num_workers = rte_eth_bond_workers_get(port_id, workers, RTE_MAX_ETHPORTS);
+	num_workers = pg_eth_bond_workers_get(port_id, workers, RTE_MAX_ETHPORTS);
 
 	if (num_workers < 0) {
 		printf("\tFailed to get worker list for port = %d\n", port_id);
@@ -1949,7 +1949,7 @@ show_bonding_mode(port_info_t *info)
 
 	}
 
-	num_active_workers = rte_eth_bond_active_workers_get(port_id, workers,
+	num_active_workers = pg_eth_bond_active_workers_get(port_id, workers,
 			RTE_MAX_ETHPORTS);
 
 	if (num_active_workers < 0) {
@@ -1969,10 +1969,10 @@ show_bonding_mode(port_info_t *info)
 	}
 
 	for (i = 0; i < num_active_workers; i++) {
-		struct rte_eth_bond_8023ad_worker_info conf;
+		struct pg_eth_bond_8023ad_worker_info conf;
 
 		printf("\t\tSlave %u\n", workers[i]);
-		rte_eth_bond_8023ad_worker_info(info->pid, workers[i], &conf);
+		pg_eth_bond_8023ad_worker_info(info->pid, workers[i], &conf);
 		printf("\t\t  %sSelected\n\t\t  Actor States  ( ", conf.selected? "" : "Not ");
 		show_states(conf.actor_state);
 		printf(")\n\t\t  Partner States( ");

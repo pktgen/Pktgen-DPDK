@@ -37,4 +37,4 @@ pktgen = executable('pktgen',
 		sources,
 		c_args: cflags,
 		install: true,
-		dependencies: [deps, lua_dep])
+		dependencies: [deps, lua_dep, dpdk_bond])

@@ -6,6 +6,8 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.11.2 - Fixup build to DPDK PMD name changes (bonding driver)
+             Fix the macro and function API name changes in DPDK 20.11
  - 20.10.1 - Add option to disable avx2 support.
  - 20.10.0 - fix ENA memory allocation and add setting rx/tx descriptor rings from cmdline.
  - 20.09.0 - Fix the clearing of the port stats.

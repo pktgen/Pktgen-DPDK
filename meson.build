@@ -57,6 +57,12 @@ else
 endif
 
 dpdk = dependency('libdpdk', required: true)
+# message('prefix: ' + get_option('prefix') + ' libdir: ' + get_option('libdir'))
+
+dpdk_libs_path = join_paths(get_option('prefix'), get_option('libdir'))
+# message('DPDK lib path: ' + dpdk_libs_path)
+
+dpdk_bond = cc.find_library('librte_net_bond', dirs: [dpdk_libs_path], required: true)
 
 subdir('tools')
 

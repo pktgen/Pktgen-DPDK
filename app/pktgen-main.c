@@ -505,7 +505,7 @@ main(int argc, char **argv)
 	}
 
 	/* launch per-lcore init on every lcore except initial and initial + 1 lcores */
-	ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MASTER);
+	ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, PG_SKIP_MAIN);
 	if (ret != 0)
 		pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
 

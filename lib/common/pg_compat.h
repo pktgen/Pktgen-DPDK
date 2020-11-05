@@ -31,7 +31,12 @@ extern "C" {
 #define RTE_ETHER_MTU
 #endif
 
+#if RTE_VERSION >= RTE_VERSION_NUM(20,11,0,0)
+#define pg_get_initial_lcore    rte_get_main_lcore
+#define udata64                 dynfield0[0]
+#else
 #define pg_get_initial_lcore    rte_get_master_lcore
+#endif
 #define PG_DEVTYPE_BLOCKLISTED_PCI RTE_DEVTYPE_BLACKLISTED_PCI
 
 #if RTE_VERSION >= RTE_VERSION_NUM(19,8,0,0)
@@ -44,6 +49,14 @@ extern "C" {
 #define pg_icmp_hdr			rte_icmp_hdr
 #define pg_arp_hdr			rte_arp_hdr
 #define pg_vlan_hdr			rte_vlan_hdr
+
+#if RTE_VERSION >= RTE_VERSION_NUM(20,11,0,0)
+#define pg_eth_bond_workers_get         rte_eth_bond_slaves_get
+#define pg_eth_bond_active_workers_get  rte_eth_bond_active_slaves_get
+#define pg_eth_bond_8023ad_worker_info  rte_eth_bond_8023ad_slave_info
+#define PG_SKIP_MAIN                    SKIP_MAIN
+#endif
+
 #define arp_hrd				arp_hardware
 #define arp_pro				arp_protocol
 #define arp_hln				arp_hlen
@@ -77,6 +90,10 @@ extern "C" {
 #define pg_icmp_hdr			icmp_hdr
 #define pg_arp_hdr			arp_hdr
 #define pg_vlan_hdr			vlan_hdr
+#define pg_eth_bond_workers_get         rte_eth_bond_slaves_get
+#define pg_eth_bond_active_workers_get  rte_eth_bond_active_slaves_get
+#define pg_eth_bond_8023ad_worker_info  rte_eth_bond_8023ad_slave_info
+#define PG_SKIP_MAIN                    SKIP_MASTER
 #define PG_ETHER_ADDR_LEN		ETHER_ADDR_LEN
 #define PG_ETHER_CRC_LEN		ETHER_CRC_LEN
 #define PG_ETHER_MIN_LEN		ETHER_MIN_LEN

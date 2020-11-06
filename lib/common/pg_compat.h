@@ -55,6 +55,8 @@ extern "C" {
 #define pg_eth_bond_active_workers_get  rte_eth_bond_active_slaves_get
 #define pg_eth_bond_8023ad_worker_info  rte_eth_bond_8023ad_slave_info
 #define PG_SKIP_MAIN                    SKIP_MAIN
+#else
+#define PG_SKIP_MAIN                    SKIP_MASTER
 #endif
 
 #define arp_hrd				arp_hardware

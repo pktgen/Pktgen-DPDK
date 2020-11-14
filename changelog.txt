@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 20.11.2 - The dynfield0 was removed from rte_mbuf header
  - 20.11.1 - Fix net_bond library name change for older DPDK versions.
  - 20.11.0 - Fixup build to DPDK PMD name changes (bonding driver)
              Fix the macro and function API name changes in DPDK 20.11

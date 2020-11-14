@@ -33,7 +33,7 @@ extern "C" {
 
 #if RTE_VERSION >= RTE_VERSION_NUM(20,11,0,0)
 #define pg_get_initial_lcore    rte_get_main_lcore
-#define udata64                 dynfield0[0]
+#define udata64                 dynfield1[0]
 #else
 #define pg_get_initial_lcore    rte_get_master_lcore
 #endif

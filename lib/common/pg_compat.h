@@ -34,10 +34,13 @@ extern "C" {
 #if RTE_VERSION >= RTE_VERSION_NUM(20,11,0,0)
 #define pg_get_initial_lcore    rte_get_main_lcore
 #define udata64                 dynfield1[0]
+#define PG_DEVTYPE_BLOCKED RTE_DEVTYPE_BLOCKED
+#define PG_DEVTYPE_ALLOWED RTE_DEVTYPE_ALLOWED
 #else
 #define pg_get_initial_lcore    rte_get_master_lcore
+#define PG_DEVTYPE_BLOCKED RTE_DEVTYPE_BLACKLISTED_PCI
+#define PG_DEVTYPE_ALLOWED RTE_DEVTYPE_WHITELISTED_PCI
 #endif
-#define PG_DEVTYPE_BLOCKLISTED_PCI RTE_DEVTYPE_BLACKLISTED_PCI
 
 #if RTE_VERSION >= RTE_VERSION_NUM(19,8,0,0)
 #define pg_ether_addr			rte_ether_addr

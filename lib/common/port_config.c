@@ -169,11 +169,11 @@ create_blocklist(uint64_t portmask,
 		if ( (portmask & (1ULL << i)) == 0) {
 			fprintf(stdout, "-- %s\n", desc[i]);
 			snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);
-			rte_eal_devargs_add(PG_DEVTYPE_BLOCKLISTED_PCI, pci_addr_str);
+			rte_eal_devargs_add(PG_DEVTYPE_BLOCKED, pci_addr_str);
 			idx++;
 		} else {
 			snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);
-			rte_eal_devargs_add(RTE_DEVTYPE_WHITELISTED_PCI, pci_addr_str);
+			rte_eal_devargs_add(PG_DEVTYPE_ALLOWED, pci_addr_str);
 			fprintf(stdout, "++ %s\n", desc[i]);
 		}
 	}

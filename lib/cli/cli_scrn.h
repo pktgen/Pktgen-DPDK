@@ -135,6 +135,7 @@ struct vt100_cmds {
 
 /* Add more defines for new types */
 #define SCRN_STDIN_TYPE		0
+#define SCRN_NOTTY_TYPE		1
 
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
@@ -230,7 +231,16 @@ void scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...);
 void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
 void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 
-#define _s(_x, _y)	static __inline__ void _x { _y; }
+#define _s(_x, _y)						       \
+	static __inline__ void					       \
+	_x							       \
+	{							       \
+		if (this_scrn && this_scrn->type == SCRN_STDIN_TYPE) { \
+			_y;					       \
+		} else {					       \
+			scrn_puts("\n");			       \
+		}						       \
+	}
 
 /** position cursor to row and column */
 _s(scrn_pos(int r, int c),  scrn_puts(vt100_pos, r, c))

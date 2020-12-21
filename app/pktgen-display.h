@@ -171,6 +171,19 @@ void pktgen_theme_state(const char *state);
  */
 void pktgen_theme_show(void);
 
+/**************************************************************************//**
+ *
+ * pktgen_print_div - Draw the column divider with colons
+ *
+ * DESCRIPTION
+ * Draw the column divider with colons.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+void pktgen_print_div(uint32_t row_first, uint32_t row_last, uint32_t col);
+
 #ifdef __cplusplus
 }
 #endif

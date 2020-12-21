@@ -407,3 +407,13 @@ pktgen_theme_save(char *filename)
 	fchmod(fileno(f), 0666);
 	fclose(f);
 }
+
+void
+pktgen_print_div(uint32_t row_first, uint32_t row_last, uint32_t col)
+{
+	uint32_t row;
+
+	pktgen_display_set_color("stats.colon");
+	for (row = row_first; row < row_last; row++)
+		scrn_printf(row, col, ":");
+}

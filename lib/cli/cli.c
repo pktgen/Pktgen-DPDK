@@ -852,6 +852,8 @@ cli_execute_cmdfile(const char *filename)
 
 	gb_reset_buf(this_cli->gb);
 
+	cli_printf("\nExecuting '%s'\n", filename);
+
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
 		if (!this_cli->user_state) {
 			cli_printf(">>> User State for CLI not set for Lua\n");
@@ -872,10 +874,10 @@ cli_execute_cmdfile(const char *filename)
 			return -1;
 
 		/* Read and feed the lines to the cmdline parser. */
-    while (fgets(buff, sizeof(buff), fd)) {
-        cli_input(buff, strlen(buff));
-        memset(buff, 0, sizeof(buff));
-    }
+		while (fgets(buff, sizeof(buff), fd)) {
+			cli_input(buff, strlen(buff));
+			memset(buff, 0, sizeof(buff));
+		}
 
 		fclose(fd);
 	}

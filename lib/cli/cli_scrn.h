@@ -262,7 +262,7 @@ _s(scrn_restore(void), scrn_puts("\0338"))
 /** Clear from cursor to end of line */
 _s(scrn_eol(void), scrn_puts("\033[K"))
 
-/** Clear from cursor to begining of line */
+/** Clear from cursor to beginning of line */
 _s(scrn_cbl(void), scrn_puts("\033[1K"))
 
 /** Clear entire line */
@@ -271,10 +271,10 @@ _s(scrn_cel(void), scrn_puts("\033[2K"))
 /** Clear from cursor to end of screen */
 _s(scrn_clw(void), scrn_puts("\033[J"))
 
-/** Clear from cursor to begining of screen */
+/** Clear from cursor to beginning of screen */
 _s(scrn_clb(void), scrn_puts("\033[1J"))
 
-/** Clear the screen, more cursor to home */
+/** Clear the screen, move cursor to home */
 _s(scrn_cls(void), scrn_puts("\033[2J"))
 
 /** Start reverse video */
@@ -298,7 +298,7 @@ _s(scrn_nlines(int r), scrn_puts("\033[%dE", r))
 /** Set window size, from to end of screen */
 _s(scrn_setw(int t), scrn_puts("\033[%d;r", t))
 
-/** Cursor postion report */
+/** Cursor position report */
 _s(scrn_cpos(void), scrn_puts("\033[6n"))
 
 /** Cursor move right <n> characters */
@@ -316,7 +316,7 @@ _s(scrn_cright(void), scrn_puts("\033[C"))
 /** Move one character left */
 _s(scrn_cleft(void), scrn_puts("\033[D"))
 
-/** Move cursor to begining of line */
+/** Move cursor to beginning of line */
 _s(scrn_bol(void), scrn_puts("\r"))
 
 /** Return the version string */

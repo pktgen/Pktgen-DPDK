@@ -147,7 +147,7 @@ handle_winch(int sig)
 	this_scrn->nrows = w.ws_row;
 	this_scrn->ncols = w.ws_col;
 
-	/* Need to refreash the screen */
+	/* Need to refresh the screen */
 	//cli_clear_screen();
 	cli_clear_line(-1);
 	cli_redisplay_line();

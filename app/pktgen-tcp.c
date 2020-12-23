@@ -37,6 +37,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 		ipv4->src_addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 		ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
+		ipv4->version_ihl = (IPv4_VERSION << 4) | (sizeof(struct pg_ipv4_hdr) / 4);
 		tlen = pkt->pktSize - pkt->ether_hdr_size;
 		ipv4->total_length = htons(tlen);
 		ipv4->next_proto_id = pkt->ipProto;

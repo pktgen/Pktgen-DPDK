@@ -217,7 +217,7 @@ def run_cfg(cfg_file):
         add_run_options('prefix', args, '--file-prefix')
         add_run_options('shared', args, '-d')
         add_run_options('blocklist', args, '-b')
-        add_run_options('allowlist', args, '-w')
+        add_run_options('allowlist', args, '-a')
         add_run_options('vdev', args, '--vdev')
         add_run_options('plugin', args, '-d')
         args.extend(["--"])

@@ -294,6 +294,19 @@ pktgen_config_ports(void)
 		if (pktgen.verbose)
 			rte_eth_dev_info_dump(NULL, pid);
 
+		if (pktgen.eth_mtu < info->dev_info.min_mtu) {
+		    pktgen_log_info("Increasing MTU from %u to %u",
+				    pktgen.eth_mtu, info->dev_info.min_mtu);
+		    pktgen.eth_mtu = info->dev_info.min_mtu;
+		    pktgen.eth_max_pkt = info->dev_info.min_mtu + RTE_ETHER_HDR_LEN;
+		}
+		if (pktgen.eth_mtu > info->dev_info.max_mtu) {
+		    pktgen_log_info("Reducing MTU from %u to %u",
+				    pktgen.eth_mtu, info->dev_info.max_mtu);
+		    pktgen.eth_mtu = info->dev_info.max_mtu;
+		    pktgen.eth_max_pkt = info->dev_info.max_mtu + RTE_ETHER_HDR_LEN;
+		}
+
 		/* Get a clean copy of the configuration structure */
 		rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
 

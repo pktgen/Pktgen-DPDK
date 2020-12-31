@@ -141,6 +141,11 @@ theme_color_map_t theme_color_map[] = {
 void
 display_topline(const char *msg)
 {
+	if (this_scrn && this_scrn->type != SCRN_STDIN_TYPE) {
+		scrn_puts("\n");
+		return;
+	}
+
 	pktgen_display_set_color("top.page");
 	scrn_printf(1, 20, "%s", msg);
 	pktgen_display_set_color("top.copyright");
@@ -153,6 +158,11 @@ void
 display_dashline(int last_row)
 {
 	int i;
+
+	if (this_scrn && this_scrn->type != SCRN_STDIN_TYPE) {
+		scrn_puts("\n");
+		return;
+	}
 
 	scrn_setw(last_row);
 	last_row--;
@@ -174,6 +184,7 @@ pktgen_display_set_geometry(uint16_t rows, uint16_t cols)
 {
 	if (!this_scrn)
 		return;
+
 	this_scrn->nrows = rows;
 	this_scrn->ncols = cols;
 }
@@ -406,4 +417,17 @@ pktgen_theme_save(char *filename)
 
 	fchmod(fileno(f), 0666);
 	fclose(f);
+}
+
+void
+pktgen_print_div(uint32_t row_first, uint32_t row_last, uint32_t col)
+{
+	uint32_t row;
+
+	if (this_scrn && this_scrn->type != SCRN_STDIN_TYPE)
+		return;
+
+	pktgen_display_set_color("stats.colon");
+	for (row = row_first; row < row_last; row++)
+		scrn_printf(row, col, ":");
 }

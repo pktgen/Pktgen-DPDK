@@ -147,7 +147,7 @@ handle_winch(int sig)
 	this_scrn->nrows = w.ws_row;
 	this_scrn->ncols = w.ws_col;
 
-	/* Need to refreash the screen */
+	/* Need to refresh the screen */
 	//cli_clear_screen();
 	cli_clear_line(-1);
 	cli_redisplay_line();
@@ -160,46 +160,62 @@ scrn_create(int scrn_type, int theme)
 	struct cli_scrn *scrn = this_scrn;
 	struct sigaction sa;
 
-	memset(&sa, 0, sizeof(struct sigaction));
-	sa.sa_handler = handle_winch;
-	sigaction(SIGWINCH, &sa, NULL);
-
 	if (!scrn) {
 		scrn = calloc(1, sizeof(struct cli_scrn));
 		if (!scrn)
 			return -1;
+
+		memset(scrn, 0, sizeof(*scrn));
 
 		this_scrn = scrn;
 	}
 
 	rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
 
-	ioctl(0, TIOCGWINSZ, &w);
-
-	scrn->nrows = w.ws_row;
-	scrn->ncols = w.ws_col;
 	scrn->theme = theme;
 	scrn->type  = scrn_type;
 
 	if (scrn_type == SCRN_STDIN_TYPE) {
+		memset(&sa, 0, sizeof(struct sigaction));
+		sa.sa_handler = handle_winch;
+		sigaction(SIGWINCH, &sa, NULL);
+
+		ioctl(0, TIOCGWINSZ, &w);
+
+		scrn->nrows = w.ws_row;
+		scrn->ncols = w.ws_col;
+
 		if (scrn_stdin_setup()) {
-			free(scrn);
-			return -1;
+			goto err_exit;
 		}
+	} else if (scrn_type == SCRN_NOTTY_TYPE) {
+		scrn->nrows = 24;
+		scrn->ncols = 80;
+
+		scrn_set_io(stdin, stdout);
 	} else {
-		free(scrn);
-		return -1;
+		fprintf(stderr, "%s: unexpected scrn_type %d\n",
+			__func__, scrn_type);
+		goto err_exit;
 	}
 
 	scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 
 	return 0;
+
+err_exit:
+	this_scrn = NULL;
+	free(scrn);
+	return -1;
 }
 
 int
 scrn_create_with_defaults(int theme)
 {
-	return scrn_create(SCRN_STDIN_TYPE,
+	int scrn_type =
+		isatty(STDIN_FILENO) ? SCRN_STDIN_TYPE : SCRN_NOTTY_TYPE;
+
+	return scrn_create(scrn_type,
 	                   (theme)? SCRN_THEME_ON : SCRN_THEME_OFF);
 }
 

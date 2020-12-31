@@ -121,9 +121,7 @@ pktgen_print_static_data(void)
     display_dashline(pktgen.last_row);
 
     /* Display the colon after the row label. */
-    pktgen_display_set_color("stats.colon");
-    for (row = PORT_STATE_ROW; row < (uint32_t)(pktgen.last_row - 2); row++)
-        scrn_printf(row, COLUMN_WIDTH_0 - 1, ":");
+    pktgen_print_div(PORT_STATE_ROW, pktgen.last_row - 2, COLUMN_WIDTH_0 - 1);
 
     sp          = pktgen.starting_port;
     display_cnt = 0;

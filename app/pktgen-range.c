@@ -320,10 +320,8 @@ pktgen_print_range(void)
 	pktgen.last_row = ++row;
 	display_dashline(pktgen.last_row);
 
-	pktgen_display_set_color("stats.colon");
 	/* Display the colon after the row label. */
-	for (row = 3; row < (pktgen.last_row - 1); row++)
-		scrn_printf(row, col_0 - 1, ":");
+	pktgen_print_div(3, pktgen.last_row - 1, col_0 - 1);
 
 	sp = pktgen.starting_port;
 	for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {

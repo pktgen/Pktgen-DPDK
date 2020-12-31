@@ -135,6 +135,7 @@ struct vt100_cmds {
 
 /* Add more defines for new types */
 #define SCRN_STDIN_TYPE		0
+#define SCRN_NOTTY_TYPE		1
 
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
@@ -230,7 +231,16 @@ void scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...);
 void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
 void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 
-#define _s(_x, _y)	static __inline__ void _x { _y; }
+#define _s(_x, _y)						       \
+	static __inline__ void					       \
+	_x							       \
+	{							       \
+		if (this_scrn && this_scrn->type == SCRN_STDIN_TYPE) { \
+			_y;					       \
+		} else {					       \
+			scrn_puts("\n");			       \
+		}						       \
+	}
 
 /** position cursor to row and column */
 _s(scrn_pos(int r, int c),  scrn_puts(vt100_pos, r, c))
@@ -262,7 +272,7 @@ _s(scrn_restore(void), scrn_puts("\0338"))
 /** Clear from cursor to end of line */
 _s(scrn_eol(void), scrn_puts("\033[K"))
 
-/** Clear from cursor to begining of line */
+/** Clear from cursor to beginning of line */
 _s(scrn_cbl(void), scrn_puts("\033[1K"))
 
 /** Clear entire line */
@@ -271,10 +281,10 @@ _s(scrn_cel(void), scrn_puts("\033[2K"))
 /** Clear from cursor to end of screen */
 _s(scrn_clw(void), scrn_puts("\033[J"))
 
-/** Clear from cursor to begining of screen */
+/** Clear from cursor to beginning of screen */
 _s(scrn_clb(void), scrn_puts("\033[1J"))
 
-/** Clear the screen, more cursor to home */
+/** Clear the screen, move cursor to home */
 _s(scrn_cls(void), scrn_puts("\033[2J"))
 
 /** Start reverse video */
@@ -298,7 +308,7 @@ _s(scrn_nlines(int r), scrn_puts("\033[%dE", r))
 /** Set window size, from to end of screen */
 _s(scrn_setw(int t), scrn_puts("\033[%d;r", t))
 
-/** Cursor postion report */
+/** Cursor position report */
 _s(scrn_cpos(void), scrn_puts("\033[6n"))
 
 /** Cursor move right <n> characters */
@@ -316,7 +326,7 @@ _s(scrn_cright(void), scrn_puts("\033[C"))
 /** Move one character left */
 _s(scrn_cleft(void), scrn_puts("\033[D"))
 
-/** Move cursor to begining of line */
+/** Move cursor to beginning of line */
 _s(scrn_bol(void), scrn_puts("\r"))
 
 /** Return the version string */

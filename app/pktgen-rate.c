@@ -191,9 +191,8 @@ rate_print_static_data(void)
 	display_dashline(pktgen.last_row);
 
 	/* Display the colon after the row label. */
-	pktgen_display_set_color("stats.colon");
-	for (row = PORT_STATE_ROW; row < ((ip_row + IP_ADDR_ROWS) - 2); row++)
-		scrn_printf(row, COLUMN_WIDTH_0 - 1, ":");
+	pktgen_print_div(PORT_STATE_ROW, (ip_row + IP_ADDR_ROWS) - 2,
+			 COLUMN_WIDTH_0 - 1);
 
 	pktgen_display_set_color("stats.stat.values");
 	sp = pktgen.starting_port;

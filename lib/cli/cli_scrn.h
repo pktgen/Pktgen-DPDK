@@ -232,14 +232,12 @@ void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);
 void scrn_fprintf(int16_t r, int16_t c, FILE *f, const char *fmt, ...);
 
 #define _s(_x, _y)						       \
-	static __inline__ void					       \
-	_x							       \
+	static __inline__ void _x				       \
 	{							       \
-		if (this_scrn && this_scrn->type == SCRN_STDIN_TYPE) { \
+		if (this_scrn && this_scrn->type == SCRN_STDIN_TYPE)   \
 			_y;					       \
-		} else {					       \
+		else						       \
 			scrn_puts("\n");			       \
-		}						       \
 	}
 
 /** position cursor to row and column */

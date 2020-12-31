@@ -27,9 +27,9 @@ if get_option('enable_gui')
     cflags += '-DGUI'
 endif
 
-deps += [cc.find_library('rte_net_i40e', required: true)]
-deps += [cc.find_library('rte_net_ixgbe', required: true)]
-deps += [cc.find_library('rte_net_ice', required: true)]
+deps += [cc.find_library('rte_net_i40e', required: false)]
+deps += [cc.find_library('rte_net_ixgbe', required: false)]
+deps += [cc.find_library('rte_net_ice', required: false)]
 
 deps += [dependency('threads')]
 deps += [cc.find_library('numa', required: true)]

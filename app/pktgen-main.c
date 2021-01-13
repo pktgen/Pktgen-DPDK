@@ -566,7 +566,6 @@ main(int argc, char **argv)
 	RTE_ETH_FOREACH_DEV(i) {
 		rte_eth_dev_stop(i);
 		rte_delay_us_sleep(100 * 1000);
-		rte_eth_dev_close(i);
 	}
 
 	cli_destroy();

@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 21.01.0 - fix warning message spit out by DPDK and add lua-5.4 support in build.
  - 20.12.0 - merge in latency test support with jitter and a number of minor cleanups
  - 20.11.3 - fix changes in DPDK 20.11-rc4
  - 20.11.2 - The dynfield0 was removed from rte_mbuf header

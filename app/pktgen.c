@@ -321,13 +321,36 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 
 	/* Send all of the packets before we can exit this function */
 	while (cnt) {
-
 		if (rnd)
 			pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
 		if (tstamp)
 			pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
 
+		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
+
+		if (tap)
+			pktgen_do_tx_tap(info, pkts, ret);
+
+		pkts += ret;
+		cnt -= ret;
+	}
+
+	/* Send all of the special packets if any exists */
+	mtab = &info->q[qid].special_mbufs;
+
+	if ((cnt = mtab->len) == 0)
+		return;
+
+	mtab->len = 0;
+	pkts = mtab->m_table;
+
+	qstats->txpkts += cnt;
+	for (i = 0; i < cnt; i++)
+		qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
+
+	/* Send all of the packets before we can exit this function */
+	while (cnt) {
 		ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
 		if (tap)
@@ -672,14 +695,10 @@ void
 pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid)
 {
 	port_info_t *info = &pktgen.info[pid];
-	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
+	struct mbuf_table   *mtab = &info->q[qid].special_mbufs;
 
 	/* Add packet to the TX list. */
 	mtab->m_table[mtab->len++] = m;
-
-	/* Fill our tx burst requirement */
-	if (mtab->len >= info->tx_burst)
-		pktgen_send_burst(info, qid);
 }
 
 /**************************************************************************//**

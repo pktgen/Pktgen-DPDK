@@ -293,12 +293,14 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 {
 	struct mbuf_table   *mtab = &info->q[qid].tx_mbufs;
 	struct rte_mbuf **pkts;
-	struct qstats_s *qstats;
+	struct qstats_s *qstats = &info->qstats[qid];
 	uint32_t ret, cnt, tap, rnd, tstamp, i;
 	int32_t seq_idx;
 
+	tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
+
 	if ((cnt = mtab->len) == 0)
-		return;
+		goto special_send;
 
 	mtab->len = 0;
 	pkts = mtab->m_table;
@@ -310,12 +312,9 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	else
 		seq_idx = SINGLE_PKT;
 
-	tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
 	rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
 	tstamp = pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
 
-	qstats = &info->qstats[qid];
-	qstats->txpkts += cnt;
 	for (i = 0; i < cnt; i++)
 		qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
 
@@ -336,6 +335,7 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 		cnt -= ret;
 	}
 
+special_send:
 	/* Send all of the special packets if any exists */
 	mtab = &info->q[qid].special_mbufs;
 

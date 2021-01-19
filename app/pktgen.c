@@ -315,6 +315,7 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 	rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
 	tstamp = pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
 
+	qstats->txpkts += cnt;
 	for (i = 0; i < cnt; i++)
 		qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
 

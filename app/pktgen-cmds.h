@@ -98,7 +98,7 @@ void single_set_latsampler_params(port_info_t *info, char* type,
 /* Rate */
 char *rate_transmit_count_rate(int port, char *buff, int len);
 void rate_set_tx_count(port_info_t *info, uint32_t cnt);
-void rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip);
+void rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver);
 void rate_set_proto(port_info_t *info, char *type);
 void rate_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac);
 void rate_set_src_mac(port_info_t *info, struct pg_ether_addr *mac);

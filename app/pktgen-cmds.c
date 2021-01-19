@@ -175,14 +175,16 @@ pktgen_script_save(char *path)
 		fprintf(fd, "set %d dst ip %s\n", i,
 			(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 			inet_ntop6(buff, sizeof(buff),
-					 pkt->ip_dst_addr.addr.ipv6.s6_addr) :
+					 pkt->ip_dst_addr.addr.ipv6.s6_addr,
+					 PG_PREFIXMAX) :
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 				   0xFFFFFFFF));
 		fprintf(fd, "set %d src ip %s\n", i,
 		(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 			inet_ntop6(buff, sizeof(buff),
-					 pkt->ip_src_addr.addr.ipv6.s6_addr) :
+					 pkt->ip_src_addr.addr.ipv6.s6_addr,
+					 pkt->ip_src_addr.prefixlen) :
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
@@ -378,7 +380,8 @@ pktgen_script_save(char *path)
 			fprintf(fd, "%s ",
 				(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 				inet_ntop6(buff, sizeof(buff),
-					pkt->ip_dst_addr.addr.ipv6.s6_addr) :
+					pkt->ip_dst_addr.addr.ipv6.s6_addr,
+					PG_PREFIXMAX) :
 				inet_ntop4(buff, sizeof(buff),
 					   htonl(pkt->ip_dst_addr.addr.ipv4.
 						 s_addr),
@@ -386,7 +389,8 @@ pktgen_script_save(char *path)
 			fprintf(fd, "%s ",
 				(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 				inet_ntop6(buff, sizeof(buff),
-					pkt->ip_src_addr.addr.ipv6.s6_addr) :
+					pkt->ip_src_addr.addr.ipv6.s6_addr,
+					pkt->ip_src_addr.prefixlen) :
 				inet_ntop4(buff, sizeof(buff),
 					   htonl(pkt->ip_src_addr.addr.ipv4.
 						 s_addr),
@@ -551,14 +555,16 @@ pktgen_lua_save(char *path)
 		fprintf(fd, "pktgen.set_ipaddr('%d', 'dst', '%s');\n", i,
 			(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 			inet_ntop6(buff, sizeof(buff),
-					 pkt->ip_dst_addr.addr.ipv6.s6_addr) :
+					 pkt->ip_dst_addr.addr.ipv6.s6_addr,
+					 PG_PREFIXMAX) :
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 				   0xFFFFFFFF));
 		fprintf(fd, "pktgen.set_ipaddr('%d', 'src','%s');\n", i,
 			(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 			inet_ntop6(buff, sizeof(buff),
-					 pkt->ip_src_addr.addr.ipv6.s6_addr) :
+					 pkt->ip_src_addr.addr.ipv6.s6_addr,
+					 pkt->ip_src_addr.prefixlen) :
 			inet_ntop4(buff, sizeof(buff),
 				   ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
 				   pkt->ip_mask));
@@ -749,7 +755,8 @@ pktgen_lua_save(char *path)
 				fprintf(fd, "'%s', ",
 					(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 					inet_ntop6(buff, sizeof(buff),
-					  pkt->ip_dst_addr.addr.ipv6.s6_addr) :
+					  pkt->ip_dst_addr.addr.ipv6.s6_addr,
+					  PG_PREFIXMAX) :
 					inet_ntop4(buff, sizeof(buff),
 						   htonl(pkt->ip_dst_addr.addr.ipv4.
 							 s_addr),
@@ -757,7 +764,8 @@ pktgen_lua_save(char *path)
 				fprintf(fd, "'%s', ",
 					(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 					inet_ntop6(buff, sizeof(buff),
-					  pkt->ip_src_addr.addr.ipv6.s6_addr) :
+					  pkt->ip_src_addr.addr.ipv6.s6_addr,
+					  pkt->ip_src_addr.prefixlen) :
 					inet_ntop4(buff, sizeof(buff),
 						   htonl(pkt->ip_src_addr.addr.ipv4.
 							 s_addr),
@@ -788,14 +796,16 @@ pktgen_lua_save(char *path)
 				fprintf(fd, "  ['ip_dst_addr'] = '%s',\n",
 					(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 					inet_ntop6(buff, sizeof(buff),
-					  pkt->ip_dst_addr.addr.ipv6.s6_addr) :
+					  pkt->ip_dst_addr.addr.ipv6.s6_addr,
+					  PG_PREFIXMAX) :
 					inet_ntop4(buff, sizeof(buff),
 						   htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
 						   0xFFFFFFFF));
 				fprintf(fd, "  ['ip_src_addr'] = '%s',\n",
 					(pkt->ethType == PG_ETHER_TYPE_IPv6) ?
 					inet_ntop6(buff, sizeof(buff),
-					  pkt->ip_src_addr.addr.ipv6.s6_addr) :
+					  pkt->ip_src_addr.addr.ipv6.s6_addr,
+					  pkt->ip_src_addr.prefixlen) :
 					inet_ntop4(buff, sizeof(buff),
 						   htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
 						   0xFFFFFFFF));
@@ -3267,21 +3277,33 @@ void
 single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip,
 			int ip_ver)
 {
-	if (type == 's' && ip_ver == 4) {
-		info->seq_pkt[SINGLE_PKT].ip_mask = size_to_mask(ip->prefixlen);
-		info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr = ntohl(
-				ip->ipv4.s_addr);
-	} else if (type == 'd' && ip_ver == 4) {
-		info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
-				ip->ipv4.s_addr);
-	} else if (type == 's' && ip_ver == 6) {
-		rte_memcpy(
-			info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv6.s6_addr,
-			ip->ipv6.s6_addr, sizeof(struct in6_addr));
-	} else if (type == 'd' && ip_ver == 6) {
-		rte_memcpy(
-			info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv6.s6_addr,
-			ip->ipv6.s6_addr, sizeof(struct in6_addr));
+	pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
+
+	if (ip_ver == 4) {
+		if (type == 's') {
+			pkt->ip_mask = size_to_mask(ip->prefixlen);
+			pkt->ip_src_addr.addr.ipv4.s_addr = ntohl(ip->ipv4.s_addr);
+		} else if (type == 'd')
+			pkt->ip_dst_addr.addr.ipv4.s_addr = ntohl(ip->ipv4.s_addr);
+		else
+			return;
+
+		if (pkt->ethType != PG_ETHER_TYPE_IPv4 && pkt->ethType != PG_ETHER_TYPE_ARP)
+			single_set_pkt_type(info, "ipv4");
+
+	} else if (ip_ver == 6) {
+		if (type == 's') {
+			pkt->ip_src_addr.prefixlen = ip->prefixlen;
+			rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr,
+				ip->ipv6.s6_addr, sizeof(struct in6_addr));
+		} else if (type == 'd')
+			rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr,
+				ip->ipv6.s6_addr, sizeof(struct in6_addr));
+		else
+			return;
+
+		if (pkt->ethType != PG_ETHER_TYPE_IPv6)
+			single_set_pkt_type(info, "ipv6");
 	}
 	pktgen_packet_ctor(info, SINGLE_PKT, -1);
 	pktgen_set_tx_update(info);
@@ -3300,15 +3322,37 @@ single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip,
  */
 
 void
-rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip)
+rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver)
 {
-	if (type == 's') {
-		info->seq_pkt[RATE_PKT].ip_mask = size_to_mask(ip->prefixlen);
-		info->seq_pkt[RATE_PKT].ip_src_addr.addr.ipv4.s_addr = ntohl(
-		                ip->ipv4.s_addr);
-	} else
-		info->seq_pkt[RATE_PKT].ip_dst_addr.addr.ipv4.s_addr = ntohl(
-		                ip->ipv4.s_addr);
+	pkt_seq_t *pkt = &info->seq_pkt[RATE_PKT];
+
+	if (ip_ver == 4) {
+		if (type == 's') {
+			pkt->ip_mask = size_to_mask(ip->prefixlen);
+			pkt->ip_src_addr.addr.ipv4.s_addr = ntohl(
+					ip->ipv4.s_addr);
+		} else if (type == 'd')
+			pkt->ip_dst_addr.addr.ipv4.s_addr = ntohl(ip->ipv4.s_addr);
+		else
+			return;
+
+		if (pkt->ethType != PG_ETHER_TYPE_IPv4 && pkt->ethType != PG_ETHER_TYPE_ARP)
+			rate_set_pkt_type(info, "ipv4");
+
+	} else if (ip_ver == 6) {
+		if (type == 's') {
+			pkt->ip_src_addr.prefixlen = ip->prefixlen;
+			rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr,
+				ip->ipv6.s6_addr, sizeof(struct in6_addr));
+		} else if (type == 'd')
+			rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr,
+				ip->ipv6.s6_addr, sizeof(struct in6_addr));
+		else
+			return;
+
+		if (pkt->ethType != PG_ETHER_TYPE_IPv6)
+			rate_set_pkt_type(info, "ipv6");
+	}
 	pktgen_packet_ctor(info, RATE_PKT, -1);
 	pktgen_set_tx_update(info);
 }

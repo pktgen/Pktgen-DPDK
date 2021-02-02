@@ -8,6 +8,7 @@
 
 #include <execinfo.h>
 #include <signal.h>
+#include <locale.h>
 
 #include <lua_config.h>
 #ifdef LUA_ENABLED
@@ -409,6 +410,8 @@ main(int argc, char **argv)
 {
 	uint32_t i;
 	int32_t ret;
+
+	setlocale(LC_ALL, "");
 
 	signal(SIGSEGV, sig_handler);
 	signal(SIGHUP, sig_handler);

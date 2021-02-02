@@ -20,22 +20,17 @@
 #include <rte_bus_pci.h>
 #endif
 
-/**************************************************************************/ /**
-                                                                              *
-                                                                              * pktgen_print_static_data
-                                                                              * - Display the static
-                                                                              * data on the screen.
-                                                                              *
-                                                                              * DESCRIPTION
-                                                                              * Display a set of
-                                                                              * port static data on
-                                                                              * the screen.
-                                                                              *
-                                                                              * RETURNS: N/A
-                                                                              *
-                                                                              * SEE ALSO:
-                                                                              */
-
+/**
+ *
+ * pktgen_print_static_data - Display the static data on the screen.
+ *
+ * DESCRIPTION
+ * Display a set of port static data on the screen.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 static void
 pktgen_print_static_data(void)
 {
@@ -139,13 +134,10 @@ pktgen_print_static_data(void)
         row = ip_row;
 
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-                    (info->fill_pattern_type == ABC_FILL_PATTERN)
-                        ? "abcd..."
-                        : (info->fill_pattern_type == NO_FILL_PATTERN)
-                              ? "None"
-                              : (info->fill_pattern_type == ZERO_FILL_PATTERN)
-                                    ? "Zero"
-                                    : info->user_pattern);
+                    (info->fill_pattern_type == ABC_FILL_PATTERN)    ? "abcd..."
+                    : (info->fill_pattern_type == NO_FILL_PATTERN)   ? "None"
+                    : (info->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero"
+                                                                     : info->user_pattern);
 
         pktgen_display_set_color("stats.rate.count");
         pktgen_transmit_count_rate(pid, buff, sizeof(buff));
@@ -157,17 +149,14 @@ pktgen_print_static_data(void)
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%s / %s:%04x",
-                 (pkt->ethType == PG_ETHER_TYPE_IPv4)
-                     ? "IPv4"
-                     : (pkt->ethType == PG_ETHER_TYPE_IPv6)
-                           ? "IPv6"
-                           : (pkt->ethType == PG_ETHER_TYPE_ARP) ? "ARP" : "Other",
-                 (pkt->ipProto == PG_IPPROTO_TCP)
-                     ? "TCP"
-                     : (pkt->ipProto == PG_IPPROTO_ICMP)
-                           ? "ICMP"
-                           : (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
-                                                                                         : "UDP",
+                 (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "IPv4"
+                 : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6"
+                 : (pkt->ethType == PG_ETHER_TYPE_ARP)  ? "ARP"
+                                                        : "Other",
+                 (pkt->ipProto == PG_IPPROTO_TCP)                              ? "TCP"
+                 : (pkt->ipProto == PG_IPPROTO_ICMP)                           ? "ICMP"
+                 : (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
+                                                                               : "UDP",
                  pkt->vlanid);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
@@ -179,17 +168,18 @@ pktgen_print_static_data(void)
 
         pktgen_display_set_color("stats.ip");
         if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
-		    int bufflen;
+            int bufflen;
 
-		    inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX);
-		    if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
-			    snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
-		    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+            inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX);
+            if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
+                snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-		    inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr, pkt->ip_src_addr.prefixlen);
-		    if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
-			    snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
-		    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+            inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                       pkt->ip_src_addr.prefixlen);
+            if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
+                snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         } else {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
@@ -242,31 +232,19 @@ pktgen_print_static_data(void)
 }
 
 #define LINK_RETRY 8
-/**************************************************************************/ /**
-                                                                              *
-                                                                              * pktgen_get_link_status
-                                                                              * - Get the port link
-                                                                              * status.
-                                                                              *
-                                                                              * DESCRIPTION
-                                                                              * Try to get the link
-                                                                              * status of a port.
-                                                                              * The <wait> flag if
-                                                                              * set tells the
-                                                                              * routine to try and
-                                                                              * wait for the link
-                                                                              * status for 3
-                                                                              * seconds. If the
-                                                                              * <wait> flag is zero
-                                                                              * the try three times
-                                                                              * to get a link status
-                                                                              * if the link is not
-                                                                              * up.
-                                                                              *
-                                                                              * RETURNS: N/A
-                                                                              *
-                                                                              * SEE ALSO:
-                                                                              */
+/**
+ *
+ * pktgen_get_link_status - Get the port link status.
+ *
+ * DESCRIPTION
+ * Try to get the link status of a port. The <wait> flag if set tells the
+ * routine to try and wait for the link status for 3 seconds. If the <wait> flag is zero
+ * the try three times to get a link status if the link is not up.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 void
 pktgen_get_link_status(port_info_t *info, int pid, int wait)
 {
@@ -299,25 +277,17 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
     info->link.link_duplex = ETH_LINK_FULL_DUPLEX;
 }
 
-/**************************************************************************/ /**
-                                                                              *
-                                                                              * pktgen_page_stats -
-                                                                              * Display the
-                                                                              * statistics on the
-                                                                              * screen for all
-                                                                              * ports.
-                                                                              *
-                                                                              * DESCRIPTION
-                                                                              * Display the port
-                                                                              * statistics on the
-                                                                              * screen for all
-                                                                              * ports.
-                                                                              *
-                                                                              * RETURNS: N/A
-                                                                              *
-                                                                              * SEE ALSO:
-                                                                              */
-
+/**
+ *
+ * pktgen_page_stats - Display the statistics on the screen for all ports.
+ *
+ * DESCRIPTION
+ * Display the port statistics on the screen for all ports.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 void
 pktgen_page_stats(void)
 {
@@ -398,7 +368,7 @@ pktgen_page_stats(void)
         rate = &info->rate_stats;
         prev = &info->prev_stats;
 
-        pktgen_display_set_color("stats.port.rate");
+        pktgen_display_set_color("stats.port.sizes");
         /* Rx/Tx pkts/s rate */
         row = LINK_STATE_ROW + 1;
         snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->max_ipackets, rate->ipackets);
@@ -441,10 +411,8 @@ pktgen_page_stats(void)
         scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
 
         /* Total Rx/Tx mbits */
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1,
-                    iBitsTotal(info->curr_stats) / Million);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1,
-                    oBitsTotal(info->curr_stats) / Million);
+        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->curr_stats) / Million);
+        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->curr_stats) / Million);
 
         if (pktgen.flags & TX_DEBUG_FLAG) {
             snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
@@ -492,24 +460,17 @@ pktgen_page_stats(void)
     pktgen_display_set_color(NULL);
 }
 
-/**************************************************************************/ /**
-                                                                              *
-                                                                              * pktgen_process_stats
-                                                                              * - Process statistics
-                                                                              * for all ports on
-                                                                              * timer1
-                                                                              *
-                                                                              * DESCRIPTION
-                                                                              * When timer1 callback
-                                                                              * happens then process
-                                                                              * all of the port
-                                                                              * statistics.
-                                                                              *
-                                                                              * RETURNS: N/A
-                                                                              *
-                                                                              * SEE ALSO:
-                                                                              */
-
+/**
+ *
+ * pktgen_process_stats - Process statistics for all ports on timer1
+ *
+ * DESCRIPTION
+ * When timer1 callback happens then process all of the port statistics.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 void
 pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 {
@@ -582,7 +543,8 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
         rate->imcasts = curr->imcasts - prev->imcasts;
 #endif
 
-if (rate->ipackets > 0xffffffff) printf("%ld %ld > %ld\n", base->ipackets, curr->ipackets, prev->ipackets);
+        if (rate->ipackets > 0xffffffff)
+            printf("%ld %ld > %ld\n", base->ipackets, curr->ipackets, prev->ipackets);
         /* Find the new max rate values */
         if (rate->ipackets > info->max_ipackets)
             info->max_ipackets = rate->ipackets;
@@ -593,8 +555,6 @@ if (rate->ipackets > 0xffffffff) printf("%ld %ld > %ld\n", base->ipackets, curr-
         *prev = *curr;
     }
 }
-
-/***************************************************************************/
 
 void
 pktgen_page_phys_stats(uint16_t pid)

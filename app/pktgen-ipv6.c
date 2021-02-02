@@ -35,7 +35,7 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
 	memset(ip, 0, sizeof(struct pg_ipv6_hdr));
 
 	ip->vtc_flow = htonl(IPv6_VERSION << 28);
-	ip->vtc_flow |= htonl(pkt->tos << IPV6_HDR_TC_SHIFT);
+	ip->vtc_flow |= htonl(pkt->tos << RTE_IPV6_HDR_TC_SHIFT);
 	tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv6_hdr));
 
 	ip->payload_len = htons(tlen);

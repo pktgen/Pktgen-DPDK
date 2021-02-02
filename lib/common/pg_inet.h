@@ -584,8 +584,15 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 #endif
 
 static __inline__ const char *
-inet_ntop6(char *buff, int len, uint8_t *ip6) {
-	return inet_ntop(AF_INET6, ip6, buff, len);
+inet_ntop6(char *buff, int len, uint8_t *ip6, unsigned int prefixlen) {
+	char lbuf[64];
+
+	inet_ntop(AF_INET6, ip6, buff, len);
+	if (prefixlen != PG_PREFIXMAX) {
+		snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, prefixlen);
+		snprintf(buff, len, "%s", lbuf);
+	}
+	return buff;
 }
 
 #ifndef _MTOA_

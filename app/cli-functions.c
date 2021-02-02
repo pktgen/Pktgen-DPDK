@@ -399,6 +399,8 @@ static struct cli_map set_map[] = {
 	{ 25, "set %P user pattern %s" },
 	{ 30, "set %P src ip %4" },
 	{ 31, "set %P dst ip %4" },
+	{ 32, "set %P src ip %6" },
+	{ 33, "set %P dst ip %6" },
 	{ 40, "set ports_per_page %d" },
 	{ 50, "set %P qinqids %d %d" },
 	{ 60, "set %P rnd %d %d %s" },
@@ -532,14 +534,11 @@ set_cmd(int argc, char **argv)
 			break;
 		case 30:
 			p = strchr(argv[4], '/');
-			if (!p) {
-				cli_printf("src IP address should contain subnet value, default /32 for IPv4, /128 for IPv6\n");
-			}
-			ip_ver = _atoip(argv[4],
-				PG_IPADDR_V4 | PG_IPADDR_NETWORK,
-				&ip, sizeof(ip));
+			if (!p)
+				cli_printf("src IP address should contain subnet value, default /32 for IPv4\n");
+			ip_ver = _atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
 			foreach_port(portlist,
-				single_set_ipaddr(info, 's', &ip, ip_ver));
+                single_set_ipaddr(info, 's', &ip, ip_ver));
 			break;
 		case 31:
 			/* Remove the /XX mask value if supplied */
@@ -548,9 +547,29 @@ set_cmd(int argc, char **argv)
 				cli_printf("Subnet mask not required, removing subnet mask value\n");
 				*p = '\0';
 			}
-			ip_ver = _atoip(argv[4], 0, &ip, sizeof(ip));
+			ip_ver = _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
 			foreach_port(portlist,
-				single_set_ipaddr(info, 'd', &ip, ip_ver));
+                single_set_ipaddr(info, 'd', &ip, ip_ver));
+			break;
+		case 32:
+			p = strchr(argv[4], '/');
+			if (!p)
+				cli_printf("src IP address should contain subnet value, default /128 for IPv6\n");
+
+			ip_ver = _atoip(argv[4], PG_IPADDR_V6 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			foreach_port(portlist,
+                single_set_ipaddr(info, 's', &ip, ip_ver));
+			break;
+		case 33:
+			/* Remove the /XX mask value if supplied */
+			p = strchr(argv[4], '/');
+			if (p) {
+				cli_printf("Subnet mask not required, removing subnet mask value\n");
+				*p = '\0';
+			}
+			ip_ver = _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
+			foreach_port(portlist,
+                single_set_ipaddr(info, 'd', &ip, ip_ver));
 			break;
 		case 40:
 			pktgen_set_page_size(atoi(argv[2]));
@@ -1733,7 +1752,8 @@ static struct cli_map rate_map[] = {
 	{ 23, "rate %P dst mac %m" },
 	{ 30, "rate %P src ip %4" },
 	{ 31, "rate %P dst ip %4" },
-
+	{ 32, "rate %P src ip %6" },
+	{ 33, "rate %P dst ip %6" },
 	{ 40, "rate %P fps %d" },
 	{ 45, "rate %P lines %d" },
 	{ 46, "rate %P pixels %d" },
@@ -1774,7 +1794,7 @@ rate_cmd(int argc, char **argv)
 	char *what, *p;
 	struct pg_ipaddr ip;
 	portlist_t portlist;
-	int value, n;
+	int value, n, ip_ver;
 
 	m = cli_mapping(rate_map, argc, argv);
 	if (!m)
@@ -1819,14 +1839,12 @@ rate_cmd(int argc, char **argv)
 			break;
 		case 30:
 			p = strchr(argv[4], '/');
-			if (!p) {
-				char buf[32];
-				snprintf(buf, sizeof(buf), "%s/32", argv[4]);
+			if (!p)
 				cli_printf("src IP address should contain /NN subnet value, default /32\n");
-				_atoip(buf, PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-			} else
-				_atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-			foreach_port(portlist, rate_set_ipaddr(info, 's', &ip));
+
+			ip_ver = _atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			foreach_port(portlist,
+                rate_set_ipaddr(info, 's', &ip, ip_ver));
 			break;
 		case 31:
 			/* Remove the /XX mask value if supplied */
@@ -1835,8 +1853,29 @@ rate_cmd(int argc, char **argv)
 				cli_printf("Subnet mask not required, removing subnet mask value\n");
 				*p = '\0';
 			}
-			_atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
-			foreach_port(portlist, rate_set_ipaddr(info, 'd', &ip));
+			ip_ver = _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
+			foreach_port(portlist,
+                rate_set_ipaddr(info, 'd', &ip, ip_ver));
+			break;
+		case 32:
+			p = strchr(argv[4], '/');
+			if (!p)
+				cli_printf("src IP address should contain /NN subnet value, default /128\n");
+
+			ip_ver = _atoip(argv[4], PG_IPADDR_V6 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
+			foreach_port(portlist,
+                rate_set_ipaddr(info, 's', &ip, ip_ver));
+			break;
+		case 33:
+			/* Remove the /XX mask value if supplied */
+			p = strchr(argv[4], '/');
+			if (p) {
+				cli_printf("Subnet mask not required, removing subnet mask value\n");
+				*p = '\0';
+			}
+			ip_ver = _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
+			foreach_port(portlist,
+                rate_set_ipaddr(info, 'd', &ip, ip_ver));
 			break;
 		case 40:		/* fps */
 			foreach_port(portlist, rate_set_value(info, "fps", atoi(argv[3])));

@@ -134,7 +134,7 @@ rate_print_static_data(void)
 	struct rte_eth_dev_info dev = { 0 };
 	uint32_t pid, col, row, sp, ip_row;
 	pkt_seq_t *pkt;
-	char buff[32];
+	char buff[INET6_ADDRSTRLEN+4+1];
 	int display_cnt;
 
 	pktgen_display_set_color("top.page");
@@ -228,12 +228,26 @@ rate_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 		pktgen_display_set_color("stats.ip");
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		               inet_ntop4(buff, sizeof(buff),
-					  htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
+		if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
+			int bufflen;
+
+			inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX);
+			if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
+				snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+			inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr, pkt->ip_src_addr.prefixlen);
+			if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
+				snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+		} else {
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+					inet_ntop4(buff, sizeof(buff),
+						htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
+					inet_ntop4(buff, sizeof(buff),
+						htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
+		}
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

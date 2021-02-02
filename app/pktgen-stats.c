@@ -179,10 +179,17 @@ pktgen_print_static_data(void)
 
         pktgen_display_set_color("stats.ip");
         if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-                        inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr));
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-                        inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr));
+		    int bufflen;
+
+		    inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX);
+		    if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
+			    snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+		    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+		    inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr, pkt->ip_src_addr.prefixlen);
+		    if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
+			    snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+		    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         } else {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),

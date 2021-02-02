@@ -4,6 +4,7 @@
 
 #include <rte_string_fns.h>
 #include <pg_strings.h>
+#include <_atoip.h>
 
 #include "cli.h"
 
@@ -33,6 +34,8 @@ static int
 is_map_valid(const char *fmt, char *arg)
 {
 	int ret = 0;
+	char *p;
+	struct rte_ipaddr ip;
 
 	if (strchr("%bdDhHsn46mkPC|l", fmt[1]) == NULL)
 		return ret;
@@ -62,19 +65,19 @@ is_map_valid(const char *fmt, char *arg)
 		case 's':
 			if (isprint(*arg)) ret = 1;
 			break;
-		/* TODO: validate this is a valid IPv4 network address */
 		case 'n':
 			if (isdigit(*arg)) ret = 1;
 			break;
-		/* TODO: validate this is a valid IPv4 address */
 		case '4':
-			if (isdigit(*arg)) ret = 1;
-			break;
-		/* TODO: validate this is a valid IPv6 address */
+			p = strchr(arg, '/');
+			if (_atoip(arg,p ? RTE_IPADDR_V4 | RTE_IPADDR_NETWORK : RTE_IPADDR_V4, &ip, sizeof(ip)) == 4)
+                ret = 1;
+			return ret;
 		case '6':
-			if (isdigit(*arg)) ret = 1;
-			break;
-		/* TODO: validate this is a valid MAC address */
+			p = strchr(arg, '/');
+			if (_atoip(arg, p ? RTE_IPADDR_V6 | RTE_IPADDR_NETWORK : RTE_IPADDR_V6, &ip, sizeof(ip)) == 6)
+                ret = 1;
+			return ret;
 		case 'm':
 			if (isxdigit(*arg)) ret = 1;
 			break;

@@ -927,7 +927,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 {
 	pkt_data_t *data = (pkt_data_t *)opaque;
 	struct rte_mbuf *m = (struct rte_mbuf *)obj;
-	union pktgen_data *d = (union pktgen_data *)&m->udata64;
+	union pktgen_data *d = pktgen_data_field(m);
 	port_info_t *info;
 	pkt_seq_t *pkt;
 	uint16_t qid, idx;

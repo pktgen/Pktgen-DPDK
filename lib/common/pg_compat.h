@@ -33,7 +33,6 @@ extern "C" {
 
 #if RTE_VERSION >= RTE_VERSION_NUM(20,11,0,0)
 #define pg_get_initial_lcore    rte_get_main_lcore
-#define udata64                 dynfield1[0]
 #define PG_DEVTYPE_BLOCKED RTE_DEVTYPE_BLOCKED
 #define PG_DEVTYPE_ALLOWED RTE_DEVTYPE_ALLOWED
 #else

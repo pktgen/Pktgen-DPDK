@@ -382,7 +382,6 @@ pktgen_config_ports(void)
 		for (q = 0; q < rt.tx; q++) {
 			struct rte_eth_txconf *txconf;
 
-
 			/* grab the socket id value based on the lcore being used. */
 			sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, q));
 

@@ -365,8 +365,7 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 		                NULL,
 		                pktgen_pcap_mbuf_ctor,
 		                (void *)pcap,
-		                rte_lcore_to_socket_id(
-		                        0),
+						rte_eth_dev_socket_id(info->pid),
 		                MEMPOOL_F_DMA);
 		scrn_printf(0, 0, "\r");
 		if (info->q[qid].pcap_mp == NULL)

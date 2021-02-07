@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,7 +13,7 @@
 
 #include "pktgen-ipv6.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_ipv6_ctor - IPv6 packet header constructor routine.
  *
@@ -48,7 +48,7 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
 			sizeof(struct in6_addr));
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_process_ping6 - Process a IPv6 ICMP echo request packet.
  *

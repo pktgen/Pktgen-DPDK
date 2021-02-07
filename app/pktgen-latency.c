@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,7 +19,7 @@
 #include <rte_bus_pci.h>
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_print_static_data - Display the static data on the screen.
  *
@@ -177,7 +177,7 @@ pktgen_print_static_data(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_latency - Display the latency on the screen for all ports.
  *

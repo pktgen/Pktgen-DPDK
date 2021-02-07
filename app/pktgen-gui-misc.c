@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,7 +7,7 @@
 
 #include "pktgen-gui.h"
 
-/**************************************************************************//**
+/**
  *
  * check_entry - A routine to validate entry
  *
@@ -27,7 +27,7 @@ check_entry(GtkTreeStore *tree, GtkTreePath *path)
 	return gtk_tree_model_get_iter(GTK_TREE_MODEL(tree), &iter, path);
 }
 
-/**************************************************************************//**
+/**
  *
  * add_entry - A routine to add entry
  *
@@ -78,7 +78,7 @@ add_entry(GtkTreeStore *tree, GtkTreePath *path)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * enable_stream_callback - A callback to enable/disable stream
  *
@@ -123,7 +123,7 @@ enable_stream_callback(GtkCellRendererToggle *cell,
 	pkt->seq_enabled = !active;
 }
 
-/**************************************************************************//**
+/**
  *
  * digits_scale_callback - A callback to set digits
  *
@@ -143,7 +143,7 @@ digits_scale_callback(GtkAdjustment __attribute__((unused)) *adj)
 	gtk_scale_set_digits(GTK_SCALE(hscale), (gint)0);
 }
 
-/**************************************************************************//**
+/**
  *
  * apply_callback - A callback for applying changes on stream
  *
@@ -169,7 +169,7 @@ apply_callback(GtkWidget __attribute__(
 	                                    (gpointer) & flag);
 }
 
-/**************************************************************************//**
+/**
  *
  * stream_apply - A routine for applying changes on stream
  *
@@ -206,7 +206,7 @@ stream_apply(GtkTreeModel  *model,
 		forall_ports(single_set_tx_rate(info, buff));
 }
 
-/**************************************************************************//**
+/**
  *
  * validate_ip_address - A routine for validating IP from user input
  *
@@ -267,7 +267,7 @@ validate_ip_address(char *st)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * traffic_stream_get_seq_id - A routine to get seq id for selected port
  *
@@ -290,7 +290,7 @@ traffic_stream_get_seq_id(GtkTreeModel  *model,
 	gtk_tree_model_get(model, iter, TRAF_STR_NO, seq_id, -1);
 }
 
-/**************************************************************************//**
+/**
  *
  * traffic_stream_get_pid - A routine to get port id for selected port
  *
@@ -319,7 +319,7 @@ traffic_stream_get_pid(GtkTreeModel  *model,
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * hex_to_number - A routine to convert hex values into number
  *
@@ -343,7 +343,7 @@ hex_to_number(char c)
 	return -1;
 }
 
-/**************************************************************************//**
+/**
  *
  * ascii_to_number - A routine to convert ascii values into number
  *

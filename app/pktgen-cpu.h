@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_cpu_init - Init the CPU information
  *
@@ -26,7 +26,7 @@ extern "C" {
 
 void pktgen_cpu_init(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_cpu - Display the CPU data page.
  *

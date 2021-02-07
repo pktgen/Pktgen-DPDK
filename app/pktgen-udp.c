@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,7 +12,7 @@
 
 #include "pktgen-udp.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_udp_hdr_ctor - UDP header constructor routine.
  *

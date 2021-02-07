@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -33,7 +33,7 @@
 int pktgen_gui_main(int argc, char *argv[]);
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_l2p_dump - Dump the l2p table
  *
@@ -52,7 +52,7 @@ pktgen_l2p_dump(void)
 }
 
 #ifdef LUA_ENABLED
-/**************************************************************************//**
+/**
  *
  * pktgen_get_lua - Get Lua state pointer.
  *
@@ -71,7 +71,7 @@ pktgen_get_lua(void)
 }
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_usage - Display the help for the command line.
  *
@@ -143,7 +143,7 @@ pktgen_usage(const char *prgname)
 		prgname);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_parse_args - Main parsing routine for the command line.
  *
@@ -393,7 +393,7 @@ RTE_FINI(pktgen_fini)
 	cli_destroy();
 }
 
-/**************************************************************************//**
+/**
  *
  * main - Main routine to setup pktgen.
  *

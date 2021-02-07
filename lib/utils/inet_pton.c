@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
- * Copyright (c) 1996,1999 by Internet Software Consortium.
+ * Copyright(c) 2004 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright(c) 1996,1999 by Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above

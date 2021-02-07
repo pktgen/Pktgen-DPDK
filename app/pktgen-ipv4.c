@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,7 +15,7 @@
 #include "pktgen-log.h"
 #include "pktgen-ipv4.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_ipv4_ctor - Construct the IPv4 header for a packet
  *
@@ -55,7 +55,7 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
 	ip->hdr_checksum = rte_ipv4_cksum((const struct pg_ipv4_hdr *)ip);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_ping4 - Create and send a Ping or ICMP echo packet.
  *
@@ -94,7 +94,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 	pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_process_ping4 - Process a input ICMP echo packet for IPv4.
  *

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2014-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2014-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -34,7 +34,7 @@
 #define rte_eal_devargs_add	rte_devargs_add
 #endif
 
-/**************************************************************************//**
+/**
  *
  * get_portdesc - Parse the lspci command output to find ports.
  *
@@ -112,7 +112,7 @@ get_portdesc(struct rte_pci_addr *pciAddr,
 	return idx;
 }
 
-/**************************************************************************//**
+/**
  *
  * free_portdesc - Free the allocated memory for port descriptions.
  *
@@ -136,7 +136,7 @@ free_portdesc(uint8_t **portdesc, uint32_t num)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * create_blocklist - Create a port blocklist.
  *

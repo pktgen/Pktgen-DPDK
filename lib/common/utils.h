@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-/**************************************************************************//**
+/**
  * The function is a wrapper around strdup() and will free the previous string
  * if the pointer is present.
  */

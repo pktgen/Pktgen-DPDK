@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,7 +13,7 @@
 #include "pktgen-gre.h"
 #include "pktgen.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gre_hdr_ctor - IPv4/GRE header construction routine.
  *
@@ -91,7 +91,7 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt,
 	return (char *)(gre + 1) - 4 * (3 - extra_count);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gre_ether_hdr_ctor - GRE/Ethernet header construction routine.
  *

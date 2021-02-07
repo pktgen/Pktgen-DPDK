@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -29,7 +29,7 @@ static rnd_func_t _rnd_func = NULL;
 /* Forward declaration */
 static void pktgen_init_default_rnd(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_default_rnd_func - Default function used to generate random values
  *
@@ -47,7 +47,7 @@ pktgen_default_rnd_func(void)
 	return (uint32_t)xorshift64star();
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_rnd_bits_init - Initialize random bitfield structures and PRNG
  *
@@ -82,7 +82,7 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 	pktgen_init_default_rnd();
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_random_bitfield - Set random bit specification
  *
@@ -180,7 +180,7 @@ leave:
 	return rnd_bits->active_specs;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_rnd_bits_apply - Set random bitfields in packet.
  *
@@ -245,7 +245,7 @@ pktgen_rnd_bits_apply(port_info_t *info,
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_random_bitfields - Display the random bitfields data page.
  *
@@ -349,7 +349,7 @@ pktgen_init_default_rnd(void)
 }
 
 #ifdef TESTING
-/**************************************************************************//**
+/**
  *
  * pktgen_set_rnd_func - Set function to use as random number generator
  *

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -24,7 +24,7 @@ void *pktgen_get_lua(void);
 
 void pktgen_stop_running(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_get_lua - Get Lua state pointer.
  *

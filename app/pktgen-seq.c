@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,7 +17,7 @@ pktgen_send_seq_pkt(port_info_t *info, uint32_t seq_idx)
 	(void)seq_idx;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_seq - Display the sequence port data on the screen.
  *

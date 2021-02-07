@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -22,7 +22,7 @@
 
 #define CAPTURE_BUFF_SIZE	(4 * (1024 * 1024))
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_capture_init - Initialize memory and data structures for packet
  * capture.
@@ -57,7 +57,7 @@ pktgen_packet_capture_init(capture_t *capture, int socket_id)
 			socket_id, RTE_MEMZONE_1GB | RTE_MEMZONE_SIZE_HINT_ONLY);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_capture - Enable or disable packet capturing
  *
@@ -268,7 +268,7 @@ found_rx_lid:
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_capture_bulk - Capture packets to memory.
  *

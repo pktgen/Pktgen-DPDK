@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2015-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2015-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,7 +13,7 @@
 
 #include "pktgen-gtpu.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gtpu_udp_hdr_ctor - GTP-U header constructor routine for TCP/UDP.
  *

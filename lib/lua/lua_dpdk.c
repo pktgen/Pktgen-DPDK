@@ -399,7 +399,7 @@ static const luaL_Reg dpdklib[] = {
 	{NULL, NULL}
 };
 
-static const char *rte_copyright = "Copyright (c) <2010-2020>, Intel Corporation";
+static const char *rte_copyright = "Copyright(c) <2010-2021>, Intel Corporation";
 
 static int
 luaopen_dpdk(lua_State *L)

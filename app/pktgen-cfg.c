@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2020-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,7 +17,7 @@
  * Socket   :    0         1         2         3
  * Core   0 : [ 0,36]   [18,54]   [18,54]   [18,54]
  */
-/**************************************************************************//**
+/**
  *
  * pktgen_page_config - Show the configuration page for pktgen.
  *

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -230,7 +230,7 @@ pktgen_page_log(uint32_t print_labels)
 #undef MAX_PAGE_LINES
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_format_msg_page - formats the log entry for the log page
  *
@@ -282,7 +282,7 @@ pktgen_format_msg_page(const log_msg_t *log_msg)
 	return msg;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_format_msg_file - formats the log entry for output to disk
  *
@@ -334,7 +334,7 @@ pktgen_format_msg_file(const log_msg_t *log_msg)
 	return msg;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_format_msg_stdout - formats the log entry for output to screen
  *

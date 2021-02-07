@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,7 +20,7 @@
 #endif
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_print_pcap - Display the pcap data page.
  *
@@ -176,7 +176,7 @@ leave:
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_pcap - Display the PCAP data page.
  *
@@ -195,7 +195,7 @@ pktgen_page_pcap(uint16_t pid)
 		pktgen_print_pcap(pid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pcap_mbuf_ctor - Callback routine to construct PCAP packets.
  *
@@ -291,7 +291,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pcap_parse - Parse a PCAP file.
  *

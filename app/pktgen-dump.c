@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,7 +12,7 @@
 #include "pktgen.h"
 #include "pktgen-log.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_dump - Dump the contents of a packet
  *
@@ -49,7 +49,7 @@ pktgen_packet_dump(struct rte_mbuf *m, int pid)
 	++info->dump_tail;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_dump_bulk - Dump packet contents.
  *
@@ -84,7 +84,7 @@ pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
 	info->dump_count -= nb_dump;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_print_packet_dump - Print captured packets to the screen
  *

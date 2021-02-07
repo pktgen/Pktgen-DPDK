@@ -75,7 +75,7 @@ typedef struct rte_mempool pktmbuf_t;
 typedef struct rte_mempool mempool_t;
 typedef struct vec vec_t;
 
-/**************************************************************************//**
+/**
  *
  * setf_integer - Helper routine to set Lua variables.
  *
@@ -94,7 +94,7 @@ setf_integer(lua_State *L, const char *name, lua_Integer value)
 	lua_setfield(L, -2, name);
 }
 
-/**************************************************************************//**
+/**
  *
  * setf_integer - Helper routine to set Lua variables.
  *
@@ -113,7 +113,7 @@ setf_function(lua_State *L, const char *name, lua_CFunction fn)
 	lua_setfield(L, -2, name);
 }
 
-/**************************************************************************//**
+/**
  *
  * setf_string - Helper routine to set Lua variables.
  *
@@ -132,7 +132,7 @@ setf_string(lua_State *L, const char *name, const char *value)
 	lua_setfield(L, -2, name);
 }
 
-/**************************************************************************//**
+/**
  *
  * setf_stringLen - Helper routine to set Lua variables.
  *
@@ -151,7 +151,7 @@ setf_stringLen(lua_State *L, const char *name, char *value, int len)
 	lua_setfield(L, -2, name);
 }
 
-/**************************************************************************//**
+/**
  *
  * setf_udata - Helper routine to set Lua variables.
  *

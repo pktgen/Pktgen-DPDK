@@ -23,7 +23,7 @@ memory management with incremental garbage collection, making it ideal for
 configuration, scripting, and rapid prototyping.
 
 
-**Copyright (c) 1994-2015 Lua.org, PUC-Rio.**
+**Copyright(c) 1994-2015 Lua.org, PUC-Rio.**
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

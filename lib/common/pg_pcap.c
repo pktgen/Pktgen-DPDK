@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -60,7 +60,7 @@
 #include "pg_pcap.h"
 #include "pg_inet.h"
 
-/**************************************************************************//**
+/**
  *
  * pcap_open - Open a PCAP file.
  *
@@ -141,7 +141,7 @@ leave:
 	return NULL;
 }
 
-/**************************************************************************//**
+/**
  *
  * pcap_info - Display the PCAP information.
  *
@@ -172,7 +172,7 @@ _pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 	fflush(stdout);
 }
 
-/**************************************************************************//**
+/**
  *
  * pcap_rewind - Rewind or start over on a PCAP file.
  *
@@ -197,7 +197,7 @@ _pcap_rewind(pcap_info_t *pcap)
 	(void)fseek(pcap->fd, sizeof(pcap_hdr_t), SEEK_SET);
 }
 
-/**************************************************************************//**
+/**
  *
  * pcap_skip - Rewind and skip to the given packet location.
  *
@@ -236,7 +236,7 @@ _pcap_skip(pcap_info_t *pcap, uint32_t skip)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pcap_close - Close a PCAP file
  *
@@ -261,7 +261,7 @@ _pcap_close(pcap_info_t *pcap)
 	rte_free(pcap);
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_payloadOffset - Determine the packet data offset value.
  *
@@ -310,7 +310,7 @@ _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
 	return *length != 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pcap_read - Read data from the PCAP file and parse it
  *

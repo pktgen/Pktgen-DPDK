@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2020-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -1119,7 +1119,7 @@ dbg_cmd(int argc, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * Set a sequence config for given port and slot.
  *
@@ -1179,7 +1179,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * Set a sequence config for given port and slot.
  *
@@ -1239,7 +1239,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * Set a sequence config for given port and slot.
  *
@@ -1276,7 +1276,7 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * Set a sequence config for given port and slot.
  *
@@ -1361,7 +1361,7 @@ seq_cmd(int argc, char **argv)
 }
 
 #ifdef LUA_ENABLED
-/**************************************************************************//**
+/**
  *
  * script_cmd - Command to execute a script.
  *
@@ -1393,7 +1393,7 @@ script_cmd(int argc __rte_unused, char **argv)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * cmd_exec_lua_parsed - Command to execute lua code on command line.
  *
@@ -2037,7 +2037,7 @@ pktgen_cli_start(void)
 	cli_destroy();
 }
 
-/**************************************************************************//**
+/**
  *
  * Display the help screen and pause if needed.
  *

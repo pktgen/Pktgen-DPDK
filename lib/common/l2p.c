@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -69,7 +69,7 @@ _bset(uint8_t *p, uint16_t idx)
 	p[c] = t | (1 << (idx - (c * 8)));
 }
 
-/**************************************************************************//**
+/**
  * Add an RX lcore to a port
  *
  */
@@ -97,7 +97,7 @@ l2p_connect(l2p_t *l2p,  uint16_t pid, uint16_t lid, uint16_t type)
 	pobj->lids[pobj->nb_lids++] = lid;
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_parse_portmask - Parse the portmask from the command line.
  *
@@ -115,7 +115,7 @@ pg_parse_portmask(const char *portmask)
 	return strtoul(portmask, NULL, 0);
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_parse_rt_list - Parse the Rx/Tx list string.
  *
@@ -160,7 +160,7 @@ pg_parse_rt_list(char *list, uint8_t *map)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_parse_lcore_list - Parse the lcore list string.
  *
@@ -209,7 +209,7 @@ pg_parse_lcore_list(char *list, ls_t *ls)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_parse_port_list - Parse the port list string.
  *
@@ -256,7 +256,7 @@ pg_parse_port_list(char *list, ps_t *ps)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_parse_matrix - Parse the command line argument for port configuration
  *
@@ -412,7 +412,7 @@ leave:
 	return -1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pg_port_matrix_dump - Dump out the matrix for all ports
  *

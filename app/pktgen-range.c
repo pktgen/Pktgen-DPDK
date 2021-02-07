@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -11,7 +11,7 @@
 #include "pktgen-log.h"
 #include "pktgen.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_range_ctor - Construct a range packet in buffer provided.
  *
@@ -244,7 +244,7 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_print_range - Display the range data page.
  *
@@ -512,7 +512,7 @@ pktgen_print_range(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_range - Display the range data page.
  *
@@ -531,7 +531,7 @@ pktgen_page_range(void)
 		pktgen_print_range();
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_range_setup - Setup the default values for a range port.
  *

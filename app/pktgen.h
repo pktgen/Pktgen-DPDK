@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -184,12 +184,12 @@ enum {
 	MAX_SCRN_COLS           = 132,
 
 	COLUMN_WIDTH_0          = 22,
-	COLUMN_WIDTH_1          = 22,
-	COLUMN_WIDTH_3          = 22,
+	COLUMN_WIDTH_1          = 21,
+	COLUMN_WIDTH_3          = 21,
 
 	/* Row locations for start of data */
 	PORT_STATE_ROWS         = 1,
-	LINK_STATE_ROWS         = 4,
+	LINK_STATE_ROWS         = 6,
 	PKT_SIZE_ROWS           = 10,
 	PKT_TOTALS_ROWS         = 7,
 	IP_ADDR_ROWS            = 12,
@@ -500,7 +500,7 @@ strdupf(char *str, const char *new) {
 	return (new == NULL) ? NULL : strdup(new);
 }
 
-/**************************************************************************//**
+/**
  *
  * do_command - Internal function to execute a shell command and grab the output.
  *

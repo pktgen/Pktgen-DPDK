@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -26,7 +26,7 @@ pktgen_get_uname(void)
 	do_command("uname -a", save_uname);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_cpu - Display the CPU data page.
  *
@@ -117,7 +117,7 @@ pktgen_page_cpu(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_cpu_init - Init the CPU information
  *

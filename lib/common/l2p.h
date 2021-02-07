@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -65,7 +65,7 @@ typedef struct {
 	rxtx_t map[MAX_MAP_PORTS][MAX_MAP_LCORES];
 } l2p_t;
 
-/**************************************************************************//**
+/**
  * Dump the L2P structure in a raw format.
  *
  */
@@ -117,7 +117,7 @@ pg_raw_dump_l2p(l2p_t *l2p)
 	printf("\n");
 }
 
-/**************************************************************************//**
+/**
  * Create and initialize the lcore to port object
  *
  * RETURNS: Pointer to l2p_t or NULL on error.
@@ -148,7 +148,7 @@ l2p_create(void)
 	return l2p;
 }
 
-/**************************************************************************//**
+/**
  * Get a new RX queue value
  *
  */
@@ -160,7 +160,7 @@ pg_new_rxque(l2p_t *l2p, uint16_t pid)
 	return pobj->rx_qid++;
 }
 
-/**************************************************************************//**
+/**
  * Get a new tx queue value
  *
  */
@@ -172,7 +172,7 @@ pg_new_txque(l2p_t *l2p, uint16_t pid)
 	return pobj->tx_qid++;
 }
 
-/**************************************************************************//**
+/**
  * Increase the number of RX ports.
  *
  */
@@ -181,7 +181,7 @@ pg_inc_rx(l2p_t *l2p, uint16_t pid, uint16_t lid) {
 	l2p->map[pid][lid].rx++;
 }
 
-/**************************************************************************//**
+/**
  * Increase the number of TX ports
  *
  */
@@ -190,7 +190,7 @@ pg_inc_tx(l2p_t *l2p, uint16_t pid, uint16_t lid) {
 	l2p->map[pid][lid].tx++;
 }
 
-/**************************************************************************//**
+/**
  * return the rxtx_t value at given lcore/port index
  *
  */
@@ -200,7 +200,7 @@ get_map(l2p_t *l2p, uint16_t pid, uint16_t lid)
 	return l2p->map[pid][lid].rxtx;
 }
 
-/**************************************************************************//**
+/**
  * return the rxtx_t value at given lcore/port index
  *
  */
@@ -210,7 +210,7 @@ put_map(l2p_t *l2p, uint16_t pid, uint16_t lid, uint32_t rxtx)
 	l2p->map[pid][lid].rxtx = rxtx;
 }
 
-/**************************************************************************//**
+/**
  * Grab the cnt value from the given lcore id.
  *
  */
@@ -222,7 +222,7 @@ get_type(l2p_t *l2p, uint16_t lid)
 	return lobj->type;
 }
 
-/**************************************************************************//**
+/**
  * Grab the cnt value from the given lcore id.
  *
  */
@@ -234,7 +234,7 @@ get_lcore_rxcnt(l2p_t *l2p, uint16_t lid)
 	return lobj->pids.rx_cnt;
 }
 
-/**************************************************************************//**
+/**
  * Grab the cnt value from the given lcore id.
  *
  */
@@ -246,7 +246,7 @@ get_lcore_txcnt(l2p_t *l2p, uint16_t lid)
 	return lobj->pids.tx_cnt;
 }
 
-/**************************************************************************//**
+/**
  * Grab the cnt value from the given lcore id.
  *
  */
@@ -258,7 +258,7 @@ get_port_rxcnt(l2p_t *l2p, uint16_t pid)
 	return pobj->rx_qid;
 }
 
-/**************************************************************************//**
+/**
  * Grab the cnt value from the given lcore id.
  *
  */
@@ -270,7 +270,7 @@ get_port_txcnt(l2p_t *l2p, uint16_t pid)
 	return pobj->tx_qid;
 }
 
-/**************************************************************************//**
+/**
  * Grab the cnt value from the given port id.
  *
  */
@@ -282,7 +282,7 @@ get_port_nb_lids(l2p_t *l2p, uint16_t pid)
 	return pobj->nb_lids;
 }
 
-/**************************************************************************//**
+/**
  * Set the private pointer.
  *
  */
@@ -294,7 +294,7 @@ pg_set_port_private(l2p_t *l2p, uint16_t pid, void *ptr)
 	pobj->private = ptr;
 }
 
-/**************************************************************************//**
+/**
  * Grab the private pointer.
  *
  */
@@ -306,7 +306,7 @@ get_port_private(l2p_t *l2p, uint16_t pid)
 	return pobj->private;
 }
 
-/**************************************************************************//**
+/**
  * set the private pointer.
  *
  */
@@ -318,7 +318,7 @@ pg_set_lcore_private(l2p_t *l2p, uint16_t lid, void *ptr)
 	lobj->private = ptr;
 }
 
-/**************************************************************************//**
+/**
  * Grab the private pointer.
  *
  */
@@ -330,7 +330,7 @@ get_lcore_private(l2p_t *l2p, uint16_t lid)
 	return lobj->private;
 }
 
-/**************************************************************************//**
+/**
  * Get RX pid
  *
  */
@@ -342,7 +342,7 @@ get_rx_pid(l2p_t *l2p, uint16_t lid, uint16_t idx)
 	return lobj->pids.rx[idx];
 }
 
-/**************************************************************************//**
+/**
  * Get TX pid
  *
  */
@@ -354,7 +354,7 @@ get_tx_pid(l2p_t *l2p, uint16_t lid, uint16_t idx)
 	return lobj->pids.tx[idx];
 }
 
-/**************************************************************************//**
+/**
  * Get the lid for this pid/qid
  *
  */
@@ -366,7 +366,7 @@ get_port_lid(l2p_t *l2p, uint16_t pid, uint16_t qid)
 	return pobj->lids[qid];
 }
 
-/**************************************************************************//**
+/**
  * Get the number of rx qids
  *
  */
@@ -378,7 +378,7 @@ get_rxque(l2p_t *l2p, uint16_t lid, uint16_t pid)
 	return lobj->qids.rx[pid];
 }
 
-/**************************************************************************//**
+/**
  * Get the number of tx qids
  *
  */
@@ -390,7 +390,7 @@ get_txque(l2p_t *l2p, uint16_t lid, uint16_t pid)
 	return lobj->qids.tx[pid];
 }
 
-/**************************************************************************//**
+/**
  * Stop the given lcore
  *
  */
@@ -400,7 +400,7 @@ pg_stop_lcore(l2p_t *l2p, uint16_t lid)
 	l2p->stop[lid] = 1;
 }
 
-/**************************************************************************//**
+/**
  * Stop the given lcore
  *
  */
@@ -410,7 +410,7 @@ pg_start_lcore(l2p_t *l2p, uint16_t lid)
 	l2p->stop[lid] = 0;
 }
 
-/**************************************************************************//**
+/**
  * Return stop flag
  *
  */
@@ -422,7 +422,7 @@ pg_lcore_is_running(l2p_t *l2p, uint16_t lid)
 
 /******************************************************************************/
 
-/**************************************************************************//**
+/**
  * Dump out l2p_t structure.
  *
  */

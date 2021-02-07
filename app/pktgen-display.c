@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -170,7 +170,7 @@ display_dashline(int last_row)
 	pktgen_display_set_color("sep.dash");
 	for (i = 0; i < 79; i++)
 		scrn_fprintf(0, 0, stdout, "-");
-	pktgen_display_set_color("sep.text");
+    pktgen_display_set_color("stats.port.linklbl");
 	scrn_printf(last_row, 3, " %s ", pktgen_version());
 	pktgen_display_set_color("top.poweredby");
 	scrn_puts(" %s ", powered_by());

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,7 +8,7 @@
 #include "pktgen-gui.h"
 #include "pktgen-gui-streams.h"
 
-/**************************************************************************//**
+/**
  *
  * fill_proto_field_info - A routine to fill protocol info
  *
@@ -157,7 +157,7 @@ fill_proto_field_info(proto_type type, unsigned int pid, unsigned int seq_id)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * create_stream_model - A routine to create a stream model
  *
@@ -203,7 +203,7 @@ create_stream_model(proto_type type, unsigned int pid, unsigned int seq_id)
 	return GTK_TREE_MODEL(model);
 }
 
-/**************************************************************************//**
+/**
  *
  * cell_edited_callback - A callback on cell edit for tree view
  *
@@ -381,7 +381,7 @@ cell_edited_callback(GtkCellRendererText *cell,
 	gtk_tree_path_free(path);
 }
 
-/**************************************************************************//**
+/**
  *
  * add_proto_values_column - A routine to add colums to treeview
  *
@@ -428,7 +428,7 @@ add_proto_values_column(GtkTreeView  *treeview,
 	                                            NULL);
 }
 
-/**************************************************************************//**
+/**
  *
  * fill_stream_info - A routine to fill stream info
  *
@@ -539,7 +539,7 @@ fill_stream_info(proto_type type, unsigned int pid, unsigned int seq_id)
 	return GTK_WIDGET(frame);
 }
 
-/**************************************************************************//**
+/**
  *
  * close_window_callback - A callback to close stream editor window
  *
@@ -557,7 +557,7 @@ close_window_callback(GtkWidget __attribute__((unused)) *widget, gpointer window
 	gtk_widget_destroy(GTK_WIDGET(window));
 }
 
-/**************************************************************************//**
+/**
  *
  * vlan_enable_callback - A callback to enable/disable vlan
  *
@@ -582,7 +582,7 @@ vlan_enable_callback(GtkWidget *widget, gpointer *data)
 	enable_vlan(info, (uint32_t)active);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktsize_enter_callback - A callback to set packet size
  *
@@ -629,7 +629,7 @@ pktsize_enter_callback(GtkWidget *widget, gpointer *data)
 	pktgen_packet_rate(info);
 }
 
-/**************************************************************************//**
+/**
  *
  * radio_options_callback - A callback to get selected l4 protocol
  *
@@ -676,7 +676,7 @@ radio_options_callback(GtkRadioButton *rb, gpointer *user_data)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * display_stream_editor - A routine to draw stream editor window
  *
@@ -803,7 +803,7 @@ display_stream_editor(GtkWidget *window, unsigned int pid, unsigned int seq_id)
 	gtk_main();
 }
 
-/**************************************************************************//**
+/**
  *
  * switch_stream_editor_page - A routine to switch notebook
  *
@@ -827,7 +827,7 @@ switch_stream_editor_page(GtkButton __attribute__((unused)) *button,
 		gtk_notebook_set_current_page(notebook, 0);
 }
 
-/**************************************************************************//**
+/**
  *
  * apply_stream_callback - A callback to apply updated values
  *
@@ -861,7 +861,7 @@ apply_stream_callback(void)
 	set_stream_info(pid, seq_id);
 }
 
-/**************************************************************************//**
+/**
  *
  * set_stream_info - A routine to update protocol values
  *
@@ -992,7 +992,7 @@ set_stream_info(unsigned int pid, unsigned int seq_id)
 	pkt->ipProto = ip_proto_value[0];
 }
 
-/**************************************************************************//**
+/**
  *
  * edit_stream - A routine to edit streams
  *
@@ -1052,7 +1052,7 @@ edit_stream(void)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * edit_stream_callback - A callback to edit streams
  *
@@ -1091,7 +1091,7 @@ edit_stream_callback(GtkTreeModel  *model,
 	display_stream_editor(stream_window, pid, seq_id);
 }
 
-/**************************************************************************//**
+/**
  *
  * edit_stream_callback - A routine to create a stream box
  *

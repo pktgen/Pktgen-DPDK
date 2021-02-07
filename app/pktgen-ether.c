@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,7 +9,7 @@
 #include "pktgen-seq.h"
 #include "pktgen-port-cfg.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_ether_hdr_ctor - Ethernet header constructor routine.
  *

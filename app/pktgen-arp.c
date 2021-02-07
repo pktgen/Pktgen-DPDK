@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,7 +16,7 @@
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_arp - Send an ARP request packet.
  *
@@ -84,7 +84,7 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 	pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_process_arp - Handle a ARP request input packet and send a response.
  *

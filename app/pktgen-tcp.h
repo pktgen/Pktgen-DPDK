@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_tcp_hdr_ctor - TCP header constructor routine.
  *

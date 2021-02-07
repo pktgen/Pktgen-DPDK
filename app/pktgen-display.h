@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -23,7 +23,7 @@ extern "C" {
 /* Initialize screen data structures */
 void pktgen_init_screen(int theme);
 
-/**************************************************************************//**
+/**
  *
  * display_topline - Print out the top line on the screen.
  *
@@ -36,7 +36,7 @@ void pktgen_init_screen(int theme);
  */
 void display_topline(const char *msg);
 
-/**************************************************************************//**
+/**
  *
  * display_dashline - Print out the dashed line on the screen.
  *
@@ -49,7 +49,7 @@ void display_topline(const char *msg);
  */
 void display_dashline(int last_row);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_display_set_geometry - Set the display geometry
  *
@@ -62,7 +62,7 @@ void display_dashline(int last_row);
  */
 void pktgen_display_set_geometry(uint16_t rows, uint16_t cols);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_display_get_geometry - Get the display geometry
  *
@@ -75,7 +75,7 @@ void pktgen_display_set_geometry(uint16_t rows, uint16_t cols);
  */
 void pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_display_set_color - Changes the color to the color of the specified element.
  *
@@ -88,7 +88,7 @@ void pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols);
  */
 void pktgen_display_set_color(const char *elem);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_prompt - Sets the prompt for the command line.
  * The new string will include color support if enabled, which includes
@@ -103,7 +103,7 @@ void pktgen_display_set_color(const char *elem);
  */
 void pktgen_set_prompt(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_show_theme - Display the current color theme information
  *
@@ -116,7 +116,7 @@ void pktgen_set_prompt(void);
  */
 void pktgen_show_theme(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_theme_item - Set the given item name with the colors and attribute
  *
@@ -132,7 +132,7 @@ void pktgen_set_theme_item(char *item,
 				  char *bg_color,
 				  char *attr);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_theme_save - Save the theme to a file.
  *
@@ -145,7 +145,7 @@ void pktgen_set_theme_item(char *item,
  */
 void pktgen_theme_save(char *filename);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_theme_state - Set the current theme state.
  *
@@ -158,7 +158,7 @@ void pktgen_theme_save(char *filename);
  */
 void pktgen_theme_state(const char *state);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_theme_show - Show the current theme state.
  *
@@ -171,7 +171,7 @@ void pktgen_theme_state(const char *state);
  */
 void pktgen_theme_show(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_print_div - Draw the column divider with colons
  *

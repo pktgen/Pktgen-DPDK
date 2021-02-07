@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -95,7 +95,7 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_rate_setup - Setup the default values for a rate port.
  *
@@ -115,7 +115,7 @@ pktgen_rate_setup(port_info_t *info)
 	pktgen_rate_init(info);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_print_static_data - Display the static data on the screen.
  *
@@ -294,7 +294,7 @@ rate_print_static_data(void)
 	pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_rate - Display the rate pacing on the screen for all ports.
  *

@@ -1,5 +1,5 @@
 /*-
- *   Copyright(c) <2014-2020> Intel Corporation. All rights reserved.
+ *   Copyright(c) <2014-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -74,7 +74,7 @@
 #include "mbuf.h"
 #include "cksum.h"
 
-/**************************************************************************//**
+/**
  * cksum - Compute a 16 bit ones complement checksum value.
  *
  * DESCRIPTION
@@ -99,7 +99,7 @@ cksum(void *pBuf, int32_t size, uint32_t cksum)
 	return cksumDone(cksumUpdate(pBuf, size, cksum) );
 }
 
-/**************************************************************************//**
+/**
  * cksumUpdate - Calaculate an 16 bit checksum and return the 32 bit value
  *
  * DESCRIPTION
@@ -147,7 +147,7 @@ cksumUpdate(void *pBuf, int32_t size, uint32_t cksum)
 	return cksum;
 }
 
-/**************************************************************************//**
+/**
  * cksumDone - Finish up the ckecksum value by folding the checksum.
  *
  * DESCRIPTION
@@ -173,7 +173,7 @@ cksumDone(uint32_t cksum)
 	return ~((uint16_t)cksum);
 }
 
-/**************************************************************************//**
+/**
  * pseudoChecksum - Compute the Pseudo Header checksum.
  *
  * DESCRIPTION
@@ -203,7 +203,7 @@ pseudoChecksum(uint32_t src, uint32_t dst, uint16_t pro, uint16_t len,
 	       ntohs(len) + ntohs(pro);
 }
 
-/**************************************************************************//**
+/**
  * pseudoIPv6Checksum - Compute the Pseudo Header checksum.
  *
  * DESCRIPTION

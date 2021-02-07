@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -117,7 +117,7 @@ extern "C" {
 /* Initialize log data structures */
 void pktgen_init_log(void);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_log_set_screen_level - Set level of messages that are printed to the screen
  *
@@ -131,7 +131,7 @@ void pktgen_init_log(void);
  */
 void pktgen_log_set_screen_level(int level);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_log - printf-like function for logging
  *
@@ -145,7 +145,7 @@ void pktgen_log_set_screen_level(int level);
 void pktgen_log(int level, const char *file, long line,
 		       const char *func, const char *fmt, ...);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_log_set_file - Start logging to a file
  *
@@ -159,7 +159,7 @@ void pktgen_log(int level, const char *file, long line,
  */
 void pktgen_log_set_file(const char *filename);
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_log - Display the log page.
  *

@@ -1,5 +1,5 @@
  /*-
- * Copyright (c) <2011-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2011-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -55,7 +55,7 @@ pktgen_exit(lua_State *L __rte_unused)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * setf_integer - Helper routine to set Lua variables.
  *
@@ -74,7 +74,7 @@ setf_integer(lua_State *L, const char *name, lua_Integer value)
 	lua_setfield(L, -2, name);
 }
 
-/**************************************************************************//**
+/**
  *
  * setf_string - Helper routine to set Lua variables.
  *
@@ -139,7 +139,7 @@ getf_string(lua_State *L, const char *field)
 	return value;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set - Set a number of Pktgen values.
  *
@@ -201,7 +201,7 @@ pktgen_set(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * set_seq - Set the sequence data for a given port.
  *
@@ -272,7 +272,7 @@ set_seq(lua_State *L, uint32_t seqnum)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_seq - Set the sequence data for a given port.
  *
@@ -301,7 +301,7 @@ pktgen_seq(lua_State *L) {
 	return set_seq(L, seqnum);
 }
 
-/**************************************************************************//**
+/**
  *
  * set_seqTable - Set the sequence data for a given port.
  *
@@ -362,7 +362,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_seqTable - Set the sequence data for a given port.
  *
@@ -390,7 +390,7 @@ pktgen_seqTable(lua_State *L) {
 	return set_seqTable(L, seqnum);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_ports_per_page - Set the number of ports per page.
  *
@@ -414,7 +414,7 @@ pktgen_ports_per_page(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_icmp - Enable or Disable ICMP echo processing.
  *
@@ -443,7 +443,7 @@ pktgen_icmp(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_sendARP - Send ARP type packets from a given port list.
  *
@@ -473,7 +473,7 @@ pktgen_sendARP(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_mac - Set the MAC address for a set of ports.
  *
@@ -506,7 +506,7 @@ pktgen_set_mac(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_macFromArp - Enable or Disable getting MAC address from ARP packets.
  *
@@ -539,7 +539,7 @@ pktgen_macFromArp(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_prototype - Set the packet protocol type.
  *
@@ -571,7 +571,7 @@ pktgen_prototype(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_ip_addr - Set the ip address value for src and dst.
  *
@@ -610,7 +610,7 @@ pktgen_set_ip_addr(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_set_type - Set the type of packet IPv4/v6
  *
@@ -643,7 +643,7 @@ pktgen_set_type(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_ping4 - Send ping packets for IPv4
  *
@@ -674,7 +674,7 @@ pktgen_send_ping4(lua_State *L)
 }
 
 #ifdef INCLUDE_PING6
-/**************************************************************************//**
+/**
  *
  * pktgen_send_ping6 - Send IPv6 ICMP echo requests.
  *
@@ -706,7 +706,7 @@ pktgen_send_ping6(lua_State *L)
 
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pcap - Enable or disable PCAP support sending.
  *
@@ -738,7 +738,7 @@ pktgen_pcap(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_start - Start ports sending packets.
  *
@@ -768,7 +768,7 @@ pktgen_start(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_stop - Stop ports from sending packets
  *
@@ -796,7 +796,7 @@ pktgen_stop(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_scrn - Enable or Disable the screen updates.
  *
@@ -820,7 +820,7 @@ pktgen_scrn(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_prime - Send a set of packet to prime the forwarding tables.
  *
@@ -862,7 +862,7 @@ __delay(int32_t t)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_delay - Delay for a given number of milliseconds.
  *
@@ -888,7 +888,7 @@ pktgen_delay(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pause - Delay for a given number of milliseconds and display a message
  *
@@ -921,7 +921,7 @@ pktgen_pause(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_continue - Display a message and wait for a single keyboard input.
  *
@@ -958,7 +958,7 @@ pktgen_continue(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_input - Display a message and wait for keyboard input.
  *
@@ -1000,7 +1000,7 @@ pktgen_input(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_sleep - Sleep for a given number of seconds.
  *
@@ -1024,7 +1024,7 @@ pktgen_sleep(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_load - Load and execute a script.
  *
@@ -1053,7 +1053,7 @@ pktgen_load(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_config_save - Save to a configuration file.
  *
@@ -1082,7 +1082,7 @@ pktgen_config_save(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_clear - Clear all port statistics
  *
@@ -1113,7 +1113,7 @@ pktgen_clear(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_clear_all - Clear all port statistics
  *
@@ -1134,7 +1134,7 @@ pktgen_clear_all(lua_State *L __rte_unused)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_cls_screen - Clear and redraw the screen
  *
@@ -1154,7 +1154,7 @@ pktgen_cls_screen(lua_State *L __rte_unused)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_update - Update the screen information
  *
@@ -1174,7 +1174,7 @@ pktgen_update_screen(lua_State *L __rte_unused)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_reset - Reset pktgen to all default values.
  *
@@ -1204,7 +1204,7 @@ pktgen_reset_config(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_restart - Reset ports
  *
@@ -1234,7 +1234,7 @@ pktgen_restart(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_dst_mac - Set a destination MAC address
  *
@@ -1267,7 +1267,7 @@ range_dst_mac(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_src_mac - Set the source MAC address in the range data.
  *
@@ -1300,7 +1300,7 @@ range_src_mac(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_dst_ip - Set the IP address in the range data.
  *
@@ -1336,7 +1336,7 @@ range_dst_ip(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_src_ip - Set the source IP address in the range data.
  *
@@ -1372,7 +1372,7 @@ range_src_ip(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_dst_port - Set the port type in the range data.
  *
@@ -1404,7 +1404,7 @@ range_dst_port(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_ip_proto - Set the ip proto value in the range data.
  *
@@ -1437,7 +1437,7 @@ range_ip_proto(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_src_port - Set the source port value in the range data.
  *
@@ -1469,7 +1469,7 @@ range_src_port(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_ttl - Set the ttl value in the range data.
  *
@@ -1501,7 +1501,7 @@ range_ttl(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gtpu_teid - Set the GTPU-TEID value in the range data.
  *
@@ -1533,7 +1533,7 @@ range_gtpu_teid(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_vlan_id - Set the VLAN id in the range data.
  *
@@ -1567,7 +1567,7 @@ range_vlan_id(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_cos - Set the CoS in the range data.
  *
@@ -1601,7 +1601,7 @@ range_cos(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_tos - Set the ToS in the range data.
  *
@@ -1635,7 +1635,7 @@ range_tos(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * single_vlan_id - Set the VLAN id for a single port
  *
@@ -1670,7 +1670,7 @@ single_vlan_id(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * single_cos - Set the 802.1p prio for a single port
  *
@@ -1705,7 +1705,7 @@ single_cos(lua_State *L) {
 }
 
 
-/**************************************************************************//**
+/**
  *
  * single_tos - Set the TOS for a single port
  *
@@ -1737,7 +1737,7 @@ single_tos(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * single_vxlan_id - Set the VxLAN for a single port
  *
@@ -1772,7 +1772,7 @@ single_vxlan_id(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * single_vlan - Enable or Disable vlan header
  *
@@ -1803,7 +1803,7 @@ single_vlan(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * single_vxlan - Enable or Disable vxlan header
  *
@@ -1834,7 +1834,7 @@ single_vxlan(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_mpls_entry - Set the MPLS entry in the range data.
  *
@@ -1867,7 +1867,7 @@ range_mpls_entry(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_mpls - Enable or Disable MPLS header
  *
@@ -1899,7 +1899,7 @@ pktgen_mpls(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_qinqids - Set the Q-in-Q ID's in the range data.
  *
@@ -1938,7 +1938,7 @@ range_qinqids(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_qinq - Enable or Disable Q-in-Q header
  *
@@ -1970,7 +1970,7 @@ pktgen_qinq(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_gre_key - Set the GRE key in the range data.
  *
@@ -2003,7 +2003,7 @@ range_gre_key(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gre - Enable or Disable GRE with IPv4 payload
  *
@@ -2033,7 +2033,7 @@ pktgen_gre(lua_State *L) {
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gre_eth - Enable or Disable GRE with Ethernet payload
  *
@@ -2065,7 +2065,7 @@ pktgen_gre_eth(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range_pkt_size - Set the port range size.
  *
@@ -2100,7 +2100,7 @@ range_pkt_size(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * range - Enable or disable the range data sending.
  *
@@ -2131,7 +2131,7 @@ range(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_latency - Enable or disable the latency testing.
  *
@@ -2162,7 +2162,7 @@ pktgen_latency(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_jitter - Set Jitter threshold
  *
@@ -2193,7 +2193,7 @@ pktgen_jitter(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pattern - Set the pattern type.
  *
@@ -2225,7 +2225,7 @@ pktgen_pattern(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pattern - Set the pattern type.
  *
@@ -2257,7 +2257,7 @@ pktgen_user_pattern(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page - Set the page type to be displayed.
  *
@@ -2281,7 +2281,7 @@ pktgen_page(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_port - Set the port type number
  *
@@ -2305,7 +2305,7 @@ pktgen_port(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_process - Enable or Disable input packet processing.
  *
@@ -2336,7 +2336,7 @@ pktgen_process(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_capture - Enable or Disable capture packet processing.
  *
@@ -2368,7 +2368,7 @@ pktgen_capture(lua_State *L)
 }
 
 #ifdef RTE_LIBRTE_PMD_BOND
-/**************************************************************************//**
+/**
  *
  * pktgen_bonding - Enable or Disable bonding to send zero packets
  *
@@ -2400,7 +2400,7 @@ pktgen_bonding(lua_State *L)
 }
 #endif
 
-/**************************************************************************//**
+/**
  *
  * pktgen_rxtap - Enable or Disable rxtap packet processing.
  *
@@ -2431,7 +2431,7 @@ pktgen_rxtap(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_txtap - Enable or Disable txtap packet processing.
  *
@@ -2463,7 +2463,7 @@ pktgen_txtap(lua_State *L)
 }
 
 
-/**************************************************************************//**
+/**
  *
  * pktgen_latsampler_params - Set latency sampler params.
  *
@@ -2496,7 +2496,7 @@ pktgen_latsampler_params(lua_State *L)
 }
 
 
-/**************************************************************************//**
+/**
  *
  * pktgen_latsampler - Enable or Disable latency sampler.
  *
@@ -2527,7 +2527,7 @@ pktgen_latsampler(lua_State *L)
     return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_garp - Enable or Disable GARP packet processing.
  *
@@ -2558,7 +2558,7 @@ pktgen_garp(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_blink - Enable or disable port Led blinking.
  *
@@ -2594,7 +2594,7 @@ pktgen_blink(lua_State *L)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * isSending - Get the current state of the transmitter on a port.
  *
@@ -2616,7 +2616,7 @@ isSending(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_isSending - Get the current state of the transmitter on a port.
  *
@@ -2652,7 +2652,7 @@ pktgen_isSending(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * link_state - Get the current link state of a port.
  *
@@ -2676,7 +2676,7 @@ link_state(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_linkState - Get the current link state of a port.
  *
@@ -2713,7 +2713,7 @@ pktgen_linkState(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * port_sizes - return port size stats on a port
  *
@@ -2750,7 +2750,7 @@ port_sizes(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_portSizes - return port size stats on a port
  *
@@ -2787,7 +2787,7 @@ pktgen_portSizes(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pkt_stats - Return the other packet stats for a given port.
  *
@@ -2859,7 +2859,7 @@ pkt_stats(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_pktStats - Return the other packet stats for a given port.
  *
@@ -2896,7 +2896,7 @@ pktgen_pktStats(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * port_stats - Return the other port stats for a given ports.
  *
@@ -2938,7 +2938,7 @@ port_stats(lua_State *L, port_info_t *info, char *type)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_portStats - Return the other port stats for a given ports.
  *
@@ -2977,7 +2977,7 @@ pktgen_portStats(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * port_info - Return the other port stats for a given ports.
  *
@@ -3183,7 +3183,7 @@ port_info(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_portInfo - Return the other port Info for a given ports.
  *
@@ -3234,7 +3234,7 @@ _pktgen_push_line(void *arg, const char **h)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_help - Display the current help information.
  *
@@ -3256,7 +3256,7 @@ pktgen_help(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_portCount - Return number of ports used
  *
@@ -3276,7 +3276,7 @@ pktgen_portCount(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_totalPorts - Return the total number of ports
  *
@@ -3296,7 +3296,7 @@ pktgen_totalPorts(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_rnd - Setup random bit patterns
  *
@@ -3385,7 +3385,7 @@ add_rnd_pattern(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_rnd_list - Return the random bit patterns in a table
  *
@@ -3424,7 +3424,7 @@ pktgen_rnd_list(lua_State *L) {
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_run - Run a Lua or command script on the local disk or in a string.
  *
@@ -3589,7 +3589,7 @@ static const char *lua_help_info[] = {
 	NULL
 };
 
-/**************************************************************************//**
+/**
  *
  * pktgen_lua_help - Display the current Lua help information.
  *
@@ -3739,7 +3739,7 @@ static const luaL_Reg pktgenlib[] = {
 
 /* }====================================================== */
 
-/**************************************************************************//**
+/**
  *
  * luaopen_pktgen - Initialize the Lua support for pktgen.
  *
@@ -3809,7 +3809,7 @@ luaopen_pktgen(lua_State *L)
 	return 1;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_lua_openlib - Open the Pktgen Lua library.
  *

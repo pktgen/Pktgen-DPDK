@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2016>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -51,7 +51,7 @@
 } while ((0))
 
 
-/**************************************************************************//**
+/**
  *
  * fill_chassis_info - A routine to fill chassis info
  *
@@ -96,7 +96,7 @@ fill_chassis_info(void)
 }
 
 
-/**************************************************************************//**
+/**
  *
  * fill_port_info - A routine to fill port info
  *
@@ -138,7 +138,7 @@ fill_port_info(unsigned int pid, gboolean is_static)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * update_port_static_info - A routine to update static port info
  *
@@ -248,7 +248,7 @@ update_port_static_info(unsigned int pid)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * update_port_statistics - A routine to update port statistics
  *
@@ -354,7 +354,7 @@ update_port_statistics(void *arg)
 }
 
 
-/**************************************************************************//**
+/**
  *
  * start_stop_traffic - A routine to start/stop port traffic
  *
@@ -397,7 +397,7 @@ start_stop_traffic(GtkTreeModel  *model,
 }
 
 
-/**************************************************************************//**
+/**
  *
  * about_dialog_callback - A callback show about dialog
  *
@@ -440,7 +440,7 @@ about_dialog_callback(void)
 	                 G_CALLBACK(gtk_widget_destroyed), &about_dialog);
 }
 
-/**************************************************************************//**
+/**
  *
  * show_stream - A routine to show traffic streams for individual ports
  *
@@ -470,7 +470,7 @@ show_stream(void)
 
 }
 
-/**************************************************************************//**
+/**
  *
  * show_stream_callback - A callback to for show stream function
  *
@@ -510,7 +510,7 @@ show_stream_callback(GtkTreeModel  *model,
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * start_taffic_callback - A callback to start traffic
  *
@@ -534,7 +534,7 @@ start_taffic_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute
 	                                    (gpointer) & flag);
 }
 
-/**************************************************************************//**
+/**
  *
  * stop_traffic_callback - A callback to stop traffic
  *
@@ -558,7 +558,7 @@ stop_traffic_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute
 	                                    (gpointer) & flag);
 }
 
-/**************************************************************************//**
+/**
  *
  * start_stop_capture - A routine to start/stop capturing traffic
  *
@@ -594,7 +594,7 @@ start_stop_capture(GtkTreeModel  *model,
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * start_capture_callback - A callback to start capturing traffic
  *
@@ -618,7 +618,7 @@ start_capture_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribut
 	                                    (gpointer) & flag);
 }
 
-/**************************************************************************//**
+/**
  *
  * stop_capture_callback - A callback to stop capturing traffic
  *
@@ -642,7 +642,7 @@ stop_capture_callback(GtkWidget __attribute__((unused)) *w, gpointer __attribute
 }
 
 
-/**************************************************************************//**
+/**
  *
  * chassis_tree_view - A routine to create a treeview for chassis
  *
@@ -702,7 +702,7 @@ chassis_tree_view(void)
 	return chassis_view;
 }
 
-/**************************************************************************//**
+/**
  *
  * port_tree_view - A routine to create a treeview for port statistics
  *
@@ -782,7 +782,7 @@ port_tree_view(unsigned int port_id, const char *title, gboolean is_static)
 }
 
 
-/**************************************************************************//**
+/**
  *
  * button_box - A routine to create a button box
  *
@@ -908,7 +908,7 @@ button_box(GtkWidget __attribute__((unused))  *view, const char *title, gint lay
 	return frame;
 }
 
-/**************************************************************************//**
+/**
  *
  * console_callback - A callback for commands provided on console box
  *
@@ -952,7 +952,7 @@ console_callback(GtkWidget *widget, GtkWidget *entry)
 	gtk_entry_set_text(GTK_ENTRY(widget), "");
 }
 
-/**************************************************************************//**
+/**
  *
  * create_chassis - A routine for creating chassis frame to hold treeview
  *
@@ -981,7 +981,7 @@ create_chassis(void)
 	return frame;
 }
 
-/**************************************************************************//**
+/**
  *
  * console_box - A routine for creating console box
  *
@@ -1030,7 +1030,7 @@ console_box(const char *title)
 	return frame;
 }
 
-/**************************************************************************//**
+/**
  *
  * stats_header_fill - A routine to create tree store
  *
@@ -1073,7 +1073,7 @@ stats_header_fill(gboolean is_static)
 	return GTK_TREE_MODEL(stats_label_treestore);
 }
 
-/**************************************************************************//**
+/**
  *
  * create_stats_treeview - A routine to create tree view for statistics
  *
@@ -1156,7 +1156,7 @@ create_stats_treeview(gboolean is_static)
 	return stats_label_view;
 }
 
-/**************************************************************************//**
+/**
  *
  * show_static_conf - A routine to create box for static configuration
  *
@@ -1224,7 +1224,7 @@ show_static_conf(void)
 	return frame_horz_conf;
 }
 
-/**************************************************************************//**
+/**
  *
  * show_statistics - A routine to create box for statistics
  *
@@ -1308,7 +1308,7 @@ show_statistics(void)
 	return frame_horz_stats;
 }
 
-/**************************************************************************//**
+/**
  *
  * close_gui - A routine to close the GUI
  *
@@ -1327,7 +1327,7 @@ close_gui(void)
 	gtk_main_quit();
 }
 
-/**************************************************************************//**
+/**
  *
  * start_gui - A routine to create GUI window
  *
@@ -1393,7 +1393,7 @@ start_gui(void)
 	gtk_main();
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_gui_main - A routine to start GUI
  *

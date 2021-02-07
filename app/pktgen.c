@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -45,7 +45,7 @@ double next_poisson_time(double rateParameter)
     return -logf(1.0f - ((double) random()) / (double) (RAND_MAX)) / rateParameter;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_wire_size - Calculate the wire size of the data to be sent.
  *
@@ -77,7 +77,7 @@ pktgen_wire_size(port_info_t *info)
 	return size;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_rate - Calculate the transmit rate.
  *
@@ -101,7 +101,7 @@ pktgen_packet_rate(port_info_t *info)
 	info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid));
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_fill_pattern - Create the fill pattern in a packet buffer.
  *
@@ -140,7 +140,7 @@ pktgen_fill_pattern(uint8_t *p, uint32_t len, uint32_t type, char *user)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_find_matching_ipsrc - Find the matching IP source address
  *
@@ -175,7 +175,7 @@ pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr)
 	return pkt;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_find_matching_ipdst - Find the matching IP destination address
  *
@@ -276,7 +276,7 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 		}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_burst - Send a burst of packet as fast as possible.
  *
@@ -439,7 +439,7 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_tx_flush - Flush Tx buffers from ring.
  *
@@ -464,7 +464,7 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 	pktgen_clr_q_flags(info, qid, DO_TX_FLUSH);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_exit_cleanup - Clean up the data and other items
  *
@@ -493,7 +493,7 @@ pktgen_exit_cleanup(uint8_t lid)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_has_work - Determine if lcore has work to do, if not wait for stop.
  *
@@ -516,7 +516,7 @@ pktgen_has_work(void)
 	return 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_ctor - Construct a complete packet with all headers and data.
  *
@@ -679,7 +679,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 		pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_mbuf - Send a single packet to the given port.
  *
@@ -702,7 +702,7 @@ pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid)
 	mtab->m_table[mtab->len++] = m;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_type - Examine a packet and return the type of packet
  *
@@ -728,7 +728,7 @@ pktgen_packet_type(struct rte_mbuf *m)
 	return ret;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_classify - Examine a packet and classify it for statistics
  *
@@ -833,7 +833,7 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 	}
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_packet_classify_buld - Classify a set of packets in one call.
  *
@@ -868,7 +868,7 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
 		pktgen_packet_classify(pkts[i], pid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_special - Send a special packet to the given port.
  *
@@ -1005,7 +1005,7 @@ pktgen_setup_cb(struct rte_mempool *mp,
 	m->ol_flags = pkt->ol_flags;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_setup_packets - Setup the default packets to be sent.
  *
@@ -1058,7 +1058,7 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 	rte_spinlock_unlock(&info->port_lock);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_send_pkts - Send a set of packet buffers to a given port.
  *
@@ -1100,7 +1100,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 	pktgen_send_burst(info, qid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_main_transmit - Determine the next packet format to transmit.
  *
@@ -1151,7 +1151,7 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
 		pktgen_tx_flush(info, qid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_main_receive - Main receive routine for packets of a port.
  *
@@ -1249,7 +1249,7 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids,
 	pktgen_log_info("%s", buf);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_main_rxtx_loop - Single thread loop for tx/rx packets
  *
@@ -1351,7 +1351,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 	pktgen_exit_cleanup(lid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_main_tx_loop - Main transmit loop for a core, no receive packet handling
  *
@@ -1443,7 +1443,7 @@ pktgen_main_tx_loop(uint8_t lid)
 	pktgen_exit_cleanup(lid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_main_rx_loop - Handle only the rx packets for a set of ports.
  *
@@ -1501,7 +1501,7 @@ pktgen_main_rx_loop(uint8_t lid)
 	pktgen_exit_cleanup(lid);
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_launch_one_lcore - Launch a single logical core thread.
  *
@@ -1574,7 +1574,7 @@ _page_display(void)
 		pktgen_page_stats();
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_page_display - Display the correct page based on timer callback.
  *
@@ -1652,7 +1652,7 @@ _timer_thread(void *arg)
 	return NULL;
 }
 
-/**************************************************************************//**
+/**
  *
  * rte_timer_setup - Set up the timer callback routines.
  *

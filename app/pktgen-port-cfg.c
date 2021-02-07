@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -84,7 +84,7 @@ pktgen_get_hw_strip_crc(void)
 	return (hw_strip_crc)? PG_ETHER_CRC_LEN : 0;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_mbuf_pool_create - Create mbuf packet pool.
  *
@@ -128,7 +128,7 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id,
 	return mp;
 }
 
-/**************************************************************************//**
+/**
  *
  * pktgen_config_ports - Configure the ports for RX and TX
  *

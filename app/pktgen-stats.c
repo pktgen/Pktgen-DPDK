@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010-2020>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -57,10 +57,16 @@ pktgen_print_static_data(void)
     pktgen_display_set_color("stats.port.linklbl");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Link State");
 
-    pktgen_display_set_color("stats.port.ratelbl");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Max/Rx");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Max/Tx");
+    pktgen_display_set_color("stats.port.sizes");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Rx");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Tx");
+
+    pktgen_display_set_color("stats.mac");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
+
+    pktgen_display_set_color("stats.port.totals");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Rx Max");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Tx Max");
 
     pktgen_display_set_color("stats.port.sizelbl");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Broadcast");
@@ -78,8 +84,7 @@ pktgen_print_static_data(void)
     pktgen_display_set_color("stats.port.totlbl");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx Pkts");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx Pkts");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx/Tx MBs");
 
     if (pktgen.flags & TX_DEBUG_FLAG) {
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
@@ -96,7 +101,7 @@ pktgen_print_static_data(void)
 
     /* Labels for static fields */
     pktgen_display_set_color("stats.stat.label");
-    ip_row = ++row;
+    ip_row = row;
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Size/Tx Burst");
@@ -112,11 +117,11 @@ pktgen_print_static_data(void)
     row++;
 
     /* Get the last location to use for the window starting row. */
-    pktgen.last_row = ++row;
+    pktgen.last_row = row;
     display_dashline(pktgen.last_row);
 
     /* Display the colon after the row label. */
-    pktgen_print_div(PORT_STATE_ROW, pktgen.last_row - 2, COLUMN_WIDTH_0 - 1);
+    pktgen_print_div(PORT_STATE_ROW, pktgen.last_row - 1, COLUMN_WIDTH_0 - 1);
 
     sp          = pktgen.starting_port;
     display_cnt = 0;
@@ -369,93 +374,99 @@ pktgen_page_stats(void)
         prev = &info->prev_stats;
 
         pktgen_display_set_color("stats.port.sizes");
+
         /* Rx/Tx pkts/s rate */
         row = LINK_STATE_ROW + 1;
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->max_ipackets, rate->ipackets);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, rate->ipackets);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, rate->opackets);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->max_opackets, rate->opackets);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, iBitsTotal(info->rate_stats) / Million,
+        pktgen_display_set_color("stats.mac");
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, iBitsTotal(info->rate_stats) / Million,
                  oBitsTotal(info->rate_stats) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        pktgen_display_set_color("stats.port.totals");
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->max_ipackets);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->max_opackets);
 
         /* Packets Sizes */
         row = PKT_SIZE_ROW;
         pktgen_display_set_color("stats.port.sizes");
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.broadcast);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes.multicast);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._64);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._65_127);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._128_255);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._256_511);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._512_1023);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->sizes._1024_1518);
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->sizes.runt, info->sizes.jumbo);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes.broadcast);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes.multicast);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._64);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._65_127);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._128_255);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._256_511);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._512_1023);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._1024_1518);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->sizes.runt, info->sizes.jumbo);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->stats.arp_pkts,
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->stats.arp_pkts,
                  info->stats.echo_pkts);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         /* Rx/Tx Errors */
         row = PKT_TOTALS_ROW;
         pktgen_display_set_color("stats.port.errors");
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, prev->ierrors, prev->oerrors);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, prev->ierrors, prev->oerrors);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         /* Total Rx/Tx */
         pktgen_display_set_color("stats.port.totals");
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.ipackets);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->curr_stats.ipackets);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
 
         /* Total Rx/Tx mbits */
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, iBitsTotal(info->curr_stats) / Million);
-        scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, oBitsTotal(info->curr_stats) / Million);
+        snprintf(buff, sizeof(buff), "%'lu/%'lu",
+            iBitsTotal(info->curr_stats) / Million,
+            oBitsTotal(info->curr_stats) / Million);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         if (pktgen.flags & TX_DEBUG_FLAG) {
-            snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.tx_failed);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.tx_failed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-            snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->tx_pps, info->tx_cycles);
+            snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->tx_pps, info->tx_cycles);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-            snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.imissed);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.imissed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-            snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.ibadcrc);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.ibadcrc);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-            snprintf(buff, sizeof(buff), "%lu", info->stats.ibadlen);
+            snprintf(buff, sizeof(buff), "%'lu", info->stats.ibadlen);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #endif
 #if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-            snprintf(buff, sizeof(buff), "%lu", info->stats.imcasts);
+            snprintf(buff, sizeof(buff), "%'lu", info->stats.imcasts);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #else
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
 #endif
-            snprintf(buff, sizeof(buff), "%" PRIu64, info->stats.rx_nombuf);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.rx_nombuf);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         }
         pktgen_display_set_color(NULL);
         display_cnt++;
     }
 
-    pktgen_display_set_color("stats.total.data");
-
     /* Display the total pkts/s for all ports */
     col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
     row = LINK_STATE_ROW + 1;
-    snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, pktgen.max_total_ipackets, cumm->ipackets);
-    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    pktgen_display_set_color("stats.port.sizes");
+    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, cumm->ipackets);
+    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, cumm->opackets);
     scrn_eol();
-    snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, pktgen.max_total_opackets, cumm->opackets);
-    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
-    scrn_eol();
-    snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64,
+    pktgen_display_set_color("stats.mac");
+    snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
              iBitsTotal(pktgen.cumm_rate_totals) / Million,
              oBitsTotal(pktgen.cumm_rate_totals) / Million);
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
+    scrn_eol();
+    pktgen_display_set_color("stats.port.totals");
+    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, pktgen.max_total_ipackets);
+    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, pktgen.max_total_opackets);
     scrn_eol();
     pktgen_display_set_color(NULL);
 }

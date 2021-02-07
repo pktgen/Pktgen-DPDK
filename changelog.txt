@@ -6,6 +6,10 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 21.02.0 - Cleanup display to be more compact and fix up colors
+             Update the copyright notice years
+             Fix the pcap issues with allocating memory on the wrong socket.
+             Add thousand separators to see rates and values easier.
  - 21.01.2 - Add updated IPv6 support.
  - 21.01.1 - Update the version number with fix for sending special mbufs for input processing.
  - 21.01.0 - fix warning message spit out by DPDK and add lua-5.4 support in build.

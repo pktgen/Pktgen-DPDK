@@ -28,15 +28,13 @@ union pktgen_data {
 static inline void
 pktmbuf_reset(struct rte_mbuf *m)
 {
-	union pktgen_data d;
-
-	d.udata = m->udata64;	/* Save the original value */
+	union pktgen_data *d = (union pktgen_data *)&m->udata64;
 
 	rte_pktmbuf_reset(m);
 
-	m->data_len = d.data_len;
-	m->pkt_len = d.pkt_len;
-	m->buf_len = d.buf_len;
+	m->data_len = d->data_len;
+	m->pkt_len = d->pkt_len;
+	m->buf_len = d->buf_len;
 }
 
 /**

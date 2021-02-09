@@ -25,12 +25,31 @@ union pktgen_data {
 	};
 };
 
+extern int pktgen_dynfield_offset;
+
+/**
+ * Get pointer to the pktgen specific data encapsulated in the mbuf. Dynamic
+ * field API has to be used for this purpose, to avoid conflicts with other
+ * parts of the DPDK.
+ *
+ *  @param m
+ *    Pointer to the mbuf from which the pktgen data should be retrieved.
+ *  @return
+ *    Pointer to the pktgen specific data encapsulated in the mbuf.
+ */
+static inline union pktgen_data *
+pktgen_data_field(struct rte_mbuf *m)
+{
+	return RTE_MBUF_DYNFIELD(m, pktgen_dynfield_offset,
+		union pktgen_data *);
+}
+
 static inline void
 pktmbuf_reset(struct rte_mbuf *m)
 {
 	union pktgen_data d;
 
-	d.udata = m->udata64;	/* Save the original value */
+	d = *pktgen_data_field(m); /* Save the original value */
 
 	rte_pktmbuf_reset(m);
 

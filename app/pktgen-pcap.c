@@ -258,7 +258,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	m->next		= NULL;
 
 	for (;; ) {
-		union pktgen_data *d = (union pktgen_data *)&m->udata64;
+		union pktgen_data *d = pktgen_data_field(m);
 
 		if ( (i & 0x3ff) == 0) {
 			scrn_printf(1, 1, "%c\b", "-\\|/"[(i >> 10) & 3]);

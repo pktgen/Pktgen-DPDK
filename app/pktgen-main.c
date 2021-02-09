@@ -29,6 +29,16 @@
 #include "pktgen-log.h"
 #include "cli-functions.h"
 
+/* Offset to the mbuf dynamic field holding pktgen data. */
+int pktgen_dynfield_offset = -1;
+
+/* Descriptor used for the mbuf dynamic field configuration. */
+static const struct rte_mbuf_dynfield pktgen_dynfield_desc = {
+	.name = "pktgen_dynfield_data",
+	.size = sizeof(union pktgen_data),
+	.align = __alignof__(union pktgen_data),
+};
+
 #ifdef GUI
 int pktgen_gui_main(int argc, char *argv[]);
 #endif
@@ -454,6 +464,12 @@ main(int argc, char **argv)
 
 	argc -= ret;
 	argv += ret;
+
+	/* Configure pktgen data which will be encapsulated in the mbuf. */
+	pktgen_dynfield_offset =
+		rte_mbuf_dynfield_register(&pktgen_dynfield_desc);
+	if (pktgen_dynfield_offset < 0)
+		rte_exit(EXIT_FAILURE, "Cannot register mbuf field\n");
 
 	if (pktgen_cli_create())
 		return -1;

@@ -21,7 +21,7 @@
 #ifdef RTE_LIBRTE_BONDING_PMD
 #include <rte_eth_bond_8023ad.h>
 #endif
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
 #endif
 
@@ -39,7 +39,7 @@ enum {
 static uint8_t hw_strip_crc = 0;
 
 static struct rte_eth_conf default_port_conf = {
-#if RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
+#if __RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
 	.rxmode = {
 		.mq_mode = ETH_MQ_RX_RSS,
 		.max_rx_pkt_len = PG_ETHER_MAX_LEN,
@@ -53,7 +53,7 @@ static struct rte_eth_conf default_port_conf = {
 		.mq_mode = ETH_MQ_RX_RSS,
 		.max_rx_pkt_len = PG_ETHER_MAX_LEN,
 		.split_hdr_size = 0,
-#if RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
 		.offloads = DEV_RX_OFFLOAD_CRC_STRIP,
 #endif
 	},
@@ -171,14 +171,14 @@ pktgen_config_ports(void)
 		buff[0] = 0;
 		printf("   %2d: %-12s   %2d    %-12s  %2d   ", i, dev.driver_name,
 			dev.if_index,
-#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 			(dev.pci_dev->driver->driver.alias)? dev.pci_dev->driver->driver.alias : "",
 			dev.pci_dev->device.numa_node);
 #else
 			(dev.device->driver->alias)? dev.device->driver->alias : "",
 			dev.device->numa_node);
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 		if (dev.pci_dev) {
 			snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 					dev.pci_dev->id.vendor_id,
@@ -426,7 +426,7 @@ pktgen_config_ports(void)
 					pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 
 			txconf = &info->dev_info.default_txconf;
-#if RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
 			txconf->txq_flags = ETH_TXQ_FLAGS_IGNORE;
 #endif
 			txconf->offloads = default_port_conf.txmode.offloads;

@@ -15,7 +15,7 @@
 
 #include "pktgen.h"
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
 #endif
 
@@ -137,7 +137,7 @@ pktgen_print_static_data(void)
 		scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
 		               inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 		rte_eth_dev_info_get(pid, &dev);
-#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 		snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 			dev.pci_dev->id.vendor_id,
 			dev.pci_dev->id.device_id,
@@ -262,11 +262,11 @@ pktgen_page_latency(void)
 			pktgen.max_total_opackets = pktgen.cumm_rate_totals.opackets;
 
 		pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
 		pktgen.cumm_rate_totals.ibadcrc += info->rate_stats.ibadcrc;
 		pktgen.cumm_rate_totals.ibadlen += info->rate_stats.ibadlen;
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 		pktgen.cumm_rate_totals.imcasts += info->rate_stats.imcasts;
 #endif
 		pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;

@@ -11,7 +11,7 @@
 #include <inttypes.h>
 #include <rte_version.h>
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_net.h>
 #endif
 

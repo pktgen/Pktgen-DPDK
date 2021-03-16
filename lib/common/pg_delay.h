@@ -11,6 +11,7 @@
 #ifndef __DELAY_H_
 #define __DELAY_H_
 
+#include <pg_compat.h>
 #include <time.h>
 #include <rte_version.h>
 #include <rte_cycles.h>
@@ -19,7 +20,7 @@
 extern "C" {
 #endif
 
-#if RTE_VERSION < RTE_VERSION_NUM(18,11,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18,11,0,0)
 static inline void
 rte_delay_us_sleep(unsigned int us)
 {

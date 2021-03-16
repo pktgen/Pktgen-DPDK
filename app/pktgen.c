@@ -457,7 +457,7 @@ pktgen_tx_flush(port_info_t *info, uint16_t qid)
 	/* Flush any queued pkts to the driver. */
 	pktgen_send_burst(info, qid);
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 5, 0, 0)
 	rte_eth_tx_done_cleanup(info->pid, qid, 0);
 #endif
 
@@ -1032,7 +1032,7 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 	pkt_data.info = info;
 	pkt_data.qid = qid;
 
-#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	rte_mempool_obj_iter(mp, pktgen_setup_cb, &pkt_data);
 #else
 	{

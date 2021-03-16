@@ -34,7 +34,7 @@
 #include <pg_delay.h>
 #include <pg_strings.h>
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
 #endif
 
@@ -3050,11 +3050,11 @@ port_info(lua_State *L, port_info_t *info)
 	setf_integer(L, "tx_failed", info->stats.tx_failed);
 	setf_integer(L, "imissed", info->stats.imissed);
 
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
 	setf_integer(L, "ibadcrc", info->stats.ibadcrc);
 	setf_integer(L, "ibadlen", info->stats.ibadlen);
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 	setf_integer(L, "ibadcrc", info->stats.imcasts);
 #endif
 	setf_integer(L, "ibadcrc", info->stats.rx_nombuf);
@@ -3123,7 +3123,7 @@ port_info(lua_State *L, port_info_t *info)
 	lua_rawset(L, -3);
 
 	rte_eth_dev_info_get(info->pid, &dev);
-#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
 	if (dev.pci_dev)
 		snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d",
 					dev.pci_dev->id.vendor_id,

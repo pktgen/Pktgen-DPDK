@@ -152,7 +152,7 @@ extern "C" {
 		}							\
 	} while ((0))
 
-#if RTE_VERSION < RTE_VERSION_NUM(19, 11, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19, 11, 0, 0)
 /**
  * Free a list of packet mbufs back into its original mempool.
  *

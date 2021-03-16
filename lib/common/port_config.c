@@ -30,7 +30,7 @@
 
 #define PORT_STRING_SIZE    256
 
-#if RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 #define rte_eal_devargs_add	rte_devargs_add
 #endif
 

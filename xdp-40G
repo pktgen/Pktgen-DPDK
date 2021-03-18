@@ -1,9 +1,9 @@
 #
-# Pktgen 21.01.1 (DPDK 21.02.0-rc0)
+# Pktgen 21.02.0 (DPDK 21.05.0-rc0)
 # Copyright(c) <2010-2021>, Intel Corporation. All rights reserved., Powered by DPDK
 
 # Command line arguments: (DPDK args are defaults)
-# ./usr/local/bin/pktgen -c fffffffff0000001 -n 3 -m 512 --proc-type primary -- -v -T -P -m [29:30].0 -m [31:32].1 -f themes/black-yellow.theme -f xdp
+# ./usr/local/bin/pktgen -c fffffffff0000001 -n 3 -m 512 --proc-type primary -- -v -T -P -m [29:30].0 -m [31:32].1 -f themes/black-yellow.theme -f xdp-40G 
 
 #######################################################################
 # Pktgen Configuration script information:
@@ -11,7 +11,7 @@
 #   Flags 00000804
 #   Number of ports: 2
 #   Number ports per page: 4
-#   Number descriptors: RX 256 TX: 512
+#   Number descriptors: RX 1024 TX: 2048
 #   Promiscuous mode is Enabled
 
 
@@ -21,20 +21,20 @@ disable mac_from_arp
 
 ######################### Port  0 ##################################
 #
-# Port:  0, Burst: 32, Rate:100%, Flags:00000000, TX Count:Forever
+# Port:  0, Burst: 64, Rate:100%, Flags:00000000, TX Count:Forever
 #           Sequence count:0, Prime:1 VLAN ID:0001, Link: <UP-40000-FD>
 #
 # Set up the primary port information:
 set 0 count 0
 set 0 size 64
 set 0 rate 100
-set 0 burst 32
+set 0 burst 64
 set 0 sport 1234
 set 0 dport 5678
 set 0 prime 1
 set 0 type ipv4
 set 0 proto udp
-set 0 dst ip 198.18.1.1
+set 0 dst ip 198.18.0.2
 set 0 src ip 198.18.0.1/24
 set 0 dst mac 3c:fd:fe:e6:a9:00
 set 0 src mac 3c:fd:fe:e4:34:c0
@@ -139,20 +139,20 @@ set 0 seq_cnt 0
 
 ######################### Port  1 ##################################
 #
-# Port:  1, Burst: 32, Rate:100%, Flags:00000000, TX Count:Forever
+# Port:  1, Burst: 64, Rate:100%, Flags:00000000, TX Count:Forever
 #           Sequence count:0, Prime:1 VLAN ID:0001, Link: <UP-40000-FD>
 #
 # Set up the primary port information:
 set 1 count 0
 set 1 size 64
 set 1 rate 100
-set 1 burst 32
+set 1 burst 64
 set 1 sport 1234
 set 1 dport 5678
 set 1 prime 1
 set 1 type ipv4
 set 1 proto udp
-set 1 dst ip 198.18.0.1
+set 1 dst ip 198.18.1.2
 set 1 src ip 198.18.1.1/24
 set 1 dst mac 3c:fd:fe:e6:a9:01
 set 1 src mac 3c:fd:fe:e4:34:c1

@@ -393,7 +393,7 @@ pktgen_config_ports(void)
 
 			/* Create and initialize the range Transmit buffers. */
 			info->q[q].range_mp = pktgen_mbuf_pool_create("Range TX", pid, q,
-								      MAX_MBUFS_PER_PORT, sid, 0);
+								     MAX_MBUFS_PER_PORT, sid, 0);
 			if (info->q[q].range_mp == NULL)
 				pktgen_log_panic("Cannot init port %d for Range TX mbufs", pid);
 

@@ -11,7 +11,7 @@
 #include <inttypes.h>
 #include <rte_version.h>
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_net.h>
 #endif
 
@@ -92,8 +92,8 @@ void single_set_qinqids(port_info_t *info,
 			       uint16_t innerid);
 void single_set_vxlan(port_info_t *info, uint16_t flags,
 		uint16_t group_id, uint32_t vxlan_id);
-void single_set_latsampler_params(port_info_t *info, char* type, 
-		uint32_t num_samples, uint32_t sampling_rate, char outfile[]);	
+void single_set_latsampler_params(port_info_t *info, char* type,
+		uint32_t num_samples, uint32_t sampling_rate, char outfile[]);
 
 /* Rate */
 char *rate_transmit_count_rate(int port, char *buff, int len);
@@ -119,7 +119,7 @@ void debug_matrix_dump(void);
 void debug_mempool_dump(port_info_t *info, char *name);
 void debug_set_port_dump(port_info_t *info, uint32_t cnt);
 void debug_tx_rate(port_info_t *info);
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 void show_bonding_mode(port_info_t *info);
 #endif
 
@@ -139,7 +139,7 @@ void enable_garp(port_info_t *info, uint32_t state);
 void enable_mac_from_arp(uint32_t state);
 void enable_process(port_info_t *info, int state);
 void enable_capture(port_info_t *info, uint32_t state);
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 void enable_bonding(port_info_t *info, uint32_t state);
 #endif
 void enable_range(port_info_t *info, uint32_t state);

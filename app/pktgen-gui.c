@@ -291,11 +291,11 @@ update_port_statistics(void *arg)
 		tot_stats.oerrors   += info->rate_stats.oerrors;
 
 		tot_stats.imissed   += info->rate_stats.imissed;
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
 		tot_stats.ibadcrc   += info->rate_stats.ibadcrc;
 		tot_stats.ibadlen   += info->rate_stats.ibadlen;
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
 		tot_stats.imcasts   += info->rate_stats.imcasts;
 #endif
 		tot_stats.rx_nombuf += info->rate_stats.rx_nombuf;

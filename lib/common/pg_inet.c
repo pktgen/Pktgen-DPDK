@@ -11,7 +11,7 @@
 
 #include <rte_version.h>
 #include <rte_mbuf.h>
-#if RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_mbuf_ptype.h>
 #endif
 #include <rte_byteorder.h>

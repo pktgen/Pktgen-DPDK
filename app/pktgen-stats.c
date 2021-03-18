@@ -16,7 +16,7 @@
 
 #include "pktgen.h"
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
 #endif
 
@@ -91,7 +91,7 @@ pktgen_print_static_data(void)
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
 
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Missed Rx");
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad CRC Rx");
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad Len Rx");
 #endif
@@ -200,7 +200,7 @@ pktgen_print_static_data(void)
                     inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 
         rte_eth_dev_info_get(pid, &dev);
-#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
         if (dev.pci_dev)
             snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", dev.pci_dev->id.vendor_id,
                      dev.pci_dev->id.device_id, dev.pci_dev->addr.bus, dev.pci_dev->addr.devid,
@@ -274,7 +274,7 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
     }
 
     /* Setup a few default values to prevent problems later. */
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 2, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 2, 0, 0)
     info->link.link_speed = ETH_SPEED_NUM_10G;
 #else
     info->link.link_speed = 10000;
@@ -332,11 +332,11 @@ pktgen_page_stats(void)
             pktgen.max_total_opackets = cumm->opackets;
 
         cumm->imissed += rate->imissed;
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
         cumm->ibadcrc += rate->ibadcrc;
         cumm->ibadlen += rate->ibadlen;
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
         cumm->imcasts += rate->imcasts;
 #endif
         cumm->rx_nombuf += rate->rx_nombuf;
@@ -432,13 +432,13 @@ pktgen_page_stats(void)
 
             snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.imissed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
             snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.ibadcrc);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
             snprintf(buff, sizeof(buff), "%'lu", info->stats.ibadlen);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
             snprintf(buff, sizeof(buff), "%'lu", info->stats.imcasts);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 #else
@@ -546,11 +546,11 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
         rate->imissed   = curr->imissed - prev->imissed;
         rate->rx_nombuf = curr->rx_nombuf - prev->rx_nombuf;
 
-#if RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
         rate->ibadcrc = curr->ibadcrc - prev->ibadcrc;
         rate->ibadlen = curr->ibadlen - prev->ibadlen;
 #endif
-#if RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
         rate->imcasts = curr->imcasts - prev->imcasts;
 #endif
 
@@ -763,7 +763,7 @@ _xstats_display(uint16_t port_id)
 void
 pktgen_page_xstats(uint16_t pid)
 {
-#if RTE_VERSION >= RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(18, 4, 0, 0)
     uint64_t p;
 #endif
     int k;
@@ -783,7 +783,7 @@ pktgen_page_xstats(uint16_t pid)
     pktgen_display_set_color("stats.stat.label");
 
     k = 0;
-#if RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
+#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
     RTE_ETH_FOREACH_DEV(pid)
     {
         _xstats_display(pid);

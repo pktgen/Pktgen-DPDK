@@ -13,7 +13,7 @@
 #include "pktgen.h"
 
 #ifndef MBUF_INVALID_PORT
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #define MBUF_INVALID_PORT	UINT16_MAX
 #else
 #define MBUF_INVALID_PORT	UINT8_MAX
@@ -219,7 +219,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	char buffer[DEFAULT_MBUF_SIZE];
 	pcap_info_t *pcap = (pcap_info_t *)opaque_arg;
 
-#if RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	priv_size = rte_pktmbuf_priv_size(mp);
 	buf_len = rte_pktmbuf_data_room_size(mp);
 #else
@@ -228,13 +228,13 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp,
 	mbuf_size = sizeof(struct rte_mbuf) + priv_size;
 	memset(m, 0, mbuf_size);
 
-#if RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 	/* start of buffer is just after mbuf structure */
 	m->priv_size    = priv_size;
 	m->buf_addr     = (char *)m + mbuf_size;
 	m->buf_iova     = rte_mempool_virt2iova(m) + mbuf_size;
 	m->buf_len      = (uint16_t)buf_len;
-#elif RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
+#elif __RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
 	/* start of buffer is after mbuf structure and priv data */
 	m->priv_size = priv_size;
 	m->buf_addr = (char *)m + mbuf_size;

@@ -19,65 +19,6 @@
 extern "C" {
 #endif
 #include <rte_ether.h>
-#if 0
-/**
- * Convert a string Ethernet MAC address to the binary form
- *
- * @param a
- *   String containing the MAC address in two forms
- *      XX:XX:XX:XX:XX:XX or XXXX:XXXX:XXX
- * @param e
- *   pointer to a struct pg_ether_addr to place the return value. If the value
- *   is null then use a static location instead.
- * @return
- *   Pointer to the struct pg_ether_addr structure;
- */
-static inline struct pg_ether_addr *
-pg_ether_aton(const char *a, struct pg_ether_addr *e)
-{
-    int i;
-    char *end;
-    unsigned long o[PG_ETHER_ADDR_LEN];
-    static struct pg_ether_addr pg_ether_addr;
-
-    if (!e)
-        e = &pg_ether_addr;
-
-    i = 0;
-    do {
-        errno = 0;
-        o[i] = strtoul(a, &end, 16);
-        if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
-            return NULL;
-        a = end + 1;
-    } while (++i != sizeof (o) / sizeof (o[0]) && end[0] != 0);
-
-    /* Junk at the end of line */
-    if (end[0] != 0)
-        return NULL;
-
-    /* Support the format XX:XX:XX:XX:XX:XX */
-    if (i == PG_ETHER_ADDR_LEN) {
-        while (i-- != 0) {
-            if (o[i] > UINT8_MAX)
-                return NULL;
-            e->addr_bytes[i] = (uint8_t)o[i];
-        }
-    /* Support the format XXXX:XXXX:XXXX */
-    } else if (i == PG_ETHER_ADDR_LEN / 2) {
-        while (i-- != 0) {
-            if (o[i] > UINT16_MAX)
-                return NULL;
-            e->addr_bytes[i * 2] = (uint8_t)(o[i] >> 8);
-            e->addr_bytes[i * 2 + 1] = (uint8_t)(o[i] & 0xff);
-        }
-    /* unknown format */
-    } else
-        return NULL;
-
-    return e;
-}
-#endif
 
 #ifdef __cplusplus
 }

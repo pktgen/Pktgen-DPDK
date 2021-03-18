@@ -41,7 +41,7 @@
 #include "pktgen-random.h"
 #include "pktgen-log.h"
 #include "pg_ether.h"
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 #include <rte_eth_bond.h>
 #include <rte_eth_bond_8023ad.h>
 #endif
@@ -928,7 +928,7 @@ en_dis_cmd(int argc, char **argv)
 					foreach_port(portlist, pktgen_set_capture(info, state));
 					break;
 				case 16:
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 					foreach_port(portlist, enable_bonding(info, state));
 #endif
 					break;
@@ -1673,7 +1673,7 @@ plugin_cmd(int argc, char **argv)
 	return 0;
 }
 
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 static struct cli_map bonding_map[] = {
 	{ 10, "bonding %P show" },
 	{ 20, "bonding show" },
@@ -1956,7 +1956,7 @@ static struct cli_tree default_tree[] = {
 	c_cmd("set", 		set_cmd, 	"set a number of options"),
 	c_cmd("dbg",            dbg_cmd,	"debug commands"),
 	c_cmd("plugin",		plugin_cmd,	"Plugin a shared object file"),
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 	c_cmd("bonding",	bonding_cmd, "Bonding commands"),
 #endif
 	c_cmd("rate",		rate_cmd, "Rate setup commands"),
@@ -1991,7 +1991,7 @@ init_tree(void)
 	cli_help_add("Theme", theme_map, theme_help);
 	cli_help_add("Plugin", plugin_map, plugin_help);
 	cli_help_add("Rate", rate_map, rate_help);
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 	cli_help_add("Bonding", bonding_map, bonding_help);
 #endif
 	cli_help_add("Status", NULL, status_help);

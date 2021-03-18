@@ -18,7 +18,7 @@
 
 #include <link.h>
 
-#ifdef RTE_LIBRTE_BONDING_PMD
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 #include <rte_eth_bond_8023ad.h>
 #endif
 #if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)

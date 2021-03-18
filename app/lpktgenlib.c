@@ -2367,7 +2367,7 @@ pktgen_capture(lua_State *L)
 	return 0;
 }
 
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 /**
  *
  * pktgen_bonding - Enable or Disable bonding to send zero packets
@@ -2488,7 +2488,7 @@ pktgen_latsampler_params(lua_State *L)
     portlist_parse(luaL_checkstring(L, 1), &portlist);
 
     foreach_port(portlist,
-             single_set_latsampler_params(info, (char *)luaL_checkstring(L, 2), 
+             single_set_latsampler_params(info, (char *)luaL_checkstring(L, 2),
                  (uint32_t)luaL_checkinteger(L, 3), (uint32_t)luaL_checkinteger(L, 4), (char *)luaL_checkstring(L, 5)));
 
     pktgen_update_display();
@@ -3699,7 +3699,7 @@ static const luaL_Reg pktgenlib[] = {
 	{"port",          pktgen_port},			/* select a different port number used for sequence and range pages. */
 	{"process",       pktgen_process},		/* Enable or disable input packet processing on a port */
 	{"capture",       pktgen_capture},		/* Enable or disable capture on a port */
-#ifdef RTE_LIBRTE_PMD_BOND
+#if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 	{"bonding",       pktgen_bonding},		/* Enable or disable bonding on a port */
 #endif
 	{"garp",          pktgen_garp},			/* Enable or disable GARP packet processing on a port */
@@ -3733,7 +3733,7 @@ static const luaL_Reg pktgenlib[] = {
 
     {"latsampler_params",	pktgen_latsampler_params},		/*set latency sampler params */
     {"latsampler",	pktgen_latsampler},		/* enable or disable latency sampler */
-	
+
 	{NULL, NULL}
 };
 

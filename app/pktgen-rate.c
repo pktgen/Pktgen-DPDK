@@ -134,7 +134,7 @@ rate_print_static_data(void)
 	struct rte_eth_dev_info dev = { 0 };
 	uint32_t pid, col, row, sp, ip_row;
 	pkt_seq_t *pkt;
-	char buff[INET6_ADDRSTRLEN+4+1];
+	char buff[INET6_ADDRSTRLEN * 2];
 	int display_cnt;
 
 	pktgen_display_set_color("top.page");
@@ -232,13 +232,17 @@ rate_print_static_data(void)
 			int bufflen;
 
 			inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX);
-			if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
-				snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+			if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1) {
+				char *b = buff;
+				snprintf(buff, sizeof(buff), "..%s", b + bufflen - COLUMN_WIDTH_1 + 3);
+			}
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
 			inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr, pkt->ip_src_addr.prefixlen);
-			if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1)
-				snprintf(buff, sizeof(buff), "..%s", buff + bufflen - COLUMN_WIDTH_1 + 3);
+			if ((bufflen = strlen(buff)) > COLUMN_WIDTH_1 - 1) {
+				char *b = buff;
+				snprintf(buff, sizeof(buff), "..%s", b + bufflen - COLUMN_WIDTH_1 + 3);
+			}
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		} else {
 			scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

@@ -70,6 +70,7 @@ extern "C" {
 #define PG_ETHER_TYPE_ARP              RTE_ETHER_TYPE_ARP
 #define pg_ether_format_addr           rte_ether_format_addr
 #define pg_ether_addr_copy             rte_ether_addr_copy
+
 #elif __RTE_VERSION >= RTE_VERSION_NUM(20, 11, 0, 0)
 #define pg_eth_bond_workers_get        rte_eth_bond_slaves_get
 #define pg_eth_bond_active_workers_get rte_eth_bond_active_slaves_get
@@ -101,8 +102,11 @@ extern "C" {
 #define PG_JUMBO_ETHER_MTU             RTE_JUMBO_ETHER_MTU
 #define PG_ETHER_TYPE_VLAN             RTE_ETHER_TYPE_VLAN
 #define PG_ETHER_TYPE_ARP              RTE_ETHER_TYPE_ARP
+#define PG_ETHER_TYPE_IPv4             RTE_ETHER_TYPE_IPV4
+#define PG_ETHER_TYPE_IPv6             RTE_ETHER_TYPE_IPV6
 #define pg_ether_format_addr           rte_ether_format_addr
 #define pg_ether_addr_copy             rte_ether_addr_copy
+
 #elif __RTE_VERSION >= RTE_VERSION_NUM(20, 8, 0, 0)
 #define PG_SKIP_MAIN                 SKIP_MASTER
 #define pg_get_initial_lcore         rte_get_master_lcore
@@ -131,8 +135,11 @@ extern "C" {
 #define PG_JUMBO_ETHER_MTU           RTE_JUMBO_ETHER_MTU
 #define PG_ETHER_TYPE_VLAN           RTE_ETHER_TYPE_VLAN
 #define PG_ETHER_TYPE_ARP            RTE_ETHER_TYPE_ARP
+#define PG_ETHER_TYPE_IPv4           RTE_ETHER_TYPE_IPv4
+#define PG_ETHER_TYPE_IPv6           RTE_ETHER_TYPE_IPv6
 #define pg_ether_format_addr         rte_ether_format_addr
 #define pg_ether_addr_copy           rte_ether_addr_copy
+
 #elif __RTE_VERSION >= RTE_VERSION_NUM(20, 5, 0, 0)
 #define PG_SKIP_MAIN                 SKIP_MASTER
 #define pg_get_initial_lcore         rte_get_master_lcore
@@ -161,8 +168,11 @@ extern "C" {
 #define PG_JUMBO_ETHER_MTU           RTE_JUMBO_ETHER_MTU
 #define PG_ETHER_TYPE_VLAN           RTE_ETHER_TYPE_VLAN
 #define PG_ETHER_TYPE_ARP            RTE_ETHER_TYPE_ARP
+#define PG_ETHER_TYPE_IPv4           ETHER_TYPE_IPv4
+#define PG_ETHER_TYPE_IPv6           ETHER_TYPE_IPv6
 #define pg_ether_format_addr         rte_ether_format_addr
 #define pg_ether_addr_copy           rte_ether_addr_copy
+
 #else   /* Anything older then 20.05 requires an older version of Ubuntu 20.10 */
 #define PG_SKIP_MAIN                   SKIP_MASTER
 #define pg_get_initial_lcore           rte_get_master_lcore

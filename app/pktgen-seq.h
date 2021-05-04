@@ -37,7 +37,10 @@ typedef struct pkt_seq_s {
 	uint16_t ipProto;	/**< TCP or UDP or ICMP */
 	uint16_t vlanid;	/**< VLAN ID value if used */
 	uint8_t cos;		/**< 802.1p cos value if used */
-	uint8_t tos;		/**< tos value if used */
+	union {
+		uint8_t tos;	/**< tos value if used */
+		uint8_t traffic_class; /**< traffic class for IPv6 headers*/
+	};
 	uint16_t ether_hdr_size;/**< Size of Ethernet header in packet for VLAN ID */
 
 	uint32_t mpls_entry;	/**< MPLS entry if used */
@@ -47,7 +50,10 @@ typedef struct pkt_seq_s {
 
 	uint16_t pktSize;	/**< Size of packet in bytes not counting FCS */
 	uint8_t seq_enabled;	/**< Enable or disable this sequence through GUI */
-	uint8_t ttl;		/**< TTL value for IPv4 headers */
+	union {
+		uint8_t ttl;	/**< TTL value for IPv4 headers */
+		uint8_t hop_limits; /**< Hop limits for IPv6 headers */
+	};
 	uint32_t gtpu_teid;	/**< GTP-U TEID, if UDP dport=2152 */
 
         RTE_STD_C11

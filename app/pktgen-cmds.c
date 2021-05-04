@@ -2036,6 +2036,14 @@ range_set_pkt_type(port_info_t *info, const char *type)
                                            ? PG_ETHER_TYPE_IPv6
                                            :
                                            /* TODO print error: unknown type */ PG_ETHER_TYPE_IPv4;
+    if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+        if (info->range.pkt_size < MIN_v6_PKT_SIZE)
+            info->range.pkt_size = MIN_v6_PKT_SIZE;
+        if (info->range.pkt_size_min < MIN_v6_PKT_SIZE)
+            info->range.pkt_size_min = MIN_v6_PKT_SIZE;
+        if (info->range.pkt_size_max < MIN_v6_PKT_SIZE)
+            info->range.pkt_size_max = MIN_v6_PKT_SIZE;
+    }
 }
 
 /**
@@ -3553,14 +3561,29 @@ range_set_src_mac(port_info_t *info, const char *what, struct pg_ether_addr *mac
 void
 range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
-    if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-        info->range.src_ip_min = ntohl(ip->ipv4.s_addr);
-    else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-        info->range.src_ip_max = ntohl(ip->ipv4.s_addr);
-    else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
-        info->range.src_ip_inc = ntohl(ip->ipv4.s_addr);
-    else if (!strcmp(what, "start"))
-        info->range.src_ip = ntohl(ip->ipv4.s_addr);
+    if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+            rte_memcpy(info->range.src_ipv6_min, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+            rte_memcpy(info->range.src_ipv6_max, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+        else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+            rte_memcpy(info->range.src_ipv6_inc, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+        else if (!strcmp(what, "start"))
+            rte_memcpy(info->range.src_ipv6, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+    } else {
+        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+            info->range.src_ip_min = ntohl(ip->ipv4.s_addr);
+        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+            info->range.src_ip_max = ntohl(ip->ipv4.s_addr);
+        else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+            info->range.src_ip_inc = ntohl(ip->ipv4.s_addr);
+        else if (!strcmp(what, "start"))
+            info->range.src_ip = ntohl(ip->ipv4.s_addr);
+    }
 }
 
 /**
@@ -3578,14 +3601,29 @@ range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 void
 range_set_dst_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
-    if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-        info->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
-    else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-        info->range.dst_ip_max = ntohl(ip->ipv4.s_addr);
-    else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
-        info->range.dst_ip_inc = ntohl(ip->ipv4.s_addr);
-    else if (!strcmp(what, "start"))
-        info->range.dst_ip = ntohl(ip->ipv4.s_addr);
+    if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+            rte_memcpy(info->range.dst_ipv6_min, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+            rte_memcpy(info->range.dst_ipv6_max, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+        else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+            rte_memcpy(info->range.dst_ipv6_inc, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+        else if (!strcmp(what, "start"))
+            rte_memcpy(info->range.dst_ipv6, ip->ipv6.s6_addr,
+                sizeof(struct in6_addr));
+    } else {
+        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+            info->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
+        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+            info->range.dst_ip_max = ntohl(ip->ipv4.s_addr);
+        else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+            info->range.dst_ip_inc = ntohl(ip->ipv4.s_addr);
+        else if (!strcmp(what, "start"))
+            info->range.dst_ip = ntohl(ip->ipv4.s_addr);
+    }
 }
 
 /**
@@ -3703,6 +3741,31 @@ range_set_ttl(port_info_t *info, char *what, uint8_t ttl)
 
 /**
  *
+ * range_set_hop_limits - Set the hop_limits value
+ *
+ * DESCRIPTION
+ * Set the Hop Limits values
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_hop_limits(port_info_t *info, char *what, uint8_t hop_limits)
+{
+    if (!strcmp(what, "inc") || !strcmp(what, "increment"))
+        info->range.hop_limits_inc = hop_limits;
+    else if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+        info->range.hop_limits_min = hop_limits;
+    else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+        info->range.hop_limits_max = hop_limits;
+    else if (!strcmp(what, "start"))
+        info->range.hop_limits = hop_limits;
+}
+
+/**
+ *
  * range_set_vlan_id - Set the VLAN id value
  *
  * DESCRIPTION
@@ -3763,6 +3826,34 @@ range_set_tos_id(port_info_t *info, char *what, uint8_t id)
 
 /**
  *
+ * range_set_traffic_class - Set the traffic class value
+ *
+ * DESCRIPTION
+ * Set the traffic class value.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_traffic_class(port_info_t *info, char *what, uint8_t traffic_class)
+{
+
+    if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
+        info->range.traffic_class_inc = traffic_class;
+    } else {
+        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
+            info->range.traffic_class_min = traffic_class;
+        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
+            info->range.traffic_class_max = traffic_class;
+        else if (!strcmp(what, "start"))
+            info->range.traffic_class = traffic_class;
+    }
+}
+
+/**
+ *
  * range_set_cos_id - Set the prio (cos) value
  *
  * DESCRIPTION
@@ -3815,6 +3906,10 @@ range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
             size = MAX_PKT_SIZE;
         else
             size -= PG_ETHER_CRC_LEN;
+
+        if (info->seq_pkt[RANGE_PKT].ethType ==
+		PG_ETHER_TYPE_IPv6 && size < MIN_v6_PKT_SIZE)
+            size = MIN_v6_PKT_SIZE;
 
         if (!strcmp(what, "start"))
             info->range.pkt_size = size;

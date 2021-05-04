@@ -1302,6 +1302,39 @@ range_src_mac(lua_State *L)
 
 /**
  *
+ * range_set_type - Set the type of range packet IPv4/v6
+ *
+ * DESCRIPTION
+ * Set the range packet types to IPv4 or v6.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+range_set_type(lua_State *L)
+{
+	char *type;
+	portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "pkt_type, wrong number of arguments");
+	case 2:
+		break;
+	}
+	type = (char *)luaL_checkstring(L, 2);
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist,
+		     range_set_pkt_type(info, type) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**
+ *
  * range_dst_ip - Set the IP address in the range data.
  *
  * DESCRIPTION
@@ -1325,7 +1358,7 @@ range_dst_ip(lua_State *L)
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
+	_atoip(luaL_checkstring(L, 3), 0,
 			  &ipaddr, sizeof(struct pg_ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
@@ -1361,7 +1394,7 @@ range_src_ip(lua_State *L)
 		break;
 	}
 	portlist_parse(luaL_checkstring(L, 1), &portlist);
-	_atoip(luaL_checkstring(L, 3), PG_IPADDR_V4,
+	_atoip(luaL_checkstring(L, 3), 0,
 			  &ipaddr, sizeof(ipaddr));
 
 	type = (char *)luaL_checkstring(L, 2);
@@ -1503,6 +1536,38 @@ range_ttl(lua_State *L)
 
 /**
  *
+ * range_hop_limits - Set the hop_limits value in the range data.
+ *
+ * DESCRIPTION
+ * Set the Hop Limits value in the range data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+range_hop_limits(lua_State *L)
+{
+	portlist_t portlist;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "set hop_limits, wrong number of arguments");
+	case 3:
+		break;
+	}
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
+
+	foreach_port(portlist,
+		     range_set_hop_limits(info, (char *)luaL_checkstring(L, 2),
+			     luaL_checkinteger(L, 3)));
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**
+ *
  * pktgen_gtpu_teid - Set the GTPU-TEID value in the range data.
  *
  * DESCRIPTION
@@ -1630,6 +1695,40 @@ range_tos(lua_State *L)
 	foreach_port(portlist,
 		     range_set_tos_id(info, (char *)luaL_checkstring(L, 2),
 					tos) );
+
+	pktgen_update_display();
+	return 0;
+}
+
+/**
+ *
+ * range_traffic_class - Set the traffic class in the range data.
+ *
+ * DESCRIPTION
+ * Set the Traffic Class in the range data.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+range_traffic_class(lua_State *L)
+{
+	portlist_t portlist;
+	uint32_t traffic_class;
+
+	switch (lua_gettop(L) ) {
+	default: return luaL_error(L, "traffic_class, wrong number of arguments");
+	case 3:
+		break;
+	}
+	portlist_parse(luaL_checkstring(L, 1), &portlist);
+	traffic_class = luaL_checkinteger(L, 3);
+
+	foreach_port(portlist,
+		     range_set_traffic_class(info, (char *)luaL_checkstring(L, 2),
+					traffic_class) );
 
 	pktgen_update_display();
 	return 0;
@@ -3508,6 +3607,7 @@ static const char *lua_help_info[] = {
 	"src_port       - Set the IP source port number\n",
 	"dst_port       - Set the IP destination port number\n",
 	"ttl            - Set the Time to Live value\n",
+	"hop_limits     - Set the Hop Limit value\n",
 	"vlan_id        - Set the vlan id value\n",
 	"mpls_entry     - Set the MPLS entry\n",
 	"qinqids        - Set the Q-in-Q ID's\n",
@@ -3619,12 +3719,14 @@ static const luaL_Reg pktgenlib_range[] = {
 	/* Range commands */
 	{"dst_mac",       range_dst_mac},	/* Set the destination MAC address for a port */
 	{"src_mac",       range_src_mac},	/* Set the src MAC address for a port */
+	{"set_type",      range_set_type},      /* Set the packet type to IPv4 or IPv6 */
 	{"src_ip",        range_src_ip},	/* Set the source IP address and netmask value */
 	{"dst_ip",        range_dst_ip},	/* Set the destination IP address */
 	{"ip_proto",      range_ip_proto},	/* Set the IP Protocol type */
 	{"src_port",      range_src_port},	/* Set the IP source port number */
 	{"dst_port",      range_dst_port},	/* Set the IP destination port number */
 	{"ttl",           range_ttl},		/* Set the IP TTL value */
+	{"hop_limits",    range_hop_limits},    /* Set the IPv6 Hop Limits value */
 	{"vlan_id",       range_vlan_id},	/* Set the vlan id value */
 	{"mpls_entry",    range_mpls_entry},	/* Set the MPLS entry value */
 	{"qinqids",       range_qinqids},	/* Set the Q-in-Q ID values */
@@ -3632,6 +3734,7 @@ static const luaL_Reg pktgenlib_range[] = {
 	{"pkt_size",      range_pkt_size},	/* the packet size for a range port */
 	{"cos",           range_cos},		/* Set the COS value */
 	{"tos",           range_tos},		/* Set the COS value */
+	{"traffic_class", range_traffic_class}, /* Set the IPv6 Traffic Class */
 	{NULL, NULL}
 };
 

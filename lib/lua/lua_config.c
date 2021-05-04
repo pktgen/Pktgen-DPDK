@@ -26,6 +26,7 @@
 #include <rte_eal_memconfig.h>
 #include <rte_rwlock.h>
 
+#include <pg_compat.h>
 #include "lua_config.h"
 #include "lua_stdio.h"
 #include "lua_utils.h"

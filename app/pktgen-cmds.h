@@ -179,6 +179,8 @@ void range_set_qinqids(port_info_t *info,
 			       uint16_t innerid);
 void range_set_gre_key(port_info_t *info, uint32_t gre_key);
 void range_set_ttl(port_info_t *info, char *what, uint8_t ttl);
+void range_set_hop_limits(port_info_t *info, char *what, uint8_t hop_limits);
+void range_set_traffic_class(port_info_t *info, char *what, uint8_t traffic_class);
 
 /* Sequence */
 void pktgen_set_port_seqCnt(port_info_t *info, uint32_t cnt);

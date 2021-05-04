@@ -230,8 +230,172 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 		switch (pkt->ipProto) {
 		case PG_IPPROTO_UDP:
 		case PG_IPPROTO_TCP:
-			/* TODO: Need to handle the IPv6 packets. */
-			pktgen_log_warning("IPv6 is not yet implemented");
+
+			if (unlikely(range->src_port_inc != 0) ) {
+				uint16_t sport = pkt->sport;
+				sport += range->src_port_inc;
+				if (sport < range->src_port_min)
+					sport = range->src_port_max;
+				if (sport > range->src_port_max)
+					sport = range->src_port_min;
+				pkt->sport = sport;
+			} else
+				pkt->sport = range->src_port;
+
+			if (unlikely(range->dst_port_inc != 0) ) {
+				uint16_t dport = pkt->dport;
+				dport += range->dst_port_inc;
+				if (dport < range->dst_port_min)
+					dport = range->dst_port_max;
+				if (dport > range->dst_port_max)
+					dport = range->dst_port_min;
+				pkt->dport = dport;
+			} else
+				pkt->dport = range->dst_port;
+
+			if (unlikely(range->hop_limits_inc != 0) ) {
+				uint8_t hop_limits = pkt->hop_limits;
+				hop_limits += range->hop_limits_inc;
+				if (hop_limits < range->hop_limits_min)
+					hop_limits = range->hop_limits_max;
+				if (hop_limits > range->hop_limits_max)
+					hop_limits = range->hop_limits_min;
+				pkt->hop_limits = hop_limits;
+			} else
+				pkt->hop_limits = range->hop_limits;
+
+			if (unlikely(!inet6AddrIsUnspecified(range->src_ipv6_inc))) {
+				uint8_t p[PG_IN6ADDRSZ];
+				rte_memcpy(p, pkt->ip_src_addr.addr.ipv6.s6_addr,
+					sizeof(struct in6_addr));
+				inet6AddrAdd(p, range->src_ipv6_inc, p);
+				if (memcmp(p, range->src_ipv6_min,
+					sizeof(struct in6_addr)) < 0)
+					rte_memcpy(p, range->src_ipv6_min,
+					sizeof(struct in6_addr));
+				else if (memcmp(p, range->src_ipv6_max,
+					sizeof(struct in6_addr)) > 0)
+					rte_memcpy(p, range->src_ipv6_min,
+					sizeof(struct in6_addr));
+				rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr, p,
+					sizeof(struct in6_addr));
+			} else
+				rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr, range->src_ipv6,
+					sizeof(struct in6_addr));
+
+			if (unlikely(!inet6AddrIsUnspecified(range->dst_ipv6_inc))) {
+				uint8_t p[PG_IN6ADDRSZ];
+				rte_memcpy(p, pkt->ip_dst_addr.addr.ipv6.s6_addr,
+					sizeof(struct in6_addr));
+				inet6AddrAdd(p, range->dst_ipv6_inc, p);
+				if (memcmp(p, range->dst_ipv6_min,
+					sizeof(struct in6_addr)) < 0)
+					rte_memcpy(p, range->dst_ipv6_min,
+					sizeof(struct in6_addr));
+				else if (memcmp(p, range->dst_ipv6_max,
+					sizeof(struct in6_addr)) > 0)
+					rte_memcpy(p, range->dst_ipv6_min,
+					sizeof(struct in6_addr));
+				rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr, p,
+					sizeof(struct in6_addr));
+			} else
+				rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr, range->dst_ipv6,
+					sizeof(struct in6_addr));
+
+			if (unlikely(range->vlan_id_inc != 0)) {
+				/* Since VLAN is set to MIN_VLAN_ID, check this and skip first increment
+				 * to maintian the range sequence in sync with other range fields */
+				uint32_t p;
+				static uint8_t min_vlan_set = 0;
+				if ((pkt->vlanid == MIN_VLAN_ID) && !min_vlan_set) {
+					p = 0;
+					min_vlan_set = 1;
+				} else
+					p = pkt->vlanid;
+				p += range->vlan_id_inc;
+				if (p < range->vlan_id_min)
+					p = range->vlan_id_max;
+				else if (p > range->vlan_id_max)
+					p = range->vlan_id_min;
+				pkt->vlanid = p;
+			} else
+				pkt->vlanid = range->vlan_id;
+
+			if (unlikely(range->cos_inc != 0)) {
+				uint32_t p;
+				static uint8_t min_cos_set = 0;
+				if ((pkt->cos == MIN_COS) && !min_cos_set) {
+					p = 0;
+					min_cos_set = 1;
+				} else
+					p = pkt->cos;
+				p += range->cos_inc;
+				if (p < range->cos_min)
+					p = range->cos_max;
+				else if (p > range->cos_max)
+					p = range->cos_min;
+				pkt->cos = p;
+			} else
+				pkt->cos = range->cos;
+
+			if (unlikely(range->traffic_class_inc != 0)) {
+				uint32_t p;
+				static uint8_t min_traffic_class_set = 0;
+				if ((pkt->traffic_class == MIN_TOS) && !min_traffic_class_set) {
+					p = 0;
+					min_traffic_class_set = 1;
+				} else
+					p = pkt->traffic_class;
+				p += range->traffic_class_inc;
+				if (p < range->traffic_class_min)
+					p = range->traffic_class_max;
+				else if (p > range->traffic_class_max)
+					p = range->traffic_class_min;
+				pkt->traffic_class = p;
+			} else
+				pkt->traffic_class = range->traffic_class;
+
+			if (unlikely(range->pkt_size_inc != 0)) {
+				uint32_t p = pkt->pktSize;
+				p += range->pkt_size_inc;
+				if (p < range->pkt_size_min)
+					p = range->pkt_size_max;
+				else if (p > range->pkt_size_max)
+					p = range->pkt_size_min;
+				pkt->pktSize = p;
+			} else
+				pkt->pktSize = range->pkt_size;
+
+			if (unlikely(range->src_mac_inc != 0)) {
+				uint64_t p;
+
+				inet_mtoh64(&pkt->eth_src_addr, &p);
+
+				p += range->src_mac_inc;
+				if (p < range->src_mac_min)
+					p = range->src_mac_max;
+				else if (p > range->src_mac_max)
+					p = range->src_mac_min;
+
+				inet_h64tom(p, &pkt->eth_src_addr);
+			} else
+				inet_h64tom(range->src_mac, &pkt->eth_src_addr);
+
+			if (unlikely(range->dst_mac_inc != 0)) {
+				uint64_t p;
+
+				inet_mtoh64(&pkt->eth_dst_addr, &p);
+
+				p += range->dst_mac_inc;
+				if (p < range->dst_mac_min)
+					p = range->dst_mac_max;
+				else if (p > range->dst_mac_max)
+					p = range->dst_mac_min;
+
+				inet_h64tom(p, &pkt->eth_dst_addr);
+			} else
+				inet_h64tom(range->dst_mac, &pkt->eth_dst_addr);
+
 			break;
 		default:
 			pktgen_log_info("IPv6 ipProto %04x", pkt->ipProto);
@@ -345,41 +509,71 @@ pktgen_print_range(void)
 		scrn_printf(row++, col, "%*s", col_1,
 		        (range->ip_proto == PG_IPPROTO_TCP) ? "TCP" : "UDP");
 
-		row++;
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->dst_ip),
-		                          0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->dst_ip_min),
-		                          0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->dst_ip_max),
-		                          0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->dst_ip_inc),
-		                          0xFFFFFFFF));
+		if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+			row++;
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->dst_ipv6,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->dst_ipv6_min,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->dst_ipv6_max,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->dst_ipv6_inc,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
 
-		row++;
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->src_ip),
-		                          0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->src_ip_min),
-		                          0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->src_ip_max),
-		                          0xFFFFFFFF));
-		scrn_printf(row++, col, "%*s", col_1,
-		               inet_ntop4(buff, sizeof(buff),
-		                          htonl(range->src_ip_inc),
-		                          0xFFFFFFFF));
+			row++;
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->src_ipv6,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->src_ipv6_min,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->src_ipv6_max,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+			scrn_printf(row++, col, "%*s", col_1,
+					inet_ntop6(buff, sizeof(buff), range->src_ipv6_inc,
+						   PG_PREFIXMAX | ((col_1 - 1)<<8)));
+		} else {
+			row++;
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->dst_ip),
+			                          0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->dst_ip_min),
+			                          0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->dst_ip_max),
+			                          0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->dst_ip_inc),
+			                          0xFFFFFFFF));
+
+			row++;
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->src_ip),
+			                          0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->src_ip_min),
+			                          0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->src_ip_max),
+			                          0xFFFFFFFF));
+			scrn_printf(row++, col, "%*s", col_1,
+			               inet_ntop4(buff, sizeof(buff),
+			                          htonl(range->src_ip_inc),
+			                          0xFFFFFFFF));
+		}
 
 		row++;
 		snprintf(str,
@@ -400,13 +594,21 @@ pktgen_print_range(void)
 		         range->src_port_inc);
 		scrn_printf(row++, col, "%*s", col_1, str);
 
-		snprintf(str,
-		         sizeof(str),
-		         "%5d:%5d/%5d/%5d",
-		         range->ttl,
-			 range->ttl_min,
-			 range->ttl_max,
-		         range->ttl_inc);
+		info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6 ?
+			snprintf(str,
+			         sizeof(str),
+			         "%5d:%5d/%5d/%5d",
+			         range->hop_limits,
+				 range->hop_limits_min,
+				 range->hop_limits_max,
+			         range->hop_limits_inc) :
+			snprintf(str,
+			         sizeof(str),
+			         "%5d:%5d/%5d/%5d",
+			         range->ttl,
+				 range->ttl_min,
+				 range->ttl_max,
+			         range->ttl_inc);
 		scrn_printf(row++, col, "%*s", col_1, str);
 
 		snprintf(str,
@@ -427,13 +629,21 @@ pktgen_print_range(void)
 		         range->cos_inc);
 		scrn_printf(row++, col, "%*s", col_1, str);
 
-		snprintf(str,
-		         sizeof(str),
-		         "%5d:%5d/%5d/%5d",
-		         range->tos,
-		         range->tos_min,
-		         range->tos_max,
-		         range->tos_inc);
+		info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6 ?
+			snprintf(str,
+			         sizeof(str),
+			         "%5d:%5d/%5d/%5d",
+			         range->traffic_class,
+			         range->traffic_class_min,
+			         range->traffic_class_max,
+			         range->traffic_class_inc) :
+			snprintf(str,
+			         sizeof(str),
+			         "%5d:%5d/%5d/%5d",
+			         range->tos,
+			         range->tos_min,
+			         range->tos_max,
+			         range->tos_inc);
 		scrn_printf(row++, col, "%*s", col_1, str);
 
 		snprintf(str,

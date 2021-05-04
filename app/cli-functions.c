@@ -109,7 +109,12 @@ static struct cli_map range_map[] = {
 	{ 31, "range %P src ip "SMMI" %4" },
 	{ 32, "range %P dst ip %4 %4 %4 %4" },
 	{ 33, "range %P src ip %4 %4 %4 %4" },
+	{ 34, "range %P dst ip "SMMI" %6" },
+	{ 35, "range %P src ip "SMMI" %6" },
+	{ 36, "range %P dst ip %6 %6 %6 %6" },
+	{ 37, "range %P src ip %6 %6 %6 %6" },
 	{ 40, "range %P proto %|tcp|udp" },
+	{ 41, "range %P type %|ipv4|ipv6" },
 	{ 50, "range %P dst port "SMMI" %d" },
 	{ 51, "range %P src port "SMMI" %d" },
 	{ 52, "range %P dst port %d %d %d %d" },
@@ -130,6 +135,10 @@ static struct cli_map range_map[] = {
 	{ 161, "range %P cos %d %d %d %d" },
 	{ 170, "range %P tos "SMMI" %d" },
 	{ 171, "range %P tos %d %d %d %d" },
+	{ 172, "range %P hop_limits "SMMI" %b" },
+	{ 173, "range %P hop_limits %d %d %d %d" },
+	{ 174, "range %P traffic_class "SMMI" %d" },
+	{ 175, "range %P traffic_class %d %d %d %d" },
     { -1, NULL }
 };
 
@@ -148,6 +157,7 @@ static const char *range_help[] = {
 	"           range 0 dst ip max 1.2.3.4",
 	"           range 0 dst ip inc 0.0.1.0",
 	"       or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
+	"range <portlist> type ipv4|ipv6               - Set the range packet type to IPv4 or IPv6",
 	"range <portlist> proto tcp|udp                - Set the IP protocol type",
 	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
 	"       or  range <portlist> src|dst port <start> <min> <max> <inc>",
@@ -162,6 +172,9 @@ static const char *range_help[] = {
 	"range <portlist> gre key <value>              - Set GRE key value",
 	"range <portlist> cos <SMMI> <value>           - Set cos value",
 	"range <portlist> tos <SMMI> <value>           - Set tos value",
+	"range <portlist> ttl <SMMI> <value>           - Set TTL",
+	"range <portlist> hop_limits <SMMI> <value>    - Set Hop Limits",
+	"range <portlist> traffic_class <SMMI> <value> - Set Traffic Class value",
 
 	CLI_HELP_PAUSE,
 	NULL
@@ -251,9 +264,55 @@ range_cmd(int argc, char **argv)
 			    range_set_src_ip(info, (char *)(uintptr_t)"inc", &ip)
 				);
 			break;
+		case 34:
+			/* Remove the /XX mask value is supplied */
+			p = strchr(argv[4], '/');
+			if (p)
+				*p = '\0';
+			_atoip(val, 0, &ip, sizeof(ip));
+			foreach_port(portlist,
+			     range_set_dst_ip(info, what, &ip));
+			break;
+		case 35:
+			/* Remove the /XX mask value is supplied */
+			p = strchr(argv[4], '/');
+			if (p)
+				*p = '\0';
+			_atoip(argv[5], 0, &ip, sizeof(ip));
+			foreach_port(portlist,
+			     range_set_src_ip(info, what, &ip));
+			break;
+		case 36:
+			foreach_port(portlist,
+				_atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"start", &ip);
+				_atoip(argv[5], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"min", &ip);
+				_atoip(argv[6], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"max", &ip);
+				_atoip(argv[7], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_dst_ip(info, (char *)(uintptr_t)"inc", &ip)
+				);
+			break;
+		case 37:
+			foreach_port(portlist,
+				_atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"start", &ip);
+				_atoip(argv[5], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"min", &ip);
+				_atoip(argv[6], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"max", &ip);
+				_atoip(argv[7], PG_IPADDR_V6, &ip, sizeof(ip));
+			    range_set_src_ip(info, (char *)(uintptr_t)"inc", &ip)
+				);
+			break;
 		case 40:
 			foreach_port(portlist,
 				range_set_proto(info, argv[3]) );
+			break;
+		case 41:
+			foreach_port(portlist,
+				range_set_pkt_type(info, argv[3]) );
 			break;
 		case 50:
 			foreach_port(portlist,
@@ -265,19 +324,19 @@ range_cmd(int argc, char **argv)
 			break;
 		case 52:
 			foreach_port(portlist,
-					range_set_dst_port(info, (char *)(uintptr_t)"start", atoi(argv[4]));
-					range_set_dst_port(info, (char *)(uintptr_t)"min", atoi(argv[5]));
-					range_set_dst_port(info, (char *)(uintptr_t)"max", atoi(argv[6]));
-					range_set_dst_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
-					);
+				range_set_dst_port(info, (char *)(uintptr_t)"start", atoi(argv[4]));
+				range_set_dst_port(info, (char *)(uintptr_t)"min", atoi(argv[5]));
+				range_set_dst_port(info, (char *)(uintptr_t)"max", atoi(argv[6]));
+				range_set_dst_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
+				);
 			break;
 		case 53:
 			foreach_port(portlist,
-					range_set_src_port(info, (char *)(uintptr_t)"start", atoi(argv[4]));
-					range_set_src_port(info, (char *)(uintptr_t)"min", atoi(argv[5]));
-					range_set_src_port(info, (char *)(uintptr_t)"max", atoi(argv[6]));
-					range_set_src_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
-					);
+				range_set_src_port(info, (char *)(uintptr_t)"start", atoi(argv[4]));
+				range_set_src_port(info, (char *)(uintptr_t)"min", atoi(argv[5]));
+				range_set_src_port(info, (char *)(uintptr_t)"max", atoi(argv[6]));
+				range_set_src_port(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
+				);
 			break;
 		case 55:
 			foreach_port(portlist,
@@ -285,11 +344,11 @@ range_cmd(int argc, char **argv)
 			break;
 		case 56:
 			foreach_port(portlist,
-					range_set_ttl(info, (char *)(uintptr_t)"start", atoi(argv[3]));
-					range_set_ttl(info, (char *)(uintptr_t)"min", atoi(argv[4]));
-					range_set_ttl(info, (char *)(uintptr_t)"max", atoi(argv[5]));
-					range_set_ttl(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
-					);
+				range_set_ttl(info, (char *)(uintptr_t)"start", atoi(argv[3]));
+				range_set_ttl(info, (char *)(uintptr_t)"min", atoi(argv[4]));
+				range_set_ttl(info, (char *)(uintptr_t)"max", atoi(argv[5]));
+				range_set_ttl(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
+				);
 			break;
 		case 60:
 			foreach_port(portlist,
@@ -364,6 +423,31 @@ range_cmd(int argc, char **argv)
 				range_set_tos_id(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
 				);
 			break;
+		case 172:
+			foreach_port(portlist,
+				range_set_hop_limits(info, argv[3], atoi(what)) );
+			break;
+		case 173:
+			foreach_port(portlist,
+				range_set_hop_limits(info, (char *)(uintptr_t)"start", atoi(argv[3]));
+				range_set_hop_limits(info, (char *)(uintptr_t)"min", atoi(argv[4]));
+				range_set_hop_limits(info, (char *)(uintptr_t)"max", atoi(argv[5]));
+				range_set_hop_limits(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
+				);
+			break;
+		case 174:
+			foreach_port(portlist,
+				range_set_traffic_class(info, argv[3], atoi(what)) );
+			break;
+		case 175:
+			foreach_port(portlist,
+				range_set_traffic_class(info, (char *)(uintptr_t)"start", atoi(argv[3]));
+				range_set_traffic_class(info, (char *)(uintptr_t)"min", atoi(argv[4]));
+				range_set_traffic_class(info, (char *)(uintptr_t)"max", atoi(argv[5]));
+				range_set_traffic_class(info, (char *)(uintptr_t)"inc", atoi(argv[6]))
+				);
+			break;
+
 		default:
 			return cli_cmd_error("Range command error", "Range", argc, argv);
 	}

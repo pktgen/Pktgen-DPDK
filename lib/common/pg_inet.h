@@ -518,6 +518,35 @@ inetAddrSwap(void *t, void *f) {
 	v  = *d; *d = *s; *s = v;
 }
 
+/* inet6AddrIsUnspecified( void * a )  - Unspecified Address */
+static __inline__ int
+inet6AddrIsUnspecified(void *a)
+{
+	return
+	!((const uint32_t *)(a))[0] &&
+	!((const uint32_t *)(a))[1] &&
+	!((const uint32_t *)(a))[2] &&
+	!((const uint32_t *)(a))[3];
+}
+
+/* inet6AddrAdd - Apply paddr3 = paddr1 + paddr2 */
+static __inline__ void
+inet6AddrAdd(void *paddr1, void *paddr2, void *paddr3)
+{
+	int i;
+
+	uint8_t *addr1 = (uint8_t *)paddr1,
+		*addr2 = (uint8_t *)paddr2,
+		*addr3 = (uint8_t *)paddr3;
+
+	uint16_t n = 0;
+
+	for (i = 15; i >= 0; --i) {
+		n = (uint16_t)addr1[i] + addr2[i] + (n >> 8);
+		addr3[i] = n & 0xff;
+	}
+}
+
 #ifndef _MASK_SIZE_
 #define _MASK_SIZE_
 /* mask_size(uint32_t mask) - return the number of bits in mask */
@@ -583,15 +612,30 @@ inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
 }
 #endif
 
+/* const char * inet_ntop6(char * buff, int len, uint8_t *ip6, unsigned prefixlen) - Convert IPv6 address to ascii */
 static __inline__ const char *
-inet_ntop6(char *buff, int len, uint8_t *ip6, unsigned int prefixlen) {
+inet_ntop6(char *buff, int len, uint8_t *ip6, unsigned prefixlen) {
 	char lbuf[64];
+	unsigned nprint = 0, ntrim = 0;
 
 	inet_ntop(AF_INET6, ip6, buff, len);
+	strcpy(lbuf, buff);
+
+	if (prefixlen > PG_PREFIXMAX) {
+		prefixlen ^= (nprint = prefixlen >> 8) << 8;
+		ntrim = prefixlen != PG_PREFIXMAX ?
+		       (prefixlen >= 100 ? 3 : prefixlen >= 10 ? 2 : 1) + 1 : 0;
+		if (nprint < strlen(lbuf)+ntrim) {
+			nprint -= ntrim;
+			snprintf(buff, len, "%.*s+%02ld", nprint - 3, lbuf, strlen(lbuf) - nprint + 3);
+		}
+	}
+
 	if (prefixlen != PG_PREFIXMAX) {
 		snprintf(lbuf, sizeof(lbuf), "%s/%d", buff, prefixlen);
 		snprintf(buff, len, "%s", lbuf);
 	}
+
 	return buff;
 }
 

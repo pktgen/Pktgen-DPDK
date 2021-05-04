@@ -177,14 +177,14 @@ lua_create_instance(void)
 	memset(te, 0, sizeof(*te));
 	te->data = ld;
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
 #else
 	rte_mcfg_tailq_read_lock();
 #endif
 	TAILQ_INSERT_TAIL(luaData_list, te, next);
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
 #else
 	rte_mcfg_tailq_read_unlock();
@@ -208,7 +208,7 @@ lua_destroy_instance(luaData_t *ld)
 
 	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
 #else
 	rte_mcfg_tailq_write_lock();
@@ -223,7 +223,7 @@ lua_destroy_instance(luaData_t *ld)
 		free(te);
 	}
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
 #else
 	rte_mcfg_tailq_write_unlock();
@@ -244,7 +244,7 @@ lua_find_luaData(lua_State *L)
 
 	luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
 #else
 	rte_mcfg_tailq_write_lock();
@@ -258,7 +258,7 @@ lua_find_luaData(lua_State *L)
 		}
 	}
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(19,8,0,0)
+#if __RTE_VERSION < RTE_VERSION_NUM(19,8,0,0)
 	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
 #else
 	rte_mcfg_tailq_write_unlock();

@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 21.03.1 - Fixup AVX and AVX2 compiler support, if enabled in meson_options.txt file.
  - 21.03.0 - Fixup DPDK name changes and other minor problems.
  - 21.02.0 - Cleanup display to be more compact and fix up colors
              Update the copyright notice years

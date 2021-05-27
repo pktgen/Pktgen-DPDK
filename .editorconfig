@@ -4,13 +4,14 @@
 
 root = true
 
-[*]
+[**]
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8
-indent_style = tab
-tab_width = 8
+indent_style = space
+indent_size = 4
+tab_width = 4
 max_line_length = 100
 
 [*.py]
@@ -20,6 +21,10 @@ indent_size = 4
 [*.rst]
 indent_style = space
 indent_size = 3
+
+[*.build]
+indent_style = space
+indent_size = 4
 
 [COMMIT_EDITMSG]
 max_line_length = 72

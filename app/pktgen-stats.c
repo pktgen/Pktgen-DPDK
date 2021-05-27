@@ -38,7 +38,7 @@ pktgen_print_static_data(void)
     struct rte_eth_dev_info dev = {0};
     uint32_t pid, col, row, sp, ip_row;
     pkt_seq_t *pkt;
-    char buff[INET6_ADDRSTRLEN+4+1];
+    char buff[INET6_ADDRSTRLEN * 2];
     int display_cnt;
 
     pktgen_display_set_color("default");

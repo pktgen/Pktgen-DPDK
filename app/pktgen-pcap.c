@@ -349,10 +349,9 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
 		_pcap_rewind(pcap);
 
-		/* Round up the count and size to allow for TX ring size. */
+		/* Scale small pcaps so mempool size is close to MAX_MBUFS_PER_PORT. */
 		if (elt_count < MAX_MBUFS_PER_PORT)
-			elt_count = MAX_MBUFS_PER_PORT;
-		elt_count = rte_align32pow2(elt_count);
+			elt_count = (MAX_MBUFS_PER_PORT / elt_count) * elt_count;
 
 		scrn_printf(0, 0, "\r    Create: %-*s   \b", 16, name);
 		info->q[qid].pcap_mp = rte_mempool_create(

@@ -1,5 +1,5 @@
 #
-# Pktgen 21.02.0 (DPDK 21.05.0-rc0)
+# Pktgen 21.03.1 (DPDK 21.08.0-rc0)
 # Copyright(c) <2010-2021>, Intel Corporation. All rights reserved., Powered by DPDK
 
 # Command line arguments: (DPDK args are defaults)
@@ -11,7 +11,7 @@
 #   Flags 00000804
 #   Number of ports: 2
 #   Number ports per page: 4
-#   Number descriptors: RX 1024 TX: 2048
+#   Number descriptors: RX 256 TX: 512
 #   Promiscuous mode is Enabled
 
 
@@ -21,21 +21,21 @@ disable mac_from_arp
 
 ######################### Port  0 ##################################
 #
-# Port:  0, Burst: 64, Rate:100%, Flags:00000000, TX Count:Forever
+# Port:  0, Burst: 32, Rate:100%, Flags:00000010, TX Count:Forever
 #           Sequence count:0, Prime:1 VLAN ID:0001, Link: <UP-40000-FD>
 #
 # Set up the primary port information:
 set 0 count 0
 set 0 size 64
 set 0 rate 100
-set 0 burst 64
+set 0 burst 32
 set 0 sport 1234
 set 0 dport 5678
 set 0 prime 1
 set 0 type ipv4
 set 0 proto udp
-set 0 dst ip 198.18.0.2
-set 0 src ip 198.18.0.1/24
+set 0 dst ip 192.18.0.1
+set 0 src ip 192.18.0.2/24
 set 0 dst mac 3c:fd:fe:e6:a9:00
 set 0 src mac 3c:fd:fe:e4:34:c0
 set 0 vlan 1
@@ -57,7 +57,7 @@ disable 0 icmp
 disable 0 pcap
 disable 0 range
 disable 0 latency
-disable 0 process
+enable 0 process
 disable 0 capture
 disable 0 rx_tap
 disable 0 tx_tap
@@ -139,21 +139,21 @@ set 0 seq_cnt 0
 
 ######################### Port  1 ##################################
 #
-# Port:  1, Burst: 64, Rate:100%, Flags:00000000, TX Count:Forever
+# Port:  1, Burst: 32, Rate:100%, Flags:00000010, TX Count:Forever
 #           Sequence count:0, Prime:1 VLAN ID:0001, Link: <UP-40000-FD>
 #
 # Set up the primary port information:
 set 1 count 0
 set 1 size 64
 set 1 rate 100
-set 1 burst 64
+set 1 burst 32
 set 1 sport 1234
 set 1 dport 5678
 set 1 prime 1
 set 1 type ipv4
 set 1 proto udp
-set 1 dst ip 198.18.1.2
-set 1 src ip 198.18.1.1/24
+set 1 dst ip 192.18.1.1
+set 1 src ip 192.18.1.2/24
 set 1 dst mac 3c:fd:fe:e6:a9:01
 set 1 src mac 3c:fd:fe:e4:34:c1
 set 1 vlan 1
@@ -175,7 +175,7 @@ disable 1 icmp
 disable 1 pcap
 disable 1 range
 disable 1 latency
-disable 1 process
+enable 1 process
 disable 1 capture
 disable 1 rx_tap
 disable 1 tx_tap

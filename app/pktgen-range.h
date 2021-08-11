@@ -24,6 +24,8 @@ typedef struct range_info_s {
 	uint16_t src_port_inc;	/**< Source port increment */
 	uint16_t dst_port_inc;	/**< Destination port increment */
 	uint16_t vlan_id_inc;	/**< VLAN id increment */
+	uint16_t tcp_seq_inc;	/**< TCP sequence increment */
+	uint16_t tcp_ack_inc;	/**< TCP acknowledge increment */
 	/**< tos value increment */
 	union { uint16_t tos_inc; uint16_t traffic_class_inc; };
 	uint16_t cos_inc;	/**< prio val increment */
@@ -57,6 +59,16 @@ typedef struct range_info_s {
 	uint16_t dst_port;	/**< Destination port starting */
 	uint16_t dst_port_min;	/**< Destination port minimum */
 	uint16_t dst_port_max;	/**< Destination port maximum */
+
+	uint8_t tcp_flags;	/**< TCP flags value */
+
+	uint32_t tcp_seq; /**< TCP sequence starting */
+	uint32_t tcp_seq_min; /**< TCP sequence minimum */
+	uint32_t tcp_seq_max; /**< TCP sequence maximum */
+
+	uint32_t tcp_ack; /**< TCP sequence starting */
+	uint32_t tcp_ack_min; /**< TCP sequence minimum */
+	uint32_t tcp_ack_max; /**< TCP sequence maximum */
 
 	uint16_t vlan_id;	/**< VLAN id starting */
 	uint16_t vlan_id_min;	/**< VLAN id minimum */

@@ -44,10 +44,10 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 
 		tcp->src_port = htons(pkt->sport);
 		tcp->dst_port = htons(pkt->dport);
-		tcp->sent_seq = htonl(DEFAULT_PKT_NUMBER);
-		tcp->recv_ack = htonl(DEFAULT_ACK_NUMBER);
+		tcp->sent_seq = htonl(pkt->tcp_seq);
+		tcp->recv_ack = htonl(pkt->tcp_ack);
 		tcp->data_off = ((sizeof(struct pg_tcp_hdr) / sizeof(uint32_t)) << 4);	/* Offset in words */
-		tcp->tcp_flags = ACK_FLAG;						/* ACK */
+		tcp->tcp_flags = pkt->tcp_flags;
 		tcp->rx_win = htons(DEFAULT_WND_SIZE);
 		tcp->tcp_urp = 0;
 
@@ -71,11 +71,11 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void * hdr, int type)
 
 		tcp->src_port = htons(pkt->sport);
 		tcp->dst_port = htons(pkt->dport);
-		tcp->sent_seq = htonl(DEFAULT_PKT_NUMBER);
-		tcp->recv_ack = htonl(DEFAULT_ACK_NUMBER);
+		tcp->sent_seq = htonl(pkt->tcp_seq);
+		tcp->recv_ack = htonl(pkt->tcp_ack);
 		tcp->data_off =
 			((sizeof(struct pg_tcp_hdr) / sizeof(uint32_t)) << 4);   /* Offset in words */
-		tcp->tcp_flags = ACK_FLAG; /* ACK */
+		tcp->tcp_flags = pkt->tcp_flags;
 		tcp->rx_win     = htons(DEFAULT_WND_SIZE);
 		tcp->tcp_urp = 0;
 

@@ -276,8 +276,12 @@ pktgen_config_ports(void)
 			pktgen_log_panic("Unable to allocate %d pkt_seq_t headers",
 					 NUM_TOTAL_PKTS);
 
-		for (i = 0; i < NUM_TOTAL_PKTS; i++)
+		for (i = 0; i < NUM_TOTAL_PKTS; i++) {
 			info->seq_pkt[i].seq_enabled = 1;
+			info->seq_pkt[i].tcp_flags = DEFAULT_TCP_FLAGS;
+			info->seq_pkt[i].tcp_seq = DEFAULT_TCP_SEQ_NUMBER;
+			info->seq_pkt[i].tcp_ack = DEFAULT_TCP_ACK_NUMBER;
+		}
 
 		info->seqIdx    = 0;
 		info->seqCnt    = 0;

@@ -43,6 +43,10 @@ typedef struct pkt_seq_s {
 	};
 	uint16_t ether_hdr_size;/**< Size of Ethernet header in packet for VLAN ID */
 
+	uint32_t tcp_seq;   /**< TCP sequence number */
+	uint32_t tcp_ack;   /**< TCP acknowledge number*/
+	uint8_t tcp_flags;	/**< TCP flags value */
+
 	uint32_t mpls_entry;	/**< MPLS entry if used */
 	uint16_t qinq_outerid;	/**< Outer VLAN ID if Q-in-Q */
 	uint16_t qinq_innerid;	/**< Inner VLAN ID if Q-in-Q */

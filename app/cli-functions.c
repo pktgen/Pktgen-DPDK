@@ -115,6 +115,10 @@ static struct cli_map range_map[] = {
 	{ 37, "range %P src ip %6 %6 %6 %6" },
 	{ 40, "range %P proto %|tcp|udp" },
 	{ 41, "range %P type %|ipv4|ipv6" },
+	{ 42, "range %P tcp flag set %|urg|ack|psh|rst|syn|fin|all" },
+	{ 43, "range %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all" },
+	{ 44, "range %P tcp seq %d %d %d %d" },
+	{ 45, "range %P tcp ack %d %d %d %d" },
 	{ 50, "range %P dst port "SMMI" %d" },
 	{ 51, "range %P src port "SMMI" %d" },
 	{ 52, "range %P dst port %d %d %d %d" },
@@ -159,6 +163,10 @@ static const char *range_help[] = {
 	"       or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
 	"range <portlist> type ipv4|ipv6               - Set the range packet type to IPv4 or IPv6",
 	"range <portlist> proto tcp|udp                - Set the IP protocol type",
+	"range <portlist> tcp seq <SMMI> <value>       - Set the TCP sequence number",
+	"       or  range <portlist> tcp seq <start> <min> <max> <inc>",
+	"range <portlist> tcp ack <SMMI> <value>       - Set the TCP acknowledge number",
+	"       or  range <portlist> tcp ack <start> <min> <max> <inc>",
 	"range <portlist> src|dst port <SMMI> <value>  - Set UDP/TCP source/dest port number",
 	"       or  range <portlist> src|dst port <start> <min> <max> <inc>",
 	"range <portlist> vlan <SMMI> <value>          - Set vlan id start address",
@@ -313,6 +321,28 @@ range_cmd(int argc, char **argv)
 		case 41:
 			foreach_port(portlist,
 				range_set_pkt_type(info, argv[3]) );
+			break;
+		case 42:
+			foreach_port(portlist, range_set_tcp_flag_set(info, argv[5]));
+			break;
+		case 43:
+			foreach_port(portlist, range_set_tcp_flag_clr(info, argv[5]));
+			break;
+		case 44:
+			foreach_port(portlist,
+				range_set_tcp_seq(info, (char *)(uintptr_t)"start", atoi(argv[4]));
+				range_set_tcp_seq(info, (char *)(uintptr_t)"min", atoi(argv[5]));
+				range_set_tcp_seq(info, (char *)(uintptr_t)"max", atoi(argv[6]));
+				range_set_tcp_seq(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
+				);
+			break;
+		case 45:
+			foreach_port(portlist,
+				range_set_tcp_ack(info, (char *)(uintptr_t)"start", atoi(argv[4]));
+				range_set_tcp_ack(info, (char *)(uintptr_t)"min", atoi(argv[5]));
+				range_set_tcp_ack(info, (char *)(uintptr_t)"max", atoi(argv[6]));
+				range_set_tcp_ack(info, (char *)(uintptr_t)"inc", atoi(argv[7]))
+				);
 			break;
 		case 50:
 			foreach_port(portlist,
@@ -485,6 +515,10 @@ static struct cli_map set_map[] = {
 	{ 31, "set %P dst ip %4" },
 	{ 32, "set %P src ip %6" },
 	{ 33, "set %P dst ip %6" },
+	{ 34, "set %P tcp flag set %|urg|ack|psh|rst|syn|fin|all" },
+	{ 35, "set %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all" },
+	{ 36, "set %P tcp seq %u" },
+	{ 37, "set %P tcp ack %u" },
 	{ 40, "set ports_per_page %d" },
 	{ 50, "set %P qinqids %d %d" },
 	{ 60, "set %P rnd %d %d %s" },
@@ -523,6 +557,10 @@ static const char *set_help[] = {
 	"                        user       - User supplied string of max 16 bytes",
 	"set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command",
 	"set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24",
+	"set <portlist> tcp flag set urg|ack|psh|rst|syn|fin|all - Set a TCP flag",
+	"set <portlist> tcp flag clr urg|ack|psh|rst|syn|fin|all - Clear a TCP flag",
+	"set <portlist> tcp seq <sequence> - Set the TCP sequence number",
+	"set <portlist> tcp ack <acknowledge> - Set the TCP acknowledge number",
 	"set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
 	"set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from portlist",
 	"    idx: random mask index slot",
@@ -654,6 +692,18 @@ set_cmd(int argc, char **argv)
 			ip_ver = _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
 			foreach_port(portlist,
                 single_set_ipaddr(info, 'd', &ip, ip_ver));
+			break;
+		case 34:
+			foreach_port(portlist, single_set_tcp_flag_set(info, argv[5]));
+			break;
+		case 35:
+			foreach_port(portlist, single_set_tcp_flag_clr(info, argv[5]));
+			break;
+		case 36:
+			foreach_port(portlist, single_set_tcp_seq(info, atoi(argv[4])));
+			break;
+		case 37:
+			foreach_port(portlist, single_set_tcp_ack(info, atoi(argv[4])));
 			break;
 		case 40:
 			pktgen_set_page_size(atoi(argv[2]));
@@ -1838,6 +1888,10 @@ static struct cli_map rate_map[] = {
 	{ 31, "rate %P dst ip %4" },
 	{ 32, "rate %P src ip %6" },
 	{ 33, "rate %P dst ip %6" },
+	{ 34, "rate %P tcp flag set %|urg|ack|psh|rst|syn|fin|all" },
+	{ 35, "rate %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all" },
+	{ 36, "rate %P tcp seq %u" },
+	{ 37, "rate %P tcp ack %u" },
 	{ 40, "rate %P fps %d" },
 	{ 45, "rate %P lines %d" },
 	{ 46, "rate %P pixels %d" },
@@ -1860,6 +1914,11 @@ static const char *rate_help[] = {
 	"rate <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
 	"rate <portlist> proto udp|tcp|icmp   - Set the packet protocol to UDP or TCP or ICMP per port",
 	"rate <portlist> [src|dst] ip ipaddr  - Set IP addresses, Source must include network mask e.g. 10.1.2.3/24",
+
+	"rate <portlist> tcp flag set urg|ack|psh|rst|syn|fin|all - Set a TCP flag",
+	"rate <portlist> tcp flag clr urg|ack|psh|rst|syn|fin|all - Clear a TCP flag",
+	"rate <portlist> tcp seq <sequence> - Set the TCP sequence number",
+	"rate <portlist> tcp ack <acknowledge> - Set the TCP acknowledge number",
 
 	"rate <portlist> fps <value>          - Set the frame per second value e.g. 60fps",
 	"rate <portlist> lines <value>        - Set the number of video lines, e.g. 720",
@@ -1960,6 +2019,18 @@ rate_cmd(int argc, char **argv)
 			ip_ver = _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
 			foreach_port(portlist,
                 rate_set_ipaddr(info, 'd', &ip, ip_ver));
+			break;
+		case 34:
+			foreach_port(portlist, rate_set_tcp_flag_set(info, argv[5]));
+			break;
+		case 35:
+			foreach_port(portlist, rate_set_tcp_flag_clr(info, argv[5]));
+			break;
+		case 36:
+			foreach_port(portlist, rate_set_tcp_seq(info, atoi(argv[4])));
+			break;
+		case 37:
+			foreach_port(portlist, rate_set_tcp_ack(info, atoi(argv[4])));
 			break;
 		case 40:		/* fps */
 			foreach_port(portlist, rate_set_value(info, "fps", atoi(argv[3])));

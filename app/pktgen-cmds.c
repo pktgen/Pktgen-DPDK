@@ -179,24 +179,18 @@ pktgen_script_save(char *path)
                                  pkt->ip_mask));
 
         fprintf(fd, "set %d tcp flag clr all\n", i);
-        if (pkt->tcp_flags & URG_FLAG) {
+        if (pkt->tcp_flags & URG_FLAG)
             fprintf(fd, "set %d tcp flag set %s\n", i, "urg");
-        }
-        if (pkt->tcp_flags & ACK_FLAG) {
+        if (pkt->tcp_flags & ACK_FLAG)
             fprintf(fd, "set %d tcp flag set %s\n", i, "ack");
-        }
-        if (pkt->tcp_flags & PSH_FLAG) {
+        if (pkt->tcp_flags & PSH_FLAG)
             fprintf(fd, "set %d tcp flag set %s\n", i, "psh");
-        }
-        if (pkt->tcp_flags & RST_FLAG) {
+        if (pkt->tcp_flags & RST_FLAG)
             fprintf(fd, "set %d tcp flag set %s\n", i, "rst");
-        }
-        if (pkt->tcp_flags & SYN_FLAG) {
+        if (pkt->tcp_flags & SYN_FLAG)
             fprintf(fd, "set %d tcp flag set %s\n", i, "syn");
-        }
-        if (pkt->tcp_flags & FIN_FLAG) {
+        if (pkt->tcp_flags & FIN_FLAG)
             fprintf(fd, "set %d tcp flag set %s\n", i, "fin");
-        }
 
         fprintf(fd, "set %d tcp seq %u\n", i, pkt->tcp_seq);
         fprintf(fd, "set %d tcp ack %u\n", i, pkt->tcp_ack);
@@ -306,24 +300,18 @@ pktgen_script_save(char *path)
 
         fprintf(fd, "\n");
         fprintf(fd, "range %d tcp flag clr all\n", i);
-        if (range->tcp_flags & URG_FLAG) {
+        if (range->tcp_flags & URG_FLAG)
             fprintf(fd, "range %d tcp flag set %s\n", i, "urg");
-        }
-        if (range->tcp_flags & ACK_FLAG) {
+        if (range->tcp_flags & ACK_FLAG)
             fprintf(fd, "range %d tcp flag set %s\n", i, "ack");
-        }
-        if (range->tcp_flags & PSH_FLAG) {
+        if (range->tcp_flags & PSH_FLAG)
             fprintf(fd, "range %d tcp flag set %s\n", i, "psh");
-        }
-        if (range->tcp_flags & RST_FLAG) {
+        if (range->tcp_flags & RST_FLAG)
             fprintf(fd, "range %d tcp flag set %s\n", i, "rst");
-        }
-        if (range->tcp_flags & SYN_FLAG) {
+        if (range->tcp_flags & SYN_FLAG)
             fprintf(fd, "range %d tcp flag set %s\n", i, "syn");
-        }
-        if (range->tcp_flags & FIN_FLAG) {
+        if (range->tcp_flags & FIN_FLAG)
             fprintf(fd, "range %d tcp flag set %s\n", i, "fin");
-        }
 
         fprintf(fd, "\n");
         fprintf(fd, "range %d tcp seq start %u\n", i, range->tcp_seq);
@@ -3265,27 +3253,20 @@ rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver)
 
 static uint8_t tcp_flag_from_str(const char *str)
 {
-    if (_cp("urg")) {
+    if (_cp("urg"))
         return URG_FLAG;
-    }
-    if (_cp("ack")) {
+    if (_cp("ack"))
         return ACK_FLAG;
-    }
-    if (_cp("psh")) {
+    if (_cp("psh"))
         return PSH_FLAG;
-    }
-    if (_cp("rst")) {
+    if (_cp("rst"))
         return RST_FLAG;
-    }
-    if (_cp("syn")) {
+    if (_cp("syn"))
         return SYN_FLAG;
-    }
-    if (_cp("fin")) {
+    if (_cp("fin"))
         return FIN_FLAG;
-    }
-    if (_cp("all")) {
+    if (_cp("all"))
         return URG_FLAG | ACK_FLAG | PSH_FLAG | RST_FLAG | SYN_FLAG | FIN_FLAG;
-    }
     return 0;
 }
 
@@ -3412,16 +3393,15 @@ single_set_tcp_ack(port_info_t *info, uint32_t ack)
 void
 range_set_tcp_seq(port_info_t *info, char *what, uint32_t seq)
 {
-    if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
+    char *str = what;
+    if (_cp("inc") || _cp("increment"))
         info->range.tcp_seq_inc = seq;
-    } else {
-        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-            info->range.tcp_seq_min = seq;
-        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-            info->range.tcp_seq_max = seq;
-        else if (!strcmp(what, "start"))
-            info->range.tcp_seq = seq;
-    }
+    else if (_cp("min") || _cp("minimum"))
+        info->range.tcp_seq_min = seq;
+    else if (_cp("max") || _cp("maximum"))
+        info->range.tcp_seq_max = seq;
+    else if (_cp("start"))
+        info->range.tcp_seq = seq;
 }
 
 /**
@@ -3439,16 +3419,15 @@ range_set_tcp_seq(port_info_t *info, char *what, uint32_t seq)
 void
 range_set_tcp_ack(port_info_t *info, char *what, uint32_t ack)
 {
-    if (!strcmp(what, "inc") || !strcmp(what, "increment")) {
+    char *str = what;
+    if (_cp("inc") || _cp("increment"))
         info->range.tcp_ack_inc = ack;
-    } else {
-        if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-            info->range.tcp_ack_min = ack;
-        else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-            info->range.tcp_ack_max = ack;
-        else if (!strcmp(what, "start"))
-            info->range.tcp_ack = ack;
-    }
+    else if (_cp("min") || _cp("minimum"))
+        info->range.tcp_ack_min = ack;
+    else if (_cp("max") || _cp("maximum"))
+        info->range.tcp_ack_max = ack;
+    else if (_cp("start"))
+        info->range.tcp_ack = ack;
 }
 
 /**

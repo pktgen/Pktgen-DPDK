@@ -332,6 +332,9 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 		if (tap)
 			pktgen_do_tx_tap(info, pkts, ret);
 
+		if (cnt - ret)
+			info->stats.tx_failed += (cnt - ret);
+
 		pkts += ret;
 		cnt -= ret;
 	}

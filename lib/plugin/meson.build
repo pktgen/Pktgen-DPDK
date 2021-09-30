@@ -3,6 +3,6 @@
 
 sources = files('plugin.c')
 libplugin = library('plugin', sources,
-	dependencies: common)
+	dependencies: [common, dpdk])
 plugin = declare_dependency(link_with: libplugin,
 	include_directories: include_directories('.'))

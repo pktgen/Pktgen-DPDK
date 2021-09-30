@@ -30,6 +30,7 @@ endif
 deps += [cc.find_library('rte_net_i40e', required: false)]
 deps += [cc.find_library('rte_net_ixgbe', required: false)]
 deps += [cc.find_library('rte_net_ice', required: false)]
+deps += [cc.find_library('rte_bus_vdev', required: false)]
 
 deps += [dependency('threads')]
 deps += [cc.find_library('numa', required: true)]

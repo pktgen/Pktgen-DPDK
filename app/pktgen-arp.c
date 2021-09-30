@@ -128,6 +128,16 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 
 		/* ARP request not for this interface. */
 		if (likely(pkt != NULL) ) {
+			struct rte_mbuf *m1;
+
+			m1 = rte_pktmbuf_copy(m, info->q[0].special_mp, 0, UINT32_MAX);
+			if (unlikely(m1 == NULL) ) {
+				printf("%s: special MP  is empty\n", __func__);
+				return;
+			}
+			eth = rte_pktmbuf_mtod(m1, struct pg_ether_hdr *);
+			arp = (struct pg_arp_hdr *)&eth[1];
+
 			/* Grab the source MAC address as the destination address for the port. */
 			if (unlikely(pktgen.flags & MAC_FROM_ARP_FLAG) ) {
 				uint32_t i;
@@ -153,7 +163,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t vlan)
 			rte_memcpy(&arp->arp_data.arp_sha, &pkt->eth_src_addr, 6);
 			rte_memcpy(&eth->s_addr, &pkt->eth_src_addr, 6);
 
-			pktgen_send_mbuf(m, pid, 0);
+			pktgen_send_mbuf(m1, pid, 0);
 
 			/* Flush all of the packets in the queue. */
 			pktgen_set_q_flags(info, 0, DO_TX_FLUSH);

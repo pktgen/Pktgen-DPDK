@@ -771,7 +771,7 @@ static struct cli_map pcap_map[] = {
 static const char *pcap_help[] = {
 	"",
 	"pcap show                          - Show PCAP information",
-	"pcap <index>                       - Move the PCAP file index to the given packet number,  0 - rewind, -1 - end of file",
+	"pcap <index>                       - Move the PCAP file index to the given packet number,\n       0 - rewind, -1 - end of file",
 	"pcap filter <portlist> <string>    - PCAP filter string to filter packets on receive",
 	CLI_HELP_PAUSE,
 	NULL

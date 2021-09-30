@@ -33,7 +33,6 @@ typedef struct capture_s {
 	cap_hdr_t                 *tail;/**< Current tailt pointer in the pkt buffer */
 	cap_hdr_t                 *end;	/**< Points to just before the end[-1] of the buffer */
 	size_t used;			/**< Memory used by captured packets */
-	uint16_t lcore;			/**< lcore that captures to this memzone */
 	uint16_t port;			/**< port for this memzone */
 } capture_t;
 

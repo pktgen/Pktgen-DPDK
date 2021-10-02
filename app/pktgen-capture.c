@@ -7,6 +7,7 @@
 
 #include "pktgen-capture.h"
 #include <time.h>
+#include <sys/stat.h>
 
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
@@ -247,6 +248,8 @@ found_rx_lid:
 
 			pcap_dump_close(pcap_dumper);
 			pcap_close(pcap);
+
+			chmod(filename, 0666);
 		}
 
 		cap->used   = 0;

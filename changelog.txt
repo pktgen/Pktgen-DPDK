@@ -6,6 +6,10 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 21.10.0 - Fix up ARP processing, change pcap files to rw-rw-rw mode, pcap capture on the correct
+             numa node, increase the TX burst size, update to work with 21.11 DPDK, update the
+             tx_failed counter, add TCP flags/seq/ack, pcap use max packet size for mempool, pcap
+             is a multiple of pcap length, fixup AVX/AVX2 support, ipv6 updates.
  - 21.03.1 - Fixup AVX and AVX2 compiler support, if enabled in meson_options.txt file.
  - 21.03.0 - Fixup DPDK name changes and other minor problems.
  - 21.02.0 - Cleanup display to be more compact and fix up colors

@@ -263,7 +263,7 @@ cli_system(char *p)
 		return -1;
 
 	while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
-		cli_write(buf, n);
+        cli_write(buf, n);
 		tot += n;
 	}
 

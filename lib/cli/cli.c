@@ -514,6 +514,13 @@ cli_execute(void)
 	ret = -1;
 	switch (node->type) {
 	case CLI_CMD_NODE:
+        /*
+         * Reset global optind so getopt works as expected in a node's command function. The
+         * getopt man page says to set optind to 0 instead of 1 if a program scans multiple
+         * argument vectors, which can happen if multiple commands use getopt.
+         */
+        optind = 0;
+
 		cli->exe_node = node;
 		ret = node->cfunc(argc, cli->argv);
 		cli->exe_node = NULL;

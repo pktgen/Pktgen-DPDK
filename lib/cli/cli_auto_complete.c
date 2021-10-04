@@ -57,9 +57,9 @@ _print_nodes(struct cli_node **nodes, uint32_t node_cnt,
 		if (!cnt)
 			cli_printf("\n");
 
-		cli_printf("%-*s", csize, n->name);
-		if ((++cnt % ccnt) == 0)
-			cli_printf("\n");
+		    cli_printf("%-*s", csize, n->name);
+		    if ((++cnt % ccnt) == 0)
+			    cli_printf("\n");
 
 		/* Found a possible match */
 		if (ret)

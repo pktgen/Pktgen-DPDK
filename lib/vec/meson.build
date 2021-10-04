@@ -3,6 +3,6 @@
 
 sources = files('vec.c')
 libvec = library('vec', sources,
-	dependencies: utils)
+	dependencies: [utils, dpdk])
 vec = declare_dependency(link_with: libvec,
 	include_directories: include_directories('.'))

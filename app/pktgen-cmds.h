@@ -72,6 +72,10 @@ struct pg_ipaddr;
 void single_set_ipaddr(port_info_t *info, char type,
 					struct pg_ipaddr *ip, int ip_ver);
 void single_set_proto(port_info_t *info, char *type);
+void single_set_tcp_seq(port_info_t *info, uint32_t seq);
+void single_set_tcp_ack(port_info_t *info, uint32_t ack);
+void single_set_tcp_flag_set(port_info_t *info, const char *which);
+void single_set_tcp_flag_clr(port_info_t *info, const char *which);
 void single_set_vlan_id(port_info_t *info, uint16_t vlanid);
 void single_set_cos(port_info_t *info, uint8_t cos);
 void single_set_tos(port_info_t *info, uint8_t tos);
@@ -107,6 +111,10 @@ void rate_set_pkt_size(port_info_t *info, uint16_t size);
 void rate_set_ttl_value(port_info_t *info, uint8_t ttl);
 void rate_set_port_value(port_info_t *info,
 				  char type, uint32_t portValue);
+void rate_set_tcp_seq(port_info_t *info, uint32_t seq);
+void rate_set_tcp_ack(port_info_t *info, uint32_t ack);
+void rate_set_tcp_flag_set(port_info_t *info, const char *which);
+void rate_set_tcp_flag_clr(port_info_t *info, const char *which);
 void rate_set_tx_burst(port_info_t *info, uint32_t burst);
 
 /* Debug */
@@ -166,6 +174,10 @@ void range_set_src_port(port_info_t *info, char *what, uint16_t port);
 void range_set_dst_port(port_info_t *info, char *what, uint16_t port);
 void range_set_proto(port_info_t *info, const char *type);
 void range_set_pkt_type(port_info_t *info, const char *type);
+void range_set_tcp_flag_set(port_info_t *info, const char *which);
+void range_set_tcp_flag_clr(port_info_t *info, const char *which);
+void range_set_tcp_seq(port_info_t *info, char *what, uint32_t seq);
+void range_set_tcp_ack(port_info_t *info, char *what, uint32_t ack);
 void range_set_pkt_size(port_info_t *info,
 				      char *what,
 				      uint16_t size);

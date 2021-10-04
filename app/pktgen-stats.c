@@ -102,6 +102,8 @@ pktgen_print_static_data(void)
     /* Labels for static fields */
     pktgen_display_set_color("stats.stat.label");
     ip_row = row;
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TCP Flags");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TCP Seq/Ack");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Size/Tx Burst");
@@ -137,6 +139,19 @@ pktgen_print_static_data(void)
         /* Display Port information Src/Dest IP addr, Netmask, Src/Dst MAC addr */
         col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
         row = ip_row;
+
+
+        snprintf(buff, sizeof(buff), "%s%s%s%s%s%s",
+                    pkt->tcp_flags & URG_FLAG ? "U" : ".",
+                    pkt->tcp_flags & ACK_FLAG ? "A" : ".",
+                    pkt->tcp_flags & PSH_FLAG ? "P" : ".",
+                    pkt->tcp_flags & RST_FLAG ? "R" : ".",
+                    pkt->tcp_flags & SYN_FLAG ? "S" : ".",
+                    pkt->tcp_flags & FIN_FLAG ? "F" : ".");
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        snprintf(buff, sizeof(buff), "%5u/%5u", pkt->tcp_seq, pkt->tcp_ack);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                     (info->fill_pattern_type == ABC_FILL_PATTERN)    ? "abcd..."

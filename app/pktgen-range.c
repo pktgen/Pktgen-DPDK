@@ -26,6 +26,29 @@
 void
 pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 {
+	if (pkt->ipProto == PG_IPPROTO_TCP) {
+		if (unlikely(range->tcp_seq_inc != 0)) {
+			uint32_t seq = pkt->tcp_seq;
+			seq += range->tcp_seq_inc;
+			if (seq < range->tcp_seq_min)
+				seq = range->tcp_seq_max;
+			if (seq > range->tcp_seq_max)
+				seq = range->tcp_seq_min;
+			pkt->tcp_seq = seq;
+		} else
+			pkt->tcp_seq = range->tcp_seq;
+		if (unlikely(range->tcp_ack_inc != 0)) {
+			uint32_t ack = pkt->tcp_ack;
+			ack += range->tcp_ack_inc;
+			if (ack < range->tcp_ack_min)
+				ack = range->tcp_ack_max;
+			if (ack > range->tcp_ack_max)
+				ack = range->tcp_ack_min;
+			pkt->tcp_ack = ack;
+		} else
+			pkt->tcp_ack = range->tcp_ack;
+	}
+
 	switch (pkt->ethType) {
 	case PG_ETHER_TYPE_IPv4:
 		switch (pkt->ipProto) {
@@ -469,6 +492,11 @@ pktgen_print_range(void)
 	scrn_printf(row++, 1, "%-*s", col_0, "      vid:min/max/inc");
 
 	row++;
+	scrn_printf(row++, 1, "%-*s", col_0, "tcp.flags");
+	scrn_printf(row++, 1, "%-*s", col_0, "tcp.seq   :min/max/inc");
+	scrn_printf(row++, 1, "%-*s", col_0, "tcp.ack   :min/max/inc");
+
+	row++;
 	scrn_printf(row++, 1, "%-*s", col_0, "dst.mac");
 	scrn_printf(row++, 1, "%-*s", col_0, "    min");
 	scrn_printf(row++, 1, "%-*s", col_0, "    max");
@@ -683,6 +711,34 @@ pktgen_print_range(void)
 		scrn_printf(row++, col, "%*s", col_1, str);
 
 		row++;
+		snprintf(str, sizeof(str), "%s%s%s%s%s%s",
+		            range->tcp_flags & URG_FLAG ? "U" : ".",
+		            range->tcp_flags & ACK_FLAG ? "A" : ".",
+		            range->tcp_flags & PSH_FLAG ? "P" : ".",
+		            range->tcp_flags & RST_FLAG ? "R" : ".",
+		            range->tcp_flags & SYN_FLAG ? "S" : ".",
+		            range->tcp_flags & FIN_FLAG ? "F" : ".");
+		scrn_printf(row++, col, "%*s", col_1, str);
+
+		snprintf(str,
+		         sizeof(str),
+		         "%5u:%5u/%5u/%5u",
+		         range->tcp_seq,
+		         range->tcp_seq_min,
+		         range->tcp_seq_max,
+		         range->tcp_seq_inc);
+		scrn_printf(row++, col, "%*s", col_1, str);
+
+		snprintf(str,
+		         sizeof(str),
+		         "%5u:%5u/%5u/%5u",
+		         range->tcp_ack,
+		         range->tcp_ack_min,
+		         range->tcp_ack_max,
+		         range->tcp_ack_inc);
+		scrn_printf(row++, col, "%*s", col_1, str);
+
+		row++;
 		scrn_printf(row++, col, "%*s", col_1,
 		               inet_mtoa(buff, sizeof(buff),
 		                         inet_h64tom(range->dst_mac, &eaddr)));
@@ -816,6 +872,18 @@ pktgen_range_setup(port_info_t *info)
 	range->vxlan_vid_max = 65535;	/* Should be 24 bits */
 
 	range->vni_flags = info->vni_flags;
+
+	range->tcp_flags = info->seq_pkt[SINGLE_PKT].tcp_flags;
+
+	range->tcp_seq     = info->seq_pkt[SINGLE_PKT].tcp_seq;
+	range->tcp_seq_inc = 0;
+	range->tcp_seq_min = 0;
+	range->tcp_seq_max = MAX_TCP_SEQ_NUMBER;
+
+	range->tcp_ack     = info->seq_pkt[SINGLE_PKT].tcp_ack;
+	range->tcp_ack_inc = 0;
+	range->tcp_ack_min = 0;
+	range->tcp_ack_max = MAX_TCP_ACK_NUMBER;
 
 	info->seq_pkt[RANGE_PKT].pktSize = MIN_PKT_SIZE;
 

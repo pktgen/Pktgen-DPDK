@@ -6,6 +6,6 @@ sources = files(
 	'portlist.c',
 	'heap.c')
 libutils = library('utils', sources,
-	dependencies: common)
+	dependencies: [common, dpdk])
 utils = declare_dependency(link_with: libutils,
 	include_directories: include_directories('.'))

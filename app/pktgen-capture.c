@@ -7,6 +7,7 @@
 
 #include "pktgen-capture.h"
 #include <time.h>
+#include <sys/stat.h>
 
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
@@ -47,7 +48,6 @@ pktgen_packet_capture_init(capture_t *capture, int socket_id)
 	if (!capture)
 		return;
 
-	capture->lcore  = RTE_MAX_LCORE;
 	capture->port   = RTE_MAX_ETHPORTS;
 	capture->used   = 0;
 
@@ -125,17 +125,8 @@ found_rx_lid:
 			return;
 		}
 
-		if (cap->lcore != RTE_MAX_LCORE) {
-			pktgen_log_warning(
-				"Lcore %d is already capturing on socket %d and only 1 lcore "
-					"can capture on a socket.\nDisable capturing on the port "
-					"associated with this lcore first.", cap->lcore, sid);
-			return;
-		}
-
 		/* Everything checks out: enable packet capture */
 		cap->used   = 0;
-		cap->lcore  = lid;
 		cap->port   = info->pid;
 		cap->tail   = (cap_hdr_t *)cap->mz->addr;
 		cap->end    = (cap_hdr_t *)((char *)cap->mz->addr +
@@ -257,11 +248,12 @@ found_rx_lid:
 
 			pcap_dump_close(pcap_dumper);
 			pcap_close(pcap);
+
+			chmod(filename, 0666);
 		}
 
 		cap->used   = 0;
 		cap->tail   = (cap_hdr_t *)cap->mz->addr;
-		cap->lcore  = RTE_MAX_LCORE;
 		cap->port   = RTE_MAX_ETHPORTS;
 
 		pktgen_clr_port_flags(info, CAPTURE_PKTS);
@@ -291,7 +283,7 @@ pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
 			   uint32_t nb_dump,
 			   capture_t *cap)
 {
-	uint32_t plen, i;
+	uint32_t dlen, plen, i;
 	struct rte_mbuf *pkt;
 
 	/* Don't capture if buffer is full */
@@ -305,7 +297,12 @@ pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
 		 * segment are captured. Capturing all segments uses too much CPU
 		 * cycles, which causes packets to be dropped.
 		 * Hence, data_len is used instead of pkt_len. */
-		plen = pkt->data_len;
+		dlen = pkt->data_len;
+		plen = pkt->pkt_len;
+		if (plen == 0)
+			plen = 128;
+		if (dlen == 0)
+			dlen = 128;
 
 		/* If packet to capture is larger than available buffer size, stop
 		 * capturing.
@@ -313,19 +310,19 @@ pktgen_packet_capture_bulk(struct rte_mbuf **pkts,
 		 * the amount of captured data (which can be less than the packet size
 		 * if DPDK has stored the packet contents in segmented mbufs).
 		 */
-		if ((cap_hdr_t *)(cap->tail->pkt + plen) > cap->end)
+		if ((cap_hdr_t *)(cap->tail->pkt + dlen) > cap->end)
 			break;
 
 		/* Write untruncated data length and size of the actually captured
 		 * data. */
-		cap->tail->pkt_len  = pkt->pkt_len;
-		cap->tail->data_len = plen;
+		cap->tail->pkt_len  = plen;
+		cap->tail->data_len = dlen;
 		cap->tail->tstamp   = rte_rdtsc();
 
 		rte_memcpy(cap->tail->pkt,
 			   (uint8_t *)pkt->buf_addr + pkt->data_off,
-			   pkt->pkt_len);
-		cap->tail = (cap_hdr_t *)(cap->tail->pkt + plen);
+			   dlen);
+		cap->tail = (cap_hdr_t *)(cap->tail->pkt + dlen);
 	}
 
 	/* Write end-of-data sentinel */

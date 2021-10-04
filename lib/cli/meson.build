@@ -17,6 +17,6 @@ sources = files(
 	'cli_search.c',
 	'cli_vt100.c')
 libcli = library('cli', sources,
-	dependencies: [common, utils])
+	dependencies: [common, utils, dpdk])
 cli = declare_dependency(link_with: libcli,
 	include_directories: include_directories('.'))

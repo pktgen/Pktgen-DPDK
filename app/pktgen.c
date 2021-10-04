@@ -332,6 +332,9 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 		if (tap)
 			pktgen_do_tx_tap(info, pkts, ret);
 
+		if (cnt - ret)
+			info->stats.tx_failed += (cnt - ret);
+
 		pkts += ret;
 		cnt -= ret;
 	}
@@ -1199,8 +1202,7 @@ pktgen_main_receive(port_info_t *info, uint8_t lid,
 
 	if (unlikely(pktgen_tst_port_flags(info, CAPTURE_PKTS))) {
 		capture = &pktgen.capture[pktgen.core_info[lid].s.socket_id];
-		if (unlikely((capture->port == pid) &&
-		                (capture->lcore == lid)))
+		if (unlikely(capture->port == pid))
 			pktgen_packet_capture_bulk(pkts_burst, nb_rx, capture);
 	}
 

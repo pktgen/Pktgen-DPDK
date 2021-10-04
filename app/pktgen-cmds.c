@@ -28,6 +28,7 @@
 #endif
 
 static char hash_line[] = "#######################################################################";
+#define _cp(s) (strcmp(str, s) == 0)
 
 static char *
 convert_bitfield(bf_spec_t *bf)
@@ -176,6 +177,24 @@ pktgen_script_save(char *path)
                                  pkt->ip_src_addr.prefixlen)
                     : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
                                  pkt->ip_mask));
+
+        fprintf(fd, "set %d tcp flag clr all\n", i);
+        if (pkt->tcp_flags & URG_FLAG)
+            fprintf(fd, "set %d tcp flag set %s\n", i, "urg");
+        if (pkt->tcp_flags & ACK_FLAG)
+            fprintf(fd, "set %d tcp flag set %s\n", i, "ack");
+        if (pkt->tcp_flags & PSH_FLAG)
+            fprintf(fd, "set %d tcp flag set %s\n", i, "psh");
+        if (pkt->tcp_flags & RST_FLAG)
+            fprintf(fd, "set %d tcp flag set %s\n", i, "rst");
+        if (pkt->tcp_flags & SYN_FLAG)
+            fprintf(fd, "set %d tcp flag set %s\n", i, "syn");
+        if (pkt->tcp_flags & FIN_FLAG)
+            fprintf(fd, "set %d tcp flag set %s\n", i, "fin");
+
+        fprintf(fd, "set %d tcp seq %u\n", i, pkt->tcp_seq);
+        fprintf(fd, "set %d tcp ack %u\n", i, pkt->tcp_ack);
+
         fprintf(fd, "set %d dst mac %s\n", info->pid,
                 inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
         fprintf(fd, "set %d src mac %s\n", info->pid,
@@ -278,6 +297,33 @@ pktgen_script_save(char *path)
         fprintf(fd, "range %d dst port min %d\n", i, range->dst_port_min);
         fprintf(fd, "range %d dst port max %d\n", i, range->dst_port_max);
         fprintf(fd, "range %d dst port inc %d\n", i, range->dst_port_inc);
+
+        fprintf(fd, "\n");
+        fprintf(fd, "range %d tcp flag clr all\n", i);
+        if (range->tcp_flags & URG_FLAG)
+            fprintf(fd, "range %d tcp flag set %s\n", i, "urg");
+        if (range->tcp_flags & ACK_FLAG)
+            fprintf(fd, "range %d tcp flag set %s\n", i, "ack");
+        if (range->tcp_flags & PSH_FLAG)
+            fprintf(fd, "range %d tcp flag set %s\n", i, "psh");
+        if (range->tcp_flags & RST_FLAG)
+            fprintf(fd, "range %d tcp flag set %s\n", i, "rst");
+        if (range->tcp_flags & SYN_FLAG)
+            fprintf(fd, "range %d tcp flag set %s\n", i, "syn");
+        if (range->tcp_flags & FIN_FLAG)
+            fprintf(fd, "range %d tcp flag set %s\n", i, "fin");
+
+        fprintf(fd, "\n");
+        fprintf(fd, "range %d tcp seq start %u\n", i, range->tcp_seq);
+        fprintf(fd, "range %d tcp seq min %u\n", i, range->tcp_seq_min);
+        fprintf(fd, "range %d tcp seq max %u\n", i, range->tcp_seq_max);
+        fprintf(fd, "range %d tcp seq inc %u\n", i, range->tcp_seq_inc);
+
+        fprintf(fd, "\n");
+        fprintf(fd, "range %d tcp ack start %u\n", i, range->tcp_ack);
+        fprintf(fd, "range %d tcp ack min %u\n", i, range->tcp_ack_min);
+        fprintf(fd, "range %d tcp ack max %u\n", i, range->tcp_ack_max);
+        fprintf(fd, "range %d tcp ack inc %u\n", i, range->tcp_ack_inc);
 
         fprintf(fd, "\n");
         fprintf(fd, "range %d ttl start %d\n", i, range->ttl);
@@ -2580,6 +2626,7 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     pkt->vlanid  = DEFAULT_VLAN_ID;
     pkt->cos     = DEFAULT_COS;
     pkt->tos     = DEFAULT_TOS;
+    pkt->tcp_flags = DEFAULT_TCP_FLAGS;
 
     rte_atomic64_set(&info->transmit_count, DEFAULT_TX_COUNT);
     rte_atomic64_init(&info->current_tx_count);
@@ -3202,6 +3249,257 @@ rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver)
     }
     pktgen_packet_ctor(info, RATE_PKT, -1);
     pktgen_set_tx_update(info);
+}
+
+static uint8_t tcp_flag_from_str(const char *str)
+{
+    if (_cp("urg"))
+        return URG_FLAG;
+    if (_cp("ack"))
+        return ACK_FLAG;
+    if (_cp("psh"))
+        return PSH_FLAG;
+    if (_cp("rst"))
+        return RST_FLAG;
+    if (_cp("syn"))
+        return SYN_FLAG;
+    if (_cp("fin"))
+        return FIN_FLAG;
+    if (_cp("all"))
+        return URG_FLAG | ACK_FLAG | PSH_FLAG | RST_FLAG | SYN_FLAG | FIN_FLAG;
+    return 0;
+}
+
+/**
+ *
+ * single_set_tcp_flag_set - Set a TCP flag
+ *
+ * DESCRIPTION
+ * Set a TCP flag for the single packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_tcp_flag_set(port_info_t *info, const char *which)
+{
+    info->seq_pkt[SINGLE_PKT].tcp_flags |= tcp_flag_from_str(which);
+}
+
+/**
+ *
+ * single_set_tcp_flag_clr - Clear a TCP flag
+ *
+ * DESCRIPTION
+ * Clear a TCP flag for the single packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_tcp_flag_clr(port_info_t *info, const char *which)
+{
+    info->seq_pkt[SINGLE_PKT].tcp_flags &= ~tcp_flag_from_str(which);
+}
+
+/**
+ *
+ * range_set_tcp_flag_set - Set a TCP flag
+ *
+ * DESCRIPTION
+ * Set a TCP flag for the range packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_tcp_flag_set(port_info_t *info, const char *which)
+{
+    info->seq_pkt[RANGE_PKT].tcp_flags |= tcp_flag_from_str(which);
+}
+
+/**
+ *
+ * range_set_tcp_flag_clr - Clear a TCP flag
+ *
+ * DESCRIPTION
+ * Clear a TCP flag for the range packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_tcp_flag_clr(port_info_t *info, const char *which)
+{
+    info->seq_pkt[RANGE_PKT].tcp_flags &= ~tcp_flag_from_str(which);
+}
+
+/**
+ *
+ * single_set_tcp_seq - Set TCP sequence number
+ *
+ * DESCRIPTION
+ * Set TCP sequence number
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_tcp_seq(port_info_t *info, uint32_t seq)
+{
+    info->seq_pkt[SINGLE_PKT].tcp_seq = seq;
+}
+
+/**
+ *
+ * single_set_tcp_ack - Set TCP acknowledge number
+ *
+ * DESCRIPTION
+ * Set TCP acknowledge number
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_tcp_ack(port_info_t *info, uint32_t ack)
+{
+    info->seq_pkt[SINGLE_PKT].tcp_ack = ack;
+}
+
+/**
+ *
+ * range_set_tcp_seq - Set TCP sequence numbers
+ *
+ * DESCRIPTION
+ * Set TCP sequence numbers
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_tcp_seq(port_info_t *info, char *what, uint32_t seq)
+{
+    char *str = what;
+    if (_cp("inc") || _cp("increment"))
+        info->range.tcp_seq_inc = seq;
+    else if (_cp("min") || _cp("minimum"))
+        info->range.tcp_seq_min = seq;
+    else if (_cp("max") || _cp("maximum"))
+        info->range.tcp_seq_max = seq;
+    else if (_cp("start"))
+        info->range.tcp_seq = seq;
+}
+
+/**
+ *
+ * range_set_tcp_ack - Set TCP acknowledge numbers
+ *
+ * DESCRIPTION
+ * Set TCP acknowledge numbers
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+range_set_tcp_ack(port_info_t *info, char *what, uint32_t ack)
+{
+    char *str = what;
+    if (_cp("inc") || _cp("increment"))
+        info->range.tcp_ack_inc = ack;
+    else if (_cp("min") || _cp("minimum"))
+        info->range.tcp_ack_min = ack;
+    else if (_cp("max") || _cp("maximum"))
+        info->range.tcp_ack_max = ack;
+    else if (_cp("start"))
+        info->range.tcp_ack = ack;
+}
+
+/**
+ *
+ * rate_set_tcp_flag_set - Set a TCP flag
+ *
+ * DESCRIPTION
+ * Set a TCP flag for the rate packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_tcp_flag_set(port_info_t *info, const char *which)
+{
+    info->seq_pkt[RATE_PKT].tcp_flags |= tcp_flag_from_str(which);
+}
+
+/**
+ *
+ * rate_set_tcp_flag_clr - Clear a TCP flag
+ *
+ * DESCRIPTION
+ * Clear a TCP flag for the rate packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_tcp_flag_clr(port_info_t *info, const char *which)
+{
+    info->seq_pkt[RATE_PKT].tcp_flags &= ~tcp_flag_from_str(which);
+}
+
+/**
+ *
+ * rate_set_tcp_seq - Set TCP sequence number
+ *
+ * DESCRIPTION
+ * Set TCP sequence number for the rate packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_tcp_seq(port_info_t *info, uint32_t seq)
+{
+    info->seq_pkt[RATE_PKT].tcp_seq = seq;
+}
+
+/**
+ *
+ * rate_set_tcp_ack - Set TCP acknowledge number
+ *
+ * DESCRIPTION
+ * Set TCP acknowledge number for the rate packet.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_tcp_ack(port_info_t *info, uint32_t ack)
+{
+    info->seq_pkt[RATE_PKT].tcp_ack = ack;
 }
 
 /**
@@ -3939,8 +4237,6 @@ pktgen_send_arp_requests(port_info_t *info, uint32_t type)
     else
         pktgen_set_port_flags(info, SEND_ARP_REQUEST);
 }
-
-#define _cp(s) (strcmp(str, s) == 0)
 
 /**
  *

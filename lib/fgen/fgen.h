@@ -53,6 +53,8 @@ enum {
     FGEN_MAX_KVP_TOKENS    = 4,    /**< Maximum number of tokens in a key/value pair + 1 */
     FGEN_FILLER_PATTERN    = 0x5a, /**< Filler pattern byte value */
     FGEN_FRAME_NAME_LENGTH = 32,   /**< Frame name length */
+    FGEN_EXTRA_SPACE       = 64,   /**< Extra space for building the fgen string */
+    FGEN_MAX_BUF_LEN       = 4096, /**< Maximum number of bytes in the fgen string */
 };
 
 typedef enum {

@@ -58,8 +58,8 @@ handle_input_display(char c)
 void
 cli_input(char *str, int n)
 {
-	RTE_ASSERT(this_cli->gb != NULL);
-	RTE_ASSERT(str != NULL);
+    RTE_ASSERT(this_cli->gb != NULL);
+    RTE_ASSERT(str != NULL);
 
 	while (n--) {
 		char c = *str++;

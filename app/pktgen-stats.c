@@ -140,14 +140,10 @@ pktgen_print_static_data(void)
         col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
         row = ip_row;
 
-
-        snprintf(buff, sizeof(buff), "%s%s%s%s%s%s",
-                    pkt->tcp_flags & URG_FLAG ? "U" : ".",
-                    pkt->tcp_flags & ACK_FLAG ? "A" : ".",
-                    pkt->tcp_flags & PSH_FLAG ? "P" : ".",
-                    pkt->tcp_flags & RST_FLAG ? "R" : ".",
-                    pkt->tcp_flags & SYN_FLAG ? "S" : ".",
-                    pkt->tcp_flags & FIN_FLAG ? "F" : ".");
+        snprintf(buff, sizeof(buff), "%s%s%s%s%s%s", pkt->tcp_flags & URG_FLAG ? "U" : ".",
+                 pkt->tcp_flags & ACK_FLAG ? "A" : ".", pkt->tcp_flags & PSH_FLAG ? "P" : ".",
+                 pkt->tcp_flags & RST_FLAG ? "R" : ".", pkt->tcp_flags & SYN_FLAG ? "S" : ".",
+                 pkt->tcp_flags & FIN_FLAG ? "F" : ".");
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         snprintf(buff, sizeof(buff), "%5u/%5u", pkt->tcp_seq, pkt->tcp_ack);
@@ -190,10 +186,10 @@ pktgen_print_static_data(void)
         if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
-                                   PG_PREFIXMAX | ((COLUMN_WIDTH_1 - 1)<<8)));
+                                   PG_PREFIXMAX | ((COLUMN_WIDTH_1 - 1) << 8)));
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
-                                   pkt->ip_src_addr.prefixlen | ((COLUMN_WIDTH_1 - 1)<<8)));
+                                   pkt->ip_src_addr.prefixlen | ((COLUMN_WIDTH_1 - 1) << 8)));
         } else {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
@@ -390,8 +386,8 @@ pktgen_page_stats(void)
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, rate->opackets);
 
         pktgen_display_set_color("stats.mac");
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, iBitsTotal(info->rate_stats) / Million,
-                 oBitsTotal(info->rate_stats) / Million);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
+                 iBitsTotal(info->rate_stats) / Million, oBitsTotal(info->rate_stats) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.port.totals");
@@ -428,9 +424,8 @@ pktgen_page_stats(void)
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->curr_stats.opackets);
 
         /* Total Rx/Tx mbits */
-        snprintf(buff, sizeof(buff), "%'lu/%'lu",
-            iBitsTotal(info->curr_stats) / Million,
-            oBitsTotal(info->curr_stats) / Million);
+        snprintf(buff, sizeof(buff), "%'lu/%'lu", iBitsTotal(info->curr_stats) / Million,
+                 oBitsTotal(info->curr_stats) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         if (pktgen.flags & TX_DEBUG_FLAG) {
@@ -583,7 +578,7 @@ pktgen_page_phys_stats(uint16_t pid)
     unsigned int col, row, q, hdr;
     struct rte_eth_stats stats, *s, *r;
     struct pg_ether_addr ethaddr;
-    char buff[32], mac_buf[32];
+    char buff[32], mac_buf[32], dev_name[64];
 
     s = &stats;
     memset(s, 0, sizeof(struct rte_eth_stats));
@@ -613,7 +608,8 @@ pktgen_page_phys_stats(uint16_t pid)
     row = 4;
     col = 1;
     pktgen_display_set_color("stats.stat.label");
-    snprintf(buff, sizeof(buff), "%2d-%s", pid, rte_eth_devices[pid].data->name);
+    rte_eth_dev_get_name_by_port(pid, dev_name);
+    snprintf(buff, sizeof(buff), "%2d-%s", pid, dev_name);
     scrn_printf(row, col, "%-*s:", COLUMN_WIDTH_0 - 4, buff);
 
     pktgen_display_set_color("stats.stat.values");

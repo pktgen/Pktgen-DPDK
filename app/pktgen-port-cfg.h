@@ -444,7 +444,6 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
         {DEV_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
         {DEV_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
         {DEV_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
-        {DEV_RX_OFFLOAD_JUMBO_FRAME, _(JUMBO_FRAME)},
         {DEV_RX_OFFLOAD_SCATTER, _(SCATTER)},
         {DEV_RX_OFFLOAD_TIMESTAMP, _(TIMESTAMP)},
         {DEV_RX_OFFLOAD_SECURITY, _(SECURITY)},
@@ -548,7 +547,13 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     if (!f)
         f = stderr;
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
+#if __RTE_VERSION >= RTE_VERSION_NUM(21, 11, 0, 0)
+    char dev_name[64];
+
+    rte_eth_dev_get_name_by_port(pid, dev_name);
+    fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n", dev_name,
+            di->if_index, *di->dev_flags);
+#elif __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
     fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n",
             rte_eth_devices[pid].data->name, di->if_index, *di->dev_flags);
 #else

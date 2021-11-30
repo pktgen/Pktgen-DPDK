@@ -652,7 +652,7 @@ set_cmd(int argc, char **argv)
 			break;
 		case 25:
 			foreach_port(portlist,
-				 pattern_set_user_pattern(info, argv[3]));
+				 pattern_set_user_pattern(info, argv[4]));
 			break;
 		case 30:
 			p = strchr(argv[4], '/');

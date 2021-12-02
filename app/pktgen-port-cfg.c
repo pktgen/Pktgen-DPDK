@@ -308,7 +308,6 @@ pktgen_config_ports(void)
 
         if (pktgen.enable_jumbo > 0) {
             conf.rxmode.max_lro_pkt_size = pktgen.eth_max_pkt;
-            conf.rxmode.offloads |= RTE_ETHER_MAX_JUMBO_FRAME_LEN;
             if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MULTI_SEGS)
                 conf.txmode.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
         }

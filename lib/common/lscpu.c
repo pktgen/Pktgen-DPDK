@@ -164,7 +164,7 @@ lscpu_info_get(const char *lscpu_path)
 		}
 	}
 
-	fclose(f);
+	pclose(f);
 	free(line);
 }
 
@@ -192,7 +192,7 @@ cpu_proc_info(const char *proc_path)
 		}
 	}
 
-	fclose(f);
+	pclose(f);
 	free(line);
 }
 

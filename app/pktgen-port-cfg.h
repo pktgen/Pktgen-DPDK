@@ -32,7 +32,7 @@ extern "C" {
 #define MAX_PORT_DESC_SIZE 132
 #define USER_PATTERN_SIZE  16
 #define MAX_LATENCY_ENTRIES \
-    50100        // Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
+    50108        // Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
 #define MAX_LATENCY_QUEUES 10
 
 typedef struct port_sizes_s {

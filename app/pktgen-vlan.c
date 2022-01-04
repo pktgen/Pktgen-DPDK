@@ -27,7 +27,7 @@
  */
 
 void
-pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid)
+pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid, uint32_t qid)
 {
 	pktType_e pType;
 	struct pg_ether_hdr *eth;
@@ -45,15 +45,15 @@ pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid)
 	switch ((int)pType) {
 	case PG_ETHER_TYPE_ARP:
 		info->stats.arp_pkts++;
-		pktgen_process_arp(m, pid, 1);
+		pktgen_process_arp(m, pid, qid, 1);
 		break;
 	case PG_ETHER_TYPE_IPv4:
 		info->stats.ip_pkts++;
-		pktgen_process_ping4(m, pid, 1);
+		pktgen_process_ping4(m, pid, qid, 1);
 		break;
 	case PG_ETHER_TYPE_IPv6:
 		info->stats.ipv6_pkts++;
-		pktgen_process_ping6(m, pid, 1);
+		pktgen_process_ping6(m, pid, qid, 1);
 		break;
 	case UNKNOWN_PACKET:	/* FALL THRU */
 	default:

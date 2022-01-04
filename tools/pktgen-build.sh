@@ -16,25 +16,21 @@ currdir=`pwd`
 export sdk_dir="${PKTGEN_SDK:-$currdir}"
 export target_dir="${PKTGEN_TARGET:-usr}"
 export build_dir="${PKTGEN_BUILD_DIR:-Builddir}"
+
 export lua_enabled="-Denable_lua=false"
 export gui_enabled="-Denable_gui=false"
-
-if [[ -n ${enable_lua} ]]; then
-	export lua_enabled="-Denable_lua=true"
-fi
-if [[ -n ${enable_gui} ]]; then
-	export gui_enabled="-Denable_gui=true"
-fi
 
 build_path=$sdk_dir/$build_dir
 target_path=$sdk_dir/$target_dir
 
-echo ">>> lua_enabled      : '"$lua_enabled"'"
-echo ">>> gui_enabled      : '"$gui_enabled"'"
-echo ">>> SDK Directory    : '"$sdk_dir"'"
-echo ">>> Build Directory  : '"$build_path"'"
-echo ">>> Target Directory : '"$target_path"'"
-echo ""
+function dump_options() {
+	echo ">>> lua_enabled      : '"$lua_enabled"'"
+	echo ">>> gui_enabled      : '"$gui_enabled"'"
+	echo ">>> SDK Directory    : '"$sdk_dir"'"
+	echo ">>> Build Directory  : '"$build_path"'"
+	echo ">>> Target Directory : '"$target_path"'"
+	echo ""
+}
 
 function run_meson() {
 	btype="-Dbuildtype="$buildtype
@@ -116,34 +112,40 @@ do
 		;;
 
 	'build')
+		dump_options
 		ninja_build && ninja_install
 		;;
 
 	'buildgui')
 		gui_enabled="-Denable_gui=true"
 		lua_enabled="-Denable_lua=true"
+		dump_options
 		ninja_build && ninja_install
 		;;
 
 	'buildlua')
 		lua_enabled="-Denable_lua=true"
+		dump_options
 		ninja_build && ninja_install
 		;;
 
 	'debuglua')
 		lua_enabled="-Denable_lua=true"
 		buildtype="debug"
+		dump_options
 		ninja_build && ninja_install
 		;;
 
 	'debug')
 		buildtype="debug"
+		dump_options
 		ninja_build && ninja_install
 		;;
 
 	'debugopt')
 		echo ">>> Debug Optimized build in '"$build_path"' and '"$target_path"'"
 		buildtype="debugoptimized"
+		dump_options
 		ninja_build && ninja_install
 		;;
 

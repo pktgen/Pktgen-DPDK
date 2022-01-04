@@ -745,7 +745,7 @@ pktgen_packet_type(struct rte_mbuf *m)
  */
 
 static void
-pktgen_packet_classify(struct rte_mbuf *m, int pid)
+pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
     port_info_t *info = &pktgen.info[pid];
     uint32_t plen;
@@ -765,19 +765,19 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
         switch ((int)pType) {
         case PG_ETHER_TYPE_ARP:
             info->stats.arp_pkts++;
-            pktgen_process_arp(m, pid, 0);
+            pktgen_process_arp(m, pid, qid, 0);
             break;
         case PG_ETHER_TYPE_IPv4:
             info->stats.ip_pkts++;
-            pktgen_process_ping4(m, pid, 0);
+            pktgen_process_ping4(m, pid, qid, 0);
             break;
         case PG_ETHER_TYPE_IPv6:
             info->stats.ipv6_pkts++;
-            pktgen_process_ping6(m, pid, 0);
+            pktgen_process_ping6(m, pid, qid, 0);
             break;
         case PG_ETHER_TYPE_VLAN:
             info->stats.vlan_pkts++;
-            pktgen_process_vlan(m, pid);
+            pktgen_process_vlan(m, pid, qid);
             break;
         case UNKNOWN_PACKET: /* FALL THRU */
         default:
@@ -848,7 +848,7 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid)
 
 #define PREFETCH_OFFSET 3
 static __inline__ void
-pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
+pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
 {
     int j, i;
 
@@ -861,12 +861,12 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
         rte_prefetch0(rte_pktmbuf_mtod(pkts[j], void *));
         j++;
 
-        pktgen_packet_classify(pkts[i], pid);
+        pktgen_packet_classify(pkts[i], pid, qid);
     }
 
     /* Handle remaining prefetched packets */
     for (; i < nb_rx; i++)
-        pktgen_packet_classify(pkts[i], pid);
+        pktgen_packet_classify(pkts[i], pid, qid);
 }
 
 /**
@@ -1190,7 +1190,7 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf *pkts_burst[
     pktgen_recv_tstamp(info, pkts_burst, nb_rx);
 
     /* packets are not freed in the next call. */
-    pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid);
+    pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid, qid);
 
     if (unlikely(info->dump_count > 0))
         pktgen_packet_dump_bulk(pkts_burst, nb_rx, pid);

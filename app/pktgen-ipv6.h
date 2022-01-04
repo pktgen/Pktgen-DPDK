@@ -28,8 +28,7 @@ extern "C" {
 
 void pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr);
 
-void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid,
-				 uint32_t vlan);
+void pktgen_process_ping6(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan);
 
 #ifdef __cplusplus
 }

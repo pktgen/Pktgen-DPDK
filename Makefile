@@ -18,22 +18,22 @@ rebuild: FORCE
 	${Build} clean build
 
 buildlua: FORCE
-	${Build} buildlua
+	${Build} clean buildlua
 
 debuglua: FORCE
-	${Build} debuglua
+	${Build} clean debuglua
 
 buildgui: FORCE
-	${Build} buildgui
+	${Build} clean buildgui
 
 rebuildgui: FORCE
 	${Build} clean buildgui
 
 debug: FORCE
-	${Build} debug
+	${Build} clean debug
 
 debugopt: FORCE
-	${Build} debugopt
+	${Build} clean debugopt
 
 clean: FORCE
 	${Build} clean

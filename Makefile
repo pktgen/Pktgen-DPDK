@@ -38,11 +38,11 @@ debugopt: FORCE
 clean: FORCE
 	${Build} clean
 
-dist-clean: FORCE
-	${Build} dist-clean
-
 install: FORCE
 	${Build} install
+
+uninstall: FORCE
+	${Build} uninstall
 
 docs: FORCE
 	${Build} docs

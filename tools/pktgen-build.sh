@@ -70,9 +70,13 @@ function run_meson() {
 function ninja_build() {
 	echo ">>> Ninja build in '"$build_path"' buildtype="$buildtype
 
-	if [[ ! -d $$build_path ]]; then
-		run_meson
+	if [[ -d $build_path ]] || [[ -f $build_path/build.ninja ]]; then
+		# add reconfigure command if meson dir already exists
+		configure="configure"
+		# sdk_dir must be empty if we're reconfiguring
+		sdk_dir=""
 	fi
+	run_meson
 
 	ninja -C $build_path
 
@@ -85,7 +89,7 @@ function ninja_build() {
 function ninja_build_docs() {
 	echo ">>> Ninja build documents in '"$build_path"'"
 
-	if [[ ! -d $build_path ]]; then
+	if [[ ! -d $build_path ]] || [[ ! -f $build_path/build.ninja ]]; then
 		run_meson
 	fi
 
@@ -109,6 +113,18 @@ ninja_install() {
 	return 0
 }
 
+ninja_uninstall() {
+	echo ">>> Ninja uninstall to '"$target_path"'"
+
+	DESTDIR=$install_path ninja -C $build_path uninstall
+
+	if [[ $? -ne 0 ]]; then
+		echo "*** Uninstall failed!!"
+		return 1;
+	fi
+	return 0
+}
+
 usage() {
 	echo " Usage: Build Pktgen using Meson/Ninja tools"
 	echo "  ** Must be in the top level directory for Pktgen"
@@ -124,11 +140,9 @@ usage() {
 	echo "  buildlua    - same as 'make build' except enable Lua build"
 	echo "  debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
 	echo "  debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
-	echo "  clean       - remove the following directories"
-	echo "                  build_path : "$build_path
-	echo "                  target_path: "$target_path
-	echo "  dist-clean  - only remove the build directory "$build_path
+	echo "  clean       - remove the following directory: "$build_path
 	echo "  install     - install the includes/libraries into "$target_path" directory"
+	echo "  uninstall   - uninstall the includes/libraries into "$target_path" directory"
 	echo "  docs        - create the document files"
 	echo ""
 	echo " Build and install environment variables:"
@@ -189,13 +203,6 @@ do
 	'clean')
 		dump_options
 		echo "*** Removing '"$build_path"' directory"
-		echo "*** Removing '"$target_path"' directory"
-		#rm -fr $build_path $target_path
-		;;
-
-	'dist-clean')
-		dump_options
-		echo ">>> Removing '"$build_path"' directory"
 		rm -fr $build_path
 		;;
 
@@ -203,6 +210,12 @@ do
 		dump_options
 		echo ">>> Install the includes/libraries into '"$target_path"' directory"
 		ninja_install
+		;;
+
+	'uninstall')
+		dump_options
+		echo ">>> Uninstall the includes/libraries from '"$target_path"' directory"
+		ninja_uninstall
 		;;
 
 	'docs')

@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) 2019-2020 Intel Corporation
+# Copyright(c) 2019-2022 Intel Corporation
 
 # A simple script to help build Pktgen using meson/ninja tools.
 # The script also creates an installed directory called ./usr in the top level directory.
@@ -11,24 +11,52 @@
 #
 
 buildtype="release"
-currdir=`pwd`
 
-export sdk_dir="${PKTGEN_SDK:-$currdir}"
-export target_dir="${PKTGEN_TARGET:-usr}"
-export build_dir="${PKTGEN_BUILD_DIR:-Builddir}"
+currdir=`pwd`
+script_dir=$(cd "${BASH_SOURCE[0]%/*}" & pwd -P)
+export sdk_path="${PKTGEN_SDK:-${script_dir%/*}}"
+export target_dir="${PKTGEN_TARGET:-usr/local}"
+export build_dir="${PKTGEN_BUILD:-${currdir}/Builddir}"
+install_path="${PKTGEN_DESTDIR:-${currdir}}"
 
 export lua_enabled="-Denable_lua=false"
 export gui_enabled="-Denable_gui=false"
 
-build_path=$sdk_dir/$build_dir
-target_path=$sdk_dir/$target_dir
+if [[ "${build_dir}" = /* ]]; then
+	# absolute path to build dir. Do not prepend workdir.
+	build_path=$build_dir
+else
+	build_path=${currdir}/$build_dir
+fi
+
+if [[ ! "${install_path}" = /* ]]; then
+	# relative path for install path detected
+	# prepend with currdir
+	install_path=${currdir}/${install_path}
+fi
+
+if [[ "${target_dir}" = .* ]]; then
+	echo "target_dir starts with . or .. if different install prefix required then use PKTGEN_DESTDIR instead"
+	exit 1
+fi
+if [[ "${target_dir}" = /* ]]; then
+	echo "target_dir absolute path detected removing leading '/'"
+	export target_dir=${target_dir##/}
+fi
+target_path=${install_path%/}/${target_dir%/}
+
+echo ">>  SDK Path          : "$sdk_path
+echo ">>  Install Path      : "$install_path
+echo ">>  Build Directory   : "$build_dir
+echo ">>  Target Directory  : "$target_dir
+echo ">>  Build Path        : "$build_path
+echo ">>  Target Path       : "$target_path
+echo ""
 
 function dump_options() {
-	echo ">>> lua_enabled      : '"$lua_enabled"'"
-	echo ">>> gui_enabled      : '"$gui_enabled"'"
-	echo ">>> SDK Directory    : '"$sdk_dir"'"
-	echo ">>> Build Directory  : '"$build_path"'"
-	echo ">>> Target Directory : '"$target_path"'"
+	echo " Build and install values:"
+	echo "   lua_enabled       : "$lua_enabled
+	echo "   gui_enabled       : "$gui_enabled
 	echo ""
 }
 
@@ -40,11 +68,15 @@ function run_meson() {
 }
 
 function ninja_build() {
-	echo ">>> Ninja build in '"$build_path"' buildtype='"$buildtype"'"
+	echo ">>> Ninja build in '"$build_path"' buildtype="$buildtype
 
-	if [[ ! -d $$build_path ]]; then
-		run_meson
+	if [[ -d $build_path ]] || [[ -f $build_path/build.ninja ]]; then
+		# add reconfigure command if meson dir already exists
+		configure="configure"
+		# sdk_dir must be empty if we're reconfiguring
+		sdk_dir=""
 	fi
+	run_meson
 
 	ninja -C $build_path
 
@@ -57,7 +89,7 @@ function ninja_build() {
 function ninja_build_docs() {
 	echo ">>> Ninja build documents in '"$build_path"'"
 
-	if [[ ! -d $build_path ]]; then
+	if [[ ! -d $build_path ]] || [[ ! -f $build_path/build.ninja ]]; then
 		run_meson
 	fi
 
@@ -72,10 +104,22 @@ function ninja_build_docs() {
 ninja_install() {
 	echo ">>> Ninja install to '"$target_path"'"
 
-	DESTDIR=$sdk_dir ninja -C $build_path install > /dev/null
+	DESTDIR=$install_path ninja -C $build_path install
 
 	if [[ $? -ne 0 ]]; then
 		echo "*** Install failed!!"
+		return 1;
+	fi
+	return 0
+}
+
+ninja_uninstall() {
+	echo ">>> Ninja uninstall to '"$target_path"'"
+
+	DESTDIR=$install_path ninja -C $build_path uninstall
+
+	if [[ $? -ne 0 ]]; then
+		echo "*** Uninstall failed!!"
 		return 1;
 	fi
 	return 0
@@ -96,11 +140,18 @@ usage() {
 	echo "  buildlua    - same as 'make build' except enable Lua build"
 	echo "  debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
 	echo "  debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
-	echo "  clean       - remove the '"$build_dir"' and '"$target_dir"' directories then exit"
-	echo "  dist-clean  - remove the '"$build_dir"' directory leaving '"$target_dir"'"
-	echo "  install     - install the includes/libraries into '"$target_dir"' directory"
+	echo "  clean       - remove the following directory: "$build_path
+	echo "  install     - install the includes/libraries into "$target_path" directory"
+	echo "  uninstall   - uninstall the includes/libraries into "$target_path" directory"
 	echo "  docs        - create the document files"
-	echo "--- Make targets:"
+	echo ""
+	echo " Build and install environment variables:"
+	echo "  PKTGEN_INSTALL_PATH - The install path, defaults to Pktgen SDK directory"
+	echo "  PKTGEN_TARGET       - The target directory appended to install path, defaults to 'usr'"
+	echo "  PKTGEN_BUILD        - The build directory appended to install path, default to 'Builddir'"
+	echo "  PKTGEN_DESTDIR      - The install destination directory"
+	echo ""
+	dump_options
 	exit
 }
 
@@ -150,22 +201,25 @@ do
 		;;
 
 	'clean')
+		dump_options
 		echo "*** Removing '"$build_path"' directory"
-		echo "*** Removing '"$target_path"' directory"
-		rm -fr $build_dir $target_dir
-		;;
-
-	'dist-clean')
-		echo ">>> Removing '"$build_path"' directory"
 		rm -fr $build_path
 		;;
 
 	'install')
+		dump_options
 		echo ">>> Install the includes/libraries into '"$target_path"' directory"
 		ninja_install
 		;;
 
+	'uninstall')
+		dump_options
+		echo ">>> Uninstall the includes/libraries from '"$target_path"' directory"
+		ninja_uninstall
+		;;
+
 	'docs')
+		dump_options
 		echo ">>> Create the documents '"$build_path"' directory"
 		ninja_build_docs
 		;;
@@ -175,6 +229,7 @@ do
 			usage
 		else
 			echo ">>> Build and install Pktgen"
+			dump_options
 			ninja_build && ninja_install
 		fi
 		;;

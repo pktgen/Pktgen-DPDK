@@ -140,13 +140,6 @@ typedef struct ring_conf_s {
      */
     int16_t tx_rs_thresh;
 
-#if __RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
-    /*
-     * Configurable value of TX queue flags.
-     */
-    int32_t txq_flags;
-#endif
-
     /*
      * Receive Side Scaling (RSS) configuration.
      */
@@ -372,17 +365,10 @@ rte_eth_txconf_dump(FILE *f, struct rte_eth_txconf *tx)
             "     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16
             " wthresh        :%5" PRIu16 "\n",
             tx->tx_thresh.pthresh, tx->tx_thresh.hthresh, tx->tx_thresh.wthresh);
-#if __RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
-    fprintf(f,
-            "     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16
-            " Deferred Start :%5" PRIu16 "  TXQ Flags: %08x\n",
-            tx->tx_free_thresh, tx->tx_rs_thresh, tx->tx_deferred_start, tx->txq_flags);
-#else
     fprintf(f,
             "     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16
             " Deferred Start :%5" PRIu16 "\n",
             tx->tx_free_thresh, tx->tx_rs_thresh, tx->tx_deferred_start);
-#endif
     fprintf(f, "     offloads       :%016" PRIx64 "\n", tx->offloads);
 }
 
@@ -399,7 +385,6 @@ rte_eth_desc_lim_dump(FILE *f, struct rte_eth_desc_lim *lim, int tx_flag)
             lim->nb_seg_max, lim->nb_mtu_seg_max);
 }
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 static inline void
 rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_flag)
 {
@@ -410,9 +395,7 @@ rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_fla
             "  nb_queues     :%5" PRIu16 "\n",
             conf->burst_size, conf->ring_size, conf->nb_queues);
 }
-#endif
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
 static inline void
 rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
 {
@@ -421,7 +404,6 @@ rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
     fprintf(f, "     domain_id      :%5" PRIu16 "  port_id         :%5" PRIu16 "\n", sw->domain_id,
             sw->port_id);
 }
-#endif
 
 static inline int
 rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
@@ -432,49 +414,23 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
     struct {
         uint64_t flag;
         const char *name;
-    } rx_flags[] = {
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
-        {RTE_ETH_RX_OFFLOAD_VLAN_STRIP, _(VLAN_STRIP)},
-        {RTE_ETH_RX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
-        {RTE_ETH_RX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
-        {RTE_ETH_RX_OFFLOAD_TCP_CKSUM, _(TCP_CKSUM)},
-        {RTE_ETH_RX_OFFLOAD_TCP_LRO, _(TCP_LRO)},
-        {RTE_ETH_RX_OFFLOAD_QINQ_STRIP, _(QINQ_STRIP)},
-        {RTE_ETH_RX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
-        {RTE_ETH_RX_OFFLOAD_MACSEC_STRIP, _(MACSEC_STRIP)},
-        {RTE_ETH_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
-        {RTE_ETH_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
-        {RTE_ETH_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
-        {RTE_ETH_RX_OFFLOAD_SCATTER, _(SCATTER)},
-        {RTE_ETH_RX_OFFLOAD_TIMESTAMP, _(TIMESTAMP)},
-        {RTE_ETH_RX_OFFLOAD_SECURITY, _(SECURITY)},
-        {RTE_ETH_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
-        {RTE_ETH_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
-        {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}
-#else
-        {DEV_RX_OFFLOAD_VLAN_STRIP, _(VLAN_STRIP)},
-        {DEV_RX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
-        {DEV_RX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
-        {DEV_RX_OFFLOAD_TCP_CKSUM, _(TCP_CKSUM)},
-        {DEV_RX_OFFLOAD_TCP_LRO, _(TCP_LRO)},
-        {DEV_RX_OFFLOAD_QINQ_STRIP, _(QINQ_STRIP)},
-        {DEV_RX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
-        {DEV_RX_OFFLOAD_MACSEC_STRIP, _(MACSEC_STRIP)},
-        {DEV_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
-        {DEV_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
-        {DEV_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
-        {DEV_RX_OFFLOAD_SCATTER, _(SCATTER)},
-        {DEV_RX_OFFLOAD_TIMESTAMP, _(TIMESTAMP)},
-        {DEV_RX_OFFLOAD_SECURITY, _(SECURITY)},
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
-        {DEV_RX_OFFLOAD_CRC_STRIP, _(KEEP_CRC)}
-#else
-        {DEV_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
-        {DEV_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
-        {DEV_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}
-#endif
-#endif
-    };
+    } rx_flags[] = {{RTE_ETH_RX_OFFLOAD_VLAN_STRIP, _(VLAN_STRIP)},
+                    {RTE_ETH_RX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_TCP_CKSUM, _(TCP_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_TCP_LRO, _(TCP_LRO)},
+                    {RTE_ETH_RX_OFFLOAD_QINQ_STRIP, _(QINQ_STRIP)},
+                    {RTE_ETH_RX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_MACSEC_STRIP, _(MACSEC_STRIP)},
+                    {RTE_ETH_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
+                    {RTE_ETH_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
+                    {RTE_ETH_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
+                    {RTE_ETH_RX_OFFLOAD_SCATTER, _(SCATTER)},
+                    {RTE_ETH_RX_OFFLOAD_TIMESTAMP, _(TIMESTAMP)},
+                    {RTE_ETH_RX_OFFLOAD_SECURITY, _(SECURITY)},
+                    {RTE_ETH_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
+                    {RTE_ETH_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}};
 #undef _
 
     if (len == 0)
@@ -506,7 +462,6 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
         uint64_t flag;
         const char *name;
     } tx_flags[] = {
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
         {RTE_ETH_TX_OFFLOAD_VLAN_INSERT, _(VLAN_INSERT)},
         {RTE_ETH_TX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
         {RTE_ETH_TX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
@@ -528,35 +483,6 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
         {RTE_ETH_TX_OFFLOAD_UDP_TNL_TSO, _(UDP_TNL_TSO)},
         {RTE_ETH_TX_OFFLOAD_IP_TNL_TSO, _(IP_TNL_TSO)},
         {RTE_ETH_TX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)},
-#else
-        {DEV_TX_OFFLOAD_VLAN_INSERT, _(VLAN_INSERT)},
-        {DEV_TX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
-        {DEV_TX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
-        {DEV_TX_OFFLOAD_TCP_CKSUM, _(TCP_CKSUM)},
-        {DEV_TX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
-        {DEV_TX_OFFLOAD_TCP_TSO, _(TCP_TSO)},
-        {DEV_TX_OFFLOAD_UDP_TSO, _(UDP_TSO)},
-        {DEV_TX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
-        {DEV_TX_OFFLOAD_QINQ_INSERT, _(QINQ_INSERT)},
-        {DEV_TX_OFFLOAD_VXLAN_TNL_TSO, _(VXLAN_TNL_TSO)},
-        {DEV_TX_OFFLOAD_GRE_TNL_TSO, _(GRE_TNL_TSO)},
-        {DEV_TX_OFFLOAD_IPIP_TNL_TSO, _(IPIP_TNL_TSO)},
-        {DEV_TX_OFFLOAD_GENEVE_TNL_TSO, _(GENEVE_TNL_TSO)},
-        {DEV_TX_OFFLOAD_MACSEC_INSERT, _(MACSEC_INSERT)},
-        {DEV_TX_OFFLOAD_MT_LOCKFREE, _(MT_LOCKFREE)},
-        {DEV_TX_OFFLOAD_MULTI_SEGS, _(MULTI_SEGS)},
-        {DEV_TX_OFFLOAD_MBUF_FAST_FREE, _(MBUF_FAST_FREE)},
-        {DEV_TX_OFFLOAD_SECURITY, _(SECURITY)},
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 11, 0, 0)
-        {DEV_TX_OFFLOAD_UDP_TNL_TSO, _(UDP_TNL_TSO)},
-        {DEV_TX_OFFLOAD_IP_TNL_TSO, _(IP_TNL_TSO)},
-        {DEV_TX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)},
-
-#if __RTE_VERSION < RTE_VERSION_NUM(19, 11, 0, 0)
-        {DEV_TX_OFFLOAD_MATCH_METADATA, _(MATCH_METADATA)},
-#endif
-#endif
-#endif
     };
 #undef _
 
@@ -591,19 +517,11 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     if (!f)
         f = stderr;
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(21, 11, 0, 0)
     char dev_name[64];
 
     rte_eth_dev_get_name_by_port(pid, dev_name);
     fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n", dev_name,
             di->if_index, *di->dev_flags);
-#elif __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
-    fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n",
-            rte_eth_devices[pid].data->name, di->if_index, *di->dev_flags);
-#else
-    fprintf(f, "** Device Info (%s, if_index:%" PRId32 ") **\n", rte_eth_devices[pid].data->name,
-            di->if_index);
-#endif
 
     fprintf(f,
             "   min_rx_bufsize :%5" PRIu32 "  max_rx_pktlen     :%5" PRIu32
@@ -634,9 +552,7 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     fprintf(f, "   tx_offload_capa       :%s\n", buf);
     fprintf(f, "   rx_queue_offload_capa :%016" PRIx64, di->rx_queue_offload_capa);
     fprintf(f, "  tx_queue_offload_capa :%016" PRIx64 "\n", di->tx_queue_offload_capa);
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
     fprintf(f, "   dev_capa              :%016" PRIx64 "\n", di->dev_capa);
-#endif
     fprintf(f, "\n");
 
     rte_eth_rxconf_dump(f, &di->default_rxconf);
@@ -645,12 +561,11 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     rte_eth_desc_lim_dump(f, &di->rx_desc_lim, 0);
     rte_eth_desc_lim_dump(f, &di->tx_desc_lim, 1);
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 5, 0, 0)
     rte_eth_dev_portconf_dump(f, &di->default_rxportconf, 0);
     rte_eth_dev_portconf_dump(f, &di->default_txportconf, 1);
 
     rte_eth_switch_info_dump(f, &di->switch_info);
-#endif
+
     fprintf(f, "\n");
 }
 

@@ -34,8 +34,8 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
     port_info_t *info = &pktgen.info[pid];
     pkt_seq_t *pkt;
     struct rte_mbuf *m;
-    struct pg_ether_hdr *eth;
-    struct pg_arp_hdr *arp;
+    struct rte_ether_hdr *eth;
+    struct rte_arp_hdr *arp;
     uint32_t addr;
     uint8_t qid = 0;
 
@@ -45,15 +45,15 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
         pktgen_log_warning("No packet buffers found");
         return;
     }
-    eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
-    arp = (struct pg_arp_hdr *)&eth[1];
+    eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+    arp = (struct rte_arp_hdr *)&eth[1];
 
     /* src and dest addr */
     memset(&eth->dst_addr, 0xFF, 6);
-    pg_ether_addr_copy(&pkt->eth_src_addr, &eth->src_addr);
-    eth->ether_type = htons(PG_ETHER_TYPE_ARP);
+    rte_ether_addr_copy(&pkt->eth_src_addr, &eth->src_addr);
+    eth->ether_type = htons(RTE_ETHER_TYPE_ARP);
 
-    memset(arp, 0, sizeof(struct pg_arp_hdr));
+    memset(arp, 0, sizeof(struct rte_arp_hdr));
 
     rte_memcpy(&arp->arp_data.arp_sha, &pkt->eth_src_addr, 6);
     addr = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
@@ -70,11 +70,11 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
     }
 
     /* Fill in the rest of the ARP packet header */
-    arp->arp_hrd = htons(ETH_HW_TYPE);
-    arp->arp_pro = htons(PG_ETHER_TYPE_IPv4);
-    arp->arp_hln = 6;
-    arp->arp_pln = 4;
-    arp->arp_op  = htons(ARP_REQUEST);
+    arp->arp_hardware = htons(ETH_HW_TYPE);
+    arp->arp_protocol = htons(RTE_ETHER_TYPE_IPV4);
+    arp->arp_hlen     = 6;
+    arp->arp_plen     = 4;
+    arp->arp_opcode   = htons(ARP_REQUEST);
 
     m->pkt_len  = 60;
     m->data_len = 60;
@@ -101,15 +101,15 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 {
     port_info_t *info = &pktgen.info[pid];
     pkt_seq_t *pkt;
-    struct pg_ether_hdr *eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
-    struct pg_arp_hdr *arp   = (struct pg_arp_hdr *)&eth[1];
+    struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+    struct rte_arp_hdr *arp   = (struct rte_arp_hdr *)&eth[1];
 
     /* Adjust for a vlan header if present */
     if (vlan)
-        arp = (struct pg_arp_hdr *)((char *)arp + sizeof(struct pg_vlan_hdr));
+        arp = (struct rte_arp_hdr *)((char *)arp + sizeof(struct rte_vlan_hdr));
 
     /* Process all ARP requests if they are for us. */
-    if (arp->arp_op == htons(ARP_REQUEST)) {
+    if (arp->arp_opcode == htons(ARP_REQUEST)) {
         if (pktgen_tst_port_flags(info, PROCESS_GARP_PKTS) &&
             (arp->arp_data.arp_tip == arp->arp_data.arp_sip)) { /* Must be a GARP packet */
             pkt = pktgen_find_matching_ipdst(info, arp->arp_data.arp_sip);
@@ -134,8 +134,8 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
                 printf("%s: special MP  is empty\n", __func__);
                 return;
             }
-            eth = rte_pktmbuf_mtod(m1, struct pg_ether_hdr *);
-            arp = (struct pg_arp_hdr *)&eth[1];
+            eth = rte_pktmbuf_mtod(m1, struct rte_ether_hdr *);
+            arp = (struct rte_arp_hdr *)&eth[1];
 
             /* Grab the source MAC address as the destination address for the port. */
             if (unlikely(pktgen.flags & MAC_FROM_ARP_FLAG)) {
@@ -153,7 +153,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
             inetAddrSwap(&arp->arp_data.arp_tip, &arp->arp_data.arp_sip);
 
             /* Set the packet to ARP reply */
-            arp->arp_op = htons(ARP_REPLY);
+            arp->arp_opcode = htons(ARP_REPLY);
 
             /* Swap the MAC addresses */
             ethAddrSwap(&eth->dst_addr, &eth->src_addr);
@@ -169,7 +169,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 
             return;
         }
-    } else if (arp->arp_op == htons(ARP_REPLY)) {
+    } else if (arp->arp_opcode == htons(ARP_REPLY)) {
         pkt = pktgen_find_matching_ipsrc(info, arp->arp_data.arp_tip);
 
         /* ARP request not for this interface. */

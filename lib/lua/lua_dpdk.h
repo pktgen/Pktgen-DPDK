@@ -19,56 +19,59 @@
 extern "C" {
 #endif
 
-#define LUA_DPDK_LIBNAME        "dpdk"
+#define LUA_DPDK_LIBNAME "dpdk"
 
 #define LUA_LOG(level, fmt, args...) \
-	rte_log(RTE_LOG_ ## level, lua_logtype, "%s(): " fmt "\n", \
-		__func__, ## args)
+    rte_log(RTE_LOG_##level, lua_logtype, "%s(): " fmt "\n", __func__, ##args)
 
-#define _do(_exp)       do { _exp; } while ((0))
+#define _do(_exp) \
+    do {          \
+        _exp;     \
+    } while ((0))
 
-#define foreach_port(_portlist, _action)                                \
-        do {                                                            \
-                uint64_t *_pl = (uint64_t *)&_portlist;                 \
-                uint16_t pid, idx, bit;                                 \
-                                                                        \
-                RTE_ETH_FOREACH_DEV(pid) {                              \
-                        idx = (pid / (sizeof(uint64_t) * 8));           \
-                        bit = (pid - (idx * (sizeof(uint64_t) * 8)));   \
-                        if ( (_pl[idx] & (1LL << bit)) == 0)            \
-                                continue;                               \
-                        _action;                                        \
-                }                                                       \
-        } while ((0))
+#define foreach_port(_portlist, _action)                  \
+    do {                                                  \
+        uint64_t *_pl = (uint64_t *)&_portlist;           \
+        uint16_t pid, idx, bit;                           \
+                                                          \
+        RTE_ETH_FOREACH_DEV(pid)                          \
+        {                                                 \
+            idx = (pid / (sizeof(uint64_t) * 8));         \
+            bit = (pid - (idx * (sizeof(uint64_t) * 8))); \
+            if ((_pl[idx] & (1LL << bit)) == 0)           \
+                continue;                                 \
+            _action;                                      \
+        }                                                 \
+    } while ((0))
 
-#define validate_arg_count(_l, _n) do {                                 \
-                switch (lua_gettop(_l)) {                               \
-                default: return luaL_error(_l,                          \
-                        "%s, Invalid arg count should be %d",           \
-                        __func__, _n);                                  \
-                case _n:                                                \
-                        break;                                          \
-                }                                                       \
-        } while((0))
+#define validate_arg_count(_l, _n)                                                     \
+    do {                                                                               \
+        switch (lua_gettop(_l)) {                                                      \
+        default:                                                                       \
+            return luaL_error(_l, "%s, Invalid arg count should be %d", __func__, _n); \
+        case _n:                                                                       \
+            break;                                                                     \
+        }                                                                              \
+    } while ((0))
 
 struct pkt_data {
-        /* Packet type and information */
-        struct pg_ether_addr eth_dst_addr; /**< Destination Ethernet address */
-        struct pg_ether_addr eth_src_addr; /**< Source Ethernet address */
+    /* Packet type and information */
+    struct rte_ether_addr eth_dst_addr; /**< Destination Ethernet address */
+    struct rte_ether_addr eth_src_addr; /**< Source Ethernet address */
 
-        uint32_t ip_src_addr;      /**< Source IPv4 address also used for IPv6 */
-        uint32_t ip_dst_addr;      /**< Destination IPv4 address */
-        uint32_t ip_mask;          /**< IPv4 Netmask value */
+    uint32_t ip_src_addr; /**< Source IPv4 address also used for IPv6 */
+    uint32_t ip_dst_addr; /**< Destination IPv4 address */
+    uint32_t ip_mask;     /**< IPv4 Netmask value */
 
-        uint16_t sport;         /**< Source port value */
-        uint16_t dport;         /**< Destination port value */
-        uint16_t ethType;       /**< IPv4 or IPv6 */
-        uint16_t ipProto;       /**< TCP or UDP or ICMP */
-        uint16_t vlanid;        /**< VLAN ID value if used */
-        uint16_t ether_hdr_size;/**< Size of Ethernet header in packet for VLAN ID */
+    uint16_t sport;          /**< Source port value */
+    uint16_t dport;          /**< Destination port value */
+    uint16_t ethType;        /**< IPv4 or IPv6 */
+    uint16_t ipProto;        /**< TCP or UDP or ICMP */
+    uint16_t vlanid;         /**< VLAN ID value if used */
+    uint16_t ether_hdr_size; /**< Size of Ethernet header in packet for VLAN ID */
 
-        uint16_t pktSize;       /**< Size of packet in bytes not counting FCS */
-        uint16_t pad0;
+    uint16_t pktSize; /**< Size of packet in bytes not counting FCS */
+    uint16_t pad0;
 };
 
 typedef struct rte_mempool pktmbuf_t;
@@ -90,8 +93,8 @@ typedef struct vec vec_t;
 static __inline__ void
 setf_integer(lua_State *L, const char *name, lua_Integer value)
 {
-	lua_pushinteger(L, value);
-	lua_setfield(L, -2, name);
+    lua_pushinteger(L, value);
+    lua_setfield(L, -2, name);
 }
 
 /**
@@ -109,8 +112,8 @@ setf_integer(lua_State *L, const char *name, lua_Integer value)
 static __inline__ void
 setf_function(lua_State *L, const char *name, lua_CFunction fn)
 {
-	lua_pushcclosure(L, fn, 0);
-	lua_setfield(L, -2, name);
+    lua_pushcclosure(L, fn, 0);
+    lua_setfield(L, -2, name);
 }
 
 /**
@@ -128,8 +131,8 @@ setf_function(lua_State *L, const char *name, lua_CFunction fn)
 static __inline__ void
 setf_string(lua_State *L, const char *name, const char *value)
 {
-	lua_pushstring(L, value);
-	lua_setfield(L, -2, name);
+    lua_pushstring(L, value);
+    lua_setfield(L, -2, name);
 }
 
 /**
@@ -147,8 +150,8 @@ setf_string(lua_State *L, const char *name, const char *value)
 static __inline__ void
 setf_stringLen(lua_State *L, const char *name, char *value, int len)
 {
-	lua_pushlstring(L, value, len);
-	lua_setfield(L, -2, name);
+    lua_pushlstring(L, value, len);
+    lua_setfield(L, -2, name);
 }
 
 /**
@@ -166,13 +169,13 @@ setf_stringLen(lua_State *L, const char *name, char *value, int len)
 static __inline__ void
 setf_udata(lua_State *L, const char *name, void *value)
 {
-	lua_pushlightuserdata(L, value);
-	lua_setfield(L, -2, name);
+    lua_pushlightuserdata(L, value);
+    lua_setfield(L, -2, name);
 }
 
 #if 0
 static __inline__ void
-getf_etheraddr(lua_State *L, const char *field, struct pg_ether_addr *value)
+getf_etheraddr(lua_State *L, const char *field, struct rte_ether_addr *value)
 {
 	lua_getfield(L, 3, field);
 	if (lua_isstring(L, -1) )
@@ -195,27 +198,27 @@ getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
 static __inline__ uint32_t
 getf_integer(lua_State *L, const char *field)
 {
-	uint32_t value = 0;
+    uint32_t value = 0;
 
-	lua_getfield(L, 3, field);
-	if (lua_isinteger(L, -1))
-		value   = luaL_checkinteger(L, -1);
-	lua_pop(L, 1);
+    lua_getfield(L, 3, field);
+    if (lua_isinteger(L, -1))
+        value = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
 
-	return value;
+    return value;
 }
 
 static __inline__ const char *
 getf_string(lua_State *L, const char *field)
 {
-	const char      *value = NULL;
+    const char *value = NULL;
 
-	lua_getfield(L, 3, field);
-	if (lua_isstring(L, -1) )
-		value   = luaL_checkstring(L, -1);
-	lua_pop(L, 1);
+    lua_getfield(L, 3, field);
+    if (lua_isstring(L, -1))
+        value = luaL_checkstring(L, -1);
+    lua_pop(L, 1);
 
-	return value;
+    return value;
 }
 
 #ifdef __cplusplus

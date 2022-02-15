@@ -28,24 +28,22 @@
 void
 pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
 {
-	struct pg_ipv6_hdr *ip = hdr;
-	uint16_t tlen;
+    struct rte_ipv6_hdr *ip = hdr;
+    uint16_t tlen;
 
-	/* IPv6 Header constructor */
-	memset(ip, 0, sizeof(struct pg_ipv6_hdr));
+    /* IPv6 Header constructor */
+    memset(ip, 0, sizeof(struct rte_ipv6_hdr));
 
-	ip->vtc_flow = htonl(IPv6_VERSION << 28);
-	ip->vtc_flow |= htonl(pkt->traffic_class << RTE_IPV6_HDR_TC_SHIFT);
-	tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct pg_ipv6_hdr));
+    ip->vtc_flow = htonl(IPv6_VERSION << 28);
+    ip->vtc_flow |= htonl(pkt->traffic_class << RTE_IPV6_HDR_TC_SHIFT);
+    tlen = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct rte_ipv6_hdr));
 
-	ip->payload_len = htons(tlen);
-	ip->hop_limits = pkt->hop_limits;
-	ip->proto = pkt->ipProto;
+    ip->payload_len = htons(tlen);
+    ip->hop_limits  = pkt->hop_limits;
+    ip->proto       = pkt->ipProto;
 
-	rte_memcpy(&ip->dst_addr, pkt->ip_dst_addr.addr.ipv6.s6_addr,
-			sizeof(struct in6_addr));
-	rte_memcpy(&ip->src_addr, pkt->ip_src_addr.addr.ipv6.s6_addr,
-			sizeof(struct in6_addr));
+    rte_memcpy(&ip->dst_addr, pkt->ip_dst_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
+    rte_memcpy(&ip->src_addr, pkt->ip_src_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
 }
 
 /**
@@ -61,32 +59,32 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
  */
 
 void
-pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
-		     uint32_t pid __rte_unused, uint32_t qid __rte_unused, uint32_t vlan __rte_unused)
+pktgen_process_ping6(struct rte_mbuf *m __rte_unused, uint32_t pid __rte_unused,
+                     uint32_t qid __rte_unused, uint32_t vlan __rte_unused)
 {
-#if 0	/* Broken needs to be updated to do IPv6 packets */
+#if 0 /* Broken needs to be updated to do IPv6 packets */
 	port_info_t     *info = &pktgen.info[pid];
-	struct pg_ether_hdr *eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
-	struct pg_ipv6_hdr       *ip = (struct pg_ipv6_hdr *)&eth[1];
+	struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+	struct rte_ipv6_hdr       *ip = (struct rte_ipv6_hdr *)&eth[1];
 
 	/* Adjust for a vlan header if present */
 	if (vlan)
-		ip = (struct pg_ipv6_hdr *)((char *)ip + sizeof(struct pg_vlan_hdr));
+		ip = (struct rte_ipv6_hdr *)((char *)ip + sizeof(struct rte_vlan_hdr));
 
 	/* Look for a ICMP echo requests, but only if enabled. */
 	if ( (rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
 	     (ip->next_header == PG_IPPROTO_ICMPV6) ) {
 #if !defined(RTE_ARCH_X86_64)
-		struct pg_icmp_hdr *icmp =
-			(struct pg_icmp_hdr *)((uint32_t)ip + sizeof(struct pg_ipv4_hdr));
+		struct rte_icmp_hdr *icmp =
+			(struct rte_icmp_hdr *)((uint32_t)ip + sizeof(struct rte_ipv4_hdr));
 #else
-		struct pg_icmp_hdr *icmp =
-			(struct pg_icmp_hdr *)((uint64_t)ip + sizeof(struct pg_ipv4_hdr));
+		struct rte_icmp_hdr *icmp =
+			(struct rte_icmp_hdr *)((uint64_t)ip + sizeof(struct rte_ipv4_hdr));
 #endif
 		/* We do not handle IP options, which will effect the IP header size. */
 		if (rte_ipv6_cksum(icmp,
-			  (m->pkt.data_len - sizeof(struct pg_ether_hdr) -
-			   sizeof(struct pg_ipv4_hdr))) ) {
+			  (m->pkt.data_len - sizeof(struct rte_ether_hdr) -
+			   sizeof(struct rte_ipv4_hdr))) ) {
 			rte_printf_status("ICMP checksum failed\n");
 			goto leave :
 		}
@@ -117,8 +115,8 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 			icmp->cksum =
 				rte_raw_cksum(icmp,
 				      (m->pkt.data_len -
-				       sizeof(struct pg_ether_hdr) -
-				       sizeof(struct pg_ipv4_hdr)));
+				       sizeof(struct rte_ether_hdr) -
+				       sizeof(struct rte_ipv4_hdr)));
 
 			/* Swap the IP addresses. */
 			inetAddrSwap(&ip->src, &ip->dst);
@@ -128,7 +126,7 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused,
 
 			/* Recompute the IP checksum */
 			ip->cksum   = 0;
-			ip->cksum   = rte_raw_cksum(ip, sizeof(struct pg_ipv4_hdr));
+			ip->cksum   = rte_raw_cksum(ip, sizeof(struct rte_ipv4_hdr));
 
 			/* Swap the MAC addresses */
 			ethAddrSwap(&eth->d_addr, &eth->s_addr);

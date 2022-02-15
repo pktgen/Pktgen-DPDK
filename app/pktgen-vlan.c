@@ -29,34 +29,34 @@
 void
 pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid, uint32_t qid)
 {
-	pktType_e pType;
-	struct pg_ether_hdr *eth;
-	struct pg_vlan_hdr  *pg_vlan_hdr;
-	port_info_t      *info = &pktgen.info[pid];
+    pktType_e pType;
+    struct rte_ether_hdr *eth;
+    struct rte_vlan_hdr *rte_vlan_hdr;
+    port_info_t *info = &pktgen.info[pid];
 
-	eth = rte_pktmbuf_mtod(m, struct pg_ether_hdr *);
+    eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
 
-	/* Now dealing with the inner header */
-	pg_vlan_hdr = (struct pg_vlan_hdr *)(eth + 1);
+    /* Now dealing with the inner header */
+    rte_vlan_hdr = (struct rte_vlan_hdr *)(eth + 1);
 
-	pType = ntohs(pg_vlan_hdr->eth_proto);
+    pType = ntohs(rte_vlan_hdr->eth_proto);
 
-	/* No support for nested tunnel */
-	switch ((int)pType) {
-	case PG_ETHER_TYPE_ARP:
-		info->stats.arp_pkts++;
-		pktgen_process_arp(m, pid, qid, 1);
-		break;
-	case PG_ETHER_TYPE_IPv4:
-		info->stats.ip_pkts++;
-		pktgen_process_ping4(m, pid, qid, 1);
-		break;
-	case PG_ETHER_TYPE_IPv6:
-		info->stats.ipv6_pkts++;
-		pktgen_process_ping6(m, pid, qid, 1);
-		break;
-	case UNKNOWN_PACKET:	/* FALL THRU */
-	default:
-		break;
-	}
+    /* No support for nested tunnel */
+    switch ((int)pType) {
+    case RTE_ETHER_TYPE_ARP:
+        info->stats.arp_pkts++;
+        pktgen_process_arp(m, pid, qid, 1);
+        break;
+    case RTE_ETHER_TYPE_IPV4:
+        info->stats.ip_pkts++;
+        pktgen_process_ping4(m, pid, qid, 1);
+        break;
+    case RTE_ETHER_TYPE_IPV6:
+        info->stats.ipv6_pkts++;
+        pktgen_process_ping6(m, pid, qid, 1);
+        break;
+    case UNKNOWN_PACKET: /* FALL THRU */
+    default:
+        break;
+    }
 }

@@ -32,7 +32,7 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greIp_t *gre
     memset((char *)gre, 0, sizeof(greIp_t));
 
     /* Create the IP header */
-    gre->ip.version_ihl     = (IPv4_VERSION << 4) | (sizeof(struct pg_ipv4_hdr) / 4);
+    gre->ip.version_ihl     = (IPv4_VERSION << 4) | (sizeof(struct rte_ipv4_hdr) / 4);
     gre->ip.type_of_service = 0;
     gre->ip.total_length    = htons(pkt->pktSize - pkt->ether_hdr_size);
 
@@ -61,9 +61,10 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greIp_t *gre
     gre->gre.reserved0_0 = 0;
     gre->gre.reserved0_1 = 0;
 
-    gre->gre.version  = 0;
-    gre->gre.eth_type = htons(PG_ETHER_TYPE_IPv4); /* FIXME get EtherType of the actual encapsulated
-                                                    * packet instead of defaulting to IPv4 */
+    gre->gre.version = 0;
+    gre->gre.eth_type =
+        htons(RTE_ETHER_TYPE_IPV4); /* FIXME get EtherType of the actual encapsulated
+                                     * packet instead of defaulting to IPv4 */
 
     int extra_count = 0;
     if (gre->gre.chk_present)
@@ -109,7 +110,7 @@ pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greEth
     memset((char *)gre, 0, sizeof(greEther_t));
 
     /* Create the IP header */
-    gre->ip.version_ihl     = (IPv4_VERSION << 4) | (sizeof(struct pg_ipv4_hdr) / 4);
+    gre->ip.version_ihl     = (IPv4_VERSION << 4) | (sizeof(struct rte_ipv4_hdr) / 4);
     gre->ip.type_of_service = 0;
     gre->ip.total_length    = htons(pkt->pktSize - pkt->ether_hdr_size);
 
@@ -162,16 +163,17 @@ pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greEth
 
     /* Inner Ethernet header. Exact offset of start of ethernet header depends
      * on the presence of optional fields in the GRE header. */
-    struct pg_ether_hdr *eth_hdr =
-        (struct pg_ether_hdr *)((char *)&gre->gre + 2 /* Flags and version */
-                                + 2                   /* Protocol type */
-                                + 4 * extra_count);   /* 4 bytes per optional field */
-    pg_ether_addr_copy(&pkt->eth_src_addr,
-                       &eth_hdr->src_addr); /* FIXME get inner Ethernet parameters from user */
-    pg_ether_addr_copy(&pkt->eth_dst_addr,
-                       &eth_hdr->dst_addr); /* FIXME get inner Ethernet parameters from user */
-    eth_hdr->ether_type = htons(PG_ETHER_TYPE_IPv4); /* FIXME get Ethernet type from actual
-                                                      * encapsulated packet instead of hardcoding */
+    struct rte_ether_hdr *eth_hdr =
+        (struct rte_ether_hdr *)((char *)&gre->gre + 2 /* Flags and version */
+                                 + 2                   /* Protocol type */
+                                 + 4 * extra_count);   /* 4 bytes per optional field */
+    rte_ether_addr_copy(&pkt->eth_src_addr,
+                        &eth_hdr->src_addr); /* FIXME get inner Ethernet parameters from user */
+    rte_ether_addr_copy(&pkt->eth_dst_addr,
+                        &eth_hdr->dst_addr); /* FIXME get inner Ethernet parameters from user */
+    eth_hdr->ether_type =
+        htons(RTE_ETHER_TYPE_IPV4); /* FIXME get Ethernet type from actual
+                                     * encapsulated packet instead of hardcoding */
 
     /* 4 * (3 - extra_count) is the amount of bytes that are not used by */
     /* optional fields, but are included in sizeof(greIp_t). */

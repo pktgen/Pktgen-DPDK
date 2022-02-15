@@ -11,9 +11,7 @@
 
 #include <rte_version.h>
 #include <rte_mbuf.h>
-#if __RTE_VERSION >= RTE_VERSION_NUM(17,2,0,0)
 #include <rte_mbuf_ptype.h>
-#endif
 #include <rte_byteorder.h>
 #include <rte_ether.h>
 #include <rte_ip.h>
@@ -21,4 +19,3 @@
 #include <rte_udp.h>
 
 #include "pg_inet.h"
-

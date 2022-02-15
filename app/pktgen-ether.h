@@ -20,12 +20,10 @@ typedef struct rte_eth_stats eth_stats_t;
 
 struct port_info_s;
 
-char *pktgen_ether_hdr_ctor(struct port_info_s *info,
-				   pkt_seq_t *pkt,
-				   struct pg_ether_hdr *eth);
+char *pktgen_ether_hdr_ctor(struct port_info_s *info, pkt_seq_t *pkt, struct rte_ether_hdr *eth);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* _PKTGEN_ETHER_H_ */
+#endif /* _PKTGEN_ETHER_H_ */

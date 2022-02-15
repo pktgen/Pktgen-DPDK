@@ -26,11 +26,11 @@
 extern "C" {
 #endif
 
-#define __numbits(_v)       __builtin_popcount(_v)
+#define __numbits(_v) __builtin_popcount(_v)
 
 enum {
-	STR_MAX_ARGVS = 64,             /**< Max number of args to support */
-	STR_TOKEN_SIZE = 128,
+    STR_MAX_ARGVS  = 64, /**< Max number of args to support */
+    STR_TOKEN_SIZE = 128,
 };
 
 /**
@@ -42,7 +42,7 @@ enum {
  *   pointer to the trimmed string or NULL if <str> is Null or
  *   if string is empty then return pointer to <str>
  */
-char * pg_strtrim(char *str);
+char *pg_strtrim(char *str);
 
 /**
  * Parse a string into a argc/argv list using a set of delimiters, but does
@@ -104,8 +104,7 @@ int pg_stropt(const char *list, char *str, const char *delim);
  * @return
  *    -1 error or number of cores in the string.
  */
-int pg_parse_corelist(const char *corelist,
-	uint8_t *lcores, int len);
+int pg_parse_corelist(const char *corelist, uint8_t *lcores, int len);
 
 /**
  * Helper routine to compare two strings exactly
@@ -118,19 +117,19 @@ int pg_parse_corelist(const char *corelist,
  *   0 failed to compare and 1 strings are equal.
  */
 static inline int
-pg_strmatch(const char * s1, const char * s2)
+pg_strmatch(const char *s1, const char *s2)
 {
-	if (!s1 || !s2)
-		return 0;
+    if (!s1 || !s2)
+        return 0;
 
-	while((*s1 != '\0') && (*s2 != '\0')) {
-		if (*s1++ != *s2++)
-			return 0;
-	}
-	if (*s1 != *s2)
-		return 0;
+    while ((*s1 != '\0') && (*s2 != '\0')) {
+        if (*s1++ != *s2++)
+            return 0;
+    }
+    if (*s1 != *s2)
+        return 0;
 
-	return 1;
+    return 1;
 }
 
 /**
@@ -146,9 +145,7 @@ pg_strmatch(const char * s1, const char * s2)
 static inline int
 pg_strcnt(char *s, char c)
 {
-	return (s == NULL || *s == '\0')
-	       ? 0
-	       : pg_strcnt(s + 1, c) + (*s == c);
+    return (s == NULL || *s == '\0') ? 0 : pg_strcnt(s + 1, c) + (*s == c);
 }
 
 /**
@@ -158,67 +155,68 @@ pg_strcnt(char *s, char c)
  *   String containing the MAC address in two forms
  *      XX:XX:XX:XX:XX:XX or XXXX:XXXX:XXX
  * @param e
- *   pointer to a struct pg_ether_addr to place the return value. If the value
+ *   pointer to a struct rte_ether_addr to place the return value. If the value
  *   is null then use a static location instead.
  * @return
- *   Pointer to the struct pg_ether_addr structure;
+ *   Pointer to the struct rte_ether_addr structure;
  */
-static inline struct pg_ether_addr *
-pg_ether_aton(const char *a, struct pg_ether_addr *e)
+static inline struct rte_ether_addr *
+pg_ether_aton(const char *a, struct rte_ether_addr *e)
 {
-	int i;
-	char *end;
-	unsigned long o[PG_ETHER_ADDR_LEN];
-	static struct pg_ether_addr pg_ether_addr;
+    int i;
+    char *end;
+    unsigned long o[RTE_ETHER_ADDR_LEN];
+    static struct rte_ether_addr rte_ether_addr;
 
-	if (!e)
-		e = &pg_ether_addr;
+    if (!e)
+        e = &rte_ether_addr;
 
-	i = 0;
-	do {
-		errno = 0;
-		o[i] = strtoul(a, &end, 16);
-		if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
-			return NULL;
-		a = end + 1;
-	} while (++i != sizeof (o) / sizeof (o[0]) && end[0] != 0);
+    i = 0;
+    do {
+        errno = 0;
+        o[i]  = strtoul(a, &end, 16);
+        if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
+            return NULL;
+        a = end + 1;
+    } while (++i != sizeof(o) / sizeof(o[0]) && end[0] != 0);
 
-	/* Junk at the end of line */
-	if (end[0] != 0)
-		return NULL;
+    /* Junk at the end of line */
+    if (end[0] != 0)
+        return NULL;
 
-	/* Support the format XX:XX:XX:XX:XX:XX */
-	if (i == PG_ETHER_ADDR_LEN) {
-		while (i-- != 0) {
-			if (o[i] > UINT8_MAX)
-				return NULL;
-			e->addr_bytes[i] = (uint8_t)o[i];
-		}
-		/* Support the format XXXX:XXXX:XXXX */
-	} else if (i == PG_ETHER_ADDR_LEN / 2) {
-		while (i-- != 0) {
-			if (o[i] > UINT16_MAX)
-				return NULL;
-			e->addr_bytes[i * 2] = (uint8_t)(o[i] >> 8);
-			e->addr_bytes[i * 2 + 1] = (uint8_t)(o[i] & 0xff);
-		}
-		/* unknown format */
-	} else
-		return NULL;
+    /* Support the format XX:XX:XX:XX:XX:XX */
+    if (i == RTE_ETHER_ADDR_LEN) {
+        while (i-- != 0) {
+            if (o[i] > UINT8_MAX)
+                return NULL;
+            e->addr_bytes[i] = (uint8_t)o[i];
+        }
+        /* Support the format XXXX:XXXX:XXXX */
+    } else if (i == RTE_ETHER_ADDR_LEN / 2) {
+        while (i-- != 0) {
+            if (o[i] > UINT16_MAX)
+                return NULL;
+            e->addr_bytes[i * 2]     = (uint8_t)(o[i] >> 8);
+            e->addr_bytes[i * 2 + 1] = (uint8_t)(o[i] & 0xff);
+        }
+        /* unknown format */
+    } else
+        return NULL;
 
-	return e;
+    return e;
 }
 
 #ifndef _MTOA_
 #define _MTOA_
-/* char * inet_mtoa(char * buff, int len, struct pg_ether_addr * eaddr) - Convert MAC address to ascii */
+/* char * inet_mtoa(char * buff, int len, struct rte_ether_addr * eaddr) - Convert MAC address to
+ * ascii */
 static __inline__ char *
-inet_mtoa(char *buff, int len, struct pg_ether_addr *eaddr) {
-        snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x",
-                 eaddr->addr_bytes[0], eaddr->addr_bytes[1],
-                 eaddr->addr_bytes[2], eaddr->addr_bytes[3],
-                 eaddr->addr_bytes[4], eaddr->addr_bytes[5]);
-        return buff;
+inet_mtoa(char *buff, int len, struct rte_ether_addr *eaddr)
+{
+    snprintf(buff, len, "%02x:%02x:%02x:%02x:%02x:%02x", eaddr->addr_bytes[0], eaddr->addr_bytes[1],
+             eaddr->addr_bytes[2], eaddr->addr_bytes[3], eaddr->addr_bytes[4],
+             eaddr->addr_bytes[5]);
+    return buff;
 }
 #endif
 
@@ -226,40 +224,43 @@ inet_mtoa(char *buff, int len, struct pg_ether_addr *eaddr) {
 #define _MASK_SIZE_
 /* mask_size(uint32_t mask) - return the number of bits in mask */
 static __inline__ int
-mask_size(uint32_t mask) {
-        if (mask == 0)
-                return 0;
-        else if (mask == 0xFF000000)
-                return 8;
-        else if (mask == 0xFFFF0000)
-                return 16;
-        else if (mask == 0xFFFFFF00)
-                return 24;
-        else if (mask == 0xFFFFFFFF)
-                return 32;
-        else {
-                int i;
-                for (i = 0; i < 32; i++)
-                        if ( (mask & (1 << (31 - i))) == 0)
-                                break;
-                return i;
-        }
+mask_size(uint32_t mask)
+{
+    if (mask == 0)
+        return 0;
+    else if (mask == 0xFF000000)
+        return 8;
+    else if (mask == 0xFFFF0000)
+        return 16;
+    else if (mask == 0xFFFFFF00)
+        return 24;
+    else if (mask == 0xFFFFFFFF)
+        return 32;
+    else {
+        int i;
+        for (i = 0; i < 32; i++)
+            if ((mask & (1 << (31 - i))) == 0)
+                break;
+        return i;
+    }
 }
 #endif
 
 #ifndef _NTOP4_
 #define _NTOP4_
-/* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4 address to ascii */
+/* char * inet_ntop4(char * buff, int len, unsigned long ip_addr, unsigned long mask) - Convert IPv4
+ * address to ascii */
 static __inline__ char *
-inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask) {
-        char lbuf[64];
+inet_ntop4(char *buff, int len, unsigned long ip_addr, unsigned long mask)
+{
+    char lbuf[64];
 
-        inet_ntop(AF_INET, &ip_addr, buff, len);
-        if (mask != 0xFFFFFFFF) {
-                snprintf(lbuf, sizeof(lbuf), "/%d", mask_size(mask));
-                rte_strlcat(buff, lbuf, len);
-        }
-        return buff;
+    inet_ntop(AF_INET, &ip_addr, buff, len);
+    if (mask != 0xFFFFFFFF) {
+        snprintf(lbuf, sizeof(lbuf), "/%d", mask_size(mask));
+        rte_strlcat(buff, lbuf, len);
+    }
+    return buff;
 }
 #endif
 

@@ -21,9 +21,7 @@
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 #include <rte_eth_bond_8023ad.h>
 #endif
-#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
-#endif
 
 enum {
     RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
@@ -39,51 +37,25 @@ enum {
 static uint8_t hw_strip_crc = 0;
 
 static struct rte_eth_conf default_port_conf = {
-#if __RTE_VERSION <= RTE_VERSION_NUM(18, 5, 0, 0)
     .rxmode =
         {
-            .mq_mode                 = ETH_MQ_RX_RSS,
-            .max_rx_pkt_len          = PG_ETHER_MAX_LEN,
-            .split_hdr_size          = 0,
-            .ignore_offload_bitfield = 1,
-            .offloads                = (DEV_RX_OFFLOAD_CRC_STRIP | DEV_RX_OFFLOAD_CHECKSUM),
-        },
-#else
-    .rxmode =
-        {
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
             .mq_mode          = RTE_ETH_MQ_RX_RSS,
-#else
-            .mq_mode = ETH_MQ_RX_RSS,
-#endif
-            .max_lro_pkt_size = PG_ETHER_MAX_LEN,
+            .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
             .split_hdr_size   = 0,
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 11, 0, 0)
-            .offloads         = DEV_RX_OFFLOAD_CRC_STRIP,
-#endif
         },
-#endif
+
     .rx_adv_conf =
         {
             .rss_conf =
                 {
                     .rss_key = NULL,
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
-                    .rss_hf = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
+                    .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
                               RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
-#else
-                    .rss_hf =
-                        ETH_RSS_IP | ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_SCTP | ETH_RSS_L2_PAYLOAD,
-#endif
                 },
         },
     .txmode =
         {
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
             .mq_mode = RTE_ETH_MQ_TX_NONE,
-#else
-            .mq_mode = ETH_MQ_TX_NONE,
-#endif
         },
     .intr_conf =
         {
@@ -100,7 +72,7 @@ pktgen_set_hw_strip_crc(uint8_t val)
 int
 pktgen_get_hw_strip_crc(void)
 {
-    return (hw_strip_crc) ? PG_ETHER_CRC_LEN : 0;
+    return (hw_strip_crc) ? RTE_ETHER_CRC_LEN : 0;
 }
 
 /**
@@ -176,7 +148,7 @@ pktgen_config_ports(void)
 
     /* Find out the total number of ports in the system. */
     /* We have already blocklisted the ones we needed to in main routine. */
-    pktgen.nb_ports = pg_eth_dev_count_avail();
+    pktgen.nb_ports = rte_eth_dev_count_avail();
     if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
         pktgen.nb_ports = RTE_MAX_ETHPORTS;
 
@@ -189,19 +161,7 @@ pktgen_config_ports(void)
 
         buff[0] = 0;
         printf("   %2d: %-12s   %2d    %-12s  %2d   ", i, dev.driver_name, dev.if_index,
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
-               (dev.pci_dev->driver->driver.alias) ? dev.pci_dev->driver->driver.alias : "",
-               dev.pci_dev->device.numa_node);
-#else
                (dev.device->driver->alias) ? dev.device->driver->alias : "", dev.device->numa_node);
-#endif
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
-        if (dev.pci_dev) {
-            snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", dev.pci_dev->id.vendor_id,
-                     dev.pci_dev->id.device_id, dev.pci_dev->addr.bus, dev.pci_dev->addr.devid,
-                     dev.pci_dev->addr.function);
-        }
-#else
         {
             struct rte_bus *bus;
             if (dev.device)
@@ -215,7 +175,6 @@ pktgen_config_ports(void)
                          pci_dev->addr.function);
             }
         }
-#endif
         printf("%s\n", buff);
     }
     printf("\n");
@@ -321,21 +280,11 @@ pktgen_config_ports(void)
 
         if (pktgen.enable_jumbo > 0) {
             conf.rxmode.max_lro_pkt_size = pktgen.eth_max_pkt;
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
             if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
                 conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
-#else
-            if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MULTI_SEGS)
-                conf.txmode.offloads |= DEV_TX_OFFLOAD_MULTI_SEGS;
-#endif
         }
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
         if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
-#else
-        if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_MBUF_FAST_FREE)
-            conf.txmode.offloads |= DEV_TX_OFFLOAD_MBUF_FAST_FREE;
-#endif
         if (rt.rx > 1) {
             conf.rx_adv_conf.rss_conf.rss_key = NULL;
             conf.rx_adv_conf.rss_conf.rss_hf &= info->dev_info.flow_type_rss_offloads;
@@ -344,17 +293,10 @@ pktgen_config_ports(void)
             conf.rx_adv_conf.rss_conf.rss_hf  = 0;
         }
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
         if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
             conf.rxmode.mq_mode = RTE_ETH_MQ_RX_RSS;
         else
             conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
-#else
-        if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
-            conf.rxmode.mq_mode = ETH_MQ_RX_RSS;
-        else
-            conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
-#endif
         rte_eth_dev_info_get(pid, &info->dev_info);
 
         info->lsc_enabled = 0;
@@ -448,10 +390,7 @@ pktgen_config_ports(void)
                 if (pktgen_pcap_parse(pktgen.info[pid].pcap, info, q) == -1)
                     pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 
-            txconf = &info->dev_info.default_txconf;
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 8, 0, 0)
-            txconf->txq_flags = ETH_TXQ_FLAGS_IGNORE;
-#endif
+            txconf           = &info->dev_info.default_txconf;
             txconf->offloads = default_port_conf.txmode.offloads;
 
             ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);

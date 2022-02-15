@@ -22,23 +22,24 @@ extern "C" {
  * \returns number of lcores enabled.
  */
 static __inline__ uint32_t
-lcore_mask(uint16_t *first, uint16_t *last) {
-	int32_t cnt, lid;
+lcore_mask(uint16_t *first, uint16_t *last)
+{
+    int32_t cnt, lid;
 
-	lid  = pg_get_initial_lcore();
-	if (first)
-		*first  = lid;
+    lid = rte_get_main_lcore();
+    if (first)
+        *first = lid;
 
-	/* Count the number of lcores being used. */
-	for (cnt = 0; lid < RTE_MAX_LCORE; lid++) {
-		if (!rte_lcore_is_enabled(lid) )
-			continue;
-		cnt++;
-		if (last)
-			*last = lid;
-	}
+    /* Count the number of lcores being used. */
+    for (cnt = 0; lid < RTE_MAX_LCORE; lid++) {
+        if (!rte_lcore_is_enabled(lid))
+            continue;
+        cnt++;
+        if (last)
+            *last = lid;
+    }
 
-	return cnt;
+    return cnt;
 }
 
 uint32_t sct_convert(char *sct[]);

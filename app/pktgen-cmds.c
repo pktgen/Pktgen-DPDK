@@ -19,9 +19,7 @@
 
 #include <pg_delay.h>
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(17, 2, 0, 0)
 #include <rte_net.h>
-#endif
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 #include <rte_eth_bond.h>
 #include <rte_eth_bond_8023ad.h>
@@ -86,7 +84,7 @@ pktgen_script_save(char *path)
     FILE *fd;
     int i, j;
     uint64_t lcore;
-    struct pg_ether_addr eaddr;
+    struct rte_ether_addr eaddr;
 
     fd = fopen(path, "w");
     if (fd == NULL)
@@ -149,30 +147,30 @@ pktgen_script_save(char *path)
         fprintf(fd, "#\n# Set up the primary port information:\n");
         fprintf(fd, "set %d count %" PRIu64 "\n", info->pid,
                 rte_atomic64_read(&info->transmit_count));
-        fprintf(fd, "set %d size %d\n", info->pid, pkt->pktSize + PG_ETHER_CRC_LEN);
+        fprintf(fd, "set %d size %d\n", info->pid, pkt->pktSize + RTE_ETHER_CRC_LEN);
         fprintf(fd, "set %d rate %g\n", info->pid, info->tx_rate);
         fprintf(fd, "set %d burst %d\n", info->pid, info->tx_burst);
         fprintf(fd, "set %d sport %d\n", info->pid, pkt->sport);
         fprintf(fd, "set %d dport %d\n", info->pid, pkt->dport);
         fprintf(fd, "set %d prime %d\n", info->pid, info->prime_cnt);
         fprintf(fd, "set %d type %s\n", i,
-                (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "ipv4"
-                : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6"
-                : (pkt->ethType == PG_ETHER_TYPE_VLAN) ? "vlan"
-                : (pkt->ethType == PG_ETHER_TYPE_ARP)  ? "arp"
-                                                       : "unknown");
+                (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "ipv4"
+                : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "ipv6"
+                : (pkt->ethType == RTE_ETHER_TYPE_VLAN) ? "vlan"
+                : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "arp"
+                                                        : "unknown");
         fprintf(fd, "set %d proto %s\n", i,
                 (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                 : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
                                                     : "udp");
         fprintf(
             fd, "set %d dst ip %s\n", i,
-            (pkt->ethType == PG_ETHER_TYPE_IPv6)
+            (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                 ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX)
                 : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
                              0xFFFFFFFF));
         fprintf(fd, "set %d src ip %s\n", i,
-                (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                     ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
                                  pkt->ip_src_addr.prefixlen)
                     : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
@@ -351,9 +349,9 @@ pktgen_script_save(char *path)
         fprintf(fd, "range %d gre key %d\n", i, pkt->gre_key);
 
         fprintf(fd, "\n");
-        fprintf(fd, "range %d size start %d\n", i, range->pkt_size + PG_ETHER_CRC_LEN);
-        fprintf(fd, "range %d size min %d\n", i, range->pkt_size_min + PG_ETHER_CRC_LEN);
-        fprintf(fd, "range %d size max %d\n", i, range->pkt_size_max + PG_ETHER_CRC_LEN);
+        fprintf(fd, "range %d size start %d\n", i, range->pkt_size + RTE_ETHER_CRC_LEN);
+        fprintf(fd, "range %d size min %d\n", i, range->pkt_size_min + RTE_ETHER_CRC_LEN);
+        fprintf(fd, "range %d size max %d\n", i, range->pkt_size_max + RTE_ETHER_CRC_LEN);
         fprintf(fd, "range %d size inc %d\n\n", i, range->pkt_size_inc);
 
         fprintf(fd, "#\n# Set up the rate data for the port.\n");
@@ -371,26 +369,26 @@ pktgen_script_save(char *path)
             fprintf(fd, "seq %d %d %s ", j, i, inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
             fprintf(fd, "%s ", inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
             fprintf(fd, "%s ",
-                    (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                    (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                         ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
                                      PG_PREFIXMAX)
                         : inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
                                      0xFFFFFFFF));
             fprintf(fd, "%s ",
-                    (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                    (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                         ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
                                      pkt->ip_src_addr.prefixlen)
                         : inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
                                      pkt->ip_mask));
             fprintf(fd, "%d %d %s %s %d %d %d\n", pkt->sport, pkt->dport,
-                    (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "ipv4"
-                    : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6"
-                    : (pkt->ethType == PG_ETHER_TYPE_VLAN) ? "vlan"
-                                                           : "Other",
+                    (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "ipv4"
+                    : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "ipv6"
+                    : (pkt->ethType == RTE_ETHER_TYPE_VLAN) ? "vlan"
+                                                            : "Other",
                     (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                     : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
                                                         : "udp",
-                    pkt->vlanid, pkt->pktSize + PG_ETHER_CRC_LEN, pkt->gtpu_teid);
+                    pkt->vlanid, pkt->pktSize + RTE_ETHER_CRC_LEN, pkt->gtpu_teid);
         }
 
         if (pktgen.info[i].pcap) {
@@ -442,7 +440,7 @@ pktgen_lua_save(char *path)
     FILE *fd;
     int i, j;
     uint64_t lcore;
-    struct pg_ether_addr eaddr;
+    struct rte_ether_addr eaddr;
 
     fd = fopen(path, "w");
     if (fd == NULL)
@@ -511,30 +509,30 @@ pktgen_lua_save(char *path)
         fprintf(fd, "--\n-- Set up the primary port information:\n");
         fprintf(fd, "pktgen.set('%d', 'count', %" PRIu64 ");\n", info->pid,
                 rte_atomic64_read(&info->transmit_count));
-        fprintf(fd, "pktgen.set('%d', 'size', %d);\n", info->pid, pkt->pktSize + PG_ETHER_CRC_LEN);
+        fprintf(fd, "pktgen.set('%d', 'size', %d);\n", info->pid, pkt->pktSize + RTE_ETHER_CRC_LEN);
         fprintf(fd, "pktgen.set('%d', 'rate', %g);\n", info->pid, info->tx_rate);
         fprintf(fd, "pktgen.set('%d', 'burst', %d);\n", info->pid, info->tx_burst);
         fprintf(fd, "pktgen.set('%d', 'sport', %d);\n", info->pid, pkt->sport);
         fprintf(fd, "pktgen.set('%d', 'dport', %d);\n", info->pid, pkt->dport);
         fprintf(fd, "pktgen.set('%d', 'prime', %d);\n", info->pid, info->prime_cnt);
         fprintf(fd, "pktgen.set_type('%d', '%s');\n", i,
-                (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "ipv4"
-                : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6"
-                : (pkt->ethType == PG_ETHER_TYPE_VLAN) ? "vlan"
-                : (pkt->ethType == PG_ETHER_TYPE_ARP)  ? "arp"
-                                                       : "unknown");
+                (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "ipv4"
+                : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "ipv6"
+                : (pkt->ethType == RTE_ETHER_TYPE_VLAN) ? "vlan"
+                : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "arp"
+                                                        : "unknown");
         fprintf(fd, "pktgen.set_proto('%d', '%s');\n", i,
                 (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                 : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
                                                     : "udp");
         fprintf(
             fd, "pktgen.set_ipaddr('%d', 'dst', '%s');\n", i,
-            (pkt->ethType == PG_ETHER_TYPE_IPv6)
+            (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                 ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX)
                 : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
                              0xFFFFFFFF));
         fprintf(fd, "pktgen.set_ipaddr('%d', 'src','%s');\n", i,
-                (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                     ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
                                  pkt->ip_src_addr.prefixlen)
                     : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
@@ -677,11 +675,12 @@ pktgen_lua_save(char *path)
         fprintf(fd, "pktgen.tos('%d', 'inc', %d);\n", i, range->tos_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.pkt_size('%d', 'start', %d);\n", i, range->pkt_size + PG_ETHER_CRC_LEN);
+        fprintf(fd, "pktgen.pkt_size('%d', 'start', %d);\n", i,
+                range->pkt_size + RTE_ETHER_CRC_LEN);
         fprintf(fd, "pktgen.pkt_size('%d', 'min', %d);\n", i,
-                range->pkt_size_min + PG_ETHER_CRC_LEN);
+                range->pkt_size_min + RTE_ETHER_CRC_LEN);
         fprintf(fd, "pktgen.pkt_size('%d', 'max', %d);\n", i,
-                range->pkt_size_max + PG_ETHER_CRC_LEN);
+                range->pkt_size_max + RTE_ETHER_CRC_LEN);
         fprintf(fd, "pktgen.pkt_size('%d', 'inc', %d);\n\n", i, range->pkt_size_inc);
 
         fprintf(fd, "--\n-- Set up the sequence data for the port.\n");
@@ -696,26 +695,26 @@ pktgen_lua_save(char *path)
                         inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
                 fprintf(fd, "'%s', ", inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
                 fprintf(fd, "'%s', ",
-                        (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                        (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                             ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
                                          PG_PREFIXMAX)
                             : inet_ntop4(buff, sizeof(buff),
                                          htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
                 fprintf(fd, "'%s', ",
-                        (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                        (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                             ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
                                          pkt->ip_src_addr.prefixlen)
                             : inet_ntop4(buff, sizeof(buff),
                                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
                 fprintf(fd, "%d, %d, '%s', '%s', %d, %d, %d);\n", pkt->sport, pkt->dport,
-                        (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "ipv4"
-                        : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6"
-                        : (pkt->ethType == PG_ETHER_TYPE_VLAN) ? "vlan"
-                                                               : "Other",
+                        (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "ipv4"
+                        : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "ipv6"
+                        : (pkt->ethType == RTE_ETHER_TYPE_VLAN) ? "vlan"
+                                                                : "Other",
                         (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                         : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
                                                             : "udp",
-                        pkt->vlanid, pkt->pktSize + PG_ETHER_CRC_LEN, pkt->gtpu_teid);
+                        pkt->vlanid, pkt->pktSize + RTE_ETHER_CRC_LEN, pkt->gtpu_teid);
             }
             fflush(fd);
             fprintf(fd, "local seq_table = {}\n");
@@ -727,13 +726,13 @@ pktgen_lua_save(char *path)
                 fprintf(fd, "  ['eth_src_addr'] = '%s',\n",
                         inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
                 fprintf(fd, "  ['ip_dst_addr'] = '%s',\n",
-                        (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                        (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                             ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
                                          PG_PREFIXMAX)
                             : inet_ntop4(buff, sizeof(buff),
                                          htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
                 fprintf(fd, "  ['ip_src_addr'] = '%s',\n",
-                        (pkt->ethType == PG_ETHER_TYPE_IPv6)
+                        (pkt->ethType == RTE_ETHER_TYPE_IPV6)
                             ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
                                          pkt->ip_src_addr.prefixlen)
                             : inet_ntop4(buff, sizeof(buff),
@@ -741,10 +740,10 @@ pktgen_lua_save(char *path)
                 fprintf(fd, "  ['sport'] = %d,\n", pkt->sport);
                 fprintf(fd, "  ['dport'] = %d,\n", pkt->dport);
                 fprintf(fd, "  ['ethType'] = '%s',\n",
-                        (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "ipv4"
-                        : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "ipv6"
-                        : (pkt->ethType == PG_ETHER_TYPE_VLAN) ? "vlan"
-                                                               : "Other");
+                        (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "ipv4"
+                        : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "ipv6"
+                        : (pkt->ethType == RTE_ETHER_TYPE_VLAN) ? "vlan"
+                                                                : "Other");
                 fprintf(fd, "  ['ipProto'] = '%s',\n",
                         (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                         : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
@@ -844,13 +843,8 @@ pktgen_link_state(int port, char *buff, int len)
     port_info_t *info = &pktgen.info[port];
 
     if (info->link.link_status)
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
         snprintf(buff, len, "<UP-%u-%s>", (uint32_t)info->link.link_speed,
                  (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? ("FD") : ("HD"));
-#else
-        snprintf(buff, len, "<UP-%u-%s>", (uint32_t)info->link.link_speed,
-                 (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ? ("FD") : ("HD"));
-#endif
     else
         snprintf(buff, len, "<--Down-->");
 
@@ -1353,16 +1347,10 @@ enable_random(port_info_t *info, uint32_t onOff)
 void
 debug_tx_rate(port_info_t *info)
 {
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
     printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n", info->pid, info->tx_rate,
            info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
            info->link.link_speed,
            (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? "FD" : "HD");
-#else
-    printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n", info->pid, info->tx_rate,
-           info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
-           info->link.link_speed, (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ? "FD" : "HD");
-#endif
 }
 
 /*
@@ -1540,7 +1528,7 @@ pktgen_start_latency_sampler(port_info_t *info)
     }
 
     if (info->seq_pkt[SINGLE_PKT].pktSize <
-        (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
+        (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t))
         info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
 
     info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
@@ -1604,7 +1592,7 @@ pktgen_stop_latency_sampler(port_info_t *info)
     }
 
     if (info->seq_pkt[SINGLE_PKT].pktSize >=
-        (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t))
+        (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t))
         info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
 
     info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
@@ -1663,7 +1651,7 @@ single_set_proto(port_info_t *info, char *type)
 
     /* ICMP only works on IPv4 packets. */
     if (type[0] == 'i')
-        info->seq_pkt[SINGLE_PKT].ethType = PG_ETHER_TYPE_IPv4;
+        info->seq_pkt[SINGLE_PKT].ethType = RTE_ETHER_TYPE_IPV4;
 
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
     pktgen_set_tx_update(info);
@@ -1693,7 +1681,7 @@ rate_set_proto(port_info_t *info, char *type)
 
     /* ICMP only works on IPv4 packets. */
     if (type[0] == 'i')
-        info->seq_pkt[RATE_PKT].ethType = PG_ETHER_TYPE_IPv4;
+        info->seq_pkt[RATE_PKT].ethType = RTE_ETHER_TYPE_IPV4;
 
     pktgen_packet_ctor(info, RATE_PKT, -1);
     pktgen_set_tx_update(info);
@@ -1724,7 +1712,7 @@ range_set_proto(port_info_t *info, const char *type)
 
     /* ICMP only works on IPv4 packets. */
     if (type[0] == 'i')
-        info->seq_pkt[RANGE_PKT].ethType = PG_ETHER_TYPE_IPv4;
+        info->seq_pkt[RANGE_PKT].ethType = RTE_ETHER_TYPE_IPV4;
 }
 
 /**
@@ -1777,7 +1765,7 @@ enable_rate(port_info_t *info, uint32_t state)
 
         pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
         info->tx_burst = DEFAULT_PKT_BURST;
-        pkt->pktSize   = PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN;
+        pkt->pktSize   = RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN;
 
         pktgen_packet_rate(info);
     }
@@ -1893,14 +1881,14 @@ enable_bonding(port_info_t *info, uint32_t state)
         return;
     }
 
-    num_workers = pg_eth_bond_workers_get(info->pid, workers, RTE_MAX_ETHPORTS);
+    num_workers = rte_eth_bond_slaves_get(info->pid, workers, RTE_MAX_ETHPORTS);
     if (num_workers < 0) {
         printf("Failed to get worker list for port = %d\n", info->pid);
         return;
     }
 
     num_active_workers =
-        pg_eth_bond_active_workers_get(info->pid, active_workers, RTE_MAX_ETHPORTS);
+        rte_eth_bond_active_slaves_get(info->pid, active_workers, RTE_MAX_ETHPORTS);
     if (num_active_workers < 0) {
         printf("Failed to get active worker list for port = %d\n", info->pid);
         return;
@@ -1998,7 +1986,7 @@ show_bonding_mode(port_info_t *info)
         printf("\n");
     }
 
-    num_workers = pg_eth_bond_workers_get(port_id, workers, RTE_MAX_ETHPORTS);
+    num_workers = rte_eth_bond_slaves_get(port_id, workers, RTE_MAX_ETHPORTS);
 
     if (num_workers < 0) {
         printf("\tFailed to get worker list for port = %d\n", port_id);
@@ -2014,7 +2002,7 @@ show_bonding_mode(port_info_t *info)
         printf("\tSlaves: []\n");
     }
 
-    num_active_workers = pg_eth_bond_active_workers_get(port_id, workers, RTE_MAX_ETHPORTS);
+    num_active_workers = rte_eth_bond_active_slaves_get(port_id, workers, RTE_MAX_ETHPORTS);
 
     if (num_active_workers < 0) {
         printf("\tFailed to get active worker list for port = %d\n", port_id);
@@ -2032,10 +2020,10 @@ show_bonding_mode(port_info_t *info)
     }
 
     for (i = 0; i < num_active_workers; i++) {
-        struct pg_eth_bond_8023ad_worker_info conf;
+        struct rte_eth_bond_8023ad_slave_info conf;
 
         printf("\t\tSlave %u\n", workers[i]);
-        pg_eth_bond_8023ad_worker_info(info->pid, workers[i], &conf);
+        rte_eth_bond_8023ad_slave_info(info->pid, workers[i], &conf);
         printf("\t\t  %sSelected\n\t\t  Actor States  ( ", conf.selected ? "" : "Not ");
         show_states(conf.actor_state);
         printf(")\n\t\t  Partner States( ");
@@ -2088,13 +2076,13 @@ enable_garp(port_info_t *info, uint32_t state)
 void
 range_set_pkt_type(port_info_t *info, const char *type)
 {
-    info->seq_pkt[RANGE_PKT].ethType = (type[0] == 'a')   ? PG_ETHER_TYPE_ARP
-                                       : (type[3] == '4') ? PG_ETHER_TYPE_IPv4
+    info->seq_pkt[RANGE_PKT].ethType = (type[0] == 'a')   ? RTE_ETHER_TYPE_ARP
+                                       : (type[3] == '4') ? RTE_ETHER_TYPE_IPV4
                                        : (type[3] == '6')
-                                           ? PG_ETHER_TYPE_IPv6
+                                           ? RTE_ETHER_TYPE_IPV6
                                            :
-                                           /* TODO print error: unknown type */ PG_ETHER_TYPE_IPv4;
-    if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+                                           /* TODO print error: unknown type */ RTE_ETHER_TYPE_IPV4;
+    if (info->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6) {
         if (info->range.pkt_size < MIN_v6_PKT_SIZE)
             info->range.pkt_size = MIN_v6_PKT_SIZE;
         if (info->range.pkt_size_min < MIN_v6_PKT_SIZE)
@@ -2122,19 +2110,19 @@ single_set_pkt_type(port_info_t *info, const char *type)
     pkt_seq_t *pkt   = &info->seq_pkt[SINGLE_PKT];
     uint16_t ethtype = pkt->ethType;
 
-    pkt->ethType = (type[0] == 'a')   ? PG_ETHER_TYPE_ARP
-                   : (type[3] == '4') ? PG_ETHER_TYPE_IPv4
-                   : (type[3] == '6') ? PG_ETHER_TYPE_IPv6
-                   : (type[2] == '4') ? PG_ETHER_TYPE_IPv4
-                   : (type[2] == '6') ? PG_ETHER_TYPE_IPv6
+    pkt->ethType = (type[0] == 'a')   ? RTE_ETHER_TYPE_ARP
+                   : (type[3] == '4') ? RTE_ETHER_TYPE_IPV4
+                   : (type[3] == '6') ? RTE_ETHER_TYPE_IPV6
+                   : (type[2] == '4') ? RTE_ETHER_TYPE_IPV4
+                   : (type[2] == '6') ? RTE_ETHER_TYPE_IPV6
                                       :
-                                      /* TODO print error: unknown type */ PG_ETHER_TYPE_IPv4;
+                                      /* TODO print error: unknown type */ RTE_ETHER_TYPE_IPV4;
 
-    if ((ethtype == PG_ETHER_TYPE_IPv6) && (pkt->ethType == PG_ETHER_TYPE_IPv4)) {
+    if ((ethtype == RTE_ETHER_TYPE_IPV6) && (pkt->ethType == RTE_ETHER_TYPE_IPV4)) {
         if (pkt->pktSize >= MIN_v6_PKT_SIZE)
             pkt->pktSize = MIN_PKT_SIZE + (pkt->pktSize - MIN_v6_PKT_SIZE);
     }
-    if ((ethtype == PG_ETHER_TYPE_IPv4) && (pkt->ethType == PG_ETHER_TYPE_IPv6)) {
+    if ((ethtype == RTE_ETHER_TYPE_IPV4) && (pkt->ethType == RTE_ETHER_TYPE_IPV6)) {
         if (pkt->pktSize < MIN_v6_PKT_SIZE)
             pkt->pktSize = MIN_v6_PKT_SIZE + (pkt->pktSize - MIN_PKT_SIZE);
     }
@@ -2161,19 +2149,19 @@ rate_set_pkt_type(port_info_t *info, const char *type)
     pkt_seq_t *pkt   = &info->seq_pkt[RATE_PKT];
     uint16_t ethtype = pkt->ethType;
 
-    pkt->ethType = (type[0] == 'a')   ? PG_ETHER_TYPE_ARP
-                   : (type[3] == '4') ? PG_ETHER_TYPE_IPv4
-                   : (type[3] == '6') ? PG_ETHER_TYPE_IPv6
-                   : (type[2] == '4') ? PG_ETHER_TYPE_IPv4
-                   : (type[2] == '6') ? PG_ETHER_TYPE_IPv6
+    pkt->ethType = (type[0] == 'a')   ? RTE_ETHER_TYPE_ARP
+                   : (type[3] == '4') ? RTE_ETHER_TYPE_IPV4
+                   : (type[3] == '6') ? RTE_ETHER_TYPE_IPV6
+                   : (type[2] == '4') ? RTE_ETHER_TYPE_IPV4
+                   : (type[2] == '6') ? RTE_ETHER_TYPE_IPV6
                                       :
-                                      /* TODO print error: unknown type */ PG_ETHER_TYPE_IPv4;
+                                      /* TODO print error: unknown type */ RTE_ETHER_TYPE_IPV4;
 
-    if ((ethtype == PG_ETHER_TYPE_IPv6) && (pkt->ethType == PG_ETHER_TYPE_IPv4)) {
+    if ((ethtype == RTE_ETHER_TYPE_IPV6) && (pkt->ethType == RTE_ETHER_TYPE_IPV4)) {
         if (pkt->pktSize >= MIN_v6_PKT_SIZE)
             pkt->pktSize = MIN_PKT_SIZE + (pkt->pktSize - MIN_v6_PKT_SIZE);
     }
-    if ((ethtype == PG_ETHER_TYPE_IPv4) && (pkt->ethType == PG_ETHER_TYPE_IPv6)) {
+    if ((ethtype == RTE_ETHER_TYPE_IPV4) && (pkt->ethType == RTE_ETHER_TYPE_IPV6)) {
         if (pkt->pktSize < MIN_v6_PKT_SIZE)
             pkt->pktSize = MIN_v6_PKT_SIZE + (pkt->pktSize - MIN_PKT_SIZE);
     }
@@ -2634,7 +2622,7 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     pkt->dport     = DEFAULT_DST_PORT;
     pkt->ttl       = DEFAULT_TTL;
     pkt->ipProto   = PG_IPPROTO_TCP;
-    pkt->ethType   = PG_ETHER_TYPE_IPv4;
+    pkt->ethType   = RTE_ETHER_TYPE_IPV4;
     pkt->vlanid    = DEFAULT_VLAN_ID;
     pkt->cos       = DEFAULT_COS;
     pkt->tos       = DEFAULT_TOS;
@@ -2664,8 +2652,8 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     }
 
     if (dst_info->seq_pkt != NULL) {
-        pg_ether_addr_copy(&dst_info->seq_pkt[SINGLE_PKT].eth_src_addr, &pkt->eth_dst_addr);
-        pg_ether_addr_copy(&dst_info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_dst_addr);
+        rte_ether_addr_copy(&dst_info->seq_pkt[SINGLE_PKT].eth_src_addr, &pkt->eth_dst_addr);
+        rte_ether_addr_copy(&dst_info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_dst_addr);
     } else
         memset(&pkt->eth_dst_addr, 0, sizeof(pkt->eth_dst_addr));
 
@@ -3043,18 +3031,18 @@ single_set_pkt_size(port_info_t *info, uint16_t size)
 {
     pkt_seq_t *pkt = &info->seq_pkt[SINGLE_PKT];
 
-    if (size < PG_ETHER_CRC_LEN)
-        size = PG_ETHER_CRC_LEN;
+    if (size < RTE_ETHER_CRC_LEN)
+        size = RTE_ETHER_CRC_LEN;
 
-    if ((size - PG_ETHER_CRC_LEN) < MIN_PKT_SIZE)
+    if ((size - RTE_ETHER_CRC_LEN) < MIN_PKT_SIZE)
         size = pktgen.eth_min_pkt;
-    if ((size - PG_ETHER_CRC_LEN) > MAX_PKT_SIZE)
+    if ((size - RTE_ETHER_CRC_LEN) > MAX_PKT_SIZE)
         size = pktgen.eth_max_pkt;
 
-    if ((pkt->ethType == PG_ETHER_TYPE_IPv6) && (size < (MIN_v6_PKT_SIZE + PG_ETHER_CRC_LEN)))
-        size = MIN_v6_PKT_SIZE + PG_ETHER_CRC_LEN;
+    if ((pkt->ethType == RTE_ETHER_TYPE_IPV6) && (size < (MIN_v6_PKT_SIZE + RTE_ETHER_CRC_LEN)))
+        size = MIN_v6_PKT_SIZE + RTE_ETHER_CRC_LEN;
 
-    pkt->pktSize = (size - PG_ETHER_CRC_LEN);
+    pkt->pktSize = (size - RTE_ETHER_CRC_LEN);
 
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
     pktgen_packet_rate(info);
@@ -3078,18 +3066,18 @@ rate_set_pkt_size(port_info_t *info, uint16_t size)
 {
     pkt_seq_t *pkt = &info->seq_pkt[RATE_PKT];
 
-    if (size < PG_ETHER_CRC_LEN)
-        size = PG_ETHER_CRC_LEN;
+    if (size < RTE_ETHER_CRC_LEN)
+        size = RTE_ETHER_CRC_LEN;
 
-    if ((size - PG_ETHER_CRC_LEN) < MIN_PKT_SIZE)
+    if ((size - RTE_ETHER_CRC_LEN) < MIN_PKT_SIZE)
         size = pktgen.eth_min_pkt;
-    if ((size - PG_ETHER_CRC_LEN) > MAX_PKT_SIZE)
+    if ((size - RTE_ETHER_CRC_LEN) > MAX_PKT_SIZE)
         size = pktgen.eth_max_pkt;
 
-    if ((pkt->ethType == PG_ETHER_TYPE_IPv6) && (size < (MIN_v6_PKT_SIZE + PG_ETHER_CRC_LEN)))
-        size = MIN_v6_PKT_SIZE + PG_ETHER_CRC_LEN;
+    if ((pkt->ethType == RTE_ETHER_TYPE_IPV6) && (size < (MIN_v6_PKT_SIZE + RTE_ETHER_CRC_LEN)))
+        size = MIN_v6_PKT_SIZE + RTE_ETHER_CRC_LEN;
 
-    pkt->pktSize = (size - PG_ETHER_CRC_LEN);
+    pkt->pktSize = (size - RTE_ETHER_CRC_LEN);
 
     pktgen_packet_ctor(info, RATE_PKT, -1);
     pktgen_packet_rate(info);
@@ -3195,7 +3183,7 @@ single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver
         else
             return;
 
-        if (pkt->ethType != PG_ETHER_TYPE_IPv4 && pkt->ethType != PG_ETHER_TYPE_ARP)
+        if (pkt->ethType != RTE_ETHER_TYPE_IPV4 && pkt->ethType != RTE_ETHER_TYPE_ARP)
             single_set_pkt_type(info, "ipv4");
 
     } else if (ip_ver == 6) {
@@ -3209,7 +3197,7 @@ single_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver
         else
             return;
 
-        if (pkt->ethType != PG_ETHER_TYPE_IPv6)
+        if (pkt->ethType != RTE_ETHER_TYPE_IPV6)
             single_set_pkt_type(info, "ipv6");
     }
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
@@ -3242,7 +3230,7 @@ rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver)
         else
             return;
 
-        if (pkt->ethType != PG_ETHER_TYPE_IPv4 && pkt->ethType != PG_ETHER_TYPE_ARP)
+        if (pkt->ethType != RTE_ETHER_TYPE_IPV4 && pkt->ethType != RTE_ETHER_TYPE_ARP)
             rate_set_pkt_type(info, "ipv4");
 
     } else if (ip_ver == 6) {
@@ -3256,7 +3244,7 @@ rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver)
         else
             return;
 
-        if (pkt->ethType != PG_ETHER_TYPE_IPv6)
+        if (pkt->ethType != RTE_ETHER_TYPE_IPV6)
             rate_set_pkt_type(info, "ipv6");
     }
     pktgen_packet_ctor(info, RATE_PKT, -1);
@@ -3528,7 +3516,7 @@ rate_set_tcp_ack(port_info_t *info, uint32_t ack)
  */
 
 void
-single_set_mac(port_info_t *info, const char *which, struct pg_ether_addr *mac)
+single_set_mac(port_info_t *info, const char *which, struct rte_ether_addr *mac)
 {
     if (!strcmp(which, "dst")) {
         memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
@@ -3553,7 +3541,7 @@ single_set_mac(port_info_t *info, const char *which, struct pg_ether_addr *mac)
  */
 
 void
-single_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac)
+single_set_dst_mac(port_info_t *info, struct rte_ether_addr *mac)
 {
     memcpy(&info->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
@@ -3573,7 +3561,7 @@ single_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac)
  */
 
 void
-single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
+single_set_src_mac(port_info_t *info, struct rte_ether_addr *mac)
 {
     memcpy(&info->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
     pktgen_packet_ctor(info, SINGLE_PKT, -1);
@@ -3593,7 +3581,7 @@ single_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
  */
 
 void
-rate_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac)
+rate_set_dst_mac(port_info_t *info, struct rte_ether_addr *mac)
 {
     memcpy(&info->seq_pkt[RATE_PKT].eth_dst_addr, mac, 6);
     pktgen_packet_ctor(info, RATE_PKT, -1);
@@ -3613,7 +3601,7 @@ rate_set_dst_mac(port_info_t *info, struct pg_ether_addr *mac)
  */
 
 void
-rate_set_src_mac(port_info_t *info, struct pg_ether_addr *mac)
+rate_set_src_mac(port_info_t *info, struct rte_ether_addr *mac)
 {
     memcpy(&info->seq_pkt[RATE_PKT].eth_src_addr, mac, 6);
     pktgen_packet_ctor(info, RATE_PKT, -1);
@@ -3708,12 +3696,12 @@ enable_latency(port_info_t *info, uint32_t state)
         pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
 
         if (info->seq_pkt[SINGLE_PKT].pktSize <
-            (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+            (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
             info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
         }
     } else {
         if (info->seq_pkt[SINGLE_PKT].pktSize >=
-            (PG_ETHER_MIN_LEN - PG_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
+            (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
             info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
         }
         pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
@@ -3814,7 +3802,7 @@ pattern_set_user_pattern(port_info_t *info, char *str)
  */
 
 void
-range_set_dest_mac(port_info_t *info, const char *what, struct pg_ether_addr *mac)
+range_set_dest_mac(port_info_t *info, const char *what, struct rte_ether_addr *mac)
 {
     if (!strcmp(what, "min") || !strcmp(what, "minimum"))
         inet_mtoh64(mac, &info->range.dst_mac_min);
@@ -3842,7 +3830,7 @@ range_set_dest_mac(port_info_t *info, const char *what, struct pg_ether_addr *ma
  */
 
 void
-range_set_src_mac(port_info_t *info, const char *what, struct pg_ether_addr *mac)
+range_set_src_mac(port_info_t *info, const char *what, struct rte_ether_addr *mac)
 {
     if (!strcmp(what, "min") || !strcmp(what, "minimum"))
         inet_mtoh64(mac, &info->range.src_mac_min);
@@ -3872,7 +3860,7 @@ range_set_src_mac(port_info_t *info, const char *what, struct pg_ether_addr *mac
 void
 range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
-    if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+    if (info->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6) {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
             rte_memcpy(info->range.src_ipv6_min, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
@@ -3908,7 +3896,7 @@ range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 void
 range_set_dst_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
-    if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
+    if (info->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6) {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
             rte_memcpy(info->range.dst_ipv6_min, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
@@ -4208,9 +4196,9 @@ range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
         else if (size > pktgen.eth_max_pkt)
             size = MAX_PKT_SIZE;
         else
-            size -= PG_ETHER_CRC_LEN;
+            size -= RTE_ETHER_CRC_LEN;
 
-        if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6 && size < MIN_v6_PKT_SIZE)
+        if (info->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6 && size < MIN_v6_PKT_SIZE)
             size = MIN_v6_PKT_SIZE;
 
         if (!strcmp(what, "start"))
@@ -4344,8 +4332,8 @@ pktgen_set_page(char *str)
  * SEE ALSO:
  */
 void
-pktgen_set_seq(port_info_t *info, uint32_t seqnum, struct pg_ether_addr *daddr,
-               struct pg_ether_addr *saddr, struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
+pktgen_set_seq(port_info_t *info, uint32_t seqnum, struct rte_ether_addr *daddr,
+               struct rte_ether_addr *saddr, struct pg_ipaddr *ip_daddr, struct pg_ipaddr *ip_saddr,
                uint32_t sport, uint32_t dport, char type, char proto, uint16_t vlanid,
                uint32_t pktsize, uint32_t gtpu_teid)
 {
@@ -4366,14 +4354,14 @@ pktgen_set_seq(port_info_t *info, uint32_t seqnum, struct pg_ether_addr *daddr,
     }
     pkt->dport   = dport;
     pkt->sport   = sport;
-    pkt->pktSize = pktsize - PG_ETHER_CRC_LEN;
+    pkt->pktSize = pktsize - RTE_ETHER_CRC_LEN;
     pkt->ipProto = (proto == 'u')   ? PG_IPPROTO_UDP
                    : (proto == 'i') ? PG_IPPROTO_ICMP
                                     : PG_IPPROTO_TCP;
     /* Force the IP protocol to IPv4 if this is a ICMP packet. */
     if (proto == 'i')
         type = '4';
-    pkt->ethType   = (type == '6') ? PG_ETHER_TYPE_IPv6 : PG_ETHER_TYPE_IPv4;
+    pkt->ethType   = (type == '6') ? RTE_ETHER_TYPE_IPV6 : RTE_ETHER_TYPE_IPV4;
     pkt->vlanid    = vlanid;
     pkt->gtpu_teid = gtpu_teid;
     pktgen_packet_ctor(info, seqnum, -1);

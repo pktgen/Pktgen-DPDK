@@ -75,70 +75,65 @@
 pcap_info_t *
 _pcap_open(char *filename, uint16_t port)
 {
-	pcap_info_t   *pcap = NULL;
+    pcap_info_t *pcap = NULL;
 
-	if (filename == NULL) {
-		printf("%s: filename is NULL\n", __func__);
-		goto leave;
-	}
+    if (filename == NULL) {
+        printf("%s: filename is NULL\n", __func__);
+        goto leave;
+    }
 
-	pcap = (pcap_info_t *)rte_malloc_socket("PCAP info",
-					 sizeof(pcap_info_t),
-					 RTE_CACHE_LINE_SIZE,
-					 rte_socket_id());
-	if (pcap == NULL) {
-		printf("%s: malloc failed for pcap_info_t structure\n",
-		       __func__);
-		goto leave;
-	}
-	memset((char *)pcap, 0, sizeof(pcap_info_t));
+    pcap = (pcap_info_t *)rte_malloc_socket("PCAP info", sizeof(pcap_info_t), RTE_CACHE_LINE_SIZE,
+                                            rte_socket_id());
+    if (pcap == NULL) {
+        printf("%s: malloc failed for pcap_info_t structure\n", __func__);
+        goto leave;
+    }
+    memset((char *)pcap, 0, sizeof(pcap_info_t));
 
-	pcap->fd = fopen((const char *)filename, "r");
-	if (pcap->fd == NULL) {
-		printf("%s: failed for (%s)\n", __func__, filename);
-		goto leave;
-	}
+    pcap->fd = fopen((const char *)filename, "r");
+    if (pcap->fd == NULL) {
+        printf("%s: failed for (%s)\n", __func__, filename);
+        goto leave;
+    }
 
-	if (fread(&pcap->info, 1, sizeof(pcap_hdr_t),
-		  pcap->fd) != sizeof(pcap_hdr_t) ) {
-		printf("%s: failed to read the file header\n", __func__);
-		goto leave;
-	}
+    if (fread(&pcap->info, 1, sizeof(pcap_hdr_t), pcap->fd) != sizeof(pcap_hdr_t)) {
+        printf("%s: failed to read the file header\n", __func__);
+        goto leave;
+    }
 
-	/* Default to little endian format. */
-	pcap->endian    = LITTLE_ENDIAN;
-	pcap->filename  = strdup(filename);
+    /* Default to little endian format. */
+    pcap->endian   = LITTLE_ENDIAN;
+    pcap->filename = strdup(filename);
 
-	/* Make sure we have a valid PCAP file for Big or Little Endian formats. */
-	if ( (pcap->info.magic_number != PCAP_MAGIC_NUMBER) &&
-	     (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER)) ) {
-		printf("%s: Magic Number does not match!\n", __func__);
-		fflush(stdout);
-		goto leave;
-	}
+    /* Make sure we have a valid PCAP file for Big or Little Endian formats. */
+    if ((pcap->info.magic_number != PCAP_MAGIC_NUMBER) &&
+        (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER))) {
+        printf("%s: Magic Number does not match!\n", __func__);
+        fflush(stdout);
+        goto leave;
+    }
 
-	/* Convert from big-endian to little-endian. */
-	if (pcap->info.magic_number == ntohl(PCAP_MAGIC_NUMBER) ) {
-		printf(
-			"PCAP: Big Endian file format found, converting to little endian\n");
-		pcap->endian                = BIG_ENDIAN;
-		pcap->info.magic_number     = ntohl(pcap->info.magic_number);
-		pcap->info.network          = ntohl(pcap->info.network);
-		pcap->info.sigfigs          = ntohl(pcap->info.sigfigs);
-		pcap->info.snaplen          = ntohl(pcap->info.snaplen);
-		pcap->info.thiszone         = ntohl(pcap->info.thiszone);
-		pcap->info.version_major    = ntohs(pcap->info.version_major);
-		pcap->info.version_minor    = ntohs(pcap->info.version_minor);
-	}
-	_pcap_info(pcap, port, 0);
+    /* Convert from big-endian to little-endian. */
+    if (pcap->info.magic_number == ntohl(PCAP_MAGIC_NUMBER)) {
+        printf("PCAP: Big Endian file format found, converting to little endian\n");
+        pcap->endian             = BIG_ENDIAN;
+        pcap->info.magic_number  = ntohl(pcap->info.magic_number);
+        pcap->info.network       = ntohl(pcap->info.network);
+        pcap->info.sigfigs       = ntohl(pcap->info.sigfigs);
+        pcap->info.snaplen       = ntohl(pcap->info.snaplen);
+        pcap->info.thiszone      = ntohl(pcap->info.thiszone);
+        pcap->info.version_major = ntohs(pcap->info.version_major);
+        pcap->info.version_minor = ntohs(pcap->info.version_minor);
+    }
+    _pcap_info(pcap, port, 0);
 
-	return pcap;
+    return pcap;
 
 leave:
-	_pcap_close(pcap);
-	fflush(stdout);
+    _pcap_close(pcap);
+    fflush(stdout);
 
-	return NULL;
+    return NULL;
 }
 
 /**
@@ -156,20 +151,18 @@ leave:
 void
 _pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 {
-	printf("\nPCAP file for port %d: %s\n", port, pcap->filename);
-	printf("  magic: %08x,", pcap->info.magic_number);
-	printf(" Version: %d.%d,",
-	       pcap->info.version_major,
-	       pcap->info.version_minor);
-	printf(" Zone: %d,", pcap->info.thiszone);
-	printf(" snaplen: %d,", pcap->info.snaplen);
-	printf(" sigfigs: %d,", pcap->info.sigfigs);
-	printf(" network: %d", pcap->info.network);
-	printf(" Endian: %s\n", pcap->endian == BIG_ENDIAN ? "Big" : "Little");
-	if (flag)
-		printf("  Packet count: %d\n", pcap->pkt_count);
-	printf("\n");
-	fflush(stdout);
+    printf("\nPCAP file for port %d: %s\n", port, pcap->filename);
+    printf("  magic: %08x,", pcap->info.magic_number);
+    printf(" Version: %d.%d,", pcap->info.version_major, pcap->info.version_minor);
+    printf(" Zone: %d,", pcap->info.thiszone);
+    printf(" snaplen: %d,", pcap->info.snaplen);
+    printf(" sigfigs: %d,", pcap->info.sigfigs);
+    printf(" network: %d", pcap->info.network);
+    printf(" Endian: %s\n", pcap->endian == BIG_ENDIAN ? "Big" : "Little");
+    if (flag)
+        printf("  Packet count: %d\n", pcap->pkt_count);
+    printf("\n");
+    fflush(stdout);
 }
 
 /**
@@ -187,14 +180,14 @@ _pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 void
 _pcap_rewind(pcap_info_t *pcap)
 {
-	if (pcap == NULL)
-		return;
+    if (pcap == NULL)
+        return;
 
-	/* Rewind to the beginning */
-	rewind(pcap->fd);
+    /* Rewind to the beginning */
+    rewind(pcap->fd);
 
-	/* Seek past the pcap header */
-	(void)fseek(pcap->fd, sizeof(pcap_hdr_t), SEEK_SET);
+    /* Seek past the pcap header */
+    (void)fseek(pcap->fd, sizeof(pcap_hdr_t), SEEK_SET);
 }
 
 /**
@@ -212,28 +205,27 @@ _pcap_rewind(pcap_info_t *pcap)
 void
 _pcap_skip(pcap_info_t *pcap, uint32_t skip)
 {
-	pcaprec_hdr_t hdr, *phdr;
+    pcaprec_hdr_t hdr, *phdr;
 
-	if (pcap == NULL)
-		return;
+    if (pcap == NULL)
+        return;
 
-	/* Rewind to the beginning */
-	rewind(pcap->fd);
+    /* Rewind to the beginning */
+    rewind(pcap->fd);
 
-	/* Seek past the pcap header */
-	(void)fseek(pcap->fd, sizeof(pcap_hdr_t), SEEK_SET);
+    /* Seek past the pcap header */
+    (void)fseek(pcap->fd, sizeof(pcap_hdr_t), SEEK_SET);
 
-	phdr = &hdr;
-	while (skip--) {
-		if (fread(phdr, 1, sizeof(pcaprec_hdr_t),
-			  pcap->fd) != sizeof(pcaprec_hdr_t) )
-			break;
+    phdr = &hdr;
+    while (skip--) {
+        if (fread(phdr, 1, sizeof(pcaprec_hdr_t), pcap->fd) != sizeof(pcaprec_hdr_t))
+            break;
 
-		/* Convert the packet header to the correct format. */
-		_pcap_convert(pcap, phdr);
+        /* Convert the packet header to the correct format. */
+        _pcap_convert(pcap, phdr);
 
-		(void)fseek(pcap->fd, phdr->incl_len, SEEK_CUR);
-	}
+        (void)fseek(pcap->fd, phdr->incl_len, SEEK_CUR);
+    }
 }
 
 /**
@@ -251,14 +243,14 @@ _pcap_skip(pcap_info_t *pcap, uint32_t skip)
 void
 _pcap_close(pcap_info_t *pcap)
 {
-	if (pcap == NULL)
-		return;
+    if (pcap == NULL)
+        return;
 
-	if (pcap->fd)
-		fclose(pcap->fd);
-	if (pcap->filename)
-		free(pcap->filename);
-	rte_free(pcap);
+    if (pcap->fd)
+        fclose(pcap->fd);
+    if (pcap->filename)
+        free(pcap->filename);
+    rte_free(pcap);
 }
 
 /**
@@ -274,40 +266,40 @@ _pcap_close(pcap_info_t *pcap)
  */
 
 int
-_pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
-		    unsigned int *length) {
-	const struct pg_ipv4_hdr *iph =
-		(const struct pg_ipv4_hdr *)(pkt_data + sizeof(struct pg_ether_hdr));
-	const struct pg_tcp_hdr *th = NULL;
+_pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset, unsigned int *length)
+{
+    const struct rte_ipv4_hdr *iph =
+        (const struct rte_ipv4_hdr *)(pkt_data + sizeof(struct rte_ether_hdr));
+    const struct rte_tcp_hdr *th = NULL;
 
-	/* Ignore packets that aren't IPv4 */
-	if ( (iph->version_ihl & 0xF0) != 0x40)
-		return -1;
+    /* Ignore packets that aren't IPv4 */
+    if ((iph->version_ihl & 0xF0) != 0x40)
+        return -1;
 
-	/* Ignore fragmented packets. */
-	if (iph->fragment_offset & htons(PG_OFF_MF | PG_OFF_MASK))
-		return -1;
+    /* Ignore fragmented packets. */
+    if (iph->fragment_offset & htons(PG_OFF_MF | PG_OFF_MASK))
+        return -1;
 
-	/* IP header length, and transport header length. */
-	unsigned int ihlen = (iph->version_ihl & 0x0F) * 4;
-	unsigned int thlen = 0;
+    /* IP header length, and transport header length. */
+    unsigned int ihlen = (iph->version_ihl & 0x0F) * 4;
+    unsigned int thlen = 0;
 
-	switch (iph->next_proto_id) {
-	case PG_IPPROTO_TCP:
-		th = (const struct pg_tcp_hdr *)((const char *)iph + ihlen);
-		thlen = (th->data_off >> 4) * 4;
-		break;
-	case PG_IPPROTO_UDP:
-		thlen = sizeof(struct pg_udp_hdr);
-		break;
-	default:
-		return -1;
-	}
+    switch (iph->next_proto_id) {
+    case PG_IPPROTO_TCP:
+        th    = (const struct rte_tcp_hdr *)((const char *)iph + ihlen);
+        thlen = (th->data_off >> 4) * 4;
+        break;
+    case PG_IPPROTO_UDP:
+        thlen = sizeof(struct rte_udp_hdr);
+        break;
+    default:
+        return -1;
+    }
 
-	*offset = sizeof(struct pg_ether_hdr) + ihlen + thlen;
-	*length = sizeof(struct pg_ether_hdr) + ntohs(iph->total_length) - *offset;
+    *offset = sizeof(struct rte_ether_hdr) + ihlen + thlen;
+    *length = sizeof(struct rte_ether_hdr) + ntohs(iph->total_length) - *offset;
 
-	return *length != 0;
+    return *length != 0;
 }
 
 /**
@@ -323,25 +315,21 @@ _pcap_payloadOffset(const unsigned char *pkt_data, unsigned int *offset,
  */
 
 size_t
-_pcap_read(pcap_info_t *pcap,
-	   pcaprec_hdr_t *pHdr,
-	   char *pktBuff,
-	   uint32_t bufLen)
+_pcap_read(pcap_info_t *pcap, pcaprec_hdr_t *pHdr, char *pktBuff, uint32_t bufLen)
 {
-	do {
-		if (fread(pHdr, 1, sizeof(pcaprec_hdr_t),
-			  pcap->fd) != sizeof(pcaprec_hdr_t) )
-			return 0;
+    do {
+        if (fread(pHdr, 1, sizeof(pcaprec_hdr_t), pcap->fd) != sizeof(pcaprec_hdr_t))
+            return 0;
 
-		/* Convert the packet header to the correct format. */
-		_pcap_convert(pcap, pHdr);
+        /* Convert the packet header to the correct format. */
+        _pcap_convert(pcap, pHdr);
 
-		/* Skip packets larger then the buffer size. */
-		if (pHdr->incl_len > bufLen) {
-			(void)fseek(pcap->fd, pHdr->incl_len, SEEK_CUR);
-			return pHdr->incl_len;
-		}
+        /* Skip packets larger then the buffer size. */
+        if (pHdr->incl_len > bufLen) {
+            (void)fseek(pcap->fd, pHdr->incl_len, SEEK_CUR);
+            return pHdr->incl_len;
+        }
 
-		return fread(pktBuff, 1, pHdr->incl_len, pcap->fd);
-	} while (1);
+        return fread(pktBuff, 1, pHdr->incl_len, pcap->fd);
+    } while (1);
 }

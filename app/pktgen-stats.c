@@ -16,9 +16,7 @@
 
 #include "pktgen.h"
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #include <rte_bus_pci.h>
-#endif
 
 /**
  *
@@ -91,10 +89,6 @@ pktgen_print_static_data(void)
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
 
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Missed Rx");
-#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad CRC Rx");
-        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Bad Len Rx");
-#endif
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "mcasts Rx");
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "No Mbuf Rx");
     }
@@ -160,15 +154,15 @@ pktgen_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.stat.values");
-        snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + PG_ETHER_CRC_LEN, info->tx_burst);
+        snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + RTE_ETHER_CRC_LEN, info->tx_burst);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%s / %s:%04x",
-                 (pkt->ethType == PG_ETHER_TYPE_IPv4)   ? "IPv4"
-                 : (pkt->ethType == PG_ETHER_TYPE_IPv6) ? "IPv6"
-                 : (pkt->ethType == PG_ETHER_TYPE_ARP)  ? "ARP"
-                                                        : "Other",
+                 (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "IPv4"
+                 : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "IPv6"
+                 : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "ARP"
+                                                         : "Other",
                  (pkt->ipProto == PG_IPPROTO_TCP)                              ? "TCP"
                  : (pkt->ipProto == PG_IPPROTO_ICMP)                           ? "ICMP"
                  : (rte_atomic32_read(&info->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
@@ -183,7 +177,7 @@ pktgen_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.ip");
-        if (pkt->ethType == PG_ETHER_TYPE_IPv6) {
+        if (pkt->ethType == RTE_ETHER_TYPE_IPV6) {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
                                    PG_PREFIXMAX | ((COLUMN_WIDTH_1 - 1) << 8)));
@@ -205,13 +199,6 @@ pktgen_print_static_data(void)
                     inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 
         rte_eth_dev_info_get(pid, &dev);
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
-        if (dev.pci_dev)
-            snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", dev.pci_dev->id.vendor_id,
-                     dev.pci_dev->id.device_id, dev.pci_dev->addr.bus, dev.pci_dev->addr.devid,
-                     dev.pci_dev->addr.function);
-        else
-#else
         struct rte_bus *bus;
         if (dev.device)
             bus = rte_bus_find_by_device(dev.device);
@@ -223,7 +210,6 @@ pktgen_print_static_data(void)
                      pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
                      pci_dev->addr.function);
         } else
-#endif
             snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", 0, 0, 0, 0, 0);
         pktgen_display_set_color("stats.bdf");
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -279,17 +265,8 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
     }
 
     /* Setup a few default values to prevent problems later. */
-#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
     info->link.link_speed  = RTE_ETH_SPEED_NUM_10G;
     info->link.link_duplex = RTE_ETH_LINK_FULL_DUPLEX;
-#else
-#if __RTE_VERSION >= RTE_VERSION_NUM(17, 2, 0, 0)
-    info->link.link_speed = ETH_SPEED_NUM_10G;
-#else
-    info->link.link_speed = 10000;
-#endif
-    info->link.link_duplex = ETH_LINK_FULL_DUPLEX;
-#endif
 }
 
 /**
@@ -342,13 +319,6 @@ pktgen_page_stats(void)
             pktgen.max_total_opackets = cumm->opackets;
 
         cumm->imissed += rate->imissed;
-#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-        cumm->ibadcrc += rate->ibadcrc;
-        cumm->ibadlen += rate->ibadlen;
-#endif
-#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-        cumm->imcasts += rate->imcasts;
-#endif
         cumm->rx_nombuf += rate->rx_nombuf;
     }
 
@@ -441,18 +411,7 @@ pktgen_page_stats(void)
 
             snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.imissed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.ibadcrc);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-            snprintf(buff, sizeof(buff), "%'lu", info->stats.ibadlen);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#endif
-#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-            snprintf(buff, sizeof(buff), "%'lu", info->stats.imcasts);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#else
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
-#endif
             snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.rx_nombuf);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         }
@@ -555,14 +514,6 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
         rate->imissed   = curr->imissed - prev->imissed;
         rate->rx_nombuf = curr->rx_nombuf - prev->rx_nombuf;
 
-#if __RTE_VERSION < RTE_VERSION_NUM(2, 2, 0, 0)
-        rate->ibadcrc = curr->ibadcrc - prev->ibadcrc;
-        rate->ibadlen = curr->ibadlen - prev->ibadlen;
-#endif
-#if __RTE_VERSION < RTE_VERSION_NUM(16, 4, 0, 0)
-        rate->imcasts = curr->imcasts - prev->imcasts;
-#endif
-
         if (rate->ipackets > 0xffffffff)
             printf("%ld %ld > %ld\n", base->ipackets, curr->ipackets, prev->ipackets);
         /* Find the new max rate values */
@@ -582,7 +533,7 @@ pktgen_page_phys_stats(uint16_t pid)
     port_info_t *info;
     unsigned int col, row, q, hdr;
     struct rte_eth_stats stats, *s, *r;
-    struct pg_ether_addr ethaddr;
+    struct rte_ether_addr ethaddr;
     char buff[32], mac_buf[32], dev_name[64];
 
     s = &stats;
@@ -633,7 +584,7 @@ pktgen_page_phys_stats(uint16_t pid)
 
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
     rte_eth_macaddr_get(pid, &ethaddr);
-    pg_ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
+    rte_ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
     snprintf(buff, sizeof(buff), "%s", mac_buf);
     scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
     row++;
@@ -773,9 +724,7 @@ _xstats_display(uint16_t port_id)
 void
 pktgen_page_xstats(uint16_t pid)
 {
-#if __RTE_VERSION >= RTE_VERSION_NUM(18, 4, 0, 0)
     uint64_t p;
-#endif
     int k;
 
     pktgen_display_set_color("top.page");
@@ -793,14 +742,6 @@ pktgen_page_xstats(uint16_t pid)
     pktgen_display_set_color("stats.stat.label");
 
     k = 0;
-#if __RTE_VERSION < RTE_VERSION_NUM(18, 4, 0, 0)
-    RTE_ETH_FOREACH_DEV(pid)
-    {
-        _xstats_display(pid);
-        if (k++ >= pktgen.nb_ports_per_page)
-            break;
-    }
-#else
     for (p = rte_eth_find_next_owned_by(pid, RTE_ETH_DEV_NO_OWNER);
          (unsigned int)p < (unsigned int)RTE_MAX_ETHPORTS;
          p = rte_eth_find_next_owned_by(p + 1, RTE_ETH_DEV_NO_OWNER)) {
@@ -809,7 +750,6 @@ pktgen_page_xstats(uint16_t pid)
         if (k++ >= pktgen.nb_ports_per_page)
             break;
     }
-#endif
 
     pktgen_display_set_color(NULL);
     scrn_eol();

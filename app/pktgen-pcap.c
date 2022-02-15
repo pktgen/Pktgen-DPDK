@@ -13,11 +13,7 @@
 #include "pktgen.h"
 
 #ifndef MBUF_INVALID_PORT
-#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
 #define MBUF_INVALID_PORT UINT16_MAX
-#else
-#define MBUF_INVALID_PORT UINT8_MAX
-#endif
 #endif
 
 /**
@@ -89,7 +85,7 @@ pktgen_print_pcap(uint16_t pid)
         }
         /* Skip packets that are not normal IP packets. */
         type = ntohs(((uint16_t *)pkt_buff)[6]);
-        if (unlikely(type == PG_ETHER_TYPE_VLAN))
+        if (unlikely(type == RTE_ETHER_TYPE_VLAN))
             type = ntohs(((uint16_t *)pkt_buff)[8]);
 
         if (unlikely(type < MAX_ETHER_TYPE_SIZE))
@@ -111,13 +107,13 @@ pktgen_print_pcap(uint16_t pid)
         type  = ntohs(hdr->eth.ether_type);
         proto = hdr->u.ipv4.next_proto_id;
         vlan  = 0;
-        if (type == PG_ETHER_TYPE_VLAN) {
+        if (type == RTE_ETHER_TYPE_VLAN) {
             vlan  = ntohs(((uint16_t *)&hdr->eth.ether_type)[1]);
             type  = ntohs(((uint16_t *)&hdr->eth.ether_type)[2]);
-            proto = ((struct pg_ipv4_hdr *)((char *)&hdr->u.ipv4 + 4))->next_proto_id;
+            proto = ((struct rte_ipv4_hdr *)((char *)&hdr->u.ipv4 + 4))->next_proto_id;
         }
 
-        if (type == PG_ETHER_TYPE_IPv4) {
+        if (type == RTE_ETHER_TYPE_IPV4) {
             scrn_printf(row, col, "%*s", COLUMN_WIDTH_1,
                         inet_ntop4(buff, sizeof(buff), hdr->u.ipv4.dst_addr, 0xFFFFFFFF));
             col += COLUMN_WIDTH_1;
@@ -134,9 +130,9 @@ pktgen_print_pcap(uint16_t pid)
             col += ((2 * COLUMN_WIDTH_1) + 2 + 12);
         }
         snprintf(buff, sizeof(buff), "%s/%s:%4d",
-                 (type == PG_ETHER_TYPE_IPv4)   ? "IPv4"
-                 : (type == PG_ETHER_TYPE_IPv6) ? "IPv6"
-                                                : "Other",
+                 (type == RTE_ETHER_TYPE_IPV4)   ? "IPv4"
+                 : (type == RTE_ETHER_TYPE_IPV6) ? "IPv6"
+                                                 : "Other",
                  (type == PG_IPPROTO_TCP)     ? "TCP"
                  : (proto == PG_IPPROTO_ICMP) ? "ICMP"
                                               : "UDP",
@@ -145,9 +141,9 @@ pktgen_print_pcap(uint16_t pid)
         col += 15;
         scrn_printf(row, col, "%5d", len);
 
-        if (skip && (type < PG_ETHER_TYPE_IPv4))
+        if (skip && (type < RTE_ETHER_TYPE_IPV4))
             scrn_printf(row, col + 7, "<<< Skip %04x", type);
-        else if (skip && (type != PG_ETHER_TYPE_IPv4))
+        else if (skip && (type != RTE_ETHER_TYPE_IPV4))
             scrn_printf(row, col + 7, " EthType %04x", type);
         row++;
     }
@@ -198,33 +194,16 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
     char buffer[DEFAULT_MBUF_SIZE];
     pcap_info_t *pcap = (pcap_info_t *)opaque_arg;
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
     priv_size = rte_pktmbuf_priv_size(mp);
     buf_len   = rte_pktmbuf_data_room_size(mp);
-#else
-    buf_len = mp->elt_size - sizeof(struct rte_mbuf);
-#endif
     mbuf_size = sizeof(struct rte_mbuf) + priv_size;
     memset(m, 0, mbuf_size);
 
-#if __RTE_VERSION >= RTE_VERSION_NUM(17, 11, 0, 0)
     /* start of buffer is just after mbuf structure */
     m->priv_size = priv_size;
     m->buf_addr  = (char *)m + mbuf_size;
     m->buf_iova  = rte_mempool_virt2iova(m) + mbuf_size;
     m->buf_len   = (uint16_t)buf_len;
-#elif __RTE_VERSION >= RTE_VERSION_NUM(16, 7, 0, 0)
-    /* start of buffer is after mbuf structure and priv data */
-    m->priv_size    = priv_size;
-    m->buf_addr     = (char *)m + mbuf_size;
-    m->buf_physaddr = rte_mempool_virt2phy(mp, m) + mbuf_size;
-    m->buf_len      = (uint16_t)buf_len;
-#else
-    /* start of buffer is just after mbuf structure */
-    m->buf_addr     = (char *)m + sizeof(struct rte_mbuf);
-    m->buf_physaddr = rte_mempool_virt2phy(mp, m->buf_addr);
-    m->buf_len      = (uint16_t)buf_len;
-#endif
 
     /* keep some headroom between start of buffer and data */
     m->data_off = RTE_MIN(RTE_PKTMBUF_HEADROOM, m->buf_len);

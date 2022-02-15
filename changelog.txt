@@ -6,6 +6,11 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 22.02.0 - Remove the backward compatability builds with older versions of DPDK.
+             It has become too difficult to maintain building with older versions and I believe
+             the older DPDK version builds did not work as expected. Please only build DPDK with
+             the lastest version of DPDK or at least the previous version, but I do not guarantee
+             it will work. I will try to keep up with the latest release version of DPDK.
  - 21.11.0 - Fix DPDK defines being renamed of deprecated. Also rte_eth_devices was made static.
  - 21.10.0 - Fix up ARP processing, change pcap files to rw-rw-rw mode, pcap capture on the correct
              numa node, increase the TX burst size, update to work with 21.11 DPDK, update the

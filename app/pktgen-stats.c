@@ -279,12 +279,17 @@ pktgen_get_link_status(port_info_t *info, int pid, int wait)
     }
 
     /* Setup a few default values to prevent problems later. */
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+    info->link.link_speed  = RTE_ETH_SPEED_NUM_10G;
+    info->link.link_duplex = RTE_ETH_LINK_FULL_DUPLEX;
+#else
 #if __RTE_VERSION >= RTE_VERSION_NUM(17, 2, 0, 0)
     info->link.link_speed = ETH_SPEED_NUM_10G;
 #else
     info->link.link_speed = 10000;
 #endif
     info->link.link_duplex = ETH_LINK_FULL_DUPLEX;
+#endif
 }
 
 /**

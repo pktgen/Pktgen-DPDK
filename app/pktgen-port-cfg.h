@@ -433,6 +433,25 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
         uint64_t flag;
         const char *name;
     } rx_flags[] = {
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        {RTE_ETH_RX_OFFLOAD_VLAN_STRIP, _(VLAN_STRIP)},
+        {RTE_ETH_RX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
+        {RTE_ETH_RX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
+        {RTE_ETH_RX_OFFLOAD_TCP_CKSUM, _(TCP_CKSUM)},
+        {RTE_ETH_RX_OFFLOAD_TCP_LRO, _(TCP_LRO)},
+        {RTE_ETH_RX_OFFLOAD_QINQ_STRIP, _(QINQ_STRIP)},
+        {RTE_ETH_RX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
+        {RTE_ETH_RX_OFFLOAD_MACSEC_STRIP, _(MACSEC_STRIP)},
+        {RTE_ETH_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
+        {RTE_ETH_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
+        {RTE_ETH_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
+        {RTE_ETH_RX_OFFLOAD_SCATTER, _(SCATTER)},
+        {RTE_ETH_RX_OFFLOAD_TIMESTAMP, _(TIMESTAMP)},
+        {RTE_ETH_RX_OFFLOAD_SECURITY, _(SECURITY)},
+        {RTE_ETH_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
+        {RTE_ETH_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
+        {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}
+#else
         {DEV_RX_OFFLOAD_VLAN_STRIP, _(VLAN_STRIP)},
         {DEV_RX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
         {DEV_RX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
@@ -453,6 +472,7 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
         {DEV_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
         {DEV_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
         {DEV_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}
+#endif
 #endif
     };
 #undef _
@@ -486,6 +506,29 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
         uint64_t flag;
         const char *name;
     } tx_flags[] = {
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        {RTE_ETH_TX_OFFLOAD_VLAN_INSERT, _(VLAN_INSERT)},
+        {RTE_ETH_TX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
+        {RTE_ETH_TX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
+        {RTE_ETH_TX_OFFLOAD_TCP_CKSUM, _(TCP_CKSUM)},
+        {RTE_ETH_TX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
+        {RTE_ETH_TX_OFFLOAD_TCP_TSO, _(TCP_TSO)},
+        {RTE_ETH_TX_OFFLOAD_UDP_TSO, _(UDP_TSO)},
+        {RTE_ETH_TX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
+        {RTE_ETH_TX_OFFLOAD_QINQ_INSERT, _(QINQ_INSERT)},
+        {RTE_ETH_TX_OFFLOAD_VXLAN_TNL_TSO, _(VXLAN_TNL_TSO)},
+        {RTE_ETH_TX_OFFLOAD_GRE_TNL_TSO, _(GRE_TNL_TSO)},
+        {RTE_ETH_TX_OFFLOAD_IPIP_TNL_TSO, _(IPIP_TNL_TSO)},
+        {RTE_ETH_TX_OFFLOAD_GENEVE_TNL_TSO, _(GENEVE_TNL_TSO)},
+        {RTE_ETH_TX_OFFLOAD_MACSEC_INSERT, _(MACSEC_INSERT)},
+        {RTE_ETH_TX_OFFLOAD_MT_LOCKFREE, _(MT_LOCKFREE)},
+        {RTE_ETH_TX_OFFLOAD_MULTI_SEGS, _(MULTI_SEGS)},
+        {RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE, _(MBUF_FAST_FREE)},
+        {RTE_ETH_TX_OFFLOAD_SECURITY, _(SECURITY)},
+        {RTE_ETH_TX_OFFLOAD_UDP_TNL_TSO, _(UDP_TNL_TSO)},
+        {RTE_ETH_TX_OFFLOAD_IP_TNL_TSO, _(IP_TNL_TSO)},
+        {RTE_ETH_TX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)},
+#else
         {DEV_TX_OFFLOAD_VLAN_INSERT, _(VLAN_INSERT)},
         {DEV_TX_OFFLOAD_IPV4_CKSUM, _(IPV4_CKSUM)},
         {DEV_TX_OFFLOAD_UDP_CKSUM, _(UDP_CKSUM)},
@@ -511,6 +554,7 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 
 #if __RTE_VERSION < RTE_VERSION_NUM(19, 11, 0, 0)
         {DEV_TX_OFFLOAD_MATCH_METADATA, _(MATCH_METADATA)},
+#endif
 #endif
 #endif
     };

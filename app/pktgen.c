@@ -432,8 +432,8 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                         } else {        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
                             stats->next =
                                 now + rte_get_tsc_hz() / info->latsamp_rate;        // Time based
-                            // stats->next = stats->pkt_counter + info->latsamp_rate;		// Packet
-                            // count based
+                            // stats->next = stats->pkt_counter + info->latsamp_rate;		//
+                            // Packet count based
                         }
                     }
                 }
@@ -972,8 +972,13 @@ pktgen_setup_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
 
     switch (pkt->ethType) {
     case PG_ETHER_TYPE_IPv4:
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM)
+            pkt->ol_flags = RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_IP_CKSUM;
+#else
         if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_IPV4_CKSUM)
             pkt->ol_flags = RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_IP_CKSUM;
+#endif
         break;
 
     case PG_ETHER_TYPE_IPv6:
@@ -981,9 +986,15 @@ pktgen_setup_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
         break;
 
     case PG_ETHER_TYPE_VLAN:
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_VLAN_INSERT) {
+            /* TODO */
+        }
+#else
         if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_VLAN_INSERT) {
             /* TODO */
         }
+#endif
         break;
     default:
         break;
@@ -991,12 +1002,22 @@ pktgen_setup_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
 
     switch (pkt->ipProto) {
     case PG_IPPROTO_UDP:
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM)
+            pkt->ol_flags |= RTE_MBUF_F_TX_UDP_CKSUM;
+#else
         if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_UDP_CKSUM)
             pkt->ol_flags |= RTE_MBUF_F_TX_UDP_CKSUM;
+#endif
         break;
     case PG_IPPROTO_TCP:
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM)
+            pkt->ol_flags |= RTE_MBUF_F_TX_TCP_CKSUM;
+#else
         if (info->dev_info.tx_offload_capa & DEV_TX_OFFLOAD_TCP_CKSUM)
             pkt->ol_flags |= RTE_MBUF_F_TX_TCP_CKSUM;
+#endif
         break;
     default:
         break;
@@ -1046,7 +1067,7 @@ pktgen_setup_packets(port_info_t *info, struct rte_mempool *mp, uint16_t qid)
 
             /* Put the allocated mbuf into a list to be freed later */
             m->next = mm;
-            mm      = m;
+            mm = m;
 
             pktgen_setup_cb(mp, &pkt_data, m, 0);
         }

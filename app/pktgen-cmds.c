@@ -844,8 +844,13 @@ pktgen_link_state(int port, char *buff, int len)
     port_info_t *info = &pktgen.info[port];
 
     if (info->link.link_status)
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+        snprintf(buff, len, "<UP-%u-%s>", (uint32_t)info->link.link_speed,
+                 (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? ("FD") : ("HD"));
+#else
         snprintf(buff, len, "<UP-%u-%s>", (uint32_t)info->link.link_speed,
                  (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ? ("FD") : ("HD"));
+#endif
     else
         snprintf(buff, len, "<--Down-->");
 
@@ -1348,9 +1353,16 @@ enable_random(port_info_t *info, uint32_t onOff)
 void
 debug_tx_rate(port_info_t *info)
 {
+#if __RTE_VERSION >= RTE_VERSION_NUM(22, 3, 0, 0)
+    printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n", info->pid, info->tx_rate,
+           info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
+           info->link.link_speed,
+           (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? "FD" : "HD");
+#else
     printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n", info->pid, info->tx_rate,
            info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
            info->link.link_speed, (info->link.link_duplex == ETH_LINK_FULL_DUPLEX) ? "FD" : "HD");
+#endif
 }
 
 /*
@@ -2617,15 +2629,15 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     pkt_seq_t *pkt    = &info->seq_pkt[seq];
     port_info_t *dst_info;
 
-    pkt->pktSize = MIN_PKT_SIZE;
-    pkt->sport   = DEFAULT_SRC_PORT;
-    pkt->dport   = DEFAULT_DST_PORT;
-    pkt->ttl     = DEFAULT_TTL;
-    pkt->ipProto = PG_IPPROTO_TCP;
-    pkt->ethType = PG_ETHER_TYPE_IPv4;
-    pkt->vlanid  = DEFAULT_VLAN_ID;
-    pkt->cos     = DEFAULT_COS;
-    pkt->tos     = DEFAULT_TOS;
+    pkt->pktSize   = MIN_PKT_SIZE;
+    pkt->sport     = DEFAULT_SRC_PORT;
+    pkt->dport     = DEFAULT_DST_PORT;
+    pkt->ttl       = DEFAULT_TTL;
+    pkt->ipProto   = PG_IPPROTO_TCP;
+    pkt->ethType   = PG_ETHER_TYPE_IPv4;
+    pkt->vlanid    = DEFAULT_VLAN_ID;
+    pkt->cos       = DEFAULT_COS;
+    pkt->tos       = DEFAULT_TOS;
     pkt->tcp_flags = DEFAULT_TCP_FLAGS;
 
     rte_atomic64_set(&info->transmit_count, DEFAULT_TX_COUNT);
@@ -3251,7 +3263,8 @@ rate_set_ipaddr(port_info_t *info, char type, struct pg_ipaddr *ip, int ip_ver)
     pktgen_set_tx_update(info);
 }
 
-static uint8_t tcp_flag_from_str(const char *str)
+static uint8_t
+tcp_flag_from_str(const char *str)
 {
     if (_cp("urg"))
         return URG_FLAG;
@@ -3861,17 +3874,13 @@ range_set_src_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
     if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-            rte_memcpy(info->range.src_ipv6_min, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.src_ipv6_min, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-            rte_memcpy(info->range.src_ipv6_max, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.src_ipv6_max, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
-            rte_memcpy(info->range.src_ipv6_inc, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.src_ipv6_inc, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "start"))
-            rte_memcpy(info->range.src_ipv6, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.src_ipv6, ip->ipv6.s6_addr, sizeof(struct in6_addr));
     } else {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
             info->range.src_ip_min = ntohl(ip->ipv4.s_addr);
@@ -3901,17 +3910,13 @@ range_set_dst_ip(port_info_t *info, char *what, struct pg_ipaddr *ip)
 {
     if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6) {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-            rte_memcpy(info->range.dst_ipv6_min, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.dst_ipv6_min, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-            rte_memcpy(info->range.dst_ipv6_max, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.dst_ipv6_max, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
-            rte_memcpy(info->range.dst_ipv6_inc, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.dst_ipv6_inc, ip->ipv6.s6_addr, sizeof(struct in6_addr));
         else if (!strcmp(what, "start"))
-            rte_memcpy(info->range.dst_ipv6, ip->ipv6.s6_addr,
-                sizeof(struct in6_addr));
+            rte_memcpy(info->range.dst_ipv6, ip->ipv6.s6_addr, sizeof(struct in6_addr));
     } else {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
             info->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
@@ -4205,8 +4210,7 @@ range_set_pkt_size(port_info_t *info, char *what, uint16_t size)
         else
             size -= PG_ETHER_CRC_LEN;
 
-        if (info->seq_pkt[RANGE_PKT].ethType ==
-		PG_ETHER_TYPE_IPv6 && size < MIN_v6_PKT_SIZE)
+        if (info->seq_pkt[RANGE_PKT].ethType == PG_ETHER_TYPE_IPv6 && size < MIN_v6_PKT_SIZE)
             size = MIN_v6_PKT_SIZE;
 
         if (!strcmp(what, "start"))

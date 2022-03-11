@@ -150,7 +150,7 @@ link_state(lua_State *L, uint16_t pid)
 
     if (link.link_status)
         snprintf(buff, sizeof(buff), "<UP-%u-%s>", (uint32_t)link.link_speed,
-                 (link.link_duplex == ETH_LINK_FULL_DUPLEX) ? ("FD") : ("HD"));
+                 (link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? ("FD") : ("HD"));
     else
         snprintf(buff, sizeof(buff), "<--Down-->");
     lua_pushstring(L, buff);

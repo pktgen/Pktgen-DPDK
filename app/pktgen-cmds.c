@@ -919,7 +919,22 @@ pktgen_port_sizes(int port, port_sizes_t *psizes)
 {
     port_info_t *info = &pktgen.info[port];
 
-    *psizes = info->sizes;
+    if (!psizes)
+        return -1;
+
+    for (int qid = 0; qid < NUM_Q; qid++) {
+        psizes->broadcast += info->qstats[qid].sizes.broadcast;
+        psizes->jumbo += info->qstats[qid].sizes.jumbo;
+        psizes->multicast += info->qstats[qid].sizes.multicast;
+        psizes->runt += info->qstats[qid].sizes.runt;
+        psizes->unknown += info->qstats[qid].sizes.unknown;
+        psizes->_64 += info->qstats[qid].sizes._64;
+        psizes->_65_127 += info->qstats[qid].sizes._65_127;
+        psizes->_128_255 += info->qstats[qid].sizes._128_255;
+        psizes->_256_511 += info->qstats[qid].sizes._256_511;
+        psizes->_512_1023 += info->qstats[qid].sizes._512_1023;
+        psizes->_1024_1518 += info->qstats[qid].sizes._1024_1518;
+    }
     return 0;
 }
 
@@ -940,7 +955,23 @@ pktgen_pkt_stats(int port, pkt_stats_t *pstats)
 {
     port_info_t *info = &pktgen.info[port];
 
-    *pstats = info->stats;
+    if (!pstats)
+        return -1;
+
+    for (int qid = 0; qid < NUM_Q; qid++) {
+        pstats->arp_pkts += info->qstats[qid].stats.arp_pkts;
+        pstats->dropped_pkts += info->qstats[qid].stats.dropped_pkts;
+        pstats->echo_pkts += info->qstats[qid].stats.echo_pkts;
+        pstats->ibadcrc += info->qstats[qid].stats.ibadcrc;
+        pstats->ibadlen += info->qstats[qid].stats.ibadlen;
+        pstats->imissed += info->qstats[qid].stats.imissed;
+        pstats->ip_pkts += info->qstats[qid].stats.ip_pkts;
+        pstats->ipv6_pkts += info->qstats[qid].stats.ipv6_pkts;
+        pstats->rx_nombuf += info->qstats[qid].stats.rx_nombuf;
+        pstats->tx_failed += info->qstats[qid].stats.tx_failed;
+        pstats->unknown_pkts += info->qstats[qid].stats.unknown_pkts;
+        pstats->vlan_pkts += info->qstats[qid].stats.vlan_pkts;
+    }
     return 0;
 }
 
@@ -2563,11 +2594,8 @@ pktgen_clear_stats(port_info_t *info)
     eth_stats_t *base;
 
     /* curr_stats are reset each time the stats are read */
-    memset(&info->sizes, 0, sizeof(port_sizes_t));
     memset(&info->prev_stats, 0, sizeof(eth_stats_t));
     memset(&info->rate_stats, 0, sizeof(eth_stats_t));
-
-    memset(&info->qstats, 0, sizeof(info->qstats));
 
     base = &info->base_stats;
 
@@ -2580,14 +2608,9 @@ pktgen_clear_stats(port_info_t *info)
     pktgen.max_total_opackets = 0;
     info->max_ipackets        = 0;
     info->max_opackets        = 0;
-    info->stats.dropped_pkts  = 0;
-    info->stats.arp_pkts      = 0;
-    info->stats.echo_pkts     = 0;
-    info->stats.ip_pkts       = 0;
-    info->stats.ipv6_pkts     = 0;
-    info->stats.vlan_pkts     = 0;
-    info->stats.unknown_pkts  = 0;
-    info->stats.tx_failed     = 0;
+
+    memset(&info->qstats, 0, sizeof(info->qstats));
+
     info->min_avg_latency     = 0;
     info->max_avg_latency     = 0;
     info->max_latency         = 0;

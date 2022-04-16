@@ -2811,9 +2811,10 @@ pktgen_linkState(lua_State *L)
 static void
 port_sizes(lua_State *L, port_info_t *info)
 {
-    port_sizes_t sizes;
+    port_sizes_t sizes = {0};
 
-    pktgen_port_sizes(info->pid, &sizes);
+    for(int qid = 0; qid < NUM_Q; qid++)
+        pktgen_port_sizes(info->pid, &sizes);
 
     lua_pushinteger(L, info->pid); /* Push the table index */
     lua_newtable(L);               /* Create the structure table for a packet */

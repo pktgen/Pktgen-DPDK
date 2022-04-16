@@ -286,6 +286,9 @@ pktgen_page_stats(void)
     port_info_t *info;
     unsigned int pid, col, row;
     struct rte_eth_stats *rate, *cumm, *prev;
+    port_sizes_t sizes = {0};
+    pkt_stats_t stats = {0};
+
     unsigned sp;
     char buff[32];
     int display_cnt;
@@ -369,22 +372,47 @@ pktgen_page_stats(void)
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->max_ipackets);
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->max_opackets);
 
+        for(int qid = 0; qid < NUM_Q; qid++) {
+            sizes.broadcast += info->qstats[qid].sizes.broadcast;
+            sizes.multicast += info->qstats[qid].sizes.multicast;
+            sizes._64 += info->qstats[qid].sizes._64;
+            sizes._65_127 += info->qstats[qid].sizes._65_127;
+            sizes._128_255 += info->qstats[qid].sizes._128_255;
+            sizes._256_511 += info->qstats[qid].sizes._256_511;
+            sizes._512_1023 += info->qstats[qid].sizes._512_1023;
+            sizes._1024_1518 += info->qstats[qid].sizes._1024_1518;
+            sizes.runt += info->qstats[qid].sizes.runt;
+            sizes.jumbo += info->qstats[qid].sizes.jumbo;
+
+            stats.arp_pkts += info->qstats[qid].stats.arp_pkts;
+            stats.dropped_pkts += info->qstats[qid].stats.dropped_pkts;
+            stats.echo_pkts += info->qstats[qid].stats.echo_pkts;
+            stats.ibadcrc += info->qstats[qid].stats.ibadcrc;
+            stats.ibadlen += info->qstats[qid].stats.ibadlen;
+            stats.imissed += info->qstats[qid].stats.imissed;
+            stats.ip_pkts += info->qstats[qid].stats.ip_pkts;
+            stats.ipv6_pkts += info->qstats[qid].stats.ipv6_pkts;
+            stats.rx_nombuf += info->qstats[qid].stats.rx_nombuf;
+            stats.tx_failed += info->qstats[qid].stats.tx_failed;
+            stats.unknown_pkts += info->qstats[qid].stats.unknown_pkts;
+            stats.vlan_pkts += info->qstats[qid].stats.vlan_pkts;
+        }
         /* Packets Sizes */
         row = PKT_SIZE_ROW;
         pktgen_display_set_color("stats.port.sizes");
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes.broadcast);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes.multicast);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._64);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._65_127);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._128_255);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._256_511);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._512_1023);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->sizes._1024_1518);
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->sizes.runt, info->sizes.jumbo);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes.broadcast);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes.multicast);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes._64);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes._65_127);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes._128_255);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes._256_511);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes._512_1023);
+        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, sizes._1024_1518);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, sizes.runt, sizes.jumbo);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->stats.arp_pkts,
-                 info->stats.echo_pkts);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, stats.arp_pkts,
+                 stats.echo_pkts);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         /* Rx/Tx Errors */
@@ -404,15 +432,15 @@ pktgen_page_stats(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         if (pktgen.flags & TX_DEBUG_FLAG) {
-            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.tx_failed);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, stats.tx_failed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
             snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->tx_pps, info->tx_cycles);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.imissed);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, stats.imissed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
-            snprintf(buff, sizeof(buff), "%'" PRIu64, info->stats.rx_nombuf);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, stats.rx_nombuf);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         }
         pktgen_display_set_color(NULL);

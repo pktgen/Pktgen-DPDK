@@ -238,9 +238,6 @@ typedef struct port_info_s {
     uint64_t prev_latency;
     uint64_t max_latency;
 
-    pkt_stats_t stats;  /**< Statistics for a number of stats */
-    port_sizes_t sizes; /**< Stats for the different packets sizes */
-
     eth_stats_t curr_stats; /**< current port statistics */
     eth_stats_t prev_stats; /**< previous port statistics */
     eth_stats_t rate_stats; /**< current packet rate statistics */
@@ -255,6 +252,8 @@ typedef struct port_info_s {
         uint64_t txpkts;
         uint64_t rxbytes;
         uint64_t txbytes;
+        pkt_stats_t stats;  /**< Statistics for a number of stats */
+        port_sizes_t sizes; /**< Stats for the different packets sizes */
     } qstats[NUM_Q];
 
     struct rte_eth_link link; /**< Link Information like speed and duplex */

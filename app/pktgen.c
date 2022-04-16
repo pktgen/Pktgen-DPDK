@@ -335,7 +335,7 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
             pktgen_do_tx_tap(info, pkts, ret);
 
         if (cnt - ret)
-            info->stats.tx_failed += (cnt - ret);
+            info->qstats[qid].stats.tx_failed += (cnt - ret);
 
         pkts += ret;
         cnt -= ret;
@@ -762,19 +762,19 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 
         switch ((int)pType) {
         case RTE_ETHER_TYPE_ARP:
-            info->stats.arp_pkts++;
+            info->qstats[qid].stats.arp_pkts++;
             pktgen_process_arp(m, pid, qid, 0);
             break;
         case RTE_ETHER_TYPE_IPV4:
-            info->stats.ip_pkts++;
+            info->qstats[qid].stats.ip_pkts++;
             pktgen_process_ping4(m, pid, qid, 0);
             break;
         case RTE_ETHER_TYPE_IPV6:
-            info->stats.ipv6_pkts++;
+            info->qstats[qid].stats.ipv6_pkts++;
             pktgen_process_ping6(m, pid, qid, 0);
             break;
         case RTE_ETHER_TYPE_VLAN:
-            info->stats.vlan_pkts++;
+            info->qstats[qid].stats.vlan_pkts++;
             pktgen_process_vlan(m, pid, qid);
             break;
         case UNKNOWN_PACKET: /* FALL THRU */
@@ -785,16 +785,16 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
         /* Count the type of packets found. */
         switch ((int)pType) {
         case RTE_ETHER_TYPE_ARP:
-            info->stats.arp_pkts++;
+            info->qstats[qid].stats.arp_pkts++;
             break;
         case RTE_ETHER_TYPE_IPV4:
-            info->stats.ip_pkts++;
+            info->qstats[qid].stats.ip_pkts++;
             break;
         case RTE_ETHER_TYPE_IPV6:
-            info->stats.ipv6_pkts++;
+            info->qstats[qid].stats.ipv6_pkts++;
             break;
         case RTE_ETHER_TYPE_VLAN:
-            info->stats.vlan_pkts++;
+            info->qstats[qid].stats.vlan_pkts++;
             break;
         default:
             break;
@@ -804,31 +804,31 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 
     /* Count the size of each packet. */
     if (plen == RTE_ETHER_MIN_LEN)
-        info->sizes._64++;
+        info->qstats[qid].sizes._64++;
     else if ((plen >= (RTE_ETHER_MIN_LEN + 1)) && (plen <= 127))
-        info->sizes._65_127++;
+        info->qstats[qid].sizes._65_127++;
     else if ((plen >= 128) && (plen <= 255))
-        info->sizes._128_255++;
+        info->qstats[qid].sizes._128_255++;
     else if ((plen >= 256) && (plen <= 511))
-        info->sizes._256_511++;
+        info->qstats[qid].sizes._256_511++;
     else if ((plen >= 512) && (plen <= 1023))
-        info->sizes._512_1023++;
+        info->qstats[qid].sizes._512_1023++;
     else if ((plen >= 1024) && (plen <= RTE_ETHER_MAX_LEN))
-        info->sizes._1024_1518++;
+        info->qstats[qid].sizes._1024_1518++;
     else if (plen < RTE_ETHER_MIN_LEN)
-        info->sizes.runt++;
+        info->qstats[qid].sizes.runt++;
     else if (plen > RTE_ETHER_MAX_LEN)
-        info->sizes.jumbo++;
+        info->qstats[qid].sizes.jumbo++;
     else
-        info->sizes.unknown++;
+        info->qstats[qid].sizes.unknown++;
 
     /* Process multicast and broadcast packets. */
     if (unlikely(((uint8_t *)m->buf_addr + m->data_off)[0] == 0xFF)) {
         if ((((uint64_t *)m->buf_addr + m->data_off)[0] & 0xFFFFFFFFFFFF0000LL) ==
             0xFFFFFFFFFFFF0000LL)
-            info->sizes.broadcast++;
+            info->qstats[qid].sizes.broadcast++;
         else if (((uint8_t *)m->buf_addr + m->data_off)[0] & 1)
-            info->sizes.multicast++;
+            info->qstats[qid].sizes.multicast++;
     }
 }
 

@@ -106,7 +106,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
  */
 
 void
-pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid __rte_unused, uint32_t vlan)
+pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan)
 {
     port_info_t *info = &pktgen.info[pid];
     pkt_seq_t *pkt;
@@ -148,7 +148,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid __rte_unused
                 return;
             }
 
-            info->stats.echo_pkts++;
+            info->qstats[qid].stats.echo_pkts++;
 
             icmp->icmp_type = ICMP4_ECHO_REPLY;
 
@@ -177,6 +177,6 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid __rte_unused
             /* No need to free mbuf as it was reused. */
             return;
         } else if (unlikely(icmp->icmp_type == ICMP4_ECHO_REPLY))
-            info->stats.echo_pkts++;
+            info->qstats[qid].stats.echo_pkts++;
     }
 }

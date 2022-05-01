@@ -1,5 +1,5 @@
 sources = files(
-	'cli-functions.c', 'lpktgenlib.c', 'pktgen-cmds.c', 'pktgen.c', 'pktgen-cfg.c',
+	'cli-functions.c', 'pktgen-cmds.c', 'pktgen.c', 'pktgen-cfg.c',
 	'pktgen-main.c', 'pktgen-pcap.c', 'pktgen-range.c', 'pktgen-cpu.c',
 	'pktgen-seq.c', 'pktgen-dump.c', 'pktgen-capture.c', 'pktgen-stats.c',
 	'pktgen-port-cfg.c', 'pktgen-ipv6.c', 'pktgen-ipv4.c', 'pktgen-arp.c',
@@ -7,6 +7,10 @@ sources = files(
 	'pktgen-random.c', 'pktgen-display.c', 'pktgen-log.c', 'pktgen-gtpu.c',
 	'pktgen-latency.c', 'pktgen-rate.c'
 )
+
+if get_option('enable_lua')
+    sources += files('lpktgenlib.c')
+endif
 
 if get_option('enable_gui')
     sources += files(

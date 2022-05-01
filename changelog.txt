@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 22.04.1 - Fix Lua build issues around new stats structure changes.
  - 22.02.0 - Remove the backward compatability builds with older versions of DPDK.
              It has become too difficult to maintain building with older versions and I believe
              the older DPDK version builds did not work as expected. Please only build DPDK with

@@ -6,7 +6,6 @@
 
 /* Created 2011 by Keith Wiles @ intel.com */
 
-#ifdef LUA_ENABLED
 #define lpktgenlib_c
 #define LUA_LIB
 #define lua_c
@@ -2813,7 +2812,7 @@ port_sizes(lua_State *L, port_info_t *info)
 {
     port_sizes_t sizes = {0};
 
-    for(int qid = 0; qid < NUM_Q; qid++)
+    for (int qid = 0; qid < NUM_Q; qid++)
         pktgen_port_sizes(info->pid, &sizes);
 
     lua_pushinteger(L, info->pid); /* Push the table index */
@@ -3078,6 +3077,8 @@ port_info(lua_State *L, port_info_t *info)
 {
     struct rte_eth_dev_info dev = {0};
     eth_stats_t stats;
+    pkt_stats_t pkt_stats;
+    port_sizes_t sizes;
     pkt_seq_t *pkt;
     char buff[32];
 
@@ -3111,30 +3112,33 @@ port_info(lua_State *L, port_info_t *info)
     setf_integer(L, "mbits_tx", oBitsTotal(stats) / Million);
     lua_rawset(L, -3);
 
+    pktgen_port_sizes(info->pid, &sizes);
+
     /*------------------------------------*/
     lua_pushstring(L, "size_cnts");
     lua_newtable(L);
-    setf_integer(L, "broadcast", info->sizes.broadcast);
-    setf_integer(L, "multicast", info->sizes.multicast);
-    setf_integer(L, "_64", info->sizes._64);
-    setf_integer(L, "_65_127", info->sizes._65_127);
-    setf_integer(L, "_128_255", info->sizes._128_255);
-    setf_integer(L, "_256_511", info->sizes._256_511);
-    setf_integer(L, "_512_1023", info->sizes._512_1023);
-    setf_integer(L, "_1024_1518", info->sizes._1024_1518);
-    setf_integer(L, "jumbo", info->sizes.jumbo);
-    setf_integer(L, "runts", info->sizes.runt);
+    setf_integer(L, "broadcast", sizes.broadcast);
+    setf_integer(L, "multicast", sizes.multicast);
+    setf_integer(L, "_64", sizes._64);
+    setf_integer(L, "_65_127", sizes._65_127);
+    setf_integer(L, "_128_255", sizes._128_255);
+    setf_integer(L, "_256_511", sizes._256_511);
+    setf_integer(L, "_512_1023", sizes._512_1023);
+    setf_integer(L, "_1024_1518", sizes._1024_1518);
+    setf_integer(L, "jumbo", sizes.jumbo);
+    setf_integer(L, "runts", sizes.runt);
 
-    setf_integer(L, "arp_pkts", info->stats.arp_pkts);
-    setf_integer(L, "echo_pkts", info->stats.echo_pkts);
+    pktgen_pkt_stats(info->pid, &pkt_stats);
+    setf_integer(L, "arp_pkts", pkt_stats.arp_pkts);
+    setf_integer(L, "echo_pkts", pkt_stats.echo_pkts);
 
     setf_integer(L, "ierrors", info->prev_stats.ierrors);
     setf_integer(L, "oerrors", info->prev_stats.oerrors);
 
-    setf_integer(L, "tx_failed", info->stats.tx_failed);
-    setf_integer(L, "imissed", info->stats.imissed);
+    setf_integer(L, "tx_failed", pkt_stats.tx_failed);
+    setf_integer(L, "imissed", pkt_stats.imissed);
 
-    setf_integer(L, "ibadcrc", info->stats.rx_nombuf);
+    setf_integer(L, "ibadcrc", pkt_stats.rx_nombuf);
     lua_rawset(L, -3);
 
     /*------------------------------------*/
@@ -3894,6 +3898,3 @@ pktgen_lua_openlib(lua_State *L)
 
     lua_gc(L, LUA_GCRESTART, 0);
 }
-#else
-int dummy_data = 0;
-#endif

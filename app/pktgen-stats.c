@@ -479,7 +479,7 @@ pktgen_page_stats(void)
  * SEE ALSO:
  */
 void
-pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
+pktgen_process_stats(double elapsed_ns)
 {
     unsigned int pid;
     struct rte_eth_stats *curr, *rate, *prev, *base;
@@ -533,17 +533,15 @@ pktgen_process_stats(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
         rate = &info->rate_stats;
         prev = &info->prev_stats;
 
-        rate->ipackets  = curr->ipackets - prev->ipackets;
-        rate->opackets  = curr->opackets - prev->opackets;
-        rate->ibytes    = curr->ibytes - prev->ibytes;
-        rate->obytes    = curr->obytes - prev->obytes;
-        rate->ierrors   = curr->ierrors - prev->ierrors;
-        rate->oerrors   = curr->oerrors - prev->oerrors;
-        rate->imissed   = curr->imissed - prev->imissed;
-        rate->rx_nombuf = curr->rx_nombuf - prev->rx_nombuf;
+        rate->ipackets  = (((curr->ipackets - prev->ipackets) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->opackets  = (((curr->opackets - prev->opackets) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->ibytes    = (((curr->ibytes - prev->ibytes) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->obytes    = (((curr->obytes - prev->obytes) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->ierrors   = (((curr->ierrors - prev->ierrors) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->oerrors   = (((curr->oerrors - prev->oerrors) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->imissed   = (((curr->imissed - prev->imissed) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->rx_nombuf = (((curr->rx_nombuf - prev->rx_nombuf) * Billion) / elapsed_ns) + ROUND_FACTOR;
 
-        if (rate->ipackets > 0xffffffff)
-            printf("%ld %ld > %ld\n", base->ipackets, curr->ipackets, prev->ipackets);
         /* Find the new max rate values */
         if (rate->ipackets > info->max_ipackets)
             info->max_ipackets = rate->ipackets;

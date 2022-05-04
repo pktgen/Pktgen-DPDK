@@ -95,7 +95,7 @@ pktgen_packet_rate(port_info_t *info)
 {
     uint64_t wire_size = (pktgen_wire_size(info) * 8);
     uint64_t lk        = (uint64_t)info->link.link_speed * Million;
-    uint64_t pps       = ((lk / wire_size) * info->tx_rate) / 100;
+    uint64_t pps       = (((lk / wire_size) * info->tx_rate) / 100) + ROUND_FACTOR;
     uint64_t cpp       = (pps > 0) ? (pktgen.hz / pps) : pktgen.hz;
 
     info->tx_pps    = pps;
@@ -415,7 +415,7 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                         if (stats->idx < stats->num_samples) {
                             // stats->data[stats->idx] = lat;
                             stats->data[stats->idx] =
-                                lat * 1000000000 /
+                                (lat * Billion) /
                                 rte_get_tsc_hz(); /* Do we want to keep it as cycles? */
                             stats->idx++;
                         }
@@ -1305,7 +1305,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
         /* Determine when is the next time to send packets */
         if (curr_tsc >= tx_next_cycle) {
-            tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+            tx_next_cycle = tx_next_cycle + infos[0]->tx_cycles;
 
             for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
                 pktgen_main_transmit(infos[idx], qids[idx]);
@@ -1397,7 +1397,7 @@ pktgen_main_tx_loop(uint8_t lid)
 
         /* Determine when is the next time to send packets */
         if (curr_tsc >= tx_next_cycle) {
-            tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+            tx_next_cycle = tx_next_cycle + infos[0]->tx_cycles;
 
             for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
                 pktgen_main_transmit(infos[idx], qids[idx]);
@@ -1558,7 +1558,7 @@ _page_display(void)
  */
 
 void
-pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
+pktgen_page_display()
 {
     static unsigned int update_display = 1;
 
@@ -1590,27 +1590,29 @@ pktgen_page_display(struct rte_timer *tim __rte_unused, void *arg __rte_unused)
 static void *
 _timer_thread(void *arg)
 {
-    uint64_t process, page, process_timo, page_timo;
+    uint64_t process, page, process_timo, page_timo, prev;
 
     this_scrn = arg;
 
     process_timo = pktgen.hz;
     page_timo    = UPDATE_DISPLAY_TICK_RATE;
 
-    page    = rte_get_tsc_cycles();
+    page = prev = rte_get_tsc_cycles();
     process = page + process_timo;
     page += page_timo;
 
     pktgen.timer_running = 1;
 
     while (pktgen.timer_running) {
-        uint64_t curr;
+        uint64_t curr, elapsed_ns;
 
         curr = rte_get_tsc_cycles();
 
         if (curr >= process) {
             process = curr + process_timo;
-            pktgen_process_stats(NULL, NULL);
+            elapsed_ns = (curr - prev) * Billion / pktgen.hz;
+            prev = curr;
+            pktgen_process_stats(elapsed_ns);
         }
 
         if (curr >= page) {

@@ -106,6 +106,7 @@ extern "C" {
 
 #define MAX_MATRIX_ENTRIES 128
 #define MAX_STRING         256
+#define ROUND_FACTOR       0.5
 #define Million            (uint64_t)(1000000ULL)
 
 #define iBitsTotal(_x) (uint64_t)(((_x.ipackets * PKT_OVERHEAD_SIZE) + _x.ibytes) * 8)

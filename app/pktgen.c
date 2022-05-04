@@ -95,7 +95,7 @@ pktgen_packet_rate(port_info_t *info)
 {
     uint64_t wire_size = (pktgen_wire_size(info) * 8);
     uint64_t lk        = (uint64_t)info->link.link_speed * Million;
-    uint64_t pps       = ((lk / wire_size) * info->tx_rate) / 100;
+    uint64_t pps       = (((lk / wire_size) * info->tx_rate) / 100) + ROUND_FACTOR;
     uint64_t cpp       = (pps > 0) ? (pktgen.hz / pps) : pktgen.hz;
 
     info->tx_pps    = pps;

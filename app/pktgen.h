@@ -108,6 +108,7 @@ extern "C" {
 #define MAX_STRING         256
 #define ROUND_FACTOR       0.5
 #define Million            (uint64_t)(1000000ULL)
+#define Billion            (uint64_t)(1000000000ULL)
 
 #define iBitsTotal(_x) (uint64_t)(((_x.ipackets * PKT_OVERHEAD_SIZE) + _x.ibytes) * 8)
 #define oBitsTotal(_x) (uint64_t)(((_x.opackets * PKT_OVERHEAD_SIZE) + _x.obytes) * 8)
@@ -364,7 +365,7 @@ enum {                                  /* Pktgen flags bits */
 
 extern pktgen_t pktgen;
 
-void pktgen_page_display(struct rte_timer *tim, void *arg);
+void pktgen_page_display();
 
 void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
 void pktgen_packet_rate(port_info_t *info);

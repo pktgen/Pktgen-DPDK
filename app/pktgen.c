@@ -1305,7 +1305,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
         /* Determine when is the next time to send packets */
         if (curr_tsc >= tx_next_cycle) {
-            tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+            tx_next_cycle = tx_next_cycle + infos[0]->tx_cycles;
 
             for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
                 pktgen_main_transmit(infos[idx], qids[idx]);
@@ -1397,7 +1397,7 @@ pktgen_main_tx_loop(uint8_t lid)
 
         /* Determine when is the next time to send packets */
         if (curr_tsc >= tx_next_cycle) {
-            tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+            tx_next_cycle = tx_next_cycle + infos[0]->tx_cycles;
 
             for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
                 pktgen_main_transmit(infos[idx], qids[idx]);

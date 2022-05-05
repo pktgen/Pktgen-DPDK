@@ -32,7 +32,7 @@ typedef struct pkt_stats_s {
 struct port_info_s;
 
 void pktgen_get_link_status(struct port_info_s *info, int pid, int wait);
-void pktgen_process_stats(double elapsed_ns);
+void pktgen_process_stats(double rel_delay);
 
 void pktgen_page_stats(void);
 void pktgen_page_phys_stats(uint16_t pid);

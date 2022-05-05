@@ -479,7 +479,7 @@ pktgen_page_stats(void)
  * SEE ALSO:
  */
 void
-pktgen_process_stats(double elapsed_ns)
+pktgen_process_stats(double rel_delay)
 {
     unsigned int pid;
     struct rte_eth_stats *curr, *rate, *prev, *base;
@@ -533,14 +533,14 @@ pktgen_process_stats(double elapsed_ns)
         rate = &info->rate_stats;
         prev = &info->prev_stats;
 
-        rate->ipackets  = (((curr->ipackets - prev->ipackets) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->opackets  = (((curr->opackets - prev->opackets) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->ibytes    = (((curr->ibytes - prev->ibytes) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->obytes    = (((curr->obytes - prev->obytes) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->ierrors   = (((curr->ierrors - prev->ierrors) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->oerrors   = (((curr->oerrors - prev->oerrors) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->imissed   = (((curr->imissed - prev->imissed) * Billion) / elapsed_ns) + ROUND_FACTOR;
-        rate->rx_nombuf = (((curr->rx_nombuf - prev->rx_nombuf) * Billion) / elapsed_ns) + ROUND_FACTOR;
+        rate->ipackets  = ((curr->ipackets - prev->ipackets) / rel_delay) + ROUND_FACTOR;
+        rate->opackets  = ((curr->opackets - prev->opackets) / rel_delay) + ROUND_FACTOR;
+        rate->ibytes    = ((curr->ibytes - prev->ibytes) / rel_delay) + ROUND_FACTOR;
+        rate->obytes    = ((curr->obytes - prev->obytes) / rel_delay) + ROUND_FACTOR;
+        rate->ierrors   = ((curr->ierrors - prev->ierrors) / rel_delay) + ROUND_FACTOR;
+        rate->oerrors   = ((curr->oerrors - prev->oerrors) / rel_delay) + ROUND_FACTOR;
+        rate->imissed   = ((curr->imissed - prev->imissed) / rel_delay) + ROUND_FACTOR;
+        rate->rx_nombuf = ((curr->rx_nombuf - prev->rx_nombuf) / rel_delay) + ROUND_FACTOR;
 
         /* Find the new max rate values */
         if (rate->ipackets > info->max_ipackets)

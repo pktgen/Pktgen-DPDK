@@ -1604,15 +1604,14 @@ _timer_thread(void *arg)
     pktgen.timer_running = 1;
 
     while (pktgen.timer_running) {
-        uint64_t curr, elapsed_ns;
+        uint64_t curr;
 
         curr = rte_get_tsc_cycles();
 
         if (curr >= process) {
             process = curr + process_timo;
-            elapsed_ns = (curr - prev) * Billion / pktgen.hz;
+            pktgen_process_stats((double)(curr - prev) / process_timo);
             prev = curr;
-            pktgen_process_stats(elapsed_ns);
         }
 
         if (curr >= page) {

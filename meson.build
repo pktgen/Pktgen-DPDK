@@ -17,7 +17,10 @@ pktgen_conf = configuration_data()
 # set up some global vars for compiler, platform, configuration, etc.
 cc = meson.get_compiler('c')
 
-add_project_arguments('-march=native', language: 'c')
+target = target_machine.cpu_family()
+if (target != 'riscv64')
+    add_project_arguments('-march=native', language: 'c')
+endif
 
 if get_option('enable-avx') and cc.has_argument('-mavx')
     add_project_arguments('-mavx', language: 'c')

@@ -6,21 +6,16 @@ This document outlines how to contribute code to the PKTGEN project.
 Getting the code
 ----------------
 
-The PKTGEN code can be cloned from the repository on dpdk.org as follows:
+The PKTGEN code can be cloned from the repository on Github as follows:
 
-    git clone git://dpdk.org/apps/pktgen-dpdk
-    git clone http://dpdk.org/git/apps/pktgen-dpdk
+    git clone https://github.com/pktgen/Pktgen-DPDK.git
 
-The code can be browsed at http://dpdk.org/browse/apps/pktgen-dpdk/
+The code can be browsed at https://github.com/pktgen/Pktgen-DPDK
 
 Submitting Patches
 ------------------
 
-Contributions to PKTGEN should be submitted as git formatted patches to the
-DPDK mailing list: dev@dpdk.org
-
-Note you must first register for the mailing list at:
-http://dpdk.org/ml/listinfo/dev
+Contributions to PKTGEN should be submitted as merge requests on Github.
 
 The commit message must end with a "Signed-off-by:" line which is added using:
 

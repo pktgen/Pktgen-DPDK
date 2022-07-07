@@ -2812,8 +2812,7 @@ port_sizes(lua_State *L, port_info_t *info)
 {
     port_sizes_t sizes = {0};
 
-    for (int qid = 0; qid < NUM_Q; qid++)
-        pktgen_port_sizes(info->pid, &sizes);
+    pktgen_port_sizes(info->pid, &sizes);
 
     lua_pushinteger(L, info->pid); /* Push the table index */
     lua_newtable(L);               /* Create the structure table for a packet */
@@ -2886,8 +2885,8 @@ static void
 pkt_stats(lua_State *L, port_info_t *info)
 {
     struct rte_ether_addr ethaddr;
-    char mac_buf[32];
-    pkt_stats_t stats;
+    char mac_buf[32] = {0};
+    pkt_stats_t stats = {0};
     uint64_t avg_lat, ticks, jitter;
     uint32_t flags = rte_atomic32_read(&info->port_flags);
 
@@ -2994,7 +2993,7 @@ pktgen_pktStats(lua_State *L)
 static void
 port_stats(lua_State *L, port_info_t *info, char *type)
 {
-    eth_stats_t stats;
+    eth_stats_t stats = {0};
 
     pktgen_port_stats(info->pid, type, &stats);
 
@@ -3076,11 +3075,11 @@ static void
 port_info(lua_State *L, port_info_t *info)
 {
     struct rte_eth_dev_info dev = {0};
-    eth_stats_t stats;
-    pkt_stats_t pkt_stats;
-    port_sizes_t sizes;
+    eth_stats_t stats = {0};
+    pkt_stats_t pkt_stats = {0};
+    port_sizes_t sizes = {0};
     pkt_seq_t *pkt;
-    char buff[32];
+    char buff[32] = {0};
 
     pkt = &info->seq_pkt[SINGLE_PKT];
 

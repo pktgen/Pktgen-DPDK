@@ -1483,13 +1483,20 @@ pktgen_start_transmitting(port_info_t *info)
 void
 pktgen_stop_transmitting(port_info_t *info)
 {
-    uint8_t q;
-
     if (pktgen_tst_port_flags(info, SENDING_PACKETS)) {
         pktgen_clr_port_flags(info, (SENDING_PACKETS | SEND_FOREVER));
-        for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
+        for (uint8_t q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
             pktgen_set_q_flags(info, q, DO_TX_FLUSH);
     }
+}
+
+static void
+pktgen_set_receive_state(port_info_t *info, int state)
+{
+    if (state)
+        pktgen_set_port_flags(info, STOP_RECEIVING_PACKETS);
+    else
+        pktgen_clr_port_flags(info, STOP_RECEIVING_PACKETS);
 }
 
 /**
@@ -2791,6 +2798,8 @@ pktgen_reset(port_info_t *info)
     if (info == NULL)
         info = &pktgen.info[0];
 
+    printf("Reset configuration to default %d\n", info->pid);
+
     strcpy(off, "off");
     pktgen_stop_transmitting(info);
 
@@ -2820,7 +2829,7 @@ pktgen_reset(port_info_t *info)
 
 /**
  *
- * pktgen_port_restart - Reset all ports
+ * pktgen_port_restart - Attempt to cleanup port state.
  *
  * DESCRIPTION
  * Reset all ports
@@ -2836,16 +2845,24 @@ pktgen_port_restart(port_info_t *info)
     if (info == NULL)
         info = &pktgen.info[0];
 
+    printf("Port %d attempt to stop/start PMD\n", info->pid);
+
+    pktgen_set_receive_state(info, 1);
+
     pktgen_stop_transmitting(info);
 
     rte_delay_us_sleep(10 * 1000);
 
     /* Stop and start the device to flush TX and RX buffers from the device rings. */
-    rte_eth_dev_stop(info->pid);
+    if (rte_eth_dev_stop(info->pid) < 0)
+        printf("Unable to stop device %d\n", info->pid);
 
     rte_delay_us_sleep(250);
 
-    rte_eth_dev_start(info->pid);
+    if (rte_eth_dev_start(info->pid) < 0)
+        printf("Unable to start device %d\n", info->pid);
+
+    pktgen_set_receive_state(info, 0);
 
     pktgen_update_display();
 }

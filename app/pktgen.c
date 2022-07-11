@@ -1153,6 +1153,9 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf *pkts_burst[
 
     qstats = &info->qstats[qid];
 
+    if (pktgen_tst_port_flags(info, STOP_RECEIVING_PACKETS))
+        return;
+
     /*
      * Read packet from RX queues and free the mbufs
      */

@@ -91,8 +91,9 @@ enum { /* Per port flag bits */
        SAMPLING_LATENCIES = (1 << 26), /**< Sampling latency measurements> */
 
        /* Sending flags */
-       SENDING_PACKETS = (1 << 30), /**< sending packets on this port */
-       SEND_FOREVER    = (1 << 31), /**< Send packets forever */
+       STOP_RECEIVING_PACKETS = (1 << 29), /**< Stop receiving packet */
+       SENDING_PACKETS        = (1 << 30), /**< sending packets on this port */
+       SEND_FOREVER           = (1 << 31), /**< Send packets forever */
 
        SEND_ARP_PING_REQUESTS =
            (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST)

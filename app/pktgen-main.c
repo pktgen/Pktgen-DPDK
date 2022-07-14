@@ -506,9 +506,10 @@ main(int argc, char **argv)
     print_copyright(PKTGEN_VER_PREFIX, PKTGEN_VER_CREATED_BY);
 
     if (pktgen.verbose)
-        pktgen_log_info(">>> Packet Burst %d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
-                        DEFAULT_PKT_BURST, DEFAULT_RX_DESC, DEFAULT_TX_DESC, MAX_MBUFS_PER_PORT,
-                        MBUF_CACHE_SIZE);
+        pktgen_log_info(
+            ">>> Packet Max Burst %d/%d, RX Desc %d, TX Desc %d, mbufs/port %d, mbuf cache %d",
+            MAX_PKT_RX_BURST, MAX_PKT_TX_BURST, DEFAULT_RX_DESC, DEFAULT_TX_DESC,
+            MAX_MBUFS_PER_PORT, MBUF_CACHE_SIZE);
 
     /* Configure and initialize the ports */
     pktgen_config_ports();

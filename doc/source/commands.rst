@@ -218,7 +218,8 @@ List of the ``set`` commands::
     set <portlist> count <value>       - number of packets to transmit
     set <portlist> size <value>        - size of the packet to transmit
     set <portlist> rate <percent>      - Packet rate in percentage
-    set <portlist> burst <value>       - number of packets in a burst
+    set <portlist> txburst <value>     - number of packets in a Tx burst
+    set <portlist> rxburst <value>     - number of packets in a Rx burst
     set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
     set <portlist> sport <value>       - Source port number for TCP
     set <portlist> dport <value>       - Destination port number for TCP
@@ -563,28 +564,28 @@ The latency page.
 ::
 
 	-- Ports 0-3 of 8   <Main Page>  Copyright(c) <2010-2021>, Intel Corporation
-		Flags:Port        :   P----S---------:0   P--------------:1   P--------------:2   P--------------:3
-		Link State        :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
-		Pkts/s Max/Rx     :                 0/0                 0/0                 0/0                 0/0                   0/0
-		       Max/Tx     :                 0/0                 0/0                 0/0                 0/0                   0/0
-		MBits/s Rx/Tx     :                 0/0                 0/0                 0/0                 0/0                   0/0
-		                  :
-		Latency usec      :                   0                   0                   0                   0
-		Jitter Threshold  :                  50                  50                  50                  50
-		Jitter count      :                   0                   0                   0                   0
-		Total Rx pkts     :                   0                   0                   0                   0
-		Jitter percent    :                   0                   0                   0                   0
-		                  :
-		Pattern Type      :             abcd...             abcd...             abcd...             abcd...
-		Tx Count/% Rate   :       Forever /100%       Forever /100%       Forever /100%       Forever /100%
-		PktSize/Tx Burst  :           64 /   32           64 /   32           64 /   32           64 /   32
-		Src/Dest Port     :         1234 / 5678         1234 / 5678         1234 / 5678         1234 / 5678
-		Pkt Type:VLAN ID  :     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001
-		Dst  IP Address   :         192.168.1.1         192.168.0.1         192.168.3.1         192.168.2.1
-		Src  IP Address   :      192.168.0.1/24      192.168.1.1/24      192.168.2.1/24      192.168.3.1/24
-		Dst MAC Address   :   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:db   3c:fd:fe:9c:5c:da
-		Src MAC Address   :   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:da   3c:fd:fe:9c:5c:db
-		VendID/PCI Addr   :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2   8086:1572/04:00.3
+		Flags:Port         :   P----S---------:0   P--------------:1   P--------------:2   P--------------:3
+		Link State         :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
+		Pkts/s Max/Rx      :                 0/0                 0/0                 0/0                 0/0                   0/0
+		       Max/Tx      :                 0/0                 0/0                 0/0                 0/0                   0/0
+		MBits/s Rx/Tx      :                 0/0                 0/0                 0/0                 0/0                   0/0
+		                   :
+		Latency usec       :                   0                   0                   0                   0
+		Jitter Threshold   :                  50                  50                  50                  50
+		Jitter count       :                   0                   0                   0                   0
+		Total Rx pkts      :                   0                   0                   0                   0
+		Jitter percent     :                   0                   0                   0                   0
+		                   :
+		Pattern Type       :             abcd...             abcd...             abcd...             abcd...
+		Tx Count/% Rate    :       Forever /100%       Forever /100%       Forever /100%       Forever /100%
+		PktSize/Rx:Tx Burst:         64 / 32: 64           64 /   32           64 /   32           64 /   32
+		Src/Dest Port      :         1234 / 5678         1234 / 5678         1234 / 5678         1234 / 5678
+		Pkt Type:VLAN ID   :     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001
+		Dst  IP Address    :         192.168.1.1         192.168.0.1         192.168.3.1         192.168.2.1
+		Src  IP Address    :      192.168.0.1/24      192.168.1.1/24      192.168.2.1/24      192.168.3.1/24
+		Dst MAC Address    :   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:db   3c:fd:fe:9c:5c:da
+		Src MAC Address    :   3c:fd:fe:9c:5c:d8   3c:fd:fe:9c:5c:d9   3c:fd:fe:9c:5c:da   3c:fd:fe:9c:5c:db
+		VendID/PCI Addr    :   8086:1572/04:00.0   8086:1572/04:00.1   8086:1572/04:00.2   8086:1572/04:00.3
 
 		-- Pktgen Ver: 3.2.4 (DPDK 17.05.0-rc0)  Powered by DPDK ---------------
 

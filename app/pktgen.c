@@ -1240,7 +1240,7 @@ port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids, uint8_t *txcnt, u
 static void
 pktgen_main_rxtx_loop(uint8_t lid)
 {
-    struct rte_mbuf *pkts_burst[DEFAULT_PKT_BURST];
+    struct rte_mbuf *pkts_burst[MAX_PKT_RX_BURST];
     port_info_t *infos[RTE_MAX_ETHPORTS];
     uint8_t qids[RTE_MAX_ETHPORTS];
     uint8_t idx, txcnt, rxcnt;
@@ -1294,7 +1294,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
     }
     while (pg_lcore_is_running(pktgen.l2p, lid)) {
         for (idx = 0; idx < rxcnt; idx++) /* Read Packets */
-            pktgen_main_receive(infos[idx], lid, pkts_burst, DEFAULT_PKT_BURST);
+            pktgen_main_receive(infos[idx], lid, pkts_burst, infos[idx]->tx_burst);
 
         curr_tsc = rte_get_tsc_cycles();
 
@@ -1434,7 +1434,7 @@ pktgen_main_tx_loop(uint8_t lid)
 static void
 pktgen_main_rx_loop(uint8_t lid)
 {
-    struct rte_mbuf *pkts_burst[DEFAULT_PKT_BURST];
+    struct rte_mbuf *pkts_burst[MAX_PKT_RX_BURST];
     uint8_t idx, rxcnt;
     port_info_t *infos[RTE_MAX_ETHPORTS];
 
@@ -1469,7 +1469,7 @@ pktgen_main_rx_loop(uint8_t lid)
     }
     while (pg_lcore_is_running(pktgen.l2p, lid))
         for (idx = 0; idx < rxcnt; idx++) /* Read packet */
-            pktgen_main_receive(infos[idx], lid, pkts_burst, DEFAULT_PKT_BURST);
+            pktgen_main_receive(infos[idx], lid, pkts_burst, infos[idx]->rx_burst);
 
     pktgen_log_debug("Exit %d", lid);
 

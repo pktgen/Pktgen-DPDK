@@ -229,6 +229,10 @@ update_port_static_info(unsigned int pid)
             strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_src_addr));
             break;
 
+        case 15:
+            g_snprintf(buf, sizeof(buf), "%d", info->rx_burst);
+            break;
+
         default:
             strcpy(buf, "0");
             break;

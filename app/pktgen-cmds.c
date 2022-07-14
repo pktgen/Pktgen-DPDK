@@ -137,8 +137,8 @@ pktgen_script_save(char *path)
             snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&info->transmit_count));
         fprintf(fd, "#\n");
         flags = rte_atomic32_read(&info->port_flags);
-        fprintf(fd, "# Port: %2d, Burst:%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n", info->pid,
-                info->tx_burst, info->tx_rate, flags, buff);
+        fprintf(fd, "# Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n", info->pid,
+                info->rx_burst, info->tx_burst, info->tx_rate, flags, buff);
         fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ", info->seqCnt,
                 info->prime_cnt, info->vlanid);
         pktgen_link_state(info->pid, buff, sizeof(buff));
@@ -149,7 +149,8 @@ pktgen_script_save(char *path)
                 rte_atomic64_read(&info->transmit_count));
         fprintf(fd, "set %d size %d\n", info->pid, pkt->pktSize + RTE_ETHER_CRC_LEN);
         fprintf(fd, "set %d rate %g\n", info->pid, info->tx_rate);
-        fprintf(fd, "set %d burst %d\n", info->pid, info->tx_burst);
+        fprintf(fd, "set %d rxburst %d\n", info->pid, info->rx_burst);
+        fprintf(fd, "set %d txburst %d\n", info->pid, info->tx_burst);
         fprintf(fd, "set %d sport %d\n", info->pid, pkt->sport);
         fprintf(fd, "set %d dport %d\n", info->pid, pkt->dport);
         fprintf(fd, "set %d prime %d\n", info->pid, info->prime_cnt);
@@ -499,8 +500,8 @@ pktgen_lua_save(char *path)
             snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&info->transmit_count));
         fprintf(fd, "-- \n");
         flags = rte_atomic32_read(&info->port_flags);
-        fprintf(fd, "-- Port: %2d, Burst:%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n", info->pid,
-                info->tx_burst, info->tx_rate, flags, buff);
+        fprintf(fd, "-- Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n", info->pid,
+                info->rx_burst, info->tx_burst, info->tx_rate, flags, buff);
         fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ", info->seqCnt,
                 info->prime_cnt, info->vlanid);
         pktgen_link_state(info->pid, buff, sizeof(buff));
@@ -511,7 +512,8 @@ pktgen_lua_save(char *path)
                 rte_atomic64_read(&info->transmit_count));
         fprintf(fd, "pktgen.set('%d', 'size', %d);\n", info->pid, pkt->pktSize + RTE_ETHER_CRC_LEN);
         fprintf(fd, "pktgen.set('%d', 'rate', %g);\n", info->pid, info->tx_rate);
-        fprintf(fd, "pktgen.set('%d', 'burst', %d);\n", info->pid, info->tx_burst);
+        fprintf(fd, "pktgen.set('%d', 'txburst', %d);\n", info->pid, info->tx_burst);
+        fprintf(fd, "pktgen.set('%d', 'rxburst', %d);\n", info->pid, info->rx_burst);
         fprintf(fd, "pktgen.set('%d', 'sport', %d);\n", info->pid, pkt->sport);
         fprintf(fd, "pktgen.set('%d', 'dport', %d);\n", info->pid, pkt->dport);
         fprintf(fd, "pktgen.set('%d', 'prime', %d);\n", info->pid, info->prime_cnt);
@@ -1802,7 +1804,8 @@ enable_rate(port_info_t *info, uint32_t state)
         pkt_seq_t *pkt = &info->seq_pkt[RATE_PKT];
 
         pktgen_clr_port_flags(info, SEND_RATE_PACKETS);
-        info->tx_burst = DEFAULT_PKT_BURST;
+        info->rx_burst = DEFAULT_PKT_RX_BURST;
+        info->tx_burst = DEFAULT_PKT_TX_BURST;
         pkt->pktSize   = RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN;
 
         pktgen_packet_rate(info);
@@ -2661,7 +2664,8 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     rte_atomic64_set(&info->transmit_count, DEFAULT_TX_COUNT);
     rte_atomic64_init(&info->current_tx_count);
     info->tx_rate   = DEFAULT_TX_RATE;
-    info->tx_burst  = DEFAULT_PKT_BURST;
+    info->tx_burst  = DEFAULT_PKT_TX_BURST;
+    info->rx_burst  = DEFAULT_PKT_RX_BURST;
     info->vlanid    = DEFAULT_VLAN_ID;
     info->cos       = DEFAULT_COS;
     info->tos       = DEFAULT_TOS;
@@ -3003,10 +3007,34 @@ single_set_tx_burst(port_info_t *info, uint32_t burst)
 {
     if (burst == 0)
         burst = 1;
-    else if (burst > DEFAULT_PKT_BURST)
-        burst = DEFAULT_PKT_BURST;
+    else if (burst > MAX_PKT_TX_BURST)
+        burst = MAX_PKT_TX_BURST;
     info->tx_burst  = burst;
     info->tx_cycles = 0;
+
+    pktgen_packet_rate(info);
+}
+
+/**
+ *
+ * single_set_rx_burst - Set the receive burst count.
+ *
+ * DESCRIPTION
+ * Set the receive burst count for all packets.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+single_set_rx_burst(port_info_t *info, uint32_t burst)
+{
+    if (burst == 0)
+        burst = 1;
+    else if (burst > MAX_PKT_RX_BURST)
+        burst = MAX_PKT_RX_BURST;
+    info->rx_burst  = burst;
 
     pktgen_packet_rate(info);
 }
@@ -3028,10 +3056,34 @@ rate_set_tx_burst(port_info_t *info, uint32_t burst)
 {
     if (burst == 0)
         burst = 1;
-    else if (burst > DEFAULT_PKT_BURST)
-        burst = DEFAULT_PKT_BURST;
+    else if (burst > MAX_PKT_TX_BURST)
+        burst = MAX_PKT_TX_BURST;
     info->tx_burst  = burst;
     info->tx_cycles = 0;
+
+    pktgen_packet_rate(info);
+}
+
+/**
+ *
+ * rate_set_tx_burst - Set the transmit burst count.
+ *
+ * DESCRIPTION
+ * Set the transmit burst count for all packets.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+rate_set_rx_burst(port_info_t *info, uint32_t burst)
+{
+    if (burst == 0)
+        burst = 1;
+    else if (burst > MAX_PKT_RX_BURST)
+        burst = MAX_PKT_RX_BURST;
+    info->rx_burst  = burst;
 
     pktgen_packet_rate(info);
 }

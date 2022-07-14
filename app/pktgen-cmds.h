@@ -83,6 +83,7 @@
     void single_set_pkt_type(port_info_t * info, const char *type);
     void single_set_tx_count(port_info_t * info, uint32_t cnt);
     void single_set_tx_burst(port_info_t * info, uint32_t burst);
+    void single_set_rx_burst(port_info_t *info, uint32_t burst);
     void single_set_pkt_size(port_info_t * info, uint16_t size);
     void single_set_tx_rate(port_info_t * info, const char *rate);
     void single_set_jitter(port_info_t * info, uint64_t threshold);
@@ -109,6 +110,7 @@
     void rate_set_tcp_flag_set(port_info_t * info, const char *which);
     void rate_set_tcp_flag_clr(port_info_t * info, const char *which);
     void rate_set_tx_burst(port_info_t * info, uint32_t burst);
+    void rate_set_rx_burst(port_info_t *info, uint32_t burst);
 
     /* Debug */
     void debug_dump(port_info_t * info, char *str);

@@ -481,7 +481,7 @@ local function runThroughputTest(pkt_size)
 
 		-- confirm throughput rate for at least 60 seconds
 		num_dropped = runTrial(pkt_size, trial_rate, confirmDuration, "Final", 0);
-		loss_limit = (sent*loss_tol);
+		
 		printLine();
 		if num_dropped <= loss_limit
 		then

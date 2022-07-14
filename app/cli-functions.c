@@ -453,7 +453,9 @@ range_cmd(int argc, char **argv)
     "seq_cnt|"   /* 11 */ \
     "seqCnt|"    /* 12 */ \
     "seqcnt|"    /* 13 */ \
-    "ttl"        /* 14 */
+    "ttl|"       /* 14 */ \
+    "txburst|"   /* 15 */ \
+    "rxburst"    /* 16 */
 
 static struct cli_map set_map[] = {{10, "set %P %|" set_types " %d"},
                                    {11, "set %P jitter %D"},
@@ -487,7 +489,8 @@ static const char *set_help[] = {
     "set <portlist> count <value>       - number of packets to transmit",
     "set <portlist> size <value>        - size of the packet to transmit",
     "set <portlist> rate <percent>      - Packet rate in percentage",
-    "set <portlist> burst <value>       - number of packets in a burst",
+    "set <portlist> txburst|burst <value> - number of packets in a TX burst",
+    "set <portlist> rxburst <value>     - number of packets in a RX burst",
     "set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst",
     "set <portlist> sport <value>       - Source port number for UDP/TCP",
     "set <portlist> dport <value>       - Destination port number for UDP/TCP",
@@ -602,6 +605,12 @@ set_cmd(int argc, char **argv)
                              break;
                          case 14:
                              single_set_ttl_value(info, value);
+                             break;
+                         case 15:
+                             single_set_tx_burst(info, value);
+                             break;
+                         case 16:
+                             single_set_rx_burst(info, value);
                              break;
                          default:
                              return cli_cmd_error("Set command is invalid", "Set", argc, argv);
@@ -1826,13 +1835,15 @@ bonding_cmd(int argc, char **argv)
 }
 #endif
 
-#define rate_types    \
-    "count|" /*  0 */ \
-    "size|"  /*  1 */ \
-    "burst|" /*  2 */ \
-    "sport|" /*  3 */ \
-    "dport|" /*  4 */ \
-    "ttl"    /*  5 */
+#define rate_types      \
+    "count|"   /*  0 */ \
+    "size|"    /*  1 */ \
+    "burst|"   /*  2 */ \
+    "sport|"   /*  3 */ \
+    "dport|"   /*  4 */ \
+    "ttl|"     /*  5 */ \
+    "txburst|" /*  6 */ \
+    "rxburst"  /*  7 */
 
 static struct cli_map rate_map[] = {{10, "rate %P %|" rate_types " %d"},
                                     {20, "rate %P type %|arp|ipv4|ipv6|ip4|ip6|vlan"},
@@ -1860,7 +1871,8 @@ static const char *rate_help[] = {
     "rate <portlist> count <value>        - number of packets to transmit",
     "rate <portlist> size <value>         - size of the packet to transmit",
     "rate <portlist> rate <percent>       - Packet rate in percentage",
-    "rate <portlist> burst <value>        - number of packets in a burst",
+    "rate <portlist> txburst|burst <value> - number of packets in a Tx burst",
+    "rate <portlist> rxburst <value>      - number of packets in a Rx burst",
     "rate <portlist> sport <value>        - Source port number for UDP/TCP",
     "rate <portlist> dport <value>        - Destination port number for UDP/TCP",
     "rate <portlist> ttl <value>          - Set the TTL value for the single port more",
@@ -1924,6 +1936,12 @@ rate_cmd(int argc, char **argv)
                              break;
                          case 5:
                              rate_set_ttl_value(info, value);
+                             break;
+                         case 6:
+                             rate_set_tx_burst(info, value);
+                             break;
+                         case 7:
+                             rate_set_rx_burst(info, value);
                              break;
                          default:
                              return cli_cmd_error("Set rate command is invalid", "Rate", argc,

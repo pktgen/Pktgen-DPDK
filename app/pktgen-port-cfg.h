@@ -51,7 +51,7 @@ typedef struct port_sizes_s {
 
 struct mbuf_table {
     uint16_t len;
-    struct rte_mbuf *m_table[DEFAULT_PKT_BURST];
+    struct rte_mbuf *m_table[MAX_PKT_TX_BURST];
 };
 
 enum { /* Per port flag bits */
@@ -186,10 +186,10 @@ typedef struct {
 } latsamp_stats_t __rte_cache_aligned;
 
 typedef struct port_info_s {
-    uint16_t pid;      /**< Port ID value */
-    uint16_t tx_burst; /**< Number of TX burst packets */
-    uint16_t lsc_enabled;
-    uint16_t pad0;
+    uint16_t pid;              /**< Port ID value */
+    uint16_t tx_burst;         /**< Number of TX burst packets */
+    uint16_t lsc_enabled;      /**< Enable link state change */
+    uint16_t rx_burst;         /**< RX burst size */
     double tx_rate;            /**< Percentage rate for tx packets with fractions */
     rte_atomic32_t port_flags; /**< Special send flags for ARP and other */
 

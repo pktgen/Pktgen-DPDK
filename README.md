@@ -602,7 +602,7 @@ Total Rx Pkts       :                   0                   0                   
                     :
 Pattern Type        :             abcd...             abcd...             abcd...             abcd...
 Tx Count/% Rate     :       Forever /100%       Forever /100%       Forever /100%       Forever /100%
-Pkt Size/Tx Burst   :           64 /   64           64 /   64           64 /   64           64 /   64
+Pkt Size/Rx:Tx Burst:          64 / 64: 64          64 /   64           64 /   64           64 /   64
 Port Src/Dest       :         1234 / 5678         1234 / 5678         1234 / 5678         1234 / 5678
 Pkt Type:VLAN ID    :     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001     IPv4 / TCP:0001
 802.1p CoS/DSCP/IPP :           0/  0/  0           0/  0/  0           0/  0/  0           0/  0/  0
@@ -669,7 +669,8 @@ enable|disable screen              - Enable/disable updating the screen and unlo
 set <portlist> count <value>       - number of packets to transmit
 set <portlist> size <value>        - size of the packet to transmit
 set <portlist> rate <percent>      - Packet rate in percentage
-set <portlist> burst <value>       - number of packets in a burst
+set <portlist> rxburst <value>     - number of packets in a Tx burst
+set <portlist> txburst <value>     - number of packets in a Rx burst
 set <portlist> tx_cycles <value>   - DEBUG to set the number of cycles per TX burst
 set <portlist> sport <value>       - Source port number for TCP
 set <portlist> dport <value>       - Destination port number for TCP

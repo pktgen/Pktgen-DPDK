@@ -174,7 +174,7 @@ rate_print_static_data(void)
     pktgen_display_set_color("stats.stat.label");
     ip_row = ++row;
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Tx Burst");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Rx:Tx Burst");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TTL/Port Src/Dst");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt / Type");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TCP Flags");
@@ -214,7 +214,7 @@ rate_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.stat.values");
-        snprintf(buff, sizeof(buff), "%d /%5d", pkt->pktSize + RTE_ETHER_CRC_LEN, info->tx_burst);
+        snprintf(buff, sizeof(buff), "%d /%5d:%5d", pkt->pktSize + RTE_ETHER_CRC_LEN, info->rx_burst, info->tx_burst);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);

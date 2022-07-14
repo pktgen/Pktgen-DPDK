@@ -170,6 +170,8 @@ pktgen_set(lua_State *L)
             else if (!strcasecmp(what, "size")) single_set_pkt_size(info, value);
             else if (!strcasecmp(what, "rate")) single_set_tx_rate(info, luaL_checkstring(L, 3));
             else if (!strcasecmp(what, "burst")) single_set_tx_burst(info, value);
+            else if (!strcasecmp(what, "txburst")) single_set_tx_burst(info, value);
+            else if (!strcasecmp(what, "rxburst")) single_set_rx_burst(info, value);
             else if (!strcasecmp(what, "cycles")) debug_set_tx_cycles(info, value);
             else if (!strcasecmp(what, "sport")) single_set_port_value(info, what[0], value);
             else if (!strcasecmp(what, "dport")) single_set_port_value(info, what[0], value);
@@ -3170,6 +3172,7 @@ port_info(lua_State *L, port_info_t *info)
 
     setf_integer(L, "pkt_size", pkt->pktSize + RTE_ETHER_CRC_LEN);
     setf_integer(L, "tx_burst", info->tx_burst);
+    setf_integer(L, "rx_burst", info->rx_burst);
 
     setf_string(L, "eth_type",
                 (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "IPv4"
@@ -3646,7 +3649,9 @@ static const char *lua_help_info[] = {
     "maxTOS       - Max TOS value\n",
     "mbufCacheSize  - mbuf cache size value]n",
     "\n",
-    "defaultPktBurst- Default burst packet count\n",
+    "defaultPktBurst- Default Tx burst packet count\n",
+    "defaultPktTxBurst- Default Tx burst packet count\n",
+    "defaultPktRxBurst- Default Rx burst packet count\n",
     "defaultBuffSize- Default buffer size value\n",
     "maxMbufsPerPort- Max mbufs per port value\n",
     "maxPrimeCount  - Max prime count\n",
@@ -3857,7 +3862,11 @@ luaopen_pktgen(lua_State *L)
     setf_integer(L, "minTOS", MIN_TOS);
     setf_integer(L, "maxTOS", MAX_TOS);
 
-    setf_integer(L, "defaultPktBurst", DEFAULT_PKT_BURST);
+    setf_integer(L, "defaultPktBurst", DEFAULT_PKT_TX_BURST);
+    setf_integer(L, "defaultPktRxBurst", DEFAULT_PKT_RX_BURST);
+    setf_integer(L, "defaultPktTxBurst", DEFAULT_PKT_TX_BURST);
+    setf_integer(L, "maxPktRxBurst", MAX_PKT_RX_BURST);
+    setf_integer(L, "maxPktTxBurst", MAX_PKT_TX_BURST);
     setf_integer(L, "defaultBuffSize", DEFAULT_MBUF_SIZE);
     setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT);
     setf_integer(L, "maxPrimeCount", MAX_PRIME_COUNT);

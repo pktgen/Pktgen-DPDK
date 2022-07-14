@@ -15,7 +15,7 @@ const char *pktgen_static_fields[PKTGEN_GUI_MAX_STATIC] = {
 	"Tx Count",
 	"Rate(%)",
 	"Packet Size (bytes)",
-	"Tx Burst (Pkts/s) ",
+	"Rx:Tx Burst (Pkts/s) ",
 	"Src Port",
 	"Dest Port",
 	"Pkt Type",

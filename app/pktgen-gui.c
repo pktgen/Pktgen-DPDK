@@ -50,6 +50,27 @@
         }                                                                             \
     } while ((0))
 
+GtkTreeStore        *treestore_stats[RTE_MAX_ETHPORTS];
+GtkTreeStore        *treestore_static[RTE_MAX_ETHPORTS];
+GtkWidget           *view_static[RTE_MAX_ETHPORTS];
+GtkTreeModel        *model_static[RTE_MAX_ETHPORTS];
+
+GtkWidget           *view_stats[RTE_MAX_ETHPORTS];
+GtkTreeModel        *model_stats[RTE_MAX_ETHPORTS];
+
+GtkTextBuffer       *buffer;
+GtkTextIter          buffer_iter;
+
+GtkWidget           *stream_view[RTE_MAX_ETHPORTS];
+GtkTreeStore        *traffic_stream[RTE_MAX_ETHPORTS];
+GtkWidget           *stream_window;
+GtkWidget           *hscale;
+gint tx_rate;
+GtkWidget           *notebook;
+GtkScrolledWindow   *scroller;
+
+GtkWidget           *chassis_view;
+
 /**
  *
  * fill_chassis_info - A routine to fill chassis info
@@ -260,6 +281,8 @@ int
 update_port_statistics(void *arg)
 {
     GtkWidget *window = (GtkWidget *)arg;
+    port_sizes_t sizes = {0};
+    pkt_stats_t stats = {0};
     unsigned int pid  = 0;
     port_info_t *info = NULL;
 
@@ -296,18 +319,19 @@ update_port_statistics(void *arg)
         stats_store_next(pid, oBitsTotal(info->rate_stats) / Million);
 
         /* Packets Sizes */
-        stats_store_next(pid, info->sizes.broadcast);
-        stats_store_next(pid, info->sizes.multicast);
-        stats_store_next(pid, info->sizes._64);
-        stats_store_next(pid, info->sizes._65_127);
-        stats_store_next(pid, info->sizes._128_255);
-        stats_store_next(pid, info->sizes._256_511);
-        stats_store_next(pid, info->sizes._512_1023);
-        stats_store_next(pid, info->sizes._1024_1518);
+        pktgen_port_sizes(pid, &sizes);
+        stats_store_next(pid, sizes.broadcast);
+        stats_store_next(pid, sizes.multicast);
+        stats_store_next(pid, sizes._64);
+        stats_store_next(pid, sizes._65_127);
+        stats_store_next(pid, sizes._128_255);
+        stats_store_next(pid, sizes._256_511);
+        stats_store_next(pid, sizes._512_1023);
+        stats_store_next(pid, sizes._1024_1518);
 
         /* Runt & Jumbo pkts */
-        stats_store_next(pid, info->sizes.runt);
-        stats_store_next(pid, info->sizes.jumbo);
+        stats_store_next(pid, sizes.runt);
+        stats_store_next(pid, sizes.jumbo);
 
         /* Rx/Tx Errors */
         stats_store_next(pid, info->prev_stats.ierrors);
@@ -322,8 +346,9 @@ update_port_statistics(void *arg)
         stats_store_next(pid, oBitsTotal(info->prev_stats) / Million);
 
         /* ARP & ICMP Pkts */
-        stats_store_next(pid, info->stats.arp_pkts);
-        stats_store_next(pid, info->stats.echo_pkts);
+        pktgen_pkt_stats(pid, &stats);
+        stats_store_next(pid, stats.arp_pkts);
+        stats_store_next(pid, stats.echo_pkts);
     }
 
     gtk_tree_model_get_iter_first(model_stats[pktgen.ending_port], &totToplevel);
@@ -1317,6 +1342,8 @@ pktgen_gui_main(int argc, char *argv[])
     int rc;
     pthread_t inc_x_thread;
 
+    printf(">>>> Starting the GUI\n");
+    
     /* Initialize GTK */
     gtk_init(&argc, &argv);
 

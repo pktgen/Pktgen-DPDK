@@ -28,26 +28,26 @@
 extern pktgen_t pktgen;
 extern cmdline_parse_ctx_t main_ctx[];
 
-GtkTreeStore        *treestore_stats[RTE_MAX_ETHPORTS];
-GtkTreeStore        *treestore_static[RTE_MAX_ETHPORTS];
-GtkWidget           *view_static[RTE_MAX_ETHPORTS];
-GtkTreeModel        *model_static[RTE_MAX_ETHPORTS];
+extern GtkTreeStore        *treestore_stats[RTE_MAX_ETHPORTS];
+extern GtkTreeStore        *treestore_static[RTE_MAX_ETHPORTS];
+extern GtkWidget           *view_static[RTE_MAX_ETHPORTS];
+extern GtkTreeModel        *model_static[RTE_MAX_ETHPORTS];
 
-GtkWidget           *view_stats[RTE_MAX_ETHPORTS];
-GtkTreeModel        *model_stats[RTE_MAX_ETHPORTS];
+extern GtkWidget           *view_stats[RTE_MAX_ETHPORTS];
+extern GtkTreeModel        *model_stats[RTE_MAX_ETHPORTS];
 
-GtkTextBuffer       *buffer;
-GtkTextIter          buffer_iter;
+extern GtkTextBuffer       *buffer;
+extern GtkTextIter          buffer_iter;
 
-GtkWidget           *stream_view[RTE_MAX_ETHPORTS];
-GtkTreeStore        *traffic_stream[RTE_MAX_ETHPORTS];
-GtkWidget           *stream_window;
-GtkWidget           *hscale;
-gint tx_rate;
-GtkWidget           *notebook;
-GtkScrolledWindow   *scroller;
+extern GtkWidget           *stream_view[RTE_MAX_ETHPORTS];
+extern GtkTreeStore        *traffic_stream[RTE_MAX_ETHPORTS];
+extern GtkWidget           *stream_window;
+extern GtkWidget           *hscale;
+extern gint tx_rate;
+extern GtkWidget           *notebook;
+extern GtkScrolledWindow   *scroller;
 
-GtkWidget           *chassis_view;
+extern GtkWidget           *chassis_view;
 
 
 /* pktgen_port_stream data structure */

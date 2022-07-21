@@ -96,7 +96,7 @@ pktgen_get_lua(void)
 static void
 pktgen_usage(const char *prgname)
 {
-    printf("Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s "
+    printf("Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-g host:port] [-T] [-f cmd_file] [-l log_file] [-s "
            "P:PCAP_file] [-m <string>]\n"
            "  -s P:file    PCAP packet stream file, 'P' is the port number\n"
            "  -s P:file0,file1,... list of PCAP packet stream files per queue, 'P' is the port "

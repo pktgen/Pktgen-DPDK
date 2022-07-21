@@ -47,6 +47,8 @@ Note: In DPDK 19.08-rc0 a large number of defines and function names were
       compatibility issues with these name changes. This means versions
       3.6.6 and below will have trouble building with DPDK starting with
       19.08-rc0 or just after the 19.05 release.
+      As I have limited time and resources, please use the latest Pktgen
+      and DPDK version to build Pktgen.
 
 
 ## Pktgen command line directory format ***
@@ -172,7 +174,7 @@ You may need to modify this script for your system and configuration.
     fi
 
 ** Note: The '-m NNN' in the DPDK arguments is to have DPDK allocate 512 megs of memory.
- The '--socket-mem 256,156' DPDK command will allocate 256M from each CPU (two in this
+ The '--socket-mem 256,256' DPDK command will allocate 256M from each CPU (two in this
  case). Do not use the '-m NNN' and '--socket-mem NN,NN' commands on the same command
  line.
 
@@ -980,6 +982,8 @@ One method to connect to Pktgen is using telnet, but another method would be to
 use 'socat' program on a Linux machine. The socat program is very powerfull application
 and can do a lot of things. I used socat to debug Pktgen using the following
 command, which gives me a readline inteface to Pktgen's socket interface.
+Remember to use the '-G' option or -g host:port pktgen option, then make sure you 
+use the same address in the socat line.
 
 $ socat -d -d READLINE TCP4:localhost:22022
 

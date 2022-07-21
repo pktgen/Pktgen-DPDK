@@ -93,6 +93,10 @@ or
 make build    # Same as 'make'
 or
 make rebuild  # Rebuild Pktgen, which removes the Builddir then builds it again via meson/ninja
+or
+make rebuildlua # to enable Lua builds
+or
+make rebuildgui # to enable GUI builds with GTK
 
 # Use 'make help' to read the help message for building.
 

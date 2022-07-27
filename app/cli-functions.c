@@ -118,6 +118,8 @@ static struct cli_map range_map[] = {{20, "range %P dst mac " SMMI " %m"},
                                      {43, "range %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
                                      {44, "range %P tcp seq %d %d %d %d"},
                                      {45, "range %P tcp ack %d %d %d %d"},
+                                     {46, "range %P tcp seq " SMMI " %d"},
+                                     {47, "range %P tcp ack " SMMI " %d"},
                                      {50, "range %P dst port " SMMI " %d"},
                                      {51, "range %P src port " SMMI " %d"},
                                      {52, "range %P dst port %d %d %d %d"},
@@ -320,6 +322,12 @@ range_cmd(int argc, char **argv)
                      range_set_tcp_ack(info, (char *)(uintptr_t) "max", atoi(argv[6]));
                      range_set_tcp_ack(info, (char *)(uintptr_t) "inc", atoi(argv[7])));
         break;
+    case 46:
+        foreach_port(portlist, range_set_tcp_seq(info, what, atoi(val)));
+	break;
+    case 47:
+        foreach_port(portlist, range_set_tcp_ack(info, what, atoi(val)));
+	break;
     case 50:
         foreach_port(portlist, range_set_dst_port(info, what, atoi(val)));
         break;
@@ -471,8 +479,8 @@ static struct cli_map set_map[] = {{10, "set %P %|" set_types " %d"},
                                    {33, "set %P dst ip %6"},
                                    {34, "set %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
                                    {35, "set %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
-                                   {36, "set %P tcp seq %u"},
-                                   {37, "set %P tcp ack %u"},
+                                   {36, "set %P tcp seq %d"},
+                                   {37, "set %P tcp ack %d"},
                                    {40, "set ports_per_page %d"},
                                    {50, "set %P qinqids %d %d"},
                                    {60, "set %P rnd %d %d %s"},
@@ -740,8 +748,14 @@ set_cmd(int argc, char **argv)
     return 0;
 }
 
+// clang-format off
 static struct cli_map pcap_map[] = {
-    {10, "pcap %D"}, {20, "pcap show"}, {30, "pcap filter %P %s"}, {-1, NULL}};
+    {10, "pcap %D"},
+    {20, "pcap show"},
+    {30, "pcap filter %P %s"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *pcap_help[] = {
     "",

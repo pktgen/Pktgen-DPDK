@@ -37,7 +37,7 @@ is_map_valid(const char *fmt, char *arg)
 	char *p;
 	struct rte_ipaddr ip;
 
-	if (strchr("%bdDhHsn46mkPC|l", fmt[1]) == NULL)
+	if (strchr("%bdDuUhHsn46mkPC|l", fmt[1]) == NULL)
 		return ret;
 
 	/* validate all of the characters matching the format */
@@ -54,6 +54,12 @@ is_map_valid(const char *fmt, char *arg)
 			if (isdigit(*arg)) ret = 1;
 			break;
 		case 'D':
+			if (isdigit(*arg)) ret = 1;
+			break;
+		case 'u':
+			if (isdigit(*arg)) ret = 1;
+			break;
+		case 'U':
 			if (isdigit(*arg)) ret = 1;
 			break;
 		case 'h':
@@ -169,6 +175,12 @@ decode_map(const char *fmt)
 		break;
 	case 'b':
 		cli_printf("<8bit number> ");
+		break;
+	case 'u':
+		cli_printf("<32bit unsigned> ");
+		break;
+	case 'U':
+		cli_printf("<64bit unsigned> ");
 		break;
 	case 'd':
 		cli_printf("<32bit number> ");

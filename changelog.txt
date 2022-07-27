@@ -6,6 +6,17 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 22.07.0 - Add new rx/tx burst options.
+             Fix GUI build and stats.
+             Make build with DPDK more compatible.
+             Add max latency reporting.
+             Allow building on RISC-V platforms.
+             Add new rfc2455 script
+             Increase the number of mbufs allocated to support better performance.
+             Add restart command to try and cleanup the DPDK PMD or mbufs a start RX/TX.
+             Update documentation contribution guidlines.             
+             Remove the -j option.
+             Add relative delay to compute rate stats and support multple queue stats.
  - 22.04.1 - Fix Lua build issues around new stats structure changes.
  - 22.02.0 - Remove the backward compatability builds with older versions of DPDK.
              It has become too difficult to maintain building with older versions and I believe

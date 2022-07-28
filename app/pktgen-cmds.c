@@ -1545,7 +1545,7 @@ pktgen_start_latency_sampler(port_info_t *info)
         return;
     }
 
-    if (info->latsamp_rate == 0 || info->latsamp_outfile == NULL ||
+    if (info->latsamp_rate == 0 ||
         info->latsamp_type == LATSAMPLER_UNSPEC || info->latsamp_num_samples == 0) {
         pktgen_log_error("Set proper sampling type, number, rate and outfile!");
         return;

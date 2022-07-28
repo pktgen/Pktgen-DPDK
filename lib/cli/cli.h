@@ -238,7 +238,7 @@ struct cli_tree {
 #define c_file(n, rw, h)	{ CLI_FILE_NODE,  .file = {(n), (rw), (h)} }
 #define c_alias(n, l, h)	{ CLI_ALIAS_NODE, .alias = {(n), (l), (h)} }
 #define c_str(n, f, s)		{ CLI_STR_NODE,   .str = {(n), (f), (s)} }
-#define c_end()			{ CLI_UNK_NODE,   .dir = { NULL } }
+#define c_end()			{ CLI_UNK_NODE,   .dir = { NULL, 0 } }
 
 static inline void
 cli_set_user_state(void *val)

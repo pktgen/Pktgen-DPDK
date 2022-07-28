@@ -675,7 +675,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
         *((uint32_t *)&arp->arp_data.arp_sha) = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 
         rte_ether_addr_copy(&pkt->eth_dst_addr, (struct rte_ether_addr *)&arp->arp_data.arp_tha);
-        *((uint32_t *)&arp->arp_data.arp_tip) = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+        *((uint32_t *)((void*)&arp->arp_data + offsetof(struct rte_arp_ipv4,arp_tip))) = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
     } else
         pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
 }
@@ -1619,7 +1619,7 @@ _timer_thread(void *arg)
 
         if (curr >= page) {
             page = curr + page_timo;
-            pktgen_page_display(NULL, NULL);
+            pktgen_page_display();
         }
 
         rte_pause();

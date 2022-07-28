@@ -70,13 +70,13 @@ fgen_add_frame(fgen_t *fg, const char *name, const char *fstr)
     if (_add_frame(fg, fg->nb_frames, name, fstr) < 0)
         _ERR_RET("Failed to parse frame\n");
 
-    if (fg->flags & (FGEN_VERBOSE || FGEN_DUMP_DATA))
+    if (fg->flags & (FGEN_VERBOSE | FGEN_DUMP_DATA))
         printf("\n");
 
     return 0;
 }
 
-static __rte_always_inline void
+__rte_always_inline void
 _prefetch_mbuf_data(struct rte_mbuf *m, uint32_t hdr_len)
 {
     uint8_t *pkt_data = rte_pktmbuf_mtod(m, uint8_t *);

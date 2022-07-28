@@ -1561,7 +1561,7 @@ _page_display(void)
  */
 
 void
-pktgen_page_display()
+pktgen_page_display(void)
 {
     static unsigned int update_display = 1;
 

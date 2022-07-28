@@ -365,7 +365,7 @@ enum {                                  /* Pktgen flags bits */
 
 extern pktgen_t pktgen;
 
-void pktgen_page_display();
+void pktgen_page_display(void);
 
 void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
 void pktgen_packet_rate(port_info_t *info);

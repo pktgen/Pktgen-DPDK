@@ -1089,7 +1089,7 @@ pktgen_clear_display(void)
 
         scrn_resume();
 
-        pktgen_page_display(NULL, NULL);
+        pktgen_page_display();
     }
 }
 
@@ -1108,7 +1108,7 @@ pktgen_force_update(void)
     pktgen.flags |= UPDATE_DISPLAY_FLAG;
 
     if (!scrn_is_paused())
-        pktgen_page_display(NULL, NULL);
+        pktgen_page_display();
 }
 
 /**

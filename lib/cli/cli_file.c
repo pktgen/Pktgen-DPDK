@@ -255,17 +255,15 @@ int
 cli_system(char *p)
 {
 	char buf[256];
-	size_t n, tot = 0;
+	size_t n;
 	FILE *f;
 
 	f = popen(p, "r");
 	if (!f)
 		return -1;
 
-	while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+	while ((n = fread(buf, 1, sizeof(buf), f)) > 0)
         cli_write(buf, n);
-		tot += n;
-	}
 
 	pclose(f);
 

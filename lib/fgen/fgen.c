@@ -76,7 +76,7 @@ fgen_add_frame(fgen_t *fg, const char *name, const char *fstr)
     return 0;
 }
 
-__rte_always_inline void
+static inline void
 _prefetch_mbuf_data(struct rte_mbuf *m, uint32_t hdr_len)
 {
     uint8_t *pkt_data = rte_pktmbuf_mtod(m, uint8_t *);

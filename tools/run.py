@@ -17,7 +17,7 @@ import shutil
 
 def usage():
         '''Print usage information for the program'''
-        argv0 = basename(sys.argv[0])
+        argv0 = os.path.basename(sys.argv[0])
         print("""
 Usage:
 ------

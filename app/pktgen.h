@@ -65,6 +65,7 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
+#include <rte_dev.h>
 
 #include <copyright_info.h>
 #include <l2p.h>
@@ -223,7 +224,8 @@ enum {
     RANGE_PKT      = (PING_PKT + 1),                 /* 18 */
     DUMP_PKT       = (RANGE_PKT + 1),                /* 19 */
     RATE_PKT       = (DUMP_PKT + 1),                 /* 20 */
-    NUM_TOTAL_PKTS = (RATE_PKT + 1),
+    LATENCY_PKT    = (RATE_PKT + 1),                 /* 21 */
+    NUM_TOTAL_PKTS = (LATENCY_PKT + 1),
 
     INTER_FRAME_GAP       = 12, /**< in bytes */
     START_FRAME_DELIMITER = 1,
@@ -385,10 +387,10 @@ double next_poisson_time(double rateParameter);
 
 typedef struct {
     uint64_t timestamp;
-    uint16_t magic;
+    uint64_t magic;
 } tstamp_t;
 
-#define TSTAMP_MAGIC (('T' << 8) + 's')
+#define TSTAMP_MAGIC 0x547374616d703232LL /* Tstamp22 */
 
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags)

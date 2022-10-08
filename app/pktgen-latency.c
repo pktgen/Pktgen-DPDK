@@ -277,12 +277,18 @@ pktgen_page_latency(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         avg_lat = 0;
-        if (info->prev_stats.ipackets)
+        if (info->latency_nb_pkts)
             snprintf(buff, sizeof(buff), "%" PRIu64,
-                     (info->jitter_count * 100) / info->prev_stats.ipackets);
+                     (info->jitter_count * 100) / info->latency_nb_pkts);
         else
             snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
 
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        snprintf(buff, sizeof(buff), "%" PRIu32, info->latency_rate);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        snprintf(buff, sizeof(buff), "%" PRIu64, info->total_latency_pkts);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         display_cnt++;
@@ -303,4 +309,17 @@ pktgen_page_latency(void)
              oBitsTotal(pktgen.cumm_rate_totals) / Million);
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
+}
+
+void
+pktgen_latency_init(port_info_t *info __rte_unused)
+{
+}
+
+void
+pktgen_latency_setup(port_info_t *info)
+{
+    rte_memcpy(&info->seq_pkt[LATENCY_PKT], &info->seq_pkt[SINGLE_PKT], sizeof(pkt_seq_t));
+
+    pktgen_latency_init(info);
 }

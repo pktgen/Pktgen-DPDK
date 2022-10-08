@@ -16,8 +16,22 @@ extern "C" {
 #endif
 
 #define DEFAULT_JITTER_THRESHOLD    (50)	/**< usec */
+#define DEFAULT_LATENCY_RATE        (10)    /**< milliseconds (min value 1)*/
+#define LATENCY_PKT_SIZE            MIN_PKT_SIZE
 
 void pktgen_page_latency(void);
+
+/**
+ *
+ * pktgen_latency_setup - Setup the default values for a latency port.
+ *
+ * DESCRIPTION
+ * Setup the default latency data for a given port.
+ *
+ * RETURNS: N/A
+ */
+void pktgen_latency_setup(port_info_t *info);
+void pktgen_latency_init(port_info_t *info);
 
 #ifdef __cplusplus
 }

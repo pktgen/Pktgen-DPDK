@@ -252,6 +252,8 @@ pktgen_config_ports(void)
         info->seqCnt = 0;
 
         info->jitter_threshold      = DEFAULT_JITTER_THRESHOLD;
+        info->latency_rate          = DEFAULT_LATENCY_RATE;
+        info->latency_rate_cycles   = rte_get_timer_hz() / (info->latency_rate * 1000);
         ticks                       = rte_get_timer_hz() / 1000000;
         info->jitter_threshold_clks = info->jitter_threshold * ticks;
         info->nb_mbufs              = MAX_MBUFS_PER_PORT;
@@ -383,6 +385,12 @@ pktgen_config_ports(void)
                 pktgen_mbuf_pool_create("Special TX", pid, q, MAX_SPECIAL_MBUFS, sid, 0);
             if (info->q[q].special_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
+
+            /* Used for sending latency packets */
+            info->q[q].latency_mp =
+                pktgen_mbuf_pool_create("Latency TX", pid, q, MAX_LATENCY_MBUFS, sid, 0);
+            if (info->q[q].latency_mp == NULL)
+                pktgen_log_panic("Cannot init port %d for Latency TX mbufs", pid);
 
             /* Setup the PCAP file for each port */
             if (pktgen.info[pid].pcaps[q] != NULL) {

@@ -1567,12 +1567,12 @@ pktgen_start_latency_sampler(port_info_t *info)
                         info->latsamp_num_samples / rxq, q);
     }
 
-    if (info->seq_pkt[SINGLE_PKT].pktSize <
+    if (info->seq_pkt[LATENCY_PKT].pktSize <
         (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t))
-        info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
+        info->seq_pkt[LATENCY_PKT].pktSize += sizeof(tstamp_t);
 
-    info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
-    pktgen_packet_ctor(info, SINGLE_PKT, -1);
+    info->seq_pkt[LATENCY_PKT].ipProto = PG_IPPROTO_UDP;
+    pktgen_packet_ctor(info, LATENCY_PKT, -1);
     pktgen_set_tx_update(info);
 
     /* Start sampling */
@@ -1631,12 +1631,12 @@ pktgen_stop_latency_sampler(port_info_t *info)
         info->latsamp_stats[q].num_samples = 0;
     }
 
-    if (info->seq_pkt[SINGLE_PKT].pktSize >=
+    if (info->seq_pkt[LATENCY_PKT].pktSize >=
         (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t))
-        info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
+        info->seq_pkt[LATENCY_PKT].pktSize -= sizeof(tstamp_t);
 
-    info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
-    pktgen_packet_ctor(info, SINGLE_PKT, -1);
+    info->seq_pkt[LATENCY_PKT].ipProto = PG_IPPROTO_UDP;
+    pktgen_packet_ctor(info, LATENCY_PKT, -1);
     pktgen_set_tx_update(info);
 }
 
@@ -2688,6 +2688,7 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     if (dst_info->seq_pkt != NULL) {
         rte_ether_addr_copy(&dst_info->seq_pkt[SINGLE_PKT].eth_src_addr, &pkt->eth_dst_addr);
         rte_ether_addr_copy(&dst_info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_dst_addr);
+        rte_ether_addr_copy(&dst_info->seq_pkt[LATENCY_PKT].eth_src_addr, &pkt->eth_dst_addr);
     } else
         memset(&pkt->eth_dst_addr, 0, sizeof(pkt->eth_dst_addr));
 
@@ -2813,16 +2814,19 @@ pktgen_reset(port_info_t *info)
     if (info->seq_pkt) {
         info->seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
         info->seq_pkt[RATE_PKT].pktSize   = MIN_PKT_SIZE;
+        info->seq_pkt[LATENCY_PKT].pktSize   = MIN_LATENCY_PKT_SIZE;
 
         for (s = 0; s < NUM_TOTAL_PKTS; s++)
             pktgen_port_defaults(info->pid, s);
 
         pktgen_range_setup(info);
         pktgen_rate_setup(info);
+        pktgen_latency_setup(info);
         pktgen_clear_stats(info);
 
         enable_range(info, estate(off));
         enable_rate(info, estate(off));
+        enable_latency(info, estate(off));
         memset(info->rnd_bitfields, 0, sizeof(struct rnd_bits_s));
         pktgen_rnd_bits_init(&info->rnd_bitfields);
         pktgen_set_port_seqCnt(info, 0);

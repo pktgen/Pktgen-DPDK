@@ -231,13 +231,16 @@ typedef struct port_info_s {
         };
     };
 
-    uint32_t magic_errors;
-    uint32_t latency_nb_pkts;
-    uint64_t jitter_threshold;
-    uint64_t jitter_threshold_clks;
-    uint64_t jitter_count;
-    uint64_t prev_latency;
-    uint64_t max_latency;
+    uint32_t latency_nb_pkts;       /**< Number of latency packets per sample */
+    uint32_t latency_rate;          /**< number milliseconds between injecting packets */
+    uint64_t latency_rate_cycles;   /**< Number of cycles between injections */
+    uint64_t latency_timo_cycles;   /**< Number of cycles to next latency injection */
+    uint64_t jitter_threshold;      /**< Jitter threshold value */
+    uint64_t jitter_threshold_clks; /**< Jitter threshold cycles */
+    uint64_t jitter_count;          /**< Number of jitter stats */
+    uint64_t prev_latency;          /**< previous latency time */
+    uint64_t max_latency;           /**< max latency send */
+    uint64_t total_latency_pkts;    /**< Total number of latency packets */
 
     eth_stats_t curr_stats; /**< current port statistics */
     eth_stats_t prev_stats; /**< previous port statistics */
@@ -270,6 +273,7 @@ typedef struct port_info_s {
         struct rte_mempool *seq_mp;      /**< Pool pointer for port Sequence TX mbufs */
         struct rte_mempool *pcap_mp;     /**< Pool pointer for port PCAP TX mbufs */
         struct rte_mempool *special_mp;  /**< Pool pointer for special TX mbufs */
+        struct rte_mempool *latency_mp;  /**< Pool pointer for latency packets */
     } q[NUM_Q];
 
     int32_t rx_tapfd;          /**< Rx Tap file descriptor */
@@ -422,7 +426,6 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
                     {RTE_ETH_RX_OFFLOAD_QINQ_STRIP, _(QINQ_STRIP)},
                     {RTE_ETH_RX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
                     {RTE_ETH_RX_OFFLOAD_MACSEC_STRIP, _(MACSEC_STRIP)},
-                    {RTE_ETH_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
                     {RTE_ETH_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
                     {RTE_ETH_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
                     {RTE_ETH_RX_OFFLOAD_SCATTER, _(SCATTER)},
@@ -430,7 +433,9 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
                     {RTE_ETH_RX_OFFLOAD_SECURITY, _(SECURITY)},
                     {RTE_ETH_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
                     {RTE_ETH_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
-                    {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}};
+                    {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_RSS_HASH, _(RSS_HASH)},
+                    {RTE_ETH_RX_OFFLOAD_BUFFER_SPLIT, _(BUFFER_SPLIT)}};
 #undef _
 
     if (len == 0)

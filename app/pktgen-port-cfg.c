@@ -22,6 +22,7 @@
 #include <rte_eth_bond_8023ad.h>
 #endif
 #include <rte_bus_pci.h>
+#include <rte_bus.h>
 
 enum {
     RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
@@ -41,7 +42,6 @@ static struct rte_eth_conf default_port_conf = {
         {
             .mq_mode          = RTE_ETH_MQ_RX_RSS,
             .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
-            .split_hdr_size   = 0,
         },
 
     .rx_adv_conf =
@@ -152,7 +152,7 @@ pktgen_config_ports(void)
     if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
         pktgen.nb_ports = RTE_MAX_ETHPORTS;
 
-    printf(" %-4s %-12s %-6s %-12s %-5s %s\n", "Port:", "Name", "IfIndex", "Alias", "NUMA", "PCI");
+    printf(" %-4s %-12s %-6s %-5s %s\n", "Port:", "Name", "IfIndex", "NUMA", "PCI");
     for (i = 0; i < pktgen.nb_ports; i++) {
         struct rte_eth_dev_info dev;
         char buff[64];
@@ -160,21 +160,21 @@ pktgen_config_ports(void)
         rte_eth_dev_info_get(i, &dev);
 
         buff[0] = 0;
-        printf("   %2d: %-12s   %2d    %-12s  %2d   ", i, dev.driver_name, dev.if_index,
-               (dev.device->driver->alias) ? dev.device->driver->alias : "", dev.device->numa_node);
-        {
-            struct rte_bus *bus;
-            if (dev.device)
-                bus = rte_bus_find_by_device(dev.device);
-            else
-                bus = NULL;
-            if (bus && !strcmp(bus->name, "pci")) {
-                struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
-                snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", pci_dev->id.vendor_id,
-                         pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
-                         pci_dev->addr.function);
-            }
-        }
+        const struct rte_bus *bus = NULL;
+        if (dev.device)
+            bus = rte_bus_find_by_device(dev.device);
+        if (bus && !strcmp(rte_bus_name(bus), "pci")) {
+            char name[RTE_ETH_NAME_MAX_LEN];
+            char vend[8], device[8];
+            
+            printf("   %2d: %-12s   %2d     %2d   ", i, dev.driver_name, dev.if_index, rte_dev_numa_node(dev.device));
+            vend[0] = device[0] = '\0';
+            sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
+
+            rte_eth_dev_get_name_by_port(i, name);
+            snprintf(buff, sizeof(buff), "%s:%s/%s", vend, device, rte_dev_name(dev.device));
+        } else
+            snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
         printf("%s\n", buff);
     }
     printf("\n");
@@ -253,6 +253,8 @@ pktgen_config_ports(void)
         info->seqCnt = 0;
 
         info->jitter_threshold      = DEFAULT_JITTER_THRESHOLD;
+        info->latency_rate          = DEFAULT_LATENCY_RATE;
+        info->latency_rate_cycles   = rte_get_timer_hz() / (info->latency_rate * 1000);
         ticks                       = rte_get_timer_hz() / 1000000;
         info->jitter_threshold_clks = info->jitter_threshold * ticks;
         info->nb_mbufs              = MAX_MBUFS_PER_PORT;
@@ -380,6 +382,12 @@ pktgen_config_ports(void)
                 pktgen_mbuf_pool_create("Special TX", pid, q, MAX_SPECIAL_MBUFS, sid, 0);
             if (info->q[q].special_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
+
+            /* Used for sending latency packets */
+            info->q[q].latency_mp =
+                pktgen_mbuf_pool_create("Latency TX", pid, q, MAX_LATENCY_MBUFS, sid, 0);
+            if (info->q[q].latency_mp == NULL)
+                pktgen_log_panic("Cannot init port %d for Latency TX mbufs", pid);
 
             /* Setup the PCAP file for each port */
             if (pktgen.info[pid].pcaps[q] != NULL) {

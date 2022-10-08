@@ -247,13 +247,6 @@ decompile_pkt(lua_State *L, uint16_t pid)
                     inet_ntop4(buff, sizeof(buff), htonl(p->ip_dst_addr), 0xFFFFFFFF));
         setf_string(L, "ip_src_addr",
                     inet_ntop4(buff, sizeof(buff), htonl(p->ip_src_addr), p->ip_mask));
-    } else {
-#if 0
-		setf_string(L, "ip_dst_addr",
-			    inet_ntop6(buff, sizeof(buff), p->ip_dst_addr));
-		setf_string(L, "ip_src_addr",
-			    inet_ntop6(buff, sizeof(buff), p->ip_src_addr));
-#endif
     }
     setf_integer(L, "dport", p->dport);
     setf_integer(L, "sport", p->sport);

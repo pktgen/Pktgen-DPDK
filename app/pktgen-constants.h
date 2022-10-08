@@ -23,7 +23,8 @@ enum {
     DEFAULT_TX_DESC   = (MAX_PKT_TX_BURST * 16),
 
     MAX_MBUFS_PER_PORT = ((DEFAULT_RX_DESC + DEFAULT_TX_DESC) * 8), /* number of buffers to support per port */
-    MAX_SPECIAL_MBUFS  = 128,
+    MAX_SPECIAL_MBUFS  = 512,
+    MAX_LATENCY_MBUFS  = 512,
     MBUF_CACHE_SIZE    = 128,
 
     DEFAULT_PRIV_SIZE = 0,

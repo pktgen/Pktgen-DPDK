@@ -65,9 +65,6 @@ uint32_t pg_strparse(char *s,
 			    const char *delim,
 			    char **entries,
 			    uint32_t max_entries);
-#if 0
-char *pg_strtrim(char *line);
-#endif
 char *pg_strccpy(char *t, char *f, const char *str);
 
 #ifdef __cplusplus

@@ -173,28 +173,6 @@ setf_udata(lua_State *L, const char *name, void *value)
     lua_setfield(L, -2, name);
 }
 
-#if 0
-static __inline__ void
-getf_etheraddr(lua_State *L, const char *field, struct rte_ether_addr *value)
-{
-	lua_getfield(L, 3, field);
-	if (lua_isstring(L, -1) )
-		pg_ether_aton(luaL_checkstring(L, -1), value);
-	lua_pop(L, 1);
-}
-
-static __inline__ void
-getf_ipaddr(lua_State *L, const char *field, void *value, uint32_t flags)
-{
-	lua_getfield(L, 3, field);
-	if (lua_isstring(L, -1) ) {
-		_atoip((char *)(uintptr_t)luaL_checkstring(L, -1), flags, value,
-				     sizeof(struct pg_ipaddr));
-	}
-	lua_pop(L, 1);
-}
-#endif
-
 static __inline__ uint32_t
 getf_integer(lua_State *L, const char *field)
 {

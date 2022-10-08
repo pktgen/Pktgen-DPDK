@@ -65,6 +65,7 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
+#include <rte_dev.h>
 
 #include <copyright_info.h>
 #include <l2p.h>
@@ -223,7 +224,8 @@ enum {
     RANGE_PKT      = (PING_PKT + 1),                 /* 18 */
     DUMP_PKT       = (RANGE_PKT + 1),                /* 19 */
     RATE_PKT       = (DUMP_PKT + 1),                 /* 20 */
-    NUM_TOTAL_PKTS = (RATE_PKT + 1),
+    LATENCY_PKT    = (RATE_PKT + 1),                 /* 21 */
+    NUM_TOTAL_PKTS = (LATENCY_PKT + 1),
 
     INTER_FRAME_GAP       = 12, /**< in bytes */
     START_FRAME_DELIMITER = 1,
@@ -243,6 +245,7 @@ enum {
 
 #define MIN_PKT_SIZE (pktgen.eth_min_pkt - RTE_ETHER_CRC_LEN)
 #define MAX_PKT_SIZE (pktgen.eth_max_pkt - RTE_ETHER_CRC_LEN)
+#define MIN_LATENCY_PKT_SIZE (pktgen.eth_min_pkt - RTE_ETHER_CRC_LEN + 8)
 
 typedef struct rte_mbuf rte_mbuf_t;
 

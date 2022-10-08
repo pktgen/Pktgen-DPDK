@@ -241,27 +241,31 @@ pktgen_tstamp_pointer(port_info_t *info, struct rte_mbuf *m, int32_t seq_idx)
 }
 
 static inline void
-pktgen_tstamp_apply(port_info_t *info __rte_unused, struct rte_mbuf **mbufs, int cnt,
-                    int32_t seq_idx)
+pktgen_tstamp_inject(port_info_t *info, uint16_t qid)
 {
-    pkt_seq_t *pkt            = &info->seq_pkt[seq_idx];
+    pkt_seq_t *pkt = &info->seq_pkt[LATENCY_PKT];
     struct rte_ether_hdr *eth = (struct rte_ether_hdr *)&pkt->hdr.eth;
     char *l3_hdr              = (char *)&eth[1]; /* Point to l3 hdr location */
-    int i;
+    rte_mbuf_t *mbuf = NULL;
 
-    for (i = 0; i < cnt; i++) {
-        tstamp_t *tstamp;
+    tstamp_t *tstamp;
 
-        tstamp = pktgen_tstamp_pointer(info, mbufs[i], seq_idx);
+    mbuf = rte_pktmbuf_alloc(info->q[qid].latency_mp);
+    if (mbuf) {
+        tstamp = pktgen_tstamp_pointer(info, mbuf, LATENCY_PKT);
 
         tstamp->timestamp = rte_rdtsc_precise();
         tstamp->magic     = TSTAMP_MAGIC;
+
+        l3_hdr = pktgen_ether_hdr_ctor(info, pkt, eth);
 
         /* Construct the UDP header */
         pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
 
         /* IPv4 Header constructor */
         pktgen_ipv4_ctor(pkt, l3_hdr);
+
+        rte_pktmbuf_dump(stdout, mbuf, 64);
     }
 }
 
@@ -295,8 +299,8 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
     struct mbuf_table *mtab = &info->q[qid].tx_mbufs;
     struct rte_mbuf **pkts;
     struct qstats_s *qstats = &info->qstats[qid];
+    uint64_t curr_ts = 0;
     uint32_t ret, cnt, tap, rnd, tstamp, i;
-    int32_t seq_idx;
 
     tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
 
@@ -306,16 +310,11 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
     mtab->len = 0;
     pkts      = mtab->m_table;
 
-    if (pktgen_tst_port_flags(info, SEND_RANGE_PKTS))
-        seq_idx = RANGE_PKT;
-    else if (pktgen_tst_port_flags(info, SEND_RATE_PACKETS))
-        seq_idx = RATE_PKT;
-    else
-        seq_idx = SINGLE_PKT;
-
     rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
     tstamp =
         pktgen_tst_port_flags(info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
+    if (tstamp)
+        curr_ts = rte_rdtsc_precise();
 
     qstats->txpkts += cnt;
     for (i = 0; i < cnt; i++)
@@ -326,8 +325,10 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
         if (rnd)
             pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 
-        if (tstamp)
-            pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
+        if (tstamp && (curr_ts >= info->latency_timo_cycles)) {
+            info->latency_timo_cycles = curr_ts + info->latency_rate_cycles;
+            pktgen_tstamp_inject(info, qid);
+        }
 
         ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -410,38 +411,27 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                     /* Record latency if it's time for sampling (seperately per lcore) */
                     latsamp_stats_t *stats = &info->latsamp_stats[qid];
                     uint64_t now           = rte_rdtsc_precise();
+
                     stats->pkt_counter++;
                     if (stats->next == 0 || now >= stats->next) {
                         if (stats->idx < stats->num_samples) {
-                            // stats->data[stats->idx] = lat;
-                            stats->data[stats->idx] =
-                                (lat * Billion) /
-                                rte_get_tsc_hz(); /* Do we want to keep it as cycles? */
+                            stats->data[stats->idx] = (lat * Billion) / rte_get_tsc_hz();
                             stats->idx++;
                         }
 
-                        /* Calculate next sampling point TODO: Use poisson */
+                        /* Calculate next sampling point */
                         if (info->latsamp_type == LATSAMPLER_POISSON) {
-                            // TODO: Write poisson
                             double next_possion_time_ns = next_poisson_time(info->latsamp_rate);
-                            stats->next                 = now + next_possion_time_ns *
-                                                    (double)rte_get_tsc_hz();        // Time based
-                            // pktgen_log_warning("core %d, queue %d next poisson time %lf, ms:
-                            // %lu", lid, qid, next_possion_time_ns,
-                            // stats->next*1000/rte_get_tsc_hz());
-                        } else {        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
-                            stats->next =
-                                now + rte_get_tsc_hz() / info->latsamp_rate;        // Time based
-                            // stats->next = stats->pkt_counter + info->latsamp_rate;		//
-                            // Packet count based
-                        }
+
+                            stats->next = now + next_possion_time_ns * (double)rte_get_tsc_hz();
+                        } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
+                            stats->next = now + rte_get_tsc_hz() / info->latsamp_rate;
                     }
                 }
 
-            } else
-                info->magic_errors++;
-
-            info->latency_nb_pkts++;
+                info->latency_nb_pkts++;
+                info->total_latency_pkts++;
+            }
         }
     }
 }
@@ -675,7 +665,8 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
         *((uint32_t *)&arp->arp_data.arp_sha) = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
 
         rte_ether_addr_copy(&pkt->eth_dst_addr, (struct rte_ether_addr *)&arp->arp_data.arp_tha);
-        *((uint32_t *)((void*)&arp->arp_data + offsetof(struct rte_arp_ipv4,arp_tip))) = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
+        *((uint32_t *)((void *)&arp->arp_data + offsetof(struct rte_arp_ipv4, arp_tip))) =
+            htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
     } else
         pktgen_log_error("Unknown EtherType 0x%04x", pkt->ethType);
 }
@@ -1601,7 +1592,7 @@ _timer_thread(void *arg)
     page_timo    = UPDATE_DISPLAY_TICK_RATE;
 
     page = prev = rte_get_tsc_cycles();
-    process = page + process_timo;
+    process     = page + process_timo;
     page += page_timo;
 
     pktgen.timer_running = 1;

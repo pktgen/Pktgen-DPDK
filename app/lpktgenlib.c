@@ -2929,14 +2929,15 @@ pkt_stats(lua_State *L, port_info_t *info)
             info->latency_nb_pkts = 0;
             info->avg_latency     = 0;
             info->jitter_count    = 0;
-        } else {
+        } else
             printf("Latency pkt count = %d\n", info->latency_nb_pkts);
-        }
 
         setf_integer(L, "avg_latency", avg_lat);
         setf_integer(L, "max_avg_latency", info->max_avg_latency);
         setf_integer(L, "min_avg_latency", info->min_avg_latency);
         setf_integer(L, "jitter_count", jitter);
+        setf_integer(L, "latency_rate", info->latency_rate);
+        setf_integer(L, "total_latency_pkts", info->total_latency_pkts);
     }
 
     /* Now set the table as an array with pid as the index. */
@@ -3206,9 +3207,9 @@ port_info(lua_State *L, port_info_t *info)
     lua_rawset(L, -3);
 
     rte_eth_dev_info_get(info->pid, &dev);
-    struct rte_bus *bus;
+    const struct rte_bus *bus;
     if (dev.device)
-        bus = rte_bus_find_by_device(dev.device);
+        bus = rte_dev_bus(dev.device);
     else
         bus = NULL;
     if (bus && !strcmp(bus->name, "pci")) {
@@ -3803,7 +3804,7 @@ static const luaL_Reg pktgenlib[] = {
     {"rxtap", pktgen_rxtap}, /* enable or disable rxtap */
     {"txtap", pktgen_txtap}, /* enable or disable rxtap */
 
-    {"latsampler_params", pktgen_latsampler_params}, /*set latency sampler params */
+    {"latsampler_params", pktgen_latsampler_params}, /* set latency sampler params */
     {"latsampler", pktgen_latsampler},               /* enable or disable latency sampler */
 
     {NULL, NULL}};

@@ -375,7 +375,7 @@ pktgen_page_rate(void)
         pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
         row++;
-        ticks   = rte_get_timer_hz() / 1000000;
+        ticks   = pktgen_get_timer_hz() / 1000000;
         avg_lat = 0;
         max_lat = 0;
         if (info->latency_nb_pkts) {

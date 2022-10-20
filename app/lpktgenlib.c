@@ -2914,7 +2914,7 @@ pkt_stats(lua_State *L, port_info_t *info)
     avg_lat = 0;
     jitter  = 0;
     if (flags & SEND_LATENCY_PKTS) {
-        ticks = rte_get_timer_hz() / 1000000;
+        ticks = pktgen_get_timer_hz() / 1000000;
         if (ticks == 0)
             printf("Ticks = %lu\n", ticks);
         else if (info->latency_nb_pkts > 0) {
@@ -3869,6 +3869,7 @@ luaopen_pktgen(lua_State *L)
     setf_integer(L, "maxPktRxBurst", MAX_PKT_RX_BURST);
     setf_integer(L, "maxPktTxBurst", MAX_PKT_TX_BURST);
     setf_integer(L, "defaultBuffSize", DEFAULT_MBUF_SIZE);
+    setf_integer(L, "defaultBuffLen", DEFAULT_MBUF_LEN);
     setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT);
     setf_integer(L, "maxPrimeCount", MAX_PRIME_COUNT);
 

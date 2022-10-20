@@ -137,8 +137,8 @@ pktgen_script_save(char *path)
             snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&info->transmit_count));
         fprintf(fd, "#\n");
         flags = rte_atomic32_read(&info->port_flags);
-        fprintf(fd, "# Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n", info->pid,
-                info->rx_burst, info->tx_burst, info->tx_rate, flags, buff);
+        fprintf(fd, "# Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
+                info->pid, info->rx_burst, info->tx_burst, info->tx_rate, flags, buff);
         fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ", info->seqCnt,
                 info->prime_cnt, info->vlanid);
         pktgen_link_state(info->pid, buff, sizeof(buff));
@@ -500,8 +500,8 @@ pktgen_lua_save(char *path)
             snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&info->transmit_count));
         fprintf(fd, "-- \n");
         flags = rte_atomic32_read(&info->port_flags);
-        fprintf(fd, "-- Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n", info->pid,
-                info->rx_burst, info->tx_burst, info->tx_rate, flags, buff);
+        fprintf(fd, "-- Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
+                info->pid, info->rx_burst, info->tx_burst, info->tx_rate, flags, buff);
         fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ", info->seqCnt,
                 info->prime_cnt, info->vlanid);
         pktgen_link_state(info->pid, buff, sizeof(buff));
@@ -1378,6 +1378,24 @@ enable_random(port_info_t *info, uint32_t onOff)
 }
 
 void
+enable_clock_gettime(uint32_t onOff)
+{
+    if (onOff == ENABLE_STATE)
+        pktgen.flags |= CLOCK_GETTIME_FLAG;
+    else
+        pktgen.flags &= ~CLOCK_GETTIME_FLAG;
+
+    pktgen.hz            = pktgen_get_timer_hz();
+    pktgen.tx_next_cycle = pktgen_get_time();
+    pktgen.tx_bond_cycle = pktgen_get_time();
+
+    pktgen.page = pktgen.prev = pktgen_get_time();
+    pktgen.page_timo          = UPDATE_DISPLAY_TICK_RATE;
+    pktgen.process            = pktgen.page + pktgen.hz;
+    pktgen.page               = pktgen.page + pktgen.page_timo;
+}
+
+void
 debug_tx_rate(port_info_t *info)
 {
     printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n", info->pid, info->tx_rate,
@@ -1424,6 +1442,7 @@ debug_mempool_dump(port_info_t *info, char *name)
     for (q = 0; q < get_port_rxcnt(pktgen.l2p, info->pid); q++)
         if (all || !strcmp(name, "rx"))
             rte_mempool_dump(stdout, info->q[q].rx_mp);
+
     for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++) {
         if (all || (!strcmp(name, "tx") && (q < get_port_txcnt(pktgen.l2p, info->pid))))
             __mempool_dump(stdout, info->q[q].tx_mp);
@@ -1433,11 +1452,13 @@ debug_mempool_dump(port_info_t *info, char *name)
             __mempool_dump(stdout, info->q[q].rate_mp);
         if (all || !strcmp(name, "seq"))
             __mempool_dump(stdout, info->q[q].seq_mp);
-        if (all || !strcmp(name, "arp"))
-            __mempool_dump(stdout, info->q[q].special_mp);
         if (all || !strcmp(name, "pcap"))
             __mempool_dump(stdout, info->q[q].pcap_mp);
     }
+    if (all || !strcmp(name, "arp"))
+        __mempool_dump(stdout, info->special_mp);
+    if (all || !strcmp(name, "lat") || !strcmp(name, "latency"))
+        __mempool_dump(stdout, info->latency_mp);
 }
 
 /**
@@ -1545,8 +1566,8 @@ pktgen_start_latency_sampler(port_info_t *info)
         return;
     }
 
-    if (info->latsamp_rate == 0 ||
-        info->latsamp_type == LATSAMPLER_UNSPEC || info->latsamp_num_samples == 0) {
+    if (info->latsamp_rate == 0 || info->latsamp_type == LATSAMPLER_UNSPEC ||
+        info->latsamp_num_samples == 0) {
         pktgen_log_error("Set proper sampling type, number, rate and outfile!");
         return;
     }
@@ -2617,12 +2638,12 @@ pktgen_clear_stats(port_info_t *info)
 
     memset(&info->qstats, 0, sizeof(info->qstats));
 
-    info->min_avg_latency     = 0;
-    info->max_avg_latency     = 0;
-    info->max_latency         = 0;
-    info->avg_latency         = 0;
-    info->jitter_count        = 0;
-    info->max_missed          = 0;
+    info->min_avg_latency = 0;
+    info->max_avg_latency = 0;
+    info->max_latency     = 0;
+    info->avg_latency     = 0;
+    info->jitter_count    = 0;
+    info->max_missed      = 0;
 
     memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 }
@@ -2717,6 +2738,18 @@ pktgen_ping4(port_info_t *info)
 }
 
 /**
+ * pktgen_latency - Send a IPv4/UDP latency packet
+ */
+
+void
+pktgen_latency(port_info_t *info)
+{
+    pktgen_packet_ctor(info, LATENCY_PKT, -1);
+    pktgen_set_port_flags(info, LATENCY_PKT_SEND);
+    pktgen_set_tx_update(info);
+}
+
+/**
  *
  * debug_pdump - Dump hex output of first packet
  *
@@ -2734,9 +2767,8 @@ debug_pdump(port_info_t *info)
     pkt_seq_t *ppkt = &info->seq_pkt[DUMP_PKT];
     pkt_seq_t *spkt = &info->seq_pkt[SINGLE_PKT];
     struct rte_mbuf *m;
-    uint8_t qid = 0;
 
-    m = rte_pktmbuf_alloc(info->q[qid].special_mp);
+    m = rte_pktmbuf_alloc(info->special_mp);
     if (unlikely(m == NULL)) {
         pktgen_log_warning("No packet buffers found");
         return;
@@ -2749,7 +2781,7 @@ debug_pdump(port_info_t *info)
     m->data_len = ppkt->pktSize;
     m->ol_flags = ppkt->ol_flags;
 
-    dnet_pktmbuf_dump(stdout, m, m->pkt_len);
+    pg_pktmbuf_dump(stdout, m, m->pkt_len);
     rte_pktmbuf_free(m);
 }
 
@@ -2810,7 +2842,6 @@ pktgen_reset(port_info_t *info)
     if (info->seq_pkt) {
         info->seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
         info->seq_pkt[RATE_PKT].pktSize   = MIN_PKT_SIZE;
-        info->seq_pkt[LATENCY_PKT].pktSize   = LATENCY_PKT_SIZE;
 
         for (s = 0; s < NUM_TOTAL_PKTS; s++)
             pktgen_port_defaults(info->pid, s);
@@ -3034,7 +3065,7 @@ single_set_rx_burst(port_info_t *info, uint32_t burst)
         burst = 1;
     else if (burst > MAX_PKT_RX_BURST)
         burst = MAX_PKT_RX_BURST;
-    info->rx_burst  = burst;
+    info->rx_burst = burst;
 
     pktgen_packet_rate(info);
 }
@@ -3083,7 +3114,7 @@ rate_set_rx_burst(port_info_t *info, uint32_t burst)
         burst = 1;
     else if (burst > MAX_PKT_RX_BURST)
         burst = MAX_PKT_RX_BURST;
-    info->rx_burst  = burst;
+    info->rx_burst = burst;
 
     pktgen_packet_rate(info);
 }
@@ -3786,21 +3817,11 @@ enable_latency(port_info_t *info, uint32_t state)
     if (state == ENABLE_STATE) {
         pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
         pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
-
-        if (info->seq_pkt[SINGLE_PKT].pktSize <
-            (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
-            info->seq_pkt[SINGLE_PKT].pktSize += sizeof(tstamp_t);
-        }
-    } else {
-        if (info->seq_pkt[SINGLE_PKT].pktSize >=
-            (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) + sizeof(tstamp_t)) {
-            info->seq_pkt[SINGLE_PKT].pktSize -= sizeof(tstamp_t);
-        }
+    } else
         pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
-    }
 
-    info->seq_pkt[SINGLE_PKT].ipProto = PG_IPPROTO_UDP;
-    pktgen_packet_ctor(info, SINGLE_PKT, -1);
+    pktgen_latency_setup(info);
+    pktgen_packet_ctor(info, LATENCY_PKT, -1);
     pktgen_set_tx_update(info);
 }
 
@@ -3823,7 +3844,7 @@ single_set_jitter(port_info_t *info, uint64_t threshold)
 
     info->jitter_threshold      = threshold;
     info->jitter_count          = 0;
-    ticks                       = rte_get_timer_hz() / 1000000;
+    ticks                       = pktgen_get_timer_hz() / 1000000;
     info->jitter_threshold_clks = info->jitter_threshold * ticks;
 }
 

@@ -131,7 +131,7 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused, uint32_t pid __rte_unused,
 			/* Swap the MAC addresses */
 			ethAddrSwap(&eth->d_addr, &eth->s_addr);
 
-			pktgen_send_mbuf(m, pid, 0);
+    		rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
 
 			pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
 

@@ -96,7 +96,8 @@ pktgen_get_lua(void)
 static void
 pktgen_usage(const char *prgname)
 {
-    printf("Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-g host:port] [-T] [-f cmd_file] [-l log_file] [-s "
+    printf("Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-g host:port] [-T] [-f cmd_file] [-l "
+           "log_file] [-s "
            "P:PCAP_file] [-m <string>]\n"
            "  -s P:file    PCAP packet stream file, 'P' is the port number\n"
            "  -s P:file0,file1,... list of PCAP packet stream files per queue, 'P' is the port "
@@ -355,7 +356,6 @@ sig_handler(int v __rte_unused)
 
     scrn_setw(1);              /* Reset the window size, from possible crash run. */
     scrn_printf(100, 1, "\n"); /* Move the cursor to the bottom of the screen again */
-    scrn_destroy();
 
     printf("\n======");
 
@@ -398,14 +398,6 @@ pktgen_lua_dofile(void *ld, const char *filename)
 }
 #endif
 
-RTE_FINI(pktgen_fini)
-{
-    scrn_setw(1);              /* Reset the window size, from possible crash run. */
-    scrn_printf(999, 1, "\n"); /* Move the cursor to the bottom of the screen again */
-    scrn_destroy();
-    cli_destroy();
-}
-
 /**
  *
  * main - Main routine to setup pktgen.
@@ -417,7 +409,6 @@ RTE_FINI(pktgen_fini)
  *
  * SEE ALSO:
  */
-
 int
 main(int argc, char **argv)
 {
@@ -434,7 +425,7 @@ main(int argc, char **argv)
     scrn_setw(1);     /* Reset the window size, from possible crash run. */
     scrn_pos(100, 1); /* Move the cursor to the bottom of the screen again */
 
-    printf("\n%s %s\n", copyright_msg(), powered_by());
+    print_copyright(PKTGEN_VER_PREFIX, PKTGEN_VER_CREATED_BY);
     fflush(stdout);
 
     /* call before the rte_eal_init() */
@@ -497,13 +488,11 @@ main(int argc, char **argv)
         exit(-1);
     }
 
-    pktgen.hz = rte_get_timer_hz(); /* Get the starting HZ value. */
+    pktgen.hz = pktgen_get_timer_hz(); /* Get the starting HZ value. */
 
     scrn_create_with_defaults(pktgen.flags & ENABLE_THEME_FLAG);
 
     rte_delay_us_sleep(100 * 1000); /* Wait a bit for things to settle. */
-
-    print_copyright(PKTGEN_VER_PREFIX, PKTGEN_VER_CREATED_BY);
 
     if (pktgen.verbose)
         pktgen_log_info(
@@ -545,7 +534,7 @@ main(int argc, char **argv)
             scrn_pause();
             scrn_cls();
             scrn_setw(1);
-            scrn_pos(this_scrn->nrows, 1);
+            scrn_pos(100, 1);
         }
 #ifdef LUA_ENABLED
         pktgen.ld_sock = lua_create_instance();
@@ -558,19 +547,13 @@ main(int argc, char **argv)
     }
 
     pktgen_log_info("=== Run CLI\n");
-    pktgen_cli_start();
-
-#ifdef LUA_ENABLED
-    lua_execute_close(pktgen.ld);
-#endif
-
-    pktgen_stop_running();
+    cli_start(NULL);
 
     scrn_pause();
-
-    scrn_setw(1);
-    scrn_printf(100, 1, "\n"); /* Put the cursor on the last row and do a newline. */
-    scrn_destroy();
+    scrn_setw(1);              /* Reset the window size, from possible crash run. */
+    scrn_printf(100, 1, "\n"); /* Move the cursor to the bottom of the screen again */
+    
+    pktgen_stop_running();
 
     /* Wait for all of the cores to stop running and exit. */
     rte_eal_mp_wait_lcore();
@@ -582,30 +565,29 @@ main(int argc, char **argv)
     }
 
     cli_destroy();
-
+    scrn_destroy();
     return 0;
 }
 
-/***********************************************************************/ /**
-                                                                           *
-                                                                           * pktgen_stop_running -
-                                                                           * Stop pktgen to exit in
-                                                                           * a clean way
-                                                                           *
-                                                                           * DESCRIPTION
-                                                                           * Stop all of the logical
-                                                                           * core threads to stop
-                                                                           * pktgen cleanly.
-                                                                           *
-                                                                           * RETURNS: N/A
-                                                                           *
-                                                                           * SEE ALSO:
-                                                                           */
-
+/**
+ *
+ * pktgen_stop_running - Stop pktgen to exit in a clean way
+ *
+ * DESCRIPTION
+ * Stop all of the logical core threads to stop pktgen cleanly.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 void
 pktgen_stop_running(void)
 {
     uint16_t lid;
+
+#ifdef LUA_ENABLED
+    lua_execute_close(pktgen.ld);
+#endif
 
     pktgen.timer_running = 0;
     for (lid = 0; lid < RTE_MAX_LCORE; lid++)

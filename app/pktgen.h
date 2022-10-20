@@ -66,6 +66,7 @@
 #include <rte_udp.h>
 #include <rte_tcp.h>
 #include <rte_dev.h>
+#include <rte_time.h>
 
 #include <copyright_info.h>
 #include <l2p.h>
@@ -286,6 +287,13 @@ typedef struct pktgen_s {
     uint16_t portNum;  /**< Current Port number */
     uint16_t port_cnt; /**< Number of ports used in total */
     uint64_t hz;       /**< Number of events per seconds */
+    uint64_t tx_next_cycle;
+    uint64_t tx_bond_cycle;
+    uint64_t process;
+    uint64_t page;
+    uint64_t page_timo;
+    uint64_t prev;
+    uint64_t curr;
 
     int (*callout)(void *callout_arg);
     void *callout_arg;
@@ -340,6 +348,7 @@ enum {                                  /* Pktgen flags bits */
        FAKE_PORTS_FLAG     = (1 << 9),  /**< Fake ports enabled */
        BLINK_PORTS_FLAG    = (1 << 10), /**< Blink the port leds */
        ENABLE_THEME_FLAG   = (1 << 11), /**< Enable theme or color support */
+       CLOCK_GETTIME_FLAG  = (1 << 12), /**< Enable clock_gettime() instead of rdtsc() */
 
        CONFIG_PAGE_FLAG       = (1 << 16), /**< Display the configure page */
        SEQUENCE_PAGE_FLAG     = (1 << 17), /**< Display the Packet sequence page */
@@ -372,8 +381,6 @@ void pktgen_page_display(void);
 void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
 void pktgen_packet_rate(port_info_t *info);
 
-void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
-
 pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
 pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
@@ -385,12 +392,36 @@ void stat_timer_clear(void);
 void rte_timer_setup(void);
 double next_poisson_time(double rateParameter);
 
+static inline uint64_t
+pktgen_get_time(void)
+{
+    if (pktgen.flags & CLOCK_GETTIME_FLAG) {
+        struct timespec tp;
+
+        if (clock_gettime(CLOCK_REALTIME, &tp) < 0)
+            return rte_rdtsc_precise();
+
+        return rte_timespec_to_ns(&tp);
+    } else
+        return rte_rdtsc_precise();
+}
+
+static inline uint64_t
+pktgen_get_timer_hz(void)
+{
+    if (pktgen.flags & CLOCK_GETTIME_FLAG) {
+        struct timespec tp = {.tv_nsec = 0, .tv_sec = 1};
+        return rte_timespec_to_ns(&tp);
+    } else
+        return rte_get_timer_hz();
+}
+
 typedef struct {
     uint64_t timestamp;
     uint64_t magic;
 } tstamp_t;
 
-#define TSTAMP_MAGIC 0x547374616d703232LL /* Tstamp22 */
+#define TSTAMP_MAGIC 0x3232706d61747354LL /* Tstamp22 */
 
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags)

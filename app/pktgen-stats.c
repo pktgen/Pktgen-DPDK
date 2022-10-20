@@ -496,9 +496,9 @@ pktgen_process_stats(double rel_delay)
     static uint64_t tsc = 0;
 
     if (tsc == 0)
-        tsc = rte_rdtsc();
+        tsc = pktgen_get_time();
     else {
-        uint64_t curr = rte_rdtsc();
+        uint64_t curr = pktgen_get_time();
 
         if ((curr - tsc) != pktgen.hz)
             printf("delta %18lu hz %lu %8ld\n", curr - tsc, pktgen.hz, pktgen.hz - (curr - tsc));

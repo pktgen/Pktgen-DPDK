@@ -161,13 +161,8 @@ scrn_create(int scrn_type, int theme)
 	struct sigaction sa;
 
 	if (!scrn) {
-		scrn = calloc(1, sizeof(struct cli_scrn));
-		if (!scrn)
-			return -1;
-
-		memset(scrn, 0, sizeof(*scrn));
-
-		this_scrn = scrn;
+		printf("*** scrn is NULL exit\n");
+		exit(-1);
 	}
 
 	rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
@@ -185,9 +180,8 @@ scrn_create(int scrn_type, int theme)
 		scrn->nrows = w.ws_row;
 		scrn->ncols = w.ws_col;
 
-		if (scrn_stdin_setup()) {
-			goto err_exit;
-		}
+		if (scrn_stdin_setup())
+			return -1;
 	} else if (scrn_type == SCRN_NOTTY_TYPE) {
 		scrn->nrows = 24;
 		scrn->ncols = 80;
@@ -196,17 +190,12 @@ scrn_create(int scrn_type, int theme)
 	} else {
 		fprintf(stderr, "%s: unexpected scrn_type %d\n",
 			__func__, scrn_type);
-		goto err_exit;
+		return -1;
 	}
 
 	scrn_color(SCRN_DEFAULT_FG, SCRN_DEFAULT_BG, SCRN_OFF);
 
 	return 0;
-
-err_exit:
-	this_scrn = NULL;
-	free(scrn);
-	return -1;
 }
 
 int
@@ -222,6 +211,25 @@ scrn_create_with_defaults(int theme)
 void
 scrn_destroy(void)
 {
-	if (this_scrn && (this_scrn->type == SCRN_STDIN_TYPE))
+	struct cli_scrn *scrn = this_scrn;
+
+	if (scrn && (scrn->type == SCRN_STDIN_TYPE))
 		scrn_stdin_restore();
+	free(scrn);
+	this_scrn = NULL;
+}
+
+RTE_INIT(scrn_constructor)
+{
+	struct cli_scrn *scrn;
+
+	scrn = calloc(1, sizeof(struct cli_scrn));
+	if (!scrn) {
+		printf("*** unable to allocate cli_scrn structure\n");
+		exit(-1);
+	}
+
+	memset(scrn, 0, sizeof(struct cli_scrn));
+
+	this_scrn = scrn;
 }

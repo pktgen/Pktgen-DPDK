@@ -252,7 +252,7 @@ pktgen_page_latency(void)
         pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
         row++;
-        ticks   = rte_get_timer_hz() / 1000000;
+        ticks   = pktgen_get_timer_hz() / 1000000;
         avg_lat = 0;
         max_lat = 0;
         if (info->latency_nb_pkts) {
@@ -312,14 +312,13 @@ pktgen_page_latency(void)
 }
 
 void
-pktgen_latency_init(port_info_t *info __rte_unused)
-{
-}
-
-void
 pktgen_latency_setup(port_info_t *info)
 {
+    pkt_seq_t *pkt = &info->seq_pkt[LATENCY_PKT];
+
     rte_memcpy(&info->seq_pkt[LATENCY_PKT], &info->seq_pkt[SINGLE_PKT], sizeof(pkt_seq_t));
 
-    pktgen_latency_init(info);
+    pkt->pktSize = LATENCY_PKT_SIZE;
+    pkt->ipProto = PG_IPPROTO_UDP;
+    pkt->ethType = RTE_ETHER_TYPE_IPV4;
 }

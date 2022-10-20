@@ -49,11 +49,6 @@ typedef struct port_sizes_s {
     uint64_t unknown;    /**< Number of unknown sizes */
 } port_sizes_t;
 
-struct mbuf_table {
-    uint16_t len;
-    struct rte_mbuf *m_table[MAX_PKT_TX_BURST];
-};
-
 enum { /* Per port flag bits */
        /* Supported packet modes non-exclusive */
        SEND_ARP_REQUEST      = (1 << 0), /**< Send a ARP request */
@@ -89,6 +84,7 @@ enum { /* Per port flag bits */
        SEND_VXLAN_PACKETS    = (1 << 25), /**< Send VxLAN Packets */
 
        SAMPLING_LATENCIES = (1 << 26), /**< Sampling latency measurements> */
+       LATENCY_PKT_SEND   = (1 << 27), /**< Send a latency packet */
 
        /* Sending flags */
        STOP_RECEIVING_PACKETS = (1 << 29), /**< Stop receiving packet */
@@ -264,17 +260,17 @@ typedef struct port_info_s {
 
     struct q_info {
         rte_atomic32_t flags;            /**< Special send flags for ARP and other */
-        struct mbuf_table tx_mbufs;      /**< mbuf holder for transmit packets */
-        struct mbuf_table special_mbufs; /**< mbuf holder for special transmit packets */
+        struct rte_eth_dev_tx_buffer *txbuff; /**< mbuf holder for transmit packets */
         struct rte_mempool *rx_mp;       /**< Pool pointer for port RX mbufs */
         struct rte_mempool *tx_mp;       /**< Pool pointer for default TX mbufs */
         struct rte_mempool *rate_mp;     /**< Pool pointer for port Rate TX mbufs */
         struct rte_mempool *range_mp;    /**< Pool pointer for port Range TX mbufs */
         struct rte_mempool *seq_mp;      /**< Pool pointer for port Sequence TX mbufs */
         struct rte_mempool *pcap_mp;     /**< Pool pointer for port PCAP TX mbufs */
-        struct rte_mempool *special_mp;  /**< Pool pointer for special TX mbufs */
-        struct rte_mempool *latency_mp;  /**< Pool pointer for latency packets */
     } q[NUM_Q];
+
+    struct rte_mempool *special_mp;  /**< Pool pointer for special TX mbufs */
+    struct rte_mempool *latency_mp;  /**< Pool pointer for latency packets */
 
     int32_t rx_tapfd;          /**< Rx Tap file descriptor */
     int32_t tx_tapfd;          /**< Tx Tap file descriptor */

@@ -324,10 +324,10 @@ range_cmd(int argc, char **argv)
         break;
     case 46:
         foreach_port(portlist, range_set_tcp_seq(info, what, atoi(val)));
-	break;
+        break;
     case 47:
         foreach_port(portlist, range_set_tcp_ack(info, what, atoi(val)));
-	break;
+        break;
     case 50:
         foreach_port(portlist, range_set_dst_port(info, what, atoi(val)));
         break;
@@ -920,31 +920,34 @@ theme_cmd(int argc, char **argv)
     return 0;
 }
 
-#define ed_type         \
-    "process|" /*  0 */ \
-    "mpls|"    /*  1 */ \
-    "qinq|"    /*  2 */ \
-    "gre|"     /*  3 */ \
-    "gre_eth|" /*  4 */ \
-    "vlan|"    /*  5 */ \
-    "garp|"    /*  6 */ \
-    "random|"  /*  7 */ \
-    "latency|" /*  8 */ \
-    "pcap|"    /*  9 */ \
-    "blink|"   /* 10 */ \
-    "rx_tap|"  /* 11 */ \
-    "tx_tap|"  /* 12 */ \
-    "icmp|"    /* 13 */ \
-    "range|"   /* 14 */ \
-    "capture|" /* 15 */ \
-    "bonding|" /* 16 */ \
-    "vxlan|"   /* 17 */ \
-    "rate"     /* 18 */
+#define ed_type              \
+    "process|"      /*  0 */ \
+    "mpls|"         /*  1 */ \
+    "qinq|"         /*  2 */ \
+    "gre|"          /*  3 */ \
+    "gre_eth|"      /*  4 */ \
+    "vlan|"         /*  5 */ \
+    "garp|"         /*  6 */ \
+    "random|"       /*  7 */ \
+    "latency|"      /*  8 */ \
+    "pcap|"         /*  9 */ \
+    "blink|"        /* 10 */ \
+    "rx_tap|"       /* 11 */ \
+    "tx_tap|"       /* 12 */ \
+    "icmp|"         /* 13 */ \
+    "range|"        /* 14 */ \
+    "capture|"      /* 15 */ \
+    "bonding|"      /* 16 */ \
+    "vxlan|"        /* 17 */ \
+    "rate|"         /* 18 */ \
+    "lat"           /* 19 */
 
 static struct cli_map enable_map[] = {{10, "enable %P %|" ed_type},
                                       {20, "disable %P %|" ed_type},
                                       {30, "enable %|screen|mac_from_arp"},
                                       {31, "disable %|screen|mac_from_arp"},
+                                      {40, "enable clock_gettime"},
+                                      {41, "disable clock_gettime"},
                                       {-1, NULL}};
 
 static const char *enable_help[] = {
@@ -974,8 +977,8 @@ static const char *enable_help[] = {
     "enable|disable <portlist> vxlan    - Send VxLAN packets",
     "enable|disable <portlist> rate     - Enable/Disable Rate Packing on given ports",
     "enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",
-    "enable|disable screen              - Enable/disable updating the screen and unlock/lock "
-    "window",
+    "enable|disable clock_gettime       - Enable/disable use of new clock_gettime() instead of rdtsc()",
+    "enable|disable screen              - Enable/disable updating the screen and unlock/lock window"
     "    off                            - screen off shortcut",
     "    on                             - screen on shortcut",
     CLI_HELP_PAUSE,
@@ -1027,6 +1030,7 @@ en_dis_cmd(int argc, char **argv)
             foreach_port(portlist, enable_random(info, state));
             break;
         case 8:
+        case 19: /* lat or latency type */
             foreach_port(portlist, enable_latency(info, state));
             break;
         case 9:
@@ -1079,6 +1083,10 @@ en_dis_cmd(int argc, char **argv)
             enable_mac_from_arp(state);
         else
             pktgen_screen(state);
+        break;
+    case 40:
+    case 41:
+        enable_clock_gettime(estate(argv[0]));
         break;
     default:
         return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
@@ -1157,7 +1165,7 @@ rte_memcpy_perf(unsigned int cnt, unsigned int kb, int flag)
 #define MEGA (uint64_t)(1024 * 1024)
     printf("%3d Kbytes for %8d loops, ", (kb / 1024), cnt);
     printf("%3ld bits/tick, ", bits_per_tick);
-    printf("%6ld Mbits/sec with %s\n", (bits_per_tick * rte_get_timer_hz()) / MEGA,
+    printf("%6ld Mbits/sec with %s\n", (bits_per_tick * pktgen_get_timer_hz()) / MEGA,
            (flag) ? "rte_memcpy" : "memcpy");
 }
 
@@ -1560,27 +1568,30 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 }
 #endif
 
-static struct cli_map misc_map[] = {{10, "clear %P stats"},
-                                    {20, "geometry %s"},
-                                    {21, "geometry"},
-                                    {30, "load %s"},
+// clang-format off
+static struct cli_map misc_map[] = {
+    {10, "clear %P stats"},
+    {20, "geometry %s"},
+    {21, "geometry"},
+    {30, "load %s"},
 
 #ifdef LUA_ENABLED
-                                    {40, "script %l"},
-                                    {50, "lua %l"},
+    {40, "script %l"},
+    {50, "lua %l"},
 #endif
-                                    {60, "save %s"},
-                                    {70, "redisplay"},
-                                    {100, "reset %P"},
-                                    {110, "restart %P"},
-                                    {130, "port %d"},
-                                    {135, "ports per page %d"},
-                                    {140, "ping4 %P"},
+    {60, "save %s"},
+    {70, "redisplay"},
+    {100, "reset %P"},
+    {110, "restart %P"},
+    {130, "port %d"},
+    {135, "ports per page %d"},
+    {140, "ping4 %P"},
 #ifdef INCLUDE_PING6
-                                    {141, "ping6 %P"},
+    {141, "ping6 %P"},
 #endif
-                                    {-1, NULL}};
-
+    {-1, NULL}
+};
+// clang-format on
 static const char *misc_help[] = {
     "",
     "save <path-to-file>                - Save a configuration file using the filename",
@@ -1695,7 +1706,7 @@ misc_cmd(int argc, char **argv)
 static struct cli_map page_map[] = {{10, "page %d"},
                                     {11, "page "
                                          "%|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|"
-                                         "log|latency|stats|xstats|rate|rate-pacing"},
+                                         "log|latency|lat|stats|xstats|rate|rate-pacing"},
                                     {-1, NULL}};
 
 static const char *page_help[] = {
@@ -1714,7 +1725,7 @@ static const char *page_help[] = {
     "                                     Note: use the 'port <number>' to display a new port "
     "sequence",
     "page log                           - Display the log messages page",
-    "page latency                       - Display the latency page",
+    "page latency | lat                 - Display the latency page",
     "page stats                         - Display physical ports stats for all ports",
     "page xstats                        - Display port XSTATS values",
     "page rate                          - Display Rate Pacing values",
@@ -2084,6 +2095,7 @@ static struct cli_tree default_tree[] = {
     c_cmd("restart", misc_cmd, "restart port"),
     c_cmd("port", misc_cmd, "Switch between ports"),
     c_cmd("ping4", misc_cmd, "Send a ping packet for IPv4"),
+    c_cmd("latency", misc_cmd, "Send a latency packet"),
 #ifdef INCLUDE_PING6
     c_cmd("ping6", misc_cmd, "Send a ping packet for IPv6"),
 #endif
@@ -2174,14 +2186,6 @@ pktgen_cli_create(void)
         }
     }
     return ret;
-}
-
-void
-pktgen_cli_start(void)
-{
-    cli_start(NULL);
-
-    cli_destroy();
 }
 
 /**

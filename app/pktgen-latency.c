@@ -16,6 +16,7 @@
 #include "pktgen.h"
 
 #include <rte_bus_pci.h>
+#include <rte_bus.h>
 
 /**
  *
@@ -58,11 +59,12 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
     row++;
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Lat avg/max");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency avg/max");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter Threshold");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter count");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx pkts");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency rate (ms)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Num Latency Pkts");
 
     /* Labels for static fields */
     pktgen_display_set_color("stats.stat.label");
@@ -76,15 +78,14 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src  IP Address");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src MAC Address");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VendID/PCI Addr");
-    row++;
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "NUMA/Vend:ID/PCI");
 
     /* Get the last location to use for the window starting row. */
     pktgen.last_row = ++row;
     display_dashline(pktgen.last_row);
 
     /* Display the colon after the row label. */
-    pktgen_print_div(PORT_STATE_ROW, (ip_row + IP_ADDR_ROWS) - 2, COLUMN_WIDTH_0 - 1);
+    pktgen_print_div(PORT_STATE_ROW, pktgen.last_row - 1, COLUMN_WIDTH_0 - 1);
 
     pktgen_display_set_color("stats.stat.values");
     sp          = pktgen.starting_port;
@@ -136,21 +137,22 @@ pktgen_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                     inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
         rte_eth_dev_info_get(pid, &dev);
-        struct rte_bus *bus;
+        const struct rte_bus *bus = NULL;
         if (dev.device)
             bus = rte_bus_find_by_device(dev.device);
-        else
-            bus = NULL;
-        if (bus && !strcmp(bus->name, "pci")) {
-            struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
-            snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", pci_dev->id.vendor_id,
-                     pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
-                     pci_dev->addr.function);
+        if (bus && !strcmp(rte_bus_name(bus), "pci")) {
+            char name[RTE_ETH_NAME_MAX_LEN];
+            char vend[8], device[8];
+            
+            vend[0] = device[0] = '\0';
+            sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
+
+            rte_eth_dev_get_name_by_port(pid, name);
+            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
         } else
-            snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", 0, 0, 0, 0, 0);
-
+            snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
+        pktgen_display_set_color("stats.bdf");
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
         display_cnt++;
     }
 
@@ -272,9 +274,6 @@ pktgen_page_latency(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_count);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-        snprintf(buff, sizeof(buff), "%" PRIu64, info->prev_stats.ipackets);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         avg_lat = 0;

@@ -63,18 +63,23 @@ if get_option('enable_lua')
 	endif
 endif
 
-dpdk = dependency('libdpdk', required: true)
-# message('prefix: ' + get_option('prefix') + ' libdir: ' + get_option('libdir'))
+if get_option('only_docs')
+	subdir('tools')
+	subdir('doc')
+else
+	dpdk = dependency('libdpdk', required: true)
+	# message('prefix: ' + get_option('prefix') + ' libdir: ' + get_option('libdir'))
 
-dpdk_libs_path = join_paths(get_option('prefix'), get_option('libdir'))
-# message('DPDK lib path: ' + dpdk_libs_path)
+	dpdk_libs_path = join_paths(get_option('prefix'), get_option('libdir'))
+	# message('DPDK lib path: ' + dpdk_libs_path)
 
-dpdk_bond = cc.find_library('librte_net_bond', dirs: [dpdk_libs_path], required: false)
+	dpdk_bond = cc.find_library('librte_net_bond', dirs: [dpdk_libs_path], required: false)
 
-subdir('tools')
+	subdir('tools')
 
-subdir('lib')
+	subdir('lib')
 
-subdir('app')
+	subdir('app')
 
-subdir('doc')
+	subdir('doc')
+endif

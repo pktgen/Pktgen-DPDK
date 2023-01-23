@@ -22,6 +22,7 @@
 #include <rte_eth_bond_8023ad.h>
 #endif
 #include <rte_bus_pci.h>
+#include <rte_bus.h>
 
 enum {
     RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
@@ -41,7 +42,6 @@ static struct rte_eth_conf default_port_conf = {
         {
             .mq_mode          = RTE_ETH_MQ_RX_RSS,
             .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
-            .split_hdr_size   = 0,
         },
 
     .rx_adv_conf =
@@ -96,14 +96,12 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id, uint32_
 
     snprintf(name, sizeof(name), "%-12s%u:%u", type, pid, queue_id);
 
-    sz = nb_mbufs * (DEFAULT_MBUF_SIZE + sizeof(struct rte_mbuf));
+    sz = nb_mbufs * DEFAULT_MBUF_SIZE;
     sz = RTE_ALIGN_CEIL(sz + sizeof(struct rte_mempool), 1024);
 
     if (pktgen.verbose)
-        pktgen_log_info("    Create: %-*s - Memory used (MBUFs %5u x (size %u + Hdr %lu)) + %lu = "
-                        "%6lu KB, headroom %d",
-                        16, name, nb_mbufs, DEFAULT_MBUF_SIZE, sizeof(struct rte_mbuf),
-                        sizeof(struct rte_mempool), sz / 1024, RTE_PKTMBUF_HEADROOM);
+        pktgen_log_info("    Create: '%-*s' - Memory used (MBUFs %6u x size %6u) = %6lu KB", 16,
+                        name, nb_mbufs, DEFAULT_MBUF_SIZE, sz / 1024);
 
     pktgen.mem_used += sz;
     pktgen.total_mem_used += sz;
@@ -135,7 +133,7 @@ void
 pktgen_config_ports(void)
 {
     struct rte_eth_conf conf;
-    uint32_t lid, pid, i, s, q, sid;
+    uint32_t pid, s, sid;
     rxtx_t rt;
     pkt_seq_t *pkt;
     port_info_t *info;
@@ -152,29 +150,30 @@ pktgen_config_ports(void)
     if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
         pktgen.nb_ports = RTE_MAX_ETHPORTS;
 
-    printf(" %-4s %-12s %-6s %-12s %-5s %s\n", "Port:", "Name", "IfIndex", "Alias", "NUMA", "PCI");
-    for (i = 0; i < pktgen.nb_ports; i++) {
+    printf(" %-4s %-12s %-6s %-5s %s\n", "Port:", "Name", "IfIndex", "NUMA", "PCI");
+    for (int i = 0; i < pktgen.nb_ports; i++) {
         struct rte_eth_dev_info dev;
         char buff[64];
 
         rte_eth_dev_info_get(i, &dev);
 
-        buff[0] = 0;
-        printf("   %2d: %-12s   %2d    %-12s  %2d   ", i, dev.driver_name, dev.if_index,
-               (dev.device->driver->alias) ? dev.device->driver->alias : "", dev.device->numa_node);
-        {
-            struct rte_bus *bus;
-            if (dev.device)
-                bus = rte_bus_find_by_device(dev.device);
-            else
-                bus = NULL;
-            if (bus && !strcmp(bus->name, "pci")) {
-                struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
-                snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", pci_dev->id.vendor_id,
-                         pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
-                         pci_dev->addr.function);
-            }
-        }
+        buff[0]                   = 0;
+        const struct rte_bus *bus = NULL;
+        if (dev.device)
+            bus = rte_bus_find_by_device(dev.device);
+        if (bus && !strcmp(rte_bus_name(bus), "pci")) {
+            char name[RTE_ETH_NAME_MAX_LEN];
+            char vend[8], device[8];
+
+            printf("   %2d: %-12s   %2d     %2d   ", i, dev.driver_name, dev.if_index,
+                   rte_dev_numa_node(dev.device));
+            vend[0] = device[0] = '\0';
+            sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
+
+            rte_eth_dev_get_name_by_port(i, name);
+            snprintf(buff, sizeof(buff), "%s:%s/%s", vend, device, rte_dev_name(dev.device));
+        } else
+            snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
         printf("%s\n", buff);
     }
     printf("\n");
@@ -198,7 +197,7 @@ pktgen_config_ports(void)
     }
 
     /* For each lcore setup each port that is handled by that lcore. */
-    for (lid = 0; lid < RTE_MAX_LCORE; lid++) {
+    for (uint32_t lid = 0; lid < RTE_MAX_LCORE; lid++) {
         if (get_map(pktgen.l2p, RTE_MAX_ETHPORTS, lid) == 0)
             continue;
 
@@ -242,7 +241,7 @@ pktgen_config_ports(void)
         if (info->seq_pkt == NULL)
             pktgen_log_panic("Unable to allocate %d pkt_seq_t headers", NUM_TOTAL_PKTS);
 
-        for (i = 0; i < NUM_TOTAL_PKTS; i++) {
+        for (int i = 0; i < NUM_TOTAL_PKTS; i++) {
             info->seq_pkt[i].seq_enabled = 1;
             info->seq_pkt[i].tcp_flags   = DEFAULT_TCP_FLAGS;
             info->seq_pkt[i].tcp_seq     = DEFAULT_TCP_SEQ_NUMBER;
@@ -313,7 +312,7 @@ pktgen_config_ports(void)
 
         pktgen.mem_used = 0;
 
-        for (q = 0; q < rt.rx; q++) {
+        for (int q = 0; q < rt.rx; q++) {
             struct rte_eth_rxconf rxq_conf;
             struct rte_eth_conf conf = {0};
 
@@ -336,7 +335,7 @@ pktgen_config_ports(void)
             if (ret < 0)
                 pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
                                  rte_strerror(-ret));
-            lid = get_port_lid(pktgen.l2p, pid, q);
+            uint32_t lid = get_port_lid(pktgen.l2p, pid, q);
             if (pktgen.verbose)
                 pktgen_log_info("      Set RX queue stats mapping pid %d, q %d, lcore %d\n", pid, q,
                                 lid);
@@ -345,7 +344,7 @@ pktgen_config_ports(void)
         if (pktgen.verbose)
             pktgen_log_info("");
 
-        for (q = 0; q < rt.tx; q++) {
+        for (int q = 0; q < rt.tx; q++) {
             struct rte_eth_txconf *txconf;
 
             /* grab the socket id value based on the lcore being used. */
@@ -422,7 +421,7 @@ pktgen_config_ports(void)
         pktgen_log_info("%s", output_buff);
 
         /* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
-        for (i = 0; i < NUM_SEQ_PKTS; i++)
+        for (int i = 0; i < NUM_SEQ_PKTS; i++)
             ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
         ethAddrCopy(&info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_src_addr);
     }

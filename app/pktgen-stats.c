@@ -17,6 +17,7 @@
 #include "pktgen.h"
 
 #include <rte_bus_pci.h>
+#include <rte_bus.h>
 
 /**
  *
@@ -109,7 +110,7 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MAC Destination");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PCI Vendor/Addr");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "NUMA/Vend:ID/PCI");
     row++;
 
     /* Get the last location to use for the window starting row. */
@@ -199,21 +200,23 @@ pktgen_print_static_data(void)
                     inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 
         rte_eth_dev_info_get(pid, &dev);
-        struct rte_bus *bus;
+
+        const struct rte_bus *bus = NULL;
         if (dev.device)
             bus = rte_bus_find_by_device(dev.device);
-        else
-            bus = NULL;
-        if (bus && !strcmp(bus->name, "pci")) {
-            struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
-            snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", pci_dev->id.vendor_id,
-                     pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
-                     pci_dev->addr.function);
+        if (bus && !strcmp(rte_bus_name(bus), "pci")) {
+            char name[RTE_ETH_NAME_MAX_LEN];
+            char vend[8], device[8];
+
+            vend[0] = device[0] = '\0';
+            sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
+
+            rte_eth_dev_get_name_by_port(pid, name);
+            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
         } else
-            snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", 0, 0, 0, 0, 0);
+            snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
         pktgen_display_set_color("stats.bdf");
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
         display_cnt++;
     }
 
@@ -244,19 +247,22 @@ pktgen_print_static_data(void)
 void
 pktgen_get_link_status(port_info_t *info, int pid, int wait)
 {
-    int i;
+    int i, ret;
     uint64_t prev_status = info->link.link_status;
 
     /* get link status */
     for (i = 0; i < LINK_RETRY; i++) {
         memset(&info->link, 0, sizeof(info->link));
 
-        rte_eth_link_get_nowait(pid, &info->link);
-
-        if (info->link.link_status && info->link.link_speed) {
-            if (prev_status == 0)
-                pktgen_packet_rate(info);
-            return;
+        ret = rte_eth_link_get_nowait(pid, &info->link);
+        if (ret == 0) {
+            if (info->link.link_speed == RTE_ETH_SPEED_NUM_UNKNOWN)
+                break;
+            if (info->link.link_status && info->link.link_speed) {
+                if (prev_status == 0)
+                    pktgen_packet_rate(info);
+                return;
+            }
         }
         if (!wait)
             break;

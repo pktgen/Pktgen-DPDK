@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) 2020 Intel Corporation.
+ * Copyright(c) <2020-2023> Intel Corporation.
  */
 /* Created 2018 by Keith Wiles @ intel.com */
 
@@ -388,7 +388,7 @@ static const luaL_Reg dpdklib[] = {
 
     {NULL, NULL}};
 
-static const char *rte_copyright = "Copyright(c) <2010-2021>, Intel Corporation";
+static const char *rte_copyright = "Copyright(c) <2010-2023>, Intel Corporation";
 
 static int
 luaopen_dpdk(lua_State *L)

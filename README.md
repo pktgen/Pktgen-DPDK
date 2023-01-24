@@ -43,6 +43,9 @@ SPDX-License-Identifier: BSD-3-Clause
 Pktgen: Created 2010-2023 by Keith Wiles @ Intel.com
 ```
 ---
+Pktgen documentation can be found here: https://pktgen.github.io/Pktgen-DPDK/
+
+---
 Using the tools/run.py script to setup and run pktgen with different configurations. The configuration files are located in the cfg directory with filenames ending in .cfg.
 
 To use a configuration file;

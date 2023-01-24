@@ -1,6 +1,6 @@
 --
 -- Pktgen - Ver: 3.0.07 (DPDK 16.07.0-rc3)
--- Copyright(c) <2010-2021>, Intel Corporation. All rights reserved., Powered by DPDK
+-- Copyright(c) <2010-2023>, Intel Corporation. All rights reserved., Powered by DPDK
 
 -- Command line arguments: (DPDK args are defaults)
 -- ./app/app/x86_64-native-linux-gcc/app/pktgen -c 3fffe -n 3 -m 512 --proc-type primary -- -T -P -m [2-5:6-9].0 -m [10-13:14-17].1 -f themes/black-yellow.theme

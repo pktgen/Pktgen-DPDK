@@ -1,6 +1,6 @@
 #
 # Pktgen - Ver: 3.6.4 (DPDK 19.02.0-rc4)
-# Copyright(c) <2010-2021>, Intel Corporation. All rights reserved., Powered by DPDK
+# Copyright(c) <2010-2023>, Intel Corporation. All rights reserved., Powered by DPDK
 
 # Command line arguments: (DPDK args are defaults)
 # ./app/x86_64-native-linux-gcc/pktgen -c 7c000 -n 3 -m 512 --proc-type primary -- -T -P -m [15:16].0 -m [17:18].1 -f themes/black-yellow.theme

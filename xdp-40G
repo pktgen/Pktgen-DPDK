@@ -1,6 +1,6 @@
 #
 # Pktgen 21.03.1 (DPDK 21.08.0-rc0)
-# Copyright(c) <2010-2021>, Intel Corporation. All rights reserved., Powered by DPDK
+# Copyright(c) <2010-2023>, Intel Corporation. All rights reserved., Powered by DPDK
 
 # Command line arguments: (DPDK args are defaults)
 # ./usr/local/bin/pktgen -c fffffffff0000001 -n 3 -m 512 --proc-type primary -- -v -T -P -m [29:30].0 -m [31:32].1 -f themes/black-yellow.theme -f xdp-40G 

@@ -313,6 +313,11 @@ pktgen_config_ports(void)
 
         pktgen.mem_used = 0;
 
+        if ((ret = rte_eth_dev_set_mtu(pid, pktgen.eth_mtu)) < 0) {
+            pktgen_log_panic("Cannot set MTU %u on port %u, (%d)%s", pktgen.eth_mtu, pid,
+                             -ret, rte_strerror(-ret));
+        }
+
         for (q = 0; q < rt.rx; q++) {
             struct rte_eth_rxconf rxq_conf;
             struct rte_eth_conf conf = {0};

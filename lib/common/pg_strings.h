@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) 2020 Intel Corporation.
+ * Copyright(c) <2020-2023> Intel Corporation.
  */
 
 /**
@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 
 #include <pg_compat.h>
 #include <rte_compat.h>

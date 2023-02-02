@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2021>, Intel Corporation.
+ * Copyright(c) <2016-2023>, Intel Corporation.
  */
 /* inspired by an email/code written by: Joseph H. Allen, 9/10/89 */
 
@@ -367,6 +367,8 @@ gb_expand_buf(struct gapbuf *gb, uint32_t more)
 
 		more = (gb->ebuf - gb->buf) + more + GB_DEFAULT_GAP_SIZE;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuse-after-free"
 		gb->buf = (char *)realloc(gb->buf, more);
 		if (gb->buf == NULL)
 			rte_panic("realloc(%d) in %s failed\n", more, __func__);
@@ -375,6 +377,7 @@ gb_expand_buf(struct gapbuf *gb, uint32_t more)
 		gb->ebuf    += (gb->buf - old);
 		gb->gap     += (gb->buf - old);
 		gb->egap    += (gb->buf - old);
+#pragma GCC diagnostic pop
 	}
 }
 

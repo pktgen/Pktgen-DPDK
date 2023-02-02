@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2021>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2023>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -422,7 +422,6 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
                     {RTE_ETH_RX_OFFLOAD_QINQ_STRIP, _(QINQ_STRIP)},
                     {RTE_ETH_RX_OFFLOAD_OUTER_IPV4_CKSUM, _(OUTER_IPV4_CKSUM)},
                     {RTE_ETH_RX_OFFLOAD_MACSEC_STRIP, _(MACSEC_STRIP)},
-                    {RTE_ETH_RX_OFFLOAD_HEADER_SPLIT, _(HEADER_SPLIT)},
                     {RTE_ETH_RX_OFFLOAD_VLAN_FILTER, _(VLAN_FILTER)},
                     {RTE_ETH_RX_OFFLOAD_VLAN_EXTEND, _(VLAN_EXTEND)},
                     {RTE_ETH_RX_OFFLOAD_SCATTER, _(SCATTER)},
@@ -430,7 +429,9 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
                     {RTE_ETH_RX_OFFLOAD_SECURITY, _(SECURITY)},
                     {RTE_ETH_RX_OFFLOAD_KEEP_CRC, _(KEEP_CRC)},
                     {RTE_ETH_RX_OFFLOAD_SCTP_CKSUM, _(SCTP_CKSUM)},
-                    {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)}};
+                    {RTE_ETH_RX_OFFLOAD_OUTER_UDP_CKSUM, _(OUTER_UDP_CKSUM)},
+                    {RTE_ETH_RX_OFFLOAD_RSS_HASH, _(RSS_HASH)},
+                    {RTE_ETH_RX_OFFLOAD_BUFFER_SPLIT, _(BUFFER_SPLIT)}};
 #undef _
 
     if (len == 0)

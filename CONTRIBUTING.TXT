@@ -23,7 +23,7 @@ The commit message must end with a "Signed-off-by:" line which is added using:
 
 The purpose of the signoff is explained in the Linux kernel guidelines
 Developer's Certificate of Origin:
-http://www.kernel.org/doc/Documentation/SubmittingPatches
+https://www.kernel.org/doc/html/latest/process/submitting-patches.html
 
 Note:
     All developers must ensure that they have read, understood and complied

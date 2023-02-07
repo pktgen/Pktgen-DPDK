@@ -59,7 +59,7 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
     row++;
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency avg/max");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency avg/max(ms)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter Threshold");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter count");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");

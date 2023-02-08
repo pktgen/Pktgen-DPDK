@@ -367,8 +367,12 @@ gb_expand_buf(struct gapbuf *gb, uint32_t more)
 
 		more = (gb->ebuf - gb->buf) + more + GB_DEFAULT_GAP_SIZE;
 
+#ifdef __GNUC__
+#if GCC_VERSION >= 120200
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuse-after-free"
+#endif
+#endif
 		gb->buf = (char *)realloc(gb->buf, more);
 		if (gb->buf == NULL)
 			rte_panic("realloc(%d) in %s failed\n", more, __func__);
@@ -377,7 +381,12 @@ gb_expand_buf(struct gapbuf *gb, uint32_t more)
 		gb->ebuf    += (gb->buf - old);
 		gb->gap     += (gb->buf - old);
 		gb->egap    += (gb->buf - old);
+#ifdef __GNUC__
+#if GCC_VERSION >= 120200
 #pragma GCC diagnostic pop
+#endif
+#endif
+		gb->buf = (char *)realloc(gb->buf, more);
 	}
 }
 

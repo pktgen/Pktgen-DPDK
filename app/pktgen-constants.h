@@ -28,7 +28,7 @@ enum {
 
     DEFAULT_PRIV_SIZE = 0,
 
-    NUM_Q = 16, /**< Number of queues per port. */
+    NUM_Q = 64, /**< Number of queues per port. */
 };
 #define DEFAULT_MBUF_SIZE                                                                         \
     (PG_JUMBO_FRAME_LEN + RTE_PKTMBUF_HEADROOM) /* See: http://dpdk.org/dev/patchwork/patch/4479/ \

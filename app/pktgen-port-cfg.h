@@ -69,7 +69,6 @@ enum { /* Per port flag bits */
        SEND_PCAP_PKTS    = (1 << 12), /**< Send a pcap file of packets */
        SEND_RANGE_PKTS   = (1 << 13), /**< Send a range of packets */
        SEND_SEQ_PKTS     = (1 << 14), /**< Send a sequence of packets */
-       SEND_LATENCY_PKTS = (1 << 15), /**< Send latency packets */
 
        SEND_RATE_PACKETS = (1 << 16), /**< Send rate pacing packets */
        SEND_RANDOM_PKTS  = (1 << 17), /**< Send random bitfields in packets */
@@ -83,8 +82,8 @@ enum { /* Per port flag bits */
        SEND_GRE_ETHER_HEADER = (1 << 24), /**< Encapsulate Ethernet frame in GRE */
        SEND_VXLAN_PACKETS    = (1 << 25), /**< Send VxLAN Packets */
 
-       SAMPLING_LATENCIES = (1 << 26), /**< Sampling latency measurements> */
-       LATENCY_PKT_SEND   = (1 << 27), /**< Send a latency packet */
+       SAMPLING_LATENCIES  = (1 << 26), /**< Sampling latency measurements> */
+       ENABLE_LATENCY_PKTS = (1 << 27), /**< Send latency packets */
 
        /* Sending flags */
        STOP_RECEIVING_PACKETS = (1 << 29), /**< Stop receiving packet */
@@ -96,8 +95,7 @@ enum { /* Per port flag bits */
 };
 
 #define EXCLUSIVE_MODES                                                                        \
-    (SEND_PCAP_PKTS | SEND_RANGE_PKTS | SEND_SEQ_PKTS | SEND_RANDOM_PKTS | SEND_LATENCY_PKTS | \
-     SEND_RATE_PACKETS)
+    (SEND_PCAP_PKTS | SEND_RANGE_PKTS | SEND_SEQ_PKTS | SEND_RANDOM_PKTS | SEND_RATE_PACKETS)
 
 #define EXCLUSIVE_PKT_MODES                                                  \
     (SEND_VLAN_ID | SEND_VXLAN_PACKETS | SEND_MPLS_LABEL | SEND_Q_IN_Q_IDS | \

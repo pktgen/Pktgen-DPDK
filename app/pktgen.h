@@ -171,7 +171,7 @@ enum {
     MAX_SCRN_COLS = 132,
 
     COLUMN_WIDTH_0 = 22,
-    COLUMN_WIDTH_1 = 21,
+    COLUMN_WIDTH_1 = 22,
     COLUMN_WIDTH_3 = 21,
 
     /* Row locations for start of data */

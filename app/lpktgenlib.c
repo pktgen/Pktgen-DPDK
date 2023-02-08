@@ -34,6 +34,7 @@
 #include <pg_strings.h>
 
 #include <rte_bus_pci.h>
+#include <rte_bus.h>
 
 #include <cli_help.h>
 
@@ -2913,7 +2914,7 @@ pkt_stats(lua_State *L, port_info_t *info)
 
     avg_lat = 0;
     jitter  = 0;
-    if (flags & SEND_LATENCY_PKTS) {
+    if (flags & ENABLE_LATENCY_PKTS) {
         ticks = pktgen_get_timer_hz() / 1000000;
         if (ticks == 0)
             printf("Ticks = %lu\n", ticks);
@@ -3207,16 +3208,18 @@ port_info(lua_State *L, port_info_t *info)
     lua_rawset(L, -3);
 
     rte_eth_dev_info_get(info->pid, &dev);
-    const struct rte_bus *bus;
+    const struct rte_bus *bus = NULL;
     if (dev.device)
-        bus = rte_dev_bus(dev.device);
-    else
-        bus = NULL;
-    if (bus && !strcmp(bus->name, "pci")) {
-        struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
-        snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", pci_dev->id.vendor_id,
-                 pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
-                 pci_dev->addr.function);
+        bus = rte_bus_find_by_device(dev.device);
+    if (bus && !strcmp(rte_bus_name(bus), "pci")) {
+        char name[RTE_ETH_NAME_MAX_LEN];
+        char vend[8], device[8];
+
+        vend[0] = device[0] = '\0';
+        sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
+
+        rte_eth_dev_get_name_by_port(info->pid, name);
+        snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
     } else
         snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", 0, 0, 0, 0, 0);
     setf_string(L, "pci_vendor", buff);
@@ -3869,7 +3872,6 @@ luaopen_pktgen(lua_State *L)
     setf_integer(L, "maxPktRxBurst", MAX_PKT_RX_BURST);
     setf_integer(L, "maxPktTxBurst", MAX_PKT_TX_BURST);
     setf_integer(L, "defaultBuffSize", DEFAULT_MBUF_SIZE);
-    setf_integer(L, "defaultBuffLen", DEFAULT_MBUF_LEN);
     setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT);
     setf_integer(L, "maxPrimeCount", MAX_PRIME_COUNT);
 

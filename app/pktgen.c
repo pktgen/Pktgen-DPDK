@@ -323,14 +323,14 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 
     for (i = 0; i < nb_pkts; i++) {
 
-        if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES)) {
+        if (flags & (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES)) {
             tstamp_t *tstamp;
             tstamp = pktgen_tstamp_pointer(info, rte_pktmbuf_mtod(pkts[i], char *));
 
             if (tstamp->magic == TSTAMP_MAGIC) {
                 lat = (pktgen_get_time() - tstamp->timestamp);
 
-                if (flags & (SEND_LATENCY_PKTS | SEND_RATE_PACKETS)) {
+                if (flags & (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS)) {
                     info->avg_latency += lat;
                     if (lat > info->prev_latency)
                         jitter = lat - info->prev_latency;
@@ -980,7 +980,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 
     if (qid == 0) {
         uint32_t tstamp = pktgen_tst_port_flags(
-            info, (SEND_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
+            info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
         if (tstamp) {
             uint64_t curr_ts;
 

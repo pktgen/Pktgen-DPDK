@@ -231,7 +231,7 @@ pktgen_script_save(char *path)
         fprintf(fd, "%sable %d icmp\n", (flags & ICMP_ECHO_ENABLE_FLAG) ? "en" : "dis", i);
         fprintf(fd, "%sable %d pcap\n", (flags & SEND_PCAP_PKTS) ? "en" : "dis", i);
         fprintf(fd, "%sable %d range\n", (flags & SEND_RANGE_PKTS) ? "en" : "dis", i);
-        fprintf(fd, "%sable %d latency\n", (flags & SEND_LATENCY_PKTS) ? "en" : "dis", i);
+        fprintf(fd, "%sable %d latency\n", (flags & ENABLE_LATENCY_PKTS) ? "en" : "dis", i);
         fprintf(fd, "%sable %d process\n", (flags & PROCESS_INPUT_PKTS) ? "en" : "dis", i);
         fprintf(fd, "%sable %d capture\n", (flags & CAPTURE_PKTS) ? "en" : "dis", i);
         fprintf(fd, "%sable %d rx_tap\n", (flags & PROCESS_RX_TAP_PKTS) ? "en" : "dis", i);
@@ -585,7 +585,7 @@ pktgen_lua_save(char *path)
         fprintf(fd, "pktgen.set_range('%d', '%sable');\n", i,
                 (flags & SEND_RANGE_PKTS) ? "en" : "dis");
         fprintf(fd, "pktgen.latency('%d', '%sable');\n", i,
-                (flags & SEND_LATENCY_PKTS) ? "en" : "dis");
+                (flags & ENABLE_LATENCY_PKTS) ? "en" : "dis");
         fprintf(fd, "pktgen.process('%d', '%sable');\n", i,
                 (flags & PROCESS_INPUT_PKTS) ? "en" : "dis");
         fprintf(fd, "pktgen.capture('%d', '%sable');\n", i, (flags & CAPTURE_PKTS) ? "en" : "dis");
@@ -1020,17 +1020,19 @@ pktgen_flags_string(port_info_t *info)
     static char buff[32];
     uint32_t flags = rte_atomic32_read(&info->port_flags);
 
-    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%-5s%6s",
+    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%-5s%6s",
              (pktgen.flags & PROMISCUOUS_ON_FLAG) ? 'P' : '-',
-             (flags & ICMP_ECHO_ENABLE_FLAG) ? 'E' : '-', (flags & BONDING_TX_PACKETS) ? 'B' : '-',
+             (flags & ICMP_ECHO_ENABLE_FLAG) ? 'E' : '-',
+             (flags & BONDING_TX_PACKETS) ? 'B' : '-',
              (flags & PROCESS_INPUT_PKTS) ? 'I' : '-',
+             (flags & ENABLE_LATENCY_PKTS) ? 'L' : '-',
              "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
-             (flags & PROCESS_GARP_PKTS) ? 'g' : '-', (flags & CAPTURE_PKTS) ? 'c' : '-',
+             (flags & PROCESS_GARP_PKTS) ? 'g' : '-',
+             (flags & CAPTURE_PKTS) ? 'c' : '-',
 
              (flags & SEND_PCAP_PKTS)      ? "PCAP"
              : (flags & SEND_SEQ_PKTS)     ? "Seq"
              : (flags & SEND_RANGE_PKTS)   ? "Range"
-             : (flags & SEND_LATENCY_PKTS) ? "Lat"
              : (flags & SEND_RANDOM_PKTS)  ? "Rand"
              : (flags & SEND_RATE_PACKETS) ? "Rate"
                                            : "Sngl",
@@ -2738,18 +2740,6 @@ pktgen_ping4(port_info_t *info)
 }
 
 /**
- * pktgen_latency - Send a IPv4/UDP latency packet
- */
-
-void
-pktgen_latency(port_info_t *info)
-{
-    pktgen_packet_ctor(info, LATENCY_PKT, -1);
-    pktgen_set_port_flags(info, LATENCY_PKT_SEND);
-    pktgen_set_tx_update(info);
-}
-
-/**
  *
  * debug_pdump - Dump hex output of first packet
  *
@@ -3814,11 +3804,10 @@ enable_range(port_info_t *info, uint32_t state)
 void
 enable_latency(port_info_t *info, uint32_t state)
 {
-    if (state == ENABLE_STATE) {
-        pktgen_clr_port_flags(info, EXCLUSIVE_MODES);
-        pktgen_set_port_flags(info, SEND_LATENCY_PKTS);
-    } else
-        pktgen_clr_port_flags(info, SEND_LATENCY_PKTS);
+    if (state == ENABLE_STATE)
+        pktgen_set_port_flags(info, ENABLE_LATENCY_PKTS);
+    else
+        pktgen_clr_port_flags(info, ENABLE_LATENCY_PKTS);
 
     pktgen_latency_setup(info);
     pktgen_packet_ctor(info, LATENCY_PKT, -1);

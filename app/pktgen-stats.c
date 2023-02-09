@@ -337,7 +337,7 @@ pktgen_page_stats(void)
         if (get_map(pktgen.l2p, pid + sp, RTE_MAX_LCORE) == 0)
             continue;
 
-	memset(&sizes, 0, sizeof(port_sizes_t));
+        memset(&sizes, 0, sizeof(port_sizes_t));
         info = &pktgen.info[pid + sp];
 
         /* Display the disable string when port is not enabled. */

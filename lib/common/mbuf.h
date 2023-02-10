@@ -40,7 +40,7 @@ extern int pktgen_dynfield_offset;
 static inline union pktgen_data *
 pktgen_data_field(struct rte_mbuf *m)
 {
-	return RTE_MBUF_DYNFIELD(m, pktgen_dynfield_offset, union pktgen_data *);
+    return RTE_MBUF_DYNFIELD(m, pktgen_dynfield_offset, union pktgen_data *);
 }
 
 static inline void

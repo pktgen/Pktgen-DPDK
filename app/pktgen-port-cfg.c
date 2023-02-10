@@ -261,11 +261,13 @@ pktgen_config_ports(void)
         info->seqIdx = 0;
         info->seqCnt = 0;
 
-        info->jitter_threshold      = DEFAULT_JITTER_THRESHOLD;
-        info->latency_rate          = DEFAULT_LATENCY_RATE;
-        info->latency_rate_cycles   = pktgen_get_timer_hz() / (1000 / info->latency_rate);
+        latency_t *lat = &info->latency;
+
+        lat->jitter_threshold      = DEFAULT_JITTER_THRESHOLD;
+        lat->latency_rate          = DEFAULT_LATENCY_RATE;
+        lat->latency_rate_cycles   = pktgen_get_timer_hz() / (1000 / lat->latency_rate);
         ticks                       = pktgen_get_timer_hz() / 1000000;
-        info->jitter_threshold_clks = info->jitter_threshold * ticks;
+        lat->jitter_threshold_clks = lat->jitter_threshold * ticks;
         info->nb_mbufs              = MAX_MBUFS_PER_PORT;
         cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE) ? RTE_MEMPOOL_CACHE_MAX_SIZE
                                                                    : info->nb_mbufs;

@@ -62,6 +62,7 @@ pktgen_set_tx_update(port_info_t *info)
     for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
         pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 }
+
 /**
  * pktgen_save - Save a configuration as a startup script
  *
@@ -79,6 +80,7 @@ pktgen_script_save(char *path)
     pkt_seq_t *pkt;
     range_info_t *range;
     rate_info_t *rate;
+    latency_t *lat;
     uint32_t flags;
     char buff[64];
     FILE *fd;
@@ -129,6 +131,8 @@ pktgen_script_save(char *path)
 
         if (info->tx_burst == 0)
             continue;
+
+        lat = &info->latency;
 
         fprintf(fd, "######################### Port %2d ##################################\n", i);
         if (rte_atomic64_read(&info->transmit_count) == 0)
@@ -213,7 +217,7 @@ pktgen_script_save(char *path)
         }
         fprintf(fd, "\n");
 
-        fprintf(fd, "set %d jitter %" PRIu64 "\n", i, info->jitter_threshold);
+        fprintf(fd, "set %d jitter %" PRIu64 "\n", i, lat->jitter_threshold);
         fprintf(fd, "%sable %d mpls\n", (flags & SEND_MPLS_LABEL) ? "en" : "dis", i);
         sprintf(buff, "0x%x", pkt->mpls_entry);
         fprintf(fd, "range %d mpls entry %s\n", i, buff);
@@ -436,6 +440,7 @@ pktgen_lua_save(char *path)
     port_info_t *info;
     pkt_seq_t *pkt;
     range_info_t *range;
+    latency_t *lat;
     uint32_t flags;
     char buff[64];
     FILE *fd;
@@ -491,6 +496,8 @@ pktgen_lua_save(char *path)
 
         if (info->tx_burst == 0)
             continue;
+
+        lat = &info->latency;
 
         fprintf(fd, "-- ######################### Port %2d ##################################\n",
                 i);
@@ -559,7 +566,7 @@ pktgen_lua_save(char *path)
         fprintf(fd, "\n");
 
         fflush(fd);
-        fprintf(fd, "pktgen.jitter('%d', %lu);\n", i, info->jitter_threshold);
+        fprintf(fd, "pktgen.jitter('%d', %lu);\n", i, lat->jitter_threshold);
         fprintf(fd, "pktgen.mpls('%d', '%sable');\n", i, (flags & SEND_MPLS_LABEL) ? "en" : "dis");
         sprintf(buff, "0x%x", pkt->mpls_entry);
         fprintf(fd, "pktgen.mpls_entry('%d', '%s');\n", i, buff);
@@ -1022,13 +1029,10 @@ pktgen_flags_string(port_info_t *info)
 
     snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%-5s%6s",
              (pktgen.flags & PROMISCUOUS_ON_FLAG) ? 'P' : '-',
-             (flags & ICMP_ECHO_ENABLE_FLAG) ? 'E' : '-',
-             (flags & BONDING_TX_PACKETS) ? 'B' : '-',
-             (flags & PROCESS_INPUT_PKTS) ? 'I' : '-',
-             (flags & ENABLE_LATENCY_PKTS) ? 'L' : '-',
+             (flags & ICMP_ECHO_ENABLE_FLAG) ? 'E' : '-', (flags & BONDING_TX_PACKETS) ? 'B' : '-',
+             (flags & PROCESS_INPUT_PKTS) ? 'I' : '-', (flags & ENABLE_LATENCY_PKTS) ? 'L' : '-',
              "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
-             (flags & PROCESS_GARP_PKTS) ? 'g' : '-',
-             (flags & CAPTURE_PKTS) ? 'c' : '-',
+             (flags & PROCESS_GARP_PKTS) ? 'g' : '-', (flags & CAPTURE_PKTS) ? 'c' : '-',
 
              (flags & SEND_PCAP_PKTS)      ? "PCAP"
              : (flags & SEND_SEQ_PKTS)     ? "Seq"
@@ -2637,15 +2641,13 @@ pktgen_clear_stats(port_info_t *info)
     pktgen.max_total_opackets = 0;
     info->max_ipackets        = 0;
     info->max_opackets        = 0;
+    info->max_missed          = 0;
 
     memset(&info->qstats, 0, sizeof(info->qstats));
 
-    info->min_avg_latency = 0;
-    info->max_avg_latency = 0;
-    info->max_latency     = 0;
-    info->avg_latency     = 0;
-    info->jitter_count    = 0;
-    info->max_missed      = 0;
+    latency_t *lat          = &info->latency;
+
+    memset(lat->stats, 0, (lat->end_stats - lat->stats) * sizeof(uint64_t));
 
     memset(&pktgen.cumm_rate_totals, 0, sizeof(eth_stats_t));
 }
@@ -3804,14 +3806,14 @@ enable_range(port_info_t *info, uint32_t state)
 void
 enable_latency(port_info_t *info, uint32_t state)
 {
-    if (state == ENABLE_STATE)
-        pktgen_set_port_flags(info, ENABLE_LATENCY_PKTS);
-    else
-        pktgen_clr_port_flags(info, ENABLE_LATENCY_PKTS);
+    if (state == ENABLE_STATE) {
+        pktgen_latency_setup(info);
+        pktgen_packet_ctor(info, LATENCY_PKT, -2);
+        pktgen_set_tx_update(info);
 
-    pktgen_latency_setup(info);
-    pktgen_packet_ctor(info, LATENCY_PKT, -1);
-    pktgen_set_tx_update(info);
+        pktgen_set_port_flags(info, ENABLE_LATENCY_PKTS);
+    } else
+        pktgen_clr_port_flags(info, ENABLE_LATENCY_PKTS);
 }
 
 /**
@@ -3829,12 +3831,13 @@ enable_latency(port_info_t *info, uint32_t state)
 void
 single_set_jitter(port_info_t *info, uint64_t threshold)
 {
+    latency_t *lat = &info->latency;
     uint64_t ticks;
 
-    info->jitter_threshold      = threshold;
-    info->jitter_count          = 0;
+    lat->jitter_threshold      = threshold;
+    lat->jitter_count          = 0;
     ticks                       = pktgen_get_timer_hz() / 1000000;
-    info->jitter_threshold_clks = info->jitter_threshold * ticks;
+    lat->jitter_threshold_clks = lat->jitter_threshold * ticks;
 }
 
 /**

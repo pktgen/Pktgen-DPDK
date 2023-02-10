@@ -243,17 +243,21 @@ pktgen_tstamp_inject(port_info_t *info, uint16_t qid)
     pkt_seq_t *pkt = &info->seq_pkt[LATENCY_PKT];
     rte_mbuf_t *mbuf;
 
+    pktgen_latency_setup(info);
+
     mbuf = rte_pktmbuf_alloc(info->latency_mp);
     if (mbuf) {
+        uint16_t pktsize = pkt->pktSize;
+
         rte_pktmbuf_reset(mbuf);
 
-        mbuf->pkt_len  = pkt->pktSize;
-        mbuf->data_len = pkt->pktSize;
+        mbuf->pkt_len  = pktsize;
+        mbuf->data_len = pktsize;
 
         /* IPv4 Header constructor */
         pktgen_packet_ctor(info, LATENCY_PKT, -1);
 
-        rte_memcpy(rte_pktmbuf_mtod(mbuf, uint8_t *), (uint8_t *)&pkt->hdr, pkt->pktSize);
+        rte_memcpy(rte_pktmbuf_mtod(mbuf, uint8_t *), (uint8_t *)&pkt->hdr, pktsize);
 
         mbuf->ol_flags = 0;
 
@@ -317,31 +321,37 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
     int lid = rte_lcore_id();
     int qid = get_rxque(pktgen.l2p, lid, info->pid);
     int i;
-    uint64_t lat, jitter;
+    uint64_t latency, jitter;
 
     flags = rte_atomic32_read(&info->port_flags);
 
     for (i = 0; i < nb_pkts; i++) {
 
-        if (flags & (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES)) {
+        if (flags & (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS)) {
             tstamp_t *tstamp;
             tstamp = pktgen_tstamp_pointer(info, rte_pktmbuf_mtod(pkts[i], char *));
 
             if (tstamp->magic == TSTAMP_MAGIC) {
-                lat = (pktgen_get_time() - tstamp->timestamp);
+                latency_t *lat = &info->latency;
+
+                latency = (pktgen_get_time() - tstamp->timestamp);
+
+                if (tstamp->index != lat->expect_index)
+                    lat->expect_index = tstamp->index;
+                lat->expect_index++;
+                tstamp->magic = 0;
 
                 if (flags & (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS)) {
-                    info->avg_latency += lat;
-                    if (lat > info->prev_latency)
-                        jitter = lat - info->prev_latency;
-                    else
-                        jitter = info->prev_latency - lat;
-                    if (lat > info->max_latency)
-                        info->max_latency = lat;
-                    if (jitter > info->jitter_threshold_clks)
-                        info->jitter_count++;
-                    info->prev_latency = lat;
-                } else if (flags & (SAMPLING_LATENCIES)) {
+                    lat->running_latency += latency;
+
+                    jitter = (latency > lat->prev_latency)? latency - lat->prev_latency : lat->prev_latency - latency;
+                    if (jitter > lat->jitter_threshold_clks)
+                        lat->jitter_count++;
+                    if (latency > lat->max_latency)
+                        lat->max_latency = latency;
+                    lat->prev_latency = latency;
+                }
+                if (flags & (SAMPLING_LATENCIES)) {
                     /* Record latency if it's time for sampling (seperately per lcore) */
                     latsamp_stats_t *stats = &info->latsamp_stats[qid];
                     uint64_t now           = pktgen_get_time();
@@ -349,7 +359,7 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                     stats->pkt_counter++;
                     if (stats->next == 0 || now >= stats->next) {
                         if (stats->idx < stats->num_samples) {
-                            stats->data[stats->idx] = (lat * Billion) / rte_get_tsc_hz();
+                            stats->data[stats->idx] = (latency * Billion) / rte_get_tsc_hz();
                             stats->idx++;
                         }
 
@@ -363,8 +373,8 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                     }
                 }
 
-                info->latency_nb_pkts++;
-                info->total_latency_pkts++;
+                lat->latency_nb_pkts++;
+                lat->total_latency_pkts++;
             }
         }
     }
@@ -468,16 +478,18 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
     pktgen_fill_pattern((uint8_t *)&pkt->hdr, (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
                         info->fill_pattern_type, info->user_pattern);
 
-    if (seq_idx == LATENCY_PKT) {
+    flags = rte_atomic32_read(&info->port_flags);
+
+    if (flags & ENABLE_LATENCY_PKTS) {
+        latency_t *lat = &info->latency;
         tstamp_t *tstamp;
 
         tstamp = pktgen_tstamp_pointer(info, (char *)&pkt->hdr);
 
         tstamp->timestamp = pktgen_get_time();
         tstamp->magic     = TSTAMP_MAGIC;
+        tstamp->index     = lat->next_index++;
     }
-
-    flags = rte_atomic32_read(&info->port_flags);
 
     /* Add GRE header and adjust rte_ether_hdr pointer if requested */
     if (flags & SEND_GRE_IPv4_HEADER)
@@ -983,10 +995,11 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
             info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
         if (tstamp) {
             uint64_t curr_ts;
+            latency_t *lat = &info->latency;
 
             curr_ts = pktgen_get_time();
-            if (curr_ts >= info->latency_timo_cycles) {
-                info->latency_timo_cycles = curr_ts + info->latency_rate_cycles;
+            if (curr_ts >= lat->latency_timo_cycles) {
+                lat->latency_timo_cycles = curr_ts + lat->latency_rate_cycles;
 
                 pktgen_tstamp_inject(info, qid);
                 txCnt--;
@@ -994,7 +1007,6 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
         }
     }
 
-if (txbuff->length > txbuff->size) printf("length %d size %d, txCnt %ld\n", txbuff->length, txbuff->size, txCnt);
     mlen = pg_pktmbuf_alloc_bulk(mp, pkts, txCnt);
 
     for(int i = 0; i < mlen; i++)

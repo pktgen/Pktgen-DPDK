@@ -304,8 +304,9 @@ pktgen_page_rate(void)
 {
     port_info_t *info;
     rate_info_t *rate;
+    latency_t *lat;
     unsigned int pid, col, row;
-    unsigned sp;
+    unsigned sp, nb_pkts;
     char buff[32];
     int display_cnt;
     uint64_t avg_lat, ticks, max_lat;
@@ -378,26 +379,30 @@ pktgen_page_rate(void)
         ticks   = pktgen_get_timer_hz() / 1000000;
         avg_lat = 0;
         max_lat = 0;
-        if (info->latency_nb_pkts) {
-            avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
-            if (avg_lat > info->max_avg_latency)
-                info->max_avg_latency = avg_lat;
-            if (info->min_avg_latency == 0)
-                info->min_avg_latency = avg_lat;
-            else if (avg_lat < info->min_avg_latency)
-                info->min_avg_latency = avg_lat;
-            max_lat = info->max_latency / ticks;
-            info->latency_nb_pkts = 0;
-            info->avg_latency     = 0;
-        }
+        lat = &info->latency;
+        nb_pkts = lat->latency_nb_pkts;
+        if (nb_pkts == 0)
+            nb_pkts = 1;
+        lat->latency_nb_pkts = 0;
+
+        avg_lat = (lat->running_latency / nb_pkts) / ticks;
+        if (avg_lat > lat->max_avg_latency)
+            lat->max_avg_latency = avg_lat;
+        if (lat->min_avg_latency == 0)
+            lat->min_avg_latency = avg_lat;
+        else if (avg_lat < lat->min_avg_latency)
+            lat->min_avg_latency = avg_lat;
+        max_lat = lat->max_latency / ticks;
+        lat->running_latency = 0;
+
         pktgen_display_set_color("stats.port.sizes");
         snprintf(buff, sizeof(buff), "%"PRIu64"/%" PRIu64, avg_lat, max_lat);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);
+        snprintf(buff, sizeof(buff), "%" PRIu64, lat->jitter_threshold);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_count);
+        snprintf(buff, sizeof(buff), "%" PRIu64, lat->jitter_count);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         snprintf(buff, sizeof(buff), "%" PRIu64, info->prev_stats.ipackets);
@@ -406,7 +411,7 @@ pktgen_page_rate(void)
         avg_lat = 0;
         if (info->prev_stats.ipackets)
             snprintf(buff, sizeof(buff), "%" PRIu64,
-                     (info->jitter_count * 100) / info->prev_stats.ipackets);
+                     (lat->jitter_count * 100) / info->prev_stats.ipackets);
         else
             snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
 

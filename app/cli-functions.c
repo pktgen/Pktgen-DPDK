@@ -100,51 +100,55 @@ static const char *status_help[] = {
     NULL};
 
 #define SMMI "%|start|minimum|maximum|increment|min|max|inc"
-static struct cli_map range_map[] = {{20, "range %P dst mac " SMMI " %m"},
-                                     {21, "range %P src mac " SMMI " %m"},
-                                     {22, "range %P dst mac %m %m %m %m"},
-                                     {23, "range %P src mac %m %m %m %m"},
-                                     {30, "range %P dst ip " SMMI " %4"},
-                                     {31, "range %P src ip " SMMI " %4"},
-                                     {32, "range %P dst ip %4 %4 %4 %4"},
-                                     {33, "range %P src ip %4 %4 %4 %4"},
-                                     {34, "range %P dst ip " SMMI " %6"},
-                                     {35, "range %P src ip " SMMI " %6"},
-                                     {36, "range %P dst ip %6 %6 %6 %6"},
-                                     {37, "range %P src ip %6 %6 %6 %6"},
-                                     {40, "range %P proto %|tcp|udp"},
-                                     {41, "range %P type %|ipv4|ipv6"},
-                                     {42, "range %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
-                                     {43, "range %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
-                                     {44, "range %P tcp seq %d %d %d %d"},
-                                     {45, "range %P tcp ack %d %d %d %d"},
-                                     {46, "range %P tcp seq " SMMI " %d"},
-                                     {47, "range %P tcp ack " SMMI " %d"},
-                                     {50, "range %P dst port " SMMI " %d"},
-                                     {51, "range %P src port " SMMI " %d"},
-                                     {52, "range %P dst port %d %d %d %d"},
-                                     {53, "range %P src port %d %d %d %d"},
-                                     {55, "range %P ttl " SMMI " %b"},
-                                     {56, "range %P ttl %b %b %b %b"},
-                                     {60, "range %P vlan " SMMI " %d"},
-                                     {61, "range %P vlan %d %d %d %d"},
-                                     {70, "range %P size " SMMI " %d"},
-                                     {71, "range %P size %d %d %d %d"},
-                                     {80, "range %P mpls entry %h"},
-                                     {85, "range %P qinq index %d %d"},
-                                     {90, "range %P gre key %d"},
-                                     {91, "range %P gre_key %d"},
-                                     {100, "range %P gtpu " SMMI " %d"},
-                                     {101, "range %P gtpu %d %d %d %d"},
-                                     {160, "range %P cos " SMMI " %d"},
-                                     {161, "range %P cos %d %d %d %d"},
-                                     {170, "range %P tos " SMMI " %d"},
-                                     {171, "range %P tos %d %d %d %d"},
-                                     {172, "range %P hop_limits " SMMI " %b"},
-                                     {173, "range %P hop_limits %d %d %d %d"},
-                                     {174, "range %P traffic_class " SMMI " %d"},
-                                     {175, "range %P traffic_class %d %d %d %d"},
-                                     {-1, NULL}};
+// clang-format off
+static struct cli_map range_map[] = {
+    {20, "range %P dst mac " SMMI " %m"},
+    {21, "range %P src mac " SMMI " %m"},
+    {22, "range %P dst mac %m %m %m %m"},
+    {23, "range %P src mac %m %m %m %m"},
+    {30, "range %P dst ip " SMMI " %4"},
+    {31, "range %P src ip " SMMI " %4"},
+    {32, "range %P dst ip %4 %4 %4 %4"},
+    {33, "range %P src ip %4 %4 %4 %4"},
+    {34, "range %P dst ip " SMMI " %6"},
+    {35, "range %P src ip " SMMI " %6"},
+    {36, "range %P dst ip %6 %6 %6 %6"},
+    {37, "range %P src ip %6 %6 %6 %6"},
+    {40, "range %P proto %|tcp|udp"},
+    {41, "range %P type %|ipv4|ipv6"},
+    {42, "range %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
+    {43, "range %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
+    {44, "range %P tcp seq %d %d %d %d"},
+    {45, "range %P tcp ack %d %d %d %d"},
+    {46, "range %P tcp seq " SMMI " %d"},
+    {47, "range %P tcp ack " SMMI " %d"},
+    {50, "range %P dst port " SMMI " %d"},
+    {51, "range %P src port " SMMI " %d"},
+    {52, "range %P dst port %d %d %d %d"},
+    {53, "range %P src port %d %d %d %d"},
+    {55, "range %P ttl " SMMI " %b"},
+    {56, "range %P ttl %b %b %b %b"},
+    {60, "range %P vlan " SMMI " %d"},
+    {61, "range %P vlan %d %d %d %d"},
+    {70, "range %P size " SMMI " %d"},
+    {71, "range %P size %d %d %d %d"},
+    {80, "range %P mpls entry %h"},
+    {85, "range %P qinq index %d %d"},
+    {90, "range %P gre key %d"},
+    {91, "range %P gre_key %d"},
+    {100, "range %P gtpu " SMMI " %d"},
+    {101, "range %P gtpu %d %d %d %d"},
+    {160, "range %P cos " SMMI " %d"},
+    {161, "range %P cos %d %d %d %d"},
+    {170, "range %P tos " SMMI " %d"},
+    {171, "range %P tos %d %d %d %d"},
+    {172, "range %P hop_limits " SMMI " %b"},
+    {173, "range %P hop_limits %d %d %d %d"},
+    {174, "range %P traffic_class " SMMI " %d"},
+    {175, "range %P traffic_class %d %d %d %d"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *range_help[] = {
     "",
@@ -465,30 +469,34 @@ range_cmd(int argc, char **argv)
     "txburst|"   /* 15 */ \
     "rxburst"    /* 16 */
 
-static struct cli_map set_map[] = {{10, "set %P %|" set_types " %d"},
-                                   {11, "set %P jitter %D"},
-                                   {20, "set %P type %|arp|ipv4|ipv6|ip4|ip6|vlan"},
-                                   {21, "set %P proto %|udp|tcp|icmp"},
-                                   {22, "set %P src mac %m"},
-                                   {23, "set %P dst mac %m"},
-                                   {24, "set %P pattern %|abc|none|user|zero"},
-                                   {25, "set %P user pattern %s"},
-                                   {30, "set %P src ip %4"},
-                                   {31, "set %P dst ip %4"},
-                                   {32, "set %P src ip %6"},
-                                   {33, "set %P dst ip %6"},
-                                   {34, "set %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
-                                   {35, "set %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
-                                   {36, "set %P tcp seq %d"},
-                                   {37, "set %P tcp ack %d"},
-                                   {40, "set ports_per_page %d"},
-                                   {50, "set %P qinqids %d %d"},
-                                   {60, "set %P rnd %d %d %s"},
-                                   {70, "set %P cos %d"},
-                                   {80, "set %P tos %d"},
-                                   {90, "set %P vxlan %h %d %d"},
-                                   {100, "set %P latsampler %|simple|poisson %d %d %s"},
-                                   {-1, NULL}};
+// clang-format off
+static struct cli_map set_map[] = {
+    {10, "set %P %|" set_types " %d"},
+    {11, "set %P jitter %D"},
+    {20, "set %P type %|arp|ipv4|ipv6|ip4|ip6|vlan"},
+    {21, "set %P proto %|udp|tcp|icmp"},
+    {22, "set %P src mac %m"},
+    {23, "set %P dst mac %m"},
+    {24, "set %P pattern %|abc|none|user|zero"},
+    {25, "set %P user pattern %s"},
+    {30, "set %P src ip %4"},
+    {31, "set %P dst ip %4"},
+    {32, "set %P src ip %6"},
+    {33, "set %P dst ip %6"},
+    {34, "set %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
+    {35, "set %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
+    {36, "set %P tcp seq %d"},
+    {37, "set %P tcp ack %d"},
+    {40, "set ports_per_page %d"},
+    {50, "set %P qinqids %d %d"},
+    {60, "set %P rnd %d %d %s"},
+    {70, "set %P cos %d"},
+    {80, "set %P tos %d"},
+    {90, "set %P vxlan %h %d %d"},
+    {100, "set %P latsampler %|simple|poisson %d %d %s"},
+    {-1, NULL}
+};
+// clang format on
 
 static const char *set_help[] = {
     "",
@@ -573,56 +581,56 @@ set_cmd(int argc, char **argv)
     case 10:
         n = cli_map_list_search(m->fmt, argv[2], 2);
         foreach_port(portlist, _do(switch (n) {
-                         case 0:
-                             single_set_tx_count(info, value);
-                             break;
-                         case 1:
-                             single_set_pkt_size(info, valid_pkt_size(argv[3]));
-                             break;
-                         case 2:
-                             single_set_tx_rate(info, argv[3]);
-                             break;
-                         case 3:
-                             single_set_tx_burst(info, value);
-                             break;
-                         case 4:
-                             debug_set_tx_cycles(info, value);
-                             break;
-                         case 5:
-                             single_set_port_value(info, what[0], value);
-                             break;
-                         case 6:
-                             single_set_port_value(info, what[0], value);
-                             break;
-                         case 7:
-                             pktgen_set_port_prime(info, value);
-                             break;
-                         case 8:
-                             debug_set_port_dump(info, value);
-                             break;
-                         case 9: /* vlanid and vlan are valid */
-                         case 10:
-                             single_set_vlan_id(info, value);
-                             break;
-                         case 11:
-                             /* FALLTHRU */
-                         case 12:
-                             /* FALLTHRU */
-                         case 13:
-                             pktgen_set_port_seqCnt(info, value);
-                             break;
-                         case 14:
-                             single_set_ttl_value(info, value);
-                             break;
-                         case 15:
-                             single_set_tx_burst(info, value);
-                             break;
-                         case 16:
-                             single_set_rx_burst(info, value);
-                             break;
-                         default:
-                             return cli_cmd_error("Set command is invalid", "Set", argc, argv);
-                     }));
+            case 0:
+                single_set_tx_count(info, value);
+                break;
+            case 1:
+                single_set_pkt_size(info, valid_pkt_size(argv[3]));
+                break;
+            case 2:
+                single_set_tx_rate(info, argv[3]);
+                break;
+            case 3:
+                single_set_tx_burst(info, value);
+                break;
+            case 4:
+                debug_set_tx_cycles(info, value);
+                break;
+            case 5:
+                single_set_port_value(info, what[0], value);
+                break;
+            case 6:
+                single_set_port_value(info, what[0], value);
+                break;
+            case 7:
+                pktgen_set_port_prime(info, value);
+                break;
+            case 8:
+                debug_set_port_dump(info, value);
+                break;
+            case 9: /* vlanid and vlan are valid */
+            case 10:
+                single_set_vlan_id(info, value);
+                break;
+            case 11:
+                /* FALLTHRU */
+            case 12:
+                /* FALLTHRU */
+            case 13:
+                pktgen_set_port_seqCnt(info, value);
+                break;
+            case 14:
+                single_set_ttl_value(info, value);
+                break;
+            case 15:
+                single_set_tx_burst(info, value);
+                break;
+            case 16:
+                single_set_rx_burst(info, value);
+                break;
+            default:
+                return cli_cmd_error("Set command is invalid", "Set", argc, argv);
+        }));
         break;
     case 11:
         foreach_port(portlist, single_set_jitter(info, strtoull(argv[3], NULL, 0)));
@@ -811,13 +819,17 @@ pcap_cmd(int argc, char **argv)
     return 0;
 }
 
-static struct cli_map start_map[] = {{10, "start %P"},
-                                     {20, "stop %P"},
-                                     {40, "start %P prime"},
-                                     {50, "start %P arp %|request|gratuitous|req|grat"},
-                                     {60, "start %P latsampler"},
-                                     {70, "stop %P latsampler"},
-                                     {-1, NULL}};
+// clang-format off
+static struct cli_map start_map[] = {
+    {10, "start %P"},
+    {20, "stop %P"},
+    {40, "start %P prime"},
+    {50, "start %P arp %|request|gratuitous|req|grat"},
+    {60, "start %P latsampler"},
+    {70, "stop %P latsampler"},
+    {-1, NULL}
+};
+// clagn-format on
 
 static const char *start_help[] = {
     "",
@@ -876,11 +888,15 @@ start_stop_cmd(int argc, char **argv)
     return 0;
 }
 
-static struct cli_map theme_map[] = {{0, "theme"},
-                                     {10, "theme %|on|off"},
-                                     {20, "theme %s %s %s %s"},
-                                     {30, "theme save %s"},
-                                     {-1, NULL}};
+// clang-format off
+static struct cli_map theme_map[] = {
+    {0, "theme"},
+    {10, "theme %|on|off"},
+    {20, "theme %s %s %s %s"},
+    {30, "theme save %s"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *theme_help[] = {
     "",
@@ -920,35 +936,39 @@ theme_cmd(int argc, char **argv)
     return 0;
 }
 
-#define ed_type              \
-    "process|"      /*  0 */ \
-    "mpls|"         /*  1 */ \
-    "qinq|"         /*  2 */ \
-    "gre|"          /*  3 */ \
-    "gre_eth|"      /*  4 */ \
-    "vlan|"         /*  5 */ \
-    "garp|"         /*  6 */ \
-    "random|"       /*  7 */ \
-    "latency|"      /*  8 */ \
-    "pcap|"         /*  9 */ \
-    "blink|"        /* 10 */ \
-    "rx_tap|"       /* 11 */ \
-    "tx_tap|"       /* 12 */ \
-    "icmp|"         /* 13 */ \
-    "range|"        /* 14 */ \
-    "capture|"      /* 15 */ \
-    "bonding|"      /* 16 */ \
-    "vxlan|"        /* 17 */ \
-    "rate|"         /* 18 */ \
-    "lat"           /* 19 */
+#define ed_type         \
+    "process|" /*  0 */ \
+    "mpls|"    /*  1 */ \
+    "qinq|"    /*  2 */ \
+    "gre|"     /*  3 */ \
+    "gre_eth|" /*  4 */ \
+    "vlan|"    /*  5 */ \
+    "garp|"    /*  6 */ \
+    "random|"  /*  7 */ \
+    "latency|" /*  8 */ \
+    "pcap|"    /*  9 */ \
+    "blink|"   /* 10 */ \
+    "rx_tap|"  /* 11 */ \
+    "tx_tap|"  /* 12 */ \
+    "icmp|"    /* 13 */ \
+    "range|"   /* 14 */ \
+    "capture|" /* 15 */ \
+    "bonding|" /* 16 */ \
+    "vxlan|"   /* 17 */ \
+    "rate|"    /* 18 */ \
+    "lat"      /* 19 */
 
-static struct cli_map enable_map[] = {{10, "enable %P %|" ed_type},
-                                      {20, "disable %P %|" ed_type},
-                                      {30, "enable %|screen|mac_from_arp"},
-                                      {31, "disable %|screen|mac_from_arp"},
-                                      {40, "enable clock_gettime"},
-                                      {41, "disable clock_gettime"},
-                                      {-1, NULL}};
+// clang-format off
+static struct cli_map enable_map[] = {
+    {10, "enable %P %|" ed_type},
+    {20, "disable %P %|" ed_type},
+    {30, "enable %|screen|mac_from_arp"},
+    {31, "disable %|screen|mac_from_arp"},
+    {40, "enable clock_gettime"},
+    {41, "disable clock_gettime"},
+    {-1, NULL}
+};
+// clang-format off
 
 static const char *enable_help[] = {
     "",
@@ -1099,16 +1119,26 @@ en_dis_cmd(int argc, char **argv)
 #include <rte_smem.h>
 #endif
 
-static struct cli_map dbg_map[] = {{10, "dbg l2p"},          {20, "dbg tx_dbg"},
-                                   {21, "dbg tx_rate %P"},   {30, "dbg %|mempool|dump %P %s"},
-                                   {40, "dbg pdump %P"},     {50, "dbg memzone"},
-                                   {51, "dbg memseg"},       {60, "dbg hexdump %H %d"},
-                                   {61, "dbg hexdump %H"},
+// clang-format off
+static struct cli_map dbg_map[] = {
+    {10, "dbg l2p"},
+    {20, "dbg tx_dbg"},
+    {21, "dbg tx_rate %P"},
+    {30, "dbg %|mempool|dump %P %s"},
+    {40, "dbg pdump %P"},
+    {50, "dbg memzone"},
+    {51, "dbg memseg"},
+    {60, "dbg hexdump %H %d"},
+    {61, "dbg hexdump %H"},
 #ifdef RTE_LIBRTE_SMEM
-                                   {70, "dbg smem"},
+    {70, "dbg smem"},
 #endif
-                                   {80, "dbg break"},        {90, "dbg memcpy"},
-                                   {91, "dbg memcpy %d %d"}, {-1, NULL}};
+    {80, "dbg break"},
+    {90, "dbg memcpy"},
+    {91, "dbg memcpy %d %d"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *dbg_help[] = {
     "",
@@ -1430,6 +1460,7 @@ seq_4_set_cmd(int argc __rte_unused, char **argv)
     return 0;
 }
 
+// clang-format off
 static struct cli_map seq_map[] = {
     {10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d"},
     {11, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d"},
@@ -1440,7 +1471,9 @@ static struct cli_map seq_map[] = {
     {15, "%|seq|sequence %d %P cos %d tos %d"},
     {16, "%|seq|sequence %d %P vxlan %d gid %d vid %d"},
     {17, "%|seq|sequence %d %P vxlan %h gid %d vid %d"},
-    {-1, NULL}};
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *seq_help[] = {
     "",
@@ -1703,11 +1736,14 @@ misc_cmd(int argc, char **argv)
     return 0;
 }
 
-static struct cli_map page_map[] = {{10, "page %d"},
-                                    {11, "page "
-                                         "%|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|"
-                                         "log|latency|lat|stats|xstats|rate|rate-pacing"},
-                                    {-1, NULL}};
+// clang-format off
+static struct cli_map page_map[] = {
+    {10, "page %d"},
+    {11, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|"
+         "log|latency|lat|stats|xstats|rate|rate-pacing"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *page_help[] = {
     "",
@@ -1752,11 +1788,15 @@ page_cmd(int argc, char **argv)
     return 0;
 }
 
-static struct cli_map plugin_map[] = {{10, "plugin"},
-                                      {20, "plugin load %s"},
-                                      {21, "plugin load %s %s"},
-                                      {30, "plugin %|rm|del|delete %s"},
-                                      {-1, NULL}};
+// clang-format off
+static struct cli_map plugin_map[] = {
+    {10, "plugin"},
+    {20, "plugin load %s"},
+    {21, "plugin load %s %s"},
+    {30, "plugin %|rm|del|delete %s"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *plugin_help[] = {
     "",
@@ -1807,7 +1847,13 @@ plugin_cmd(int argc, char **argv)
 }
 
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
-static struct cli_map bonding_map[] = {{10, "bonding %P show"}, {20, "bonding show"}, {-1, NULL}};
+// clang-format off
+static struct cli_map bonding_map[] = {
+    {10, "bonding %P show"},
+    {20, "bonding show"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *bonding_help[] = {
     "", "bonding <portlist> show          - Show the bonding configuration for <portlist>",
@@ -1870,26 +1916,30 @@ bonding_cmd(int argc, char **argv)
     "txburst|" /*  6 */ \
     "rxburst"  /*  7 */
 
-static struct cli_map rate_map[] = {{10, "rate %P %|" rate_types " %d"},
-                                    {20, "rate %P type %|arp|ipv4|ipv6|ip4|ip6|vlan"},
-                                    {21, "rate %P proto %|udp|tcp|icmp"},
-                                    {22, "rate %P src mac %m"},
-                                    {23, "rate %P dst mac %m"},
-                                    {30, "rate %P src ip %4"},
-                                    {31, "rate %P dst ip %4"},
-                                    {32, "rate %P src ip %6"},
-                                    {33, "rate %P dst ip %6"},
-                                    {34, "rate %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
-                                    {35, "rate %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
-                                    {36, "rate %P tcp seq %u"},
-                                    {37, "rate %P tcp ack %u"},
-                                    {40, "rate %P fps %d"},
-                                    {45, "rate %P lines %d"},
-                                    {46, "rate %P pixels %d"},
-                                    {50, "rate %P color bits %d"},
-                                    {60, "rate %P payload size %d"},
-                                    {70, "rate %P overhead %d"},
-                                    {-1, NULL}};
+// clang-format off
+static struct cli_map rate_map[] = {
+    {10, "rate %P %|" rate_types " %d"},
+    {20, "rate %P type %|arp|ipv4|ipv6|ip4|ip6|vlan"},
+    {21, "rate %P proto %|udp|tcp|icmp"},
+    {22, "rate %P src mac %m"},
+    {23, "rate %P dst mac %m"},
+    {30, "rate %P src ip %4"},
+    {31, "rate %P dst ip %4"},
+    {32, "rate %P src ip %6"},
+    {33, "rate %P dst ip %6"},
+    {34, "rate %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
+    {35, "rate %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
+    {36, "rate %P tcp seq %u"},
+    {37, "rate %P tcp ack %u"},
+    {40, "rate %P fps %d"},
+    {45, "rate %P lines %d"},
+    {46, "rate %P pixels %d"},
+    {50, "rate %P color bits %d"},
+    {60, "rate %P payload size %d"},
+    {70, "rate %P overhead %d"},
+    {-1, NULL}
+};
+// clang-format on
 
 static const char *rate_help[] = {
     "",
@@ -2095,7 +2145,6 @@ static struct cli_tree default_tree[] = {
     c_cmd("restart", misc_cmd, "restart port"),
     c_cmd("port", misc_cmd, "Switch between ports"),
     c_cmd("ping4", misc_cmd, "Send a ping packet for IPv4"),
-    c_cmd("latency", misc_cmd, "Send a latency packet"),
 #ifdef INCLUDE_PING6
     c_cmd("ping6", misc_cmd, "Send a ping packet for IPv6"),
 #endif

@@ -2914,32 +2914,13 @@ pkt_stats(lua_State *L, port_info_t *info)
 
     avg_lat = 0;
     jitter  = 0;
-    if (flags & ENABLE_LATENCY_PKTS) {
-        ticks = pktgen_get_timer_hz() / 1000000;
-        if (ticks == 0)
-            printf("Ticks = %lu\n", ticks);
-        else if (info->latency_nb_pkts > 0) {
-            avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
-            if (avg_lat > info->max_avg_latency)
-                info->max_avg_latency = avg_lat;
-            if (info->min_avg_latency == 0)
-                info->min_avg_latency = avg_lat;
-            else if (avg_lat < info->min_avg_latency)
-                info->min_avg_latency = avg_lat;
-            jitter                = (info->jitter_count * 100) / info->latency_nb_pkts;
-            info->latency_nb_pkts = 0;
-            info->avg_latency     = 0;
-            info->jitter_count    = 0;
-        } else
-            printf("Latency pkt count = %d\n", info->latency_nb_pkts);
 
-        setf_integer(L, "avg_latency", avg_lat);
-        setf_integer(L, "max_avg_latency", info->max_avg_latency);
-        setf_integer(L, "min_avg_latency", info->min_avg_latency);
-        setf_integer(L, "jitter_count", jitter);
-        setf_integer(L, "latency_rate", info->latency_rate);
-        setf_integer(L, "total_latency_pkts", info->total_latency_pkts);
-    }
+    setf_integer(L, "avg_latency", avg_lat);
+    setf_integer(L, "max_avg_latency", info->max_avg_latency);
+    setf_integer(L, "min_avg_latency", info->min_avg_latency);
+    setf_integer(L, "jitter_count", jitter);
+    setf_integer(L, "latency_rate", info->latency_rate);
+    setf_integer(L, "total_latency_pkts", info->total_latency_pkts);
 
     /* Now set the table as an array with pid as the index. */
     lua_rawset(L, -3);

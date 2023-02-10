@@ -419,6 +419,7 @@ pktgen_get_timer_hz(void)
 typedef struct {
     uint64_t timestamp;
     uint64_t magic;
+    uint64_t index;
 } tstamp_t;
 
 #define TSTAMP_MAGIC 0x3232706d61747354LL /* Tstamp22 */

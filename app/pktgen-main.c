@@ -534,7 +534,7 @@ main(int argc, char **argv)
             scrn_pause();
             scrn_cls();
             scrn_setw(1);
-            scrn_pos(100, 1);
+            scrn_pos(this_scrn->nrows, 1);
         }
 #ifdef LUA_ENABLED
         pktgen.ld_sock = lua_create_instance();

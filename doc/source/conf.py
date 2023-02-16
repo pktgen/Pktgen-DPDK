@@ -20,7 +20,7 @@ htmlhelp_basename = 'Pktgendoc'
 latex_documents = [
     ('index',
      'pktgen.tex',
-     'Pktgen Documentation',
+     'Pktgen-DPDK Documentation',
      'Keith Wiles', 'manual'),
 ]
 

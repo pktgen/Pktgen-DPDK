@@ -2,7 +2,7 @@ name: Doc Deploy
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:

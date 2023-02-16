@@ -7,6 +7,7 @@ from pygments.formatters.latex import LatexFormatter
 project = 'Pktgen'
 copyright = '2010-2023, Keith Wiles'
 
+# Version of Pktgen-DPDK
 version = '22.07.2'
 release = version
 

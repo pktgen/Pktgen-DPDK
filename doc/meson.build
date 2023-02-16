@@ -5,7 +5,7 @@ doc_targets = []
 doc_target_names = []
 
 # Take out API doxygen for now.
-#subdir('api')
+subdir('api')
 
 subdir('source')
 

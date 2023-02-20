@@ -1,6 +1,6 @@
 project('pktgen', 'C',
     version: run_command(find_program('cat', 'more'),
-        files('VERSION')).stdout().strip(),
+        files('VERSION'), check:false).stdout().strip(),
 
 	license: 'BSD',
 	default_options: [

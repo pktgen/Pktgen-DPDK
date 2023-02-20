@@ -34,6 +34,7 @@
 #include <pg_strings.h>
 
 #include <rte_bus_pci.h>
+#include <rte_bus.h>
 
 #include <cli_help.h>
 
@@ -2889,8 +2890,7 @@ pkt_stats(lua_State *L, port_info_t *info)
     struct rte_ether_addr ethaddr;
     char mac_buf[32] = {0};
     pkt_stats_t stats = {0};
-    uint64_t avg_lat, ticks, jitter;
-    uint32_t flags = rte_atomic32_read(&info->port_flags);
+    uint64_t avg_lat, jitter;
 
     pktgen_pkt_stats(info->pid, &stats);
 
@@ -2913,31 +2913,11 @@ pkt_stats(lua_State *L, port_info_t *info)
 
     avg_lat = 0;
     jitter  = 0;
-    if (flags & SEND_LATENCY_PKTS) {
-        ticks = rte_get_timer_hz() / 1000000;
-        if (ticks == 0)
-            printf("Ticks = %lu\n", ticks);
-        else if (info->latency_nb_pkts > 0) {
-            avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
-            if (avg_lat > info->max_avg_latency)
-                info->max_avg_latency = avg_lat;
-            if (info->min_avg_latency == 0)
-                info->min_avg_latency = avg_lat;
-            else if (avg_lat < info->min_avg_latency)
-                info->min_avg_latency = avg_lat;
-            jitter                = (info->jitter_count * 100) / info->latency_nb_pkts;
-            info->latency_nb_pkts = 0;
-            info->avg_latency     = 0;
-            info->jitter_count    = 0;
-        } else {
-            printf("Latency pkt count = %d\n", info->latency_nb_pkts);
-        }
 
-        setf_integer(L, "avg_latency", avg_lat);
-        setf_integer(L, "max_avg_latency", info->max_avg_latency);
-        setf_integer(L, "min_avg_latency", info->min_avg_latency);
-        setf_integer(L, "jitter_count", jitter);
-    }
+    setf_integer(L, "avg_latency", avg_lat);
+    setf_integer(L, "max_avg_latency", info->max_avg_latency);
+    setf_integer(L, "min_avg_latency", info->min_avg_latency);
+    setf_integer(L, "jitter_count", jitter);
 
     /* Now set the table as an array with pid as the index. */
     lua_rawset(L, -3);
@@ -3206,16 +3186,18 @@ port_info(lua_State *L, port_info_t *info)
     lua_rawset(L, -3);
 
     rte_eth_dev_info_get(info->pid, &dev);
-    struct rte_bus *bus;
+    const struct rte_bus *bus = NULL;
     if (dev.device)
         bus = rte_bus_find_by_device(dev.device);
-    else
-        bus = NULL;
-    if (bus && !strcmp(bus->name, "pci")) {
-        struct rte_pci_device *pci_dev = RTE_DEV_TO_PCI(dev.device);
-        snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", pci_dev->id.vendor_id,
-                 pci_dev->id.device_id, pci_dev->addr.bus, pci_dev->addr.devid,
-                 pci_dev->addr.function);
+    if (bus && !strcmp(rte_bus_name(bus), "pci")) {
+        char name[RTE_ETH_NAME_MAX_LEN];
+        char vend[8], device[8];
+
+        vend[0] = device[0] = '\0';
+        sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
+
+        rte_eth_dev_get_name_by_port(info->pid, name);
+        snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
     } else
         snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", 0, 0, 0, 0, 0);
     setf_string(L, "pci_vendor", buff);
@@ -3803,7 +3785,7 @@ static const luaL_Reg pktgenlib[] = {
     {"rxtap", pktgen_rxtap}, /* enable or disable rxtap */
     {"txtap", pktgen_txtap}, /* enable or disable rxtap */
 
-    {"latsampler_params", pktgen_latsampler_params}, /*set latency sampler params */
+    {"latsampler_params", pktgen_latsampler_params}, /* set latency sampler params */
     {"latsampler", pktgen_latsampler},               /* enable or disable latency sampler */
 
     {NULL, NULL}};

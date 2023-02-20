@@ -62,6 +62,7 @@ pktgen_set_tx_update(port_info_t *info)
     for (q = 0; q < get_port_txcnt(pktgen.l2p, info->pid); q++)
         pktgen_set_q_flags(info, q, CLEAR_FAST_ALLOC_FLAG);
 }
+
 /**
  * pktgen_save - Save a configuration as a startup script
  *

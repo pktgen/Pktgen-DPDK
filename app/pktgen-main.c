@@ -586,22 +586,17 @@ main(int argc, char **argv)
     return 0;
 }
 
-/***********************************************************************/ /**
-                                                                           *
-                                                                           * pktgen_stop_running -
-                                                                           * Stop pktgen to exit in
-                                                                           * a clean way
-                                                                           *
-                                                                           * DESCRIPTION
-                                                                           * Stop all of the logical
-                                                                           * core threads to stop
-                                                                           * pktgen cleanly.
-                                                                           *
-                                                                           * RETURNS: N/A
-                                                                           *
-                                                                           * SEE ALSO:
-                                                                           */
-
+/**
+ *
+ * pktgen_stop_running - Stop pktgen to exit in a clean way
+ *
+ * DESCRIPTION
+ * Stop all of the logical core threads to stop pktgen cleanly.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
 void
 pktgen_stop_running(void)
 {

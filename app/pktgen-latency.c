@@ -58,13 +58,16 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Max/Tx");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
-    row++;
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency avg/max");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter Threshold");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter count");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter percent");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency rate (ms)");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Num Latency Pkts");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency:");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Rate (ms)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Total Pkts");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Skipped Pkts");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Minimum(us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Average(us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Maximum(us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter:");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Threshold (us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Count/Percent");
 
     /* Labels for static fields */
     pktgen_display_set_color("stats.stat.label");
@@ -111,7 +114,8 @@ pktgen_print_static_data(void)
         pktgen_transmit_count_rate(pid, buff, sizeof(buff));
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%d /%3d:%3d", pkt->pktSize + RTE_ETHER_CRC_LEN, info->rx_burst, info->tx_burst);
+        snprintf(buff, sizeof(buff), "%d /%3d:%3d", pkt->pktSize + RTE_ETHER_CRC_LEN,
+                 info->rx_burst, info->tx_burst);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -143,12 +147,13 @@ pktgen_print_static_data(void)
         if (bus && !strcmp(rte_bus_name(bus), "pci")) {
             char name[RTE_ETH_NAME_MAX_LEN];
             char vend[8], device[8];
-            
+
             vend[0] = device[0] = '\0';
             sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
             rte_eth_dev_get_name_by_port(pid, name);
-            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
+            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
+                     rte_dev_name(dev.device));
         } else
             snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
         pktgen_display_set_color("stats.bdf");
@@ -164,6 +169,12 @@ pktgen_print_static_data(void)
     pktgen_display_set_color(NULL);
 
     pktgen.flags &= ~PRINT_LABELS_FLAG;
+}
+
+static inline double
+cycles_to_us(uint64_t cycles, double per_cycle)
+{
+    return (cycles == 0) ? 0.0 : (per_cycle * (double)cycles)*Million;
 }
 
 /**
@@ -182,11 +193,12 @@ void
 pktgen_page_latency(void)
 {
     port_info_t *info;
+    latency_t *lat;
     unsigned int pid, col, row;
-    unsigned sp;
+    unsigned sp, nb_pkts;
     char buff[32];
     int display_cnt;
-    uint64_t avg_lat, ticks, max_lat;
+    double latency, per_cycle;
 
     if (pktgen.flags & PRINT_LABELS_FLAG)
         pktgen_print_static_data();
@@ -195,6 +207,7 @@ pktgen_page_latency(void)
 
     sp          = pktgen.starting_port;
     display_cnt = 0;
+    per_cycle   = (1.0 / pktgen.hz);
     for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
         if (get_map(pktgen.l2p, pid + sp, RTE_MAX_LCORE) == 0)
             continue;
@@ -224,16 +237,16 @@ pktgen_page_latency(void)
         pktgen_display_set_color("stats.stat.values");
         /* Rx/Tx pkts/s rate */
         row = LINK_STATE_ROW + 1;
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->max_ipackets,
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->max_ipackets,
                  info->rate_stats.ipackets);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, info->max_opackets,
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, info->max_opackets,
                  info->rate_stats.opackets);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, iBitsTotal(info->rate_stats) / Million,
-                 oBitsTotal(info->rate_stats) / Million);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
+                 iBitsTotal(info->rate_stats) / Million, oBitsTotal(info->rate_stats) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen.cumm_rate_totals.ipackets += info->rate_stats.ipackets;
@@ -251,51 +264,51 @@ pktgen_page_latency(void)
         pktgen.cumm_rate_totals.imissed += info->rate_stats.imissed;
         pktgen.cumm_rate_totals.rx_nombuf += info->rate_stats.rx_nombuf;
 
-        row++;
-        ticks   = rte_get_timer_hz() / 1000000;
-        avg_lat = 0;
-        max_lat = 0;
-        if (info->latency_nb_pkts) {
-            avg_lat = (info->avg_latency / info->latency_nb_pkts) / ticks;
-            if (avg_lat > info->max_avg_latency)
-                info->max_avg_latency = avg_lat;
-            if (info->min_avg_latency == 0)
-                info->min_avg_latency = avg_lat;
-            else if (avg_lat < info->min_avg_latency)
-                info->min_avg_latency = avg_lat;
-            max_lat = info->max_latency / ticks;
-            info->latency_nb_pkts = 0;
-            info->avg_latency     = 0;
-        }
-        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, avg_lat, max_lat);
+        row++; /* Skip Latency header row */
+        lat             = &info->latency;
+        nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
+        lat->avg_cycles = (lat->running_cycles / nb_pkts);
+
+        snprintf(buff, sizeof(buff), "%'" PRIu64, lat->latency_rate_ms);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_threshold);
+        snprintf(buff, sizeof(buff), "%'" PRIu64, lat->num_latency_pkts);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%" PRIu64, info->jitter_count);
+        snprintf(buff, sizeof(buff), "%'" PRIu64, lat->num_skipped);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        avg_lat = 0;
-        if (info->prev_stats.ipackets)
-            snprintf(buff, sizeof(buff), "%" PRIu64,
-                     (info->jitter_count * 100) / info->prev_stats.ipackets);
-        else
-            snprintf(buff, sizeof(buff), "%" PRIu64, avg_lat);
-
+        latency = cycles_to_us(lat->min_cycles, per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->min_cycles, latency);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+        latency = cycles_to_us(lat->avg_cycles, per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->avg_cycles, latency);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        latency = cycles_to_us(lat->max_cycles, per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->max_cycles, latency);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        row++; /* Skip Jitter header */
+        snprintf(buff, sizeof(buff), "%'" PRIu64, lat->jitter_threshold_us);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'6.2f", lat->jitter_count,
+                 (double)(lat->jitter_count * 100) / nb_pkts);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+    
         display_cnt++;
     }
 
     /* Display the total pkts/s for all ports */
     col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
     row = LINK_STATE_ROW + 1;
-    snprintf(buff, sizeof(buff), "%lu/%lu", pktgen.max_total_ipackets,
+    snprintf(buff, sizeof(buff), "%'lu/%'lu", pktgen.max_total_ipackets,
              pktgen.cumm_rate_totals.ipackets);
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
-    snprintf(buff, sizeof(buff), "%lu/%lu", pktgen.max_total_opackets,
+    snprintf(buff, sizeof(buff), "%'lu/%'lu", pktgen.max_total_opackets,
              pktgen.cumm_rate_totals.opackets);
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
@@ -303,4 +316,16 @@ pktgen_page_latency(void)
              oBitsTotal(pktgen.cumm_rate_totals) / Million);
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
+}
+
+void
+pktgen_latency_setup(port_info_t *info)
+{
+    pkt_seq_t *pkt = &info->seq_pkt[LATENCY_PKT];
+
+    rte_memcpy(&info->seq_pkt[LATENCY_PKT], &info->seq_pkt[SINGLE_PKT], sizeof(pkt_seq_t));
+
+    pkt->pktSize = LATENCY_PKT_SIZE;
+    pkt->ipProto = PG_IPPROTO_UDP;
+    pkt->ethType = RTE_ETHER_TYPE_IPV4;
 }

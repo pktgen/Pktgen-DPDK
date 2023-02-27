@@ -3,5 +3,5 @@
 
 sources = files('fgen.c', 'parse.c', 'unparse.c')
 
-libfgen = library('ften', sources, dependencies: [common, dpdk])
+libfgen = library('fgen', sources, dependencies: [common, dpdk])
 fgen = declare_dependency(link_with: libfgen, include_directories: include_directories('.'))

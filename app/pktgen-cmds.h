@@ -140,6 +140,7 @@
     void enable_latency(port_info_t * info, uint32_t state);
     void enable_garp(port_info_t * info, uint32_t state);
     void enable_mac_from_arp(uint32_t state);
+    void enable_clock_gettime(uint32_t state);
     void enable_process(port_info_t * info, int state);
     void enable_capture(port_info_t * info, uint32_t state);
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)

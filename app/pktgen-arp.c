@@ -37,10 +37,9 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
     struct rte_ether_hdr *eth;
     struct rte_arp_hdr *arp;
     uint32_t addr;
-    uint8_t qid = 0;
 
     pkt = &info->seq_pkt[seq_idx];
-    m   = rte_pktmbuf_alloc(info->q[qid].special_mp);
+    m   = rte_pktmbuf_alloc(info->special_mp);
     if (unlikely(m == NULL)) {
         pktgen_log_warning("No packet buffers found");
         return;
@@ -79,9 +78,9 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
     m->pkt_len  = 60;
     m->data_len = 60;
 
-    pktgen_send_mbuf(m, pid, qid);
+    rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
 
-    pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
+    pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
 }
 
 /**
@@ -129,7 +128,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
         if (likely(pkt != NULL)) {
             struct rte_mbuf *m1;
 
-            m1 = rte_pktmbuf_copy(m, info->q[qid].special_mp, 0, UINT32_MAX);
+            m1 = rte_pktmbuf_copy(m, info->special_mp, 0, UINT32_MAX);
             if (unlikely(m1 == NULL)) {
                 printf("%s: special MP  is empty\n", __func__);
                 return;
@@ -162,10 +161,10 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
             rte_memcpy(&arp->arp_data.arp_sha, &pkt->eth_src_addr, 6);
             rte_memcpy(&eth->src_addr, &pkt->eth_src_addr, 6);
 
-            pktgen_send_mbuf(m1, pid, 0);
+            rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, m1);
 
             /* Flush all of the packets in the queue. */
-            pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
+            pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
 
             return;
         }

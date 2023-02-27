@@ -65,6 +65,8 @@
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>
+#include <rte_dev.h>
+#include <rte_time.h>
 
 #include <copyright_info.h>
 #include <l2p.h>
@@ -106,7 +108,6 @@ extern "C" {
 
 #define MAX_MATRIX_ENTRIES 128
 #define MAX_STRING         256
-#define ROUND_FACTOR       0.5
 #define Million            (uint64_t)(1000000ULL)
 #define Billion            (uint64_t)(1000000000ULL)
 
@@ -169,7 +170,7 @@ enum {
     MAX_SCRN_COLS = 132,
 
     COLUMN_WIDTH_0 = 22,
-    COLUMN_WIDTH_1 = 21,
+    COLUMN_WIDTH_1 = 22,
     COLUMN_WIDTH_3 = 21,
 
     /* Row locations for start of data */
@@ -223,7 +224,8 @@ enum {
     RANGE_PKT      = (PING_PKT + 1),                 /* 18 */
     DUMP_PKT       = (RANGE_PKT + 1),                /* 19 */
     RATE_PKT       = (DUMP_PKT + 1),                 /* 20 */
-    NUM_TOTAL_PKTS = (RATE_PKT + 1),
+    LATENCY_PKT    = (RATE_PKT + 1),                 /* 21 */
+    NUM_TOTAL_PKTS = (LATENCY_PKT + 1),
 
     INTER_FRAME_GAP       = 12, /**< in bytes */
     START_FRAME_DELIMITER = 1,
@@ -259,9 +261,8 @@ typedef struct pktgen_s {
     luaData_t *ld;      /**< General Lua Data pointer */
     luaData_t *ld_sock; /**< Info for Lua Socket */
 #endif
-    char *hostname; /**< GUI hostname */
-    int verbose;    /**< Verbose flag */
-
+    char *hostname;            /**< GUI hostname */
+    int verbose;               /**< Verbose flag */
     int32_t socket_port;       /**< GUI port number */
     uint32_t blinklist;        /**< Port list for blinking the led */
     uint32_t flags;            /**< Flag values */
@@ -271,19 +272,19 @@ typedef struct pktgen_s {
     uint8_t starting_port;     /**< Starting port to display */
     uint8_t ending_port;       /**< Ending port to display */
     uint8_t nb_ports_per_page; /**< Number of ports to display per page */
-    uint8_t enable_jumbo;      /* >0 if jumbo is enabled */
-
-    uint16_t eth_min_pkt;   /* Minimum Ethernet packet size without CRC */
-    uint16_t eth_mtu;       /* MTU size, could be jumbo or not */
-    uint16_t eth_max_pkt;   /* Max packet size, could be jumbo or not */
-    uint16_t mbuf_dataroom; /* Size of data room in mbuf */
-    uint16_t mbuf_buf_size; /* MBUF default buf size */
-
-    uint16_t nb_rxd;   /**< Number of receive descriptors */
-    uint16_t nb_txd;   /**< Number of transmit descriptors */
-    uint16_t portNum;  /**< Current Port number */
-    uint16_t port_cnt; /**< Number of ports used in total */
-    uint64_t hz;       /**< Number of events per seconds */
+    uint16_t eth_min_pkt;   /**< Minimum Ethernet packet size without CRC */
+    uint16_t eth_mtu;       /**< MTU size, could be jumbo or not */
+    uint16_t eth_max_pkt;   /**< Max packet size, could be jumbo or not */
+    uint16_t mbuf_dataroom; /**< Size of data room in mbuf */
+    uint16_t mbuf_buf_size; /**< MBUF default buf size */
+    uint16_t nb_rxd;        /**< Number of receive descriptors */
+    uint16_t nb_txd;        /**< Number of transmit descriptors */
+    uint16_t portNum;       /**< Current Port number */
+    uint16_t port_cnt;      /**< Number of ports used in total */
+    uint64_t hz;            /**< Number of cycles per seconds */
+    uint64_t tx_next_cycle; /**< Number of cycles to next transmit burst */
+    uint64_t tx_bond_cycle; /**< Numbe of cycles to check bond interface */
+    uint64_t prev;
 
     int (*callout)(void *callout_arg);
     void *callout_arg;
@@ -299,9 +300,8 @@ typedef struct pktgen_s {
 
     port_info_t info[RTE_MAX_ETHPORTS]; /**< Port information */
     lc_info_t core_info[RTE_MAX_LCORE];
-    uint16_t core_cnt;
-    uint16_t pad0;
     lscpu_t *lscpu;
+    uint16_t core_cnt;
     char *uname;
     eth_stats_t cumm_rate_totals; /**< port rates total values */
     uint64_t max_total_ipackets;  /**< Total Max seen input packet rate */
@@ -325,20 +325,23 @@ enum {                                     /* Queue flags */
        DO_TX_FLUSH = 0x00000002 /**< Do a TX Flush by sending all of the pkts in the queue */
 };
 
-enum {                                  /* Pktgen flags bits */
-       PRINT_LABELS_FLAG   = (1 << 0),  /**< Print constant labels on stats display */
-       MAC_FROM_ARP_FLAG   = (1 << 1),  /**< Configure the SRC MAC from a ARP request */
-       PROMISCUOUS_ON_FLAG = (1 << 2),  /**< Enable promiscuous mode */
-       NUMA_SUPPORT_FLAG   = (1 << 3),  /**< Enable NUMA support */
-       IS_SERVER_FLAG      = (1 << 4),  /**< Pktgen is a Server */
-       ENABLE_GUI_FLAG     = (1 << 5),  /**< GUI support is enabled */
-       LUA_SHELL_FLAG      = (1 << 6),  /**< Enable Lua Shell */
-       TX_DEBUG_FLAG       = (1 << 7),  /**< TX Debug output */
-       Not_USED            = (1 << 8),  /**< Not Used */
-       FAKE_PORTS_FLAG     = (1 << 9),  /**< Fake ports enabled */
-       BLINK_PORTS_FLAG    = (1 << 10), /**< Blink the port leds */
-       ENABLE_THEME_FLAG   = (1 << 11), /**< Enable theme or color support */
-
+enum {                                     /* Pktgen flags bits */
+       PRINT_LABELS_FLAG      = (1 << 0),  /**< Print constant labels on stats display */
+       MAC_FROM_ARP_FLAG      = (1 << 1),  /**< Configure the SRC MAC from a ARP request */
+       PROMISCUOUS_ON_FLAG    = (1 << 2),  /**< Enable promiscuous mode */
+       NUMA_SUPPORT_FLAG      = (1 << 3),  /**< Enable NUMA support */
+       IS_SERVER_FLAG         = (1 << 4),  /**< Pktgen is a Server */
+       ENABLE_GUI_FLAG        = (1 << 5),  /**< GUI support is enabled */
+       LUA_SHELL_FLAG         = (1 << 6),  /**< Enable Lua Shell */
+       TX_DEBUG_FLAG          = (1 << 7),  /**< TX Debug output */
+       Not_USED               = (1 << 8),  /**< Not Used */
+       FAKE_PORTS_FLAG        = (1 << 9),  /**< Fake ports enabled */
+       BLINK_PORTS_FLAG       = (1 << 10), /**< Blink the port leds */
+       ENABLE_THEME_FLAG      = (1 << 11), /**< Enable theme or color support */
+       CLOCK_GETTIME_FLAG     = (1 << 12), /**< Enable clock_gettime() instead of rdtsc() */
+       JUMBO_PKTS_FLAG        = (1 << 13), /**< Enable Jumbo frames */
+       RESERVED_14            = (1 << 14),
+       RESERVED_15            = (1 << 15),
        CONFIG_PAGE_FLAG       = (1 << 16), /**< Display the configure page */
        SEQUENCE_PAGE_FLAG     = (1 << 17), /**< Display the Packet sequence page */
        RANGE_PAGE_FLAG        = (1 << 18), /**< Display the range page */
@@ -350,13 +353,15 @@ enum {                                  /* Pktgen flags bits */
        STATS_PAGE_FLAG        = (1 << 24), /**< Display the physical port stats */
        XSTATS_PAGE_FLAG       = (1 << 25), /**< Display the physical port stats */
        RATE_PAGE_FLAG         = (1 << 26), /**< Display the Rate Pacing stats */
-
-       UPDATE_DISPLAY_FLAG = (1 << 31)
+       RESERVED_27            = (1 << 27),
+       RESERVED_28            = (1 << 28),
+       RESERVED_29            = (1 << 29),
+       RESERVED_30            = (1 << 30),
+       UPDATE_DISPLAY_FLAG    = (1 << 31)
 };
 
-#define UPDATE_DISPLAY_RATE          1 /* one second */
-#define UPDATE_DISPLAY_TICK_INTERVAL 8
-#define UPDATE_DISPLAY_TICK_RATE     ((pktgen.hz * UPDATE_DISPLAY_RATE) / UPDATE_DISPLAY_TICK_INTERVAL)
+#define UPDATE_DISPLAY_TICK_INTERVAL 4 /* check stats rate per second */
+#define UPDATE_DISPLAY_TICK_RATE     (pktgen.hz / UPDATE_DISPLAY_TICK_INTERVAL)
 
 #define PAGE_MASK_BITS                                                                          \
     (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
@@ -370,8 +375,6 @@ void pktgen_page_display(void);
 void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
 void pktgen_packet_rate(port_info_t *info);
 
-void pktgen_send_mbuf(struct rte_mbuf *m, uint8_t pid, uint16_t qid);
-
 pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
 pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
@@ -380,15 +383,40 @@ uint64_t pktgen_wire_size(port_info_t *info);
 void pktgen_input_start(void);
 void stat_timer_dump(void);
 void stat_timer_clear(void);
-void rte_timer_setup(void);
+void pktgen_timer_setup(void);
 double next_poisson_time(double rateParameter);
+
+static inline uint64_t
+pktgen_get_time(void)
+{
+    if (pktgen.flags & CLOCK_GETTIME_FLAG) {
+        struct timespec tp;
+
+        if (clock_gettime(CLOCK_REALTIME, &tp) < 0)
+            return rte_rdtsc_precise();
+
+        return rte_timespec_to_ns(&tp);
+    } else
+        return rte_rdtsc_precise();
+}
+
+static inline uint64_t
+pktgen_get_timer_hz(void)
+{
+    if (pktgen.flags & CLOCK_GETTIME_FLAG) {
+        struct timespec tp = {.tv_nsec = 0, .tv_sec = 1};
+        return rte_timespec_to_ns(&tp);
+    } else
+        return rte_get_timer_hz();
+}
 
 typedef struct {
     uint64_t timestamp;
-    uint16_t magic;
+    uint64_t magic;
+    uint64_t index;
 } tstamp_t;
 
-#define TSTAMP_MAGIC (('T' << 8) + 's')
+#define TSTAMP_MAGIC 0x3232706d61747354LL /* Tstamp22 */
 
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags)

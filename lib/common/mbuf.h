@@ -40,8 +40,7 @@ extern int pktgen_dynfield_offset;
 static inline union pktgen_data *
 pktgen_data_field(struct rte_mbuf *m)
 {
-	return RTE_MBUF_DYNFIELD(m, pktgen_dynfield_offset,
-		union pktgen_data *);
+    return RTE_MBUF_DYNFIELD(m, pktgen_dynfield_offset, union pktgen_data *);
 }
 
 static inline void
@@ -142,39 +141,42 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
  */
 /* dump a mbuf on console */
 static inline void
-dnet_pktmbuf_dump(FILE *f, const struct rte_mbuf *m, unsigned dump_len)
+pg_pktmbuf_dump(FILE *f, const struct rte_mbuf *m, unsigned dump_len)
 {
-        unsigned int len;
-        unsigned int nb_segs;
+	unsigned int len;
+	unsigned int nb_segs;
 	char buf[256];
 
-        __rte_mbuf_sanity_check(m, 1);
+	__rte_mbuf_sanity_check(m, 1);
 
-        fprintf(f, "dump mbuf at %p, iova=%"PRIx64", buf_len=%u\n",
-               (void *)(uintptr_t)m, (uint64_t)m->buf_iova, (unsigned)m->buf_len);
-        fprintf(f, "  pkt_len=%"PRIu32", nb_segs=%u, "
-               "in_port=%u\n", m->pkt_len,
-               (unsigned)m->nb_segs, (unsigned)m->port);
+	fprintf(f, "dump mbuf at %p, addr=%p iova=%"PRIx64", buf_len=%u\n",
+			(void *)(uintptr_t)m, m->buf_addr, (uint64_t)m->buf_iova, (unsigned)m->buf_len);
+	fprintf(f, "  offset=%d, refcnt=%d, len=%u, mp=%p\n",
+			m->data_off, m->refcnt, m->data_len, m->pool);
+	fprintf(f, "  pkt_len=%"PRIu32", nb_segs=%u, in_port=%u, next %p\n", m->pkt_len,
+			(unsigned)m->nb_segs, (unsigned)m->port, m->next);
+
 	rte_get_rx_ol_flag_list(m->ol_flags, buf, sizeof(buf));
 	fprintf(f, "  rx_ol_flags: %s\n", buf);
 	rte_get_tx_ol_flag_list(m->ol_flags, buf, sizeof(buf));
 	fprintf(f, "  tx_ol_flags: %s\n", buf);
-        nb_segs = m->nb_segs;
 
-        while (m && nb_segs != 0) {
-                __rte_mbuf_sanity_check(m, 0);
+	nb_segs = m->nb_segs;
 
-                fprintf(f, "  segment at %p, data=%p, data_len=%u\n",
-                        (void *)(uintptr_t)m, rte_pktmbuf_mtod(m, void *), (unsigned)m->data_len);
-                len = dump_len;
-                if (len > m->data_len)
-                        len = m->data_len;
-                if (len != 0)
-                        rte_hexdump(f, NULL, rte_pktmbuf_mtod(m, void *), len);
-                dump_len -= len;
-                m = m->next;
-                nb_segs --;
-        }
+	while (m && nb_segs != 0) {
+		__rte_mbuf_sanity_check(m, 0);
+
+		fprintf(f, "  segment at %p, data=%p, data_len=%u\n",
+			(void *)(uintptr_t)m, rte_pktmbuf_mtod(m, void *), (unsigned)m->data_len);
+		len = dump_len;
+		if (len > m->data_len)
+			len = m->data_len;
+		if (len != 0)
+			rte_hexdump(f, NULL, rte_pktmbuf_mtod(m, void *), len);
+		dump_len -= len;
+		m = m->next;
+		nb_segs --;
+	}
 }
 
 #ifdef __cplusplus

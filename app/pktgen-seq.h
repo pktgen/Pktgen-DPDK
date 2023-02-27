@@ -71,7 +71,7 @@ typedef struct pkt_seq_s {
     uint64_t ol_flags; /**< offload flags */
 
     pkt_hdr_t hdr __rte_cache_aligned; /**< Packet header data */
-    uint8_t pad[DEFAULT_MBUF_SIZE - sizeof(pkt_hdr_t)];
+    uint8_t pad[DEFAULT_MBUF_SIZE];
 } pkt_seq_t __rte_cache_aligned;
 
 struct port_info_s;

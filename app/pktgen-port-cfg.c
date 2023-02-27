@@ -117,6 +117,16 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id, uint32_
     return mp;
 }
 
+static void
+pktgen_tx_retry_callback(struct rte_mbuf **pkts, uint16_t unsent, void *userdata __rte_unused)
+{
+    struct rte_eth_dev_tx_buffer *txbuff = userdata;
+
+    /* Move the unsent packets to the start of the packet array for retries */
+    memmove(txbuff->pkts, pkts, sizeof(struct rte_mbuf *) * unsent);
+    txbuff->length = unsent;
+}
+
 /**
  *
  * pktgen_config_ports - Configure the ports for RX and TX
@@ -251,9 +261,13 @@ pktgen_config_ports(void)
         info->seqIdx = 0;
         info->seqCnt = 0;
 
-        info->jitter_threshold      = DEFAULT_JITTER_THRESHOLD;
-        ticks                       = rte_get_timer_hz() / 1000000;
-        info->jitter_threshold_clks = info->jitter_threshold * ticks;
+        latency_t *lat = &info->latency;
+
+        lat->jitter_threshold_us      = DEFAULT_JITTER_THRESHOLD;
+        lat->latency_rate_ms          = DEFAULT_LATENCY_RATE;
+        lat->latency_rate_cycles   = pktgen_get_timer_hz() / (1000 / lat->latency_rate_ms);
+        ticks                       = pktgen_get_timer_hz() / 1000000;
+        lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
         info->nb_mbufs              = MAX_MBUFS_PER_PORT;
         cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE) ? RTE_MEMPOOL_CACHE_MAX_SIZE
                                                                    : info->nb_mbufs;
@@ -277,7 +291,7 @@ pktgen_config_ports(void)
         /* Get a clean copy of the configuration structure */
         rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
 
-        if (pktgen.enable_jumbo > 0) {
+        if (pktgen.flags & JUMBO_PKTS_FLAG) {
             conf.rxmode.max_lro_pkt_size = pktgen.eth_max_pkt;
             if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
                 conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
@@ -348,11 +362,31 @@ pktgen_config_ports(void)
         if (pktgen.verbose)
             pktgen_log_info("");
 
+        /* grab the socket id value based on the lcore being used. */
+        sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, 0));
+
+        /* Used for sending latency packets */
+        info->latency_mp = pktgen_mbuf_pool_create("Latency TX", pid, 0, MAX_LATENCY_MBUFS, sid, 0);
+        if (info->latency_mp == NULL)
+            pktgen_log_panic("Cannot init port %d for Latency TX mbufs", pid);
+
+        /* Used for sending special packets like ARP requests */
+        info->special_mp = pktgen_mbuf_pool_create("Special TX", pid, 0, MAX_SPECIAL_MBUFS, sid, 0);
+        if (info->special_mp == NULL)
+            pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
+
+        printf("\n");
         for (int q = 0; q < rt.tx; q++) {
             struct rte_eth_txconf *txconf;
 
-            /* grab the socket id value based on the lcore being used. */
-            sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, q));
+            /* Add a few extra entries to account for special pkts i.e., latency */
+            info->q[q].txbuff = calloc(1, RTE_ETH_TX_BUFFER_SIZE(MAX_PKT_RX_BURST + 4));
+            if (info->q[q].txbuff == NULL)
+                pktgen_log_panic("Cannot allocat rte_eth_dev_tx_buffer structure\n");
+            rte_eth_tx_buffer_init(info->q[q].txbuff, MAX_PKT_TX_BURST + 4);
+
+            rte_eth_tx_buffer_set_err_callback(info->q[q].txbuff, pktgen_tx_retry_callback,
+                                               info->q[q].txbuff);
 
             /* Create and initialize the default Transmit buffers. */
             info->q[q].tx_mp =
@@ -362,7 +396,7 @@ pktgen_config_ports(void)
 
             /* Create and initialize the range Transmit buffers. */
             info->q[q].range_mp =
-                pktgen_mbuf_pool_create("Range TX", pid, q, MAX_MBUFS_PER_PORT, sid, cache_size);
+                pktgen_mbuf_pool_create("Range TX", pid, q, MAX_MBUFS_PER_PORT, sid, 0);
             if (info->q[q].range_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Range TX mbufs", pid);
 
@@ -378,19 +412,13 @@ pktgen_config_ports(void)
             if (info->q[q].seq_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Sequence TX mbufs", pid);
 
-            /* Used for sending special packets like ARP requests */
-            info->q[q].special_mp =
-                pktgen_mbuf_pool_create("Special TX", pid, q, MAX_SPECIAL_MBUFS, sid, 0);
-            if (info->q[q].special_mp == NULL)
-                pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
-
             /* Setup the PCAP file for each port */
-            if (pktgen.info[pid].pcaps[q] != NULL) {
-                if (pktgen_pcap_parse(pktgen.info[pid].pcaps[q], info, q) == -1) {
+            if (info->pcaps[q] != NULL) {
+                if (pktgen_pcap_parse(info->pcaps[q], info, q) == -1) {
                     pktgen_log_panic("Cannot load PCAP file for port %d queue %d", pid, q);
                 }
-            } else if (pktgen.info[pid].pcap != NULL)
-                if (pktgen_pcap_parse(pktgen.info[pid].pcap, info, q) == -1)
+            } else if (info->pcap != NULL)
+                if (pktgen_pcap_parse(info->pcap, info, q) == -1)
                     pktgen_log_panic("Cannot load PCAP file for port %d", pid);
 
             txconf           = &info->dev_info.default_txconf;
@@ -428,6 +456,7 @@ pktgen_config_ports(void)
         for (int i = 0; i < NUM_SEQ_PKTS; i++)
             ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
         ethAddrCopy(&info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_src_addr);
+        ethAddrCopy(&info->seq_pkt[LATENCY_PKT].eth_src_addr, &pkt->eth_src_addr);
     }
     if (pktgen.verbose)
         pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ",
@@ -454,14 +483,16 @@ pktgen_config_ports(void)
 
         info = get_port_private(pktgen.l2p, pid);
 
-        pktgen.info[pid].seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
-        pktgen.info[pid].seq_pkt[RATE_PKT].pktSize   = MIN_PKT_SIZE;
+        pktgen.info[pid].seq_pkt[SINGLE_PKT].pktSize  = MIN_PKT_SIZE;
+        pktgen.info[pid].seq_pkt[RATE_PKT].pktSize    = MIN_PKT_SIZE;
+        pktgen.info[pid].seq_pkt[LATENCY_PKT].pktSize = LATENCY_PKT_SIZE;
 
         /* Setup the port and packet defaults. (must be after link speed is found) */
         for (s = 0; s < NUM_TOTAL_PKTS; s++)
             pktgen_port_defaults(pid, s);
 
         pktgen_range_setup(info);
+        pktgen_latency_setup(info);
 
         pktgen_clear_stats(info);
 

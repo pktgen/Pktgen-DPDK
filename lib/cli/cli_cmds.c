@@ -511,7 +511,7 @@ sleep_cmd(int argc __rte_unused, char **argv)
 	uint32_t cnt = (atoi(argv[1]) * 4);
 
 	if (rte_get_timer_hz() == 0) {
-		cli_printf("rte_get_timer_hz() returned zero\n");
+		cli_printf("pktgen_get_timer_hz() returned zero\n");
 		return 0;
 	}
 

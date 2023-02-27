@@ -74,9 +74,8 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     pkt_seq_t *ppkt   = &info->seq_pkt[PING_PKT];
     pkt_seq_t *spkt   = &info->seq_pkt[seq_idx];
     struct rte_mbuf *m;
-    uint8_t qid = 0;
 
-    m = rte_pktmbuf_alloc(info->q[qid].special_mp);
+    m = rte_pktmbuf_alloc(info->special_mp);
     if (unlikely(m == NULL)) {
         pktgen_log_warning("No packet buffers found");
         return;
@@ -88,9 +87,9 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     m->pkt_len  = ppkt->pktSize;
     m->data_len = ppkt->pktSize;
 
-    pktgen_send_mbuf(m, pid, qid);
+    rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
 
-    pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
+    pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
 }
 
 /**
@@ -170,9 +169,9 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
             /* Swap the MAC addresses */
             ethAddrSwap(&eth->dst_addr, &eth->src_addr);
 
-            pktgen_send_mbuf(m, pid, 0);
+            rte_eth_tx_buffer(pid, qid, info->q[qid].txbuff, m);
 
-            pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
+            pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
 
             /* No need to free mbuf as it was reused. */
             return;

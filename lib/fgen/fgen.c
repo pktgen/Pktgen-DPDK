@@ -110,7 +110,7 @@ fgen_alloc(fgen_t *fg, int low, int high, struct rte_mbuf **mbufs, uint32_t nb_p
 
     uint32_t prefetch = RTE_MIN(nb_pkts, 8U);
 
-    tsc = rte_rdtsc();
+    tsc = rte_rdtsc_precise();
 
     for (uint32_t i = 0; i < prefetch; i++)
         rte_prefetch0_write(rte_pktmbuf_mtod(mbufs[i], char *));

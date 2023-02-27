@@ -49,11 +49,6 @@ typedef struct port_sizes_s {
     uint64_t unknown;    /**< Number of unknown sizes */
 } port_sizes_t;
 
-struct mbuf_table {
-    uint16_t len;
-    struct rte_mbuf *m_table[MAX_PKT_TX_BURST];
-};
-
 enum { /* Per port flag bits */
        /* Supported packet modes non-exclusive */
        SEND_ARP_REQUEST      = (1 << 0), /**< Send a ARP request */
@@ -71,10 +66,9 @@ enum { /* Per port flag bits */
        PROCESS_GARP_PKTS   = (1 << 10), /**< Process GARP packets and update the dst MAC address */
 
        /* Exclusive Packet sending modes */
-       SEND_PCAP_PKTS    = (1 << 12), /**< Send a pcap file of packets */
-       SEND_RANGE_PKTS   = (1 << 13), /**< Send a range of packets */
-       SEND_SEQ_PKTS     = (1 << 14), /**< Send a sequence of packets */
-       SEND_LATENCY_PKTS = (1 << 15), /**< Send latency packets */
+       SEND_PCAP_PKTS  = (1 << 12), /**< Send a pcap file of packets */
+       SEND_RANGE_PKTS = (1 << 13), /**< Send a range of packets */
+       SEND_SEQ_PKTS   = (1 << 14), /**< Send a sequence of packets */
 
        SEND_RATE_PACKETS = (1 << 16), /**< Send rate pacing packets */
        SEND_RANDOM_PKTS  = (1 << 17), /**< Send random bitfields in packets */
@@ -88,7 +82,8 @@ enum { /* Per port flag bits */
        SEND_GRE_ETHER_HEADER = (1 << 24), /**< Encapsulate Ethernet frame in GRE */
        SEND_VXLAN_PACKETS    = (1 << 25), /**< Send VxLAN Packets */
 
-       SAMPLING_LATENCIES = (1 << 26), /**< Sampling latency measurements> */
+       SAMPLING_LATENCIES  = (1 << 26), /**< Sampling latency measurements> */
+       ENABLE_LATENCY_PKTS = (1 << 27), /**< Send latency packets */
 
        /* Sending flags */
        STOP_RECEIVING_PACKETS = (1 << 29), /**< Stop receiving packet */
@@ -99,9 +94,8 @@ enum { /* Per port flag bits */
            (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST)
 };
 
-#define EXCLUSIVE_MODES                                                                        \
-    (SEND_PCAP_PKTS | SEND_RANGE_PKTS | SEND_SEQ_PKTS | SEND_RANDOM_PKTS | SEND_LATENCY_PKTS | \
-     SEND_RATE_PACKETS)
+#define EXCLUSIVE_MODES \
+    (SEND_PCAP_PKTS | SEND_RANGE_PKTS | SEND_SEQ_PKTS | SEND_RANDOM_PKTS | SEND_RATE_PACKETS)
 
 #define EXCLUSIVE_PKT_MODES                                                  \
     (SEND_VLAN_ID | SEND_VXLAN_PACKETS | SEND_MPLS_LABEL | SEND_Q_IN_Q_IDS | \
@@ -185,6 +179,26 @@ typedef struct {
     uint32_t num_samples;
 } latsamp_stats_t __rte_cache_aligned;
 
+typedef struct {
+    uint64_t latency_rate_ms;         /**< number milliseconds between injecting packets */
+    uint64_t jitter_threshold_us;     /**< Jitter threshold in micro-seconds */
+    uint64_t jitter_threshold_cycles; /**< Jitter threshold cycles */
+    uint64_t latency_rate_cycles;     /**< Number of cycles between injections */
+    uint64_t latency_timo_cycles;     /**< Number of cycles to next latency injection */
+    MARKER stats;                     /* starting Marker to clear stats */
+    uint64_t jitter_count;            /**< Number of jitter stats */
+    uint64_t num_latency_pkts;        /**< Total number of latency packets */
+    uint64_t num_skipped;             /**< Number of skipped latency packets */
+    uint64_t running_cycles;          /**< Running, Number of cycles per latency packet */
+    uint64_t prev_cycles;             /**< previous cycles cyles time from last latency packet */
+    uint64_t min_cycles;              /**< minimum cycles per latency packet */
+    uint64_t avg_cycles;              /**< average cycles per latency packet */
+    uint64_t max_cycles;              /**< maximum cycles per latency packet */
+    uint64_t next_index;              /**< Next index to use for sending latency packets */
+    uint64_t expect_index;            /**< Expected index for received latency packets */
+    MARKER end_stats;
+} latency_t;
+
 typedef struct port_info_s {
     uint16_t pid;              /**< Port ID value */
     uint16_t tx_burst;         /**< Number of TX burst packets */
@@ -197,8 +211,8 @@ typedef struct port_info_s {
     rte_atomic64_t current_tx_count; /**< Current number of packets to send */
     uint64_t tx_cycles;              /**< Number cycles between TX bursts */
     uint64_t tx_pps;                 /**< Transmit packets per seconds */
-    uint64_t delta;                  /**< Delta value for latency testing */
     uint64_t tx_count;               /**< Total count of tx attempts */
+    uint64_t delta;                  /**< Delta value for latency testing */
 
     /* Packet buffer space for traffic generator, shared for all packets per port */
     uint16_t seqIdx;          /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
@@ -214,10 +228,7 @@ typedef struct port_info_s {
     uint32_t mpls_entry; /**< Set the port MPLS entry */
     uint32_t gre_key;    /**< GRE key if used */
 
-    uint16_t nb_mbufs;        /**< Number of mbufs in the system */
-    uint64_t max_avg_latency; /**< TX Latency sequence */
-    uint64_t avg_latency;     /**< Latency delta in clock ticks */
-    uint64_t min_avg_latency; /**< RX Latency sequence */
+    uint16_t nb_mbufs; /**< Number of mbufs in the system */
 
     rate_info_t rate;
 
@@ -231,17 +242,11 @@ typedef struct port_info_s {
         };
     };
 
-    uint32_t magic_errors;
-    uint32_t latency_nb_pkts;
-    uint64_t jitter_threshold;
-    uint64_t jitter_threshold_clks;
-    uint64_t jitter_count;
-    uint64_t prev_latency;
-    uint64_t max_latency;
+    latency_t latency;
 
     eth_stats_t curr_stats; /**< current port statistics */
-    eth_stats_t prev_stats; /**< previous port statistics */
     eth_stats_t rate_stats; /**< current packet rate statistics */
+    eth_stats_t prev_stats; /**< previous port statistics */
     eth_stats_t base_stats; /**< base port statistics */
 
     uint64_t max_ipackets; /**< Max seen input packet rate */
@@ -260,17 +265,18 @@ typedef struct port_info_s {
     struct rte_eth_link link; /**< Link Information like speed and duplex */
 
     struct q_info {
-        rte_atomic32_t flags;            /**< Special send flags for ARP and other */
-        struct mbuf_table tx_mbufs;      /**< mbuf holder for transmit packets */
-        struct mbuf_table special_mbufs; /**< mbuf holder for special transmit packets */
-        struct rte_mempool *rx_mp;       /**< Pool pointer for port RX mbufs */
-        struct rte_mempool *tx_mp;       /**< Pool pointer for default TX mbufs */
-        struct rte_mempool *rate_mp;     /**< Pool pointer for port Rate TX mbufs */
-        struct rte_mempool *range_mp;    /**< Pool pointer for port Range TX mbufs */
-        struct rte_mempool *seq_mp;      /**< Pool pointer for port Sequence TX mbufs */
-        struct rte_mempool *pcap_mp;     /**< Pool pointer for port PCAP TX mbufs */
-        struct rte_mempool *special_mp;  /**< Pool pointer for special TX mbufs */
+        rte_atomic32_t flags;                 /**< Special send flags for ARP and other */
+        struct rte_eth_dev_tx_buffer *txbuff; /**< mbuf holder for transmit packets */
+        struct rte_mempool *rx_mp;            /**< Pool pointer for port RX mbufs */
+        struct rte_mempool *tx_mp;            /**< Pool pointer for default TX mbufs */
+        struct rte_mempool *rate_mp;          /**< Pool pointer for port Rate TX mbufs */
+        struct rte_mempool *range_mp;         /**< Pool pointer for port Range TX mbufs */
+        struct rte_mempool *seq_mp;           /**< Pool pointer for port Sequence TX mbufs */
+        struct rte_mempool *pcap_mp;          /**< Pool pointer for port PCAP TX mbufs */
     } q[NUM_Q];
+
+    struct rte_mempool *special_mp; /**< Pool pointer for special TX mbufs */
+    struct rte_mempool *latency_mp; /**< Pool pointer for latency packets */
 
     int32_t rx_tapfd;          /**< Rx Tap file descriptor */
     int32_t tx_tapfd;          /**< Tx Tap file descriptor */

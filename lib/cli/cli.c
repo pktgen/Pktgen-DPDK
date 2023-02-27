@@ -778,7 +778,6 @@ cli_destroy(void)
 
 	gb_destroy(cli->gb);
 	vt100_free(cli->vt);
-	scrn_destroy();
 	cli_history_delete();
 
 	free(cli->scratch);
@@ -863,7 +862,7 @@ cli_execute_cmdfile(const char *filename)
 
 	if (strstr(filename, ".lua") || strstr(filename, ".LUA") ) {
 		if (!this_cli->user_state) {
-			cli_printf(">>> User State for CLI not set for Lua\n");
+			cli_printf(">>> User State for CLI not set for Lua, please build with Lua enabled\n");
 			return -1;
 		}
 		if (__dofile_lua) {

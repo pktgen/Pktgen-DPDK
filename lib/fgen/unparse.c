@@ -14,7 +14,6 @@
 #include <pg_inet.h>
 #include <utils.h>
 #include <rte_ether.h>
-#include <rte_hexdump.h>
 #include <rte_ip.h>
 #include <rte_udp.h>
 #include <rte_tcp.h>

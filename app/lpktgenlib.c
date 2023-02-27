@@ -53,6 +53,12 @@ pktgen_exit(lua_State *L __rte_unused)
     return 0;
 }
 
+static inline double
+cycles_to_us(uint64_t cycles)
+{
+    return (cycles == 0) ? 0.0 : ((1.0/pktgen.hz) * (double)cycles)*Million;
+}
+
 /**
  *
  * setf_integer - Helper routine to set Lua variables.
@@ -69,6 +75,25 @@ static __inline__ void
 setf_integer(lua_State *L, const char *name, lua_Integer value)
 {
     lua_pushinteger(L, value);
+    lua_setfield(L, -2, name);
+}
+
+/**
+ *
+ * setf_number - Helper routine to set Lua variables.
+ *
+ * DESCRIPTION
+ * Helper routine to a set Lua variables.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static __inline__ void
+setf_number(lua_State *L, const char *name, lua_Number value)
+{
+    lua_pushnumber(L, value);
     lua_setfield(L, -2, name);
 }
 
@@ -2890,7 +2915,7 @@ pkt_stats(lua_State *L, port_info_t *info)
     struct rte_ether_addr ethaddr;
     char mac_buf[32] = {0};
     pkt_stats_t stats = {0};
-    uint64_t avg_lat, jitter;
+    latency_t *lat;
 
     pktgen_pkt_stats(info->pid, &stats);
 
@@ -2911,14 +2936,25 @@ pkt_stats(lua_State *L, port_info_t *info)
     rte_ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
     setf_string(L, "mac_addr", mac_buf);
 
-    avg_lat = 0;
-    jitter  = 0;
+    lat = &info->latency;
 
-    setf_integer(L, "avg_latency", avg_lat);
-    setf_integer(L, "max_avg_latency", info->max_avg_latency);
-    setf_integer(L, "min_avg_latency", info->min_avg_latency);
-    setf_integer(L, "jitter_count", jitter);
+    lua_pushstring(L, "latency");
+    lua_newtable(L);
 
+    setf_integer(L, "rate_ms", lat->latency_rate_ms);
+    setf_integer(L, "jitter_threshold", lat->jitter_threshold_us);
+
+    setf_integer(L, "jitter_count", lat->jitter_count);
+    setf_integer(L, "num_pkts", lat->num_latency_pkts);
+    setf_integer(L, "num_skipped", lat->num_skipped);
+    setf_integer(L, "min_cycles", lat->min_cycles);
+    setf_integer(L, "avg_cycles", lat->avg_cycles);
+    setf_integer(L, "max_cycles", lat->max_cycles);
+    setf_number(L, "min_us", cycles_to_us(lat->min_cycles));
+    setf_number(L, "avg_us", cycles_to_us(lat->avg_cycles));
+    setf_number(L, "max_us", cycles_to_us(lat->max_cycles));
+    lua_settable(L, -3);
+    
     /* Now set the table as an array with pid as the index. */
     lua_rawset(L, -3);
 }

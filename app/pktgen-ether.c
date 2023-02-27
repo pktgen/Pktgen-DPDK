@@ -22,10 +22,14 @@
  */
 
 char *
-pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt, struct rte_ether_hdr *eth)
+pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt)
 {
+    struct rte_ether_hdr *eth;
     uint32_t flags;
     uint16_t vlan_id;
+
+    eth = &pkt->hdr.eth;
+
     /* src and dest addr */
     rte_ether_addr_copy(&pkt->eth_src_addr, &eth->src_addr);
     rte_ether_addr_copy(&pkt->eth_dst_addr, &eth->dst_addr);

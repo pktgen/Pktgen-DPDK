@@ -269,6 +269,7 @@ union icmp_data {
 #define ICMP4_INFO_REPLY        16
 #define ICMP4_MASK_REQUEST      17
 #define ICMP4_MASK_REPLY        18
+#define LATENCY_PKT_TYPE        0xFFFF
 
 /* MPLS header
  *                        MPLS Header Format

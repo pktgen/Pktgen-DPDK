@@ -155,7 +155,8 @@ pktgen_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.stat.values");
-        snprintf(buff, sizeof(buff), "%d /%3d:%3d", pkt->pktSize + RTE_ETHER_CRC_LEN, info->rx_burst, info->tx_burst);
+        snprintf(buff, sizeof(buff), "%d /%3d:%3d", pkt->pktSize + RTE_ETHER_CRC_LEN,
+                 info->rx_burst, info->tx_burst);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -212,7 +213,8 @@ pktgen_print_static_data(void)
             sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
             rte_eth_dev_get_name_by_port(pid, name);
-            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
+            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
+                     rte_dev_name(dev.device));
         } else
             snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
         pktgen_display_set_color("stats.bdf");
@@ -293,7 +295,7 @@ pktgen_page_stats(void)
     unsigned int pid, col, row;
     struct rte_eth_stats *rate, *cumm, *prev;
     port_sizes_t sizes = {0};
-    pkt_stats_t stats = {0};
+    pkt_stats_t stats  = {0};
 
     unsigned sp;
     char buff[32];
@@ -376,10 +378,11 @@ pktgen_page_stats(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.port.totals");
+
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->max_ipackets);
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, info->max_opackets);
 
-        for(int qid = 0; qid < NUM_Q; qid++) {
+        for (int qid = 0; qid < NUM_Q; qid++) {
             sizes.broadcast += info->qstats[qid].sizes.broadcast;
             sizes.multicast += info->qstats[qid].sizes.multicast;
             sizes._64 += info->qstats[qid].sizes._64;
@@ -418,8 +421,7 @@ pktgen_page_stats(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, sizes.runt, sizes.jumbo);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, stats.arp_pkts,
-                 stats.echo_pkts);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, stats.arp_pkts, stats.echo_pkts);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         /* Rx/Tx Errors */
@@ -486,25 +488,13 @@ pktgen_page_stats(void)
  * SEE ALSO:
  */
 void
-pktgen_process_stats(double rel_delay)
+pktgen_process_stats(void)
 {
     unsigned int pid;
-    struct rte_eth_stats *curr, *rate, *prev, *base;
+    eth_stats_t *curr, *rate, *prev, *base;
     port_info_t *info;
     static unsigned int counter = 0;
-#ifdef DEBUG_TIMERS
-    static uint64_t tsc = 0;
 
-    if (tsc == 0)
-        tsc = rte_rdtsc();
-    else {
-        uint64_t curr = rte_rdtsc();
-
-        if ((curr - tsc) != pktgen.hz)
-            printf("delta %18lu hz %lu %8ld\n", curr - tsc, pktgen.hz, pktgen.hz - (curr - tsc));
-        tsc = curr;
-    }
-#endif
     counter++;
     if (pktgen.flags & BLINK_PORTS_FLAG) {
         RTE_ETH_FOREACH_DEV(pid)
@@ -519,15 +509,20 @@ pktgen_process_stats(double rel_delay)
         }
     }
 
+    pktgen.prev = pktgen_get_time();
+
     RTE_ETH_FOREACH_DEV(pid)
     {
         info = &pktgen.info[pid];
 
         curr = &info->curr_stats;
-        rte_eth_stats_get(pid, curr);
-
+        rate = &info->rate_stats;
+        prev = &info->prev_stats;
         base = &info->base_stats;
 
+        rte_eth_stats_get(pid, curr);
+
+        /* Normalize the counters */
         curr->ipackets  = curr->ipackets - base->ipackets;
         curr->opackets  = curr->opackets - base->opackets;
         curr->ibytes    = curr->ibytes - base->ibytes;
@@ -537,17 +532,15 @@ pktgen_process_stats(double rel_delay)
         curr->imissed   = curr->imissed - base->imissed;
         curr->rx_nombuf = curr->rx_nombuf - base->rx_nombuf;
 
-        rate = &info->rate_stats;
-        prev = &info->prev_stats;
-
-        rate->ipackets  = ((curr->ipackets - prev->ipackets) / rel_delay) + ROUND_FACTOR;
-        rate->opackets  = ((curr->opackets - prev->opackets) / rel_delay) + ROUND_FACTOR;
-        rate->ibytes    = ((curr->ibytes - prev->ibytes) / rel_delay) + ROUND_FACTOR;
-        rate->obytes    = ((curr->obytes - prev->obytes) / rel_delay) + ROUND_FACTOR;
-        rate->ierrors   = ((curr->ierrors - prev->ierrors) / rel_delay) + ROUND_FACTOR;
-        rate->oerrors   = ((curr->oerrors - prev->oerrors) / rel_delay) + ROUND_FACTOR;
-        rate->imissed   = ((curr->imissed - prev->imissed) / rel_delay) + ROUND_FACTOR;
-        rate->rx_nombuf = ((curr->rx_nombuf - prev->rx_nombuf) / rel_delay) + ROUND_FACTOR;
+        /* Figure out the rate values */
+        rate->ipackets  = (curr->ipackets - prev->ipackets);
+        rate->opackets  = (curr->opackets - prev->opackets);
+        rate->ibytes    = (curr->ibytes - prev->ibytes);
+        rate->obytes    = (curr->obytes - prev->obytes);
+        rate->ierrors   = (curr->ierrors - prev->ierrors);
+        rate->oerrors   = (curr->oerrors - prev->oerrors);
+        rate->imissed   = (curr->imissed - prev->imissed);
+        rate->rx_nombuf = (curr->rx_nombuf - prev->rx_nombuf);
 
         /* Find the new max rate values */
         if (rate->ipackets > info->max_ipackets)
@@ -555,7 +548,7 @@ pktgen_process_stats(double rel_delay)
         if (rate->opackets > info->max_opackets)
             info->max_opackets = rate->opackets;
 
-        /* Use structure move to copy the data. */
+        /* Save the current values in previous */
         *prev = *curr;
     }
 }

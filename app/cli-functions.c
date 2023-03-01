@@ -83,15 +83,14 @@ static const char *title_help[] = {
 
 static const char *status_help[] = {
     "",
-    "       Flags: P------------------ - Promiscuous mode enabled",
-    "               E                  - ICMP Echo enabled",
-    "                B                 - Bonding enabled LACP 802.3ad",
-    "                 I                - Process packets on input enabled",
-    "                  *               - Using TAP interface for this port can be [-rt*]",
-    "                   g              - Process GARP packets",
-    "                    C             - Capture received packets",
-    "                     ------       - Modes Single, pcap, sequence, latency, random, Rate",
-    "                           ------ - Modes VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH",
+    "       Flags: P----------------- - Promiscuous mode enabled",
+    "               E                 - ICMP Echo enabled",
+    "                B                - Bonding enabled LACP 802.3ad",
+    "                 I               - Process packets on input enabled",
+    "                  *              - Using TAP interface for this port can be [-rt*]",
+    "                   C             - Capture received packets",
+    "                    ------       - Modes Single, pcap, sequence, latency, random, Rate",
+    "                          ------ - Modes VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH",
     "Notes: <state>       - Use enable|disable or on|off to set the state.",
     "       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word "
     "'all'",
@@ -943,20 +942,19 @@ theme_cmd(int argc, char **argv)
     "gre|"     /*  3 */ \
     "gre_eth|" /*  4 */ \
     "vlan|"    /*  5 */ \
-    "garp|"    /*  6 */ \
-    "random|"  /*  7 */ \
-    "latency|" /*  8 */ \
-    "pcap|"    /*  9 */ \
-    "blink|"   /* 10 */ \
-    "rx_tap|"  /* 11 */ \
-    "tx_tap|"  /* 12 */ \
-    "icmp|"    /* 13 */ \
-    "range|"   /* 14 */ \
-    "capture|" /* 15 */ \
-    "bonding|" /* 16 */ \
-    "vxlan|"   /* 17 */ \
-    "rate|"    /* 18 */ \
-    "lat"      /* 19 */
+    "random|"  /*  6 */ \
+    "latency|" /*  7 */ \
+    "pcap|"    /*  8 */ \
+    "blink|"   /*  9 */ \
+    "rx_tap|"  /* 10 */ \
+    "tx_tap|"  /* 11 */ \
+    "icmp|"    /* 12 */ \
+    "range|"   /* 13 */ \
+    "capture|" /* 14 */ \
+    "bonding|" /* 15 */ \
+    "vxlan|"   /* 16 */ \
+    "rate|"    /* 17 */ \
+    "lat"      /* 18 */
 
 // clang-format off
 static struct cli_map enable_map[] = {
@@ -979,7 +977,6 @@ static const char *enable_help[] = {
     "enable|disable <portlist> gre      - Enable/disable GRE support",
     "enable|disable <portlist> gre_eth  - Enable/disable GRE with Ethernet frame payload",
     "enable|disable <portlist> vlan     - Enable/disable VLAN tagging",
-    "enable|disable <portlist> garp     - Enable or Disable Gratuitous ARP packet processing",
     "enable|disable <portlist> random   - Enable/disable Random packet support",
     "enable|disable <portlist> latency  - Enable/disable latency testing",
     "enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist",
@@ -1044,19 +1041,16 @@ en_dis_cmd(int argc, char **argv)
             foreach_port(portlist, enable_vlan(info, state));
             break;
         case 6:
-            foreach_port(portlist, enable_garp(info, state));
-            break;
-        case 7:
             foreach_port(portlist, enable_random(info, state));
             break;
-        case 8:
-        case 19: /* lat or latency type */
+        case 7:
+        case 18: /* lat or latency type */
             foreach_port(portlist, enable_latency(info, state));
             break;
-        case 9:
+        case 8:
             foreach_port(portlist, enable_pcap(info, state));
             break;
-        case 10:
+        case 9:
             foreach_port(portlist, debug_blink(info, state));
 
             if (pktgen.blinklist)
@@ -1064,30 +1058,30 @@ en_dis_cmd(int argc, char **argv)
             else
                 pktgen.flags &= ~BLINK_PORTS_FLAG;
             break;
-        case 11:
+        case 10:
             foreach_port(portlist, enable_rx_tap(info, state));
             break;
-        case 12:
+        case 11:
             foreach_port(portlist, enable_tx_tap(info, state));
             break;
-        case 13:
+        case 12:
             foreach_port(portlist, enable_icmp_echo(info, state));
             break;
-        case 14:
+        case 13:
             foreach_port(portlist, enable_range(info, state));
             break;
-        case 15:
+        case 14:
             foreach_port(portlist, pktgen_set_capture(info, state));
             break;
-        case 16:
+        case 15:
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
             foreach_port(portlist, enable_bonding(info, state));
 #endif
             break;
-        case 17:
+        case 16:
             foreach_port(portlist, enable_vxlan(info, state));
             break;
-        case 18:
+        case 17:
             foreach_port(portlist, enable_rate(info, state));
             break;
         default:

@@ -147,6 +147,9 @@ pg_pktmbuf_dump(FILE *f, const struct rte_mbuf *m, unsigned dump_len)
 	unsigned int nb_segs;
 	char buf[256];
 
+	if (f == NULL)
+	    f = stdout;
+		
 	__rte_mbuf_sanity_check(m, 1);
 
 	fprintf(f, "dump mbuf at %p, addr=%p iova=%"PRIx64", buf_len=%u\n",

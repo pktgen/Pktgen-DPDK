@@ -108,7 +108,6 @@ void
 pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan)
 {
     port_info_t *info = &pktgen.info[pid];
-    pkt_seq_t *pkt;
     struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
     struct rte_ipv4_hdr *ip   = (struct rte_ipv4_hdr *)&eth[1];
     char buff[24];
@@ -131,6 +130,8 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
         }
 
         if (unlikely(icmp->icmp_type == ICMP4_ECHO)) {
+            int idx;
+
             if (ntohl(ip->dst_addr) == INADDR_BROADCAST) {
                 pktgen_log_warning("IP address %s is a Broadcast",
                                    inet_ntop4(buff, sizeof(buff), ip->dst_addr, INADDR_BROADCAST));
@@ -138,10 +139,10 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
             }
 
             /* Toss all broadcast addresses and requests not for this port */
-            pkt = pktgen_find_matching_ipsrc(info, ip->dst_addr);
+            idx = pktgen_find_matching_ipsrc(info, ip->dst_addr);
 
             /* ARP request not for this interface. */
-            if (unlikely(pkt == NULL)) {
+            if (unlikely(idx == -1)) {
                 pktgen_log_warning("IP address %s not found",
                                    inet_ntop4(buff, sizeof(buff), ip->dst_addr, INADDR_BROADCAST));
                 return;

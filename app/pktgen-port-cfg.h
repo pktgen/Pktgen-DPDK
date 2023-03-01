@@ -63,7 +63,6 @@ enum { /* Per port flag bits */
 
        PROCESS_RX_TAP_PKTS = (1 << 8),  /**< Handle RX TAP interface packets */
        PROCESS_TX_TAP_PKTS = (1 << 9),  /**< Handle TX TAP interface packets */
-       PROCESS_GARP_PKTS   = (1 << 10), /**< Process GARP packets and update the dst MAC address */
 
        /* Exclusive Packet sending modes */
        SEND_PCAP_PKTS  = (1 << 12), /**< Send a pcap file of packets */

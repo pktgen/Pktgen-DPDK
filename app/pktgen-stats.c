@@ -50,7 +50,7 @@ pktgen_print_static_data(void)
 
     row = PORT_STATE_ROW;
     pktgen_display_set_color("stats.port.label");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Flags:Port");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Port:Flags");
 
     /* Labels for dynamic fields (update every second) */
     pktgen_display_set_color("stats.port.linklbl");
@@ -141,7 +141,7 @@ pktgen_print_static_data(void)
                  pkt->tcp_flags & FIN_FLAG ? "F" : ".");
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%5u/%5u", pkt->tcp_seq, pkt->tcp_ack);
+        snprintf(buff, sizeof(buff), "%u/%u", pkt->tcp_seq, pkt->tcp_ack);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
@@ -340,6 +340,8 @@ pktgen_page_stats(void)
             continue;
 
         memset(&sizes, 0, sizeof(port_sizes_t));
+        memset(&stats, 0, sizeof(pkt_stats_t));
+        
         info = &pktgen.info[pid + sp];
 
         /* Display the disable string when port is not enabled. */
@@ -347,7 +349,7 @@ pktgen_page_stats(void)
         row = PORT_STATE_ROW;
 
         /* Display the port number for the column */
-        snprintf(buff, sizeof(buff), "%s:%d", pktgen_flags_string(info), pid + sp);
+        snprintf(buff, sizeof(buff), "%d:%s", pid + sp, pktgen_flags_string(info));
         pktgen_display_set_color("stats.port.flags");
         scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
         pktgen_display_set_color(NULL);
@@ -596,16 +598,16 @@ pktgen_page_phys_stats(uint16_t pid)
 
     pktgen_display_set_color("stats.stat.values");
     col = COLUMN_WIDTH_0 - 3;
-    snprintf(buff, sizeof(buff), "%lu/%lu", s->ipackets, s->opackets);
+    snprintf(buff, sizeof(buff), "%'lu/%'lu", s->ipackets, s->opackets);
     scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 1)) - 3;
-    snprintf(buff, sizeof(buff), "%lu/%lu", s->ierrors, s->imissed);
+    snprintf(buff, sizeof(buff), "%'lu/%'lu", s->ierrors, s->imissed);
     scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 2)) - 3;
     r   = &pktgen.info[pid].rate_stats;
-    snprintf(buff, sizeof(buff), "%lu/%lu", r->ipackets, r->opackets);
+    snprintf(buff, sizeof(buff), "%'lu/%'lu", r->ipackets, r->opackets);
     scrn_printf(row, col, "%*s", COLUMN_WIDTH_3, buff);
 
     col = (COLUMN_WIDTH_0 + (COLUMN_WIDTH_3 * 3)) - 3;
@@ -643,7 +645,7 @@ pktgen_page_phys_stats(uint16_t pid)
         if (txbytes == 0)
             txbytes = info->qstats[q].txbytes;
 
-        scrn_printf(row++, 1, "     Q %2d: %14lu %14lu %14lu %14lu %14lu", q, rxpkts, txpkts,
+        scrn_printf(row++, 1, "     Q %2d: %'14lu %'14lu %'14lu %'14lu %'14lu", q, rxpkts, txpkts,
                     rxbytes, txbytes, stats.q_errors[q]);
     }
     pktgen_display_set_color(NULL);

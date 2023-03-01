@@ -194,10 +194,10 @@ enum {
     DEFAULT_SRC_PORT       = 1234,
     DEFAULT_DST_PORT       = 5678,
     DEFAULT_TTL            = 64,
-    DEFAULT_TCP_SEQ_NUMBER = 0x012345678,
-    MAX_TCP_SEQ_NUMBER     = UINT32_MAX,
-    DEFAULT_TCP_ACK_NUMBER = 0x012345690,
-    MAX_TCP_ACK_NUMBER     = UINT32_MAX,
+    DEFAULT_TCP_SEQ_NUMBER = 0x12378,
+    MAX_TCP_SEQ_NUMBER     = UINT32_MAX/8,
+    DEFAULT_TCP_ACK_NUMBER = 0x12390,
+    MAX_TCP_ACK_NUMBER     = UINT32_MAX/8,
     DEFAULT_TCP_FLAGS      = ACK_FLAG,
     DEFAULT_WND_SIZE       = 8192,
     MIN_VLAN_ID            = 1,
@@ -375,8 +375,8 @@ void pktgen_page_display(void);
 void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
 void pktgen_packet_rate(port_info_t *info);
 
-pkt_seq_t *pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
-pkt_seq_t *pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
+int pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
+int pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
 
 int pktgen_launch_one_lcore(void *arg);
 uint64_t pktgen_wire_size(port_info_t *info);

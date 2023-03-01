@@ -145,7 +145,7 @@ rate_print_static_data(void)
 
     row = PORT_STATE_ROW;
     pktgen_display_set_color("stats.port.label");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Flags:Port");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Port:Flags");
 
     /* Labels for dynamic fields (update every second) */
     pktgen_display_set_color("stats.port.linklbl");
@@ -330,7 +330,7 @@ pktgen_page_rate(void)
         row = PORT_STATE_ROW;
 
         /* Display the port number for the column */
-        snprintf(buff, sizeof(buff), "%s:%d", pktgen_flags_string(info), pid + sp);
+        snprintf(buff, sizeof(buff), "%d:%s", pid + sp, pktgen_flags_string(info));
         pktgen_display_set_color("stats.port.flags");
         scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
         pktgen_display_set_color(NULL);

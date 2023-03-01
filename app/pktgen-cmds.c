@@ -1032,27 +1032,28 @@ pktgen_flags_string(port_info_t *info)
     static char buff[32];
     uint32_t flags = rte_atomic32_read(&info->port_flags);
 
-    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%-5s%6s",
+    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%-6s%6s",
              (pktgen.flags & PROMISCUOUS_ON_FLAG) ? 'P' : '-',
              (flags & ICMP_ECHO_ENABLE_FLAG) ? 'E' : '-', (flags & BONDING_TX_PACKETS) ? 'B' : '-',
              (flags & PROCESS_INPUT_PKTS) ? 'I' : '-', (flags & ENABLE_LATENCY_PKTS) ? 'L' : '-',
              "-rt*"[(flags & (PROCESS_RX_TAP_PKTS | PROCESS_TX_TAP_PKTS)) >> 9],
-             (flags & PROCESS_GARP_PKTS) ? 'g' : '-', (flags & CAPTURE_PKTS) ? 'c' : '-',
-
-             (flags & SEND_PCAP_PKTS)      ? "PCAP"
-             : (flags & SEND_SEQ_PKTS)     ? "Seq"
-             : (flags & SEND_RANGE_PKTS)   ? "Range"
-             : (flags & SEND_RANDOM_PKTS)  ? "Rand"
-             : (flags & SEND_RATE_PACKETS) ? "Rate"
-                                           : "Sngl",
+             (flags & CAPTURE_PKTS) ? 'c' : '-',
 
              (flags & SEND_VLAN_ID)            ? "VLAN"
-             : (flags & SEND_VXLAN_PACKETS)    ? "VxLAN"
+             : (flags & SEND_VXLAN_PACKETS)    ? "VxLan"
              : (flags & SEND_MPLS_LABEL)       ? "MPLS"
              : (flags & SEND_Q_IN_Q_IDS)       ? "QnQ"
              : (flags & SEND_GRE_IPv4_HEADER)  ? "GREip"
              : (flags & SEND_GRE_ETHER_HEADER) ? "GREet"
-                                               : "");
+                                               : "",
+
+             (flags & SEND_PCAP_PKTS)      ? "PCAP"
+             : (flags & SEND_SEQ_PKTS)     ? "Seq"
+             : (flags & SEND_RANGE_PKTS)   ? "Range"
+             : (flags & SEND_RANDOM_PKTS)  ? "Random"
+             : (flags & SEND_RATE_PACKETS) ? "Rate"
+                                           : "Single"
+    );
 
     /* single, range, sequence, random, pcap, latency, rate */
 
@@ -2103,27 +2104,6 @@ show_bonding_mode(port_info_t *info)
         printf("\tPrimary: [%d]\n", primary_id);
 }
 #endif
-
-/**
- *
- * enable_garp - Enable or disable GARP packet processing.
- *
- * DESCRIPTION
- * Enable or disable GARP packet processing of ICMP, ARP, ...
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-enable_garp(port_info_t *info, uint32_t state)
-{
-    if (state == ENABLE_STATE)
-        pktgen_set_port_flags(info, PROCESS_GARP_PKTS | PROCESS_INPUT_PKTS);
-    else
-        pktgen_clr_port_flags(info, PROCESS_GARP_PKTS | PROCESS_INPUT_PKTS);
-}
 
 /**
  *

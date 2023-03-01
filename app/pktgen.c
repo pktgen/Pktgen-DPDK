@@ -148,32 +148,33 @@ pktgen_fill_pattern(uint8_t *p, uint32_t len, uint32_t type, char *user)
  * DESCRIPTION
  * locate and return the pkt_seq_t pointer to the match IP address.
  *
- * RETURNS: pkt_seq_t  * or NULL
+ * RETURNS: index of sequence packets or -1 if no match found.
  *
  * SEE ALSO:
  */
-
-pkt_seq_t *
+int
 pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr)
 {
-    pkt_seq_t *pkt = NULL;
-    int i;
+    int i, ret = -1;
+    uint32_t mask;
 
     addr = ntohl(addr);
 
     /* Search the sequence packets for a match */
     for (i = 0; i < info->seqCnt; i++)
         if (addr == info->seq_pkt[i].ip_src_addr.addr.ipv4.s_addr) {
-            pkt = &info->seq_pkt[i];
+            ret = i;
             break;
         }
 
-    /* Now try to match the single packet address */
-    if (pkt == NULL)
-        if (addr == info->seq_pkt[SINGLE_PKT].ip_src_addr.addr.ipv4.s_addr)
-            pkt = &info->seq_pkt[SINGLE_PKT];
+    mask = size_to_mask(info->seq_pkt[SINGLE_PKT].ip_src_addr.prefixlen);
 
-    return pkt;
+    /* Now try to match the single packet address */
+    if (ret == -1 ||
+        (addr & mask) == (info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr * mask))
+        ret = SINGLE_PKT;
+
+    return ret;
 }
 
 /**
@@ -183,37 +184,34 @@ pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr)
  * DESCRIPTION
  * locate and return the pkt_seq_t pointer to the match IP address.
  *
- * RETURNS: pkt_seq_t  * or NULL
+ * RETURNS: index of sequence packets or -1 if no match found.
  *
  * SEE ALSO:
  */
 
-pkt_seq_t *
+int
 pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 {
-    pkt_seq_t *pkt = NULL;
-    int i;
+    int i, ret = -1;
 
     addr = ntohl(addr);
 
     /* Search the sequence packets for a match */
     for (i = 0; i < info->seqCnt; i++)
         if (addr == info->seq_pkt[i].ip_dst_addr.addr.ipv4.s_addr) {
-            pkt = &info->seq_pkt[i];
+            ret = i;
             break;
         }
 
     /* Now try to match the single packet address */
-    if (pkt == NULL)
-        if (addr == info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr)
-            pkt = &info->seq_pkt[SINGLE_PKT];
+    if (ret == -1 && addr == info->seq_pkt[SINGLE_PKT].ip_dst_addr.addr.ipv4.s_addr)
+        ret = SINGLE_PKT;
 
     /* Now try to match the range packet address */
-    if (pkt == NULL)
-        if (addr == info->seq_pkt[RANGE_PKT].ip_dst_addr.addr.ipv4.s_addr)
-            pkt = &info->seq_pkt[RANGE_PKT];
+    if (ret == -1 && addr == info->seq_pkt[RANGE_PKT].ip_dst_addr.addr.ipv4.s_addr)
+        ret = RANGE_PKT;
 
-    return pkt;
+    return ret;
 }
 
 static __inline__ tstamp_t *
@@ -304,43 +302,10 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
     for (uint32_t i = 0; i < mtab->length; i++)
         qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
 
-    /* Send all of the packets before we can exit this function */
-    while (cnt) {
-        if (!pktgen_tst_port_flags(info, SENDING_PACKETS)) {
-            rte_pktmbuf_free_bulk(pkts, cnt);
-            break;
-        }
-        if (rnd)
-            pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
-
-        if (tstamp)
-            pktgen_tstamp_apply(info, pkts, cnt, seq_idx);
-
-        ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
-
-        if (tap)
-            pktgen_do_tx_tap(info, pkts, ret);
-
-        if (cnt - ret)
-            info->qstats[qid].stats.tx_failed += (cnt - ret);
-
-        pkts += ret;
-        cnt -= ret;
-    }
-
-special_send:
-    /* Send all of the special packets if any exists */
-    mtab = &info->q[qid].special_mbufs;
-
-    if ((cnt = mtab->len) == 0)
-        return;
-
-    mtab->len = 0;
-    pkts      = mtab->m_table;
-
-    qstats->txpkts += cnt;
-    for (i = 0; i < cnt; i++)
-        qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
+    if (rnd)
+        pktgen_rnd_bits_apply(info, pkts, mtab->length, NULL);
+    if (tap)
+        pktgen_do_tx_tap(info, pkts, mtab->length);
 
     /* Send all of the packets before we can exit this function */
     while (mtab->length)
@@ -365,7 +330,7 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                 latency_t *lat = &info->latency;
 
                 tstamp->magic = 0; /* clear timestamp magic cookie */
-                cycles = (pktgen_get_time() - tstamp->timestamp);
+                cycles        = (pktgen_get_time() - tstamp->timestamp);
 
                 if (tstamp->index != lat->expect_index) {
                     lat->expect_index = tstamp->index + 1;
@@ -385,7 +350,7 @@ pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                         lat->max_cycles = cycles;
 
                     jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
-                                                        : lat->prev_cycles - cycles;
+                                                         : lat->prev_cycles - cycles;
                     if (jitter > lat->jitter_threshold_cycles)
                         lat->jitter_count++;
 
@@ -508,7 +473,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 {
     pkt_seq_t *pkt            = &info->seq_pkt[seq_idx];
     struct rte_ether_hdr *eth = (struct rte_ether_hdr *)&pkt->hdr.eth;
-    char *l3_hdr = (char *)&eth[1]; /* Point to l3 hdr location for GRE header */
+    char *l3_hdr              = (char *)&eth[1]; /* Point to l3 hdr location for GRE header */
 
     /* Fill in the pattern for data space. */
     pktgen_fill_pattern((uint8_t *)&pkt->hdr, (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
@@ -527,7 +492,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
     /* Add GRE header and adjust rte_ether_hdr pointer if requested */
     if (pktgen_tst_port_flags(info, SEND_GRE_IPv4_HEADER))
         l3_hdr = pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)l3_hdr);
-    else if (pktgen_tst_port_flags(info,  SEND_GRE_ETHER_HEADER))
+    else if (pktgen_tst_port_flags(info, SEND_GRE_ETHER_HEADER))
         l3_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)l3_hdr);
     else
         l3_hdr = pktgen_ether_hdr_ctor(info, pkt);
@@ -1024,8 +989,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
         txCnt = info->tx_burst;
 
     if (qid == 0) {
-        uint32_t tstamp = pktgen_tst_port_flags(
-            info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS | SAMPLING_LATENCIES));
+        uint32_t tstamp = pktgen_tst_port_flags(info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS));
         if (tstamp) {
             uint64_t curr_ts;
             latency_t *lat = &info->latency;
@@ -1044,7 +1008,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
     for (int i = 0; i < mlen; i++)
         rte_eth_tx_buffer(info->pid, qid, txbuff, pkts[i]);
 
-    while (txbuff->length)
+    while(txbuff->length > 0)
         rte_eth_tx_buffer_flush(info->pid, qid, txbuff);
 }
 
@@ -1113,7 +1077,7 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
  */
 
 static __inline__ void
-pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf *pkts_burst[], uint16_t nb_pkts)
+pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf **pkts_burst, uint16_t nb_pkts)
 {
     uint8_t pid;
     uint16_t qid, nb_rx;
@@ -1570,7 +1534,7 @@ _timer_thread(void *arg)
     page_timo    = UPDATE_DISPLAY_TICK_RATE;
 
     page = prev = rte_get_tsc_cycles();
-    process = page + process_timo;
+    process     = page + process_timo;
     page += page_timo;
 
     pktgen.timer_running = 1;

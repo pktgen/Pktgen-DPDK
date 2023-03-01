@@ -16,6 +16,35 @@
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
 
+void
+arp_pkt_dump(struct rte_mbuf *m)
+{
+    struct rte_ether_hdr *eth;
+    struct rte_arp_hdr *arp;
+    char dst[64], src[64];
+    char sip[64], tip[64];
+
+    eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+    arp = rte_pktmbuf_mtod_offset(m, struct rte_arp_hdr *, sizeof(struct rte_ether_hdr));
+
+    printf("\nARP Packet Dump\n");
+
+    rte_ether_format_addr(dst, sizeof(dst), &eth->dst_addr);
+    rte_ether_format_addr(src, sizeof(src), &eth->src_addr);
+    printf("  Ethernet Header DST: %s, SRC: %s, Type: %04x\n",
+           dst, src, ntohs(eth->ether_type));
+
+    printf("  ARP Header Type: %04x, Proto: %04x, hlen: %d, plen: %d, opcode: %d\n",
+        ntohs(arp->arp_hardware), ntohs(arp->arp_protocol),
+        arp->arp_hlen, arp->arp_plen, ntohs(arp->arp_opcode));
+
+    rte_ether_format_addr(dst, sizeof(dst), &arp->arp_data.arp_sha);
+    rte_ether_format_addr(src, sizeof(src), &arp->arp_data.arp_tha);
+    inet_ntop(AF_INET, &arp->arp_data.arp_sip, sip, sizeof(sip));
+    inet_ntop(AF_INET, &arp->arp_data.arp_tip, tip, sizeof(tip));
+    printf("  ARP Data Sender: %s-%s, Target: %s-%s\n", dst, sip, src, tip);
+}
+
 /**
  *
  * pktgen_send_arp - Send an ARP request packet.
@@ -79,8 +108,6 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
     m->data_len = 60;
 
     rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
-
-    pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
 }
 
 /**
@@ -109,39 +136,36 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 
     /* Process all ARP requests if they are for us. */
     if (arp->arp_opcode == htons(ARP_REQUEST)) {
-        if (pktgen_tst_port_flags(info, PROCESS_GARP_PKTS) &&
-            (arp->arp_data.arp_tip == arp->arp_data.arp_sip)) { /* Must be a GARP packet */
-            pkt = pktgen_find_matching_ipdst(info, arp->arp_data.arp_sip);
+        int idx;
+
+        if (arp->arp_data.arp_tip == arp->arp_data.arp_sip) { /* GARP Packet */
+            idx = pktgen_find_matching_ipdst(info, arp->arp_data.arp_sip);
 
             /* Found a matching packet, replace the dst address */
-            if (pkt) {
+            if (idx >= 0) {
                 rte_memcpy(&pkt->eth_dst_addr, &arp->arp_data.arp_sha, 6);
-                pktgen_set_q_flags(info, get_txque(pktgen.l2p, rte_lcore_id(), pid), DO_TX_FLUSH);
                 pktgen_clear_display();
             }
             return;
         }
 
-        pkt = pktgen_find_matching_ipsrc(info, arp->arp_data.arp_tip);
+        idx = pktgen_find_matching_ipsrc(info, arp->arp_data.arp_tip);
 
         /* ARP request not for this interface. */
-        if (likely(pkt != NULL)) {
+        if (likely(idx >= 0)) {
             struct rte_mbuf *m1;
 
+            pkt = &info->seq_pkt[idx];
             m1 = rte_pktmbuf_copy(m, info->special_mp, 0, UINT32_MAX);
-            if (unlikely(m1 == NULL)) {
-                printf("%s: special MP  is empty\n", __func__);
+            if (unlikely(m1 == NULL))
                 return;
-            }
             eth = rte_pktmbuf_mtod(m1, struct rte_ether_hdr *);
             arp = (struct rte_arp_hdr *)&eth[1];
 
             /* Grab the source MAC address as the destination address for the port. */
             if (unlikely(pktgen.flags & MAC_FROM_ARP_FLAG)) {
-                uint32_t i;
-
                 rte_memcpy(&pkt->eth_dst_addr, &arp->arp_data.arp_sha, 6);
-                for (i = 0; i < info->seqCnt; i++)
+                for (uint32_t i = 0; i < info->seqCnt; i++)
                     pktgen_packet_ctor(info, i, -1);
             }
 
@@ -161,18 +185,21 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
             rte_memcpy(&arp->arp_data.arp_sha, &pkt->eth_src_addr, 6);
             rte_memcpy(&eth->src_addr, &pkt->eth_src_addr, 6);
 
-            rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, m1);
+            m1->ol_flags = 0;
 
-            /* Flush all of the packets in the queue. */
-            pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
+            rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, m1);
 
             return;
         }
     } else if (arp->arp_opcode == htons(ARP_REPLY)) {
-        pkt = pktgen_find_matching_ipsrc(info, arp->arp_data.arp_tip);
+        int idx;
+
+        idx = pktgen_find_matching_ipsrc(info, arp->arp_data.arp_tip);
 
         /* ARP request not for this interface. */
-        if (likely(pkt != NULL)) {
+        if (likely(idx >= 0)) {
+            pkt = &info->seq_pkt[idx];
+
             /* Grab the real destination MAC address */
             if (pkt->ip_dst_addr.addr.ipv4.s_addr == ntohl(arp->arp_data.arp_sip))
                 rte_memcpy(&pkt->eth_dst_addr, &arp->arp_data.arp_sha, 6);

@@ -323,6 +323,10 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 
     /* Send all of the packets before we can exit this function */
     while (cnt) {
+        if (!pktgen_tst_port_flags(info, SENDING_PACKETS)) {
+            rte_pktmbuf_free_bulk(pkts, cnt);
+            break;
+        }
         if (rnd)
             pktgen_rnd_bits_apply(info, pkts, cnt, NULL);
 

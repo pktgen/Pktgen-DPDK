@@ -18,6 +18,7 @@ extern "C" {
 
 void pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx);
 void pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan);
+void arp_pkt_dump(struct rte_mbuf *m);
 
 #ifdef __cplusplus
 }

@@ -2639,37 +2639,6 @@ pktgen_latsampler(lua_State *L)
 
 /**
  *
- * pktgen_garp - Enable or Disable GARP packet processing.
- *
- * DESCRIPTION
- * Enable or disable GARP packet processing.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_garp(lua_State *L)
-{
-    portlist_t portlist;
-
-    switch (lua_gettop(L)) {
-    default:
-        return luaL_error(L, "process, wrong number of arguments");
-    case 2:
-        break;
-    }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
-
-    foreach_port(portlist, enable_garp(info, estate((const char *)luaL_checkstring(L, 2))));
-
-    pktgen_update_display();
-    return 0;
-}
-
-/**
- *
  * pktgen_blink - Enable or disable port Led blinking.
  *
  * DESCRIPTION
@@ -3610,7 +3579,6 @@ static const char *lua_help_info[] = {
     "process        - Enable or disable input packet processing on a port\n",
     "capture        - Enable or disable capture packet processing on a port\n",
     "bonding        - Enable or disable bonding support for sending zero packets\n",
-    "garp           - Enable or disable GARP packet processing on a port\n",
     "blink          - Blink an led on a port\n",
     "help           - Return the help text\n",
     "Lua.help       - Lua command help text\n",
@@ -3792,7 +3760,6 @@ static const luaL_Reg pktgenlib[] = {
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
     {"bonding", pktgen_bonding}, /* Enable or disable bonding on a port */
 #endif
-    {"garp", pktgen_garp},         /* Enable or disable GARP packet processing on a port */
     {"blink", pktgen_blink},       /* Blink an led on a port */
     {"help", pktgen_help},         /* Return the help text */
     {"Lua.help", pktgen_lua_help}, /* Lua command help text */

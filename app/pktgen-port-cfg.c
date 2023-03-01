@@ -160,7 +160,6 @@ pktgen_config_ports(void)
     if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
         pktgen.nb_ports = RTE_MAX_ETHPORTS;
 
-    printf(" %-4s %-12s %-6s %-5s %s\n", "Port:", "Name", "IfIndex", "NUMA", "PCI");
     for (int i = 0; i < pktgen.nb_ports; i++) {
         struct rte_eth_dev_info dev;
         char buff[64];
@@ -380,10 +379,10 @@ pktgen_config_ports(void)
             struct rte_eth_txconf *txconf;
 
             /* Add a few extra entries to account for special pkts i.e., latency */
-            info->q[q].txbuff = calloc(1, RTE_ETH_TX_BUFFER_SIZE(MAX_PKT_RX_BURST + 4));
+            info->q[q].txbuff = calloc(1, RTE_ETH_TX_BUFFER_SIZE(MAX_PKT_RX_BURST));
             if (info->q[q].txbuff == NULL)
                 pktgen_log_panic("Cannot allocat rte_eth_dev_tx_buffer structure\n");
-            rte_eth_tx_buffer_init(info->q[q].txbuff, MAX_PKT_TX_BURST + 4);
+            rte_eth_tx_buffer_init(info->q[q].txbuff, MAX_PKT_TX_BURST);
 
             rte_eth_tx_buffer_set_err_callback(info->q[q].txbuff, pktgen_tx_retry_callback,
                                                info->q[q].txbuff);

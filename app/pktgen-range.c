@@ -629,11 +629,11 @@ pktgen_print_range(void)
                  range->tcp_flags & FIN_FLAG ? "F" : ".");
         scrn_printf(row++, col, "%*s", col_1, str);
 
-        snprintf(str, sizeof(str), "%5u:%5u/%5u/%5u", range->tcp_seq, range->tcp_seq_min,
+        snprintf(str, sizeof(str), "%x:%x/%x/%x", range->tcp_seq, range->tcp_seq_min,
                  range->tcp_seq_max, range->tcp_seq_inc);
         scrn_printf(row++, col, "%*s", col_1, str);
 
-        snprintf(str, sizeof(str), "%5u:%5u/%5u/%5u", range->tcp_ack, range->tcp_ack_min,
+        snprintf(str, sizeof(str), "%x:%x/%x/%x", range->tcp_ack, range->tcp_ack_min,
                  range->tcp_ack_max, range->tcp_ack_inc);
         scrn_printf(row++, col, "%*s", col_1, str);
 

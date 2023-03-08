@@ -6,6 +6,10 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 23.03.0 - Update and fix a number of issues with latency. Some values were not updated
+             or displayed on screen or in a Lua script when getting port stats.
+             Latency packets are not able to be sent in any mode, instead of only being able
+             to send and report latencies in latency mode.
  - 22.07.2 - Changed the number of queues from 16 to 64.
  - 22.07.1 - Update copyright dates and other minor fixes
  - 22.07.0 - Add new rx/tx burst options.

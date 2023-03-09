@@ -56,7 +56,7 @@ pktgen_exit(lua_State *L __rte_unused)
 static inline double
 cycles_to_us(uint64_t cycles)
 {
-    return (cycles == 0) ? 0.0 : ((1.0/pktgen.hz) * (double)cycles)*Million;
+    return (cycles == 0) ? 0.0 : ((1.0 / pktgen.hz) * (double)cycles) * Million;
 }
 
 /**
@@ -2882,7 +2882,7 @@ static void
 pkt_stats(lua_State *L, port_info_t *info)
 {
     struct rte_ether_addr ethaddr;
-    char mac_buf[32] = {0};
+    char mac_buf[32]  = {0};
     pkt_stats_t stats = {0};
     latency_t *lat;
 
@@ -2923,7 +2923,7 @@ pkt_stats(lua_State *L, port_info_t *info)
     setf_number(L, "avg_us", cycles_to_us(lat->avg_cycles));
     setf_number(L, "max_us", cycles_to_us(lat->max_cycles));
     lua_settable(L, -3);
-    
+
     /* Now set the table as an array with pid as the index. */
     lua_rawset(L, -3);
 }
@@ -3062,9 +3062,9 @@ static void
 port_info(lua_State *L, port_info_t *info)
 {
     struct rte_eth_dev_info dev = {0};
-    eth_stats_t stats = {0};
-    pkt_stats_t pkt_stats = {0};
-    port_sizes_t sizes = {0};
+    eth_stats_t stats           = {0};
+    pkt_stats_t pkt_stats       = {0};
+    port_sizes_t sizes          = {0};
     pkt_seq_t *pkt;
     char buff[32] = {0};
 
@@ -3202,7 +3202,8 @@ port_info(lua_State *L, port_info_t *info)
         sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
         rte_eth_dev_get_name_by_port(info->pid, name);
-        snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
+        snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
+                 rte_dev_name(dev.device));
     } else
         snprintf(buff, sizeof(buff), "%04x:%04x/%02x:%02d.%d", 0, 0, 0, 0, 0);
     setf_string(L, "pci_vendor", buff);

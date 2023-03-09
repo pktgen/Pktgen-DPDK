@@ -59,6 +59,22 @@ cycles_to_us(uint64_t cycles)
     return (cycles == 0) ? 0.0 : ((1.0 / pktgen.hz) * (double)cycles) * Million;
 }
 
+static inline portlist_t
+pktgen_get_portlist(lua_State *L, int index)
+{
+    portlist_t portlist = INVALID_PORTLIST;
+
+    if (lua_isstring(L, index)) {
+        if (portlist_parse(luaL_checkstring(L, 1), &portlist) < 0)
+            portlist = INVALID_PORTLIST;
+    } else if (lua_isnumber(L, index))
+        portlist = (uint64_t)lua_tonumber(L, index);
+    else if (lua_isinteger(L, index))
+        portlist = (uint64_t)lua_tointeger(L, index);
+
+    return portlist;
+}
+
 /**
  *
  * setf_integer - Helper routine to set Lua variables.
@@ -186,7 +202,9 @@ pktgen_set(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     what  = (char *)luaL_checkstring(L, 2);
     value = luaL_checknumber(L, 3);
 
@@ -237,7 +255,9 @@ set_seq(lua_State *L, uint32_t seqnum)
     struct pg_ipaddr ip_saddr;
     char *proto, *ip;
 
-    portlist_parse(luaL_checkstring(L, 2), &portlist);
+    portlist = pktgen_get_portlist(L, 2);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     pg_ether_aton(luaL_checkstring(L, 3), &daddr);
     pg_ether_aton(luaL_checkstring(L, 4), &saddr);
 
@@ -333,7 +353,9 @@ set_seqTable(lua_State *L, uint32_t seqnum)
     struct pg_ipaddr ip_saddr;
     char *ipProto, *ethType;
 
-    portlist_parse(luaL_checkstring(L, 2), &portlist);
+    portlist = pktgen_get_portlist(L, 2);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     getf_etheraddr(L, "eth_dst_addr", &daddr);
     getf_etheraddr(L, "eth_src_addr", &saddr);
@@ -444,7 +466,9 @@ pktgen_icmp(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     foreach_port(portlist, enable_icmp_echo(info, estate((char *)luaL_checkstring(L, 2))));
     return 0;
 }
@@ -474,7 +498,9 @@ pktgen_sendARP(lua_State *L)
         break;
     }
     what = (char *)luaL_checkstring(L, 2);
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     foreach_port(portlist, pktgen_send_arp_requests(info, (what[0] == 'g') ? GRATUITOUS_ARP : 0));
     return 0;
 }
@@ -503,7 +529,9 @@ pktgen_set_mac(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
     foreach_port(portlist, single_set_mac(info, luaL_checkstring(L, 2), &mac));
@@ -569,7 +597,9 @@ pktgen_prototype(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     type = (char *)luaL_checkstring(L, 2);
 
     foreach_port(portlist, single_set_proto(info, type));
@@ -605,7 +635,9 @@ pktgen_set_ip_addr(lua_State *L)
         break;
     }
     type = (char *)luaL_checkstring(L, 2);
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     if (type[0] == 's')
         flags = PG_IPADDR_NETWORK;
     ip_ver = _atoip(luaL_checkstring(L, 3), flags, &ipaddr, sizeof(struct pg_ipaddr));
@@ -641,7 +673,9 @@ pktgen_set_type(lua_State *L)
         break;
     }
     type = (char *)luaL_checkstring(L, 2);
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, single_set_pkt_type(info, type));
 
@@ -672,7 +706,9 @@ pktgen_send_ping4(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_ping4(info));
 
@@ -703,7 +739,9 @@ pktgen_send_ping6(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_ping6(info));
 
@@ -736,7 +774,9 @@ pktgen_pcap(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     what = (char *)luaL_checkstring(L, 2);
 
     foreach_port(portlist, enable_pcap(info, estate(what)));
@@ -767,7 +807,9 @@ pktgen_start(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_start_transmitting(info));
 
@@ -797,7 +839,9 @@ pktgen_stop(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_stop_transmitting(info));
     return 0;
@@ -851,7 +895,9 @@ pktgen_prime(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_prime_ports(info));
     return 0;
@@ -1120,7 +1166,9 @@ pktgen_clear(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_clear_stats(info));
     pktgen_update_display();
@@ -1212,7 +1260,9 @@ pktgen_reset_config(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_reset(info));
 
@@ -1242,7 +1292,9 @@ pktgen_restart(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pktgen_port_restart(info));
 
@@ -1273,7 +1325,9 @@ range_dst_mac(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
     foreach_port(portlist, range_set_dest_mac(info, luaL_checkstring(L, 2), &mac));
@@ -1306,7 +1360,9 @@ range_src_mac(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     pg_ether_aton(luaL_checkstring(L, 3), &mac);
 
     foreach_port(portlist, range_set_src_mac(info, luaL_checkstring(L, 2), &mac));
@@ -1340,7 +1396,9 @@ range_set_type(lua_State *L)
         break;
     }
     type = (char *)luaL_checkstring(L, 2);
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, range_set_pkt_type(info, type));
 
@@ -1373,7 +1431,9 @@ range_dst_ip(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     _atoip(luaL_checkstring(L, 3), 0, &ipaddr, sizeof(struct pg_ipaddr));
 
     type = (char *)luaL_checkstring(L, 2);
@@ -1408,7 +1468,9 @@ range_src_ip(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     _atoip(luaL_checkstring(L, 3), 0, &ipaddr, sizeof(ipaddr));
 
     type = (char *)luaL_checkstring(L, 2);
@@ -1441,7 +1503,9 @@ range_dst_port(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist,
                  range_set_dst_port(info, (char *)luaL_checkstring(L, 2), luaL_checkinteger(L, 3)));
@@ -1474,7 +1538,9 @@ range_ip_proto(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     ip = luaL_checkstring(L, 2);
     foreach_port(portlist, range_set_proto(info, ip));
@@ -1506,7 +1572,9 @@ range_src_port(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist,
                  range_set_src_port(info, (char *)luaL_checkstring(L, 2), luaL_checkinteger(L, 3)));
@@ -1538,7 +1606,9 @@ range_ttl(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist,
                  range_set_ttl(info, (char *)luaL_checkstring(L, 2), luaL_checkinteger(L, 3)));
@@ -1570,7 +1640,9 @@ range_hop_limits(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, range_set_hop_limits(info, (char *)luaL_checkstring(L, 2),
                                                 luaL_checkinteger(L, 3)));
@@ -1602,7 +1674,9 @@ range_gtpu_teid(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, range_set_gtpu_teid(info, (char *)luaL_checkstring(L, 2),
                                                luaL_checkinteger(L, 3)));
@@ -1635,7 +1709,9 @@ range_vlan_id(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     vlan_id = luaL_checkinteger(L, 3);
 
     foreach_port(portlist, range_set_vlan_id(info, (char *)luaL_checkstring(L, 2), vlan_id));
@@ -1668,7 +1744,9 @@ range_cos(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     cos = luaL_checkinteger(L, 3);
 
     foreach_port(portlist, range_set_cos_id(info, (char *)luaL_checkstring(L, 2), cos));
@@ -1701,7 +1779,9 @@ range_tos(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     tos = luaL_checkinteger(L, 3);
 
     foreach_port(portlist, range_set_tos_id(info, (char *)luaL_checkstring(L, 2), tos));
@@ -1734,7 +1814,9 @@ range_traffic_class(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     traffic_class = luaL_checkinteger(L, 3);
 
     foreach_port(portlist,
@@ -1768,7 +1850,9 @@ single_vlan_id(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     vlanid = luaL_checkinteger(L, 2);
     if ((vlanid < MIN_VLAN_ID) || (vlanid > MAX_VLAN_ID))
         vlanid = 1;
@@ -1803,7 +1887,9 @@ single_cos(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     cos = luaL_checkinteger(L, 3);
     if (cos > MAX_COS)
         cos = 0;
@@ -1838,7 +1924,9 @@ single_tos(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     tos = luaL_checkinteger(L, 2);
 
     foreach_port(portlist, single_set_tos(info, tos));
@@ -1872,7 +1960,9 @@ single_vxlan_id(lua_State *L)
     case 4:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     flags    = luaL_checkinteger(L, 2);
     group_id = luaL_checkinteger(L, 3);
     vxlan_id = luaL_checkinteger(L, 4);
@@ -1906,7 +1996,9 @@ single_vlan(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_vlan(info, estate(luaL_checkstring(L, 2))));
 
@@ -1937,7 +2029,9 @@ single_vxlan(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_vxlan(info, estate(luaL_checkstring(L, 2))));
 
@@ -1969,7 +2063,9 @@ range_mpls_entry(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     mpls_entry = strtoul(luaL_checkstring(L, 2), NULL, 16);
 
     foreach_port(portlist, range_set_mpls_entry(info, mpls_entry));
@@ -2001,7 +2097,9 @@ pktgen_mpls(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_mpls(info, estate(luaL_checkstring(L, 2))));
 
@@ -2033,7 +2131,9 @@ range_qinqids(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     qinq_id1 = luaL_checkinteger(L, 2);
     if ((qinq_id1 < MIN_VLAN_ID) || (qinq_id1 > MAX_VLAN_ID))
         qinq_id1 = 1;
@@ -2071,7 +2171,9 @@ pktgen_qinq(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_qinq(info, estate(luaL_checkstring(L, 2))));
 
@@ -2103,7 +2205,9 @@ range_gre_key(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     gre_key = luaL_checkinteger(L, 2);
 
     foreach_port(portlist, range_set_gre_key(info, gre_key));
@@ -2135,7 +2239,9 @@ pktgen_gre(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_gre(info, estate(luaL_checkstring(L, 2))));
 
@@ -2166,7 +2272,9 @@ pktgen_gre_eth(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_gre_eth(info, estate(luaL_checkstring(L, 2))));
 
@@ -2199,7 +2307,9 @@ range_pkt_size(lua_State *L)
     case 3:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     type = (char *)luaL_checkstring(L, 2);
     size = luaL_checkinteger(L, 3);
 
@@ -2232,7 +2342,9 @@ range(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_range(info, estate((const char *)luaL_checkstring(L, 2))));
 
@@ -2263,7 +2375,9 @@ pktgen_latency(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_latency(info, estate((const char *)luaL_checkstring(L, 2))));
 
@@ -2294,7 +2408,9 @@ pktgen_jitter(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, single_set_jitter(info, luaL_checkinteger(L, 2)));
 
@@ -2325,7 +2441,9 @@ pktgen_pattern(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pattern_set_type(info, (char *)luaL_checkstring(L, 2)));
 
@@ -2356,7 +2474,9 @@ pktgen_user_pattern(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, pattern_set_user_pattern(info, (char *)luaL_checkstring(L, 2)));
 
@@ -2437,7 +2557,9 @@ pktgen_process(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_process(info, estate((const char *)luaL_checkstring(L, 2))));
 
@@ -2468,7 +2590,9 @@ pktgen_capture(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_capture(info, estate((const char *)luaL_checkstring(L, 2))));
 
@@ -2500,7 +2624,9 @@ pktgen_bonding(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_bonding(info, estate((const char *)luaL_checkstring(L, 2))));
 
@@ -2532,7 +2658,9 @@ pktgen_rxtap(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_rx_tap(info, estate((char *)luaL_checkstring(L, 2))));
 
@@ -2563,7 +2691,9 @@ pktgen_txtap(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, enable_tx_tap(info, estate((char *)luaL_checkstring(L, 2))));
 
@@ -2594,7 +2724,9 @@ pktgen_latsampler_params(lua_State *L)
     case 5:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, single_set_latsampler_params(info, (char *)luaL_checkstring(L, 2),
                                                         (uint32_t)luaL_checkinteger(L, 3),
@@ -2628,7 +2760,9 @@ pktgen_latsampler(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist,
                  pktgen_start_stop_latency_sampler(info, estate((char *)luaL_checkstring(L, 2))));
@@ -2660,7 +2794,9 @@ pktgen_blink(lua_State *L)
     case 2:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, debug_blink(info, estate((const char *)luaL_checkstring(L, 2))));
 
@@ -2719,7 +2855,9 @@ pktgen_isSending(lua_State *L)
     case 1:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     lua_newtable(L);
 
@@ -2779,8 +2917,9 @@ pktgen_linkState(lua_State *L)
     case 1:
         break;
     }
-    portlist = 0;
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     lua_newtable(L);
 
@@ -2853,8 +2992,9 @@ pktgen_portSizes(lua_State *L)
     case 1:
         break;
     }
-    portlist = 0;
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     lua_newtable(L);
 
@@ -2952,8 +3092,9 @@ pktgen_pktStats(lua_State *L)
     case 1:
         break;
     }
-    portlist = 0;
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     lua_newtable(L);
 
@@ -3033,7 +3174,9 @@ pktgen_portStats(lua_State *L)
         break;
     }
 
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
     type = (char *)luaL_checkstring(L, 2);
 
     lua_newtable(L);
@@ -3264,7 +3407,9 @@ pktgen_portInfo(lua_State *L)
         break;
     }
 
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     lua_newtable(L);
 
@@ -3379,9 +3524,9 @@ pktgen_rnd(lua_State *L)
     case 4:
         break;
     }
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
-    if (portlist == 0)
-        return 0;
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
 
     msk = luaL_checkstring(L, 4);
     if (strcmp(msk, "off"))
@@ -3467,9 +3612,11 @@ pktgen_rnd_list(lua_State *L)
     case 0:
         break;
     }
-    if (lua_gettop(L) == 1)
-        portlist_parse(luaL_checkstring(L, 1), &portlist);
-    else
+    if (lua_gettop(L) == 1) {
+        portlist = pktgen_get_portlist(L, 1);
+        if (portlist == INVALID_PORTLIST)
+            return luaL_error(L, "invalid portlist");
+    } else
         portlist = -1;
 
     lua_newtable(L);

@@ -10,6 +10,8 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
              or displayed on screen or in a Lua script when getting port stats.
              Latency packets are not able to be sent in any mode, instead of only being able
              to send and report latencies in latency mode.
+             When using a portlist in lua it can be a single port in a string, a string range
+             or a single port using a Lua Number or Integer
  - 22.07.2 - Changed the number of queues from 16 to 64.
  - 22.07.1 - Update copyright dates and other minor fixes
  - 22.07.0 - Add new rx/tx burst options.

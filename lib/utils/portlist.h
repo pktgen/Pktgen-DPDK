@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 typedef uint64_t portlist_t;
+#define INVALID_PORTLIST ((portlist_t)-1)
 
 /**
  * Parse a portlist string into a mask or bitmap value.

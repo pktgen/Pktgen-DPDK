@@ -3064,20 +3064,6 @@ pkt_stats(lua_State *L, port_info_t *info)
     setf_number(L, "max_us", cycles_to_us(lat->max_cycles));
     lua_settable(L, -3);
 
-    setf_integer(L, "rate_ms", lat->latency_rate_ms);
-    setf_integer(L, "jitter_threshold", lat->jitter_threshold_us);
-
-    setf_integer(L, "jitter_count", lat->jitter_count);
-    setf_integer(L, "num_pkts", lat->num_latency_pkts);
-    setf_integer(L, "num_skipped", lat->num_skipped);
-    setf_integer(L, "min_cycles", lat->min_cycles);
-    setf_integer(L, "avg_cycles", lat->avg_cycles);
-    setf_integer(L, "max_cycles", lat->max_cycles);
-    setf_number(L, "min_us", cycles_to_us(lat->min_cycles));
-    setf_number(L, "avg_us", cycles_to_us(lat->avg_cycles));
-    setf_number(L, "max_us", cycles_to_us(lat->max_cycles));
-    lua_settable(L, -3);
-    
     /* Now set the table as an array with pid as the index. */
     lua_rawset(L, -3);
 }

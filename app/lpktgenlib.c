@@ -3024,6 +3024,7 @@ pkt_stats(lua_State *L, port_info_t *info)
     struct rte_ether_addr ethaddr;
     char mac_buf[32]  = {0};
     pkt_stats_t stats = {0};
+    unsigned nb_pkts;
     latency_t *lat;
 
     pktgen_pkt_stats(info->pid, &stats);
@@ -3052,6 +3053,9 @@ pkt_stats(lua_State *L, port_info_t *info)
 
     setf_integer(L, "rate_ms", lat->latency_rate_ms);
     setf_integer(L, "jitter_threshold", lat->jitter_threshold_us);
+
+    nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
+    lat->avg_cycles = (lat->running_cycles / nb_pkts);
 
     setf_integer(L, "jitter_count", lat->jitter_count);
     setf_integer(L, "num_pkts", lat->num_latency_pkts);

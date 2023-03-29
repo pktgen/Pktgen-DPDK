@@ -100,11 +100,7 @@ scrn_stdin_setup(void)
 	if (!scrn)
 		return -1;
 
-	scrn_set_io(stdin, stdout);
-
-	memset(&scrn->oldterm, 0, sizeof(term));
-	if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm) ||
-	    tcgetattr(fileno(scrn->fd_in), &term)) {
+	if (tcgetattr(fileno(scrn->fd_in), &term)) {
 		fprintf(stderr, "%s: setup failed for tty\n", __func__);
 		return -1;
 	}
@@ -232,4 +228,8 @@ RTE_INIT(scrn_constructor)
 	memset(scrn, 0, sizeof(struct cli_scrn));
 
 	this_scrn = scrn;
+
+	scrn_set_io(stdin, stdout);
+	memset(&this_scrn->oldterm, 0, sizeof(struct termios));
+	tcgetattr(fileno(this_scrn->fd_in), &this_scrn->oldterm);
 }

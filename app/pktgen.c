@@ -1328,7 +1328,6 @@ pktgen_main_tx_loop(uint8_t lid)
                 pktgen_packet_rate(infos[0]);
                 pktgen.tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
             }
-            continue;
         }
 
         /* Determine when is the next time to send packets */

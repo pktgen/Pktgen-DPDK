@@ -100,14 +100,7 @@ scrn_stdin_setup(void)
 	if (!scrn)
 		return -1;
 
-	scrn_set_io(stdin, stdout);
-
-	memset(&scrn->oldterm, 0, sizeof(term));
-	if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm) ||
-	    tcgetattr(fileno(scrn->fd_in), &term)) {
-		fprintf(stderr, "%s: setup failed for tty\n", __func__);
-		return -1;
-	}
+	memcpy(&term, &scrn->oldterm, sizeof(term));
 
 	term.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
 
@@ -129,9 +122,6 @@ scrn_stdin_restore(void)
 
 	if (tcsetattr(fileno(scrn->fd_in), TCSANOW, &scrn->oldterm))
 		fprintf(stderr, "%s: failed to set tty\n", __func__);
-
-	if (system("stty sane"))
-		fprintf(stderr, "%s: system command failed\n", __func__);
 }
 
 static void
@@ -148,7 +138,6 @@ handle_winch(int sig)
 	this_scrn->ncols = w.ws_col;
 
 	/* Need to refresh the screen */
-	//cli_clear_screen();
 	cli_clear_line(-1);
 	cli_redisplay_line();
 }
@@ -185,8 +174,6 @@ scrn_create(int scrn_type, int theme)
 	} else if (scrn_type == SCRN_NOTTY_TYPE) {
 		scrn->nrows = 24;
 		scrn->ncols = 80;
-
-		scrn_set_io(stdin, stdout);
 	} else {
 		fprintf(stderr, "%s: unexpected scrn_type %d\n",
 			__func__, scrn_type);
@@ -229,7 +216,11 @@ RTE_INIT(scrn_constructor)
 		exit(-1);
 	}
 
-	memset(scrn, 0, sizeof(struct cli_scrn));
-
 	this_scrn = scrn;
+
+	scrn_set_io(stdin, stdout);
+	if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm)) {
+	    fprintf(stderr, "%s: tcgetattr failed\n", __func__);
+		exit(-1);
+	}
 }

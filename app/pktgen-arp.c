@@ -188,7 +188,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
             m1->ol_flags = 0;
 
             rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, m1);
-
+            rte_eth_tx_buffer_flush(info->pid, qid, info->q[qid].txbuff);
             return;
         }
     } else if (arp->arp_opcode == htons(ARP_REPLY)) {

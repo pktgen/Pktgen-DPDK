@@ -260,6 +260,7 @@ pktgen_tstamp_inject(port_info_t *info, uint16_t qid)
         mbuf->ol_flags = 0;
 
         rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, mbuf);
+        rte_eth_tx_buffer_flush(info->pid, qid, info->q[qid].txbuff);
     } else
         printf("*** No more latency packets\n");
 }

@@ -44,7 +44,7 @@ pktgen_data_field(struct rte_mbuf *m)
 }
 
 static inline void
-pktmbuf_reset(struct rte_mbuf *m)
+pktmbuf_restore(struct rte_mbuf *m)
 {
 	union pktgen_data d;
 
@@ -88,7 +88,7 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 			rc = rte_mempool_get(pool, (void **)&m);
 			if (unlikely(rc))
 				break;
-			pktmbuf_reset(m);
+			pktmbuf_restore(m);
 			mbufs[idx] = m;
 		}
 		return idx;
@@ -104,19 +104,19 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 	switch (count % 4) {
 	case 0:
 		while (idx != count) {
-			pktmbuf_reset(mbufs[idx]);
+			pktmbuf_restore(mbufs[idx]);
 			idx++;
 			/* fall-through */
 	case 3:
-			pktmbuf_reset(mbufs[idx]);
+			pktmbuf_restore(mbufs[idx]);
 			idx++;
 			/* fall-through */
 	case 2:
-			pktmbuf_reset(mbufs[idx]);
+			pktmbuf_restore(mbufs[idx]);
 			idx++;
 			/* fall-through */
 	case 1:
-			pktmbuf_reset(mbufs[idx]);
+			pktmbuf_restore(mbufs[idx]);
 			idx++;
 			/* fall-through */
 		}

@@ -1466,8 +1466,6 @@ debug_mempool_dump(port_info_t *info, char *name)
     }
     if (all || !strcmp(name, "arp"))
         __mempool_dump(stdout, info->special_mp);
-    if (all || !strcmp(name, "lat") || !strcmp(name, "latency"))
-        __mempool_dump(stdout, info->latency_mp);
 }
 
 /**
@@ -2815,14 +2813,12 @@ pktgen_reset(port_info_t *info)
     /* Make sure the port is active and enabled. */
     if (info->seq_pkt) {
         info->seq_pkt[SINGLE_PKT].pktSize = MIN_PKT_SIZE;
-        info->seq_pkt[RATE_PKT].pktSize   = MIN_PKT_SIZE;
 
         for (s = 0; s < NUM_TOTAL_PKTS; s++)
             pktgen_port_defaults(info->pid, s);
 
         pktgen_range_setup(info);
         pktgen_rate_setup(info);
-        pktgen_latency_setup(info);
         pktgen_clear_stats(info);
 
         enable_range(info, estate(off));

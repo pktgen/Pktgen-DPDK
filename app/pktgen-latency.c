@@ -328,4 +328,5 @@ pktgen_latency_setup(port_info_t *info)
     pkt->pktSize = LATENCY_PKT_SIZE;
     pkt->ipProto = PG_IPPROTO_UDP;
     pkt->ethType = RTE_ETHER_TYPE_IPV4;
+    pkt->dport   = LATENCY_DPORT;
 }

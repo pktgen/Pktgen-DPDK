@@ -77,7 +77,7 @@ get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, int
         pciAddr[idx].function = strtol(p, &p, 16);
 
         if (verbose)
-            fprintf(stdout, " 0x%016llx: %s\n", (1ULL << idx), buff);
+            fprintf(stdout, " 0x%016"PRIx64": %s\n", (1UL << idx), buff);
 
         /* Save the port description for later if asked to do so. */
         if (portdesc) {
@@ -156,7 +156,7 @@ create_blocklist(uint64_t portmask, struct rte_pci_addr *portlist, uint32_t port
     idx = 0;
     for (i = 0; i < port_cnt; i++) {
         memset(pci_addr_str, 0, sizeof(pci_addr_str));
-        if ((portmask & (1ULL << i)) == 0) {
+        if ((portmask & (1UL << i)) == 0) {
             fprintf(stdout, "-- %s\n", desc[i]);
             snprintf(pci_addr_str, sizeof(pci_addr_str), "%s", desc[i]);
             rte_devargs_add(RTE_DEVTYPE_BLOCKED, pci_addr_str);

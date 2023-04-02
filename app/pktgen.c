@@ -217,22 +217,18 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 static __inline__ tstamp_t *
 pktgen_tstamp_pointer(port_info_t *info, char *p)
 {
-    pkt_seq_t *pkt = &info->seq_pkt[LATENCY_PKT];
-    tstamp_t *tstamp;
+    char *ptr;
+
+    (void)info;
 
     p += sizeof(struct rte_ether_hdr);
-
-    p += (pkt->ethType == RTE_ETHER_TYPE_IPV4) ? sizeof(struct rte_ipv4_hdr)
-                                               : sizeof(struct rte_ipv6_hdr);
-
-    p += (pkt->ipProto == PG_IPPROTO_UDP) ? sizeof(struct rte_udp_hdr) : sizeof(struct rte_tcp_hdr);
+    p += sizeof(struct rte_ipv4_hdr);
+    p += sizeof(struct rte_udp_hdr);
 
     /* Force pointer to be aligned correctly */
-    p = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
+    ptr = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
 
-    tstamp = (tstamp_t *)p;
-
-    return tstamp;
+    return (tstamp_t *)ptr;
 }
 
 static inline void
@@ -241,9 +237,7 @@ pktgen_tstamp_inject(port_info_t *info, uint16_t qid)
     pkt_seq_t *pkt = &info->seq_pkt[LATENCY_PKT];
     rte_mbuf_t *mbuf;
 
-    pktgen_latency_setup(info);
-
-    mbuf = rte_pktmbuf_alloc(info->latency_mp);
+    mbuf = rte_pktmbuf_alloc(info->special_mp);
     if (mbuf) {
         uint16_t pktsize = pkt->pktSize;
 
@@ -253,16 +247,14 @@ pktgen_tstamp_inject(port_info_t *info, uint16_t qid)
         mbuf->data_len = pktsize;
 
         /* IPv4 Header constructor */
-        pktgen_packet_ctor(info, LATENCY_PKT, LATENCY_PKT_TYPE);
+        pktgen_packet_ctor(info, LATENCY_PKT, -1);
 
         rte_memcpy(rte_pktmbuf_mtod(mbuf, uint8_t *), (uint8_t *)&pkt->hdr, pktsize);
-
-        mbuf->ol_flags = 0;
 
         rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, mbuf);
         rte_eth_tx_buffer_flush(info->pid, qid, info->q[qid].txbuff);
     } else
-        printf("*** No more latency packets\n");
+        printf("*** No more latency buffers\n");
 }
 
 static inline void
@@ -314,69 +306,68 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 }
 
 static __inline__ void
-pktgen_recv_tstamp(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
+pktgen_tstamp_check(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
     int lid = rte_lcore_id();
     int qid = get_rxque(pktgen.l2p, lid, info->pid);
     int i;
     uint64_t cycles, jitter;
+    latency_t *lat = &info->latency;
 
     for (i = 0; i < nb_pkts; i++) {
 
         if (pktgen_tst_port_flags(info, ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS)) {
-            tstamp_t *tstamp;
-            tstamp = pktgen_tstamp_pointer(info, rte_pktmbuf_mtod(pkts[i], char *));
+            tstamp_t *tstamp = pktgen_tstamp_pointer(info, rte_pktmbuf_mtod(pkts[i], char *));
 
-            if (tstamp->magic == TSTAMP_MAGIC) {
-                latency_t *lat = &info->latency;
+            if (tstamp->magic != TSTAMP_MAGIC)
+                continue;
 
-                tstamp->magic = 0; /* clear timestamp magic cookie */
-                cycles        = (pktgen_get_time() - tstamp->timestamp);
+            cycles        = (pktgen_get_time() - tstamp->timestamp);
+            tstamp->magic = 0UL;      /* clear timestamp magic cookie */
 
-                if (tstamp->index != lat->expect_index) {
-                    lat->expect_index = tstamp->index + 1;
-                    lat->num_skipped++;
-                    continue; /* Skip this latency packet */
-                }
-                lat->expect_index++;
+            if (tstamp->index != lat->expect_index) {
+                lat->expect_index = tstamp->index + 1;
+                lat->num_skipped++;
+                continue; /* Skip this latency packet */
+            }
+            lat->expect_index++;
 
-                lat->num_latency_pkts++;
+            lat->num_latency_pkts++;
 
-                if (pktgen_tst_port_flags(info, ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS)) {
-                    lat->running_cycles += cycles;
+            if (pktgen_tst_port_flags(info, ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS)) {
+                lat->running_cycles += cycles;
 
-                    if (lat->min_cycles == 0 || cycles < lat->min_cycles)
-                        lat->min_cycles = cycles;
-                    if (lat->max_cycles == 0 || cycles > lat->max_cycles)
-                        lat->max_cycles = cycles;
+                if (lat->min_cycles == 0 || cycles < lat->min_cycles)
+                    lat->min_cycles = cycles;
+                if (lat->max_cycles == 0 || cycles > lat->max_cycles)
+                    lat->max_cycles = cycles;
 
-                    jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
-                                                         : lat->prev_cycles - cycles;
-                    if (jitter > lat->jitter_threshold_cycles)
-                        lat->jitter_count++;
+                jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
+                                                     : lat->prev_cycles - cycles;
+                if (jitter > lat->jitter_threshold_cycles)
+                    lat->jitter_count++;
 
-                    lat->prev_cycles = cycles;
-                }
-                if (pktgen_tst_port_flags(info, SAMPLING_LATENCIES)) {
-                    /* Record latency if it's time for sampling (seperately per lcore) */
-                    latsamp_stats_t *stats = &info->latsamp_stats[qid];
-                    uint64_t now           = pktgen_get_time();
+                lat->prev_cycles = cycles;
+            }
+            if (pktgen_tst_port_flags(info, SAMPLING_LATENCIES)) {
+                /* Record latency if it's time for sampling (seperately per lcore) */
+                latsamp_stats_t *stats = &info->latsamp_stats[qid];
+                uint64_t now           = pktgen_get_time();
 
-                    stats->pkt_counter++;
-                    if (stats->next == 0 || now >= stats->next) {
-                        if (stats->idx < stats->num_samples) {
-                            stats->data[stats->idx] = (cycles * Billion) / rte_get_tsc_hz();
-                            stats->idx++;
-                        }
-
-                        /* Calculate next sampling point */
-                        if (info->latsamp_type == LATSAMPLER_POISSON) {
-                            double next_possion_time_ns = next_poisson_time(info->latsamp_rate);
-
-                            stats->next = now + next_possion_time_ns * (double)rte_get_tsc_hz();
-                        } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
-                            stats->next = now + rte_get_tsc_hz() / info->latsamp_rate;
+                stats->pkt_counter++;
+                if (stats->next == 0 || now >= stats->next) {
+                    if (stats->idx < stats->num_samples) {
+                        stats->data[stats->idx] = (cycles * Billion) / rte_get_tsc_hz();
+                        stats->idx++;
                     }
+
+                    /* Calculate next sampling point */
+                    if (info->latsamp_type == LATSAMPLER_POISSON) {
+                        double next_possion_time_ns = next_poisson_time(info->latsamp_rate);
+
+                        stats->next = now + next_possion_time_ns * (double)rte_get_tsc_hz();
+                    } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
+                        stats->next = now + rte_get_tsc_hz() / info->latsamp_rate;
                 }
             }
         }
@@ -480,7 +471,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
     pktgen_fill_pattern((uint8_t *)&pkt->hdr, (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
                         info->fill_pattern_type, info->user_pattern);
 
-    if (type == LATENCY_PKT_TYPE) {
+    if (seq_idx == LATENCY_PKT) {
         latency_t *lat = &info->latency;
         tstamp_t *tstamp;
 
@@ -989,6 +980,12 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
     } else
         txCnt = info->tx_burst;
 
+    mlen = pg_pktmbuf_alloc_bulk(mp, pkts, txCnt);
+
+    for (int i = 0; i < mlen; i++)
+        rte_eth_tx_buffer(info->pid, qid, txbuff, pkts[i]);
+
+
     if (qid == 0) {
         uint32_t tstamp = pktgen_tst_port_flags(info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS));
         if (tstamp) {
@@ -999,17 +996,11 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
             if (curr_ts >= lat->latency_timo_cycles) {
                 lat->latency_timo_cycles = curr_ts + lat->latency_rate_cycles;
                 pktgen_tstamp_inject(info, qid);
-                txCnt--;
             }
         }
     }
 
-    mlen = pg_pktmbuf_alloc_bulk(mp, pkts, txCnt);
-
-    for (int i = 0; i < mlen; i++)
-        rte_eth_tx_buffer(info->pid, qid, txbuff, pkts[i]);
-
-    while(txbuff->length > 0)
+    while (txbuff->length > 0)
         rte_eth_tx_buffer_flush(info->pid, qid, txbuff);
 }
 
@@ -1104,7 +1095,7 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf **pkts_burst
     for (i = 0; i < nb_rx; i++)
         qstats->rxbytes += rte_pktmbuf_data_len(pkts_burst[i]);
 
-    pktgen_recv_tstamp(info, pkts_burst, nb_rx);
+    pktgen_tstamp_check(info, pkts_burst, nb_rx);
 
     /* packets are not freed in the next call. */
     pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid, qid);
@@ -1121,42 +1112,50 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf **pkts_burst
     rte_pktmbuf_free_bulk(pkts_burst, nb_rx);
 }
 
+struct pq_info {
+    port_info_t *infos[RTE_MAX_ETHPORTS];
+    uint16_t pids[RTE_MAX_ETHPORTS];
+    uint16_t qids[RTE_MAX_ETHPORTS];
+    uint16_t cnt;
+};
+
+typedef struct port_mapinfo_s {
+    uint16_t lid;
+    struct pq_info rx;
+    struct pq_info tx;
+} port_mapinfo_t;
+
 static void
-port_map_info(uint8_t lid, port_info_t **infos, uint8_t *qids, uint8_t *txcnt, uint8_t *rxcnt,
-              const char *msg)
+port_map_info(const char *msg, uint8_t lid, port_mapinfo_t *pm)
 {
-    uint8_t idx, pid, cnt = 0;
-    uint8_t rx, tx;
     char buf[256];
 
-    rx = get_lcore_rxcnt(pktgen.l2p, lid);
-    tx = get_lcore_txcnt(pktgen.l2p, lid);
+    if (pm == NULL)
+        return;
 
-    if (txcnt && rxcnt) {
-        *rxcnt = rx;
-        *txcnt = tx;
-        cnt    = tx;
-    } else if (rxcnt) {
-        *rxcnt = rx;
-        cnt    = rx;
-    } else if (txcnt) {
-        *txcnt = tx;
-        cnt    = tx;
+    pm->lid   = lid;
+    pm->rx.cnt = get_lcore_rxcnt(pktgen.l2p, pm->lid);
+    pm->tx.cnt = get_lcore_txcnt(pktgen.l2p, pm->lid);
+
+    snprintf(buf, sizeof(buf), "  %s processing lcore: %3d rx: %2d tx: %2d", msg, pm->lid,
+             pm->rx.cnt, pm->tx.cnt);
+
+    for (int i = 0; i < pm->rx.cnt; i++) {
+        pm->rx.pids[i] = get_rx_pid(pktgen.l2p, pm->lid, i);
+
+        if ((pm->rx.infos[i] = get_port_private(pktgen.l2p, pm->rx.pids[i])) == NULL)
+            rte_panic("Config error: No port %d found on lcore %d\n", pm->rx.pids[i], pm->lid);
+
+        pm->rx.qids[i] = get_rxque(pktgen.l2p, lid, pm->rx.pids[i]);
     }
 
-    snprintf(buf, sizeof(buf), "  %s processing lcore: %3d rx: %2d tx: %2d", msg, lid, rx, tx);
+    for (int i = 0; i < pm->tx.cnt; i++) {
+        pm->tx.pids[i] = get_tx_pid(pktgen.l2p, pm->lid, i);
 
-    for (idx = 0; idx < cnt; idx++) {
-        if (rxcnt)
-            pid = get_rx_pid(pktgen.l2p, lid, idx);
-        else
-            pid = get_tx_pid(pktgen.l2p, lid, idx);
+        if ((pm->tx.infos[i] = get_port_private(pktgen.l2p, pm->tx.pids[i])) == NULL)
+            rte_panic("Config error: No port %d found on lcore %d\n", pm->tx.pids[i], pm->lid);
 
-        if ((infos[idx] = get_port_private(pktgen.l2p, pid)) == NULL)
-            rte_panic("Config error: No port %d found on lcore %d\n", pid, lid);
-
-        if (qids)
-            qids[idx] = get_txque(pktgen.l2p, lid, pid);
+        pm->tx.qids[i] = get_txque(pktgen.l2p, lid, pm->tx.pids[i]);
     }
 
     pktgen_log_info("%s", buf);
@@ -1179,80 +1178,85 @@ static void
 pktgen_main_rxtx_loop(uint8_t lid)
 {
     struct rte_mbuf *pkts_burst[MAX_PKT_RX_BURST];
-    port_info_t *infos[RTE_MAX_ETHPORTS];
-    uint8_t qids[RTE_MAX_ETHPORTS];
-    uint8_t idx, txcnt, rxcnt;
+    port_mapinfo_t pmap;
     uint64_t curr_tsc;
 
-    memset(infos, '\0', sizeof(infos));
-    memset(qids, '\0', sizeof(qids));
+    memset(&pmap, 0, sizeof(pmap));
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
         rte_exit(0, "using initial lcore for port");
     }
-    port_map_info(lid, infos, qids, &txcnt, &rxcnt, "RX/TX");
+    port_map_info("RX/TX", lid, &pmap);
 
     curr_tsc             = pktgen_get_time();
-    pktgen.tx_next_cycle = pktgen_get_time() + infos[0]->tx_cycles;
+    pktgen.tx_next_cycle = pktgen_get_time() + pmap.tx.infos[0]->tx_cycles;
     pktgen.tx_bond_cycle = pktgen_get_time() + pktgen_get_timer_hz() / 10;
 
     pg_start_lcore(pktgen.l2p, lid);
 
-    if (rxcnt == 0)
+    if (pmap.rx.cnt == 0 || pmap.tx.cnt == 0)
         rte_panic("No ports found for %d lcore\n", lid);
 
     if (pktgen.verbose)
-        pktgen_log_info("For RX found %d port(s) for lcore %d", rxcnt, lid);
-    for (idx = 0; idx < rxcnt; idx++) {
-        if (infos[idx] == NULL)
-            rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
-    }
+        pktgen_log_info("For RX found %d port(s) for lcore %d", pmap.rx.cnt, lid);
 
-    if (txcnt == 0)
-        rte_panic("No ports found for %d lcore\n", lid);
+    for (int i = 0; i < pmap.rx.cnt; i++) {
+        if (pmap.rx.infos[i] == NULL)
+            rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", i, lid);
+    }
 
     if (pktgen.verbose)
-        pktgen_log_info("For TX found %d port(s) for lcore %d", txcnt, lid);
-    for (idx = 0; idx < txcnt; idx++) {
-        if (infos[idx] == NULL)
-            rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
+        pktgen_log_info("For TX found %d port(s) for lcore %d", pmap.tx.cnt, lid);
+
+    for (int i = 0; i < pmap.tx.cnt; i++) {
+        if (pmap.tx.infos[i] == NULL)
+            rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
-    for (idx = 0; idx < rxcnt; idx++) {
-        uint16_t pid = infos[idx]->pid;
+    for (int i = 0; i < pmap.rx.cnt; i++) {
+        uint16_t pid = pmap.rx.infos[i]->pid;
         int dev_sock = rte_eth_dev_socket_id(pid);
 
         if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
             rte_panic(
-                "*** port %u on socket ID %u has different socket ID on lcore %u socket ID %d\n",
+                "*** port %u on socket ID %u has different socket ID than lcore %u socket ID %d\n",
                 pid, rte_eth_dev_socket_id(pid), rte_lcore_id(), rte_socket_id());
     }
     while (pg_lcore_is_running(pktgen.l2p, lid)) {
-        for (idx = 0; idx < rxcnt; idx++) /* Read Packets */
-            pktgen_main_receive(infos[idx], lid, pkts_burst, infos[idx]->tx_burst);
+        /* Read Packets */
+        for (int i = 0; i < pmap.rx.cnt; i++) {
+            port_info_t *info = pmap.rx.infos[i];
+
+            pktgen_main_receive(info, lid, pkts_burst, info->tx_burst);
+        }
 
         curr_tsc = pktgen_get_time();
 
-        if (infos[0]->tx_cycles == 0) {
-            pktgen_get_link_status(infos[0], infos[0]->pid, 0);
-            if (infos[0]->link.link_status) {
-                pktgen_packet_rate(infos[0]);
-                pktgen.tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+        if (pmap.tx.infos[0]->tx_cycles == 0) {
+            pktgen_get_link_status(pmap.tx.infos[0], pmap.tx.infos[0]->pid, 0);
+            if (pmap.tx.infos[0]->link.link_status) {
+                pktgen_packet_rate(pmap.tx.infos[0]);
+                pktgen.tx_next_cycle = curr_tsc + pmap.tx.infos[0]->tx_cycles;
             }
         }
 
         /* Determine when is the next time to send packets */
         if (curr_tsc >= pktgen.tx_next_cycle) {
-            pktgen.tx_next_cycle = pktgen.tx_next_cycle + infos[0]->tx_cycles;
+            pktgen.tx_next_cycle = pktgen.tx_next_cycle + pmap.tx.infos[0]->tx_cycles;
 
-            for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
-                pktgen_main_transmit(infos[idx], qids[idx]);
+            for (int i = 0; i < pmap.tx.cnt; i++) { /* Transmit packets */
+                port_info_t *info = pmap.rx.infos[i];
+
+                pktgen_main_transmit(info, pmap.tx.qids[i]);
+            }
         } else if (curr_tsc >= pktgen.tx_bond_cycle) {
             pktgen.tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
-            for (idx = 0; idx < txcnt; idx++) { /* Transmit zero pkts for Bonding PMD */
-                if (pktgen_tst_port_flags(infos[idx], BONDING_TX_PACKETS))
-                    rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
+            for (int i = 0; i < pmap.tx.cnt; i++) { /* Transmit zero pkts for Bonding PMD */
+                port_info_t *info = pmap.tx.infos[i];
+
+                if (pktgen_tst_port_flags(info, BONDING_TX_PACKETS))
+                    rte_eth_tx_burst(info->pid, pmap.tx.qids[i], NULL, 0);
             }
         }
     }
@@ -1277,71 +1281,66 @@ pktgen_main_rxtx_loop(uint8_t lid)
 static void
 pktgen_main_tx_loop(uint8_t lid)
 {
-    uint8_t idx, txcnt;
-    port_info_t *infos[RTE_MAX_ETHPORTS];
-    uint8_t qids[RTE_MAX_ETHPORTS];
+    port_mapinfo_t pmap;
     uint64_t curr_tsc;
 
-    memset(infos, '\0', sizeof(infos));
-    memset(qids, '\0', sizeof(qids));
+    memset(&pmap, '\0', sizeof(pmap));
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
         rte_exit(0, "Invalid initial lcore assigned a port");
     }
 
-    port_map_info(lid, infos, qids, &txcnt, NULL, "TX");
+    port_map_info("TX", lid, &pmap);
 
     curr_tsc             = pktgen_get_time();
-    pktgen.tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+    pktgen.tx_next_cycle = curr_tsc + pmap.tx.infos[0]->tx_cycles;
     pktgen.tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
 
     pg_start_lcore(pktgen.l2p, lid);
 
-    if (txcnt == 0)
+    if (pmap.tx.cnt == 0)
         rte_panic("No ports found for %d lcore\n", lid);
 
-    if (pktgen.verbose)
-        pktgen_log_info("For TX found %d port(s) for lcore %d\n", txcnt, lid);
-
-    for (idx = 0; idx < txcnt; idx++) {
-        if (infos[idx] == NULL)
-            rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", idx, lid);
+    for (int i = 0; i < pmap.tx.cnt; i++) {
+        pktgen_log_info("  Using port/qid %d/%d for Tx on lcore id %d\n", pmap.tx.infos[i]->pid,
+                        pmap.tx.qids[i], lid);
+        if (pmap.tx.infos[i] == NULL)
+            rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
-    for (idx = 0; idx < txcnt; idx++) {
-        uint16_t pid = infos[idx]->pid;
+    for (int i = 0; i < pmap.tx.cnt; i++) {
+        uint16_t pid = pmap.tx.infos[i]->pid;
         int dev_sock = rte_eth_dev_socket_id(pid);
 
         if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
-            rte_panic("*** port %u on socket ID %u has different socket ID for lcore %u on socket "
+            rte_panic("*** port %u on socket ID %u has different socket ID than lcore %u on socket "
                       "ID %d\n",
                       pid, rte_eth_dev_socket_id(pid), rte_lcore_id(), rte_socket_id());
     }
 
-    idx = 0;
     while (pg_lcore_is_running(pktgen.l2p, lid)) {
         curr_tsc = pktgen_get_time();
 
-        if (infos[0]->tx_cycles == 0) {
-            pktgen_get_link_status(infos[0], infos[0]->pid, 0);
-            if (infos[0]->link.link_status) { /* wait for link up */
-                pktgen_packet_rate(infos[0]);
-                pktgen.tx_next_cycle = curr_tsc + infos[0]->tx_cycles;
+        if (pmap.tx.infos[0]->tx_cycles == 0) {
+            pktgen_get_link_status(pmap.tx.infos[0], pmap.tx.infos[0]->pid, 0);
+            if (pmap.tx.infos[0]->link.link_status) { /* wait for link up */
+                pktgen_packet_rate(pmap.tx.infos[0]);
+                pktgen.tx_next_cycle = curr_tsc + pmap.tx.infos[0]->tx_cycles;
             }
         }
 
         /* Determine when is the next time to send packets */
         if (curr_tsc >= pktgen.tx_next_cycle) {
-            pktgen.tx_next_cycle = pktgen.tx_next_cycle + infos[0]->tx_cycles;
+            pktgen.tx_next_cycle = pktgen.tx_next_cycle + pmap.tx.infos[0]->tx_cycles;
 
-            for (idx = 0; idx < txcnt; idx++) /* Transmit packets */
-                pktgen_main_transmit(infos[idx], qids[idx]);
+            for (int i = 0; i < pmap.tx.cnt; i++) /* Transmit packets */
+                pktgen_main_transmit(pmap.tx.infos[i], pmap.tx.qids[i]);
         } else if (curr_tsc >= pktgen.tx_bond_cycle) {
             pktgen.tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
-            for (idx = 0; idx < txcnt; idx++) { /* Transmit pkts for Bonding PMD */
-                if (pktgen_tst_port_flags(infos[idx], BONDING_TX_PACKETS))
-                    rte_eth_tx_burst(infos[idx]->pid, qids[idx], NULL, 0);
+            for (int i = 0; i < pmap.tx.cnt; i++) { /* Transmit pkts for Bonding PMD */
+                if (pktgen_tst_port_flags(pmap.tx.infos[i], BONDING_TX_PACKETS))
+                    rte_eth_tx_burst(pmap.tx.infos[i]->pid, pmap.tx.qids[i], NULL, 0);
             }
         }
     }
@@ -1368,41 +1367,41 @@ static void
 pktgen_main_rx_loop(uint8_t lid)
 {
     struct rte_mbuf *pkts_burst[MAX_PKT_RX_BURST];
-    uint8_t idx, rxcnt;
-    port_info_t *infos[RTE_MAX_ETHPORTS];
+    port_mapinfo_t pmap;
 
-    memset(infos, '\0', sizeof(infos));
+    memset(&pmap, '\0', sizeof(pmap));
+    
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
         rte_exit(0, "using initial lcore for ports");
     }
 
-    port_map_info(lid, infos, NULL, NULL, &rxcnt, "RX");
+    port_map_info("RX", lid, &pmap);
 
     pg_start_lcore(pktgen.l2p, lid);
 
-    if (rxcnt == 0)
+    if (pmap.rx.cnt == 0)
         rte_panic("No ports found for %d lcore\n", lid);
 
-    if (pktgen.verbose)
-        pktgen_log_info("For RX found %d port(s) for lcore %d", rxcnt, lid);
-    for (idx = 0; idx < rxcnt; idx++) {
-        if (infos[idx] == NULL)
-            rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", idx, lid);
+    for (int i = 0; i < pmap.rx.cnt; i++) {
+        pktgen_log_info("  Using port/qid %d/%d for Rx on lcore id %d\n", pmap.rx.infos[i]->pid,
+                        pmap.rx.qids[i], lid);
+        if (pmap.rx.infos[i] == NULL)
+            rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
-    for (idx = 0; idx < rxcnt; idx++) {
-        uint16_t pid = infos[idx]->pid;
+    for (int i = 0; i < pmap.rx.cnt; i++) {
+        uint16_t pid = pmap.rx.infos[i]->pid;
         int dev_sock = rte_eth_dev_socket_id(pid);
 
         if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
             rte_panic(
-                "*** port %u on socket ID %u has different socket ID for lcore %u socket ID %d\n",
+                "*** port %u on socket ID %u has different socket ID than lcore %u socket ID %d\n",
                 pid, rte_eth_dev_socket_id(pid), rte_lcore_id(), rte_socket_id());
     }
     while (pg_lcore_is_running(pktgen.l2p, lid))
-        for (idx = 0; idx < rxcnt; idx++) /* Read packet */
-            pktgen_main_receive(infos[idx], lid, pkts_burst, infos[idx]->rx_burst);
+        for (int i = 0; i < pmap.rx.cnt; i++) /* Read packet */
+            pktgen_main_receive(pmap.rx.infos[i], lid, pkts_burst, pmap.rx.infos[i]->rx_burst);
 
     pktgen_log_debug("Exit %d", lid);
 

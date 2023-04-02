@@ -108,8 +108,8 @@ extern "C" {
 
 #define MAX_MATRIX_ENTRIES 128
 #define MAX_STRING         256
-#define Million            (uint64_t)(1000000ULL)
-#define Billion            (uint64_t)(1000000000ULL)
+#define Million            (uint64_t)(1000000UL)
+#define Billion            (uint64_t)(1000000000UL)
 
 #define iBitsTotal(_x) (uint64_t)(((_x.ipackets * PKT_OVERHEAD_SIZE) + _x.ibytes) * 8)
 #define oBitsTotal(_x) (uint64_t)(((_x.opackets * PKT_OVERHEAD_SIZE) + _x.obytes) * 8)
@@ -195,9 +195,9 @@ enum {
     DEFAULT_DST_PORT       = 5678,
     DEFAULT_TTL            = 64,
     DEFAULT_TCP_SEQ_NUMBER = 0x12378,
-    MAX_TCP_SEQ_NUMBER     = UINT32_MAX/8,
+    MAX_TCP_SEQ_NUMBER     = UINT32_MAX / 8,
     DEFAULT_TCP_ACK_NUMBER = 0x12390,
-    MAX_TCP_ACK_NUMBER     = UINT32_MAX/8,
+    MAX_TCP_ACK_NUMBER     = UINT32_MAX / 8,
     DEFAULT_TCP_FLAGS      = ACK_FLAG,
     DEFAULT_WND_SIZE       = 8192,
     MIN_VLAN_ID            = 1,
@@ -272,18 +272,18 @@ typedef struct pktgen_s {
     uint8_t starting_port;     /**< Starting port to display */
     uint8_t ending_port;       /**< Ending port to display */
     uint8_t nb_ports_per_page; /**< Number of ports to display per page */
-    uint16_t eth_min_pkt;   /**< Minimum Ethernet packet size without CRC */
-    uint16_t eth_mtu;       /**< MTU size, could be jumbo or not */
-    uint16_t eth_max_pkt;   /**< Max packet size, could be jumbo or not */
-    uint16_t mbuf_dataroom; /**< Size of data room in mbuf */
-    uint16_t mbuf_buf_size; /**< MBUF default buf size */
-    uint16_t nb_rxd;        /**< Number of receive descriptors */
-    uint16_t nb_txd;        /**< Number of transmit descriptors */
-    uint16_t portNum;       /**< Current Port number */
-    uint16_t port_cnt;      /**< Number of ports used in total */
-    uint64_t hz;            /**< Number of cycles per seconds */
-    uint64_t tx_next_cycle; /**< Number of cycles to next transmit burst */
-    uint64_t tx_bond_cycle; /**< Numbe of cycles to check bond interface */
+    uint16_t eth_min_pkt;      /**< Minimum Ethernet packet size without CRC */
+    uint16_t eth_mtu;          /**< MTU size, could be jumbo or not */
+    uint16_t eth_max_pkt;      /**< Max packet size, could be jumbo or not */
+    uint16_t mbuf_dataroom;    /**< Size of data room in mbuf */
+    uint16_t mbuf_buf_size;    /**< MBUF default buf size */
+    uint16_t nb_rxd;           /**< Number of receive descriptors */
+    uint16_t nb_txd;           /**< Number of transmit descriptors */
+    uint16_t portNum;          /**< Current Port number */
+    uint16_t port_cnt;         /**< Number of ports used in total */
+    uint64_t hz;               /**< Number of cycles per seconds */
+    uint64_t tx_next_cycle;    /**< Number of cycles to next transmit burst */
+    uint64_t tx_bond_cycle;    /**< Numbe of cycles to check bond interface */
     uint64_t prev;
     uint64_t page_timeout; /**< Timeout for page update */
     uint64_t stats_timeout; /**< Timeout for stats update */
@@ -413,12 +413,12 @@ pktgen_get_timer_hz(void)
 }
 
 typedef struct {
+    uint32_t magic;
+    uint32_t index;
     uint64_t timestamp;
-    uint64_t magic;
-    uint64_t index;
 } tstamp_t;
 
-#define TSTAMP_MAGIC 0x3232706d61747354LL /* Tstamp22 */
+#define TSTAMP_MAGIC 0xf00dcafe
 
 static __inline__ void
 pktgen_set_port_flags(port_info_t *info, uint32_t flags)

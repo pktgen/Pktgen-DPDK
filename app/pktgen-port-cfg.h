@@ -61,8 +61,8 @@ enum { /* Per port flag bits */
        SEND_PING4_REQUEST = (1 << 6), /**< Send a IPv4 Ping request */
        SEND_PING6_REQUEST = (1 << 7), /**< Send a IPv6 Ping request */
 
-       PROCESS_RX_TAP_PKTS = (1 << 8),  /**< Handle RX TAP interface packets */
-       PROCESS_TX_TAP_PKTS = (1 << 9),  /**< Handle TX TAP interface packets */
+       PROCESS_RX_TAP_PKTS = (1 << 8), /**< Handle RX TAP interface packets */
+       PROCESS_TX_TAP_PKTS = (1 << 9), /**< Handle TX TAP interface packets */
 
        /* Exclusive Packet sending modes */
        SEND_PCAP_PKTS  = (1 << 12), /**< Send a pcap file of packets */
@@ -193,8 +193,8 @@ typedef struct {
     uint64_t min_cycles;              /**< minimum cycles per latency packet */
     uint64_t avg_cycles;              /**< average cycles per latency packet */
     uint64_t max_cycles;              /**< maximum cycles per latency packet */
-    uint64_t next_index;              /**< Next index to use for sending latency packets */
-    uint64_t expect_index;            /**< Expected index for received latency packets */
+    uint32_t next_index;              /**< Next index to use for sending latency packets */
+    uint32_t expect_index;            /**< Expected index for received latency packets */
     MARKER end_stats;
 } latency_t;
 
@@ -275,7 +275,6 @@ typedef struct port_info_s {
     } q[NUM_Q];
 
     struct rte_mempool *special_mp; /**< Pool pointer for special TX mbufs */
-    struct rte_mempool *latency_mp; /**< Pool pointer for latency packets */
 
     int32_t rx_tapfd;          /**< Rx Tap file descriptor */
     int32_t tx_tapfd;          /**< Tx Tap file descriptor */

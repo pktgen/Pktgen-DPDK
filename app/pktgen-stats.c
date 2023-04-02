@@ -501,7 +501,7 @@ pktgen_process_stats(void)
     if (pktgen.flags & BLINK_PORTS_FLAG) {
         RTE_ETH_FOREACH_DEV(pid)
         {
-            if ((pktgen.blinklist & (1ULL << pid)) == 0)
+            if ((pktgen.blinklist & (1UL << pid)) == 0)
                 continue;
 
             if (counter & 1)

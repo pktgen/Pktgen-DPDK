@@ -295,8 +295,6 @@ pktgen_config_ports(void)
             if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
                 conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
         }
-        if (info->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
-            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
         if (rt.rx > 1) {
             conf.rx_adv_conf.rss_conf.rss_key = NULL;
             conf.rx_adv_conf.rss_conf.rss_hf &= info->dev_info.flow_type_rss_offloads;
@@ -353,28 +351,20 @@ pktgen_config_ports(void)
                 pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
                                  rte_strerror(-ret));
             uint32_t lid = get_port_lid(pktgen.l2p, pid, q);
-            if (pktgen.verbose)
-                pktgen_log_info("      Set RX queue stats mapping pid %d, q %d, lcore %d\n", pid, q,
-                                lid);
             rte_eth_dev_set_rx_queue_stats_mapping(pid, q, lid);
         }
-        if (pktgen.verbose)
-            pktgen_log_info("");
 
         /* grab the socket id value based on the lcore being used. */
         sid = rte_lcore_to_socket_id(get_port_lid(pktgen.l2p, pid, 0));
-
-        /* Used for sending latency packets */
-        info->latency_mp = pktgen_mbuf_pool_create("Latency TX", pid, 0, MAX_LATENCY_MBUFS, sid, 0);
-        if (info->latency_mp == NULL)
-            pktgen_log_panic("Cannot init port %d for Latency TX mbufs", pid);
 
         /* Used for sending special packets like ARP requests */
         info->special_mp = pktgen_mbuf_pool_create("Special TX", pid, 0, MAX_SPECIAL_MBUFS, sid, 0);
         if (info->special_mp == NULL)
             pktgen_log_panic("Cannot init port %d for Special TX mbufs", pid);
 
-        printf("\n");
+        if (pktgen.verbose)
+            pktgen_log_info("");
+
         for (int q = 0; q < rt.tx; q++) {
             struct rte_eth_txconf *txconf;
 
@@ -449,7 +439,7 @@ pktgen_config_ports(void)
             rte_eth_promiscuous_enable(pid);
         }
 
-        pktgen_log_info("%s", output_buff);
+        pktgen_log_info("%s\n", output_buff);
 
         /* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
         for (int i = 0; i < NUM_SEQ_PKTS; i++)

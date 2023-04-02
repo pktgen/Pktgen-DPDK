@@ -15,9 +15,10 @@
 extern "C" {
 #endif
 
-#define DEFAULT_JITTER_THRESHOLD    (50)	/**< usec */
-#define DEFAULT_LATENCY_RATE        (10)    /**< milliseconds (min value 1)*/
-#define LATENCY_PKT_SIZE            (MIN_PKT_SIZE + (128 - (MIN_PKT_SIZE + RTE_ETHER_CRC_LEN)))
+#define DEFAULT_JITTER_THRESHOLD (50) /**< usec */
+#define DEFAULT_LATENCY_RATE     (10) /**< milliseconds (min value 1)*/
+#define LATENCY_PKT_SIZE         72   /**< Packet size */
+#define LATENCY_DPORT            1028 /**< Reserved */
 
 void pktgen_page_latency(void);
 
@@ -36,4 +37,4 @@ void pktgen_latency_setup(port_info_t *info);
 }
 #endif
 
-#endif  /* _PKTGEN_LATENCY_H_ */
+#endif /* _PKTGEN_LATENCY_H_ */

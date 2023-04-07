@@ -1526,32 +1526,32 @@ pktgen_page_display(void)
 static void *
 _timer_thread(void *arg)
 {
-    uint64_t process, page, process_timo, page_timo, prev;
+    uint64_t process, page, prev;
 
     this_scrn = arg;
 
-    process_timo = pktgen.hz;
-    page_timo    = UPDATE_DISPLAY_TICK_RATE;
+    pktgen.stats_timeout = pktgen.hz;
+    pktgen.page_timeout = UPDATE_DISPLAY_TICK_RATE;
 
-    page = prev = rte_get_tsc_cycles();
-    process     = page + process_timo;
-    page += page_timo;
+    page = prev = pktgen_get_time();
+    process     = page + pktgen.stats_timeout;
+    page += pktgen.page_timeout;
 
     pktgen.timer_running = 1;
 
     while (pktgen.timer_running) {
         uint64_t curr;
 
-        curr = rte_get_tsc_cycles();
+        curr = pktgen_get_time();
 
         if (curr >= process) {
-            process = curr + process_timo;
+            process = curr + pktgen.stats_timeout;
             pktgen_process_stats();
             prev = curr;
         }
 
         if (curr >= page) {
-            page = curr + page_timo;
+            page = curr + pktgen.page_timeout;
             pktgen_page_display();
         }
 

@@ -1400,6 +1400,8 @@ enable_clock_gettime(uint32_t onOff)
     pktgen.hz            = pktgen_get_timer_hz();
     pktgen.tx_next_cycle = pktgen_get_time();
     pktgen.tx_bond_cycle = pktgen_get_time();
+    pktgen.page_timeout  = UPDATE_DISPLAY_TICK_RATE;
+    pktgen.stats_timeout = pktgen.hz;
 }
 
 void

@@ -498,6 +498,55 @@ pktgen_config_ports(void)
         pktgen_rnd_bits_init(&pktgen.info[pid].rnd_bitfields);
     }
 
+    /* Start up tap interface for slowpath */
+    RTE_ETH_FOREACH_DEV(pid)
+    {
+        /* Create TAP device */
+        int fd = open("/dev/net/tun", O_RDWR);
+        if (fd < 0)
+            pktgen_log_panic("PANIC1 err=%d", fd);
+
+        /* Configure Name of TAP device */
+        struct ifreq ifr;
+        memset (&ifr, 0, sizeof (ifr));
+        snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "pktgen%d", pid);
+        ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+        if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0)
+            pktgen_log_panic("PANIC2");
+
+        /* Configure Non-Blocking=true on TAP device */
+        static const int one = 1;
+        if (ioctl(fd, FIONBIO, &one) < 0)
+            pktgen_log_panic("PANIC3");
+
+        /* Open a socket to configure the device. */
+        int sock_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+        if (fd < 0)
+            pktgen_log_panic("PANIC4");
+
+        /* Set mac addr */
+        struct rte_ether_addr mac;
+        rte_eth_macaddr_get(pid, &mac);
+        memcpy(ifr.ifr_hwaddr.sa_data, mac.addr_bytes, 6);
+        ifr.ifr_hwaddr.sa_family = 1; // ARPHRD_ETHER
+        if (ioctl(sock_fd, SIOCSIFHWADDR, &ifr) < 0)
+            pktgen_log_panic("PANIC5");
+        close(sock_fd);
+
+        pktgen_log_info("slowpath TAP-device pktgen%d is created fd=%d",
+            pid, fd);
+        pktgen.info[pid].tap_fd = fd;
+
+        char name0[256] = {};
+        char name1[256] = {};
+        snprintf(name0, sizeof(name0), "slowpath%d-kernel-to-fastpath", pid);
+        snprintf(name1, sizeof(name1), "slowpath%d-fastpath-to-kernel", pid);
+        pktgen.info[pid].kernel_to_fastpath = rte_ring_create(name0, 1024, 0,
+            RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+        pktgen.info[pid].fastpath_to_kernel = rte_ring_create(name1, 1024, 0,
+            RING_F_MC_RTS_DEQ | RING_F_MP_RTS_ENQ);
+    }
+
     /* Clear the log information by putting a blank line */
     pktgen_log_info("");
 

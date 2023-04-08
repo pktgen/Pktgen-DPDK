@@ -1,6 +1,49 @@
 Pktgen - Traffic Generator powered by DPDK
 =====================================================
 
+## SLANKDEV UPDATES
+
+build container image
+```
+$ cat /etc/lsb-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=22.04
+DISTRIB_CODENAME=jammy
+DISTRIB_DESCRIPTION="Ubuntu 22.04 LTS"
+$ uname -r
+5.15.0-1022-gcp
+$ docker login
+$ docker build -t slankdev/pktgen-dpdk:slowpath .
+$ docker push slankdev/pktgen-dpdk:slowpath
+```
+
+use container image
+```
+docker pull slankdev/pktgen-dpdk:slowpath
+docker rm -f tmp || true
+docker run -td --name tmp -v /dev:/dev -v /lib/firmware:/lib/firmware --privileged --net=host slankdev/pktgen-dpdk:slowpath
+docker exec tmp sysctl -w vm.nr_hugepages=4096
+docker exec tmp mkdir -p /dev/hugepages
+docker exec tmp mount -t hugetlbfs nodev /dev/hugepages
+docker exec -it tmp pktgen -- -P -m "[2:3].0"
+```
+
+```
+$ docker cp ./pcap/ping_over_srv6.pcap tmp:/
+$ docker exec -it tmp pktgen -- -P -m "[2:3].0" -s 0:/ping_over_srv6.pcap
+$ docker exec -it tmp pktgen -- -P -m "[2:3].0" -s 0:/pktgen-dpdk/pcap/ping_over_srv6.pcap
+```
+
+for development
+```
+$ docker run -td --name tmp -v /dev:/dev -v /lib/firmware:/lib/firmware -v `pwd`:/pktgen-dpdk.dev --privileged --net=host slankdev/pktgen-dpdk:slowpath
+$ docker exec -it tmp bash
+# cd /pktgen-dpdk.dev
+# ninja -C build && ./build/app/pktgen -- -P -m "[2:3].0" -s 0:/pktgen-dpdk.dev/pcap/ping_over_srv6.pcap
+```
+
+## ORIGINAL README
+
 **Pktgen is a traffic generator powered by DPDK at wire rate traffic with 64 byte frames.**
 
 ** (Pktgen) Sounds like 'Packet-Gen'**

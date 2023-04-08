@@ -10,6 +10,9 @@
 #include <time.h>
 #include <inttypes.h>
 #include <math.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
 
 #include <pg_delay.h>
 #include <rte_lcore.h>
@@ -789,6 +792,78 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
         pktgen_packet_classify(pkts[i], pid, qid);
 }
 
+static void
+pktgen_packet_slowpath_pass(struct rte_mbuf *m, int pid)
+{
+    struct rte_mbuf *c;
+    c = rte_pktmbuf_clone(m, pktgen.info[pid].special_mp);
+    if (unlikely(c == NULL)) {
+        pktgen_log_warning("No packet buffers found");
+        return;
+    }
+
+    struct rte_ring *r = pktgen.info[pid].fastpath_to_kernel;
+    int ret = rte_ring_mp_enqueue(r, c);
+    if (ret < 0) {
+        pktgen_log_warning("Enqueue was failed");
+        return;
+    }
+}
+
+static void
+pktgen_packet_slowpath(struct rte_mbuf *m, int pid)
+{
+    struct rte_ether_hdr *eth;
+    struct rte_ipv6_hdr *ipv6;
+    struct rte_tcp_hdr *tcp;
+
+    eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
+    switch (ntohs(eth->ether_type)) {
+        case RTE_ETHER_TYPE_IPV4:
+            break;
+        case RTE_ETHER_TYPE_IPV6:
+            ipv6 = (struct rte_ipv6_hdr *)(eth + 1);
+            switch (ipv6->proto) {
+                case PG_IPPROTO_UDP:
+                    break;
+                case PG_IPPROTO_TCP:
+                    tcp = (struct rte_tcp_hdr *)(ipv6 + 1);
+                    if (ntohs(tcp->dst_port) == 179)
+                        pktgen_packet_slowpath_pass(m, pid);
+                    break;
+                case PG_IPPROTO_ICMPV6:
+                    pktgen_packet_slowpath_pass(m, pid);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+static __inline__ void
+pktgen_packet_slowpath_bulk(struct rte_mbuf **pkts, int nb_rx, int pid)
+{
+    int j, i;
+
+    /* Prefetch first packets */
+    for (j = 0; j < PREFETCH_OFFSET && j < nb_rx; j++)
+        rte_prefetch0(rte_pktmbuf_mtod(pkts[j], void *));
+
+    /* Prefetch and handle already prefetched packets */
+    for (i = 0; i < (nb_rx - PREFETCH_OFFSET); i++) {
+        rte_prefetch0(rte_pktmbuf_mtod(pkts[j], void *));
+        j++;
+        pktgen_packet_slowpath(pkts[i], pid);
+    }
+
+    /* Handle remaining prefetched packets */
+    for (; i < nb_rx; i++)
+        pktgen_packet_slowpath(pkts[i], pid);
+}
+
 /**
  *
  * pktgen_send_special - Send a special packet to the given port.
@@ -1038,6 +1113,7 @@ pktgen_main_transmit(port_info_t *info, uint16_t qid)
      */
     if ((flags & SEND_ARP_PING_REQUESTS))
         pktgen_send_special(info, flags);
+    pktgen_send_slowpath(info->pid);
 
     /* When not transmitting on this port then continue. */
     if (flags & SENDING_PACKETS) {
@@ -1108,6 +1184,7 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf **pkts_burst
 
     /* packets are not freed in the next call. */
     pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid, qid);
+    pktgen_packet_slowpath_bulk(pkts_burst, nb_rx, pid);
 
     if (unlikely(info->dump_count > 0))
         pktgen_packet_dump_bulk(pkts_burst, nb_rx, pid);
@@ -1409,6 +1486,68 @@ pktgen_main_rx_loop(uint8_t lid)
     pktgen_exit_cleanup(lid);
 }
 
+bool slowpath_running = true;
+
+static void
+pktgen_main_slowpath_loop(uint8_t lid)
+{
+    while (slowpath_running) {
+        uint32_t pid;
+        RTE_ETH_FOREACH_DEV(pid) {
+            // READ PKT FROM KERNEL
+            uint8_t buf[2000];
+            int fd = pktgen.info[pid].tap_fd;
+            ssize_t n_bytes = read(fd, buf, sizeof(buf));
+            if (n_bytes < 0) {
+                continue;
+            }
+
+            // ALLOCATE MBUF
+            struct rte_mbuf *m;
+            m = rte_pktmbuf_alloc(pktgen.info[pid].special_mp);
+            if (unlikely(m == NULL)) {
+                pktgen_log_warning("No packet buffers found");
+                return;
+            }
+            rte_memcpy((uint8_t *)m->buf_addr + m->data_off, buf, n_bytes);
+            m->pkt_len = n_bytes;
+            m->data_len = n_bytes;
+
+            // ENQUEUE TO FASTPATH
+            struct rte_ring *r = pktgen.info[pid].kernel_to_fastpath;
+            int ret = rte_ring_sp_enqueue(r, m);
+            if (ret < 0) {
+                pktgen_log_info("OKASHII");
+                continue;
+            }
+
+            /**********************\
+             * FASTPATH_TO_KERNEL *
+            \**********************/
+            r = pktgen.info[pid].fastpath_to_kernel;
+            while (rte_ring_count(r) > 0) {
+                // READ PKT FROM FASTPATH
+                int ret = rte_ring_mc_dequeue(r, (void **)&m);
+                if (ret < 0)
+                    continue;
+
+                // WRITE TO KERNEL
+                struct iovec iov;
+                iov.iov_base = rte_pktmbuf_mtod(m, void *);
+                iov.iov_len = rte_pktmbuf_pkt_len(m);
+                ssize_t n_bytes = writev(pktgen.info[pid].tap_fd, &iov, 1);
+                (void)n_bytes;
+
+                // RELEASE MBUF
+                rte_pktmbuf_free(m);
+            }
+
+        }
+    }
+    pktgen_log_debug("Exit %d", lid);
+    pktgen_exit_cleanup(lid);
+}
+
 /**
  *
  * pktgen_launch_one_lcore - Launch a single logical core thread.
@@ -1425,6 +1564,10 @@ int
 pktgen_launch_one_lcore(void *arg __rte_unused)
 {
     uint8_t lid = rte_lcore_id();
+
+    // printf("SLANKDEV lcore-%u\n", lid);
+    if (lid == 1)
+        pktgen_main_slowpath_loop(lid);
 
     if (pktgen_has_work())
         return 0;

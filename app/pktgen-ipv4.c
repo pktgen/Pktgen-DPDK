@@ -92,6 +92,24 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
 }
 
+void
+pktgen_send_slowpath(uint32_t pid)
+{
+    port_info_t *info = &pktgen.info[pid];
+    struct rte_mbuf *m;
+    struct rte_ring *r = info->kernel_to_fastpath;
+    uint64_t count = rte_ring_count(r);
+
+    for (uint64_t i = 0; i < count; i++) {
+        int ret = rte_ring_mc_dequeue(r, (void **)&m);
+        if (ret < 0)
+            continue;
+
+        rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
+        pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
+    }
+}
+
 /**
  *
  * pktgen_process_ping4 - Process a input ICMP echo packet for IPv4.

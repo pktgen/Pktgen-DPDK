@@ -32,6 +32,8 @@
 /* Offset to the mbuf dynamic field holding pktgen data. */
 int pktgen_dynfield_offset = -1;
 
+extern bool slowpath_running;
+
 /* Descriptor used for the mbuf dynamic field configuration. */
 static const struct rte_mbuf_dynfield pktgen_dynfield_desc = {
     .name  = "pktgen_dynfield_data",
@@ -553,6 +555,7 @@ main(int argc, char **argv)
     scrn_printf(100, 1, "\n"); /* Move the cursor to the bottom of the screen again */
 
     pktgen_stop_running();
+    slowpath_running = false;
 
     /* Wait for all of the cores to stop running and exit. */
     rte_eal_mp_wait_lcore();

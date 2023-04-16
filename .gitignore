@@ -2,6 +2,7 @@
 *.a
 *.d
 *~
+*.swp
 _install
 _postinstall
 _preinstall

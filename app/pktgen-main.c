@@ -116,6 +116,7 @@ pktgen_usage(const char *prgname)
            "  -T           Enable the color output\n"
            "  -v           Verbose output\n"
            "  -j           Enable jumbo frames of 9600 bytes\n"
+           "  -c           Enable clock_gettime\n"
            "  --txd=N      set the number of descriptors in Tx rings to N \n"
            "  --rxd=N      set the number of descriptors in Rx rings to N \n"
            "  --no-crc-strip  Do not strip CRC on all ports, (Default is to strip crc)\n"

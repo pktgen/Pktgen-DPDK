@@ -466,6 +466,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
     pkt_seq_t *pkt            = &info->seq_pkt[seq_idx];
     struct rte_ether_hdr *eth = (struct rte_ether_hdr *)&pkt->hdr.eth;
     char *l3_hdr              = (char *)&eth[1]; /* Point to l3 hdr location for GRE header */
+    uint16_t sport_entropy = 0;
 
     /* Fill in the pattern for data space. */
     pktgen_fill_pattern((uint8_t *)&pkt->hdr, (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
@@ -480,6 +481,10 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
         tstamp->magic     = TSTAMP_MAGIC;
         tstamp->timestamp = pktgen_get_time();
         tstamp->index     = lat->next_index++;
+
+        if (lat->latency_entropy)
+            sport_entropy = (uint16_t)(pkt->sport + (tstamp->index % lat->latency_entropy));
+
     }
     /* Add GRE header and adjust rte_ether_hdr pointer if requested */
     if (pktgen_tst_port_flags(info, SEND_GRE_IPv4_HEADER))
@@ -504,6 +509,12 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
                 /* Construct the TCP header */
                 pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                if (sport_entropy != 0) {
+                    struct rte_ipv4_hdr *ipv4 = (struct rte_ipv4_hdr *)l3_hdr;
+                    struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv4[1];
+
+                    tcp->src_port = htons(sport_entropy & 0xFFFF);
+                }
 
                 /* IPv4 Header constructor */
                 pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -529,6 +540,12 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
                 /* Construct the UDP header */
                 pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                if (sport_entropy != 0) {
+                    struct rte_ipv4_hdr *ipv4 = (struct rte_ipv4_hdr *)l3_hdr;
+                    struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv4[1];
+
+                    udp->src_port = htons(sport_entropy & 0xFFFF);
+                }
 
                 /* IPv4 Header constructor */
                 pktgen_ipv4_ctor(pkt, l3_hdr);
@@ -584,12 +601,24 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
         if (pkt->ipProto == PG_IPPROTO_TCP) {
             /* Construct the TCP header */
             pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6);
+            if (sport_entropy != 0) {
+                struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)l3_hdr;
+                struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv6[1];
+
+                tcp->src_port = htons(sport_entropy & 0xFFFF);
+            }
 
             /* IPv6 Header constructor */
             pktgen_ipv6_ctor(pkt, l3_hdr);
         } else if (pkt->ipProto == PG_IPPROTO_UDP) {
             /* Construct the UDP header */
             pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6);
+            if (sport_entropy != 0) {
+                struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)l3_hdr;
+                struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv6[1];
+
+                udp->src_port = htons(sport_entropy & 0xFFFF);
+            }
 
             /* IPv6 Header constructor */
             pktgen_ipv6_ctor(pkt, l3_hdr);

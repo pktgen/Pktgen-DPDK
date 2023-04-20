@@ -126,7 +126,7 @@ void
 pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan)
 {
     port_info_t *info = &pktgen.info[pid];
-    pkt_seq_t *pkt;
+    pkt_seq_t *pkt = NULL;
     struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
     struct rte_arp_hdr *arp   = (struct rte_arp_hdr *)&eth[1];
 
@@ -143,6 +143,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 
             /* Found a matching packet, replace the dst address */
             if (idx >= 0) {
+printf("%s:%d pkt %p, arp %p\n", __func__, __LINE__, pkt, arp);
                 rte_memcpy(&pkt->eth_dst_addr, &arp->arp_data.arp_sha, 6);
                 pktgen_clear_display();
             }

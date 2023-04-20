@@ -32,7 +32,11 @@ function getLatency(a)
 
     -- enable latency
     pktgen.latency(a.sendport, "enable");
+    pktgen.latency(a.sendport, "rate", 1000);
+    pktgen.latency(a.sendport, "entropy", 12);
     pktgen.latency(a.recvport, "enable");
+    pktgen.latency(a.recvport, "rate", 10000);
+    pktgen.latency(a.recvport, "entropy", 8);
 
     pktgen.delay(100);
 
@@ -80,7 +84,7 @@ pktgen.sleep(2)
 
 min_latency = getLatency{
     sendport=0,
-    recvport=2,
+    recvport=0,
     rate=0.1,
     pktsize=128,
     sleeptime=2,

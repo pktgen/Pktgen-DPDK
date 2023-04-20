@@ -179,11 +179,12 @@ typedef struct {
 } latsamp_stats_t __rte_cache_aligned;
 
 typedef struct {
-    uint64_t latency_rate_ms;         /**< number milliseconds between injecting packets */
+    uint64_t latency_rate_us;         /**< number micro-seconds between injecting packets */
     uint64_t jitter_threshold_us;     /**< Jitter threshold in micro-seconds */
     uint64_t jitter_threshold_cycles; /**< Jitter threshold cycles */
     uint64_t latency_rate_cycles;     /**< Number of cycles between injections */
     uint64_t latency_timo_cycles;     /**< Number of cycles to next latency injection */
+    uint16_t latency_entropy;         /**< Entropy value to be used to increment sport */
     MARKER stats;                     /* starting Marker to clear stats */
     uint64_t jitter_count;            /**< Number of jitter stats */
     uint64_t num_latency_pkts;        /**< Total number of latency packets */

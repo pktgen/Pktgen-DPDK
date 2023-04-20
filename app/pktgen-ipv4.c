@@ -121,10 +121,10 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
         (ip->next_proto_id == PG_IPPROTO_ICMP)) {
         struct rte_icmp_hdr *icmp =
             (struct rte_icmp_hdr *)((uintptr_t)ip + sizeof(struct rte_ipv4_hdr));
-
+        uint16_t cksum = ~rte_raw_cksum(icmp, (m->data_len - sizeof(struct rte_ether_hdr) -
+                                          sizeof(struct rte_ipv4_hdr)));
         /* We do not handle IP options, which will effect the IP header size. */
-        if (unlikely(rte_raw_cksum(icmp, (m->data_len - sizeof(struct rte_ether_hdr) -
-                                          sizeof(struct rte_ipv4_hdr))))) {
+        if (unlikely(cksum != 0)) {
             pktgen_log_error("ICMP checksum failed");
             return;
         }
@@ -165,7 +165,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
 
             /* Recompute the IP checksum */
             ip->hdr_checksum = 0;
-            ip->hdr_checksum = rte_raw_cksum(ip, sizeof(struct rte_ipv4_hdr));
+            ip->hdr_checksum = ~rte_raw_cksum(ip, sizeof(struct rte_ipv4_hdr));
 
             /* Swap the MAC addresses */
             ethAddrSwap(&eth->dst_addr, &eth->src_addr);

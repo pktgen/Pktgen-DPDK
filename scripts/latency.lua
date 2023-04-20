@@ -11,6 +11,9 @@ local sleeptime = 10
 
 pktgen.stop(port);
 
+pktgen.latency(port, "rate", 1000) -- 1000us
+pktgen.latency(port, "entropy", 16) -- adjust sport (sport + (index % N))
+
 printf("Setup port %d for latency packets\n", port);
 pktgen.clr();
 pktgen.delay(100);

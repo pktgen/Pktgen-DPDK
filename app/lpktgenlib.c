@@ -501,7 +501,7 @@ pktgen_sendARP(lua_State *L)
     case 2:
         break;
     }
-    what = (char *)luaL_checkstring(L, 2);
+    what     = (char *)luaL_checkstring(L, 2);
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
@@ -638,7 +638,7 @@ pktgen_set_ip_addr(lua_State *L)
     case 3:
         break;
     }
-    type = (char *)luaL_checkstring(L, 2);
+    type     = (char *)luaL_checkstring(L, 2);
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
@@ -676,7 +676,7 @@ pktgen_set_type(lua_State *L)
     case 2:
         break;
     }
-    type = (char *)luaL_checkstring(L, 2);
+    type     = (char *)luaL_checkstring(L, 2);
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
@@ -1399,7 +1399,7 @@ range_set_type(lua_State *L)
     case 2:
         break;
     }
-    type = (char *)luaL_checkstring(L, 2);
+    type     = (char *)luaL_checkstring(L, 2);
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
@@ -2372,18 +2372,32 @@ static int
 pktgen_latency(lua_State *L)
 {
     portlist_t portlist;
+    char *what = NULL;
 
     switch (lua_gettop(L)) {
     default:
         return luaL_error(L, "latency, wrong number of arguments");
     case 2:
+    case 3:
         break;
     }
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
 
-    foreach_port(portlist, enable_latency(info, estate((const char *)luaL_checkstring(L, 2))));
+    what = (char *)luaL_checkstring(L, 2);
+    if (!what)
+        return luaL_error(L, "latency, missing argument or not a string");
+
+    if (lua_gettop(L) == 3) {
+        if (strncasecmp(lua_tostring(L, 2), "rate", 4) == 0)
+            foreach_port(portlist, latency_set_rate(info, (uint32_t)luaL_checkinteger(L, 3)));
+        else if (strncasecmp(lua_tostring(L, 2), "entropy", 7) == 0)
+            foreach_port(portlist, latency_set_entropy(info, (uint16_t)luaL_checkinteger(L, 3)));
+        else
+            return luaL_error(L, "latency, invalid arguments must be rate or entropy");
+    } else if (lua_gettop(L) == 2)
+        foreach_port(portlist, enable_latency(info, estate((const char *)luaL_checkstring(L, 2))));
 
     pktgen_update_display();
     return 0;
@@ -3055,7 +3069,8 @@ pkt_stats(lua_State *L, port_info_t *info)
     lua_pushstring(L, "latency");
     lua_newtable(L);
 
-    setf_integer(L, "rate_ms", lat->latency_rate_ms);
+    setf_integer(L, "rate_us", lat->latency_rate_us);
+    setf_integer(L, "entropy", lat->latency_entropy);
     setf_integer(L, "jitter_threshold", lat->jitter_threshold_us);
 
     nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
@@ -3852,7 +3867,7 @@ static const luaL_Reg pktgenlib_range[] = {
 
 static const luaL_Reg pktgenlib[] = {
     {"quit", pktgen_exit},
-    {"set", pktgen_set}, /* Set a number of options */
+    {"set", pktgen_set},     /* Set a number of options */
 
     {"start", pktgen_start}, /* Start a set of ports sending packets */
     {"stop", pktgen_stop},   /* Stop a set of ports sending packets */
@@ -3864,9 +3879,9 @@ static const luaL_Reg pktgenlib[] = {
     {"set_proto", pktgen_prototype},     /* Set the prototype value */
     {"set_type", pktgen_set_type},       /* Set the type value */
 
-    {"ping4", pktgen_send_ping4}, /* Send a Ping IPv4 packet (ICMP echo) */
+    {"ping4", pktgen_send_ping4},        /* Send a Ping IPv4 packet (ICMP echo) */
 #ifdef INCLUDE_PING6
-    {"ping6", pktgen_send_ping6}, /* Send a Ping IPv6 packet (ICMP echo) */
+    {"ping6", pktgen_send_ping6},        /* Send a Ping IPv6 packet (ICMP echo) */
 #endif
 
     {"pcap", pktgen_pcap},        /* Load a PCAP file */
@@ -3877,9 +3892,9 @@ static const luaL_Reg pktgenlib[] = {
     {"seq", pktgen_seq},           /* Set the sequence data for a port */
     {"seqTable", pktgen_seqTable}, /* Set the sequence data for a port using tables */
 
-    {"screen", pktgen_scrn},      /* Turn off and on the screen updates */
-    {"prime", pktgen_prime},      /* Send a small number of packets to prime the routes */
-    {"delay", pktgen_delay},      /* Delay a given number of milliseconds */
+    {"screen", pktgen_scrn},       /* Turn off and on the screen updates */
+    {"prime", pktgen_prime},       /* Send a small number of packets to prime the routes */
+    {"delay", pktgen_delay},       /* Delay a given number of milliseconds */
     {"pause", pktgen_pause},      /* Delay for a given number of milliseconds and display message */
     {"sleep", pktgen_sleep},      /* Delay a given number of seconds */
     {"load", pktgen_load},        /* load and run a command file or Lua file. */
@@ -3887,38 +3902,38 @@ static const luaL_Reg pktgenlib[] = {
     {"clear", pktgen_clear},      /* Clear stats for the given ports */
     {"clr", pktgen_clear_all},    /* Clear all stats on all ports */
     {"cls", pktgen_cls_screen},   /* Redraw the screen */
-    {"update", pktgen_update_screen},  /* Update the screen information */
-    {"reset", pktgen_reset_config},    /* Reset the configuration to all ports */
-    {"port_restart", pktgen_restart},  /* Reset ports */
-    {"portCount", pktgen_portCount},   /* Used port count value */
-    {"totalPorts", pktgen_totalPorts}, /* Total ports seen by DPDK */
+    {"update", pktgen_update_screen},          /* Update the screen information */
+    {"reset", pktgen_reset_config},            /* Reset the configuration to all ports */
+    {"port_restart", pktgen_restart},          /* Reset ports */
+    {"portCount", pktgen_portCount},           /* Used port count value */
+    {"totalPorts", pktgen_totalPorts},         /* Total ports seen by DPDK */
 
-    {"vlan", single_vlan},      /* Enable or disable VLAN header */
-    {"vlanid", single_vlan_id}, /* Set the vlan ID for a given portlist */
+    {"vlan", single_vlan},                     /* Enable or disable VLAN header */
+    {"vlanid", single_vlan_id},                /* Set the vlan ID for a given portlist */
 
-    {"cos", single_cos},           /* Set the prio for a given portlist */
-    {"tos", single_tos},           /* Set the tos for a given portlist */
-    {"vxlan", single_vxlan},       /* Enable or disable VxLAN */
-    {"vxlan_id", single_vxlan_id}, /* Set the VxLAN values */
+    {"cos", single_cos},                       /* Set the prio for a given portlist */
+    {"tos", single_tos},                       /* Set the tos for a given portlist */
+    {"vxlan", single_vxlan},                   /* Enable or disable VxLAN */
+    {"vxlan_id", single_vxlan_id},             /* Set the VxLAN values */
 
-    {"mpls", pktgen_mpls},       /* Enable or disable MPLS header */
-    {"qinq", pktgen_qinq},       /* Enable or disable Q-in-Q header */
-    {"gre", pktgen_gre},         /* Enable or disable GRE with IPv4 payload */
-    {"gre_eth", pktgen_gre_eth}, /* Enable or disable GRE with Ethernet payload */
+    {"mpls", pktgen_mpls},                     /* Enable or disable MPLS header */
+    {"qinq", pktgen_qinq},                     /* Enable or disable Q-in-Q header */
+    {"gre", pktgen_gre},                       /* Enable or disable GRE with IPv4 payload */
+    {"gre_eth", pktgen_gre_eth},               /* Enable or disable GRE with Ethernet payload */
 
-    {"set_range", range}, /* Enable or disable sending range data on a port. */
+    {"set_range", range},                      /* Enable or disable sending range data on a port. */
 
     {"ports_per_page", pktgen_ports_per_page}, /* Set the number of ports per page */
     {"page", pktgen_page}, /* Select a page to display, seq, range, pcap and a number from 0-N */
     {"port", pktgen_port}, /* select a different port number used for sequence and range pages. */
-    {"process", pktgen_process}, /* Enable or disable input packet processing on a port */
-    {"capture", pktgen_capture}, /* Enable or disable capture on a port */
+    {"process", pktgen_process},     /* Enable or disable input packet processing on a port */
+    {"capture", pktgen_capture},     /* Enable or disable capture on a port */
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
-    {"bonding", pktgen_bonding}, /* Enable or disable bonding on a port */
+    {"bonding", pktgen_bonding},     /* Enable or disable bonding on a port */
 #endif
-    {"blink", pktgen_blink},       /* Blink an led on a port */
-    {"help", pktgen_help},         /* Return the help text */
-    {"Lua.help", pktgen_lua_help}, /* Lua command help text */
+    {"blink", pktgen_blink},         /* Blink an led on a port */
+    {"help", pktgen_help},           /* Return the help text */
+    {"Lua.help", pktgen_lua_help},   /* Lua command help text */
 
     {"isSending", pktgen_isSending}, /* Test to see if a port is sending packets */
     {"linkState", pktgen_linkState}, /* Return the current link state of a port */
@@ -3928,21 +3943,21 @@ static const luaL_Reg pktgenlib[] = {
     {"portStats", pktgen_portStats}, /* return the current port stats */
     {"portInfo", pktgen_portInfo},   /* return the current port stats */
 
-    {"run", pktgen_run},           /* Load a Lua string or command file and execute it. */
-    {"continue", pktgen_continue}, /* Display a message and wait for keyboard key and return */
-    {"input", pktgen_input},       /* Wait for a keyboard input line and return line. */
+    {"run", pktgen_run},             /* Load a Lua string or command file and execute it. */
+    {"continue", pktgen_continue},   /* Display a message and wait for keyboard key and return */
+    {"input", pktgen_input},         /* Wait for a keyboard input line and return line. */
 
-    {"pattern", pktgen_pattern},          /* Set pattern type */
+    {"pattern", pktgen_pattern},     /* Set pattern type */
     {"userPattern", pktgen_user_pattern}, /* Set the user pattern string */
     {"latency", pktgen_latency},          /* Enable or disable latency testing */
     {"jitter", pktgen_jitter},            /* Set the jitter threshold */
     {"gtpu_teid", range_gtpu_teid},       /* set GTP-U TEID. */
 
-    {"rnd", pktgen_rnd},           /* Set up the rnd function on a portlist */
-    {"rnd_list", pktgen_rnd_list}, /* Return a table of rnd bit patterns per port */
+    {"rnd", pktgen_rnd},                  /* Set up the rnd function on a portlist */
+    {"rnd_list", pktgen_rnd_list},        /* Return a table of rnd bit patterns per port */
 
-    {"rxtap", pktgen_rxtap}, /* enable or disable rxtap */
-    {"txtap", pktgen_txtap}, /* enable or disable rxtap */
+    {"rxtap", pktgen_rxtap},              /* enable or disable rxtap */
+    {"txtap", pktgen_txtap},              /* enable or disable rxtap */
 
     {"latsampler_params", pktgen_latsampler_params}, /* set latency sampler params */
     {"latsampler", pktgen_latsampler},               /* enable or disable latency sampler */

@@ -18,6 +18,28 @@
 #include <rte_bus_pci.h>
 #include <rte_bus.h>
 
+void
+latency_set_rate(port_info_t *info, uint32_t value)
+{
+    latency_t *lat = &info->latency;
+
+    if (value == 0)
+        value = DEFAULT_LATENCY_RATE;
+    if (value > MAX_LATENCY_RATE)
+        value = MAX_LATENCY_RATE;
+
+    lat->latency_rate_us     = value;
+    lat->latency_rate_cycles = pktgen_get_timer_hz() / (MAX_LATENCY_RATE / lat->latency_rate_us);
+}
+
+void
+latency_set_entropy(port_info_t *info, uint16_t value)
+{
+    latency_t *lat = &info->latency;
+
+    lat->latency_entropy = value;
+}
+
 /**
  *
  * pktgen_print_static_data - Display the static data on the screen.
@@ -59,7 +81,8 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
 
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency:");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Rate (ms)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Rate (us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Entropy");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Total Pkts");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Skipped Pkts");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Minimum(us)");
@@ -174,7 +197,7 @@ pktgen_print_static_data(void)
 static inline double
 cycles_to_us(uint64_t cycles, double per_cycle)
 {
-    return (cycles == 0) ? 0.0 : (per_cycle * (double)cycles)*Million;
+    return (cycles == 0) ? 0.0 : (per_cycle * (double)cycles) * Million;
 }
 
 /**
@@ -269,7 +292,10 @@ pktgen_page_latency(void)
         nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
         lat->avg_cycles = (lat->running_cycles / nb_pkts);
 
-        snprintf(buff, sizeof(buff), "%'" PRIu64, lat->latency_rate_ms);
+        snprintf(buff, sizeof(buff), "%'" PRIu64, lat->latency_rate_us);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        snprintf(buff, sizeof(buff), "%'" PRIu16, lat->latency_entropy);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         snprintf(buff, sizeof(buff), "%'" PRIu64, lat->num_latency_pkts);
@@ -297,7 +323,7 @@ pktgen_page_latency(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'6.2f", lat->jitter_count,
                  (double)(lat->jitter_count * 100) / nb_pkts);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-    
+
         display_cnt++;
     }
 

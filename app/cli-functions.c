@@ -2112,6 +2112,52 @@ rate_cmd(int argc, char **argv)
     return 0;
 }
 
+// clang-format off
+static struct cli_map latency_map[] = {
+    {10, "latency %P rate %u"},
+    {20, "latency %P entropy %u"},
+    {-1, NULL}
+};
+// clang-format on
+
+static const char *latency_help[] = {
+    "",
+    "latency <portlist> rate <value>      - Rate in milli-seonds to send a latency packet",
+    "latency <portlist> entropy <value>   - Entropy value to adjust the src-port by (SPORT + (i % N)) (default: 1)",
+    "                                       e.eg. latency 0 entropy 16",
+    CLI_HELP_PAUSE,
+    NULL};
+
+static int
+latency_cmd(int argc, char **argv)
+{
+    struct cli_map *m;
+    portlist_t portlist;
+    int value;
+
+    m = cli_mapping(latency_map, argc, argv);
+    if (!m)
+        return cli_cmd_error("Latency invalid command", "Latency", argc, argv);
+
+    portlist_parse(argv[1], &portlist);
+
+    value = atoi(argv[3]);
+
+    switch (m->index) {
+    case 10:
+        foreach_port(portlist, latency_set_rate(info, value));
+        break;
+    case 20:
+        foreach_port(portlist, latency_set_entropy(info, (uint16_t)value));
+        break;
+    default:
+        return cli_cmd_error("Latency invalid command", "Latency", argc, argv);
+    }
+
+    pktgen_update_display();
+    return 0;
+}
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
@@ -2163,6 +2209,7 @@ static struct cli_tree default_tree[] = {
     c_cmd("bonding", bonding_cmd, "Bonding commands"),
 #endif
     c_cmd("rate", rate_cmd, "Rate setup commands"),
+    c_cmd("latency", latency_cmd, "Latency setup commands"),
 
     c_alias("on", "enable screen", "Enable screen updates"),
     c_alias("off", "disable screen", "Disable screen updates"),
@@ -2193,6 +2240,7 @@ init_tree(void)
     cli_help_add("Theme", theme_map, theme_help);
     cli_help_add("Plugin", plugin_map, plugin_help);
     cli_help_add("Rate", rate_map, rate_help);
+    cli_help_add("Latency", latency_map, latency_help);
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
     cli_help_add("Bonding", bonding_map, bonding_help);
 #endif

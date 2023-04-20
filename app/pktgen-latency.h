@@ -16,7 +16,9 @@ extern "C" {
 #endif
 
 #define DEFAULT_JITTER_THRESHOLD (50) /**< usec */
-#define DEFAULT_LATENCY_RATE     (10) /**< milliseconds (min value 1)*/
+#define DEFAULT_LATENCY_RATE     (10000) /**< micro-seconds*/
+#define MAX_LATENCY_RATE         (1000000) /**< micro-seconds */
+#define DEFAULT_LATENCY_ENTROPY  (0)  /**< default value to use in (SPORT + (i % N))  */
 #define LATENCY_PKT_SIZE         72   /**< Packet size */
 #define LATENCY_DPORT            1028 /**< Reserved */
 
@@ -32,6 +34,18 @@ void pktgen_page_latency(void);
  * RETURNS: N/A
  */
 void pktgen_latency_setup(port_info_t *info);
+
+/**
+ * latency_set_rate - Set the latency rate for a given port.
+ */
+void latency_set_rate(port_info_t *info, uint32_t value);
+
+/**
+ * latency_set_entropy - Set the entropy value for a given port.
+ * 
+ * value - The entropy value can be 0 >= entropy <= 0xFFFF default to 0.
+ */
+void latency_set_entropy(port_info_t *info, uint16_t value);
 
 #ifdef __cplusplus
 }

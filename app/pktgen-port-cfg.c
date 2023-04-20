@@ -25,9 +25,9 @@
 #include <rte_bus.h>
 
 enum {
-    RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
-    RX_HTHRESH = 8, /**< Default values of RX host threshold reg. */
-    RX_WTHRESH = 4, /**< Default values of RX write-back threshold reg. */
+    RX_PTHRESH = 8,      /**< Default values of RX prefetch threshold reg. */
+    RX_HTHRESH = 8,      /**< Default values of RX host threshold reg. */
+    RX_WTHRESH = 4,      /**< Default values of RX write-back threshold reg. */
 
     TX_PTHRESH     = 36, /**< Default values of TX prefetch threshold reg. */
     TX_HTHRESH     = 0,  /**< Default values of TX host threshold reg. */
@@ -160,6 +160,7 @@ pktgen_config_ports(void)
     if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
         pktgen.nb_ports = RTE_MAX_ETHPORTS;
 
+    printf("Index %-12s ifIndex NUMA   Device\n", "Name");
     for (int i = 0; i < pktgen.nb_ports; i++) {
         struct rte_eth_dev_info dev;
         char buff[64];
@@ -262,12 +263,13 @@ pktgen_config_ports(void)
 
         latency_t *lat = &info->latency;
 
-        lat->jitter_threshold_us      = DEFAULT_JITTER_THRESHOLD;
-        lat->latency_rate_ms          = DEFAULT_LATENCY_RATE;
-        lat->latency_rate_cycles   = pktgen_get_timer_hz() / (1000 / lat->latency_rate_ms);
-        ticks                       = pktgen_get_timer_hz() / 1000000;
+        lat->jitter_threshold_us     = DEFAULT_JITTER_THRESHOLD;
+        lat->latency_rate_us         = DEFAULT_LATENCY_RATE;
+        lat->latency_entropy         = DEFAULT_LATENCY_ENTROPY;
+        lat->latency_rate_cycles     = pktgen_get_timer_hz() / (MAX_LATENCY_RATE / lat->latency_rate_us);
+        ticks                        = pktgen_get_timer_hz() / 1000000;
         lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
-        info->nb_mbufs              = MAX_MBUFS_PER_PORT;
+        info->nb_mbufs               = MAX_MBUFS_PER_PORT;
         cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE) ? RTE_MEMPOOL_CACHE_MAX_SIZE
                                                                    : info->nb_mbufs;
 
@@ -324,8 +326,8 @@ pktgen_config_ports(void)
         pktgen.mem_used = 0;
 
         if ((ret = rte_eth_dev_set_mtu(pid, pktgen.eth_mtu)) < 0)
-            pktgen_log_panic("Cannot set MTU %u on port %u, (%d)%s", pktgen.eth_mtu, pid,
-                             -ret, rte_strerror(-ret));
+            pktgen_log_panic("Cannot set MTU %u on port %u, (%d)%s", pktgen.eth_mtu, pid, -ret,
+                             rte_strerror(-ret));
 
         for (int q = 0; q < rt.rx; q++) {
             struct rte_eth_rxconf rxq_conf;

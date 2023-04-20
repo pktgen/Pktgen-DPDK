@@ -1052,8 +1052,7 @@ pktgen_flags_string(port_info_t *info)
              : (flags & SEND_RANGE_PKTS)   ? "Range"
              : (flags & SEND_RANDOM_PKTS)  ? "Random"
              : (flags & SEND_RATE_PACKETS) ? "Rate"
-                                           : "Single"
-    );
+                                           : "Single");
 
     /* single, range, sequence, random, pcap, latency, rate */
 
@@ -3812,7 +3811,7 @@ single_set_jitter(port_info_t *info, uint64_t threshold)
     latency_t *lat = &info->latency;
     uint64_t us_per_tick;
 
-    lat->jitter_threshold_us        = threshold;
+    lat->jitter_threshold_us     = threshold;
     lat->jitter_count            = 0;
     us_per_tick                  = pktgen_get_timer_hz() / 1000000;
     lat->jitter_threshold_cycles = lat->jitter_threshold_us * us_per_tick;

@@ -69,35 +69,35 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
             }
 
             if (unlikely(range->src_port_inc != 0)) {
-                uint16_t sport = pkt->sport;
+                uint32_t sport = pkt->sport;
                 sport += range->src_port_inc;
                 if (sport < range->src_port_min)
                     sport = range->src_port_max;
                 if (sport > range->src_port_max)
                     sport = range->src_port_min;
-                pkt->sport = sport;
+                pkt->sport = (uint16_t)sport;
             } else
                 pkt->sport = range->src_port;
 
             if (unlikely(range->dst_port_inc != 0)) {
-                uint16_t dport = pkt->dport;
+                uint32_t dport = pkt->dport;
                 dport += range->dst_port_inc;
                 if (dport < range->dst_port_min)
                     dport = range->dst_port_max;
                 if (dport > range->dst_port_max)
                     dport = range->dst_port_min;
-                pkt->dport = dport;
+                pkt->dport = (uint16_t)dport;
             } else
                 pkt->dport = range->dst_port;
 
             if (unlikely(range->ttl_inc != 0)) {
-                uint8_t ttl = pkt->ttl;
+                uint16_t ttl = pkt->ttl;
                 ttl += range->ttl_inc;
                 if (ttl < range->ttl_min)
                     ttl = range->ttl_max;
                 if (ttl > range->ttl_max)
                     ttl = range->ttl_min;
-                pkt->ttl = ttl;
+                pkt->ttl = (uint8_t)ttl;
             } else
                 pkt->ttl = range->ttl;
 
@@ -125,7 +125,7 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 
             if (unlikely(range->vlan_id_inc != 0)) {
                 /* Since VLAN is set to MIN_VLAN_ID, check this and skip first increment
-                 * to maintian the range sequence in sync with other range fields */
+                 * to maintain the range sequence in sync with other range fields */
                 uint32_t p;
                 static uint8_t min_vlan_set = 0;
                 if ((pkt->vlanid == MIN_VLAN_ID) && !min_vlan_set) {

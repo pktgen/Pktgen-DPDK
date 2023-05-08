@@ -173,7 +173,7 @@ update_port_static_info(unsigned int pid)
     GtkTreeIter toplevel;
     port_info_t *info = NULL;
     pkt_seq_t *pkt    = NULL;
-    gchar buf[20];
+    gchar buf[32];
 
     info = &pktgen.info[pid];
     pkt  = &info->seq_pkt[SINGLE_PKT];
@@ -233,21 +233,19 @@ update_port_static_info(unsigned int pid)
             break;
 
         case 9:
-            strcpy(buf, inet_ntop4(buf, sizeof(buf), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
-                                   0xFFFFFFFF));
+            inet_ntop4(buf, sizeof(buf), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF);
             break;
 
         case 10:
-            strcpy(buf, inet_ntop4(buf, sizeof(buf), htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
-                                   pkt->ip_mask));
+            inet_ntop4(buf, sizeof(buf), htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask);
             break;
 
         case 11:
-            strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_dst_addr));
+            inet_mtoa(buf, sizeof(buf), &pkt->eth_dst_addr);
             break;
 
         case 12:
-            strcpy(buf, inet_mtoa(buf, sizeof(buf), &pkt->eth_src_addr));
+            inet_mtoa(buf, sizeof(buf), &pkt->eth_src_addr);
             break;
 
         case 15:
@@ -1343,7 +1341,7 @@ pktgen_gui_main(int argc, char *argv[])
     pthread_t inc_x_thread;
 
     printf(">>>> Starting the GUI\n");
-    
+
     /* Initialize GTK */
     gtk_init(&argc, &argv);
 

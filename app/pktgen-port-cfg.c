@@ -160,7 +160,6 @@ pktgen_config_ports(void)
     if (pktgen.nb_ports > RTE_MAX_ETHPORTS)
         pktgen.nb_ports = RTE_MAX_ETHPORTS;
 
-    printf("Index %-12s ifIndex NUMA   Device\n", "Name");
     for (int i = 0; i < pktgen.nb_ports; i++) {
         struct rte_eth_dev_info dev;
         char buff[64];

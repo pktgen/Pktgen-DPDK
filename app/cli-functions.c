@@ -2139,7 +2139,7 @@ latency_cmd(int argc, char **argv)
     if (!m)
         return cli_cmd_error("Latency invalid command", "Latency", argc, argv);
 
-    portlist_parse(argv[1], &portlist);
+    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
 
     value = atoi(argv[3]);
 

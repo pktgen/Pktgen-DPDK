@@ -143,7 +143,6 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 
             /* Found a matching packet, replace the dst address */
             if (idx >= 0) {
-printf("%s:%d pkt %p, arp %p\n", __func__, __LINE__, pkt, arp);
                 rte_memcpy(&pkt->eth_dst_addr, &arp->arp_data.arp_sha, 6);
                 pktgen_clear_display();
             }

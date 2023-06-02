@@ -204,7 +204,7 @@ range_cmd(int argc, char **argv)
     if (!m)
         return cli_cmd_error("Range command error", "Range", argc, argv);
 
-    portlist_parse(argv[1], &portlist);
+    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
 
     what = argv[4];
     val  = (const char *)argv[5];
@@ -571,7 +571,7 @@ set_cmd(int argc, char **argv)
     if (!m)
         return cli_cmd_error("Set command is invalid", "Set", argc, argv);
 
-    portlist_parse(argv[1], &portlist);
+    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
 
     what  = argv[2];
     value = atoi(argv[3]);
@@ -808,7 +808,7 @@ pcap_cmd(int argc, char **argv)
             pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.portNum);
         break;
     case 30:
-        portlist_parse(argv[2], &portlist);
+        portlist_parse(argv[2], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pcap_filter(info, argv[3]));
         break;
     default:
@@ -856,7 +856,7 @@ start_stop_cmd(int argc, char **argv)
     if (!m)
         return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
 
-    portlist_parse(argv[1], &portlist);
+    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
 
     switch (m->index) {
     case 10:
@@ -1012,7 +1012,7 @@ en_dis_cmd(int argc, char **argv)
     if (!m)
         return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
 
-    portlist_parse(argv[1], &portlist);
+    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
 
     switch (m->index) {
     case 10:
@@ -1219,15 +1219,15 @@ dbg_cmd(int argc, char **argv)
         pktgen_clear_display();
         break;
     case 21:
-        portlist_parse(argv[2], &portlist);
+        portlist_parse(argv[2], pktgen.nb_ports, &portlist);
         foreach_port(portlist, debug_tx_rate(info));
         break;
     case 30:
-        portlist_parse(argv[2], &portlist);
+        portlist_parse(argv[2], pktgen.nb_ports, &portlist);
         foreach_port(portlist, debug_mempool_dump(info, argv[3]));
         break;
     case 40:
-        portlist_parse(argv[2], &portlist);
+        portlist_parse(argv[2], pktgen.nb_ports, &portlist);
         foreach_port(portlist, debug_pdump(info));
         pktgen_update_display();
         break;
@@ -1313,7 +1313,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
             "src IP address should contain subnet value, default /32 for IPv4, /128 for IPv6\n");
     }
     _atoip(argv[6], PG_IPADDR_NETWORK, &src, sizeof(src));
-    portlist_parse(argv[2], &portlist);
+    portlist_parse(argv[2], pktgen.nb_ports, &portlist);
     pg_ether_aton(argv[3], &dmac);
     pg_ether_aton(argv[4], &smac);
     foreach_port(portlist, pktgen_set_seq(info, seqnum, &dmac, &smac, &dst, &src, atoi(argv[7]),
@@ -1370,7 +1370,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
             "src IP address should contain subnet value, default /32 for IPv4, /128 for IPv6\n");
     }
     _atoip(argv[10], PG_IPADDR_NETWORK, &src, sizeof(src));
-    portlist_parse(argv[2], &portlist);
+    portlist_parse(argv[2], pktgen.nb_ports, &portlist);
     pg_ether_aton(argv[4], &dmac);
     pg_ether_aton(argv[6], &smac);
     foreach_port(portlist, pktgen_set_seq(info, seqnum, &dmac, &smac, &dst, &src, atoi(argv[12]),
@@ -1409,7 +1409,7 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
     cos = strtoul(argv[4], NULL, 10);
     tos = strtoul(argv[6], NULL, 10);
 
-    portlist_parse(argv[2], &portlist);
+    portlist_parse(argv[2], pktgen.nb_ports, &portlist);
 
     foreach_port(portlist, pktgen_set_cos_tos_seq(info, seqnum, cos, tos));
 
@@ -1446,7 +1446,7 @@ seq_4_set_cmd(int argc __rte_unused, char **argv)
     gid  = strtoul(argv[6], NULL, 10);
     vid  = strtoul(argv[8], NULL, 10);
 
-    portlist_parse(argv[2], &portlist);
+    portlist_parse(argv[2], pktgen.nb_ports, &portlist);
 
     foreach_port(portlist, pktgen_set_vxlan_seq(info, seqnum, flag, gid, vid));
 
@@ -1658,7 +1658,7 @@ misc_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        portlist_parse(argv[1], &portlist);
+        portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_clear_stats(info));
         pktgen_clear_display();
         break;
@@ -1701,11 +1701,11 @@ misc_cmd(int argc, char **argv)
         pktgen_clear_display();
         break;
     case 100:
-        portlist_parse(argv[1], &portlist);
+        portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_reset(info));
         break;
     case 110:
-        portlist_parse(argv[1], &portlist);
+        portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_port_restart(info));
         break;
     case 120:
@@ -1713,13 +1713,13 @@ misc_cmd(int argc, char **argv)
         pktgen_set_port_number((uint16_t)atoi(argv[1]));
         break;
     case 140:
-        portlist_parse(argv[1], &portlist);
+        portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_ping4(info));
         pktgen_force_update();
         break;
 #ifdef INCLUDE_PING6
     case 141:
-        portlist_parse(argv[1], &portlist);
+        portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_ping6(info));
         pktgen_update_display();
         break;
@@ -1886,7 +1886,7 @@ bonding_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        portlist_parse(argv[1], &portlist);
+        portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, bonding_dump(info));
         break;
     case 20:
@@ -1979,7 +1979,7 @@ rate_cmd(int argc, char **argv)
     if (!m)
         return cli_cmd_error("Rate invalid command", "Rate", argc, argv);
 
-    portlist_parse(argv[1], &portlist);
+    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
 
     what  = argv[2];
     value = atoi(argv[3]);

@@ -5,8 +5,6 @@
 #include "pg_strings.h"
 #include "portlist.h"
 
-#define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
-
 int
 portmask_parse(const char *str, portlist_t *portmask)
 {
@@ -38,21 +36,19 @@ set_portlist_bits(size_t low, size_t high, uint64_t *map)
 #define MAX_SPLIT	64
 /* portlist = N,N,N-M,N, ... */
 int
-portlist_parse(const char *str, portlist_t *portlist)
+portlist_parse(const char *str, int nb_ports, portlist_t *portlist)
 {
-	size_t ps, pe, n, i;
+	size_t ps, pe, n;
 	char *split[MAX_SPLIT], *s, *p;
 	uint64_t map = 0;
 
-	if (!str || !*str)
+	if (!str || !*str || !portlist)
 		return -1;
+	*portlist = 0;
 
 	if (!strcmp(str, "all")) {
-		if (portlist) {
-			uint32_t i;
-			for (i = 0; i < SIZE_OF_PORTLIST; i++)
-				*portlist |= (1LL << i);
-		}
+        for (int i = 0; i < nb_ports; i++)
+            *portlist |= (1LL << i);
 		return 0;
 	}
 
@@ -68,7 +64,7 @@ portlist_parse(const char *str, portlist_t *portlist)
 	if (!n)
 		return 0;
 
-	for(i = 0; i < n; i++) {
+	for(size_t i = 0; i < n; i++) {
 		p = strchr(split[i], '-');
 
 		if (!p) {
@@ -83,6 +79,8 @@ portlist_parse(const char *str, portlist_t *portlist)
 		if ((ps > pe) || (pe >= (sizeof(map) * 8)))
 			return -1;
 
+        if (pe > RTE_MAX_ETHPORTS)
+            pe = RTE_MAX_ETHPORTS;
 		set_portlist_bits(ps, pe, &map);
 	}
 

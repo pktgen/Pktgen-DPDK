@@ -4,8 +4,6 @@
 
 #include "pg_strings.h"
 
-#define SIZE_OF_PORTLIST      (sizeof(portlist_t) * 8)
-
 char *
 pg_strtrim(char *str)
 {

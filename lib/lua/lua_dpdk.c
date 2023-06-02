@@ -168,7 +168,7 @@ dpdk_linkState(lua_State *L)
     validate_arg_count(L, 1);
 
     portlist = 0;
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist_parse(luaL_checkstring(L, 1), RTE_MAX_ETHPORTS, &portlist);
 
     lua_newtable(L);
 
@@ -210,7 +210,7 @@ dpdk_portStats(lua_State *L)
 
     validate_arg_count(L, 1);
 
-    portlist_parse(luaL_checkstring(L, 1), &portlist);
+    portlist_parse(luaL_checkstring(L, 1), RTE_MAX_ETHPORTS, &portlist);
 
     lua_newtable(L);
 
@@ -274,7 +274,7 @@ dpdk_decompile(lua_State *L)
 
     validate_arg_count(L, 2);
 
-    portlist_parse(luaL_checkstring(L, 2), &portlist);
+    portlist_parse(luaL_checkstring(L, 2), RTE_MAX_ETHPORTS, &portlist);
 
     lua_newtable(L);
 

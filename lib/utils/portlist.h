@@ -29,12 +29,14 @@ typedef uint64_t portlist_t;
  *
  * @param str
  *   String to parse
+ * @param nb_ports
+ *   Max number of ports to set in the portlist
  * @param portlist
  *   Pointer to uint64_t value for returned bitmap
  * @return
  *   -1 on error or 0 on success.
  */
-int portlist_parse(const char *str, portlist_t *portlist);
+int portlist_parse(const char *str, int nb_ports, portlist_t *portlist);
 
 /**
  * Parse a portmasl string into a mask or bitmap value.

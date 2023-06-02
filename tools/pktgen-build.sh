@@ -22,6 +22,8 @@ install_path="${PKTGEN_DESTDIR:-${currdir}}"
 export lua_enabled="-Denable_lua=false"
 export gui_enabled="-Denable_gui=false"
 
+configure="setup"
+
 if [[ "${build_dir}" = /* ]]; then
 	# absolute path to build dir. Do not prepend workdir.
 	build_path=$build_dir
@@ -63,8 +65,15 @@ function dump_options() {
 function run_meson() {
 	btype="-Dbuildtype="$buildtype
 
-	echo meson $btype $lua_enabled $gui_enabled $build_dir
-	meson $btype $lua_enabled $gui_enabled $build_dir
+    echo "meson $configure $btype $lua_enabled $gui_enabled $build_dir"
+	if ! meson $configure $btype $lua_enabled $gui_enabled $build_dir; then
+        echo "*** ERROR: meson $configure $btype $lua_enabled $gui_enabled $build_dir"
+        configure=""
+        return 1
+    fi
+
+    configure=""
+    return 0
 }
 
 function ninja_build() {
@@ -76,13 +85,16 @@ function ninja_build() {
 		# sdk_dir must be empty if we're reconfiguring
 		sdk_dir=""
 	fi
-	run_meson
+	if ! run_meson; then
+        return 1
+    fi
 
 	ninja -C $build_path
 
 	if [[ $? -ne 0 ]]; then
 		return 1;
 	fi
+
 	return 0
 }
 
@@ -90,7 +102,9 @@ function ninja_build_docs() {
 	echo ">>> Ninja build documents in '"$build_path"'"
 
 	if [[ ! -d $build_path ]] || [[ ! -f $build_path/build.ninja ]]; then
-		run_meson
+		if ! run_meson; then
+            return 1
+        fi
 	fi
 
 	ninja -C $build_path doc

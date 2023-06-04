@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 23.06.1 - cleanup the code with clang-format.
  - 23.06.0 - Fix up problem using "all" with portlist routines.
  - 23.03.1 - In latency mode avg_cycles was only calculated when not using Lua.
  - 23.03.0 - Update and fix a number of issues with latency. Some values were not updated

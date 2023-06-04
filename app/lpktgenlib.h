@@ -17,8 +17,8 @@ extern "C" {
 #include <lua.h>
 #include <lauxlib.h>
 
-#define LUA_PKTGENLIBNAME   "pktgen"
-#define PKTGEN_SHORTCUTS    "Pktgen"
+#define LUA_PKTGENLIBNAME "pktgen"
+#define PKTGEN_SHORTCUTS  "Pktgen"
 
 LUALIB_API int luaopen_pktgen(lua_State *L);
 void pktgen_lua_openlib(lua_State *L);

@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 #ifndef RTE_ASSERT
-#define RTE_ASSERT	RTE_VERIFY
+#define RTE_ASSERT RTE_VERIFY
 #endif
 
 /**
@@ -41,9 +41,7 @@ extern "C" {
  *   N/A
  */
 
-static inline int
-__attribute__((format(printf, 1, 2)))
-cli_printf(const char *fmt, ...)
+static inline int __attribute__((format(printf, 1, 2))) cli_printf(const char *fmt, ...)
 {
     va_list vaList;
     int n;

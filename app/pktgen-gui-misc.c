@@ -22,9 +22,9 @@
 gboolean
 check_entry(GtkTreeStore *tree, GtkTreePath *path)
 {
-	GtkTreeIter iter;
+    GtkTreeIter iter;
 
-	return gtk_tree_model_get_iter(GTK_TREE_MODEL(tree), &iter, path);
+    return gtk_tree_model_get_iter(GTK_TREE_MODEL(tree), &iter, path);
 }
 
 /**
@@ -42,40 +42,37 @@ check_entry(GtkTreeStore *tree, GtkTreePath *path)
 void
 add_entry(GtkTreeStore *tree, GtkTreePath *path)
 {
-	gint depth;
-	gint *indices;
-	gint index;
-	GtkTreeIter iter;
+    gint depth;
+    gint *indices;
+    gint index;
+    GtkTreeIter iter;
 
-	/* determine depth and last index of path */
-	depth = gtk_tree_path_get_depth(path);
-	indices = gtk_tree_path_get_indices(path);
-	index = indices[depth - 1];
+    /* determine depth and last index of path */
+    depth   = gtk_tree_path_get_depth(path);
+    indices = gtk_tree_path_get_indices(path);
+    index   = indices[depth - 1];
 
-	if (!check_entry(tree, path)) {
-		if (depth == 1)	/* if this is a child of the root node, use NULL instead of iter */
-			while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(tree), NULL) == (index + 1)))
-				gtk_tree_store_append(tree, &iter, NULL);
-		else {
-			GtkTreePath *parent_path;
-			GtkTreeIter parent;
+    if (!check_entry(tree, path)) {
+        if (depth == 1) /* if this is a child of the root node, use NULL instead of iter */
+            while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(tree), NULL) == (index + 1)))
+                gtk_tree_store_append(tree, &iter, NULL);
+        else {
+            GtkTreePath *parent_path;
+            GtkTreeIter parent;
 
-			/* determine parent node, creating parent if it does not exist */
-			parent_path = gtk_tree_path_copy(path);
-			gtk_tree_path_up(parent_path);
-			if (!check_entry(tree, parent_path))
-				add_entry(tree, parent_path);
-			/* append new nodes up to index-th child of parent */
-			gtk_tree_model_get_iter(GTK_TREE_MODEL(tree), &parent,
-			                        parent_path);
-			while (!(gtk_tree_model_iter_n_children(
-			                 GTK_TREE_MODEL(tree),
-			                 &parent) == (index + 1)))
-				gtk_tree_store_append(tree, &iter, &parent);
+            /* determine parent node, creating parent if it does not exist */
+            parent_path = gtk_tree_path_copy(path);
+            gtk_tree_path_up(parent_path);
+            if (!check_entry(tree, parent_path))
+                add_entry(tree, parent_path);
+            /* append new nodes up to index-th child of parent */
+            gtk_tree_model_get_iter(GTK_TREE_MODEL(tree), &parent, parent_path);
+            while (!(gtk_tree_model_iter_n_children(GTK_TREE_MODEL(tree), &parent) == (index + 1)))
+                gtk_tree_store_append(tree, &iter, &parent);
 
-			gtk_tree_path_free(parent_path);
-		}
-	}
+            gtk_tree_path_free(parent_path);
+        }
+    }
 }
 
 /**
@@ -91,36 +88,30 @@ add_entry(GtkTreeStore *tree, GtkTreePath *path)
  */
 
 void
-enable_stream_callback(GtkCellRendererToggle *cell,
-                       gchar     *path,
+enable_stream_callback(GtkCellRendererToggle *cell, gchar *path,
                        gpointer __attribute__((unused)) data)
 {
-	GtkTreeIter iter;
-	gboolean active;
-	port_info_t *info = NULL;
-	pkt_seq_t *pkt = NULL;
-	unsigned int pid = 0, seq_id = 0;
+    GtkTreeIter iter;
+    gboolean active;
+    port_info_t *info = NULL;
+    pkt_seq_t *pkt    = NULL;
+    unsigned int pid = 0, seq_id = 0;
 
-	GtkTreeSelection  *selection_chassis = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(chassis_view));
+    GtkTreeSelection *selection_chassis = gtk_tree_view_get_selection(GTK_TREE_VIEW(chassis_view));
 
-	gtk_tree_selection_selected_foreach(selection_chassis,
-	                                    traffic_stream_get_pid,
-	                                    (gpointer) & pid);
+    gtk_tree_selection_selected_foreach(selection_chassis, traffic_stream_get_pid, (gpointer)&pid);
 
-	GtkTreeModel  *model =
-	        gtk_tree_view_get_model(GTK_TREE_VIEW(stream_view[pid]));
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(stream_view[pid]));
 
-	g_object_get(G_OBJECT(cell), "active", &active, NULL);
-	gtk_tree_model_get_iter_from_string(model, &iter, path);
-	gtk_tree_store_set(GTK_TREE_STORE(model), &iter,
-	                   TRAF_STR_SELECT, !active, -1);
+    g_object_get(G_OBJECT(cell), "active", &active, NULL);
+    gtk_tree_model_get_iter_from_string(model, &iter, path);
+    gtk_tree_store_set(GTK_TREE_STORE(model), &iter, TRAF_STR_SELECT, !active, -1);
 
-	gtk_tree_model_get(model, &iter, TRAF_STR_NO, &seq_id, -1);
+    gtk_tree_model_get(model, &iter, TRAF_STR_NO, &seq_id, -1);
 
-	info = &pktgen.info[pid];
-	pkt  = &info->seq_pkt[seq_id];
-	pkt->seq_enabled = !active;
+    info             = &pktgen.info[pid];
+    pkt              = &info->seq_pkt[seq_id];
+    pkt->seq_enabled = !active;
 }
 
 /**
@@ -136,11 +127,11 @@ enable_stream_callback(GtkCellRendererToggle *cell,
  */
 
 void
-digits_scale_callback(GtkAdjustment __attribute__((unused)) *adj)
+digits_scale_callback(GtkAdjustment __attribute__((unused)) * adj)
 {
-	/* Set the number of decimal places to which adj->value is rounded */
-	tx_rate = (gint)adj->value;
-	gtk_scale_set_digits(GTK_SCALE(hscale), (gint)0);
+    /* Set the number of decimal places to which adj->value is rounded */
+    tx_rate = (gint)adj->value;
+    gtk_scale_set_digits(GTK_SCALE(hscale), (gint)0);
 }
 
 /**
@@ -156,17 +147,12 @@ digits_scale_callback(GtkAdjustment __attribute__((unused)) *adj)
  */
 
 void
-apply_callback(GtkWidget __attribute__(
-                       (unused)) *w, gpointer __attribute__(
-                       (unused)) data)
+apply_callback(GtkWidget __attribute__((unused)) * w, gpointer __attribute__((unused)) data)
 {
-	guint flag = 1;
-	GtkTreeSelection  *selection = gtk_tree_view_get_selection(
-	                GTK_TREE_VIEW(chassis_view));
+    guint flag                  = 1;
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(chassis_view));
 
-	gtk_tree_selection_selected_foreach(selection,
-	                                    stream_apply,
-	                                    (gpointer) & flag);
+    gtk_tree_selection_selected_foreach(selection, stream_apply, (gpointer)&flag);
 }
 
 /**
@@ -182,28 +168,26 @@ apply_callback(GtkWidget __attribute__(
  */
 
 void
-stream_apply(GtkTreeModel  *model,
-             GtkTreePath __attribute__((unused)) *path,
-             GtkTreeIter   *iter,
+stream_apply(GtkTreeModel *model, GtkTreePath __attribute__((unused)) * path, GtkTreeIter *iter,
              gpointer userdata)
 {
-	gchar *name;
-	port_info_t *info = NULL;
-	unsigned int pid;
-	guint *flag = (guint *)userdata;
+    gchar *name;
+    port_info_t *info = NULL;
+    unsigned int pid;
+    guint *flag = (guint *)userdata;
     char buff[64];
 
-	gtk_tree_model_get(model, iter, COL_CHASSIS_PORTS, &name, -1);
+    gtk_tree_model_get(model, iter, COL_CHASSIS_PORTS, &name, -1);
 
     snprintf(buff, sizeof(buff), "%d", tx_rate);
-	if (0 != g_strcmp0(name, "[127.0.0.1]")) {
-		int offset = strlen(name);
-		pid = atoi((name + offset) - 1);
-		info = &pktgen.info[pid];
-		if ((info != NULL) && (*flag == 1))
-			single_set_tx_rate(info, buff);
-	} else if (*flag == 1)
-		forall_ports(single_set_tx_rate(info, buff));
+    if (0 != g_strcmp0(name, "[127.0.0.1]")) {
+        int offset = strlen(name);
+        pid        = atoi((name + offset) - 1);
+        info       = &pktgen.info[pid];
+        if ((info != NULL) && (*flag == 1))
+            single_set_tx_rate(info, buff);
+    } else if (*flag == 1)
+        forall_ports(single_set_tx_rate(info, buff));
 }
 
 /**
@@ -221,50 +205,50 @@ stream_apply(GtkTreeModel  *model,
 int
 validate_ip_address(char *st)
 {
-	int num, i, len;
-	char *ch;
+    int num, i, len;
+    char *ch;
 
-	/* counting number of quads present in a given IP address */
-	int quadsCnt = 0;
+    /* counting number of quads present in a given IP address */
+    int quadsCnt = 0;
 
-	len = strlen(st);
+    len = strlen(st);
 
-	/*  Check if the string is valid */
-	if (len < 7 || len > 15)
-		return 0;
+    /*  Check if the string is valid */
+    if (len < 7 || len > 15)
+        return 0;
 
-	ch = strtok(st, ".");
+    ch = strtok(st, ".");
 
-	while (ch != NULL) {
-		quadsCnt++;
+    while (ch != NULL) {
+        quadsCnt++;
 
-		num = 0;
-		i = 0;
+        num = 0;
+        i   = 0;
 
-		/*  Get the current token and convert to an integer value */
-		while (ch[i] != '\0') {
-			num = num * 10;
-			num = num + (ch[i] - '0');
-			i++;
-		}
+        /*  Get the current token and convert to an integer value */
+        while (ch[i] != '\0') {
+            num = num * 10;
+            num = num + (ch[i] - '0');
+            i++;
+        }
 
-		if (num < 0 || num > 255)
-			/* Not a valid ip */
-			return 0;
+        if (num < 0 || num > 255)
+            /* Not a valid ip */
+            return 0;
 
-		if ( (quadsCnt == 1 && num == 0) || (quadsCnt == 4 && num == 0))
-			/* Not a valid ip */
-			return 0;
+        if ((quadsCnt == 1 && num == 0) || (quadsCnt == 4 && num == 0))
+            /* Not a valid ip */
+            return 0;
 
-		ch = strtok(NULL, ".");
-	}
+        ch = strtok(NULL, ".");
+    }
 
-	/*  Check the address string, should be n.n.n.n format */
-	if (quadsCnt != 4)
-		return 0;
+    /*  Check the address string, should be n.n.n.n format */
+    if (quadsCnt != 4)
+        return 0;
 
-	/*  Looks like a valid IP address */
-	return 1;
+    /*  Looks like a valid IP address */
+    return 1;
 }
 
 /**
@@ -280,14 +264,12 @@ validate_ip_address(char *st)
  */
 
 void
-traffic_stream_get_seq_id(GtkTreeModel  *model,
-                          GtkTreePath __attribute__((unused)) *path,
-                          GtkTreeIter   *iter,
-                          gpointer data)
+traffic_stream_get_seq_id(GtkTreeModel *model, GtkTreePath __attribute__((unused)) * path,
+                          GtkTreeIter *iter, gpointer data)
 {
-	unsigned int *seq_id = (unsigned int *)data;
+    unsigned int *seq_id = (unsigned int *)data;
 
-	gtk_tree_model_get(model, iter, TRAF_STR_NO, seq_id, -1);
+    gtk_tree_model_get(model, iter, TRAF_STR_NO, seq_id, -1);
 }
 
 /**
@@ -303,20 +285,18 @@ traffic_stream_get_seq_id(GtkTreeModel  *model,
  */
 
 void
-traffic_stream_get_pid(GtkTreeModel  *model,
-                       GtkTreePath __attribute__((unused)) *path,
-                       GtkTreeIter   *iter,
-                       gpointer data)
+traffic_stream_get_pid(GtkTreeModel *model, GtkTreePath __attribute__((unused)) * path,
+                       GtkTreeIter *iter, gpointer data)
 {
-	unsigned int *pid = (unsigned int *)data;
-	gchar *name;
+    unsigned int *pid = (unsigned int *)data;
+    gchar *name;
 
-	gtk_tree_model_get(model, iter, COL_CHASSIS_PORTS, &name, -1);
+    gtk_tree_model_get(model, iter, COL_CHASSIS_PORTS, &name, -1);
 
-	if (0 != g_strcmp0(name, "[127.0.0.1]")) {
-		int offset = strlen(name);
-		*pid = atoi((name + offset) - 1);
-	}
+    if (0 != g_strcmp0(name, "[127.0.0.1]")) {
+        int offset = strlen(name);
+        *pid       = atoi((name + offset) - 1);
+    }
 }
 
 /**
@@ -334,13 +314,13 @@ traffic_stream_get_pid(GtkTreeModel  *model,
 int
 hex_to_number(char c)
 {
-	if (c >= '0' && c <= '9')
-		return c - '0';
-	if (c >= 'a' && c <= 'f')
-		return c - 'a' + 10;
-	if (c >= 'A' && c <= 'F')
-		return c - 'A' + 10;
-	return -1;
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    return -1;
 }
 
 /**
@@ -358,17 +338,17 @@ hex_to_number(char c)
 int
 ascii_to_number(const char *txt, unsigned int *addr, int len)
 {
-	int i;
+    int i;
 
-	for (i = 0; i < len; i++) {
-		int a, b;
-		a = hex_to_number(*txt++);
-		if (a < 0)
-			return -1;
-		b = hex_to_number(*txt++);
-		if (b < 0)
-			return -1;
-		*addr++ = (a << 4) | b;
-	}
-	return 0;
+    for (i = 0; i < len; i++) {
+        int a, b;
+        a = hex_to_number(*txt++);
+        if (a < 0)
+            return -1;
+        b = hex_to_number(*txt++);
+        if (b < 0)
+            return -1;
+        *addr++ = (a << 4) | b;
+    }
+    return 0;
 }

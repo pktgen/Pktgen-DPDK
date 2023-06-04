@@ -341,7 +341,7 @@ pktgen_page_stats(void)
 
         memset(&sizes, 0, sizeof(port_sizes_t));
         memset(&stats, 0, sizeof(pkt_stats_t));
-        
+
         info = &pktgen.info[pid + sp];
 
         /* Display the disable string when port is not enabled. */

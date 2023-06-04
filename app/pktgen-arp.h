@@ -24,4 +24,4 @@ void arp_pkt_dump(struct rte_mbuf *m);
 }
 #endif
 
-#endif  /* _PKTGEN_ARP_H_ */
+#endif /* _PKTGEN_ARP_H_ */

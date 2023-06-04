@@ -31,12 +31,11 @@ arp_pkt_dump(struct rte_mbuf *m)
 
     rte_ether_format_addr(dst, sizeof(dst), &eth->dst_addr);
     rte_ether_format_addr(src, sizeof(src), &eth->src_addr);
-    printf("  Ethernet Header DST: %s, SRC: %s, Type: %04x\n",
-           dst, src, ntohs(eth->ether_type));
+    printf("  Ethernet Header DST: %s, SRC: %s, Type: %04x\n", dst, src, ntohs(eth->ether_type));
 
     printf("  ARP Header Type: %04x, Proto: %04x, hlen: %d, plen: %d, opcode: %d\n",
-        ntohs(arp->arp_hardware), ntohs(arp->arp_protocol),
-        arp->arp_hlen, arp->arp_plen, ntohs(arp->arp_opcode));
+           ntohs(arp->arp_hardware), ntohs(arp->arp_protocol), arp->arp_hlen, arp->arp_plen,
+           ntohs(arp->arp_opcode));
 
     rte_ether_format_addr(dst, sizeof(dst), &arp->arp_data.arp_sha);
     rte_ether_format_addr(src, sizeof(src), &arp->arp_data.arp_tha);
@@ -125,8 +124,8 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 void
 pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan)
 {
-    port_info_t *info = &pktgen.info[pid];
-    pkt_seq_t *pkt = NULL;
+    port_info_t *info         = &pktgen.info[pid];
+    pkt_seq_t *pkt            = NULL;
     struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
     struct rte_arp_hdr *arp   = (struct rte_arp_hdr *)&eth[1];
 
@@ -156,7 +155,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
             struct rte_mbuf *m1;
 
             pkt = &info->seq_pkt[idx];
-            m1 = rte_pktmbuf_copy(m, info->special_mp, 0, UINT32_MAX);
+            m1  = rte_pktmbuf_copy(m, info->special_mp, 0, UINT32_MAX);
             if (unlikely(m1 == NULL))
                 return;
             eth = rte_pktmbuf_mtod(m1, struct rte_ether_hdr *);

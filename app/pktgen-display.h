@@ -127,10 +127,7 @@ void pktgen_show_theme(void);
  *
  * SEE ALSO:
  */
-void pktgen_set_theme_item(char *item,
-				  char *fg_color,
-				  char *bg_color,
-				  char *attr);
+void pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr);
 
 /**
  *
@@ -188,4 +185,4 @@ void pktgen_print_div(uint32_t row_first, uint32_t row_last, uint32_t col);
 }
 #endif
 
-#endif  /* _PKTGEN_DISPLAY_H_ */
+#endif /* _PKTGEN_DISPLAY_H_ */

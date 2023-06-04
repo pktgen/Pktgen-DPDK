@@ -16,13 +16,13 @@ extern "C" {
 #endif
 
 /**
-* Add the default set of directories and commands
-*
-* @note Uses a thread variable called this_cli
-*
-* @return
-*   0 is ok, -1 is error
-*/
+ * Add the default set of directories and commands
+ *
+ * @note Uses a thread variable called this_cli
+ *
+ * @return
+ *   0 is ok, -1 is error
+ */
 int cli_default_tree_init(void);
 
 #ifdef __cplusplus

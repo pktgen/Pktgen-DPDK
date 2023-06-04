@@ -13,15 +13,10 @@
 extern "C" {
 #endif
 
-uint32_t get_portdesc(struct rte_pci_addr *pciAddr,
-			     uint8_t **portdesc,
-			     uint32_t num,
-			     int verbose);
+uint32_t get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, int verbose);
 void free_portdesc(uint8_t **portdesc, uint32_t num);
-uint32_t create_blocklist(uint64_t portmask,
-				 struct rte_pci_addr *portlist,
-				 uint32_t port_cnt,
-				 uint8_t * desc[]);
+uint32_t create_blocklist(uint64_t portmask, struct rte_pci_addr *portlist, uint32_t port_cnt,
+                          uint8_t *desc[]);
 
 #ifdef __cplusplus
 }

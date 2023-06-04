@@ -19,9 +19,11 @@ extern "C" {
  */
 
 static __inline__ char *
-pg_strdupf(char *str, char *new) {
-	if (str) free(str);
-	return (new == NULL) ? NULL : strdup(new);
+pg_strdupf(char *str, char *new)
+{
+    if (str)
+        free(str);
+    return (new == NULL) ? NULL : strdup(new);
 }
 
 /**
@@ -41,30 +43,27 @@ pg_strdupf(char *str, char *new) {
 static __inline__ char *
 pg_strtrimset(char *str, const char *set)
 {
-	int len;
+    int len;
 
-	len = strlen(set);
-	if ( (len == 0) || (len & 1) )
-		return NULL;
+    len = strlen(set);
+    if ((len == 0) || (len & 1))
+        return NULL;
 
-	for (; set && (set[0] != '\0'); set += 2) {
-		if (*str != *set)
-			continue;
+    for (; set && (set[0] != '\0'); set += 2) {
+        if (*str != *set)
+            continue;
 
-		if (*str == *set++)
-			str++;
+        if (*str == *set++)
+            str++;
 
-		len = strlen(str);
-		if (len && (str[len - 1] == *set) )
-			str[len - 1] = '\0';
-	}
-	return str;
+        len = strlen(str);
+        if (len && (str[len - 1] == *set))
+            str[len - 1] = '\0';
+    }
+    return str;
 }
 
-uint32_t pg_strparse(char *s,
-			    const char *delim,
-			    char **entries,
-			    uint32_t max_entries);
+uint32_t pg_strparse(char *s, const char *delim, char **entries, uint32_t max_entries);
 char *pg_strccpy(char *t, char *f, const char *str);
 
 #ifdef __cplusplus

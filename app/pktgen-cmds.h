@@ -83,7 +83,7 @@ void single_set_src_mac(port_info_t * info, struct rte_ether_addr * mac);
 void single_set_pkt_type(port_info_t * info, const char *type);
 void single_set_tx_count(port_info_t * info, uint32_t cnt);
 void single_set_tx_burst(port_info_t * info, uint32_t burst);
-void single_set_rx_burst(port_info_t *info, uint32_t burst);
+void single_set_rx_burst(port_info_t * info, uint32_t burst);
 void single_set_pkt_size(port_info_t * info, uint16_t size);
 void single_set_tx_rate(port_info_t * info, const char *rate);
 void single_set_jitter(port_info_t * info, uint64_t threshold);
@@ -92,7 +92,7 @@ void single_set_port_value(port_info_t * info, char type, uint32_t portValue);
 void single_set_qinqids(port_info_t * info, uint16_t outerid, uint16_t innerid);
 void single_set_vxlan(port_info_t * info, uint16_t flags, uint16_t group_id, uint32_t vxlan_id);
 void single_set_latsampler_params(port_info_t * info, char *type, uint32_t num_samples,
-                                    uint32_t sampling_rate, char outfile[]);
+                                  uint32_t sampling_rate, char outfile[]);
 
 /* Rate */
 char *rate_transmit_count_rate(int port, char *buff, int len);
@@ -110,7 +110,7 @@ void rate_set_tcp_ack(port_info_t * info, uint32_t ack);
 void rate_set_tcp_flag_set(port_info_t * info, const char *which);
 void rate_set_tcp_flag_clr(port_info_t * info, const char *which);
 void rate_set_tx_burst(port_info_t * info, uint32_t burst);
-void rate_set_rx_burst(port_info_t *info, uint32_t burst);
+void rate_set_rx_burst(port_info_t * info, uint32_t burst);
 
 /* Debug */
 void debug_dump(port_info_t * info, char *str);
@@ -185,7 +185,7 @@ void pktgen_set_seq(port_info_t * info, uint32_t seqnum, struct rte_ether_addr *
                     char proto, uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid);
 void pktgen_set_cos_tos_seq(port_info_t * info, uint32_t seqnum, uint32_t cos, uint32_t tos);
 void pktgen_set_vxlan_seq(port_info_t * info, uint32_t seqnum, uint32_t flag, uint32_t gid,
-                            uint32_t vid);
+                          uint32_t vid);
 
 /* Pattern */
 void pattern_set_type(port_info_t * info, char *str);

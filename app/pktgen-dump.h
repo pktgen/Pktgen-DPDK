@@ -14,11 +14,10 @@
 extern "C" {
 #endif
 
-#define MAX_DUMP_PACKETS        32
+#define MAX_DUMP_PACKETS 32
 
 void pktgen_packet_dump(struct rte_mbuf *m, int pid);
-void pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump,
-				    int pid);
+void pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid);
 
 void pktgen_print_packet_dump(void);
 
@@ -26,4 +25,4 @@ void pktgen_print_packet_dump(void);
 }
 #endif
 
-#endif  /* _PKTGEN_DUMP_H_ */
+#endif /* _PKTGEN_DUMP_H_ */

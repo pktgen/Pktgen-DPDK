@@ -1,4 +1,4 @@
- /* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) <2020-2023> Intel Corporation.
  */
 /* Created 2018 by Keith Wiles @ intel.com */
@@ -25,122 +25,115 @@
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-static const char *Vec	= "Vec";
+static const char *Vec = "Vec";
 
 static int
 vec_new(lua_State *L)
 {
-	vec_t *v;
-	int size = 0, top = lua_gettop(L);
+    vec_t *v;
+    int size = 0, top = lua_gettop(L);
 
-	if (top > 1)
-                return luaL_error(L, "new, Invalid arg count should be 0 or 1");
+    if (top > 1)
+        return luaL_error(L, "new, Invalid arg count should be 0 or 1");
 
-	if (top >= 1)
-		size = luaL_checkint(L, 1);
-	if (size == 0)
-		size = vec_calc_size(0);
+    if (top >= 1)
+        size = luaL_checkint(L, 1);
+    if (size == 0)
+        size = vec_calc_size(0);
 
-	v = (struct vec *)lua_newuserdata(L,
-		(sizeof(struct vec) * (size * sizeof(void *))));
-	vec_init(v, size, VEC_CREATE_FLAG);
+    v = (struct vec *)lua_newuserdata(L, (sizeof(struct vec) * (size * sizeof(void *))));
+    vec_init(v, size, VEC_CREATE_FLAG);
 
-	luaL_getmetatable(L, Vec);
-	lua_setmetatable(L, -2);
+    luaL_getmetatable(L, Vec);
+    lua_setmetatable(L, -2);
 
-	return 1;
+    return 1;
 }
 
 static int
 lvec_add1(lua_State *L)
 {
-	struct vec *v;
+    struct vec *v;
 
-	validate_arg_count(L, 2);
+    validate_arg_count(L, 2);
 
-	v = (struct vec *)luaL_checkudata(L, 1, Vec);
+    v = (struct vec *)luaL_checkudata(L, 1, Vec);
 
-	if (v->len >= v->tlen)
-		return 0;
+    if (v->len >= v->tlen)
+        return 0;
 
-	v->list[v->len++] = lua_touserdata(L, 2);
+    v->list[v->len++] = lua_touserdata(L, 2);
 
-	return 1;
+    return 1;
 }
 
 static int
 vec_tostring(lua_State *L)
 {
-	struct vec *v;
-	char buff[64];
+    struct vec *v;
+    char buff[64];
 
-	v = (struct vec *)luaL_checkudata(L, 1, Vec);
+    v = (struct vec *)luaL_checkudata(L, 1, Vec);
 
-	lua_getmetatable(L, 1);
-	lua_getfield(L, -1, "__name");
+    lua_getmetatable(L, 1);
+    lua_getfield(L, -1, "__name");
 
-	snprintf(buff, sizeof(buff), "%s<%d,%d,%s,0x%04x>",
-		lua_tostring(L, -1),
-		v->len, v->tlen, (v->vpool)? "V" : "_", v->flags);
-	lua_pop(L, 3);
+    snprintf(buff, sizeof(buff), "%s<%d,%d,%s,0x%04x>", lua_tostring(L, -1), v->len, v->tlen,
+             (v->vpool) ? "V" : "_", v->flags);
+    lua_pop(L, 3);
 
-	lua_pushstring(L, buff);
-	return 1;
+    lua_pushstring(L, buff);
+    return 1;
 }
 
 static int
 vec_gc(lua_State *L)
 {
-	struct vec *v;
-	struct rte_mbuf *m;
-	int i;
+    struct vec *v;
+    struct rte_mbuf *m;
+    int i;
 
-	if (lua_gettop(L) != 1)
-                return luaL_error(L, "vec.gc, Invalid arg count should be 1");
-	v = (struct vec *)lua_touserdata(L, 1);
+    if (lua_gettop(L) != 1)
+        return luaL_error(L, "vec.gc, Invalid arg count should be 1");
+    v = (struct vec *)lua_touserdata(L, 1);
 
-	vec_foreach(i, m, v) {
-		if (m)
-			rte_pktmbuf_free(m);
-	}
-	vec_free(v);
+    vec_foreach(i, m, v)
+    {
+        if (m)
+            rte_pktmbuf_free(m);
+    }
+    vec_free(v);
 
-	return 0;
+    return 0;
 }
 
-static const struct luaL_Reg vec_methods[] = {
-	{ "add1",	lvec_add1 },
-	{ NULL, 	NULL }
-};
+static const struct luaL_Reg vec_methods[] = {{"add1", lvec_add1}, {NULL, NULL}};
 
-static const struct luaL_Reg vec_functions[] = {
-	{ "new",	vec_new },
-	{ NULL,		NULL }
-};
+static const struct luaL_Reg vec_functions[] = {{"new", vec_new}, {NULL, NULL}};
 
 int
 luaopen_vec(lua_State *L)
 {
-	luaL_newmetatable(L, Vec);	// create and push new table called Vec
-	lua_pushvalue(L, -1);		// dup the table on the stack
+    luaL_newmetatable(L, Vec);        // create and push new table called Vec
+    lua_pushvalue(L, -1);             // dup the table on the stack
 
-	lua_setfield(L, -2, "__index");	//
+    lua_setfield(L, -2, "__index");        //
 
-	luaL_setfuncs(L, vec_methods, 0);
+    luaL_setfuncs(L, vec_methods, 0);
 
-	lua_pushstring(L, "__tostring");
-	lua_pushcfunction(L, vec_tostring);
-	lua_settable(L, -3);
+    lua_pushstring(L, "__tostring");
+    lua_pushcfunction(L, vec_tostring);
+    lua_settable(L, -3);
 
-	lua_pushstring(L, "__gc");
-	lua_pushcfunction(L, vec_gc);
-	lua_settable(L, -3);
-	lua_pop(L, 1);
+    lua_pushstring(L, "__gc");
+    lua_pushcfunction(L, vec_gc);
+    lua_settable(L, -3);
+    lua_pop(L, 1);
 
-	lua_getglobal(L, LUA_DPDK_LIBNAME);
-	lua_newtable(L);
-	luaL_setfuncs(L, vec_functions, 0);
-	lua_setfield(L, -2, LUA_VEC_LIBNAME);
+    lua_getglobal(L, LUA_DPDK_LIBNAME);
+    lua_newtable(L);
+    luaL_setfuncs(L, vec_functions, 0);
+    lua_setfield(L, -2, LUA_VEC_LIBNAME);
 
-	return 1;
+    return 1;
 }

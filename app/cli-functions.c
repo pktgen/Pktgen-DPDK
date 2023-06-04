@@ -2118,7 +2118,6 @@ static struct cli_map latency_map[] = {
     {20, "latency %P entropy %u"},
     {-1, NULL}
 };
-// clang-format on
 
 static const char *latency_help[] = {
     "",
@@ -2127,6 +2126,7 @@ static const char *latency_help[] = {
     "                                       e.eg. latency 0 entropy 16",
     CLI_HELP_PAUSE,
     NULL};
+// clang-format on
 
 static int
 latency_cmd(int argc, char **argv)

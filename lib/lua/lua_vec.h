@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define LUA_VEC_LIBNAME         "vec"
+#define LUA_VEC_LIBNAME "vec"
 
 int luaopen_vec(lua_State *L);
 

@@ -42,4 +42,4 @@ void *pktgen_get_lua(void);
 }
 #endif
 
-#endif  /* _PKTGEN_MAIN_H_ */
+#endif /* _PKTGEN_MAIN_H_ */

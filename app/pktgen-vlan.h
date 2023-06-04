@@ -22,4 +22,4 @@ void pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid, uint32_t qid);
 }
 #endif
 
-#endif  /* _PKTGEN_VLAN_H_ */
+#endif /* _PKTGEN_VLAN_H_ */

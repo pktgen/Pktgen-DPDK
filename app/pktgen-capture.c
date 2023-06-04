@@ -59,9 +59,9 @@ pktgen_packet_capture_init(capture_t *cap, int socket_id)
         cap->nb_pkts = 0;
 
         cap->tail = (cap_hdr_t *)cap->mz->addr;
-        cap->end = (cap_hdr_t *)((char *)cap->mz->addr + (cap->mz->len - sizeof(cap_hdr_t)));
-		memset(cap->tail, 0, sizeof(cap_hdr_t));
-		memset(cap->end, 0, sizeof(cap_hdr_t));
+        cap->end  = (cap_hdr_t *)((char *)cap->mz->addr + (cap->mz->len - sizeof(cap_hdr_t)));
+        memset(cap->tail, 0, sizeof(cap_hdr_t));
+        memset(cap->end, 0, sizeof(cap_hdr_t));
     }
 }
 

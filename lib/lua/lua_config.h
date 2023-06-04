@@ -36,40 +36,40 @@ extern "C" {
 #ifdef LUA_ENABLED
 
 #if !defined(LUA_PROGNAME)
-#define LUA_PROGNAME		"lua-shell"
+#define LUA_PROGNAME "lua-shell"
 #endif
 
 #if !defined(LUA_INIT)
-#define LUA_INIT		"LUA_INIT"
+#define LUA_INIT "LUA_INIT"
 #endif
 
-#define LUA_INITVERSION  \
-	LUA_INIT "_" LUA_VERSION_MAJOR "_" LUA_VERSION_MINOR
+#define LUA_INITVERSION LUA_INIT "_" LUA_VERSION_MAJOR "_" LUA_VERSION_MINOR
 
-#define DBG(...)		do { \
-					fprintf(stderr, "%s: ", __func__); \
-					fprintf(stderr, __VA_ARGS__); \
-				} while(0)
+#define DBG(...)                           \
+    do {                                   \
+        fprintf(stderr, "%s: ", __func__); \
+        fprintf(stderr, __VA_ARGS__);      \
+    } while (0)
 
-#define MAX_NEW_LIBS		16
-#define LUA_BUFFER_SIZE		8192
-#define MAX_NEW_LIBS		16
-#define LUA_EOF			-1
+#define MAX_NEW_LIBS    16
+#define LUA_BUFFER_SIZE 8192
+#define MAX_NEW_LIBS    16
+#define LUA_EOF         -1
 
-#define IO_PREFIX       	"_IO_"
-#define IOPREF_LEN      	(sizeof(IO_PREFIX)/sizeof(char) - 1)
-#define IO_INPUT        	(IO_PREFIX "input")
-#define IO_OUTPUT       	(IO_PREFIX "output")
+#define IO_PREFIX  "_IO_"
+#define IOPREF_LEN (sizeof(IO_PREFIX) / sizeof(char) - 1)
+#define IO_INPUT   (IO_PREFIX "input")
+#define IO_OUTPUT  (IO_PREFIX "output")
 
 typedef struct luaData {
-	TAILQ_ENTRY(luaData) node;
-	lua_State *L;		/**< Lua State pointer */
-	int32_t server_socket;	/**< Server socket descriptor */
-	int32_t client_socket;	/**< Client socket descriptor */
-	int32_t socket_port;	/**< Port address for socket */
-	char *buffer;		/**< Buffer for reading Lua code */
-	void *out, *in, *err;	/**< stdout, stdin, stderr */
-	char *hostname;		/**< Name of host for socket */
+    TAILQ_ENTRY(luaData) node;
+    lua_State *L;          /**< Lua State pointer */
+    int32_t server_socket; /**< Server socket descriptor */
+    int32_t client_socket; /**< Client socket descriptor */
+    int32_t socket_port;   /**< Port address for socket */
+    char *buffer;          /**< Buffer for reading Lua code */
+    void *out, *in, *err;  /**< stdout, stdin, stderr */
+    char *hostname;        /**< Name of host for socket */
 } luaData_t;
 
 typedef void (*newlib_t)(lua_State *L);
@@ -88,7 +88,7 @@ int lua_dolibrary(lua_State *L, const char *name);
 int lua_execute_string(luaData_t *ld, char *str);
 void lua_execute_close(luaData_t *ld);
 
-void lua_create_stdfile (luaData_t *ld, FILE *f, const char *k, const char *fname);
+void lua_create_stdfile(luaData_t *ld, FILE *f, const char *k, const char *fname);
 
 void lua_set_stdfiles(luaData_t *ld);
 void lua_reset_stdfiles(luaData_t *ld);

@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define VXLAN_PORT_ID	4789
+#define VXLAN_PORT_ID 4789
 
 /**
  *
@@ -36,4 +36,4 @@ void *pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type);
 }
 #endif
 
-#endif  /* _PKTGEN_UDP_H_ */
+#endif /* _PKTGEN_UDP_H_ */

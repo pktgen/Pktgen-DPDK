@@ -18,11 +18,11 @@ extern "C" {
 #endif
 
 /**
-* Handle the tab key for auto complete (Internal)
-*
-* @return
-*   N/A
-*/
+ * Handle the tab key for auto complete (Internal)
+ *
+ * @return
+ *   N/A
+ */
 void cli_auto_complete(void);
 
 #ifdef __cplusplus

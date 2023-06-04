@@ -56,36 +56,36 @@ int cli_read(char *buf, int len);
 static inline void
 cli_get_cursor(int *row, int *col)
 {
-	char buf[32], *p, ch;
-	int r, c, l;
+    char buf[32], *p, ch;
+    int r, c, l;
 
 again:
-	scrn_cpos();
+    scrn_cpos();
 
-	memset(buf, 0, sizeof(buf));
-	p = buf;
-	l = sizeof(buf) - 1;
+    memset(buf, 0, sizeof(buf));
+    p = buf;
+    l = sizeof(buf) - 1;
 
-	do {
-		cli_read(&ch, 1);
-		if (ch == 'R')
-			break;
-		if (ch == '\0')
-			continue;
-		*p++ = ch;
-	} while(l--);
+    do {
+        cli_read(&ch, 1);
+        if (ch == 'R')
+            break;
+        if (ch == '\0')
+            continue;
+        *p++ = ch;
+    } while (l--);
 
-	p = index(buf, ';');
-	if (!p)
-		goto again;
+    p = index(buf, ';');
+    if (!p)
+        goto again;
 
-	r = atoi(&buf[2]);
-	c = atoi(++p);
-	if (!r || !c)
-		goto again;
+    r = atoi(&buf[2]);
+    c = atoi(++p);
+    if (!r || !c)
+        goto again;
 
-	*row = r;
-	*col = c;
+    *row = r;
+    *col = c;
 }
 
 /**
@@ -99,7 +99,7 @@ again:
 static inline void
 cli_cursor_left(void)
 {
-	cli_write(vt100_left_arr, -1);
+    cli_write(vt100_left_arr, -1);
 }
 
 /**
@@ -113,7 +113,7 @@ cli_cursor_left(void)
 static inline void
 cli_cursor_right(void)
 {
-	cli_write(vt100_right_arr, -1);
+    cli_write(vt100_right_arr, -1);
 }
 
 /**
@@ -127,7 +127,7 @@ cli_cursor_right(void)
 static inline void
 cli_save_cursor(void)
 {
-	cli_write(vt100_save_cursor, -1);
+    cli_write(vt100_save_cursor, -1);
 }
 
 /**
@@ -141,7 +141,7 @@ cli_save_cursor(void)
 static inline void
 cli_restore_cursor(void)
 {
-	cli_write(vt100_restore_cursor, -1);
+    cli_write(vt100_restore_cursor, -1);
 }
 
 /**
@@ -155,9 +155,8 @@ cli_restore_cursor(void)
 static inline void
 cli_display_left(void)
 {
-	if (gb_left_data_size(this_cli->gb))
-		cli_write(gb_start_of_buf(this_cli->gb),
-		          gb_left_data_size(this_cli->gb));
+    if (gb_left_data_size(this_cli->gb))
+        cli_write(gb_start_of_buf(this_cli->gb), gb_left_data_size(this_cli->gb));
 }
 
 /**
@@ -171,9 +170,8 @@ cli_display_left(void)
 static inline void
 cli_display_right(void)
 {
-	if (gb_right_data_size(this_cli->gb))
-		cli_write(gb_end_of_gap(this_cli->gb),
-		          gb_right_data_size(this_cli->gb));
+    if (gb_right_data_size(this_cli->gb))
+        cli_write(gb_end_of_gap(this_cli->gb), gb_right_data_size(this_cli->gb));
 }
 
 /**
@@ -187,7 +185,7 @@ cli_display_right(void)
 static inline void
 cli_clear_screen(void)
 {
-	cli_write(vt100_clear_screen, -1);
+    cli_write(vt100_clear_screen, -1);
 }
 
 /**
@@ -201,7 +199,7 @@ cli_clear_screen(void)
 static inline void
 cli_clear_to_eol(void)
 {
-	cli_write(vt100_clear_right, -1);
+    cli_write(vt100_clear_right, -1);
 }
 
 /**
@@ -217,12 +215,12 @@ cli_clear_to_eol(void)
 static inline void
 cli_clear_line(int lineno)
 {
-	if (lineno > 0)
-		cli_printf(vt100_pos_cursor, lineno, 0);
-	else
-		cli_write("\r", 1);
+    if (lineno > 0)
+        cli_printf(vt100_pos_cursor, lineno, 0);
+    else
+        cli_write("\r", 1);
 
-	cli_write(vt100_clear_line, -1);
+    cli_write(vt100_clear_line, -1);
 }
 
 /**
@@ -238,69 +236,69 @@ cli_clear_line(int lineno)
 static inline void
 cli_move_cursor_up(int lineno)
 {
-	while (lineno--)
-		cli_printf(vt100_up_arr);
+    while (lineno--)
+        cli_printf(vt100_up_arr);
 }
 
 static inline void
 cli_display_prompt(int t)
 {
-	cli_write("\r", 1);
-	this_cli->plen = this_cli->prompt(t);
-	cli_clear_to_eol();
+    cli_write("\r", 1);
+    this_cli->plen = this_cli->prompt(t);
+    cli_clear_to_eol();
 }
 
 /* display all or part of the command line, while allowing the line to scroll */
 static inline void
 cli_display_line(void)
 {
-	struct gapbuf *gb = this_cli->gb;
-	char buf[gb_data_size(gb) + 16];
-	int point = gb_point_offset(gb);
-	int len = gb_copy_to_buf(gb, buf, gb_data_size(gb));
-	int window = (this_scrn->ncols - this_cli->plen) - 1;
-	int wstart, wend;
+    struct gapbuf *gb = this_cli->gb;
+    char buf[gb_data_size(gb) + 16];
+    int point  = gb_point_offset(gb);
+    int len    = gb_copy_to_buf(gb, buf, gb_data_size(gb));
+    int window = (this_scrn->ncols - this_cli->plen) - 1;
+    int wstart, wend;
 
-	if (cli_tst_flag(DELETE_CHAR)) {
-		cli_clr_flag(DELETE_CHAR);
-		cli_write(" \b", 2);
-		cli_set_flag(CLEAR_TO_EOL);
-	}
-	if (cli_tst_flag(CLEAR_LINE)) {
-		cli_clr_flag(CLEAR_LINE);
-		scrn_bol();
-		cli_clear_to_eol();
-		cli_set_flag(DISPLAY_PROMPT);
-	}
-	if (cli_tst_flag(CLEAR_TO_EOL)) {
-		cli_clr_flag(CLEAR_TO_EOL);
-		cli_clear_to_eol();
-	}
-	if (cli_tst_flag(DISPLAY_PROMPT)) {
-		cli_clr_flag(DISPLAY_PROMPT | PROMPT_CONTINUE);
-		cli_display_prompt(0);
-	}
+    if (cli_tst_flag(DELETE_CHAR)) {
+        cli_clr_flag(DELETE_CHAR);
+        cli_write(" \b", 2);
+        cli_set_flag(CLEAR_TO_EOL);
+    }
+    if (cli_tst_flag(CLEAR_LINE)) {
+        cli_clr_flag(CLEAR_LINE);
+        scrn_bol();
+        cli_clear_to_eol();
+        cli_set_flag(DISPLAY_PROMPT);
+    }
+    if (cli_tst_flag(CLEAR_TO_EOL)) {
+        cli_clr_flag(CLEAR_TO_EOL);
+        cli_clear_to_eol();
+    }
+    if (cli_tst_flag(DISPLAY_PROMPT)) {
+        cli_clr_flag(DISPLAY_PROMPT | PROMPT_CONTINUE);
+        cli_display_prompt(0);
+    }
 
-	if (point < window) {
-		wstart = 0;
-		if (len < window)
-			wend = point + (len - point);
-		else
-			wend = point + (window - point);
-	} else {
-		wstart = point - window;
-		wend = wstart + window;
-	}
+    if (point < window) {
+        wstart = 0;
+        if (len < window)
+            wend = point + (len - point);
+        else
+            wend = point + (window - point);
+    } else {
+        wstart = point - window;
+        wend   = wstart + window;
+    }
 
-	scrn_bol();
-	scrn_cnright(this_cli->plen);
+    scrn_bol();
+    scrn_cnright(this_cli->plen);
 
-	cli_write(&buf[wstart], wend - wstart);
+    cli_write(&buf[wstart], wend - wstart);
 
-	cli_clear_to_eol();
+    cli_clear_to_eol();
 
-	scrn_bol();
-	scrn_cnright(this_cli->plen + point);
+    scrn_bol();
+    scrn_cnright(this_cli->plen + point);
 }
 
 /**
@@ -314,18 +312,16 @@ cli_display_line(void)
 static inline void
 cli_redisplay_line(void)
 {
-	uint32_t i;
+    uint32_t i;
 
-	this_cli->flags |= DISPLAY_PROMPT;
+    this_cli->flags |= DISPLAY_PROMPT;
 
-	cli_display_line();
+    cli_display_line();
 
-	gb_move_gap_to_point(this_cli->gb);
+    gb_move_gap_to_point(this_cli->gb);
 
-	for (i = 0;
-	     i < (gb_data_size(this_cli->gb) - gb_point_offset(this_cli->gb));
-	     i++)
-		cli_cursor_left();
+    for (i = 0; i < (gb_data_size(this_cli->gb) - gb_point_offset(this_cli->gb)); i++)
+        cli_cursor_left();
 }
 
 /**

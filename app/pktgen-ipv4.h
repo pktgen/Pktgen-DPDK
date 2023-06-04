@@ -22,4 +22,4 @@ void pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32
 }
 #endif
 
-#endif  /*  _PKTGEN_IPV4_H_ */
+#endif /*  _PKTGEN_IPV4_H_ */

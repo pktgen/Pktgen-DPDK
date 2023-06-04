@@ -310,9 +310,9 @@ pktgen_parse_args(int argc, char **argv)
         case 'T':
             pktgen.flags |= ENABLE_THEME_FLAG;
             break;
-	case 'c':
-	    enable_clock_gettime(ENABLE_STATE);
-	    break;
+        case 'c':
+            enable_clock_gettime(ENABLE_STATE);
+            break;
         case 'v':
             pktgen.verbose = 1;
             break;

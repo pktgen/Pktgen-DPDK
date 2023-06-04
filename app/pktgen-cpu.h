@@ -41,20 +41,20 @@ void pktgen_cpu_init(void);
 void pktgen_page_cpu(void);
 
 static inline uint8_t
-sct(uint8_t s, uint8_t c, uint8_t t) {
-	lc_info_t   *lc = &pktgen.core_info[0];
-	uint8_t i;
+sct(uint8_t s, uint8_t c, uint8_t t)
+{
+    lc_info_t *lc = &pktgen.core_info[0];
+    uint8_t i;
 
-	for (i = 0; i < pktgen.core_cnt; i++, lc++)
-		if (lc->s.socket_id == s && lc->s.core_id == c &&
-		    lc->s.thread_id == t)
-			return lc->s.id;
+    for (i = 0; i < pktgen.core_cnt; i++, lc++)
+        if (lc->s.socket_id == s && lc->s.core_id == c && lc->s.thread_id == t)
+            return lc->s.id;
 
-	return 0;
+    return 0;
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* _PKTGEN_CPU_H_ */
+#endif /* _PKTGEN_CPU_H_ */

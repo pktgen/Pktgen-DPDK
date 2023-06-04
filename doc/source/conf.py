@@ -8,7 +8,7 @@ project = 'Pktgen'
 copyright = '2010-2023, Keith Wiles'
 
 # Version of Pktgen-DPDK
-version = '23.03.0'
+version = '23.06.1'
 release = version
 
 source_suffix = '.rst'

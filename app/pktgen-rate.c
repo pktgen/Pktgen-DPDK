@@ -214,7 +214,8 @@ rate_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         pktgen_display_set_color("stats.stat.values");
-        snprintf(buff, sizeof(buff), "%d /%5d:%5d", pkt->pktSize + RTE_ETHER_CRC_LEN, info->rx_burst, info->tx_burst);
+        snprintf(buff, sizeof(buff), "%d /%5d:%5d", pkt->pktSize + RTE_ETHER_CRC_LEN,
+                 info->rx_burst, info->tx_burst);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -264,12 +265,13 @@ rate_print_static_data(void)
         if (bus && !strcmp(rte_bus_name(bus), "pci")) {
             char name[RTE_ETH_NAME_MAX_LEN];
             char vend[8], device[8];
-            
+
             vend[0] = device[0] = '\0';
             sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
             rte_eth_dev_get_name_by_port(pid, name);
-            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device, rte_dev_name(dev.device));
+            snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
+                     rte_dev_name(dev.device));
         } else
             snprintf(buff, sizeof(buff), "-1/0000:0000/00:00.0");
         pktgen_display_set_color("stats.bdf");
@@ -323,7 +325,7 @@ pktgen_page_rate(void)
 
         info = &pktgen.info[pid + sp];
         rate = &info->rate;
-        lat = &info->latency;
+        lat  = &info->latency;
 
         /* Display the disable string when port is not enabled. */
         col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
@@ -378,7 +380,7 @@ pktgen_page_rate(void)
         row++;
 
         pktgen_display_set_color("stats.port.sizes");
-        snprintf(buff, sizeof(buff), "%"PRIu64"/%" PRIu64, lat->min_cycles, lat->max_cycles);
+        snprintf(buff, sizeof(buff), "%" PRIu64 "/%" PRIu64, lat->min_cycles, lat->max_cycles);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         snprintf(buff, sizeof(buff), "%" PRIu64, lat->jitter_threshold_us);

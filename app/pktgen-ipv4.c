@@ -107,7 +107,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 void
 pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan)
 {
-    port_info_t *info = &pktgen.info[pid];
+    port_info_t *info         = &pktgen.info[pid];
     struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
     struct rte_ipv4_hdr *ip   = (struct rte_ipv4_hdr *)&eth[1];
     char buff[24];
@@ -121,8 +121,8 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
         (ip->next_proto_id == PG_IPPROTO_ICMP)) {
         struct rte_icmp_hdr *icmp =
             (struct rte_icmp_hdr *)((uintptr_t)ip + sizeof(struct rte_ipv4_hdr));
-        uint16_t cksum = ~rte_raw_cksum(icmp, (m->data_len - sizeof(struct rte_ether_hdr) -
-                                          sizeof(struct rte_ipv4_hdr)));
+        uint16_t cksum = ~rte_raw_cksum(
+            icmp, (m->data_len - sizeof(struct rte_ether_hdr) - sizeof(struct rte_ipv4_hdr)));
         /* We do not handle IP options, which will effect the IP header size. */
         if (unlikely(cksum != 0)) {
             pktgen_log_error("ICMP checksum failed");

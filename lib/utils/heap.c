@@ -12,267 +12,267 @@
 heap_t *
 heap_create(void *addr, size_t size)
 {
-	heap_t *heap = NULL;
-	heap_entry_t *entry;
+    heap_t *heap = NULL;
+    heap_entry_t *entry;
 
-	/* Make sure the size is greater or equal to sizeof(rte_heap_entry_t) */
-	if (size < sizeof(heap_entry_t))
-		return NULL;
+    /* Make sure the size is greater or equal to sizeof(rte_heap_entry_t) */
+    if (size < sizeof(heap_entry_t))
+        return NULL;
 
-	heap = calloc(1, sizeof(heap_t));
-	if (!heap)
-		return NULL;
+    heap = calloc(1, sizeof(heap_t));
+    if (!heap)
+        return NULL;
 
-	rte_spinlock_init(&heap->sl);
+    rte_spinlock_init(&heap->sl);
 
-	heap->addr = addr;
-	heap->total_space = size;
+    heap->addr        = addr;
+    heap->total_space = size;
 
-	STAILQ_INIT(&heap->list);
+    STAILQ_INIT(&heap->list);
 
-	entry = addr;
-	entry->next.stqe_next = NULL;
-	entry->size = size;
+    entry                 = addr;
+    entry->next.stqe_next = NULL;
+    entry->size           = size;
 
-	STAILQ_INSERT_TAIL(&heap->list, entry, next);
+    STAILQ_INSERT_TAIL(&heap->list, entry, next);
 
-	return heap;
+    return heap;
 }
 
 /******************************************************************************
-* simpleMemDestory - Destory a heap.
-*
-*   heap - is the free heap structure pointer.
-*/
+ * simpleMemDestory - Destory a heap.
+ *
+ *   heap - is the free heap structure pointer.
+ */
 int
 heap_destroy(heap_t *heap)
 {
-	/* Free the rte_heap_t structure */
-	if ( heap )
-		free(heap);
+    /* Free the rte_heap_t structure */
+    if (heap)
+        free(heap);
 
-	return 0;
+    return 0;
 }
 
 int
 heap_free(heap_t *heap, void *addr, size_t size)
 {
-	heap_entry_t *p;
-	heap_entry_t *q;
+    heap_entry_t *p;
+    heap_entry_t *q;
 
-	/* the size can not be zero */
-	if (!heap || !addr || size == 0)
-		return -1;
+    /* the size can not be zero */
+    if (!heap || !addr || size == 0)
+        return -1;
 
-	rte_spinlock_lock(&heap->sl);
+    rte_spinlock_lock(&heap->sl);
 
-	p = addr;
+    p = addr;
 
-	p->next.stqe_next = NULL;
-	p->size = size;
+    p->next.stqe_next = NULL;
+    p->size           = size;
 
-	STAILQ_FOREACH(q, &heap->list, next) {
-		/* insert into accending order */
-		if (p < q->next.stqe_next)
-			break;
-	}
+    STAILQ_FOREACH (q, &heap->list, next) {
+        /* insert into accending order */
+        if (p < q->next.stqe_next)
+            break;
+    }
 
-	if (q) {
-		if (RTE_PTR_ADD(p, size) == q->next.stqe_next) {
-			p->size += q->size;
-			p->next.stqe_next = q->next.stqe_next->next.stqe_next;
-		} else                      /* non contiguous regions insert p into list */
-			p->next.stqe_next = q->next.stqe_next;
+    if (q) {
+        if (RTE_PTR_ADD(p, size) == q->next.stqe_next) {
+            p->size += q->size;
+            p->next.stqe_next = q->next.stqe_next->next.stqe_next;
+        } else /* non contiguous regions insert p into list */
+            p->next.stqe_next = q->next.stqe_next;
 
-		/* join to lower element */
-		if (RTE_PTR_ADD(q, q->size) == p) {
-			/* add size of prev region */
-			q->size += p->size;
+        /* join to lower element */
+        if (RTE_PTR_ADD(q, q->size) == p) {
+            /* add size of prev region */
+            q->size += p->size;
 
-			/* point to p->next region */
-			q->next.stqe_next = p->next.stqe_next;
-		} else                     /* not contiguous regions  insert p into list */
-			q->next.stqe_next = p;
-	} else
-		STAILQ_INSERT_TAIL(&heap->list, p, next);
+            /* point to p->next region */
+            q->next.stqe_next = p->next.stqe_next;
+        } else /* not contiguous regions  insert p into list */
+            q->next.stqe_next = p;
+    } else
+        STAILQ_INSERT_TAIL(&heap->list, p, next);
 
-	rte_spinlock_unlock(&heap->sl);
+    rte_spinlock_unlock(&heap->sl);
 
-	return 0;
+    return 0;
 }
 
 /******************************************************************************
-* simpleMemAlloc: allocate space for a tlv structure and data.
-*
-*   This routine will allocate a contiguous amount of memory
-*   of size (size) from the free list.
-*
-*   This routine will search a linked list for the first
-*   fit free space.
-*
-*   This routine will return a null pointer if the contiguous
-*   free space is not found.
-*
-*   heap - is the pointer to the heap structure.
-*   size - is the size of the requested memory.
-*/
+ * simpleMemAlloc: allocate space for a tlv structure and data.
+ *
+ *   This routine will allocate a contiguous amount of memory
+ *   of size (size) from the free list.
+ *
+ *   This routine will search a linked list for the first
+ *   fit free space.
+ *
+ *   This routine will return a null pointer if the contiguous
+ *   free space is not found.
+ *
+ *   heap - is the pointer to the heap structure.
+ *   size - is the size of the requested memory.
+ */
 void *
 heap_alloc(heap_t *heap, size_t size)
 {
-	heap_entry_t *hd;		/* pointer to entry free space */
-	heap_entry_t *phd;		/* prev head pointer to free list */
-	heap_entry_t *nxt_hd;	/* temp space for pointer to entry */
-	heap_entry_t *ret_ptr;	/* return pointer to free space */
+    heap_entry_t *hd;      /* pointer to entry free space */
+    heap_entry_t *phd;     /* prev head pointer to free list */
+    heap_entry_t *nxt_hd;  /* temp space for pointer to entry */
+    heap_entry_t *ret_ptr; /* return pointer to free space */
 
-	if (!heap || size == 0)
-		return NULL;
+    if (!heap || size == 0)
+        return NULL;
 
-	rte_spinlock_lock(&heap->sl);
+    rte_spinlock_lock(&heap->sl);
 
-	size = RTE_ALIGN_CEIL(size, sizeof(heap_entry_t));
+    size = RTE_ALIGN_CEIL(size, sizeof(heap_entry_t));
 
-	/*
-	 * If the requested size is less then sizeof(rte_heap_entry_t) then set
-	 * the requested size to sizeof(rte_heap_entry_t)
-	 */
-	if ( size < sizeof(heap_entry_t) )
-		size = sizeof(heap_entry_t);
+    /*
+     * If the requested size is less then sizeof(rte_heap_entry_t) then set
+     * the requested size to sizeof(rte_heap_entry_t)
+     */
+    if (size < sizeof(heap_entry_t))
+        size = sizeof(heap_entry_t);
 
-	ret_ptr = NULL;
-	hd      = STAILQ_FIRST(&heap->list);
-	phd     = (heap_entry_t *)&heap->list;
-	if (hd) {
-		if (size <= heap->total_space) {
-			do {
-				/*
-				 * if current free section size is equal to size then
-				 * point prev head.
-				 */
-				if (size == hd->size) {
-					/* take size out of total free space */
-					heap->total_space -= size;
+    ret_ptr = NULL;
+    hd      = STAILQ_FIRST(&heap->list);
+    phd     = (heap_entry_t *)&heap->list;
+    if (hd) {
+        if (size <= heap->total_space) {
+            do {
+                /*
+                 * if current free section size is equal to size then
+                 * point prev head.
+                 */
+                if (size == hd->size) {
+                    /* take size out of total free space */
+                    heap->total_space -= size;
 
-					/* to entry free section in list. */
-					phd->next.stqe_next = hd->next.stqe_next;
+                    /* to entry free section in list. */
+                    phd->next.stqe_next = hd->next.stqe_next;
 
-					ret_ptr = hd;
-					break;
-				}
-				/*
-				 * section is larger than size build a new rte_heap_entry_t structure
-				 * in the left over space in this section.
-				 * nxt_hd is the new pointer to the structure after size.
-				 */
-				if ( size <= (hd->size - sizeof(heap_entry_t)) ) {
-					/* take size out of total free space */
-					heap->total_space -= size;
+                    ret_ptr = hd;
+                    break;
+                }
+                /*
+                 * section is larger than size build a new rte_heap_entry_t structure
+                 * in the left over space in this section.
+                 * nxt_hd is the new pointer to the structure after size.
+                 */
+                if (size <= (hd->size - sizeof(heap_entry_t))) {
+                    /* take size out of total free space */
+                    heap->total_space -= size;
 
-					/* current entry is now moved */
-					nxt_hd			= RTE_PTR_ADD(hd, size);
-					nxt_hd->next.stqe_next	= hd->next.stqe_next;
-					nxt_hd->size    	= hd->size - size;
-					phd->next.stqe_next	= nxt_hd;
+                    /* current entry is now moved */
+                    nxt_hd                 = RTE_PTR_ADD(hd, size);
+                    nxt_hd->next.stqe_next = hd->next.stqe_next;
+                    nxt_hd->size           = hd->size - size;
+                    phd->next.stqe_next    = nxt_hd;
 
-					ret_ptr         = hd;
-					break;
-				}
-				phd = hd;               /* Prev head = current head */
-				hd  = hd->next.stqe_next;         /* entry free space */
-			} while(hd);
-		}
-	}
+                    ret_ptr = hd;
+                    break;
+                }
+                phd = hd;                 /* Prev head = current head */
+                hd  = hd->next.stqe_next; /* entry free space */
+            } while (hd);
+        }
+    }
 
-	rte_spinlock_unlock(&heap->sl);
+    rte_spinlock_unlock(&heap->sl);
 
-	return ret_ptr;
+    return ret_ptr;
 }
 
 /******************************************************************************
-* simpleMemMalloc - Wrapper routine for simpleMemAlloc insert size into buffer.
-*/
+ * simpleMemMalloc - Wrapper routine for simpleMemAlloc insert size into buffer.
+ */
 void *
 heap_malloc(heap_t *heap, size_t size)
 {
-	uint64_t *addr;
+    uint64_t *addr;
 
-	if (!heap || size == 0)
-		return NULL;
+    if (!heap || size == 0)
+        return NULL;
 
-	if (size < sizeof(heap_entry_t))
-		size = sizeof(heap_entry_t);
+    if (size < sizeof(heap_entry_t))
+        size = sizeof(heap_entry_t);
 
-	addr = (uint64_t *)heap_alloc(heap, size + sizeof(uint64_t));
-	if ( addr == NULL )
-		return NULL;
+    addr = (uint64_t *)heap_alloc(heap, size + sizeof(uint64_t));
+    if (addr == NULL)
+        return NULL;
 
-	addr[0] = size + sizeof(uint64_t);
+    addr[0] = size + sizeof(uint64_t);
 
-	return &addr[1];
+    return &addr[1];
 }
 
 /******************************************************************************
-* simpleMemMFree - Wrapper routine for simpleMemFree extract size from buffer.
-*/
+ * simpleMemMFree - Wrapper routine for simpleMemFree extract size from buffer.
+ */
 int
 heap_mfree(heap_t *heap, void *addr)
 {
-	uint64_t *p;
-	uint64_t size;
+    uint64_t *p;
+    uint64_t size;
 
-	if (heap == NULL)
-		return -1;
+    if (heap == NULL)
+        return -1;
 
-	if (addr == NULL)
-		return 0;
+    if (addr == NULL)
+        return 0;
 
-	if (((uint64_t)addr & 3) != 0 )
-		return -1;
+    if (((uint64_t)addr & 3) != 0)
+        return -1;
 
-	p = (uint64_t *)addr;
-	p--;
+    p = (uint64_t *)addr;
+    p--;
 
-	size = *p;
-	if (size == 0)
-		return -1;
+    size = *p;
+    if (size == 0)
+        return -1;
 
-	return heap_free(heap, p, size);
+    return heap_free(heap, p, size);
 }
 
 /******************************************************************************
-* debug function
-*/
+ * debug function
+ */
 void
 heap_dump(FILE *f, heap_t *heap)
 {
-	heap_entry_t *p;
-	uint64_t total;
-	uint64_t largest;
-	uint64_t segCount;
+    heap_entry_t *p;
+    uint64_t total;
+    uint64_t largest;
+    uint64_t segCount;
 
-	if (!f)
-		f = stdout;
+    if (!f)
+        f = stdout;
 
-	if (!heap) {
-		fprintf(f, "Pointer to rte_heap_entry_t structure is NULL\n");
-		return;
-	}
+    if (!heap) {
+        fprintf(f, "Pointer to rte_heap_entry_t structure is NULL\n");
+        return;
+    }
 
-	fprintf(f, "  Free Header       = %p\n", (void *)heap);
-	fprintf(f, "  Address of Heap   = %p\n", heap->addr);
-	fprintf(f, "  Total free space  = %lu\n", heap->total_space);
+    fprintf(f, "  Free Header       = %p\n", (void *)heap);
+    fprintf(f, "  Address of Heap   = %p\n", heap->addr);
+    fprintf(f, "  Total free space  = %lu\n", heap->total_space);
 
-	total = 0;
-	largest = 0;
-	segCount = 0;
+    total    = 0;
+    largest  = 0;
+    segCount = 0;
 
-	STAILQ_FOREACH(p, &heap->list, next) {
-		fprintf(f, "    Size            = %ld\n", p->size);
-		total += p->size;
-		if (p->size > largest)
-			largest = p->size;
-		segCount++;
-	}
-	fprintf(f, "  Total Free        = %ld\n", total);
-	fprintf(f, "  Largest Free area = %ld\n", largest);
-	fprintf(f, "  Segment Count     = %ld\n", segCount);
+    STAILQ_FOREACH (p, &heap->list, next) {
+        fprintf(f, "    Size            = %ld\n", p->size);
+        total += p->size;
+        if (p->size > largest)
+            largest = p->size;
+        segCount++;
+    }
+    fprintf(f, "  Total Free        = %ld\n", total);
+    fprintf(f, "  Largest Free area = %ld\n", largest);
+    fprintf(f, "  Segment Count     = %ld\n", segCount);
 }

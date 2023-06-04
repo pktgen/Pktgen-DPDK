@@ -25,11 +25,10 @@
 #define parson_parson_h
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-#include <stddef.h>   /* size_t */
+#include <stddef.h> /* size_t */
 #include <stdint.h>
 
 /* Types and enums */
@@ -38,22 +37,19 @@ typedef struct json_array_t JSON_Array;
 typedef struct json_value_t JSON_Value;
 
 enum json_value_type {
-	JSONError   = -1,
-	JSONNull    = 1,
-	JSONString  = 2,
-	JSONNumber  = 3,
-	JSONObject  = 4,
-	JSONArray   = 5,
-	JSONBoolean = 6,
-	JSONUint64  = 7,
-	JSONInteger = 8
+    JSONError   = -1,
+    JSONNull    = 1,
+    JSONString  = 2,
+    JSONNumber  = 3,
+    JSONObject  = 4,
+    JSONArray   = 5,
+    JSONBoolean = 6,
+    JSONUint64  = 7,
+    JSONInteger = 8
 };
 typedef int JSON_Value_Type;
 
-enum json_result_t {
-	JSONSuccess = 0,
-	JSONFailure = -1
-};
+enum json_result_t { JSONSuccess = 0, JSONFailure = -1 };
 typedef int JSON_Status;
 
 typedef void *(*JSON_Malloc_Function)(size_t);
@@ -78,21 +74,23 @@ JSON_Value *json_parse_string(const char *string);
 JSON_Value *json_parse_string_with_comments(const char *string);
 
 /* Serialization */
-size_t      json_serialization_size(const JSON_Value *value); /* returns 0 on fail */
+size_t json_serialization_size(const JSON_Value *value); /* returns 0 on fail */
 JSON_Status json_serialize_to_buffer(const JSON_Value *value, char *buf, size_t buf_size_in_bytes);
 JSON_Status json_serialize_to_file(const JSON_Value *value, const char *filename);
-char       *json_serialize_to_string(const JSON_Value *value);
+char *json_serialize_to_string(const JSON_Value *value);
 
 /* Pretty serialization */
-size_t      json_serialization_size_pretty(const JSON_Value *value); /* returns 0 on fail */
-JSON_Status json_serialize_to_buffer_pretty(const JSON_Value *value, char *buf, size_t buf_size_in_bytes);
+size_t json_serialization_size_pretty(const JSON_Value *value); /* returns 0 on fail */
+JSON_Status json_serialize_to_buffer_pretty(const JSON_Value *value, char *buf,
+                                            size_t buf_size_in_bytes);
 JSON_Status json_serialize_to_file_pretty(const JSON_Value *value, const char *filename);
-char       *json_serialize_to_string_pretty(const JSON_Value *value);
+char *json_serialize_to_string_pretty(const JSON_Value *value);
 
-void        json_free_serialized_string(char *string); /* frees string from json_serialize_to_string and json_serialize_to_string_pretty */
+void json_free_serialized_string(char *string); /* frees string from json_serialize_to_string and
+                                                   json_serialize_to_string_pretty */
 
 /* Comparing */
-int  json_value_equals(const JSON_Value *a, const JSON_Value *b);
+int json_value_equals(const JSON_Value *a, const JSON_Value *b);
 
 /* Validation
    This is *NOT* JSON Schema. It validates json by checking if object have identically
@@ -109,50 +107,57 @@ JSON_Status json_validate(const JSON_Value *schema, const JSON_Value *value);
 /*
  * JSON Object
  */
-JSON_Value   *json_object_get_value  (const JSON_Object *object, const char *name);
-const char   *json_object_get_string (const JSON_Object *object, const char *name);
-JSON_Object  *json_object_get_object (const JSON_Object *object, const char *name);
-JSON_Array   *json_object_get_array  (const JSON_Object *object, const char *name);
-double        json_object_get_number (const JSON_Object *object, const char *name); /* returns 0 on fail */
-uint64_t      json_object_get_uint64 (const JSON_Object *object, const char *name); /* returns 0 on fail */
-int           json_object_get_integer(const JSON_Object *object, const char *name); /* returns -1 on fail */
-int           json_object_get_boolean(const JSON_Object *object, const char *name); /* returns -1 on fail */
+JSON_Value *json_object_get_value(const JSON_Object *object, const char *name);
+const char *json_object_get_string(const JSON_Object *object, const char *name);
+JSON_Object *json_object_get_object(const JSON_Object *object, const char *name);
+JSON_Array *json_object_get_array(const JSON_Object *object, const char *name);
+double json_object_get_number(const JSON_Object *object, const char *name); /* returns 0 on fail */
+uint64_t json_object_get_uint64(const JSON_Object *object,
+                                const char *name);                        /* returns 0 on fail */
+int json_object_get_integer(const JSON_Object *object, const char *name); /* returns -1 on fail */
+int json_object_get_boolean(const JSON_Object *object, const char *name); /* returns -1 on fail */
 
-const char   *json_object_at_get_string (const JSON_Object *object, size_t idx);
-JSON_Object  *json_object_at_get_object (const JSON_Object *object, size_t idx);
-JSON_Array   *json_object_at_get_array  (const JSON_Object *object, size_t idx);
-double        json_object_at_get_number (const JSON_Object *object, size_t idx); /* returns 0 on fail */
-uint64_t      json_object_at_get_uint64 (const JSON_Object *object, size_t idx); /* returns 0 on fail */
-int           json_object_at_get_integer(const JSON_Object *object, size_t idx);
-int           json_object_at_get_boolean(const JSON_Object *object, size_t idx); /* returns -1 on fail */
+const char *json_object_at_get_string(const JSON_Object *object, size_t idx);
+JSON_Object *json_object_at_get_object(const JSON_Object *object, size_t idx);
+JSON_Array *json_object_at_get_array(const JSON_Object *object, size_t idx);
+double json_object_at_get_number(const JSON_Object *object, size_t idx);   /* returns 0 on fail */
+uint64_t json_object_at_get_uint64(const JSON_Object *object, size_t idx); /* returns 0 on fail */
+int json_object_at_get_integer(const JSON_Object *object, size_t idx);
+int json_object_at_get_boolean(const JSON_Object *object, size_t idx); /* returns -1 on fail */
 
 /* dotget functions enable addressing values with dot notation in nested objects,
    just like in structs or c++/java/c# objects (e.g. objectA.objectB.value).
    Because valid names in JSON can contain dots, some values may be inaccessible
    this way. */
-JSON_Value   *json_object_dotget_value  (const JSON_Object *object, const char *name);
-const char   *json_object_dotget_string (const JSON_Object *object, const char *name);
-JSON_Object *json_object_dotget_object (const JSON_Object *object, const char *name);
-JSON_Array   *json_object_dotget_array  (const JSON_Object *object, const char *name);
-double        json_object_dotget_number (const JSON_Object *object, const char *name); /* returns 0 on fail */
-uint64_t      json_object_dotget_uint64 (const JSON_Object *object, const char *name); /* returns 0 on fail */
-int           json_object_dotget_integer(const JSON_Object *object, const char *name); /* returns -1 on fail */
-int           json_object_dotget_boolean(const JSON_Object *object, const char *name); /* returns -1 on fail */
-int           json_object_get_boolean_by_name(JSON_Object *obj, const char *name);
+JSON_Value *json_object_dotget_value(const JSON_Object *object, const char *name);
+const char *json_object_dotget_string(const JSON_Object *object, const char *name);
+JSON_Object *json_object_dotget_object(const JSON_Object *object, const char *name);
+JSON_Array *json_object_dotget_array(const JSON_Object *object, const char *name);
+double json_object_dotget_number(const JSON_Object *object,
+                                 const char *name); /* returns 0 on fail */
+uint64_t json_object_dotget_uint64(const JSON_Object *object,
+                                   const char *name); /* returns 0 on fail */
+int json_object_dotget_integer(const JSON_Object *object,
+                               const char *name); /* returns -1 on fail */
+int json_object_dotget_boolean(const JSON_Object *object,
+                               const char *name); /* returns -1 on fail */
+int json_object_get_boolean_by_name(JSON_Object *obj, const char *name);
 
 /* Functions to get available names */
-size_t        json_object_get_count   (const JSON_Object *object);
-const char   *json_object_get_name    (const JSON_Object *object, size_t index);
-JSON_Value   *json_object_get_value_at(const JSON_Object *object, size_t index);
-JSON_Value   *json_object_get_wrapping_value(const JSON_Object *object);
+size_t json_object_get_count(const JSON_Object *object);
+const char *json_object_get_name(const JSON_Object *object, size_t index);
+JSON_Value *json_object_get_value_at(const JSON_Object *object, size_t index);
+JSON_Value *json_object_get_wrapping_value(const JSON_Object *object);
 
 /* Functions to check if object has a value with a specific name. Returned value is 1 if object has
  * a value and 0 if it doesn't. dothas functions behave exactly like dotget functions. */
-int json_object_has_value        (const JSON_Object *object, const char *name);
-int json_object_has_value_of_type(const JSON_Object *object, const char *name, JSON_Value_Type type);
+int json_object_has_value(const JSON_Object *object, const char *name);
+int json_object_has_value_of_type(const JSON_Object *object, const char *name,
+                                  JSON_Value_Type type);
 
-int json_object_dothas_value        (const JSON_Object *object, const char *name);
-int json_object_dothas_value_of_type(const JSON_Object *object, const char *name, JSON_Value_Type type);
+int json_object_dothas_value(const JSON_Object *object, const char *name);
+int json_object_dothas_value_of_type(const JSON_Object *object, const char *name,
+                                     JSON_Value_Type type);
 
 /* Creates new name-value pair or frees and replaces old value with a new one.
  * json_object_set_value does not copy passed value so it shouldn't be freed afterwards. */
@@ -186,19 +191,19 @@ JSON_Status json_object_clear(JSON_Object *object);
 /*
  * JSON Array
  */
-JSON_Value   *json_array_get_value  (const JSON_Array *array, size_t index);
-const char   *json_array_get_string (const JSON_Array *array, size_t index);
-JSON_Object *json_array_get_object (const JSON_Array *array, size_t index);
-JSON_Array   *json_array_get_array  (const JSON_Array *array, size_t index);
-double        json_array_get_number (const JSON_Array *array, size_t index); /* returns 0 on fail */
-uint64_t      json_array_get_uint64 (const JSON_Array *array, size_t index); /* returns 0 on fail */
-int           json_array_get_integer(const JSON_Array *array, size_t index); /* returns -1 on fail */
-int           json_array_get_boolean(const JSON_Array *array, size_t index); /* returns -1 on fail */
-size_t        json_array_get_count  (const JSON_Array *array);
-JSON_Value   *json_array_get_wrapping_value(const JSON_Array *array);
+JSON_Value *json_array_get_value(const JSON_Array *array, size_t index);
+const char *json_array_get_string(const JSON_Array *array, size_t index);
+JSON_Object *json_array_get_object(const JSON_Array *array, size_t index);
+JSON_Array *json_array_get_array(const JSON_Array *array, size_t index);
+double json_array_get_number(const JSON_Array *array, size_t index);   /* returns 0 on fail */
+uint64_t json_array_get_uint64(const JSON_Array *array, size_t index); /* returns 0 on fail */
+int json_array_get_integer(const JSON_Array *array, size_t index);     /* returns -1 on fail */
+int json_array_get_boolean(const JSON_Array *array, size_t index);     /* returns -1 on fail */
+size_t json_array_get_count(const JSON_Array *array);
+JSON_Value *json_array_get_wrapping_value(const JSON_Array *array);
 
-/* Frees and removes value at given index, does nothing and returns JSONFailure if index doesn't exist.
- * Order of values in array may change during execution.  */
+/* Frees and removes value at given index, does nothing and returns JSONFailure if index doesn't
+ * exist. Order of values in array may change during execution.  */
 JSON_Status json_array_remove(JSON_Array *array, size_t i);
 
 /* Frees and removes from array value at given index and replaces it with given one.
@@ -228,61 +233,61 @@ JSON_Status json_array_append_null(JSON_Array *array);
 /*
  * JSON Value
  */
-JSON_Value *json_value_new_object (void);
-JSON_Value *json_value_new_array  (void);
-JSON_Value *json_value_new_string (const char *string);  /* copies passed string */
-JSON_Value *json_value_new_number (double number);
-JSON_Value *json_value_new_uint64 (uint64_t number);
+JSON_Value *json_value_new_object(void);
+JSON_Value *json_value_new_array(void);
+JSON_Value *json_value_new_string(const char *string); /* copies passed string */
+JSON_Value *json_value_new_number(double number);
+JSON_Value *json_value_new_uint64(uint64_t number);
 JSON_Value *json_value_new_integer(int number);
 JSON_Value *json_value_new_boolean(int boolean);
-JSON_Value *json_value_new_null   (void);
-JSON_Value *json_value_deep_copy   (const JSON_Value *value);
-void         json_value_free        (JSON_Value *value);
+JSON_Value *json_value_new_null(void);
+JSON_Value *json_value_deep_copy(const JSON_Value *value);
+void json_value_free(JSON_Value *value);
 
-JSON_Value_Type json_value_get_type   (const JSON_Value *value);
-JSON_Object    *json_value_get_object (const JSON_Value *value);
-JSON_Array     *json_value_get_array  (const JSON_Value *value);
-const char     *json_value_get_string (const JSON_Value *value);
-double          json_value_get_number (const JSON_Value *value);
-uint64_t        json_value_get_uint64 (const JSON_Value *value);
-int             json_value_get_integer(const JSON_Value *value);
-int             json_value_get_boolean(const JSON_Value *value);
-JSON_Value     *json_value_get_parent (const JSON_Value *value);
+JSON_Value_Type json_value_get_type(const JSON_Value *value);
+JSON_Object *json_value_get_object(const JSON_Value *value);
+JSON_Array *json_value_get_array(const JSON_Value *value);
+const char *json_value_get_string(const JSON_Value *value);
+double json_value_get_number(const JSON_Value *value);
+uint64_t json_value_get_uint64(const JSON_Value *value);
+int json_value_get_integer(const JSON_Value *value);
+int json_value_get_boolean(const JSON_Value *value);
+JSON_Value *json_value_get_parent(const JSON_Value *value);
 
 /* Same as above, but shorter */
-JSON_Value_Type json_get_type   (const JSON_Value *value);
-JSON_Object    *json_get_object (const JSON_Value *value);
-JSON_Array     *json_get_array  (const JSON_Value *value);
-const char     *json_get_string (const JSON_Value *value);
-double          json_get_number (const JSON_Value *value);
-uint64_t        json_get_uint64 (const JSON_Value *value);
-int             json_get_integer(const JSON_Value *value);
-int             json_get_boolean(const JSON_Value *value);
+JSON_Value_Type json_get_type(const JSON_Value *value);
+JSON_Object *json_get_object(const JSON_Value *value);
+JSON_Array *json_get_array(const JSON_Value *value);
+const char *json_get_string(const JSON_Value *value);
+double json_get_number(const JSON_Value *value);
+uint64_t json_get_uint64(const JSON_Value *value);
+int json_get_integer(const JSON_Value *value);
+int json_get_boolean(const JSON_Value *value);
 
 static inline const char *
 json_string_type(JSON_Value *val)
 {
-	if (!val)
-		return "oops";
+    if (!val)
+        return "oops";
 
-	if (json_get_type(val) == JSONString)
-		return "String";
-	if (json_get_type(val) == JSONNull)
-		return "Null";
-	if (json_get_type(val) == JSONNumber)
-		return "Number";
-	if (json_get_type(val) == JSONUint64)
-		return "uint64";
-	if (json_get_type(val) == JSONInteger)
-		return "Integer";
-	if (json_get_type(val) == JSONArray)
-		return "Array";
-	if (json_get_type(val) == JSONObject)
-		return "Object";
-	if (json_get_type(val) == JSONBoolean)
-		return "Boolean";
+    if (json_get_type(val) == JSONString)
+        return "String";
+    if (json_get_type(val) == JSONNull)
+        return "Null";
+    if (json_get_type(val) == JSONNumber)
+        return "Number";
+    if (json_get_type(val) == JSONUint64)
+        return "uint64";
+    if (json_get_type(val) == JSONInteger)
+        return "Integer";
+    if (json_get_type(val) == JSONArray)
+        return "Array";
+    if (json_get_type(val) == JSONObject)
+        return "Object";
+    if (json_get_type(val) == JSONBoolean)
+        return "Boolean";
 
-	return "Unknown";
+    return "Unknown";
 }
 
 #ifdef __cplusplus

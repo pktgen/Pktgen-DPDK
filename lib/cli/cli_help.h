@@ -24,14 +24,14 @@
 extern "C" {
 #endif
 
-#define CLI_HELP_PAUSE		"<<PauseOutput>>"
-#define CLI_HELP_NAME_LEN	32
+#define CLI_HELP_PAUSE    "<<PauseOutput>>"
+#define CLI_HELP_NAME_LEN 32
 
 struct help_node {
-	TAILQ_ENTRY(help_node) next;     /**< link list of help nodes */
-	char group[CLI_HELP_NAME_LEN];
-	struct cli_map	*map;
-	const char **help_data;
+    TAILQ_ENTRY(help_node) next; /**< link list of help nodes */
+    char group[CLI_HELP_NAME_LEN];
+    struct cli_map *map;
+    const char **help_data;
 };
 
 /**
@@ -44,8 +44,7 @@ struct help_node {
  * @return
  *   NULL if not found or pointer to struct cli_info.
  */
-struct help_node *
-cli_help_find_group(const char *group);
+struct help_node *cli_help_find_group(const char *group);
 
 /**
  * Show the map table entries
@@ -65,7 +64,7 @@ int cli_help_show_all(const char *msg);
  * @param data
  *   Pointer to the cli_info structure.
  */
-int cli_help_show_group( const char *group);
+int cli_help_show_group(const char *group);
 
 /**
  * Add help string group to a help structure
@@ -96,10 +95,10 @@ int cli_help_add(const char *group, struct cli_map *map, const char **hd);
 static inline int
 is_help(int argc, char **argv)
 {
-	if (argc == 0)
-		return 0;
+    if (argc == 0)
+        return 0;
 
-	return !strcmp("-?", argv[argc - 1]) || !strcmp("?", argv[argc - 1]);
+    return !strcmp("-?", argv[argc - 1]) || !strcmp("?", argv[argc - 1]);
 }
 
 /**
@@ -114,7 +113,7 @@ is_help(int argc, char **argv)
  */
 void cli_help_foreach(void (*func)(void *arg, const char **h), void *arg);
 
-int cli_cmd_error(const char * msg, const char *group, int argc, char **argv);
+int cli_cmd_error(const char *msg, const char *group, int argc, char **argv);
 
 #ifdef __cplusplus
 }

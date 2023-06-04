@@ -25,9 +25,9 @@
 #include <rte_bus.h>
 
 enum {
-    RX_PTHRESH = 8,      /**< Default values of RX prefetch threshold reg. */
-    RX_HTHRESH = 8,      /**< Default values of RX host threshold reg. */
-    RX_WTHRESH = 4,      /**< Default values of RX write-back threshold reg. */
+    RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
+    RX_HTHRESH = 8, /**< Default values of RX host threshold reg. */
+    RX_WTHRESH = 4, /**< Default values of RX write-back threshold reg. */
 
     TX_PTHRESH     = 36, /**< Default values of TX prefetch threshold reg. */
     TX_HTHRESH     = 0,  /**< Default values of TX host threshold reg. */
@@ -262,10 +262,11 @@ pktgen_config_ports(void)
 
         latency_t *lat = &info->latency;
 
-        lat->jitter_threshold_us     = DEFAULT_JITTER_THRESHOLD;
-        lat->latency_rate_us         = DEFAULT_LATENCY_RATE;
-        lat->latency_entropy         = DEFAULT_LATENCY_ENTROPY;
-        lat->latency_rate_cycles     = pktgen_get_timer_hz() / (MAX_LATENCY_RATE / lat->latency_rate_us);
+        lat->jitter_threshold_us = DEFAULT_JITTER_THRESHOLD;
+        lat->latency_rate_us     = DEFAULT_LATENCY_RATE;
+        lat->latency_entropy     = DEFAULT_LATENCY_ENTROPY;
+        lat->latency_rate_cycles =
+            pktgen_get_timer_hz() / (MAX_LATENCY_RATE / lat->latency_rate_us);
         ticks                        = pktgen_get_timer_hz() / 1000000;
         lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
         info->nb_mbufs               = MAX_MBUFS_PER_PORT;

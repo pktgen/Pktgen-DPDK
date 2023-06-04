@@ -62,15 +62,19 @@ cycles_to_us(uint64_t cycles)
 static inline portlist_t
 pktgen_get_portlist(lua_State *L, int index)
 {
-    portlist_t portlist = INVALID_PORTLIST;
+    portlist_t portlist;
 
     if (lua_isstring(L, index)) {
-        if (portlist_parse(luaL_checkstring(L, 1), &portlist) < 0)
+        if (portlist_parse(luaL_checkstring(L, 1), pktgen.nb_ports, &portlist) < 0)
             portlist = INVALID_PORTLIST;
     } else if (lua_isnumber(L, index))
         portlist = (uint64_t)lua_tonumber(L, index);
     else if (lua_isinteger(L, index))
         portlist = (uint64_t)lua_tointeger(L, index);
+    else {
+        printf("%s: unknown Lua variable type not a string, number or int\n", __func__);
+        portlist = INVALID_PORTLIST;
+    }
 
     return portlist;
 }
@@ -1239,7 +1243,7 @@ pktgen_update_screen(lua_State *L __rte_unused)
 
 /**
  *
- * pktgen_reset - Reset pktgen to all default values.
+ * pktgen_reset_config - Reset pktgen to all default values.
  *
  * DESCRIPTION
  * Reset pktgen to all default values.

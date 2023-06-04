@@ -323,7 +323,7 @@ pktgen_tstamp_check(port_info_t *info, struct rte_mbuf **pkts, uint16_t nb_pkts)
                 continue;
 
             cycles        = (pktgen_get_time() - tstamp->timestamp);
-            tstamp->magic = 0UL;      /* clear timestamp magic cookie */
+            tstamp->magic = 0UL; /* clear timestamp magic cookie */
 
             if (tstamp->index != lat->expect_index) {
                 lat->expect_index = tstamp->index + 1;
@@ -466,7 +466,7 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
     pkt_seq_t *pkt            = &info->seq_pkt[seq_idx];
     struct rte_ether_hdr *eth = (struct rte_ether_hdr *)&pkt->hdr.eth;
     char *l3_hdr              = (char *)&eth[1]; /* Point to l3 hdr location for GRE header */
-    uint16_t sport_entropy = 0;
+    uint16_t sport_entropy    = 0;
 
     /* Fill in the pattern for data space. */
     pktgen_fill_pattern((uint8_t *)&pkt->hdr, (sizeof(pkt_hdr_t) + sizeof(pkt->pad)),
@@ -484,7 +484,6 @@ pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type)
 
         if (lat->latency_entropy)
             sport_entropy = (uint16_t)(pkt->sport + (tstamp->index % lat->latency_entropy));
-
     }
     /* Add GRE header and adjust rte_ether_hdr pointer if requested */
     if (pktgen_tst_port_flags(info, SEND_GRE_IPv4_HEADER))
@@ -1014,7 +1013,6 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
     for (int i = 0; i < mlen; i++)
         rte_eth_tx_buffer(info->pid, qid, txbuff, pkts[i]);
 
-
     if (qid == 0) {
         uint32_t tstamp = pktgen_tst_port_flags(info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS));
         if (tstamp) {
@@ -1162,7 +1160,7 @@ port_map_info(const char *msg, uint8_t lid, port_mapinfo_t *pm)
     if (pm == NULL)
         return;
 
-    pm->lid   = lid;
+    pm->lid    = lid;
     pm->rx.cnt = get_lcore_rxcnt(pktgen.l2p, pm->lid);
     pm->tx.cnt = get_lcore_txcnt(pktgen.l2p, pm->lid);
 
@@ -1399,7 +1397,7 @@ pktgen_main_rx_loop(uint8_t lid)
     port_mapinfo_t pmap;
 
     memset(&pmap, '\0', sizeof(pmap));
-    
+
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
         rte_exit(0, "using initial lcore for ports");
@@ -1559,7 +1557,7 @@ _timer_thread(void *arg)
     this_scrn = arg;
 
     pktgen.stats_timeout = pktgen.hz;
-    pktgen.page_timeout = UPDATE_DISPLAY_TICK_RATE;
+    pktgen.page_timeout  = UPDATE_DISPLAY_TICK_RATE;
 
     page = prev = pktgen_get_time();
     process     = page + pktgen.stats_timeout;

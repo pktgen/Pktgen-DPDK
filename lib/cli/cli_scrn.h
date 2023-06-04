@@ -377,7 +377,8 @@ void __set_prompt(void);
 static __inline__ void
 scrn_pause(void)
 {
-if (!this_scrn) printf("**** this scrn is NULL\n");
+    if (!this_scrn)
+        printf("**** this scrn is NULL\n");
     rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_PAUSED);
     __set_prompt();
 }

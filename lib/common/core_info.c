@@ -29,7 +29,7 @@
 #include "utils.h"
 #include "coremap.h"
 
-#define COREMASK_STRING_SIZE    256
+#define COREMASK_STRING_SIZE 256
 
 static lc_info_t core_map[RTE_MAX_LCORE];
 static uint32_t num_cores;
@@ -37,23 +37,23 @@ static uint32_t num_cores;
 uint32_t
 sct_convert(char *sct[])
 {
-	uint32_t lcore = 0xFFFF, i;
-	lc_info_t val, tst;
+    uint32_t lcore = 0xFFFF, i;
+    lc_info_t val, tst;
 
-	if ( (sct == NULL) || (sct[0] == NULL) )
-		return 0xFFFF;
+    if ((sct == NULL) || (sct[0] == NULL))
+        return 0xFFFF;
 
-	val.s.socket_id = (uint8_t)strtoul(sct[0], NULL, 10);
-	val.s.core_id   = (uint8_t)strtoul(sct[1], NULL, 10);
-	val.s.thread_id = (uint8_t)strtoul(sct[2], NULL, 10);
+    val.s.socket_id = (uint8_t)strtoul(sct[0], NULL, 10);
+    val.s.core_id   = (uint8_t)strtoul(sct[1], NULL, 10);
+    val.s.thread_id = (uint8_t)strtoul(sct[2], NULL, 10);
 
-	for (i = 0; i < num_cores; i++) {
-		tst.word = core_map[i].word;
-		tst.s.id = 0;
-		if (tst.word == val.word) {
-			lcore = core_map[i].s.id;
-			break;
-		}
-	}
-	return lcore;
+    for (i = 0; i < num_cores; i++) {
+        tst.word = core_map[i].word;
+        tst.s.id = 0;
+        if (tst.word == val.word) {
+            lcore = core_map[i].s.id;
+            break;
+        }
+    }
+    return lcore;
 }

@@ -16,11 +16,11 @@ extern "C" {
 #endif
 
 typedef struct {
-	uint64_t timestamp;
-	uint16_t magic;
+    uint64_t timestamp;
+    uint16_t magic;
 } rate_stamp_t;
 
-#define RATE_MAGIC   (('R' << 8) + 'y')
+#define RATE_MAGIC (('R' << 8) + 'y')
 
 void pktgen_rate_init(port_info_t *info);
 void pktgen_page_rate(void);
@@ -32,4 +32,4 @@ void pktgen_rate_setup(port_info_t *info);
 }
 #endif
 
-#endif  /* _PKTGEN_RATE_H_ */
+#endif /* _PKTGEN_RATE_H_ */

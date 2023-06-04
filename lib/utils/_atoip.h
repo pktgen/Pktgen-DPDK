@@ -23,18 +23,18 @@ extern "C" {
 #define RTE_IPADDR_V6      0x02
 #define RTE_IPADDR_NETWORK 0x04
 
-#define RTE_INADDRSZ       4
-#define RTE_IN6ADDRSZ      16
-#define RTE_PREFIXMAX      128
-#define RTE_V4PREFIXMAX    32
+#define RTE_INADDRSZ    4
+#define RTE_IN6ADDRSZ   16
+#define RTE_PREFIXMAX   128
+#define RTE_V4PREFIXMAX 32
 
 struct rte_ipaddr {
-	uint8_t family;
-	union {
-		struct in_addr ipv4;
-		struct in6_addr ipv6;
-	};
-	unsigned int prefixlen; /* in case of network only */
+    uint8_t family;
+    union {
+        struct in_addr ipv4;
+        struct in6_addr ipv6;
+    };
+    unsigned int prefixlen; /* in case of network only */
 };
 
 /**

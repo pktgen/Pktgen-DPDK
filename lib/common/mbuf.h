@@ -16,13 +16,13 @@ extern "C" {
 #endif
 
 union pktgen_data {
-	uint64_t udata;
-	RTE_STD_C11
-	struct {
-		uint16_t data_len;
-		uint16_t buf_len;
-		uint32_t pkt_len;
-	};
+    uint64_t udata;
+    RTE_STD_C11
+    struct {
+        uint16_t data_len;
+        uint16_t buf_len;
+        uint32_t pkt_len;
+    };
 };
 
 extern int pktgen_dynfield_offset;
@@ -46,15 +46,15 @@ pktgen_data_field(struct rte_mbuf *m)
 static inline void
 pktmbuf_restore(struct rte_mbuf *m)
 {
-	union pktgen_data d;
+    union pktgen_data d;
 
-	d = *pktgen_data_field(m); /* Save the original value */
+    d = *pktgen_data_field(m); /* Save the original value */
 
-	rte_pktmbuf_reset(m);
+    rte_pktmbuf_reset(m);
 
-	m->data_len = d.data_len;
-	m->pkt_len = d.pkt_len;
-	m->buf_len = d.buf_len;
+    m->data_len = d.data_len;
+    m->pkt_len  = d.pkt_len;
+    m->buf_len  = d.buf_len;
 }
 
 /**
@@ -71,58 +71,56 @@ pktmbuf_restore(struct rte_mbuf *m)
  *   - 0: Success
  */
 static inline int
-pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
-		      struct rte_mbuf **mbufs, unsigned count)
+pg_pktmbuf_alloc_bulk(struct rte_mempool *pool, struct rte_mbuf **mbufs, unsigned count)
 {
-	unsigned idx;
-	int rc;
+    unsigned idx;
+    int rc;
 
-	if (count == 0)
-		return 0;
+    if (count == 0)
+        return 0;
 
-	rc = rte_mempool_get_bulk(pool, (void **)mbufs, count);
-	if (unlikely(rc)) {
-		struct rte_mbuf *m;
+    rc = rte_mempool_get_bulk(pool, (void **)mbufs, count);
+    if (unlikely(rc)) {
+        struct rte_mbuf *m;
 
-		for(idx = 0; idx < count; idx++) {
-			rc = rte_mempool_get(pool, (void **)&m);
-			if (unlikely(rc))
-				break;
-			pktmbuf_restore(m);
-			mbufs[idx] = m;
-		}
-		return idx;
-	}
+        for (idx = 0; idx < count; idx++) {
+            rc = rte_mempool_get(pool, (void **)&m);
+            if (unlikely(rc))
+                break;
+            pktmbuf_restore(m);
+            mbufs[idx] = m;
+        }
+        return idx;
+    }
 
+    /* To understand duff's device on loop unwinding optimization, see
+     * https://en.wikipedia.org/wiki/Duff's_device.
+     * Here while() loop is used rather than do() while{} to avoid extra
+     * check if count is zero.
+     */
+    idx = 0;
+    switch (count % 4) {
+    case 0:
+        while (idx != count) {
+            pktmbuf_restore(mbufs[idx]);
+            idx++;
+            /* fall-through */
+        case 3:
+            pktmbuf_restore(mbufs[idx]);
+            idx++;
+            /* fall-through */
+        case 2:
+            pktmbuf_restore(mbufs[idx]);
+            idx++;
+            /* fall-through */
+        case 1:
+            pktmbuf_restore(mbufs[idx]);
+            idx++;
+            /* fall-through */
+        }
+    }
 
-	/* To understand duff's device on loop unwinding optimization, see
-	 * https://en.wikipedia.org/wiki/Duff's_device.
-	 * Here while() loop is used rather than do() while{} to avoid extra
-	 * check if count is zero.
-	 */
-	idx = 0;
-	switch (count % 4) {
-	case 0:
-		while (idx != count) {
-			pktmbuf_restore(mbufs[idx]);
-			idx++;
-			/* fall-through */
-	case 3:
-			pktmbuf_restore(mbufs[idx]);
-			idx++;
-			/* fall-through */
-	case 2:
-			pktmbuf_restore(mbufs[idx]);
-			idx++;
-			/* fall-through */
-	case 1:
-			pktmbuf_restore(mbufs[idx]);
-			idx++;
-			/* fall-through */
-		}
-	}
-
-	return idx;
+    return idx;
 }
 
 /**
@@ -143,43 +141,43 @@ pg_pktmbuf_alloc_bulk(struct rte_mempool *pool,
 static inline void
 pg_pktmbuf_dump(FILE *f, const struct rte_mbuf *m, unsigned dump_len)
 {
-	unsigned int len;
-	unsigned int nb_segs;
-	char buf[256];
+    unsigned int len;
+    unsigned int nb_segs;
+    char buf[256];
 
-	if (f == NULL)
-	    f = stdout;
-		
-	__rte_mbuf_sanity_check(m, 1);
+    if (f == NULL)
+        f = stdout;
 
-	fprintf(f, "dump mbuf at %p, addr=%p iova=%"PRIx64", buf_len=%u\n",
-			(void *)(uintptr_t)m, m->buf_addr, (uint64_t)m->buf_iova, (unsigned)m->buf_len);
-	fprintf(f, "  offset=%d, refcnt=%d, len=%u, mp=%p\n",
-			m->data_off, m->refcnt, m->data_len, m->pool);
-	fprintf(f, "  pkt_len=%"PRIu32", nb_segs=%u, in_port=%u, next %p\n", m->pkt_len,
-			(unsigned)m->nb_segs, (unsigned)m->port, m->next);
+    __rte_mbuf_sanity_check(m, 1);
 
-	rte_get_rx_ol_flag_list(m->ol_flags, buf, sizeof(buf));
-	fprintf(f, "  rx_ol_flags: %s\n", buf);
-	rte_get_tx_ol_flag_list(m->ol_flags, buf, sizeof(buf));
-	fprintf(f, "  tx_ol_flags: %s\n", buf);
+    fprintf(f, "dump mbuf at %p, addr=%p iova=%" PRIx64 ", buf_len=%u\n", (void *)(uintptr_t)m,
+            m->buf_addr, (uint64_t)m->buf_iova, (unsigned)m->buf_len);
+    fprintf(f, "  offset=%d, refcnt=%d, len=%u, mp=%p\n", m->data_off, m->refcnt, m->data_len,
+            m->pool);
+    fprintf(f, "  pkt_len=%" PRIu32 ", nb_segs=%u, in_port=%u, next %p\n", m->pkt_len,
+            (unsigned)m->nb_segs, (unsigned)m->port, m->next);
 
-	nb_segs = m->nb_segs;
+    rte_get_rx_ol_flag_list(m->ol_flags, buf, sizeof(buf));
+    fprintf(f, "  rx_ol_flags: %s\n", buf);
+    rte_get_tx_ol_flag_list(m->ol_flags, buf, sizeof(buf));
+    fprintf(f, "  tx_ol_flags: %s\n", buf);
 
-	while (m && nb_segs != 0) {
-		__rte_mbuf_sanity_check(m, 0);
+    nb_segs = m->nb_segs;
 
-		fprintf(f, "  segment at %p, data=%p, data_len=%u\n",
-			(void *)(uintptr_t)m, rte_pktmbuf_mtod(m, void *), (unsigned)m->data_len);
-		len = dump_len;
-		if (len > m->data_len)
-			len = m->data_len;
-		if (len != 0)
-			rte_hexdump(f, NULL, rte_pktmbuf_mtod(m, void *), len);
-		dump_len -= len;
-		m = m->next;
-		nb_segs --;
-	}
+    while (m && nb_segs != 0) {
+        __rte_mbuf_sanity_check(m, 0);
+
+        fprintf(f, "  segment at %p, data=%p, data_len=%u\n", (void *)(uintptr_t)m,
+                rte_pktmbuf_mtod(m, void *), (unsigned)m->data_len);
+        len = dump_len;
+        if (len > m->data_len)
+            len = m->data_len;
+        if (len != 0)
+            rte_hexdump(f, NULL, rte_pktmbuf_mtod(m, void *), len);
+        dump_len -= len;
+        m = m->next;
+        nb_segs--;
+    }
 }
 
 #ifdef __cplusplus

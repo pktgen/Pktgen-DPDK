@@ -23,10 +23,9 @@
 
 #include "copyright_info.h"
 
-#define COPYRIGHT_MSG \
-	"Copyright(c) <2010-2023>, Intel Corporation. All rights reserved."
-#define COPYRIGHT_MSG_SHORT     "Copyright(c) <2010-2023>, Intel Corporation"
-#define POWERED_BY_DPDK         "Powered by DPDK"
+#define COPYRIGHT_MSG       "Copyright(c) <2010-2023>, Intel Corporation. All rights reserved."
+#define COPYRIGHT_MSG_SHORT "Copyright(c) <2010-2023>, Intel Corporation"
+#define POWERED_BY_DPDK     "Powered by DPDK"
 
 /**
  *
@@ -43,11 +42,8 @@
 void
 print_copyright(const char *appname, const char *created_by)
 {
-	printf("\n*** %s\n", COPYRIGHT_MSG);
-	printf("*** %s created by: %s -- >>> %s <<<\n\n",
-	       appname,
-	       created_by,
-	       POWERED_BY_DPDK);
+    printf("\n*** %s\n", COPYRIGHT_MSG);
+    printf("*** %s created by: %s -- >>> %s <<<\n\n", appname, created_by, POWERED_BY_DPDK);
 }
 
 /**
@@ -56,8 +52,9 @@ print_copyright(const char *appname, const char *created_by)
  *     string
  */
 const char *
-copyright_msg(void) {
-	return COPYRIGHT_MSG;
+copyright_msg(void)
+{
+    return COPYRIGHT_MSG;
 }
 
 /**
@@ -66,8 +63,9 @@ copyright_msg(void) {
  *     string
  */
 const char *
-copyright_msg_short(void) {
-	return COPYRIGHT_MSG_SHORT;
+copyright_msg_short(void)
+{
+    return COPYRIGHT_MSG_SHORT;
 }
 
 /**
@@ -76,6 +74,7 @@ copyright_msg_short(void) {
  *     string
  */
 const char *
-powered_by(void) {
-	return POWERED_BY_DPDK;
+powered_by(void)
+{
+    return POWERED_BY_DPDK;
 }

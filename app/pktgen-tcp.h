@@ -28,10 +28,10 @@ extern "C" {
  * SEE ALSO:
  */
 
-void* pktgen_tcp_hdr_ctor(pkt_seq_t * pkt, void *hdr, int type);
+void *pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* _PKTGEN_TCP_H_ */
+#endif /* _PKTGEN_TCP_H_ */

@@ -27,54 +27,47 @@
 extern "C" {
 #endif
 
-#define PLUGIN_MAX_INST		32
+#define PLUGIN_MAX_INST 32
 
 extern int libplugin_logtype;
 #define PLUGIN_LOG(level, fmt, args...) \
-	rte_log(RTE_LOG_ ## level, libplugin_logtype, "%s(%d): " fmt, \
-		__func__, getpid(), ## args)
+    rte_log(RTE_LOG_##level, libplugin_logtype, "%s(%d): " fmt, __func__, getpid(), ##args)
 
-#define PLUGIN_MKVER(_M, _m, _p, _r) \
-	.major = _M, .minor = _m, .patch = _p, .release = _r
+#define PLUGIN_MKVER(_M, _m, _p, _r) .major = _M, .minor = _m, .patch = _p, .release = _r
 
-#define PLUGIN_INFO(_n, _d, _f, _v) \
-	struct plugin_info _n ## _plugin_info = { \
-		.desc = _d, \
-		.start = _n ## _start, \
-		.stop = _n ## _stop, \
-		.pfuncs = (void *)_f, \
-		_v \
-	}
+#define PLUGIN_INFO(_n, _d, _f, _v)         \
+    struct plugin_info _n##_plugin_info = { \
+        .desc = _d, .start = _n##_start, .stop = _n##_stop, .pfuncs = (void *)_f, _v}
 
 struct plugin_info {
-	const char *desc;		/**< Short plugin description */
+    const char *desc; /**< Short plugin description */
 
-	int (*start)(int inst, void *arg); /**< start function optional */
-	int (*stop)(int inst);		/**< stop function optional */
-	void *pfuncs;			/**< plugin defined functions/info */
+    int (*start)(int inst, void *arg); /**< start function optional */
+    int (*stop)(int inst);             /**< stop function optional */
+    void *pfuncs;                      /**< plugin defined functions/info */
 
-	RTE_STD_C11
-	union {
-		uint32_t version;	/* 18.04.00-rc1 == 18040001 */
-		struct {
-			uint8_t major;	/**< Version of Plugin */
-			uint8_t minor;
-			uint8_t patch;
-			uint8_t release;
-		};
-	};
+    RTE_STD_C11
+    union {
+        uint32_t version; /* 18.04.00-rc1 == 18040001 */
+        struct {
+            uint8_t major; /**< Version of Plugin */
+            uint8_t minor;
+            uint8_t patch;
+            uint8_t release;
+        };
+    };
 };
 
 struct plugin {
-	TAILQ_ENTRY(plugin) next;	/**< Next plugin pointer */
+    TAILQ_ENTRY(plugin) next; /**< Next plugin pointer */
 
-	char *plugin;			/**< short name of plugin <name>.do */
-	char *path;			/**< path to plugin */
-	void *dl;			/**< dlopen handle pointer */
-	rte_atomic32_t refcnt;		/**< reference count */
-	uint32_t hash;			/**< Plugin ID value */
-	int inst;			/**< Plugin instance ID value */
-	struct plugin_info *info;	/**< Pointer to plugin info struct */
+    char *plugin;             /**< short name of plugin <name>.do */
+    char *path;               /**< path to plugin */
+    void *dl;                 /**< dlopen handle pointer */
+    rte_atomic32_t refcnt;    /**< reference count */
+    uint32_t hash;            /**< Plugin ID value */
+    int inst;                 /**< Plugin instance ID value */
+    struct plugin_info *info; /**< Pointer to plugin info struct */
 };
 
 /**
@@ -170,10 +163,10 @@ void plugin_dump(FILE *f);
 static inline const char *
 plugin_desc(struct plugin *pin)
 {
-	if (pin && pin->info)
-		return pin->info->desc;
+    if (pin && pin->info)
+        return pin->info->desc;
 
-	return NULL;
+    return NULL;
 }
 
 /**
@@ -189,12 +182,12 @@ plugin_desc(struct plugin *pin)
 static inline int
 plugin_get_id(struct plugin *pin, uint32_t *id)
 {
-	if (!pin || !id)
-		return -1;
+    if (!pin || !id)
+        return -1;
 
-	*id = pin->hash;
+    *id = pin->hash;
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -210,12 +203,12 @@ plugin_get_id(struct plugin *pin, uint32_t *id)
 static inline uint32_t
 plugin_get_version(int inst)
 {
-	struct plugin *pin = plugin_get(inst);
+    struct plugin *pin = plugin_get(inst);
 
-	if (!pin || !pin->info)
-		return -1;
+    if (!pin || !pin->info)
+        return -1;
 
-	return pin->info->version;
+    return pin->info->version;
 }
 
 /**
@@ -229,11 +222,11 @@ plugin_get_version(int inst)
 static inline struct plugin_info *
 plugin_get_info(int inst)
 {
-	struct plugin *pin = plugin_get(inst);
+    struct plugin *pin = plugin_get(inst);
 
-	if (!pin)
-		return NULL;
-	return pin->info;
+    if (!pin)
+        return NULL;
+    return pin->info;
 }
 
 /**

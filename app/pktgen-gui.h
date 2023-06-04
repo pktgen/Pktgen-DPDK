@@ -18,90 +18,65 @@
 #include "pktgen-cmds.h"
 #include "cli_input.h"
 
-#define PKTGEN_GUI_MAX_STATS    22
-#define PKTGEN_GUI_MAX_STATIC   13
+#define PKTGEN_GUI_MAX_STATS  22
+#define PKTGEN_GUI_MAX_STATIC 13
 
-#define NO_ETH_FIELDS            4
-#define NO_IP_FIELDS            15
-#define NO_UDP_FIELDS            4
+#define NO_ETH_FIELDS 4
+#define NO_IP_FIELDS  15
+#define NO_UDP_FIELDS 4
 
 extern pktgen_t pktgen;
 extern cmdline_parse_ctx_t main_ctx[];
 
-extern GtkTreeStore        *treestore_stats[RTE_MAX_ETHPORTS];
-extern GtkTreeStore        *treestore_static[RTE_MAX_ETHPORTS];
-extern GtkWidget           *view_static[RTE_MAX_ETHPORTS];
-extern GtkTreeModel        *model_static[RTE_MAX_ETHPORTS];
+extern GtkTreeStore *treestore_stats[RTE_MAX_ETHPORTS];
+extern GtkTreeStore *treestore_static[RTE_MAX_ETHPORTS];
+extern GtkWidget *view_static[RTE_MAX_ETHPORTS];
+extern GtkTreeModel *model_static[RTE_MAX_ETHPORTS];
 
-extern GtkWidget           *view_stats[RTE_MAX_ETHPORTS];
-extern GtkTreeModel        *model_stats[RTE_MAX_ETHPORTS];
+extern GtkWidget *view_stats[RTE_MAX_ETHPORTS];
+extern GtkTreeModel *model_stats[RTE_MAX_ETHPORTS];
 
-extern GtkTextBuffer       *buffer;
-extern GtkTextIter          buffer_iter;
+extern GtkTextBuffer *buffer;
+extern GtkTextIter buffer_iter;
 
-extern GtkWidget           *stream_view[RTE_MAX_ETHPORTS];
-extern GtkTreeStore        *traffic_stream[RTE_MAX_ETHPORTS];
-extern GtkWidget           *stream_window;
-extern GtkWidget           *hscale;
+extern GtkWidget *stream_view[RTE_MAX_ETHPORTS];
+extern GtkTreeStore *traffic_stream[RTE_MAX_ETHPORTS];
+extern GtkWidget *stream_window;
+extern GtkWidget *hscale;
 extern gint tx_rate;
-extern GtkWidget           *notebook;
-extern GtkScrolledWindow   *scroller;
+extern GtkWidget *notebook;
+extern GtkScrolledWindow *scroller;
 
-extern GtkWidget           *chassis_view;
-
+extern GtkWidget *chassis_view;
 
 /* pktgen_port_stream data structure */
 typedef struct pktgen_port_stream_t {
-	gchar *path;
-	gchar *stream_name;
-	gboolean stream_select;
-	gint stream_no;
+    gchar *path;
+    gchar *stream_name;
+    gboolean stream_select;
+    gint stream_no;
 } pktgen_port_stream;
 
 /* enum for chassis treeview */
-enum {
-	COL_CHASSIS_PORTS = 0,
-	NUM_COLS
-};
+enum { COL_CHASSIS_PORTS = 0, NUM_COLS };
 
 /* column identifiers for stream editor tree view */
-enum {
-	TRAF_STR_NAME,
-	TRAF_STR_SELECT,
-	TRAF_STR_NO,
-	NUM_TRAF_STR_COLS
-};
+enum { TRAF_STR_NAME, TRAF_STR_SELECT, TRAF_STR_NO, NUM_TRAF_STR_COLS };
 
 /* column identifiers for protocol fields in tree view */
-enum {
-	SL_COL,
-	SELECT_COL,
-	NUM_PROTO_COLS
-};
+enum { SL_COL, SELECT_COL, NUM_PROTO_COLS };
 
 /* Enum for protocol stack */
-typedef enum {
-	TYPE_ETH,
-	TYPE_VLAN,
-	TYPE_IPv4,
-	TYPE_UDP,
-	TYPE_TCP,
-	TYPE_INVALID
-} proto_type;
+typedef enum { TYPE_ETH, TYPE_VLAN, TYPE_IPv4, TYPE_UDP, TYPE_TCP, TYPE_INVALID } proto_type;
 
 /* Enum for protocol treeview */
-enum {
-	COLUMN_NAME,
-	COLUMN_VALUE,
-	MAX_COLUMNS
-};
+enum { COLUMN_NAME, COLUMN_VALUE, MAX_COLUMNS };
 
 /* Display protocol values on treeview [name:value] format */
 typedef struct {
-	gchar *name;
-	gchar *value;
-}
-protocol;
+    gchar *name;
+    gchar *value;
+} protocol;
 
 /* Function prototypes */
 GtkTreeModel *fill_port_info(unsigned int pid, gboolean is_static);
@@ -126,51 +101,30 @@ GtkWidget *pktgen_stream_box(void);
 void edit_stream(void);
 void set_stream_info(unsigned int pid, unsigned int seq_id);
 void switch_stream_editor_page(GtkButton *, GtkNotebook *);
-GtkWidget *fill_stream_info(proto_type type,
-                            unsigned int pid,
-                            unsigned int seq_id);
-void add_proto_values_column(GtkTreeView  *treeview, GtkTreeModel *stream_model);
-GtkTreeModel *create_stream_model(proto_type type,
-                                  unsigned int pid,
-                                  unsigned int seq_id);
-void fill_proto_field_info(proto_type type,
-                           unsigned int pid,
-                           unsigned int seq_id);
+GtkWidget *fill_stream_info(proto_type type, unsigned int pid, unsigned int seq_id);
+void add_proto_values_column(GtkTreeView *treeview, GtkTreeModel *stream_model);
+GtkTreeModel *create_stream_model(proto_type type, unsigned int pid, unsigned int seq_id);
+void fill_proto_field_info(proto_type type, unsigned int pid, unsigned int seq_id);
 int hex_to_number(char c);
 int ascii_to_mac(const char *txt, unsigned int *addr);
 int validate_ip_address(char *st);
 int ascii_to_number(const char *txt, unsigned int *addr, int len);
 
-void start_stop_traffic(GtkTreeModel  *model,
-                        GtkTreePath   *path,
-                        GtkTreeIter   *iter,
+void start_stop_traffic(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
                         gpointer userdata);
 
-void start_stop_capture(GtkTreeModel  *model,
-                        GtkTreePath  *path,
-                        GtkTreeIter   *iter,
+void start_stop_capture(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
                         gpointer userdata);
 
-GtkWidget *port_tree_view(unsigned int port_id,
-                          const char *title,
-                          gboolean is_static);
+GtkWidget *port_tree_view(unsigned int port_id, const char *title, gboolean is_static);
 
-void display_stream_editor(GtkWidget *stream_window,
-                           unsigned int pid,
-                           unsigned int seq_id);
+void display_stream_editor(GtkWidget *stream_window, unsigned int pid, unsigned int seq_id);
 
-void stream_apply(GtkTreeModel  *model,
-                  GtkTreePath *path,
-                  GtkTreeIter   *iter,
-                  gpointer userdata);
+void stream_apply(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer userdata);
 
-void traffic_stream_get_pid(GtkTreeModel  *model,
-                            GtkTreePath  *path,
-                            GtkTreeIter   *iter,
+void traffic_stream_get_pid(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
                             gpointer data);
-void traffic_stream_get_seq_id(GtkTreeModel  *model,
-                               GtkTreePath  *path,
-                               GtkTreeIter   *iter,
+void traffic_stream_get_seq_id(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
                                gpointer data);
 
 /* Callback functions */
@@ -178,7 +132,7 @@ void console_callback(GtkWidget *widget, GtkWidget *entry);
 void close_window_callback(GtkWidget *widget, gpointer window);
 void apply_stream_callback(void);
 void pktsize_enter_callback(GtkWidget *widget, gpointer *data);
-void radio_options_callback(GtkRadioButton *b,  gpointer *user_data);
+void radio_options_callback(GtkRadioButton *b, gpointer *user_data);
 void apply_callback(GtkWidget *w, gpointer data);
 void digits_scale_callback(GtkAdjustment *adj);
 void start_taffic_callback(GtkWidget *w, gpointer data);
@@ -188,23 +142,15 @@ void stop_capture_callback(GtkWidget *w, gpointer data);
 void about_dialog_callback(void);
 void vlan_enable_callback(GtkWidget *widget, gpointer *data);
 
-void enable_stream_callback(GtkCellRendererToggle *cell,
-                            gchar  *path,
-                            gpointer data);
+void enable_stream_callback(GtkCellRendererToggle *cell, gchar *path, gpointer data);
 
-void cell_edited_callback(GtkCellRendererText *cell,
-                          const gchar         *path_string,
-                          gchar         *new_text,
+void cell_edited_callback(GtkCellRendererText *cell, const gchar *path_string, gchar *new_text,
                           gpointer data);
 
-void edit_stream_callback(GtkTreeModel  *model,
-                          GtkTreePath  *path,
-                          GtkTreeIter   *iter,
+void edit_stream_callback(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
                           gpointer userdata);
 
-void show_stream_callback(GtkTreeModel  *model,
-                          GtkTreePath  *path,
-                          GtkTreeIter   *iter,
+void show_stream_callback(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
                           gpointer userdata);
 
 #endif

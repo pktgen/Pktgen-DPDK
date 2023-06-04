@@ -19,18 +19,18 @@ extern "C" {
 #endif
 struct cli;
 
-typedef char * (*cli_sfunc_t)(const char *str);
-    /**< CLI function pointer type for a Environment node  */
+typedef char *(*cli_sfunc_t)(const char *str);
+/**< CLI function pointer type for a Environment node  */
 
 struct env_node {
-	TAILQ_ENTRY(env_node) next;
-	const char *var;
-	const char *val;
+    TAILQ_ENTRY(env_node) next;
+    const char *var;
+    const char *val;
     cli_sfunc_t sfunc;
 };
 
 struct cli_env {
-    TAILQ_HEAD(, env_node) head;     /**< link list of vars */
+    TAILQ_HEAD(, env_node) head; /**< link list of vars */
     int count;
 };
 
@@ -78,8 +78,7 @@ int cli_env_set(struct cli_env *env, const char *var, const char *val);
  * @return
  *   0 is OK was added or replaced or -1 if not valid
  */
-int cli_env_string(struct cli_env *env, const char *var,
-			       cli_sfunc_t sfunc, const char *val);
+int cli_env_string(struct cli_env *env, const char *var, cli_sfunc_t sfunc, const char *val);
 
 /**
  * Get the environment variable from the cli
@@ -130,7 +129,7 @@ void cli_env_substitution(struct cli_env *env, char *line, int sz);
 static inline int
 cli_env_count(struct cli_env *env)
 {
-	return env->count;
+    return env->count;
 }
 
 /**

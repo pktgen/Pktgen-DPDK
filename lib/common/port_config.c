@@ -77,7 +77,7 @@ get_portdesc(struct rte_pci_addr *pciAddr, uint8_t **portdesc, uint32_t num, int
         pciAddr[idx].function = strtol(p, &p, 16);
 
         if (verbose)
-            fprintf(stdout, " 0x%016"PRIx64": %s\n", (1UL << idx), buff);
+            fprintf(stdout, " 0x%016" PRIx64 ": %s\n", (1UL << idx), buff);
 
         /* Save the port description for later if asked to do so. */
         if (portdesc) {

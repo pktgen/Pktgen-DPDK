@@ -50,26 +50,26 @@
         }                                                                             \
     } while ((0))
 
-GtkTreeStore        *treestore_stats[RTE_MAX_ETHPORTS];
-GtkTreeStore        *treestore_static[RTE_MAX_ETHPORTS];
-GtkWidget           *view_static[RTE_MAX_ETHPORTS];
-GtkTreeModel        *model_static[RTE_MAX_ETHPORTS];
+GtkTreeStore *treestore_stats[RTE_MAX_ETHPORTS];
+GtkTreeStore *treestore_static[RTE_MAX_ETHPORTS];
+GtkWidget *view_static[RTE_MAX_ETHPORTS];
+GtkTreeModel *model_static[RTE_MAX_ETHPORTS];
 
-GtkWidget           *view_stats[RTE_MAX_ETHPORTS];
-GtkTreeModel        *model_stats[RTE_MAX_ETHPORTS];
+GtkWidget *view_stats[RTE_MAX_ETHPORTS];
+GtkTreeModel *model_stats[RTE_MAX_ETHPORTS];
 
-GtkTextBuffer       *buffer;
-GtkTextIter          buffer_iter;
+GtkTextBuffer *buffer;
+GtkTextIter buffer_iter;
 
-GtkWidget           *stream_view[RTE_MAX_ETHPORTS];
-GtkTreeStore        *traffic_stream[RTE_MAX_ETHPORTS];
-GtkWidget           *stream_window;
-GtkWidget           *hscale;
+GtkWidget *stream_view[RTE_MAX_ETHPORTS];
+GtkTreeStore *traffic_stream[RTE_MAX_ETHPORTS];
+GtkWidget *stream_window;
+GtkWidget *hscale;
 gint tx_rate;
-GtkWidget           *notebook;
-GtkScrolledWindow   *scroller;
+GtkWidget *notebook;
+GtkScrolledWindow *scroller;
 
-GtkWidget           *chassis_view;
+GtkWidget *chassis_view;
 
 /**
  *
@@ -278,11 +278,11 @@ update_port_static_info(unsigned int pid)
 int
 update_port_statistics(void *arg)
 {
-    GtkWidget *window = (GtkWidget *)arg;
+    GtkWidget *window  = (GtkWidget *)arg;
     port_sizes_t sizes = {0};
-    pkt_stats_t stats = {0};
-    unsigned int pid  = 0;
-    port_info_t *info = NULL;
+    pkt_stats_t stats  = {0};
+    unsigned int pid   = 0;
+    port_info_t *info  = NULL;
 
     GtkTreeIter toplevel;
     GtkTreeIter totToplevel;

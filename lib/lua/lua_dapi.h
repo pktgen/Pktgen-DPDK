@@ -22,7 +22,7 @@ extern "C" {
 
 typedef struct dapi dapi_t;
 
-#define LUA_DAPI_LIBNAME        "dapi"
+#define LUA_DAPI_LIBNAME "dapi"
 
 int luaopen_dapi(lua_State *L);
 

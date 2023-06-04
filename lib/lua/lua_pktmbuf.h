@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define LUA_PKTMBUF_LIBNAME     "pktmbuf"
+#define LUA_PKTMBUF_LIBNAME "pktmbuf"
 
 typedef struct rte_mempool pktmbuf_t;
 

@@ -1,0 +1,17 @@
+name: clang-format
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: DoozyX/clang-format-lint-action@v0.15
+      with:
+        source: '.'
+        extensions: 'c,h,cc,cpp'
+        clangFormatVersion: 15.0.2

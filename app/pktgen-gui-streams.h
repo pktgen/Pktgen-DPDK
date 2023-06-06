@@ -36,10 +36,12 @@ const char *pktgen_ipv4_fields[] = {
 
 const char *pktgen_udp_fields[] = {"Source port", "Destination port", "Length", "Checksum"};
 
+// clang-format off
 const char *pktgen_tcp_fields[] = {
     "Source port",           "Destination port", "Sequence number", "Acknowledgement number",
     "Data Offset/Res/Flags", "Window Size",      "Checksum",        "Urgent pointer"
 };
+// clang-format on
 
 GtkWidget *stream_l2_vlan;
 GtkWidget *pktsize_entry;

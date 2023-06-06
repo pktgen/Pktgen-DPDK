@@ -52,8 +52,8 @@ it should work on most Linux systems as long as the kernel has hugeTLB page supp
 
 >Tested with Ubuntu 18.04 and up to 20.04 kernel versions
 Linux 4.15.0-39-generic #42-Ubuntu SMP Tue Oct 23 15:48:01 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
-Please install the latest version of DPDK from dpdk.org and follow the build instructions using meson/ninja.
-Then install DPDK on your system.
+Please install the latest version of DPDK from dpdk.org and follow the build instructions
+using meson/ninja. Then install DPDK on your system.
 
 ## Building Pktgen
 

@@ -2090,7 +2090,7 @@ rate_cmd(int argc, char **argv)
         foreach_port(portlist, rate_set_value(info, "pixels", atoi(argv[3])));
         break;
     case 50: /* color bits */
-        foreach_port(portlist, rate_set_value(info, "color", atoi(argv[3])));
+        foreach_port(portlist, rate_set_value(info, "color", atoi(argv[4])));
         break;
     case 60: /* overhead */
         foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));

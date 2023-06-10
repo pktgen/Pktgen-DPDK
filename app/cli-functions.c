@@ -2029,9 +2029,6 @@ rate_cmd(int argc, char **argv)
     case 23:
         foreach_port(portlist, rate_set_dst_mac(info, pg_ether_aton(argv[4], NULL)));
         break;
-    case 24:
-        foreach_port(portlist, pattern_set_type(info, argv[3]));
-        break;
     case 30:
         p = strchr(argv[4], '/');
         if (!p)
@@ -2097,9 +2094,6 @@ rate_cmd(int argc, char **argv)
         break;
     case 70: /* overhead */
         foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));
-        break;
-    case 80: /* frame size */
-        foreach_port(portlist, rate_set_value(info, "frame", atoi(argv[4])));
         break;
     default:
         return cli_cmd_error("Rate invalid command", "Rate", argc, argv);

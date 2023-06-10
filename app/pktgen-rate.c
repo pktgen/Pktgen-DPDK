@@ -86,10 +86,10 @@ rate_set_value(port_info_t *info, const char *what, uint32_t value)
             value = 1;
         rate->color_bits = value;
     } else if (!strcmp(what, "payload")) {
-        if ((value + rate->overhead) <= (uint32_t)(pktgen.eth_max_pkt - RTE_ETHER_CRC_LEN))
+        if ((value + rate->payload) <= (uint32_t)(pktgen.eth_max_pkt - RTE_ETHER_CRC_LEN))
             rate->payload = value;
     } else if (!strcmp(what, "overhead")) {
-        if ((rate->payload + value) <= (uint32_t)(pktgen.eth_max_pkt - RTE_ETHER_CRC_LEN))
+        if ((value + rate->overhead) <= (uint32_t)(pktgen.eth_max_pkt - RTE_ETHER_CRC_LEN))
             rate->overhead = value;
     }
 }

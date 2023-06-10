@@ -2092,17 +2092,14 @@ rate_cmd(int argc, char **argv)
     case 50: /* color bits */
         foreach_port(portlist, rate_set_value(info, "color", atoi(argv[4])));
         break;
-    case 60: /* overhead */
-        foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));
+    case 60: /* payload size */
+        foreach_port(portlist, rate_set_value(info, "payload", atoi(argv[4])));
         break;
-    case 70: /* mbps */
-        foreach_port(portlist, rate_set_value(info, "mbps", atoi(argv[3])));
+    case 70: /* overhead */
+        foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));
         break;
     case 80: /* frame size */
         foreach_port(portlist, rate_set_value(info, "frame", atoi(argv[4])));
-        break;
-    case 90: /* payload size */
-        foreach_port(portlist, rate_set_value(info, "payload", atoi(argv[4])));
         break;
     default:
         return cli_cmd_error("Rate invalid command", "Rate", argc, argv);

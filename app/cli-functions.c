@@ -197,6 +197,7 @@ range_cmd(int argc, char **argv)
     struct cli_map *m;
     portlist_t portlist;
     struct pg_ipaddr ip;
+    struct rte_ether_addr mac;
     char *what, *p;
     const char *val;
 
@@ -210,10 +211,18 @@ range_cmd(int argc, char **argv)
     val  = (const char *)argv[5];
     switch (m->index) {
     case 20:
-        foreach_port(portlist, range_set_dest_mac(info, what, pg_ether_aton(val, NULL)));
+        if (NULL == pg_ether_aton(val, &mac)) {
+            cli_printf("Failed to parse MAC address from `%s'\n", val);
+            break;
+        }
+        foreach_port(portlist, range_set_dest_mac(info, what, &mac));
         break;
     case 21:
-        foreach_port(portlist, range_set_src_mac(info, what, pg_ether_aton(val, NULL)));
+        if (NULL == pg_ether_aton(val, &mac)) {
+            cli_printf("Failed to parse MAC address from `%s'\n", val);
+            break;
+        }
+        foreach_port(portlist, range_set_src_mac(info, what, &mac));
         break;
     case 22:
         foreach_port(portlist,
@@ -563,6 +572,7 @@ set_cmd(int argc, char **argv)
     int value, n;
     struct cli_map *m;
     struct pg_ipaddr ip;
+    struct rte_ether_addr mac = {0};
     uint16_t id1, id2;
     uint32_t u1, u2;
     int ip_ver;
@@ -641,10 +651,18 @@ set_cmd(int argc, char **argv)
         foreach_port(portlist, single_set_proto(info, argv[3]));
         break;
     case 22:
-        foreach_port(portlist, single_set_src_mac(info, pg_ether_aton(argv[4], NULL)));
+        if (NULL == pg_ether_aton(argv[4], &mac)) {
+            cli_printf("Failed to parse MAC address from `%s'\n", argv[4]);
+            break;
+        }
+        foreach_port(portlist, single_set_src_mac(info, &mac));
         break;
     case 23:
-        foreach_port(portlist, single_set_dst_mac(info, pg_ether_aton(argv[4], NULL)));
+        if (NULL == pg_ether_aton(argv[4], &mac)) {
+            cli_printf("Failed to parse MAC address from `%s'\n", argv[4]);
+            break;
+        }
+        foreach_port(portlist, single_set_dst_mac(info, &mac));
         break;
     case 24:
         foreach_port(portlist, pattern_set_type(info, argv[3]));
@@ -1972,6 +1990,7 @@ rate_cmd(int argc, char **argv)
     struct cli_map *m;
     char *what, *p;
     struct pg_ipaddr ip;
+    struct rte_ether_addr mac;
     portlist_t portlist;
     int value, n, ip_ver;
 
@@ -2024,10 +2043,18 @@ rate_cmd(int argc, char **argv)
         foreach_port(portlist, rate_set_proto(info, argv[3]));
         break;
     case 22:
-        foreach_port(portlist, rate_set_src_mac(info, pg_ether_aton(argv[4], NULL)));
+        if (NULL == pg_ether_aton(argv[4], &mac)) {
+            cli_printf("Failed to parse MAC address from `%s'\n", argv[4]);
+            break;
+        }
+        foreach_port(portlist, rate_set_src_mac(info, &mac));
         break;
     case 23:
-        foreach_port(portlist, rate_set_dst_mac(info, pg_ether_aton(argv[4], NULL)));
+        if (NULL == pg_ether_aton(argv[4], &mac)) {
+            cli_printf("Failed to parse MAC address from `%s'\n", argv[4]);
+            break;
+        }
+        foreach_port(portlist, rate_set_dst_mac(info, &mac));
         break;
     case 30:
         p = strchr(argv[4], '/');

@@ -141,7 +141,8 @@ getf_etheraddr(lua_State *L, const char *field, struct rte_ether_addr *value)
 {
     lua_getfield(L, 3, field);
     if (lua_isstring(L, -1))
-        pg_ether_aton(luaL_checkstring(L, -1), value);
+        if (pg_ether_aton(luaL_checkstring(L, -1), value) == NULL)
+            lua_putstring("failed to convert MAC string %s\n", luaL_checkstring(L, -1));
     lua_pop(L, 1);
 }
 
@@ -262,8 +263,14 @@ set_seq(lua_State *L, uint32_t seqnum)
     portlist = pktgen_get_portlist(L, 2);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
-    pg_ether_aton(luaL_checkstring(L, 3), &daddr);
-    pg_ether_aton(luaL_checkstring(L, 4), &saddr);
+    if (pg_ether_aton(luaL_checkstring(L, 3), &daddr) == NULL) {
+        lua_putstring("invalid destination MAC string %s\n", luaL_checkstring(L, 3));
+        return -1;
+    }
+    if (pg_ether_aton(luaL_checkstring(L, 4), &saddr) == NULL) {
+        lua_putstring("invalid source MAC string %s\n", luaL_checkstring(L, 4));
+        return -1;
+    }
 
     sport = luaL_checkinteger(L, 7);
     dport = luaL_checkinteger(L, 8);
@@ -536,7 +543,10 @@ pktgen_set_mac(lua_State *L)
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
-    pg_ether_aton(luaL_checkstring(L, 3), &mac);
+    if (pg_ether_aton(luaL_checkstring(L, 3), &mac) == NULL) {
+        lua_putstring("invalid MAC string (%s)\n ", luaL_checkstring(L, 3));
+        return luaL_error(L, "invalid MAC string");
+    }
 
     foreach_port(portlist, single_set_mac(info, luaL_checkstring(L, 2), &mac));
 
@@ -1332,7 +1342,10 @@ range_dst_mac(lua_State *L)
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
-    pg_ether_aton(luaL_checkstring(L, 3), &mac);
+    if (pg_ether_aton(luaL_checkstring(L, 3), &mac) == NULL) {
+        lua_putstring("invalid destination MAC string %s\n", luaL_checkstring(L, 3));
+        return -1;
+    }
 
     foreach_port(portlist, range_set_dest_mac(info, luaL_checkstring(L, 2), &mac));
 
@@ -1367,7 +1380,10 @@ range_src_mac(lua_State *L)
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
-    pg_ether_aton(luaL_checkstring(L, 3), &mac);
+    if (pg_ether_aton(luaL_checkstring(L, 3), &mac) == NULL) {
+        lua_putstring("invalid source MAC string %s\n", luaL_checkstring(L, 3));
+        return -1;
+    }
 
     foreach_port(portlist, range_set_src_mac(info, luaL_checkstring(L, 2), &mac));
 

@@ -386,6 +386,8 @@ sig_handler(int v __rte_unused)
 
     free(strings);
 
+    scrn_destroy();
+
     exit(-1);
 }
 
@@ -488,6 +490,7 @@ main(int argc, char **argv)
     if (get_lcore_rxcnt(pktgen.l2p, i) || get_lcore_txcnt(pktgen.l2p, i)) {
         cli_printf("*** Error can not use initial lcore for a port\n");
         cli_printf("    The initial lcore is %d\n", rte_get_main_lcore());
+        scrn_destroy();
         exit(-1);
     }
 

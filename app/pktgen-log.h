@@ -81,9 +81,10 @@ extern "C" {
         rte_panic(fmt "\n", ##__VA_ARGS__);                                            \
     } while (0)
 #else
-#define pktgen_log_panic(fmt, ...) do {                                                \
-        scrn_destroy();                                                                \
-        rte_panic(fmt, ##__VA_ARGS__);                                                 \
+#define pktgen_log_panic(fmt, ...)     \
+    do {                               \
+        scrn_destroy();                \
+        rte_panic(fmt, ##__VA_ARGS__); \
     } while(0)
 #endif
 

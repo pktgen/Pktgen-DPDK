@@ -85,7 +85,7 @@ extern "C" {
     do {                               \
         scrn_destroy();                \
         rte_panic(fmt, ##__VA_ARGS__); \
-    } while(0)
+    } while (0)
 #endif
 
 /* Helper for building log strings.
@@ -98,7 +98,7 @@ extern "C" {
         char _buff[1023];                                      \
         snprintf(_buff, sizeof(_buff), fmt, ##__VA_ARGS__);    \
         strncat(dest, _buff, sizeof(dest) - strlen(dest) - 1); \
-    } while(0)
+    } while (0)
 
 /* Initialize log data structures */
 void pktgen_init_log(void);

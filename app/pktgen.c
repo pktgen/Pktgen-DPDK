@@ -1171,7 +1171,7 @@ port_map_info(const char *msg, uint8_t lid, port_mapinfo_t *pm)
         pm->rx.pids[i] = get_rx_pid(pktgen.l2p, pm->lid, i);
 
         if ((pm->rx.infos[i] = get_port_private(pktgen.l2p, pm->rx.pids[i])) == NULL)
-            rte_panic("Config error: No port %d found on lcore %d\n", pm->rx.pids[i], pm->lid);
+            pktgen_log_panic("Config error: No port %d found on lcore %d\n", pm->rx.pids[i], pm->lid);
 
         pm->rx.qids[i] = get_rxque(pktgen.l2p, lid, pm->rx.pids[i]);
     }
@@ -1180,7 +1180,7 @@ port_map_info(const char *msg, uint8_t lid, port_mapinfo_t *pm)
         pm->tx.pids[i] = get_tx_pid(pktgen.l2p, pm->lid, i);
 
         if ((pm->tx.infos[i] = get_port_private(pktgen.l2p, pm->tx.pids[i])) == NULL)
-            rte_panic("Config error: No port %d found on lcore %d\n", pm->tx.pids[i], pm->lid);
+            pktgen_log_panic("Config error: No port %d found on lcore %d\n", pm->tx.pids[i], pm->lid);
 
         pm->tx.qids[i] = get_txque(pktgen.l2p, lid, pm->tx.pids[i]);
     }
@@ -1223,14 +1223,14 @@ pktgen_main_rxtx_loop(uint8_t lid)
     pg_start_lcore(pktgen.l2p, lid);
 
     if (pmap.rx.cnt == 0 || pmap.tx.cnt == 0)
-        rte_panic("No ports found for %d lcore\n", lid);
+        pktgen_log_panic("No ports found for %d lcore\n", lid);
 
     if (pktgen.verbose)
         pktgen_log_info("For RX found %d port(s) for lcore %d", pmap.rx.cnt, lid);
 
     for (int i = 0; i < pmap.rx.cnt; i++) {
         if (pmap.rx.infos[i] == NULL)
-            rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", i, lid);
+            pktgen_log_panic("Invalid RX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
     if (pktgen.verbose)
@@ -1238,7 +1238,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
 
     for (int i = 0; i < pmap.tx.cnt; i++) {
         if (pmap.tx.infos[i] == NULL)
-            rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", i, lid);
+            pktgen_log_panic("Invalid TX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
     for (int i = 0; i < pmap.rx.cnt; i++) {
@@ -1246,7 +1246,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
         int dev_sock = rte_eth_dev_socket_id(pid);
 
         if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
-            rte_panic(
+            pktgen_log_panic(
                 "*** port %u on socket ID %u has different socket ID than lcore %u socket ID %d\n",
                 pid, rte_eth_dev_socket_id(pid), rte_lcore_id(), rte_socket_id());
     }
@@ -1327,13 +1327,13 @@ pktgen_main_tx_loop(uint8_t lid)
     pg_start_lcore(pktgen.l2p, lid);
 
     if (pmap.tx.cnt == 0)
-        rte_panic("No ports found for %d lcore\n", lid);
+        pktgen_log_panic("No ports found for %d lcore\n", lid);
 
     for (int i = 0; i < pmap.tx.cnt; i++) {
         pktgen_log_info("  Using port/qid %d/%d for Tx on lcore id %d\n", pmap.tx.infos[i]->pid,
                         pmap.tx.qids[i], lid);
         if (pmap.tx.infos[i] == NULL)
-            rte_panic("Invalid TX config: port at index %d not found for %d lcore\n", i, lid);
+            pktgen_log_panic("Invalid TX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
     for (int i = 0; i < pmap.tx.cnt; i++) {
@@ -1341,7 +1341,7 @@ pktgen_main_tx_loop(uint8_t lid)
         int dev_sock = rte_eth_dev_socket_id(pid);
 
         if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
-            rte_panic("*** port %u on socket ID %u has different socket ID than lcore %u on socket "
+            pktgen_log_panic("*** port %u on socket ID %u has different socket ID than lcore %u on socket "
                       "ID %d\n",
                       pid, rte_eth_dev_socket_id(pid), rte_lcore_id(), rte_socket_id());
     }
@@ -1408,13 +1408,13 @@ pktgen_main_rx_loop(uint8_t lid)
     pg_start_lcore(pktgen.l2p, lid);
 
     if (pmap.rx.cnt == 0)
-        rte_panic("No ports found for %d lcore\n", lid);
+        pktgen_log_panic("No ports found for %d lcore\n", lid);
 
     for (int i = 0; i < pmap.rx.cnt; i++) {
         pktgen_log_info("  Using port/qid %d/%d for Rx on lcore id %d\n", pmap.rx.infos[i]->pid,
                         pmap.rx.qids[i], lid);
         if (pmap.rx.infos[i] == NULL)
-            rte_panic("Invalid RX config: port at index %d not found for %d lcore\n", i, lid);
+            pktgen_log_panic("Invalid RX config: port at index %d not found for %d lcore\n", i, lid);
     }
 
     for (int i = 0; i < pmap.rx.cnt; i++) {
@@ -1422,7 +1422,7 @@ pktgen_main_rx_loop(uint8_t lid)
         int dev_sock = rte_eth_dev_socket_id(pid);
 
         if (dev_sock != SOCKET_ID_ANY && dev_sock != (int)rte_socket_id())
-            rte_panic(
+            pktgen_log_panic(
                 "*** port %u on socket ID %u has different socket ID than lcore %u socket ID %d\n",
                 pid, rte_eth_dev_socket_id(pid), rte_lcore_id(), rte_socket_id());
     }

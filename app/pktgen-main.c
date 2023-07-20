@@ -386,6 +386,7 @@ sig_handler(int v __rte_unused)
 
     free(strings);
 
+    cli_destroy();
     scrn_destroy();
 
     exit(-1);
@@ -466,8 +467,11 @@ main(int argc, char **argv)
     if (pktgen_dynfield_offset < 0)
         rte_exit(EXIT_FAILURE, "Cannot register mbuf field\n");
 
-    if (pktgen_cli_create())
+    if (pktgen_cli_create()) {
+        cli_destroy();
+        scrn_destroy();
         return -1;
+    }
 
 #ifdef LUA_ENABLED
     lua_newlib_add(pktgen_lua_openlib, 0);
@@ -483,13 +487,17 @@ main(int argc, char **argv)
 
     /* parse application arguments (after the EAL ones) */
     ret = pktgen_parse_args(argc, argv);
-    if (ret < 0)
+    if (ret < 0) {
+        cli_destroy();
+        scrn_destroy();
         return -1;
+    }
 
     i = rte_get_main_lcore();
     if (get_lcore_rxcnt(pktgen.l2p, i) || get_lcore_txcnt(pktgen.l2p, i)) {
         cli_printf("*** Error can not use initial lcore for a port\n");
         cli_printf("    The initial lcore is %d\n", rte_get_main_lcore());
+        cli_destroy();
         scrn_destroy();
         exit(-1);
     }

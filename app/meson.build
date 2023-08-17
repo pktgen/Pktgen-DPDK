@@ -37,8 +37,8 @@ deps += [cc.find_library('rte_net_ice', dirs: [dpdk_libs_path], required: false)
 deps += [cc.find_library('rte_bus_vdev', dirs: [dpdk_libs_path], required: false)]
 
 deps += [dependency('threads')]
-deps += [cc.find_library('numa', required: true)]
-deps += [cc.find_library('pcap', required: true)]
+deps += [dependency('numa', required: true)]
+deps += [dependency('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]
 deps += [cc.find_library('m', required: false)]
 

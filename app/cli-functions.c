@@ -1658,8 +1658,6 @@ exec_lua_cmd(int argc __rte_unused, char **argv __rte_unused)
 // clang-format off
 static struct cli_map misc_map[] = {
     {10, "clear %P stats"},
-    {20, "geometry %s"},
-    {21, "geometry"},
     {30, "load %s"},
 
 #ifdef LUA_ENABLED
@@ -1688,7 +1686,6 @@ static const char *misc_help[] = {
     "script <filename>                  - Execute the Lua script code in file (www.lua.org).",
     "lua 'lua string'                   - Execute the Lua code in the string needs quotes",
 #endif
-    "geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)",
     "clear <portlist> stats             - Clear the statistics",
     "clr                                - Clear all Statistices",
     "reset <portlist>                   - Reset the configuration the ports to the default",
@@ -1708,9 +1705,7 @@ misc_cmd(int argc, char **argv)
 {
     struct cli_map *m;
     portlist_t portlist;
-    uint16_t rows, cols;
     int paused;
-    char *p;
 
     m = cli_mapping(misc_map, argc, argv);
     if (!m)
@@ -1721,20 +1716,6 @@ misc_cmd(int argc, char **argv)
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_clear_stats(info));
         pktgen_clear_display();
-        break;
-    case 20:
-        p = strchr(argv[1], 'x');
-        if (p) {
-            rows = strtol(++p, NULL, 10);
-            cols = strtol(argv[1], NULL, 10);
-
-            pktgen_display_set_geometry(rows, cols);
-            pktgen_clear_display();
-        } else
-            return cli_cmd_error("Misc invalid command", "Misc", argc, argv);
-        /* FALLTHRU */
-    case 21:
-        pktgen_display_get_geometry(&rows, &cols);
         break;
     case 30:
         paused = scrn_is_paused();
@@ -2230,8 +2211,6 @@ static struct cli_tree default_tree[] = {
 
     c_cmd("clear", misc_cmd, "clear stats, ..."),
     c_alias("clr", "clear all stats", "clear all port stats"),
-    c_cmd("geometry", misc_cmd, "set the screen geometry"),
-    c_alias("geom", "geometry", "set or show screen geometry"),
     c_cmd("load", misc_cmd, "load command file"),
 #ifdef LUA_ENABLED
     c_cmd("script", misc_cmd, "run a Lua script"),

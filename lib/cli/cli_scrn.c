@@ -23,7 +23,9 @@
 
 struct cli_scrn *this_scrn;
 
-void __attribute__((format(printf, 3, 4))) scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
+// clang-format off
+void __attribute__((format(printf, 3, 4)))
+scrn_printf(int16_t r, int16_t c, const char *fmt, ...)
 {
     va_list vaList;
 
@@ -39,6 +41,7 @@ void __attribute__((format(printf, 3, 4))) scrn_printf(int16_t r, int16_t c, con
         fflush(this_scrn->fd_out);
     }
 }
+// clang-format on
 
 void __attribute__((format(printf, 3, 4)))
 scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...)

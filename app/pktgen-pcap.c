@@ -310,8 +310,8 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
         _pcap_rewind(pcap);
 
         /* Repeat small pcaps so mempool size is close to MAX_MBUFS_PER_PORT. */
-        if (elt_count < MAX_MBUFS_PER_PORT)
-            elt_count = (MAX_MBUFS_PER_PORT / elt_count) * elt_count;
+        if (elt_count < MAX_MBUFS_PER_PORT(pktgen.nb_rxd, pktgen.nb_txd))
+            elt_count = (MAX_MBUFS_PER_PORT(pktgen.nb_rxd, pktgen.nb_txd) / elt_count) * elt_count;
 
         /* Compute final size of each mbuf by adding the structure header and headroom. */
         max_pkt_size += sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM;

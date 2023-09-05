@@ -29,6 +29,20 @@ typedef struct pkt_stats_s {
     uint64_t rx_nombuf;    /**< Number of times we had not mbufs for Rx */
 } pkt_stats_t;
 
+typedef struct pkt_sizes_s {
+    uint64_t _64;        /**< Number of 64 byte packets */
+    uint64_t _65_127;    /**< Number of 65-127 byte packets */
+    uint64_t _128_255;   /**< Number of 128-255 byte packets */
+    uint64_t _256_511;   /**< Number of 256-511 byte packets */
+    uint64_t _512_1023;  /**< Number of 512-1023 byte packets */
+    uint64_t _1024_1518; /**< Number of 1024-1518 byte packets */
+    uint64_t broadcast;  /**< Number of broadcast packets */
+    uint64_t multicast;  /**< Number of multicast packets */
+    uint64_t jumbo;      /**< Number of Jumbo frames */
+    uint64_t runt;       /**< Number of Runt frames */
+    uint64_t unknown;    /**< Number of unknown sizes */
+} pkt_sizes_t;
+
 struct port_info_s;
 
 void pktgen_get_link_status(struct port_info_s *info, int pid, int wait);

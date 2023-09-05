@@ -22,8 +22,7 @@ enum {
     DEFAULT_RX_DESC      = (MAX_PKT_RX_BURST * 8),
     DEFAULT_TX_DESC      = (MAX_PKT_TX_BURST * 16),
 
-    MAX_MBUFS_PER_PORT =
-        ((DEFAULT_RX_DESC + DEFAULT_TX_DESC) * 8), /* number of buffers to support per port */
+    DEFAULT_MBUFS_PER_PORT_MULTIPLER = 8, /* Multipler for number of mbufs per port */
     MAX_SPECIAL_MBUFS = 1024,
     MBUF_CACHE_SIZE   = 128,
 
@@ -31,6 +30,8 @@ enum {
 
     NUM_Q = 64, /**< Number of queues per port. */
 };
+
+#define MAX_MBUFS_PER_PORT(rxd, txd) ((rxd + txd) * DEFAULT_MBUFS_PER_PORT_MULTIPLER)
 
 /*
  * Some NICs require >= 2KB buffer as a receive data buffer. DPDK uses 2KB + HEADROOM (128) as

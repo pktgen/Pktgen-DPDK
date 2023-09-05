@@ -14,6 +14,7 @@
 #include "pktgen.h"
 #include "pktgen-log.h"
 #include "pktgen-ipv4.h"
+#include "pktgen-txbuff.h"
 
 /**
  *
@@ -87,7 +88,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     m->pkt_len  = ppkt->pktSize;
     m->data_len = ppkt->pktSize;
 
-    rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
+    tx_buffer(info->q[0].txbuff, m);
 
     pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
 }
@@ -148,7 +149,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
                 return;
             }
 
-            info->qstats[qid].stats.echo_pkts++;
+            info->pkt_stats.echo_pkts++;
 
             icmp->icmp_type = ICMP4_ECHO_REPLY;
 
@@ -170,13 +171,13 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
             /* Swap the MAC addresses */
             ethAddrSwap(&eth->dst_addr, &eth->src_addr);
 
-            rte_eth_tx_buffer(pid, qid, info->q[qid].txbuff, m);
+            tx_buffer(info->q[qid].txbuff, m);
 
             pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
 
             /* No need to free mbuf as it was reused. */
             return;
         } else if (unlikely(icmp->icmp_type == ICMP4_ECHO_REPLY))
-            info->qstats[qid].stats.echo_pkts++;
+            info->pkt_stats.echo_pkts++;
     }
 }

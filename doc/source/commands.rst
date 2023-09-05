@@ -68,8 +68,7 @@ Show the commands inside the ``pktgen/bin`` directory::
     start           disable         enable          range           theme
     page            seq             sequence        ping4           port
     restart         rst             reset           cls             redisplay
-    save            load            geom            geometry        clr
-    clear           help
+    save            load            clr             clear           help
 
 Showin the ``1s`` command at root::
 
@@ -136,8 +135,6 @@ Show help using ``ls -l`` command in pktgen directory::
     redisplay        Command : redisplay the screen
     save             Command : save the current state
     load             Command : load command file
-    geom             Alias : geometry
-    geometry         Command : set the screen geometry
     clr              Alias : clear all stats
     clear            Command : clear stats, ...
     help             Command : help command
@@ -328,7 +325,6 @@ The odd or special commands::
     load <path-to-file>                - Load a command/script file from the given path
     script <filename>                  - Execute the Lua script code in file (www.lua.org). (if Lua is enabled)
     lua 'lua string'                   - Execute the Lua code in the string needs quotes (if Lua is enabled)
-    geometry <geom>                    - Set the display geometry Columns by Rows (ColxRow)
     clear <portlist> stats             - Clear the statistics
     clr                                - Clear all Statistices
     reset <portlist>                   - Reset the configuration the ports to the default

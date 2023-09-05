@@ -194,7 +194,7 @@ pg_parse_lcore_list(char *list, ls_t *ls)
 
     if (k == 1) {                                  /* Must be a lcore/port number only */
         pg_parse_rt_list(arr[0], ls->rbits);       /* Parse the list with no ':' character */
-        pg_parse_rt_list(arr[0], ls->tbits);       /* Parse the list with no ':' character */
+        memcpy(ls->tbits, ls->rbits, sizeof(ls->rbits));
     } else {                                       /* k == 2 Must be a <rx-list>:<tx-list> pair */
         if (pg_parse_rt_list(arr[0], ls->rbits)) { /* parse <rx-list> */
             fprintf(stderr, "*** Unable to parse rx-list\n");

@@ -46,7 +46,6 @@ struct plugin_info {
     int (*stop)(int inst);             /**< stop function optional */
     void *pfuncs;                      /**< plugin defined functions/info */
 
-    RTE_STD_C11
     union {
         uint32_t version; /* 18.04.00-rc1 == 18040001 */
         struct {

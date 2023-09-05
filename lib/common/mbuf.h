@@ -17,7 +17,6 @@ extern "C" {
 
 union pktgen_data {
     uint64_t udata;
-    RTE_STD_C11
     struct {
         uint16_t data_len;
         uint16_t buf_len;

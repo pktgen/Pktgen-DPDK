@@ -15,6 +15,7 @@
 #include "pktgen.h"
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
+#include "pktgen-txbuff.h"
 
 void
 arp_pkt_dump(struct rte_mbuf *m)
@@ -106,7 +107,7 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
     m->pkt_len  = 60;
     m->data_len = 60;
 
-    rte_eth_tx_buffer(pid, 0, info->q[0].txbuff, m);
+    tx_buffer(info->q[0].txbuff, m);
 }
 
 /**
@@ -186,8 +187,8 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 
             m1->ol_flags = 0;
 
-            rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, m1);
-            rte_eth_tx_buffer_flush(info->pid, qid, info->q[qid].txbuff);
+            tx_buffer(info->q[qid].txbuff, m1);
+            tx_buffer_flush(info->q[qid].txbuff);
             return;
         }
     } else if (arp->arp_opcode == htons(ARP_REPLY)) {

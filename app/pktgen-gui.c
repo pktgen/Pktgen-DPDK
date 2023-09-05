@@ -279,7 +279,7 @@ int
 update_port_statistics(void *arg)
 {
     GtkWidget *window  = (GtkWidget *)arg;
-    port_sizes_t sizes = {0};
+    pkt_sizes_t sizes = {0};
     pkt_stats_t stats  = {0};
     unsigned int pid   = 0;
     port_info_t *info  = NULL;
@@ -317,7 +317,7 @@ update_port_statistics(void *arg)
         stats_store_next(pid, oBitsTotal(info->rate_stats) / Million);
 
         /* Packets Sizes */
-        pktgen_port_sizes(pid, &sizes);
+        pktgen_pkt_sizes(pid, &sizes);
         stats_store_next(pid, sizes.broadcast);
         stats_store_next(pid, sizes.multicast);
         stats_store_next(pid, sizes._64);

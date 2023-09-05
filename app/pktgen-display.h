@@ -51,19 +51,6 @@ void display_dashline(int last_row);
 
 /**
  *
- * pktgen_display_set_geometry - Set the display geometry
- *
- * DESCRIPTION
- * Set the display geometry.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-void pktgen_display_set_geometry(uint16_t rows, uint16_t cols);
-
-/**
- *
  * pktgen_display_get_geometry - Get the display geometry
  *
  * DESCRIPTION

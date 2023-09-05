@@ -16,7 +16,6 @@
 
 
 # Global configuration:
-geometry 132x54
 disable mac_from_arp
 
 ######################### Port  0 ##################################

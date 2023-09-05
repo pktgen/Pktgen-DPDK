@@ -44,15 +44,15 @@ pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid, uint32_t qid)
     /* No support for nested tunnel */
     switch ((int)pType) {
     case RTE_ETHER_TYPE_ARP:
-        info->qstats[qid].stats.arp_pkts++;
+        info->pkt_stats.arp_pkts++;
         pktgen_process_arp(m, pid, qid, 1);
         break;
     case RTE_ETHER_TYPE_IPV4:
-        info->qstats[qid].stats.ip_pkts++;
+        info->pkt_stats.ip_pkts++;
         pktgen_process_ping4(m, pid, qid, 1);
         break;
     case RTE_ETHER_TYPE_IPV6:
-        info->qstats[qid].stats.ipv6_pkts++;
+        info->pkt_stats.ipv6_pkts++;
         pktgen_process_ping6(m, pid, qid, 1);
         break;
     case UNKNOWN_PACKET: /* FALL THRU */

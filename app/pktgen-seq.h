@@ -59,7 +59,6 @@ typedef struct pkt_seq_s {
     };
     uint32_t gtpu_teid; /**< GTP-U TEID, if UDP dport=2152 */
 
-    RTE_STD_C11
     union {
         uint64_t vxlan; /**< VxLAN 64 bit word */
         struct {

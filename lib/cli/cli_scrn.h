@@ -236,7 +236,9 @@ scrn_read(char *buf, int len)
     return n;
 }
 
-static inline void __attribute__((format(printf, 1, 2))) scrn_puts(const char *fmt, ...)
+// clang-format off
+static inline void __attribute__((format(printf, 1, 2)))
+scrn_puts(const char *fmt, ...)
 {
     struct cli_scrn *scrn = this_scrn;
     FILE *f;
@@ -248,6 +250,7 @@ static inline void __attribute__((format(printf, 1, 2))) scrn_puts(const char *f
     va_end(vaList);
     fflush(f);
 }
+// clang-format on
 
 void scrn_cprintf(int16_t r, int16_t ncols, const char *fmt, ...);
 void scrn_printf(int16_t r, int16_t c, const char *fmt, ...);

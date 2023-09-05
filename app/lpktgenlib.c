@@ -2967,7 +2967,7 @@ pktgen_linkState(lua_State *L)
 
 /**
  *
- * port_sizes - return port size stats on a port
+ * pkt_sizes - return port size stats on a port
  *
  * DESCRIPTION
  * Return the stats on packet sizes for a given port.
@@ -2978,11 +2978,11 @@ pktgen_linkState(lua_State *L)
  */
 
 static void
-port_sizes(lua_State *L, port_info_t *info)
+pkt_sizes(lua_State *L, port_info_t *info)
 {
-    port_sizes_t sizes = {0};
+    pkt_sizes_t sizes = {0};
 
-    pktgen_port_sizes(info->pid, &sizes);
+    pktgen_pkt_sizes(info->pid, &sizes);
 
     lua_pushinteger(L, info->pid); /* Push the table index */
     lua_newtable(L);               /* Create the structure table for a packet */
@@ -3033,7 +3033,7 @@ pktgen_portSizes(lua_State *L)
     lua_newtable(L);
 
     n = 0;
-    foreach_port(portlist, _do(port_sizes(L, info); n++));
+    foreach_port(portlist, _do(pkt_sizes(L, info); n++));
 
     setf_integer(L, "n", n);
 
@@ -3246,7 +3246,7 @@ port_info(lua_State *L, port_info_t *info)
     struct rte_eth_dev_info dev = {0};
     eth_stats_t stats           = {0};
     pkt_stats_t pkt_stats       = {0};
-    port_sizes_t sizes          = {0};
+    pkt_sizes_t sizes           = {0};
     pkt_seq_t *pkt;
     char buff[32] = {0};
 
@@ -3280,7 +3280,7 @@ port_info(lua_State *L, port_info_t *info)
     setf_integer(L, "mbits_tx", oBitsTotal(stats) / Million);
     lua_rawset(L, -3);
 
-    pktgen_port_sizes(info->pid, &sizes);
+    pktgen_pkt_sizes(info->pid, &sizes);
 
     /*------------------------------------*/
     lua_pushstring(L, "size_cnts");
@@ -3701,6 +3701,34 @@ pktgen_run(lua_State *L)
     return 0;
 }
 
+/**
+ *
+ * pktgen_clock_gettime - Enable or Disable clock_gettime support.
+ *
+ * DESCRIPTION
+ * Enable or disable clock_gettime support.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_clock_gettime(lua_State *L)
+{
+    switch (lua_gettop(L)) {
+    default:
+        return luaL_error(L, "clock_gettime, wrong number of arguments");
+    case 1:
+        break;
+    }
+
+    enable_clock_gettime(estate((char *)luaL_checkstring(L, 1)));
+
+    pktgen_update_display();
+    return 0;
+}
+
 static const char *lua_help_info[] = {
     "Pktgen Lua functions and values using pktgen.XXX to access\n",
     "set            - Set a number of options\n",
@@ -3732,6 +3760,7 @@ static const char *lua_help_info[] = {
     "clear          - Clear stats for the given ports\n",
     "clr            - Clear all stats on all ports\n",
     "cls            - Redraw the screen\n",
+    "clock_gettime  - Enable or Disable using clock_gettime() data\n",
     "\n",
     "update         - Update the screen information\n",
     "reset          - Reset the configuration to all ports\n",
@@ -3760,6 +3789,12 @@ static const char *lua_help_info[] = {
     "range          - Enable or disable sending range data on a port.\n",
     "rxtap          - Enable or disable RX Tap packet processing on a port\n",
     "txtap          - Enable or disable TX Tap packet processing on a port\n",
+    "latsampler_params - set latency sampler params\n",
+    "latsampler     - enable or disable latency sampler\n",
+    "pattern        - Set pattern type\n",
+    "userPattern    - Set the user pattern string\n",
+    "jitter         - Set the jitter threshold\n",
+    "gtpu_teid      - Set GTP-U TEID\n",
     "\n",
     "page           - Select a page to display, seq, range, pcap and a number from 0-N\n",
     "port           - select a different port number used for sequence and range pages.\n",
@@ -3978,6 +4013,8 @@ static const luaL_Reg pktgenlib[] = {
     {"latsampler_params", pktgen_latsampler_params}, /* set latency sampler params */
     {"latsampler", pktgen_latsampler},               /* enable or disable latency sampler */
 
+    {"clock_gettime", pktgen_clock_gettime},         /* Enable/disable clock_gettime support */
+
     {NULL, NULL}};
 
 /* }====================================================== */
@@ -4040,7 +4077,7 @@ luaopen_pktgen(lua_State *L)
     setf_integer(L, "maxPktRxBurst", MAX_PKT_RX_BURST);
     setf_integer(L, "maxPktTxBurst", MAX_PKT_TX_BURST);
     setf_integer(L, "defaultBuffSize", DEFAULT_MBUF_SIZE);
-    setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT);
+    setf_integer(L, "maxMbufsPerPort", MAX_MBUFS_PER_PORT(pktgen.nb_rxd, pktgen.nb_txd));
     setf_integer(L, "maxPrimeCount", MAX_PRIME_COUNT);
 
     /* Now set the table for the info values. */

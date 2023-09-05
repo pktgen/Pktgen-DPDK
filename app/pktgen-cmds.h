@@ -32,7 +32,7 @@
     char *pktgen_transmit_rate(int port, char *buff, int len);
     int pktgen_pkt_stats(int port, pkt_stats_t *pstats);
     int pktgen_port_stats(int port, const char *name, eth_stats_t *pstats);
-    int pktgen_port_sizes(int port, port_sizes_t *psizes);
+    int pktgen_pkt_sizes(int port, pkt_sizes_t *psizes);
 
     /* Global commands */
     void pktgen_send_arp_requests(port_info_t * info, uint32_t type);

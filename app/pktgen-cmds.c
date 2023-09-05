@@ -118,9 +118,6 @@ pktgen_script_save(char *path)
             (pktgen.flags & PROMISCUOUS_ON_FLAG) ? "Enabled" : "Disabled");
 
     fprintf(fd, "\n# Global configuration:\n");
-    uint16_t rows, cols;
-    pktgen_display_get_geometry(&rows, &cols);
-    fprintf(fd, "geometry %dx%d\n", cols, rows);
     fprintf(fd, "%s mac_from_arp\n\n", (pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
     for (i = 0; i < pktgen.nb_ports; i++) {
@@ -486,9 +483,6 @@ pktgen_lua_save(char *path)
     fprintf(fd, "\n--%s\n", hash_line);
 
     fprintf(fd, "-- Global configuration:\n");
-    uint16_t rows, cols;
-    pktgen_display_get_geometry(&rows, &cols);
-    fprintf(fd, "-- geometry %dx%d\n", cols, rows);
     fprintf(fd, "pktgen.mac_from_arp(\"%s\");\n\n",
             (pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
@@ -918,7 +912,7 @@ rate_transmit_count_rate(int port, char *buff, int len)
 
 /**
  *
- * pktgen_port_sizes - Current stats for all port sizes
+ * pktgen_pkt_sizes - Current stats for all port sizes
  *
  * DESCRIPTION
  * Structure returned with all of the counts for each port size.
@@ -929,7 +923,7 @@ rate_transmit_count_rate(int port, char *buff, int len)
  */
 
 int
-pktgen_port_sizes(int port, port_sizes_t *psizes)
+pktgen_pkt_sizes(int port, pkt_sizes_t *psizes)
 {
     port_info_t *info = &pktgen.info[port];
 
@@ -937,17 +931,17 @@ pktgen_port_sizes(int port, port_sizes_t *psizes)
         return -1;
 
     for (int qid = 0; qid < NUM_Q; qid++) {
-        psizes->broadcast += info->qstats[qid].sizes.broadcast;
-        psizes->jumbo += info->qstats[qid].sizes.jumbo;
-        psizes->multicast += info->qstats[qid].sizes.multicast;
-        psizes->runt += info->qstats[qid].sizes.runt;
-        psizes->unknown += info->qstats[qid].sizes.unknown;
-        psizes->_64 += info->qstats[qid].sizes._64;
-        psizes->_65_127 += info->qstats[qid].sizes._65_127;
-        psizes->_128_255 += info->qstats[qid].sizes._128_255;
-        psizes->_256_511 += info->qstats[qid].sizes._256_511;
-        psizes->_512_1023 += info->qstats[qid].sizes._512_1023;
-        psizes->_1024_1518 += info->qstats[qid].sizes._1024_1518;
+        psizes->broadcast += info->pkt_sizes.broadcast;
+        psizes->jumbo += info->pkt_sizes.jumbo;
+        psizes->multicast += info->pkt_sizes.multicast;
+        psizes->runt += info->pkt_sizes.runt;
+        psizes->unknown += info->pkt_sizes.unknown;
+        psizes->_64 += info->pkt_sizes._64;
+        psizes->_65_127 += info->pkt_sizes._65_127;
+        psizes->_128_255 += info->pkt_sizes._128_255;
+        psizes->_256_511 += info->pkt_sizes._256_511;
+        psizes->_512_1023 += info->pkt_sizes._512_1023;
+        psizes->_1024_1518 += info->pkt_sizes._1024_1518;
     }
     return 0;
 }
@@ -973,18 +967,18 @@ pktgen_pkt_stats(int port, pkt_stats_t *pstats)
         return -1;
 
     for (int qid = 0; qid < NUM_Q; qid++) {
-        pstats->arp_pkts += info->qstats[qid].stats.arp_pkts;
-        pstats->dropped_pkts += info->qstats[qid].stats.dropped_pkts;
-        pstats->echo_pkts += info->qstats[qid].stats.echo_pkts;
-        pstats->ibadcrc += info->qstats[qid].stats.ibadcrc;
-        pstats->ibadlen += info->qstats[qid].stats.ibadlen;
-        pstats->imissed += info->qstats[qid].stats.imissed;
-        pstats->ip_pkts += info->qstats[qid].stats.ip_pkts;
-        pstats->ipv6_pkts += info->qstats[qid].stats.ipv6_pkts;
-        pstats->rx_nombuf += info->qstats[qid].stats.rx_nombuf;
-        pstats->tx_failed += info->qstats[qid].stats.tx_failed;
-        pstats->unknown_pkts += info->qstats[qid].stats.unknown_pkts;
-        pstats->vlan_pkts += info->qstats[qid].stats.vlan_pkts;
+        pstats->arp_pkts += info->pkt_stats.arp_pkts;
+        pstats->dropped_pkts += info->pkt_stats.dropped_pkts;
+        pstats->echo_pkts += info->pkt_stats.echo_pkts;
+        pstats->ibadcrc += info->pkt_stats.ibadcrc;
+        pstats->ibadlen += info->pkt_stats.ibadlen;
+        pstats->imissed += info->pkt_stats.imissed;
+        pstats->ip_pkts += info->pkt_stats.ip_pkts;
+        pstats->ipv6_pkts += info->pkt_stats.ipv6_pkts;
+        pstats->rx_nombuf += info->pkt_stats.rx_nombuf;
+        pstats->tx_failed += info->pkt_stats.tx_failed;
+        pstats->unknown_pkts += info->pkt_stats.unknown_pkts;
+        pstats->vlan_pkts += info->pkt_stats.vlan_pkts;
     }
     return 0;
 }
@@ -1094,7 +1088,7 @@ pktgen_clear_display(void)
         scrn_pause();
 
         scrn_cls();
-        scrn_pos(100, 1);
+        scrn_pos(this_scrn->nrows, 1);
 
         pktgen_update_display();
 
@@ -1170,13 +1164,13 @@ pktgen_screen(int state)
             scrn_pause();
             scrn_cls();
             scrn_setw(1);
-            scrn_pos(100, 1);
+            scrn_pos(rows, 1);
         }
     } else {
         scrn_cls();
         scrn_setw(pktgen.last_row + 1);
         scrn_resume();
-        scrn_pos(100, 1);
+        scrn_pos(rows, 1);
         pktgen_force_update();
     }
 }
@@ -1406,10 +1400,10 @@ enable_clock_gettime(uint32_t onOff)
 void
 debug_tx_rate(port_info_t *info)
 {
-    printf("  %d: rate %.2f, tx_cycles %ld, tx_pps %ld, link %s-%d-%s\n", info->pid, info->tx_rate,
+    printf("  %d: rate %.2f, tx_cycles %'ld, tx_pps %'ld, link %s-%d-%s, hz %'ld\n", info->pid, info->tx_rate,
            info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
            info->link.link_speed,
-           (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? "FD" : "HD");
+           (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? "FD" : "HD", pktgen.hz);
 }
 
 /*
@@ -2607,6 +2601,7 @@ pktgen_clear_stats(port_info_t *info)
 
     /* curr_stats are reset each time the stats are read */
     memset(&info->curr_stats, 0, sizeof(eth_stats_t));
+    memset(&info->queue_stats, 0, sizeof(eth_stats_t));
     memset(&info->rate_stats, 0, sizeof(eth_stats_t));
     memset(&info->prev_stats, 0, sizeof(eth_stats_t));
     memset(&info->base_stats, 0, sizeof(eth_stats_t));
@@ -2622,7 +2617,8 @@ pktgen_clear_stats(port_info_t *info)
     info->max_opackets        = 0;
     info->max_missed          = 0;
 
-    memset(&info->qstats, 0, sizeof(info->qstats));
+    memset(&info->pkt_stats, 0, sizeof(info->pkt_stats));
+    memset(&info->pkt_sizes, 0, sizeof(info->pkt_sizes));
 
     latency_t *lat = &info->latency;
 

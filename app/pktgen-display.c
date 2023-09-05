@@ -183,17 +183,6 @@ display_dashline(int last_row)
     pktgen_display_set_color(NULL);
 }
 
-/* Set the display geometry */
-void
-pktgen_display_set_geometry(uint16_t rows, uint16_t cols)
-{
-    if (!this_scrn)
-        return;
-
-    this_scrn->nrows = rows;
-    this_scrn->ncols = cols;
-}
-
 /* Get the display geometry */
 void
 pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols)

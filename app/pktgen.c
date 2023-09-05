@@ -33,6 +33,7 @@
 #include "pktgen-gtpu.h"
 #include "pktgen-cfg.h"
 #include "pktgen-rate.h"
+#include "pktgen-txbuff.h"
 
 #include <pthread.h>
 #include <sched.h>
@@ -96,10 +97,10 @@ pktgen_packet_rate(port_info_t *info)
     uint64_t wire_size = (pktgen_wire_size(info) * 8);
     uint64_t lk        = (uint64_t)info->link.link_speed * Million;
     uint64_t pps       = (((lk / wire_size) * info->tx_rate) / 100);
-    uint64_t cpp       = (pps > 0) ? (pktgen.hz / pps) : pktgen.hz;
+    uint64_t cpp       = (pps > 0) ? (pktgen.hz / (pps/1000)) : pktgen.hz;
 
     info->tx_pps    = pps;
-    info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid));
+    info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid))/1000;
 }
 
 /**
@@ -251,8 +252,8 @@ pktgen_tstamp_inject(port_info_t *info, uint16_t qid)
 
         rte_memcpy(rte_pktmbuf_mtod(mbuf, uint8_t *), (uint8_t *)&pkt->hdr, pktsize);
 
-        rte_eth_tx_buffer(info->pid, qid, info->q[qid].txbuff, mbuf);
-        rte_eth_tx_buffer_flush(info->pid, qid, info->q[qid].txbuff);
+        tx_buffer(info->q[qid].txbuff, mbuf);
+        tx_buffer_flush(info->q[qid].txbuff);
     } else
         printf("*** No more latency buffers\n");
 }
@@ -282,18 +283,14 @@ pktgen_do_tx_tap(port_info_t *info, struct rte_mbuf **mbufs, int cnt)
 static __inline__ void
 pktgen_send_burst(port_info_t *info, uint16_t qid)
 {
-    struct rte_eth_dev_tx_buffer *mtab = info->q[qid].txbuff;
+    struct eth_tx_buffer *mtab = info->q[qid].txbuff;
     struct rte_mbuf **pkts;
-    struct qstats_s *qstats = &info->qstats[qid];
     uint32_t tap, rnd;
 
     tap = pktgen_tst_port_flags(info, PROCESS_TX_TAP_PKTS);
     rnd = pktgen_tst_port_flags(info, SEND_RANDOM_PKTS);
 
     pkts = mtab->pkts;
-    qstats->txpkts += mtab->length;
-    for (uint32_t i = 0; i < mtab->length; i++)
-        qstats->txbytes += rte_pktmbuf_data_len(pkts[i]);
 
     if (rnd)
         pktgen_rnd_bits_apply(info, pkts, mtab->length, NULL);
@@ -302,7 +299,7 @@ pktgen_send_burst(port_info_t *info, uint16_t qid)
 
     /* Send all of the packets before we can exit this function */
     while (mtab->length)
-        rte_eth_tx_buffer_flush(info->pid, qid, mtab);
+        tx_buffer_flush(mtab);
 }
 
 static __inline__ void
@@ -687,6 +684,8 @@ static void
 pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
     port_info_t *info = &pktgen.info[pid];
+    pkt_stats_t *pkt_stats = &info->pkt_stats;
+    pkt_sizes_t *pkt_sizes = &info->pkt_sizes;
     uint32_t plen;
     uint32_t flags;
     pktType_e pType;
@@ -703,19 +702,19 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 
         switch ((int)pType) {
         case RTE_ETHER_TYPE_ARP:
-            info->qstats[qid].stats.arp_pkts++;
+            pkt_stats->arp_pkts++;
             pktgen_process_arp(m, pid, qid, 0);
             break;
         case RTE_ETHER_TYPE_IPV4:
-            info->qstats[qid].stats.ip_pkts++;
+            pkt_stats->ip_pkts++;
             pktgen_process_ping4(m, pid, qid, 0);
             break;
         case RTE_ETHER_TYPE_IPV6:
-            info->qstats[qid].stats.ipv6_pkts++;
+            pkt_stats->ipv6_pkts++;
             pktgen_process_ping6(m, pid, qid, 0);
             break;
         case RTE_ETHER_TYPE_VLAN:
-            info->qstats[qid].stats.vlan_pkts++;
+            pkt_stats->vlan_pkts++;
             pktgen_process_vlan(m, pid, qid);
             break;
         case UNKNOWN_PACKET: /* FALL THRU */
@@ -726,16 +725,16 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
         /* Count the type of packets found. */
         switch ((int)pType) {
         case RTE_ETHER_TYPE_ARP:
-            info->qstats[qid].stats.arp_pkts++;
+            pkt_stats->arp_pkts++;
             break;
         case RTE_ETHER_TYPE_IPV4:
-            info->qstats[qid].stats.ip_pkts++;
+            pkt_stats->ip_pkts++;
             break;
         case RTE_ETHER_TYPE_IPV6:
-            info->qstats[qid].stats.ipv6_pkts++;
+            pkt_stats->ipv6_pkts++;
             break;
         case RTE_ETHER_TYPE_VLAN:
-            info->qstats[qid].stats.vlan_pkts++;
+            pkt_stats->vlan_pkts++;
             break;
         default:
             break;
@@ -745,31 +744,31 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 
     /* Count the size of each packet. */
     if (plen == RTE_ETHER_MIN_LEN)
-        info->qstats[qid].sizes._64++;
+        pkt_sizes->_64++;
     else if ((plen >= (RTE_ETHER_MIN_LEN + 1)) && (plen <= 127))
-        info->qstats[qid].sizes._65_127++;
+        pkt_sizes->_65_127++;
     else if ((plen >= 128) && (plen <= 255))
-        info->qstats[qid].sizes._128_255++;
+        pkt_sizes->_128_255++;
     else if ((plen >= 256) && (plen <= 511))
-        info->qstats[qid].sizes._256_511++;
+        pkt_sizes->_256_511++;
     else if ((plen >= 512) && (plen <= 1023))
-        info->qstats[qid].sizes._512_1023++;
+        pkt_sizes->_512_1023++;
     else if ((plen >= 1024) && (plen <= RTE_ETHER_MAX_LEN))
-        info->qstats[qid].sizes._1024_1518++;
+        pkt_sizes->_1024_1518++;
     else if (plen < RTE_ETHER_MIN_LEN)
-        info->qstats[qid].sizes.runt++;
+        pkt_sizes->runt++;
     else if (plen > RTE_ETHER_MAX_LEN)
-        info->qstats[qid].sizes.jumbo++;
+        pkt_sizes->jumbo++;
     else
-        info->qstats[qid].sizes.unknown++;
+        info->pkt_sizes.unknown++;
 
     /* Process multicast and broadcast packets. */
     if (unlikely(((uint8_t *)m->buf_addr + m->data_off)[0] == 0xFF)) {
         if ((((uint64_t *)m->buf_addr + m->data_off)[0] & 0xFFFFFFFFFFFF0000LL) ==
             0xFFFFFFFFFFFF0000LL)
-            info->qstats[qid].sizes.broadcast++;
+            pkt_sizes->broadcast++;
         else if (((uint8_t *)m->buf_addr + m->data_off)[0] & 1)
-            info->qstats[qid].sizes.multicast++;
+            pkt_sizes->multicast++;
     }
 }
 
@@ -991,7 +990,7 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 {
     uint64_t txCnt;
     int mlen;
-    struct rte_eth_dev_tx_buffer *txbuff;
+    struct eth_tx_buffer *txbuff;
     struct rte_mbuf *pkts[MAX_PKT_TX_BURST + 4];
 
     txbuff = info->q[qid].txbuff;
@@ -1010,11 +1009,15 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
 
     mlen = pg_pktmbuf_alloc_bulk(mp, pkts, txCnt);
 
+    info->queue_stats.q_opackets[qid] += mlen;
     for (int i = 0; i < mlen; i++)
-        rte_eth_tx_buffer(info->pid, qid, txbuff, pkts[i]);
+        info->queue_stats.q_obytes[qid] += rte_pktmbuf_data_len(pkts[i]);
+
+    tx_buffer_bulk(txbuff, pkts, mlen);
 
     if (qid == 0) {
         uint32_t tstamp = pktgen_tst_port_flags(info, (ENABLE_LATENCY_PKTS | SEND_RATE_PACKETS));
+
         if (tstamp) {
             uint64_t curr_ts;
             latency_t *lat = &info->latency;
@@ -1026,9 +1029,6 @@ pktgen_send_pkts(port_info_t *info, uint16_t qid, struct rte_mempool *mp)
             }
         }
     }
-
-    while (txbuff->length > 0)
-        rte_eth_tx_buffer_flush(info->pid, qid, txbuff);
 }
 
 /**
@@ -1101,13 +1101,13 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf **pkts_burst
     uint8_t pid;
     uint16_t qid, nb_rx;
     capture_t *capture;
-    struct qstats_s *qstats;
+    eth_stats_t *qstats;
     int i;
 
     pid = info->pid;
     qid = get_rxque(pktgen.l2p, lid, pid);
 
-    qstats = &info->qstats[qid];
+    qstats = &info->queue_stats;
 
     if (pktgen_tst_port_flags(info, STOP_RECEIVING_PACKETS))
         return;
@@ -1118,9 +1118,9 @@ pktgen_main_receive(port_info_t *info, uint8_t lid, struct rte_mbuf **pkts_burst
     if ((nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, nb_pkts)) == 0)
         return;
 
-    qstats->rxpkts += nb_rx;
+    qstats->q_ipackets[qid] += nb_rx;
     for (i = 0; i < nb_rx; i++)
-        qstats->rxbytes += rte_pktmbuf_data_len(pkts_burst[i]);
+        qstats->q_ibytes[qid] += rte_pktmbuf_data_len(pkts_burst[i]);
 
     pktgen_tstamp_check(info, pkts_burst, nb_rx);
 
@@ -1164,7 +1164,7 @@ port_map_info(const char *msg, uint8_t lid, port_mapinfo_t *pm)
     pm->rx.cnt = get_lcore_rxcnt(pktgen.l2p, pm->lid);
     pm->tx.cnt = get_lcore_txcnt(pktgen.l2p, pm->lid);
 
-    snprintf(buf, sizeof(buf), "  %s processing lcore: %3d rx: %2d tx: %2d", msg, pm->lid,
+    snprintf(buf, sizeof(buf), "  %s processing lcore %3d: rx: %2d tx: %2d", msg, pm->lid,
              pm->rx.cnt, pm->tx.cnt);
 
     for (int i = 0; i < pm->rx.cnt; i++) {

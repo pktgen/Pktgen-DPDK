@@ -15,6 +15,7 @@
 #include "pktgen.h"
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
+#include "pktgen-txbuff.h"
 
 #include <link.h>
 
@@ -25,9 +26,9 @@
 #include <rte_bus.h>
 
 enum {
-    RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
-    RX_HTHRESH = 8, /**< Default values of RX host threshold reg. */
-    RX_WTHRESH = 4, /**< Default values of RX write-back threshold reg. */
+    RX_PTHRESH = 8,      /**< Default values of RX prefetch threshold reg. */
+    RX_HTHRESH = 8,      /**< Default values of RX host threshold reg. */
+    RX_WTHRESH = 4,      /**< Default values of RX write-back threshold reg. */
 
     TX_PTHRESH     = 36, /**< Default values of TX prefetch threshold reg. */
     TX_HTHRESH     = 0,  /**< Default values of TX host threshold reg. */
@@ -117,16 +118,6 @@ pktgen_mbuf_pool_create(const char *type, uint8_t pid, uint8_t queue_id, uint32_
     return mp;
 }
 
-static void
-pktgen_tx_retry_callback(struct rte_mbuf **pkts, uint16_t unsent, void *userdata __rte_unused)
-{
-    struct rte_eth_dev_tx_buffer *txbuff = userdata;
-
-    /* Move the unsent packets to the start of the packet array for retries */
-    memmove(txbuff->pkts, pkts, sizeof(struct rte_mbuf *) * unsent);
-    txbuff->length = unsent;
-}
-
 /**
  *
  * pktgen_config_ports - Configure the ports for RX and TX
@@ -138,7 +129,6 @@ pktgen_tx_retry_callback(struct rte_mbuf **pkts, uint16_t unsent, void *userdata
  *
  * SEE ALSO:
  */
-
 void
 pktgen_config_ports(void)
 {
@@ -149,10 +139,8 @@ pktgen_config_ports(void)
     port_info_t *info;
     char buff[RTE_MEMZONE_NAMESIZE];
     int32_t ret, cache_size;
-    char output_buff[1024];
     uint64_t ticks;
-
-    memset(output_buff, 0, sizeof(output_buff));
+    uint32_t mbufs_per_port = MAX_MBUFS_PER_PORT(pktgen.nb_rxd, pktgen.nb_txd);
 
     /* Find out the total number of ports in the system. */
     /* We have already blocklisted the ones we needed to in main routine. */
@@ -232,7 +220,7 @@ pktgen_config_ports(void)
             continue;
 
         pktgen.port_cnt++;
-        pktgen_log_info("Initialize Port %u -- TxQ %u, RxQ %u", pid, rt.tx, rt.rx);
+        pktgen_log_info("Initialize Port %u -- RxQ %u, TxQ %u", pid, rt.rx, rt.tx);
 
         info = get_port_private(pktgen.l2p, pid);
 
@@ -269,14 +257,10 @@ pktgen_config_ports(void)
             pktgen_get_timer_hz() / (MAX_LATENCY_RATE / lat->latency_rate_us);
         ticks                        = pktgen_get_timer_hz() / 1000000;
         lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
-        info->nb_mbufs               = MAX_MBUFS_PER_PORT;
+        info->nb_mbufs               = mbufs_per_port;
         cache_size = (info->nb_mbufs > RTE_MEMPOOL_CACHE_MAX_SIZE) ? RTE_MEMPOOL_CACHE_MAX_SIZE
                                                                    : info->nb_mbufs;
-
         rte_eth_dev_info_get(pid, &info->dev_info);
-
-        if (pktgen.verbose)
-            rte_eth_dev_info_dump(NULL, pid);
 
         if (pktgen.eth_mtu < info->dev_info.min_mtu) {
             pktgen_log_info("Increasing MTU from %u to %u", pktgen.eth_mtu, info->dev_info.min_mtu);
@@ -305,11 +289,17 @@ pktgen_config_ports(void)
             conf.rx_adv_conf.rss_conf.rss_hf  = 0;
         }
 
-        if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
-            conf.rxmode.mq_mode = RTE_ETH_MQ_RX_RSS;
-        else
-            conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
-        rte_eth_dev_info_get(pid, &info->dev_info);
+        if (info->dev_info.max_vfs == 0) {
+            if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
+                conf.rxmode.mq_mode = RTE_ETH_MQ_RX_RSS;
+            else
+                conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
+        } else {
+            if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
+                conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
+            else
+                conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
+        }
 
         info->lsc_enabled = 0;
         if (*info->dev_info.dev_flags & RTE_ETH_DEV_INTR_LSC) {
@@ -369,37 +359,39 @@ pktgen_config_ports(void)
 
         for (int q = 0; q < rt.tx; q++) {
             struct rte_eth_txconf *txconf;
+            struct eth_tx_buffer *txbuff = NULL;
+            int err;
+            size_t sz;
 
             /* Add a few extra entries to account for special pkts i.e., latency */
-            info->q[q].txbuff = calloc(1, RTE_ETH_TX_BUFFER_SIZE(MAX_PKT_RX_BURST));
-            if (info->q[q].txbuff == NULL)
-                pktgen_log_panic("Cannot allocat rte_eth_dev_tx_buffer structure\n");
-            rte_eth_tx_buffer_init(info->q[q].txbuff, MAX_PKT_TX_BURST);
-
-            rte_eth_tx_buffer_set_err_callback(info->q[q].txbuff, pktgen_tx_retry_callback,
-                                               info->q[q].txbuff);
+            sz = TX_BUFFER_SIZE(MAX_PKT_RX_BURST);
+            sz = RTE_ALIGN_CEIL(sz, RTE_CACHE_LINE_SIZE);
+            if ((err = posix_memalign((void **)&txbuff, RTE_CACHE_LINE_SIZE, sz)) < 0)
+                pktgen_log_panic("Cannot allocate eth_tx_buffer structure: %s\n", strerror(err));
+            memset(txbuff, 0, sz);
+            tx_buffer_init(txbuff, MAX_PKT_TX_BURST, pid, q);
+            info->q[q].txbuff = txbuff;
 
             /* Create and initialize the default Transmit buffers. */
             info->q[q].tx_mp =
-                pktgen_mbuf_pool_create("Default TX", pid, q, MAX_MBUFS_PER_PORT, sid, cache_size);
+                pktgen_mbuf_pool_create("Default TX", pid, q, mbufs_per_port, sid, cache_size);
             if (info->q[q].tx_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Default TX mbufs", pid);
 
             /* Create and initialize the range Transmit buffers. */
             info->q[q].range_mp =
-                pktgen_mbuf_pool_create("Range TX", pid, q, MAX_MBUFS_PER_PORT, sid, 0);
+                pktgen_mbuf_pool_create("Range TX", pid, q, mbufs_per_port, sid, 0);
             if (info->q[q].range_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Range TX mbufs", pid);
 
             /* Create and initialize the rate Transmit buffers. */
-            info->q[q].rate_mp =
-                pktgen_mbuf_pool_create("Rate TX", pid, q, MAX_MBUFS_PER_PORT, sid, 0);
+            info->q[q].rate_mp = pktgen_mbuf_pool_create("Rate TX", pid, q, mbufs_per_port, sid, 0);
             if (info->q[q].rate_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Rate TX mbufs", pid);
 
             /* Create and initialize the sequence Transmit buffers. */
             info->q[q].seq_mp =
-                pktgen_mbuf_pool_create("Sequence TX", pid, q, MAX_MBUFS_PER_PORT, sid, cache_size);
+                pktgen_mbuf_pool_create("Sequence TX", pid, q, mbufs_per_port, sid, cache_size);
             if (info->q[q].seq_mp == NULL)
                 pktgen_log_panic("Cannot init port %d for Sequence TX mbufs", pid);
 
@@ -423,31 +415,30 @@ pktgen_config_ports(void)
                 pktgen_log_info("");
         }
         if (pktgen.verbose)
-            pktgen_log_info("%*sPort memory used = %6lu KB", 71, " ",
+            pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ",
                             (pktgen.mem_used + 1023) / 1024);
 
         /* Grab the source MAC addresses */
         rte_eth_macaddr_get(pid, &pkt->eth_src_addr);
         rte_eth_macaddr_get(pid, &info->seq_pkt[RATE_PKT].eth_src_addr);
 
-        pktgen_log_info("Src MAC %02x:%02x:%02x:%02x:%02x:%02x", pkt->eth_src_addr.addr_bytes[0],
-                        pkt->eth_src_addr.addr_bytes[1], pkt->eth_src_addr.addr_bytes[2],
-                        pkt->eth_src_addr.addr_bytes[3], pkt->eth_src_addr.addr_bytes[4],
-                        pkt->eth_src_addr.addr_bytes[5]);
+        pktgen_log_info("   Src MAC %02x:%02x:%02x:%02x:%02x:%02x <Promiscuous is %s>",
+                        pkt->eth_src_addr.addr_bytes[0], pkt->eth_src_addr.addr_bytes[1],
+                        pkt->eth_src_addr.addr_bytes[2], pkt->eth_src_addr.addr_bytes[3],
+                        pkt->eth_src_addr.addr_bytes[4], pkt->eth_src_addr.addr_bytes[5],
+                        (pktgen.flags & PROMISCUOUS_ON_FLAG) ? "Enabled" : "Disabled");
 
         /* If enabled, put device in promiscuous mode. */
-        if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
-            strncatf(output_buff, " <Promiscuous mode Enabled>");
+        if (pktgen.flags & PROMISCUOUS_ON_FLAG)
             rte_eth_promiscuous_enable(pid);
-        }
-
-        pktgen_log_info("%s\n", output_buff);
 
         /* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
         for (int i = 0; i < NUM_SEQ_PKTS; i++)
             ethAddrCopy(&info->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
         ethAddrCopy(&info->seq_pkt[RATE_PKT].eth_src_addr, &pkt->eth_src_addr);
         ethAddrCopy(&info->seq_pkt[LATENCY_PKT].eth_src_addr, &pkt->eth_src_addr);
+        if (pktgen.verbose)
+            rte_eth_dev_info_dump(NULL, pid);
     }
     if (pktgen.verbose)
         pktgen_log_info("%*sTotal memory used = %6lu KB", 70, " ",

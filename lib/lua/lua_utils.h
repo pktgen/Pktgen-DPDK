@@ -32,9 +32,14 @@ extern "C" {
 char *lua_strtrim(char *str);
 
 static inline void
-lua_putstring(const char *s)
+lua_putstring(const char *format, ...)
 {
-    fwrite((s), sizeof(char), strlen(s), stdout);
+    va_list ap;
+
+    va_start(ap, format);
+    vfprintf(stdout, format, ap);
+    va_end(ap);
+
     fflush(stdout);
 }
 

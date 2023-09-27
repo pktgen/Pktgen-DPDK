@@ -836,11 +836,11 @@ pcap_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        pcap    = pktgen.info[pktgen.portNum].pcap;
-        max_cnt = pcap->pkt_count;
-        value   = strtoul(argv[1], NULL, 10);
+        pcap  = pktgen.info[pktgen.portNum].pcap;
+        value = strtoul(argv[1], NULL, 10);
 
         if (pcap) {
+            max_cnt = pcap->pkt_count;
             if (value >= max_cnt)
                 pcap->pkt_idx = max_cnt - RTE_MIN(PCAP_PAGE_SIZE, (int)max_cnt);
             else

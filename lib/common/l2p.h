@@ -59,7 +59,8 @@ typedef union {
 } rxtx_t;
 
 typedef struct {
-    volatile uint8_t stop[RTE_MAX_LCORE];
+    volatile uint8_t started[RTE_MAX_LCORE];
+    volatile uint8_t stopped[RTE_MAX_LCORE];
     lobj_t lcores[RTE_MAX_LCORE];
     pobj_t ports[RTE_MAX_ETHPORTS];
     rxtx_t map[MAX_MAP_PORTS][MAX_MAP_LCORES];
@@ -131,18 +132,11 @@ l2p_create(void)
     if (l2p == NULL)
         return NULL;
 
-    /* I know calloc zeros memory, but just to be safe. */
-    memset(l2p, 0, sizeof(l2p_t));
-
     for (i = 0; i < RTE_MAX_LCORE; i++)
         l2p->lcores[i].lid = i;
 
     for (i = 0; i < RTE_MAX_ETHPORTS; i++)
         l2p->ports[i].pid = i;
-
-    /* Set them to stopped first. */
-    for (i = 0; i < RTE_MAX_LCORE; i++)
-        l2p->stop[i] = 1;
 
     return l2p;
 }
@@ -398,27 +392,26 @@ get_txque(l2p_t *l2p, uint16_t lid, uint16_t pid)
 static __inline__ void
 pg_stop_lcore(l2p_t *l2p, uint16_t lid)
 {
-    l2p->stop[lid] = 1;
+    l2p->stopped[lid] = 1;
 }
 
 /**
- * Stop the given lcore
+ * Start the given lcore
  *
  */
 static __inline__ void
 pg_start_lcore(l2p_t *l2p, uint16_t lid)
 {
-    l2p->stop[lid] = 0;
+    l2p->started[lid] = 1;
 }
 
 /**
- * Return stop flag
- *
+ * Was the core started and not yet stopped?
  */
 static __inline__ int32_t
 pg_lcore_is_running(l2p_t *l2p, uint16_t lid)
 {
-    return l2p->stop[lid] == 0;
+    return l2p->started[lid] && !l2p->stopped[lid];
 }
 
 /******************************************************************************/

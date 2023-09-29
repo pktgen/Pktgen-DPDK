@@ -420,13 +420,26 @@ main(int argc, char **argv)
 {
     uint32_t i;
     int32_t ret;
+    struct sigaction sa;
+    sigset_t set;
 
     setlocale(LC_ALL, "");
 
-    signal(SIGSEGV, sig_handler);
-    signal(SIGHUP, sig_handler);
-    signal(SIGINT, sig_handler);
-    signal(SIGPIPE, sig_handler);
+    sa.sa_handler = sig_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sigaction(SIGSEGV, &sa, NULL);
+    sigaction(SIGHUP, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGPIPE, &sa, NULL);
+
+    /* Block SIGWINCH for all threads,
+     * because we only want it to be
+     * handled by the main thread */
+    sigemptyset(&set);
+    sigaddset(&set, SIGWINCH);
+    pthread_sigmask(SIG_BLOCK, &set, NULL);
 
     scrn_setw(1);     /* Reset the window size, from possible crash run. */
     scrn_pos(100, 1); /* Move the cursor to the bottom of the screen again */
@@ -561,6 +574,13 @@ main(int argc, char **argv)
     }
 
     pktgen_log_info("=== Run CLI\n");
+
+    /* Unblock SIGWINCH so main thread
+     * can handle screen resizes */
+    sigemptyset(&set);
+    sigaddset(&set, SIGWINCH);
+    pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+
     cli_start(NULL);
 
     scrn_pause();

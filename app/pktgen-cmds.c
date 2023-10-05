@@ -118,6 +118,9 @@ pktgen_script_save(char *path)
             (pktgen.flags & PROMISCUOUS_ON_FLAG) ? "Enabled" : "Disabled");
 
     fprintf(fd, "\n# Global configuration:\n");
+    uint16_t rows, cols;
+    pktgen_display_get_geometry(&rows, &cols);
+    fprintf(fd, "#   geometry %dx%d\n", cols, rows);
     fprintf(fd, "%s mac_from_arp\n\n", (pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
     for (i = 0; i < pktgen.nb_ports; i++) {
@@ -483,6 +486,9 @@ pktgen_lua_save(char *path)
     fprintf(fd, "\n--%s\n", hash_line);
 
     fprintf(fd, "-- Global configuration:\n");
+    uint16_t rows, cols;
+    pktgen_display_get_geometry(&rows, &cols);
+    fprintf(fd, "--   geometry %dx%d\n", cols, rows);
     fprintf(fd, "pktgen.mac_from_arp(\"%s\");\n\n",
             (pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
@@ -1088,7 +1094,7 @@ pktgen_clear_display(void)
         scrn_pause();
 
         scrn_cls();
-        scrn_pos(this_scrn->nrows, 1);
+        scrn_pos(this_scrn->nrows + 1, 1);
 
         pktgen_update_display();
 
@@ -1164,13 +1170,13 @@ pktgen_screen(int state)
             scrn_pause();
             scrn_cls();
             scrn_setw(1);
-            scrn_pos(rows, 1);
+            scrn_pos(rows + 1, 1);
         }
     } else {
         scrn_cls();
         scrn_setw(pktgen.last_row + 1);
         scrn_resume();
-        scrn_pos(rows, 1);
+        scrn_pos(rows + 1, 1);
         pktgen_force_update();
     }
 }
@@ -1400,8 +1406,8 @@ enable_clock_gettime(uint32_t onOff)
 void
 debug_tx_rate(port_info_t *info)
 {
-    printf("  %d: rate %.2f, tx_cycles %'ld, tx_pps %'ld, link %s-%d-%s, hz %'ld\n", info->pid, info->tx_rate,
-           info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
+    printf("  %d: rate %.2f, tx_cycles %'ld, tx_pps %'ld, link %s-%d-%s, hz %'ld\n", info->pid,
+           info->tx_rate, info->tx_cycles, info->tx_pps, (info->link.link_status) ? "UP" : "Down",
            info->link.link_speed,
            (info->link.link_duplex == RTE_ETH_LINK_FULL_DUPLEX) ? "FD" : "HD", pktgen.hz);
 }
@@ -1939,14 +1945,14 @@ enable_bonding(port_info_t *info, uint32_t state)
         return;
     }
 
-    num_workers = rte_eth_bond_slaves_get(info->pid, workers, RTE_MAX_ETHPORTS);
+    num_workers = rte_eth_bond_members_get(info->pid, workers, RTE_MAX_ETHPORTS);
     if (num_workers < 0) {
         printf("Failed to get worker list for port = %d\n", info->pid);
         return;
     }
 
     num_active_workers =
-        rte_eth_bond_active_slaves_get(info->pid, active_workers, RTE_MAX_ETHPORTS);
+        rte_eth_bond_active_members_get(info->pid, active_workers, RTE_MAX_ETHPORTS);
     if (num_active_workers < 0) {
         printf("Failed to get active worker list for port = %d\n", info->pid);
         return;
@@ -2044,7 +2050,7 @@ show_bonding_mode(port_info_t *info)
         printf("\n");
     }
 
-    num_workers = rte_eth_bond_slaves_get(port_id, workers, RTE_MAX_ETHPORTS);
+    num_workers = rte_eth_bond_members_get(port_id, workers, RTE_MAX_ETHPORTS);
 
     if (num_workers < 0) {
         printf("\tFailed to get worker list for port = %d\n", port_id);
@@ -2060,7 +2066,7 @@ show_bonding_mode(port_info_t *info)
         printf("\tSlaves: []\n");
     }
 
-    num_active_workers = rte_eth_bond_active_slaves_get(port_id, workers, RTE_MAX_ETHPORTS);
+    num_active_workers = rte_eth_bond_active_members_get(port_id, workers, RTE_MAX_ETHPORTS);
 
     if (num_active_workers < 0) {
         printf("\tFailed to get active worker list for port = %d\n", port_id);
@@ -2078,10 +2084,10 @@ show_bonding_mode(port_info_t *info)
     }
 
     for (i = 0; i < num_active_workers; i++) {
-        struct rte_eth_bond_8023ad_slave_info conf;
+        struct rte_eth_bond_8023ad_member_info conf;
 
         printf("\t\tSlave %u\n", workers[i]);
-        rte_eth_bond_8023ad_slave_info(info->pid, workers[i], &conf);
+        rte_eth_bond_8023ad_member_info(info->pid, workers[i], &conf);
         printf("\t\t  %sSelected\n\t\t  Actor States  ( ", conf.selected ? "" : "Not ");
         show_states(conf.actor_state);
         printf(")\n\t\t  Partner States( ");

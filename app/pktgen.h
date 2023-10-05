@@ -231,7 +231,7 @@ enum {
     START_FRAME_DELIMITER = 1,
     PKT_PREAMBLE_SIZE     = 7, /**< in bytes */
     PKT_OVERHEAD_SIZE =
-        (INTER_FRAME_GAP + START_FRAME_DELIMITER + PKT_PREAMBLE_SIZE + RTE_ETHER_CRC_LEN),
+        (INTER_FRAME_GAP + START_FRAME_DELIMITER + PKT_PREAMBLE_SIZE /* + RTE_ETHER_CRC_LEN*/),
 
     MIN_v6_PKT_SIZE = (78 - RTE_ETHER_CRC_LEN),
 
@@ -284,9 +284,8 @@ typedef struct pktgen_s {
     uint64_t hz;               /**< Number of cycles per seconds */
     uint64_t tx_next_cycle;    /**< Number of cycles to next transmit burst */
     uint64_t tx_bond_cycle;    /**< Numbe of cycles to check bond interface */
-    uint64_t prev;
-    uint64_t page_timeout;  /**< Timeout for page update */
-    uint64_t stats_timeout; /**< Timeout for stats update */
+    uint64_t page_timeout;     /**< Timeout for page update */
+    uint64_t stats_timeout;    /**< Timeout for stats update */
 
     int (*callout)(void *callout_arg);
     void *callout_arg;

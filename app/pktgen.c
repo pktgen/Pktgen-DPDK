@@ -97,10 +97,10 @@ pktgen_packet_rate(port_info_t *info)
     uint64_t wire_size = (pktgen_wire_size(info) * 8);
     uint64_t lk        = (uint64_t)info->link.link_speed * Million;
     uint64_t pps       = (((lk / wire_size) * info->tx_rate) / 100);
-    uint64_t cpp       = (pps > 0) ? (pktgen.hz / (pps/1000)) : pktgen.hz;
 
     info->tx_pps    = pps;
-    info->tx_cycles = ((cpp * info->tx_burst) * get_port_txcnt(pktgen.l2p, info->pid))/1000;
+    info->tx_cycles = (pktgen.hz * info->tx_burst * get_port_txcnt(pktgen.l2p, info->pid)) /
+                      ((pps > 0) ? pps : 1);
 }
 
 /**
@@ -683,7 +683,7 @@ pktgen_packet_type(struct rte_mbuf *m)
 static void
 pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
-    port_info_t *info = &pktgen.info[pid];
+    port_info_t *info      = &pktgen.info[pid];
     pkt_stats_t *pkt_stats = &info->pkt_stats;
     pkt_sizes_t *pkt_sizes = &info->pkt_sizes;
     uint32_t plen;
@@ -1556,41 +1556,19 @@ pktgen_page_display(void)
     pktgen_print_packet_dump();
 }
 
-static void *
-_timer_thread(void *arg)
+static struct rte_timer update_stats_timer;
+static struct rte_timer update_display_timer;
+
+static void
+stats_cb(__rte_unused struct rte_timer *tim, __rte_unused void *arg)
 {
-    uint64_t process, page, prev;
+    pktgen_process_stats();
+}
 
-    this_scrn = arg;
-
-    pktgen.stats_timeout = pktgen.hz;
-    pktgen.page_timeout  = UPDATE_DISPLAY_TICK_RATE;
-
-    page = prev = pktgen_get_time();
-    process     = page + pktgen.stats_timeout;
-    page += pktgen.page_timeout;
-
-    pktgen.timer_running = 1;
-
-    while (pktgen.timer_running) {
-        uint64_t curr;
-
-        curr = pktgen_get_time();
-
-        if (curr >= process) {
-            process = curr + pktgen.stats_timeout;
-            pktgen_process_stats();
-            prev = curr;
-        }
-
-        if (curr >= page) {
-            page = curr + pktgen.page_timeout;
-            pktgen_page_display();
-        }
-
-        rte_pause();
-    }
-    return NULL;
+static void
+display_cb(__rte_unused struct rte_timer *tim, __rte_unused void *arg)
+{
+    pktgen_page_display();
 }
 
 /**
@@ -1608,14 +1586,12 @@ _timer_thread(void *arg)
 void
 pktgen_timer_setup(void)
 {
-    rte_cpuset_t cpuset_data;
-    rte_cpuset_t *cpuset = &cpuset_data;
-    pthread_t tid;
+    unsigned int main_lcore = rte_get_main_lcore();
+    uint64_t hz             = rte_get_timer_hz();
 
-    CPU_ZERO(cpuset);
+    rte_timer_init(&update_stats_timer);
+    rte_timer_init(&update_display_timer);
 
-    pthread_create(&tid, NULL, _timer_thread, this_scrn);
-
-    CPU_SET(rte_get_main_lcore(), cpuset);
-    pthread_setaffinity_np(tid, sizeof(cpuset), cpuset);
+    rte_timer_reset(&update_stats_timer, hz, PERIODICAL, main_lcore, stats_cb, NULL);
+    rte_timer_reset(&update_display_timer, hz / 4, PERIODICAL, main_lcore, display_cb, NULL);
 }

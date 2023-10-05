@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 23.10.0 - Change TX rate calculations to be more accurate
+             Change timer routines to use DPDK timer manager
+             Minor cleanup and bump version number.
  - 23.06.1 - cleanup the code with clang-format.
  - 23.06.0 - Fix up problem using "all" with portlist routines.
  - 23.03.1 - In latency mode avg_cycles was only calculated when not using Lua.

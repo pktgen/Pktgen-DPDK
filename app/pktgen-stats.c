@@ -511,8 +511,6 @@ pktgen_process_stats(void)
         }
     }
 
-    pktgen.prev = pktgen_get_time();
-
     RTE_ETH_FOREACH_DEV(pid)
     {
         info = &pktgen.info[pid];
@@ -526,11 +524,8 @@ pktgen_process_stats(void)
         rte_eth_stats_get(pid, curr);
 
         memcpy(&info->curr_stats.q_ipackets[0], &queue->q_ipackets[0],
-            sizeof(queue->q_ipackets) +
-            sizeof(queue->q_opackets) +
-            sizeof(queue->q_ibytes) +
-            sizeof(queue->q_ibytes) +
-            sizeof(queue->q_errors));
+               sizeof(queue->q_ipackets) + sizeof(queue->q_opackets) + sizeof(queue->q_ibytes) +
+                   sizeof(queue->q_ibytes) + sizeof(queue->q_errors));
 
         /* Normalize the counters */
         curr->ipackets  = curr->ipackets - base->ipackets;
@@ -635,8 +630,8 @@ pktgen_page_phys_stats(uint16_t pid)
 
         rxpkts  = r->q_ipackets[q];
         txpkts  = r->q_opackets[q];
-        rxbytes = r->q_ibytes[q]/ Million;
-        txbytes = r->q_obytes[q]/ Million;
+        rxbytes = r->q_ibytes[q] / Million;
+        txbytes = r->q_obytes[q] / Million;
         errors  = r->q_errors[q];
 
         scrn_printf(row++, 1, "  Q %2d: %'15lu %'15lu %'17lu %'17lu %'15lu", q, rxpkts, txpkts,

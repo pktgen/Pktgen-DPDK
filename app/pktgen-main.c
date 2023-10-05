@@ -475,6 +475,8 @@ main(int argc, char **argv)
     argc -= ret;
     argv += ret;
 
+    rte_timer_subsystem_init();
+
     /* Configure pktgen data which will be encapsulated in the mbuf. */
     pktgen_dynfield_offset = rte_mbuf_dynfield_register(&pktgen_dynfield_desc);
     if (pktgen_dynfield_offset < 0)
@@ -584,8 +586,9 @@ main(int argc, char **argv)
     cli_start(NULL);
 
     scrn_pause();
-    scrn_setw(1);              /* Reset the window size, from possible crash run. */
-    scrn_printf(this_scrn->nrows, 1, "\n"); /* Move the cursor to the bottom of the screen again */
+    scrn_setw(1); /* Reset the window size, from possible crash run. */
+    scrn_printf(this_scrn->nrows + 1, 1,
+                "\n"); /* Move the cursor to the bottom of the screen again */
 
     pktgen_stop_running();
 

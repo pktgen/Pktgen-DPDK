@@ -68,7 +68,8 @@ Show the commands inside the ``pktgen/bin`` directory::
     start           disable         enable          range           theme
     page            seq             sequence        ping4           port
     restart         rst             reset           cls             redisplay
-    save            load            clr             clear           help
+    save            load            geom            geometry        clr
+    clear           help
 
 Showin the ``1s`` command at root::
 
@@ -135,6 +136,8 @@ Show help using ``ls -l`` command in pktgen directory::
     redisplay        Command : redisplay the screen
     save             Command : save the current state
     load             Command : load command file
+    geom             Alias : geometry
+    geometry         Command : show the screen geometry
     clr              Alias : clear all stats
     clear            Command : clear stats, ...
     help             Command : help command

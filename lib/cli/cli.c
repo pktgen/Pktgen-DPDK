@@ -574,6 +574,7 @@ cli_start(const char *msg)
     while (!this_cli->quit_flag) {
         if (cli_poll(&c))
             cli_input(&c, 1);
+        rte_timer_manage();
         rte_pause();
     }
 

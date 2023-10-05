@@ -19,6 +19,7 @@ package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
 require "Pktgen"
 --#######################################################################
 -- Global configuration:
+-- geometry 132x44
 pktgen.mac_from_arp("disable");
 
 -- ######################### Port  0 ##################################

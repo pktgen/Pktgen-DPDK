@@ -23,8 +23,8 @@ enum {
     DEFAULT_TX_DESC      = (MAX_PKT_TX_BURST * 16),
 
     DEFAULT_MBUFS_PER_PORT_MULTIPLER = 8, /* Multipler for number of mbufs per port */
-    MAX_SPECIAL_MBUFS = 1024,
-    MBUF_CACHE_SIZE   = 128,
+    MAX_SPECIAL_MBUFS                = 1024,
+    MBUF_CACHE_SIZE                  = 128,
 
     DEFAULT_PRIV_SIZE = 0,
 

@@ -278,11 +278,11 @@ update_port_static_info(unsigned int pid)
 int
 update_port_statistics(void *arg)
 {
-    GtkWidget *window  = (GtkWidget *)arg;
+    GtkWidget *window = (GtkWidget *)arg;
     pkt_sizes_t sizes = {0};
-    pkt_stats_t stats  = {0};
-    unsigned int pid   = 0;
-    port_info_t *info  = NULL;
+    pkt_stats_t stats = {0};
+    unsigned int pid  = 0;
+    port_info_t *info = NULL;
 
     GtkTreeIter toplevel;
     GtkTreeIter totToplevel;

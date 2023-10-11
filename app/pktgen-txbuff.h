@@ -57,7 +57,7 @@ static inline uint16_t
 tx_buffer_flush(struct eth_tx_buffer *buffer)
 {
     uint16_t sent, tot_sent = 0;
-    uint16_t to_send = buffer->length;
+    uint16_t to_send       = buffer->length;
     struct rte_mbuf **pkts = buffer->pkts;
 
     if (to_send == 0)
@@ -69,7 +69,7 @@ tx_buffer_flush(struct eth_tx_buffer *buffer)
         to_send -= sent;
         pkts += sent;
         tot_sent += sent;
-    } while(to_send > 0);
+    } while (to_send > 0);
 
     return tot_sent;
 }

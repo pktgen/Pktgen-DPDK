@@ -4013,7 +4013,7 @@ static const luaL_Reg pktgenlib[] = {
     {"latsampler_params", pktgen_latsampler_params}, /* set latency sampler params */
     {"latsampler", pktgen_latsampler},               /* enable or disable latency sampler */
 
-    {"clock_gettime", pktgen_clock_gettime},         /* Enable/disable clock_gettime support */
+    {"clock_gettime", pktgen_clock_gettime}, /* Enable/disable clock_gettime support */
 
     {NULL, NULL}};
 

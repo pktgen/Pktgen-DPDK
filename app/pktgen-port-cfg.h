@@ -42,33 +42,33 @@ enum { /* Per port flag bits */
        ICMP_ECHO_ENABLE_FLAG = (1 << 2), /**< Enable ICMP Echo support */
        BONDING_TX_PACKETS    = (1 << 3), /**< Bonding driver send zero pkts */
 
-       PROCESS_INPUT_PKTS = (1 << 4),    /**< Process input packets */
-       CAPTURE_PKTS       = (1 << 5),    /**< Capture received packets */
-       SEND_PING4_REQUEST = (1 << 6),    /**< Send a IPv4 Ping request */
-       SEND_PING6_REQUEST = (1 << 7),    /**< Send a IPv6 Ping request */
+       PROCESS_INPUT_PKTS = (1 << 4), /**< Process input packets */
+       CAPTURE_PKTS       = (1 << 5), /**< Capture received packets */
+       SEND_PING4_REQUEST = (1 << 6), /**< Send a IPv4 Ping request */
+       SEND_PING6_REQUEST = (1 << 7), /**< Send a IPv6 Ping request */
 
-       PROCESS_RX_TAP_PKTS = (1 << 8),   /**< Handle RX TAP interface packets */
-       PROCESS_TX_TAP_PKTS = (1 << 9),   /**< Handle TX TAP interface packets */
+       PROCESS_RX_TAP_PKTS = (1 << 8), /**< Handle RX TAP interface packets */
+       PROCESS_TX_TAP_PKTS = (1 << 9), /**< Handle TX TAP interface packets */
 
        /* Exclusive Packet sending modes */
-       SEND_PCAP_PKTS  = (1 << 12),   /**< Send a pcap file of packets */
-       SEND_RANGE_PKTS = (1 << 13),   /**< Send a range of packets */
-       SEND_SEQ_PKTS   = (1 << 14),   /**< Send a sequence of packets */
+       SEND_PCAP_PKTS  = (1 << 12), /**< Send a pcap file of packets */
+       SEND_RANGE_PKTS = (1 << 13), /**< Send a range of packets */
+       SEND_SEQ_PKTS   = (1 << 14), /**< Send a sequence of packets */
 
        SEND_RATE_PACKETS = (1 << 16), /**< Send rate pacing packets */
        SEND_RANDOM_PKTS  = (1 << 17), /**< Send random bitfields in packets */
 
        /* Exclusive Packet type modes */
-       SEND_VLAN_ID         = (1 << 20),  /**< Send packets with VLAN ID */
-       SEND_MPLS_LABEL      = (1 << 21),  /**< Send MPLS label */
-       SEND_Q_IN_Q_IDS      = (1 << 22),  /**< Send packets with Q-in-Q */
-       SEND_GRE_IPv4_HEADER = (1 << 23),  /**< Encapsulate IPv4 in GRE */
+       SEND_VLAN_ID         = (1 << 20), /**< Send packets with VLAN ID */
+       SEND_MPLS_LABEL      = (1 << 21), /**< Send MPLS label */
+       SEND_Q_IN_Q_IDS      = (1 << 22), /**< Send packets with Q-in-Q */
+       SEND_GRE_IPv4_HEADER = (1 << 23), /**< Encapsulate IPv4 in GRE */
 
        SEND_GRE_ETHER_HEADER = (1 << 24), /**< Encapsulate Ethernet frame in GRE */
        SEND_VXLAN_PACKETS    = (1 << 25), /**< Send VxLAN Packets */
 
-       SAMPLING_LATENCIES  = (1 << 26),   /**< Sampling latency measurements> */
-       ENABLE_LATENCY_PKTS = (1 << 27),   /**< Send latency packets */
+       SAMPLING_LATENCIES  = (1 << 26), /**< Sampling latency measurements> */
+       ENABLE_LATENCY_PKTS = (1 << 27), /**< Send latency packets */
 
        /* Sending flags */
        STOP_RECEIVING_PACKETS = (1 << 29), /**< Stop receiving packet */
@@ -186,12 +186,12 @@ typedef struct {
 } latency_t;
 
 typedef struct port_info_s {
-    uint16_t pid;                    /**< Port ID value */
-    uint16_t tx_burst;               /**< Number of TX burst packets */
-    uint16_t lsc_enabled;            /**< Enable link state change */
-    uint16_t rx_burst;               /**< RX burst size */
-    double tx_rate;                  /**< Percentage rate for tx packets with fractions */
-    rte_atomic32_t port_flags;       /**< Special send flags for ARP and other */
+    uint16_t pid;              /**< Port ID value */
+    uint16_t tx_burst;         /**< Number of TX burst packets */
+    uint16_t lsc_enabled;      /**< Enable link state change */
+    uint16_t rx_burst;         /**< RX burst size */
+    double tx_rate;            /**< Percentage rate for tx packets with fractions */
+    rte_atomic32_t port_flags; /**< Special send flags for ARP and other */
 
     rte_atomic64_t transmit_count;   /**< Packets to transmit loaded into current_tx_count */
     rte_atomic64_t current_tx_count; /**< Current number of packets to send */
@@ -211,15 +211,15 @@ typedef struct port_info_s {
     pkt_seq_t *seq_pkt;       /**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
     range_info_t range;       /**< Range Information */
 
-    uint32_t mpls_entry;      /**< Set the port MPLS entry */
-    uint32_t gre_key;         /**< GRE key if used */
+    uint32_t mpls_entry; /**< Set the port MPLS entry */
+    uint32_t gre_key;    /**< GRE key if used */
 
-    uint32_t nb_mbufs;        /**< Number of mbufs per port in the system */
+    uint32_t nb_mbufs; /**< Number of mbufs per port in the system */
 
     rate_info_t rate;
 
     union {
-        uint64_t vxlan;         /**< VxLAN 64 bit word */
+        uint64_t vxlan; /**< VxLAN 64 bit word */
         struct {
             uint16_t vni_flags; /**< VxLAN Flags */
             uint16_t group_id;  /**< VxLAN Group Policy ID */
@@ -229,17 +229,17 @@ typedef struct port_info_s {
 
     latency_t latency;
 
-    eth_stats_t curr_stats;   /**< current port statistics */
-    eth_stats_t queue_stats;  /**< current port queue statistics */
-    eth_stats_t rate_stats;   /**< current packet rate statistics */
-    eth_stats_t prev_stats;   /**< previous port statistics */
-    eth_stats_t base_stats;   /**< base port statistics */
-    pkt_stats_t pkt_stats;    /**< Statistics for a number of stats */
-    pkt_sizes_t pkt_sizes;    /**< Stats for the different packet sizes */
+    eth_stats_t curr_stats;  /**< current port statistics */
+    eth_stats_t queue_stats; /**< current port queue statistics */
+    eth_stats_t rate_stats;  /**< current packet rate statistics */
+    eth_stats_t prev_stats;  /**< previous port statistics */
+    eth_stats_t base_stats;  /**< base port statistics */
+    pkt_stats_t pkt_stats;   /**< Statistics for a number of stats */
+    pkt_sizes_t pkt_sizes;   /**< Stats for the different packet sizes */
 
-    uint64_t max_ipackets;    /**< Max seen input packet rate */
-    uint64_t max_opackets;    /**< Max seen output packet rate */
-    uint64_t max_missed;      /**< Max missed packets seen */
+    uint64_t max_ipackets; /**< Max seen input packet rate */
+    uint64_t max_opackets; /**< Max seen output packet rate */
+    uint64_t max_missed;   /**< Max missed packets seen */
 
     struct rte_eth_link link; /**< Link Information like speed and duplex */
 
@@ -254,27 +254,27 @@ typedef struct port_info_s {
         struct rte_mempool *pcap_mp;  /**< Pool pointer for port PCAP TX mbufs */
     } q[NUM_Q];
 
-    struct rte_mempool *special_mp;  /**< Pool pointer for special TX mbufs */
+    struct rte_mempool *special_mp; /**< Pool pointer for special TX mbufs */
 
-    int32_t rx_tapfd;                /**< Rx Tap file descriptor */
-    int32_t tx_tapfd;                /**< Tx Tap file descriptor */
-    pcap_info_t *pcap;               /**< PCAP information header */
-    pcap_info_t *pcaps[NUM_Q];       /**< Per Tx queue PCAP information headers */
-    uint64_t pcap_cycles;            /**< number of cycles for pcap sending */
+    int32_t rx_tapfd;          /**< Rx Tap file descriptor */
+    int32_t tx_tapfd;          /**< Tx Tap file descriptor */
+    pcap_info_t *pcap;         /**< PCAP information header */
+    pcap_info_t *pcaps[NUM_Q]; /**< Per Tx queue PCAP information headers */
+    uint64_t pcap_cycles;      /**< number of cycles for pcap sending */
 
     int32_t pcap_result;             /**< PCAP result of filter compile */
     struct bpf_program pcap_program; /**< PCAP filter program structure */
 
     /* Packet dump related */
     struct packet {
-        void *data;                       /**< Packet data */
-        uint32_t len;                     /**< Length of data */
+        void *data;   /**< Packet data */
+        uint32_t len; /**< Length of data */
     } dump_list[MAX_DUMP_PACKETS];
-    uint8_t dump_head;                    /**< Index of last packet written to screen */
-    uint8_t dump_tail;                    /**< Index of last valid packet in dump_list */
-    uint8_t dump_count;                   /**< Number of packets the user requested */
+    uint8_t dump_head;  /**< Index of last packet written to screen */
+    uint8_t dump_tail;  /**< Index of last valid packet in dump_list */
+    uint8_t dump_count; /**< Number of packets the user requested */
 
-    struct rnd_bits_s *rnd_bitfields;     /**< Random bitfield settings */
+    struct rnd_bits_s *rnd_bitfields; /**< Random bitfield settings */
 
     struct rte_eth_dev_info dev_info;     /**< PCI info + driver name */
     char user_pattern[USER_PATTERN_SIZE]; /**< User set pattern values */

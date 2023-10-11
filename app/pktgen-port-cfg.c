@@ -26,9 +26,9 @@
 #include <rte_bus.h>
 
 enum {
-    RX_PTHRESH = 8,      /**< Default values of RX prefetch threshold reg. */
-    RX_HTHRESH = 8,      /**< Default values of RX host threshold reg. */
-    RX_WTHRESH = 4,      /**< Default values of RX write-back threshold reg. */
+    RX_PTHRESH = 8, /**< Default values of RX prefetch threshold reg. */
+    RX_HTHRESH = 8, /**< Default values of RX host threshold reg. */
+    RX_WTHRESH = 4, /**< Default values of RX write-back threshold reg. */
 
     TX_PTHRESH     = 36, /**< Default values of TX prefetch threshold reg. */
     TX_HTHRESH     = 0,  /**< Default values of TX host threshold reg. */

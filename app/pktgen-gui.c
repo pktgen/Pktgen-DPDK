@@ -1351,5 +1351,5 @@ pktgen_gui_main(int argc, char *argv[])
         printf("Error creating GUI thread\n");
         return;
     }
-    rte_thread_setname(inc_x_thread, "Pktgen GUI");
+    rte_thread_set_name(inc_x_thread, "Pktgen GUI");
 }

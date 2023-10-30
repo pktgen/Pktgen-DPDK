@@ -299,7 +299,7 @@ lua_server(void *arg)
     return NULL;
 }
 
-int rte_thread_setname(pthread_t id, const char *name);
+int rte_thread_set_name(pthread_t id, const char *name);
 
 int
 lua_start_socket(luaData_t *ld, pthread_t *pthread, char *hostname, int port)
@@ -316,7 +316,7 @@ lua_start_socket(luaData_t *ld, pthread_t *pthread, char *hostname, int port)
     if (r)
         return -1;
 
-    rte_thread_setname(*pthread, "pktgen-socket");
+    rte_thread_set_name(*pthread, "pktgen-socket");
 
     return 0;
 }

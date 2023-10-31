@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 23.10.2 - Fix range tcp flags and help messages
  - 23.10.1 - Fix rte_thread_setname() change to rte_thread_set_name() for lua builds
  - 23.10.0 - Change TX rate calculations to be more accurate
              Change timer routines to use DPDK timer manager

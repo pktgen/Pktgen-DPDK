@@ -3416,7 +3416,8 @@ single_set_tcp_flag_clr(port_info_t *info, const char *which)
 void
 range_set_tcp_flag_set(port_info_t *info, const char *which)
 {
-    info->seq_pkt[RANGE_PKT].tcp_flags |= tcp_flag_from_str(which);
+    info->range.tcp_flags |= tcp_flag_from_str(which);
+    info->seq_pkt[RANGE_PKT].tcp_flags = info->range.tcp_flags;
 }
 
 /**
@@ -3434,7 +3435,8 @@ range_set_tcp_flag_set(port_info_t *info, const char *which)
 void
 range_set_tcp_flag_clr(port_info_t *info, const char *which)
 {
-    info->seq_pkt[RANGE_PKT].tcp_flags &= ~tcp_flag_from_str(which);
+    info->range.tcp_flags &= ~tcp_flag_from_str(which);
+    info->seq_pkt[RANGE_PKT].tcp_flags = info->range.tcp_flags;
 }
 
 /**

@@ -167,6 +167,8 @@ static const char *range_help[] = {
     "       or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
     "range <portlist> type ipv4|ipv6               - Set the range packet type to IPv4 or IPv6",
     "range <portlist> proto tcp|udp                - Set the IP protocol type",
+    "range <portlist> tcp flag set <flag>          - Set the TCP flag",
+    "range <portlist> tcp flag clr <flag>          - Clear the TCP flag",
     "range <portlist> tcp seq <SMMI> <value>       - Set the TCP sequence number",
     "       or  range <portlist> tcp seq <start> <min> <max> <inc>",
     "range <portlist> tcp ack <SMMI> <value>       - Set the TCP acknowledge number",

@@ -218,18 +218,15 @@ pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr)
 static __inline__ tstamp_t *
 pktgen_tstamp_pointer(port_info_t *info, char *p)
 {
-    char *ptr;
-
     (void)info;
+    int offset = 0;
 
-    p += sizeof(struct rte_ether_hdr);
-    p += sizeof(struct rte_ipv4_hdr);
-    p += sizeof(struct rte_udp_hdr);
+    offset += sizeof(struct rte_ether_hdr);
+    offset += sizeof(struct rte_ipv4_hdr);
+    offset += sizeof(struct rte_udp_hdr);
+    offset = (offset + sizeof(uint64_t)) & ~(sizeof(uint64_t) - 1);
 
-    /* Force pointer to be aligned correctly */
-    ptr = RTE_PTR_ALIGN_CEIL(p, sizeof(uint64_t));
-
-    return (tstamp_t *)ptr;
+    return (tstamp_t *)(p + offset);
 }
 
 static inline void

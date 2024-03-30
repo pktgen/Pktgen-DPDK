@@ -37,7 +37,6 @@ pktgen.screen("off");
 
 -- sequence command in one line
 pktgen.seq(0, "all", "0000:4455:6677", "0000:1234:5678", "10.11.0.1", "10.10.0.1/16", 5, 6, "ipv4", "udp", 1, 128);
-prints("seq", pktgen.decompile(0, "all"));
 
 -- sequence command using a table of packet configurations
 local seq_table = {
@@ -53,8 +52,6 @@ local seq_table = {
     ["pktSize"] = 128
   };
 pktgen.seqTable(0, "all", seq_table );
-
-prints("seqTable", pktgen.decompile(0, "all"));
 
 pktgen.ports_per_page(2);
 pktgen.icmp_echo("all", "on");

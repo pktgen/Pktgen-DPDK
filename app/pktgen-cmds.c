@@ -572,18 +572,19 @@ pktgen_lua_save(char *path)
         fprintf(fd, "pktgen.jitter('%d', %lu);\n", i, lat->jitter_threshold_us);
         fprintf(fd, "pktgen.mpls('%d', '%sable');\n", i, (flags & SEND_MPLS_LABEL) ? "en" : "dis");
         sprintf(buff, "0x%x", pkt->mpls_entry);
-        fprintf(fd, "pktgen.mpls_entry('%d', '%s');\n", i, buff);
+        fprintf(fd, "pktgen.range.mpls_entry('%d', '%s');\n", i, buff);
 
         fprintf(fd, "pktgen.qinq('%d', '%sable');\n", i, (flags & SEND_Q_IN_Q_IDS) ? "en" : "dis");
-        fprintf(fd, "pktgen.qinqids('%d', %d, %d);\n", i, pkt->qinq_outerid, pkt->qinq_innerid);
+        fprintf(fd, "pktgen.range.qinqids('%d', %d, %d);\n", i, pkt->qinq_outerid,
+                pkt->qinq_innerid);
 
         fprintf(fd, "pktgen.gre('%d', '%sable');\n", i,
                 (flags & SEND_GRE_IPv4_HEADER) ? "en" : "dis");
         fprintf(fd, "pktgen.gre_eth('%d', '%sable');\n", i,
                 (flags & SEND_GRE_ETHER_HEADER) ? "en" : "dis");
-        fprintf(fd, "pktgen.gre_key('%d', %d);\n", i, pkt->gre_key);
+        fprintf(fd, "pktgen.range.gre_key('%d', %d);\n", i, pkt->gre_key);
 
-        fprintf(fd, "pkrgen.vxlan('%d', '%sable');\n", i,
+        fprintf(fd, "pktgen.vxlan('%d', '%sable');\n", i,
                 (flags & SEND_VXLAN_PACKETS) ? "en" : "dis");
         fprintf(fd, "pktgen.vxlan_id('%d', '0x%x', '%d', '%d');\n", i, pkt->vni_flags,
                 pkt->group_id, pkt->vxlan_id);
@@ -606,94 +607,94 @@ pktgen_lua_save(char *path)
         fprintf(fd, "pktgen.vlan('%d', '%sable');\n\n", i, (flags & SEND_VLAN_ID) ? "en" : "dis");
         fflush(fd);
         fprintf(fd, "--\n-- Range packet information:\n");
-        fprintf(fd, "pktgen.src_mac('%d', 'start', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_mac('%d', 'start', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac, &eaddr)));
-        fprintf(fd, "pktgen.src_mac('%d', 'min', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_mac('%d', 'min', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac_min, &eaddr)));
-        fprintf(fd, "pktgen.src_mac('%d', 'max', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_mac('%d', 'max', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac_max, &eaddr)));
-        fprintf(fd, "pktgen.src_mac('%d', 'inc', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_mac('%d', 'inc', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->src_mac_inc, &eaddr)));
 
-        fprintf(fd, "pktgen.dst_mac('%d', 'start', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_mac('%d', 'start', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->dst_mac, &eaddr)));
-        fprintf(fd, "pktgen.dst_mac('%d', 'min', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_mac('%d', 'min', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->dst_mac_min, &eaddr)));
-        fprintf(fd, "pktgen.dst_mac('%d', 'max', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_mac('%d', 'max', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->dst_mac_max, &eaddr)));
-        fprintf(fd, "pktgen.dst_mac('%d', 'inc', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_mac('%d', 'inc', '%s');\n", i,
                 inet_mtoa(buff, sizeof(buff), inet_h64tom(range->dst_mac_inc, &eaddr)));
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.src_ip('%d', 'start', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_ip('%d', 'start', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip), 0xFFFFFFFF));
-        fprintf(fd, "pktgen.src_ip('%d', 'min', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_ip('%d', 'min', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_min), 0xFFFFFFFF));
-        fprintf(fd, "pktgen.src_ip('%d', 'max', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_ip('%d', 'max', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_max), 0xFFFFFFFF));
-        fprintf(fd, "pktgen.src_ip('%d', 'inc', '%s');\n", i,
+        fprintf(fd, "pktgen.range.src_ip('%d', 'inc', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->src_ip_inc), 0xFFFFFFFF));
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.dst_ip('%d', 'start', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_ip('%d', 'start', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip), 0xFFFFFFFF));
-        fprintf(fd, "pktgen.dst_ip('%d', 'min', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_ip('%d', 'min', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_min), 0xFFFFFFFF));
-        fprintf(fd, "pktgen.dst_ip('%d', 'max', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_ip('%d', 'max', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_max), 0xFFFFFFFF));
-        fprintf(fd, "pktgen.dst_ip('%d', 'inc', '%s');\n", i,
+        fprintf(fd, "pktgen.range.dst_ip('%d', 'inc', '%s');\n", i,
                 inet_ntop4(buff, sizeof(buff), ntohl(range->dst_ip_inc), 0xFFFFFFFF));
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.ip_proto('%d', '%s');\n", i,
+        fprintf(fd, "pktgen.range.ip_proto('%d', '%s');\n", i,
                 (range->ip_proto == PG_IPPROTO_UDP)    ? "udp"
                 : (range->ip_proto == PG_IPPROTO_ICMP) ? "icmp"
                                                        : "tcp");
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.src_port('%d', 'start', %d);\n", i, range->src_port);
-        fprintf(fd, "pktgen.src_port('%d', 'min', %d);\n", i, range->src_port_min);
-        fprintf(fd, "pktgen.src_port('%d', 'max', %d);\n", i, range->src_port_max);
-        fprintf(fd, "pktgen.src_port('%d', 'inc', %d);\n", i, range->src_port_inc);
+        fprintf(fd, "pktgen.range.src_port('%d', 'start', %d);\n", i, range->src_port);
+        fprintf(fd, "pktgen.range.src_port('%d', 'min', %d);\n", i, range->src_port_min);
+        fprintf(fd, "pktgen.range.src_port('%d', 'max', %d);\n", i, range->src_port_max);
+        fprintf(fd, "pktgen.range.src_port('%d', 'inc', %d);\n", i, range->src_port_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.dst_port('%d', 'start', %d);\n", i, range->dst_port);
-        fprintf(fd, "pktgen.dst_port('%d', 'min', %d);\n", i, range->dst_port_min);
-        fprintf(fd, "pktgen.dst_port('%d', 'max', %d);\n", i, range->dst_port_max);
-        fprintf(fd, "pktgen.dst_port('%d', 'inc', %d);\n", i, range->dst_port_inc);
+        fprintf(fd, "pktgen.range.dst_port('%d', 'start', %d);\n", i, range->dst_port);
+        fprintf(fd, "pktgen.range.dst_port('%d', 'min', %d);\n", i, range->dst_port_min);
+        fprintf(fd, "pktgen.range.dst_port('%d', 'max', %d);\n", i, range->dst_port_max);
+        fprintf(fd, "pktgen.range.dst_port('%d', 'inc', %d);\n", i, range->dst_port_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.ttl('%d', 'start', %d);\n", i, range->ttl);
-        fprintf(fd, "pktgen.ttl('%d', 'min', %d);\n", i, range->ttl_min);
-        fprintf(fd, "pktgen.ttl('%d', 'max', %d);\n", i, range->ttl_max);
-        fprintf(fd, "pktgen.ttl('%d', 'inc', %d);\n", i, range->ttl_inc);
+        fprintf(fd, "pktgen.range.ttl('%d', 'start', %d);\n", i, range->ttl);
+        fprintf(fd, "pktgen.range.ttl('%d', 'min', %d);\n", i, range->ttl_min);
+        fprintf(fd, "pktgen.range.ttl('%d', 'max', %d);\n", i, range->ttl_max);
+        fprintf(fd, "pktgen.range.ttl('%d', 'inc', %d);\n", i, range->ttl_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.vlan_id('%d', 'start', %d);\n", i, range->vlan_id);
-        fprintf(fd, "pktgen.vlan_id('%d', 'min', %d);\n", i, range->vlan_id_min);
-        fprintf(fd, "pktgen.vlan_id('%d', 'max', %d);\n", i, range->vlan_id_max);
-        fprintf(fd, "pktgen.vlan_id('%d', 'inc', %d);\n", i, range->vlan_id_inc);
+        fprintf(fd, "pktgen.range.vlan_id('%d', 'start', %d);\n", i, range->vlan_id);
+        fprintf(fd, "pktgen.range.vlan_id('%d', 'min', %d);\n", i, range->vlan_id_min);
+        fprintf(fd, "pktgen.range.vlan_id('%d', 'max', %d);\n", i, range->vlan_id_max);
+        fprintf(fd, "pktgen.range.vlan_id('%d', 'inc', %d);\n", i, range->vlan_id_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.cos('%d', 'start', %d);\n", i, range->cos);
-        fprintf(fd, "pktgen.cos('%d', 'min', %d);\n", i, range->cos_min);
-        fprintf(fd, "pktgen.cos('%d', 'max', %d);\n", i, range->cos_max);
-        fprintf(fd, "pktgen.cos('%d', 'inc', %d);\n", i, range->cos_inc);
+        fprintf(fd, "pktgen.range.cos('%d', 'start', %d);\n", i, range->cos);
+        fprintf(fd, "pktgen.range.cos('%d', 'min', %d);\n", i, range->cos_min);
+        fprintf(fd, "pktgen.range.cos('%d', 'max', %d);\n", i, range->cos_max);
+        fprintf(fd, "pktgen.range.cos('%d', 'inc', %d);\n", i, range->cos_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.tos('%d', 'start', %d);\n", i, range->tos);
-        fprintf(fd, "pktgen.tos('%d', 'min', %d);\n", i, range->tos_min);
-        fprintf(fd, "pktgen.tos('%d', 'max', %d);\n", i, range->tos_max);
-        fprintf(fd, "pktgen.tos('%d', 'inc', %d);\n", i, range->tos_inc);
+        fprintf(fd, "pktgen.range.tos('%d', 'start', %d);\n", i, range->tos);
+        fprintf(fd, "pktgen.range.tos('%d', 'min', %d);\n", i, range->tos_min);
+        fprintf(fd, "pktgen.range.tos('%d', 'max', %d);\n", i, range->tos_max);
+        fprintf(fd, "pktgen.range.tos('%d', 'inc', %d);\n", i, range->tos_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "pktgen.pkt_size('%d', 'start', %d);\n", i,
+        fprintf(fd, "pktgen.range.pkt_size('%d', 'start', %d);\n", i,
                 range->pkt_size + RTE_ETHER_CRC_LEN);
-        fprintf(fd, "pktgen.pkt_size('%d', 'min', %d);\n", i,
+        fprintf(fd, "pktgen.range.pkt_size('%d', 'min', %d);\n", i,
                 range->pkt_size_min + RTE_ETHER_CRC_LEN);
-        fprintf(fd, "pktgen.pkt_size('%d', 'max', %d);\n", i,
+        fprintf(fd, "pktgen.range.pkt_size('%d', 'max', %d);\n", i,
                 range->pkt_size_max + RTE_ETHER_CRC_LEN);
-        fprintf(fd, "pktgen.pkt_size('%d', 'inc', %d);\n\n", i, range->pkt_size_inc);
+        fprintf(fd, "pktgen.range.pkt_size('%d', 'inc', %d);\n\n", i, range->pkt_size_inc);
 
         fprintf(fd, "--\n-- Set up the sequence data for the port.\n");
         fprintf(fd, "pktgen.set('%d', 'seq_cnt', %d);\n\n", info->pid, info->seqCnt);

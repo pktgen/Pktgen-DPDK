@@ -1,11 +1,14 @@
 Pktgen-DPDK - Traffic Generator powered by DPDK
 =====================================================
 
-**Pktgen-DPDK is a traffic generator powered by DPDK at wire rate traffic with 64 byte frames.**
+**Pktgen-DPDK is a traffic generator powered by DPDK**
 
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 24.03.0 - Fix a number of problems with save command for lua scripts.
+             Removed the decompile/compile/sendPkt/recvPkt references.
+             Compiled with DPDK 24.03.0
  - 23.10.2 - Fix range tcp flags and help messages
  - 23.10.1 - Fix rte_thread_setname() change to rte_thread_set_name() for lua builds
  - 23.10.0 - Change TX rate calculations to be more accurate

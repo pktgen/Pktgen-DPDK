@@ -1553,19 +1553,41 @@ pktgen_page_display(void)
     pktgen_print_packet_dump();
 }
 
-static struct rte_timer update_stats_timer;
-static struct rte_timer update_display_timer;
-
-static void
-stats_cb(__rte_unused struct rte_timer *tim, __rte_unused void *arg)
+static void *
+_timer_thread(void *arg)
 {
-    pktgen_process_stats();
-}
+    uint64_t process, page, prev;
 
-static void
-display_cb(__rte_unused struct rte_timer *tim, __rte_unused void *arg)
-{
-    pktgen_page_display();
+    this_scrn = arg;
+
+    pktgen.stats_timeout = pktgen.hz;
+    pktgen.page_timeout  = UPDATE_DISPLAY_TICK_RATE;
+
+    page = prev = pktgen_get_time();
+    process     = page + pktgen.stats_timeout;
+    page += pktgen.page_timeout;
+
+    pktgen.timer_running = 1;
+
+    while (pktgen.timer_running) {
+        uint64_t curr;
+
+        curr = pktgen_get_time();
+
+        if (curr >= process) {
+            process = curr + pktgen.stats_timeout;
+            pktgen_process_stats();
+            prev = curr;
+        }
+
+        if (curr >= page) {
+            page = curr + pktgen.page_timeout;
+            pktgen_page_display();
+        }
+
+        rte_pause();
+    }
+    return NULL;
 }
 
 /**
@@ -1583,12 +1605,14 @@ display_cb(__rte_unused struct rte_timer *tim, __rte_unused void *arg)
 void
 pktgen_timer_setup(void)
 {
-    unsigned int main_lcore = rte_get_main_lcore();
-    uint64_t hz             = rte_get_timer_hz();
+    rte_cpuset_t cpuset_data;
+    rte_cpuset_t *cpuset = &cpuset_data;
+    pthread_t tid;
 
-    rte_timer_init(&update_stats_timer);
-    rte_timer_init(&update_display_timer);
+    CPU_ZERO(cpuset);
 
-    rte_timer_reset(&update_stats_timer, hz, PERIODICAL, main_lcore, stats_cb, NULL);
-    rte_timer_reset(&update_display_timer, hz / 4, PERIODICAL, main_lcore, display_cb, NULL);
+    pthread_create(&tid, NULL, _timer_thread, this_scrn);
+
+    CPU_SET(rte_get_main_lcore(), cpuset);
+    pthread_setaffinity_np(tid, sizeof(cpuset), cpuset);
 }

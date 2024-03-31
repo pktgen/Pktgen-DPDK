@@ -21,13 +21,6 @@ static int (*__dofile_lua)(void *, const char *);
 
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
-void
-cli_use_timers(void)
-{
-    if (this_cli && this_cli->flags & CLI_USE_TIMERS)
-        rte_timer_manage();
-}
-
 int
 cli_nodes_unlimited(void)
 {
@@ -560,9 +553,8 @@ cli_start(const char *msg)
 
     RTE_ASSERT(this_cli != NULL);
 
-    cli_printf("\n** Version: %s, %s with%s timers\n", rte_version(),
-               (msg == NULL) ? "Command Line Interface" : msg,
-               (this_cli->flags & CLI_USE_TIMERS) ? "" : "out");
+    cli_printf("\n** Version: %s, %s\n", rte_version(),
+               (msg == NULL) ? "Command Line Interface" : msg);
 
     this_cli->plen = this_cli->prompt(0);
 
@@ -574,21 +566,10 @@ cli_start(const char *msg)
     while (!this_cli->quit_flag) {
         if (cli_poll(&c))
             cli_input(&c, 1);
-        rte_timer_manage();
         rte_pause();
     }
 
     cli_printf("\n");
-}
-
-void
-cli_start_with_timers(const char *msg)
-{
-    RTE_ASSERT(this_cli != NULL);
-
-    this_cli->flags |= CLI_USE_TIMERS;
-
-    cli_start(msg);
 }
 
 /* Create a CLI root node for the tree */

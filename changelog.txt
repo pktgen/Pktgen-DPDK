@@ -6,6 +6,9 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 24.03.1 - Fix updating stats when running Lua scripts.
+             Remove a number of old .map files.
+             Remove the unused CLI support for running with timers.
  - 24.03.0 - Fix a number of problems with save command for lua scripts.
              Removed the decompile/compile/sendPkt/recvPkt references.
              Compiled with DPDK 24.03.0

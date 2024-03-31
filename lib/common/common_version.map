@@ -1,9 +1,0 @@
-DPDK_18.02 {
-	global: *;
-
-	local: *;
-};
-
-EXPERIMENTAL {
-	global: *;
-}

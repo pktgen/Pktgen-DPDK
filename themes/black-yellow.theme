@@ -33,3 +33,4 @@ theme stats.mac green none off
 theme stats.ip cyan none off
 theme pktgen.prompt green none off
 cls
+on

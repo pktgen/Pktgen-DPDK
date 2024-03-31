@@ -163,7 +163,6 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define DELETE_CHAR     (1 << 3)
 #define CLEAR_LINE      (1 << 4)
 
-#define CLI_USE_TIMERS      (1 << 8) /**< call rte_timer_manage() on input */
 #define CLI_NODES_UNLIMITED (1 << 9) /**< Allocate nodes with no limit */
 #define CLI_YIELD_IO        (1 << 10)
 #define CLI_DEFAULT_TREE    (1 << 11)
@@ -705,18 +704,6 @@ void cli_destroy(void);
 void cli_start(const char *msg);
 
 /**
- * Start the CLI running and use timerss
- *
- * @note Uses thread variable this_cli.
- *
- * @param msg
- *   User message to be displayed on startup
- * @return
- *   N/A
- */
-void cli_start_with_timers(const char *msg);
-
-/**
  * Execute command line string in cli->input
  *
  * @note Uses thread variable this_cli.
@@ -917,13 +904,6 @@ int cli_execute_cmdfiles(void);
  *   0 on OK and -1 on error
  */
 int cli_remove_node(struct cli_node *node);
-
-/**
- * Handle calling the rte_timer_manage routine if trimers are enabled
- *
- * @note Uses thread variable this_cli.
- */
-void cli_use_timers(void);
 
 /**
  * return true if allocating unlimited nodes are enabled.

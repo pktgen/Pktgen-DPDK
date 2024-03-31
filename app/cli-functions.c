@@ -878,7 +878,7 @@ static struct cli_map start_map[] = {
     {70, "stop %P latsampler"},
     {-1, NULL}
 };
-// clagn-format on
+// clang-format on
 
 static const char *start_help[] = {
     "",
@@ -1691,7 +1691,7 @@ static const char *misc_help[] = {
 #endif
     "geometry                           - Show the display geometry Columns by Rows (ColxRow)",
     "clear <portlist> stats             - Clear the statistics",
-    "clr                                - Clear all Statistices",
+    "clr                                - Clear all statistics",
     "reset <portlist>                   - Reset the configuration the ports to the default",
     "rst                                - Reset the configuration for all ports",
     "ports per page [1-6]               - Set the number of ports displayed per page",
@@ -2170,7 +2170,7 @@ static struct cli_map latency_map[] = {
 
 static const char *latency_help[] = {
     "",
-    "latency <portlist> rate <value>      - Rate in milli-seonds to send a latency packet",
+    "latency <portlist> rate <value>      - Rate in milli-seconds to send a latency packet",
     "latency <portlist> entropy <value>   - Entropy value to adjust the src-port by (SPORT + (i % N)) (default: 1)",
     "                                       e.eg. latency 0 entropy 16",
     CLI_HELP_PAUSE,

@@ -22,4 +22,3 @@ theme stats.ip cyan none bold
 theme pktgen.prompt green none off
 theme on
 cls
-on

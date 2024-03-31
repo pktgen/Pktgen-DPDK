@@ -581,7 +581,11 @@ main(int argc, char **argv)
     sigaddset(&set, SIGWINCH);
     pthread_sigmask(SIG_UNBLOCK, &set, NULL);
 
-    cli_start(NULL);
+    /* execute the command files if present */
+    scrn_resume();
+    cli_execute_cmdfiles();
+
+    cli_start(NULL); /* Start accepting input from user */
 
     scrn_pause();
     scrn_setw(1); /* Reset the window size, from possible crash run. */

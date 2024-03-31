@@ -475,8 +475,6 @@ main(int argc, char **argv)
     argc -= ret;
     argv += ret;
 
-    rte_timer_subsystem_init();
-
     /* Configure pktgen data which will be encapsulated in the mbuf. */
     pktgen_dynfield_offset = rte_mbuf_dynfield_register(&pktgen_dynfield_desc);
     if (pktgen_dynfield_offset < 0)

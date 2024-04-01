@@ -102,6 +102,9 @@ pktgen_log(int level, const char *file, long line, const char *func, const char 
     vsnprintf(curr_msg->msg, LOG_MAX_LINE, fmt, args);
     va_end(args);
 
+    if (curr_msg->msg[strlen(curr_msg->msg) - 1] == '\n')
+        curr_msg->msg[strlen(curr_msg->msg) - 1] = '\0';
+
     /* Adjust head and tail indexes: head must point one beyond the last valid
      * entry, tail must move one entry if head has caught up.
      * The array acts as a circular buffer, so if either head or tail move
@@ -169,8 +172,8 @@ pktgen_page_log(uint32_t print_labels)
         return;
 
     pktgen_display_set_color("top.page");
-    display_topline("<Logged messages>");
-    row = 2;
+    display_topline("<Logged messages>", 0, 0, 0);
+    row = PORT_FLAGS_ROW;
 
     pktgen_display_set_color("stats.stat.label");
     /* Header line */

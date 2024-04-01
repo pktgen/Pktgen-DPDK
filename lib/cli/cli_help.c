@@ -15,11 +15,9 @@ cli_help_add(const char *group, struct cli_map *map, const char **help_data)
     if (!group)
         return -1;
 
-    node = malloc(sizeof(struct help_node));
+    node = calloc(1, sizeof(struct help_node));
     if (!node)
         return -1;
-
-    memset(node, 0, sizeof(struct help_node));
 
     node->map       = map;
     node->help_data = help_data;

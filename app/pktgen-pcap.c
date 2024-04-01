@@ -16,6 +16,170 @@
 #define MBUF_INVALID_PORT UINT16_MAX
 #endif
 
+void
+pktgen_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
+{
+    printf("\nPCAP file for port %d: %s\n", port, pcap->filename);
+    printf("  magic: %08x,", pcap->info.magic_number);
+    printf(" Version: %d.%d,", pcap->info.version_major, pcap->info.version_minor);
+    printf(" Zone: %d,", pcap->info.thiszone);
+    printf(" snaplen: %d,", pcap->info.snaplen);
+    printf(" sigfigs: %d,", pcap->info.sigfigs);
+    printf(" network: %d", pcap->info.network);
+    printf(" Endian: %s\n", pcap->convert ? "Big" : "Little");
+    if (flag)
+        printf("  Packet count: %d\n", pcap->pkt_count);
+    printf("\n");
+    fflush(stdout);
+}
+
+static __inline__ void
+pcap_convert(pcap_info_t *pcap, pcaprec_hdr_t *pHdr)
+{
+    if (pcap->convert) {
+        pHdr->incl_len = ntohl(pHdr->incl_len);
+        pHdr->orig_len = ntohl(pHdr->orig_len);
+        pHdr->ts_sec   = ntohl(pHdr->ts_sec);
+        pHdr->ts_usec  = ntohl(pHdr->ts_usec);
+    }
+}
+
+static void
+pcap_rewind(pcap_info_t *pcap)
+{
+    /* Rewind to the beginning */
+    rewind(pcap->fp);
+
+    /* Seek past the pcap header */
+    (void)fseek(pcap->fp, sizeof(pcap_hdr_t), SEEK_SET);
+}
+
+static void
+pcap_get_info(pcap_info_t *pcap)
+{
+    pcaprec_hdr_t hdr;
+    if (fread(&pcap->info, 1, sizeof(pcap_hdr_t), pcap->fp) != sizeof(pcap_hdr_t))
+        rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
+
+    /* Make sure we have a valid PCAP file for Big or Little Endian formats. */
+    if (pcap->info.magic_number != PCAP_MAGIC_NUMBER)
+        pcap->convert = 0;
+    else if (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER))
+        pcap->convert = 1;
+    else
+        rte_exit(EXIT_FAILURE, "%s: invalid magic number 0x%08x\n", __func__,
+                 pcap->info.magic_number);
+
+    if (pcap->convert) {
+        pcap->info.magic_number  = ntohl(pcap->info.magic_number);
+        pcap->info.version_major = ntohs(pcap->info.version_major);
+        pcap->info.version_minor = ntohs(pcap->info.version_minor);
+        pcap->info.thiszone      = ntohl(pcap->info.thiszone);
+        pcap->info.sigfigs       = ntohl(pcap->info.sigfigs);
+        pcap->info.snaplen       = ntohl(pcap->info.snaplen);
+        pcap->info.network       = ntohl(pcap->info.network);
+    }
+
+    /* count the number of packets and get the largest size packet */
+    for (;;) {
+        if (fread(&hdr, 1, sizeof(pcaprec_hdr_t), pcap->fp) != sizeof(hdr))
+            break;
+
+        /* Convert the packet header to the correct format if needed */
+        pcap_convert(pcap, &hdr);
+
+        if (fseek(pcap->fp, hdr.incl_len, SEEK_CUR) < 0)
+            break;
+
+        pcap->pkt_count++;
+        if (hdr.incl_len > pcap->max_pkt_size)
+            pcap->max_pkt_size = hdr.incl_len;
+    }
+    pcap_rewind(pcap);
+}
+
+static __inline__ void
+mbuf_iterate_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_idx __rte_unused)
+{
+    pcap_info_t *pcap  = (pcap_info_t *)opaque;
+    struct rte_mbuf *m = (struct rte_mbuf *)obj;
+    pcaprec_hdr_t hdr;
+
+    if (fread(&hdr, 1, sizeof(pcaprec_hdr_t), pcap->fp) != sizeof(hdr))
+        rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
+
+    pcap_convert(pcap, &hdr); /* Convert the packet header to the correct format. */
+
+    if (fread(rte_pktmbuf_mtod(m, char *), 1, hdr.incl_len, pcap->fp) == 0)
+        rte_exit(EXIT_FAILURE, "%s: failed to read packet data from PCAP file\n", __func__);
+
+    m->pool     = mp;
+    m->next     = NULL;
+    m->data_len = hdr.incl_len;
+    m->pkt_len  = hdr.incl_len;
+    m->port     = 0;
+    m->ol_flags = 0;
+}
+
+pcap_info_t *
+pktgen_pcap_open(char *filename, uint16_t pid)
+{
+    pcap_info_t *pcap = NULL;
+    struct rte_mempool *mp;
+    char name[64] = {0};
+    uint16_t sid;
+
+    if (filename == NULL)
+        rte_exit(EXIT_FAILURE, "%s: PCAP filename is NULL\n", __func__);
+
+    sid = rte_eth_dev_socket_id(pid);
+
+    snprintf(name, sizeof(name), "PCAP-Info-%d", pid);
+    pcap = (pcap_info_t *)rte_zmalloc_socket(name, sizeof(pcap_info_t), RTE_CACHE_LINE_SIZE, sid);
+    if (pcap == NULL)
+        rte_exit(EXIT_FAILURE, "%s: rte_zmalloc_socket() failed for pcap_info_t structure\n",
+                 __func__);
+
+    /* Default to little endian format. */
+    pcap->filename = strdup(filename);
+
+    /* Read the pcap file trailer. */
+    pcap->fp = fopen((const char *)filename, "r");
+    if (pcap->fp == NULL)
+        rte_exit(EXIT_FAILURE, "%s: failed for (%s)\n", __func__, filename);
+
+    pcap_get_info(pcap);
+
+    snprintf(name, sizeof(name), "pcap-%d", pid);
+    mp = rte_pktmbuf_pool_create(name, pcap->pkt_count, 0, DEFAULT_PRIV_SIZE, pcap->max_pkt_size,
+                                 sid);
+    if (mp == NULL)
+        rte_exit(EXIT_FAILURE,
+                 "Cannot create mbuf pool (%s) port %d, nb_mbufs %d, socket_id %d: %s", name, pid,
+                 pcap->pkt_count, sid, rte_strerror(rte_errno));
+
+    pcap->mp = mp;
+
+    rte_mempool_obj_iter(mp, mbuf_iterate_cb, pcap);
+
+    return pcap;
+}
+
+void
+pktgen_pcap_close(pcap_info_t *pcap)
+{
+    if (pcap == NULL)
+        return;
+
+    if (pcap->filename)
+        free(pcap->filename);
+    if (pcap->fp)
+        fclose(pcap->fp);
+    if (pcap->mp)
+        rte_mempool_free(pcap->mp);
+    rte_free(pcap);
+}
+
 /**
  *
  * pktgen_print_pcap - Display the pcap data page.
@@ -27,28 +191,30 @@
  *
  * SEE ALSO:
  */
-
 static void
 pktgen_print_pcap(uint16_t pid)
 {
+#if 0
     uint32_t i, row, col, max_pkts, len;
     uint16_t type, vlan, skip;
     uint8_t proto;
-    port_info_t *info;
+    port_info_t *pinfo;
+    l2p_port_t *port;
     pkt_hdr_t *hdr;
     pcap_info_t *pcap;
     pcaprec_hdr_t pcap_hdr;
     char buff[64];
     char pkt_buff[DEFAULT_MBUF_SIZE];
+#endif
 
-    pktgen_display_set_color("top.page");
-    display_topline("<PCAP Page>");
-    scrn_printf(1, 3, "Port %d of %d", pid, pktgen.nb_ports);
+    display_topline("<PCAP Page>", pid, pid, pktgen.nb_ports);
 
-    info = &pktgen.info[pid];
-    pcap = info->pcap;
+#if 0
+    pinfo = l2p_get_port_private(pid);
+    port  = l2p_get_port(pid);
+    pcap  = port->pcap_info;
 
-    row = PORT_STATE_ROW;
+    row = PORT_FLAGS_ROW;
     col = 1;
     if (pcap == NULL) {
         scrn_cprintf(10, this_scrn->ncols, "** Port does not have a PCAP file assigned **");
@@ -58,23 +224,23 @@ pktgen_print_pcap(uint16_t pid)
 
     pktgen_display_set_color("stats.stat.label");
     scrn_eol_pos(row, col);
-    scrn_printf(row++, col, "Port: %d, PCAP Count: %d of %d", pid, pcap->pkt_idx, pcap->pkt_count);
+    scrn_printf(row++, col, "Port: %d, PCAP Count: %d of %d", pid, pcap->pkt_index, pcap->pkt_count);
     scrn_printf(row++, col, "%*s %*s%*s%*s%*s%*s%*s%*s", 5, "Seq", COLUMN_WIDTH_0, "Dst MAC",
                 COLUMN_WIDTH_0, "Src MAC", COLUMN_WIDTH_0, "Dst IP", COLUMN_WIDTH_0 + 2, "Src IP",
                 12, "Port S/D", 15, "Protocol:VLAN", 9, "Size-FCS");
 
-    max_pkts = pcap->pkt_idx + PCAP_PAGE_SIZE;
+    max_pkts = pcap->pkt_index + PCAP_PAGE_SIZE;
     if (max_pkts > pcap->pkt_count)
         max_pkts = pcap->pkt_count;
 
-    _pcap_skip(pcap, pcap->pkt_idx);
+    pcap_skip(pcap, pcap->pkt_index);
 
     pktgen_display_set_color("stats.stat.values");
-    for (i = pcap->pkt_idx; i < max_pkts; i++) {
+    for (i = pcap->pkt_index; i < max_pkts; i++) {
         col  = 1;
         skip = 0;
 
-        len = _pcap_read(pcap, &pcap_hdr, pkt_buff, sizeof(pkt_buff));
+        len = pcap_read(pcap, &pcap_hdr, pkt_buff, sizeof(pkt_buff));
         if (len == 0)
             break;
 
@@ -150,6 +316,7 @@ pktgen_print_pcap(uint16_t pid)
 leave:
     display_dashline(row + 2);
     pktgen_display_set_color(NULL);
+#endif
 
     pktgen.flags &= ~PRINT_LABELS_FLAG;
 }
@@ -173,6 +340,7 @@ pktgen_page_pcap(uint16_t pid)
         pktgen_print_pcap(pid);
 }
 
+#if 0
 /**
  *
  * pktgen_pcap_mbuf_ctor - Callback routine to construct PCAP packets.
@@ -216,14 +384,12 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
     m->next = NULL;
 
     for (;;) {
-        union pktgen_data *d = pktgen_data_field(m);
-
         if ((i & 0x3ff) == 0) {
             scrn_printf(1, 1, "%c\b", "-\\|/"[(i >> 10) & 3]);
             i++;
         }
 
-        if (unlikely(_pcap_read(pcap, &hdr, buffer, sizeof(buffer)) <= 0)) {
+        if (unlikely(pcap_read(pcap, &hdr, buffer, sizeof(buffer)) <= 0)) {
             _pcap_rewind(pcap);
             continue;
         }
@@ -231,17 +397,16 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
         len = hdr.incl_len;
 
         /* Adjust the packet length if not a valid size. */
-        if (len < MIN_PKT_SIZE)
-            len = MIN_PKT_SIZE;
-        else if (len > MAX_PKT_SIZE)
-            len = MAX_PKT_SIZE;
+        if (len < (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN))
+            len = (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
+        else if ((pktgen.flags & JUMBO_PKTS_FLAG) &&
+                 len > (RTE_ETHER_MAX_JUMBO_FRAME_LEN - RTE_ETHER_CRC_LEN))
+            len = RTE_ETHER_MAX_JUMBO_FRAME_LEN - RTE_ETHER_CRC_LEN;
+        else if (len > (RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN))
+            len = (RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN);
 
         m->data_len = len;
         m->pkt_len  = len;
-
-        d->pkt_len  = len;
-        d->data_len = len;
-        d->buf_len  = m->buf_len;
 
         rte_memcpy((uint8_t *)m->buf_addr + m->data_off, buffer, len);
         break;
@@ -261,7 +426,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
  */
 
 int
-pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
+pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *pinfo, unsigned qid)
 {
     pcaprec_hdr_t hdr;
     uint32_t elt_count, max_pkt_size, len, i;
@@ -269,12 +434,12 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
     char buffer[DEFAULT_MBUF_SIZE];
     char name[RTE_MEMZONE_NAMESIZE];
 
-    if ((pcap == NULL) || (info == NULL))
+    if ((pcap == NULL) || (pinfo == NULL))
         return -1;
 
     _pcap_rewind(pcap); /* Rewind the file is needed */
 
-    snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP TX", info->pid, qid);
+    snprintf(name, sizeof(name), "%-12s%d:%d", "PCAP-", pinfo->pid, qid);
     scrn_printf(0, 0, "    Process: %-*s ", 18, name);
 
     pkt_sizes = elt_count = max_pkt_size = i = 0;
@@ -284,10 +449,14 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
         /* Skip any jumbo packets or packets that are too small */
         len = hdr.incl_len;
 
-        if (len < (uint32_t)MIN_PKT_SIZE)
-            len = MIN_PKT_SIZE;
-        else if (len > (uint32_t)MAX_PKT_SIZE)
-            len = MAX_PKT_SIZE;
+        /* Adjust the packet length if not a valid size. */
+        if (len < (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN))
+            len = (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
+        else if ((pktgen.flags & JUMBO_PKTS_FLAG) &&
+                 len > (RTE_ETHER_MAX_JUMBO_FRAME_LEN - RTE_ETHER_CRC_LEN))
+            len = RTE_ETHER_MAX_JUMBO_FRAME_LEN - RTE_ETHER_CRC_LEN;
+        else if (len > (RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN))
+            len = (RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN);
 
         elt_count++;
 
@@ -302,6 +471,8 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
 
     /* If count is greater then zero then we allocate and create the PCAP mbuf pool. */
     if (elt_count > 0) {
+        l2p_port_t *port = l2p_get_port(pinfo->pid);
+
         /* Create the average size packet */
         pcap->pkt_size  = (pkt_sizes / elt_count);
         pcap->pkt_count = elt_count;
@@ -317,13 +488,14 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
         max_pkt_size += sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM;
 
         scrn_printf(0, 0, "\r    Create: %-*s   \b", 16, name);
-        info->q[qid].pcap_mp = rte_mempool_create(
+        port->pcap_mp[qid] = rte_mempool_create(
             name, elt_count, max_pkt_size, 0, sizeof(struct rte_pktmbuf_pool_private),
             rte_pktmbuf_pool_init, NULL, pktgen_pcap_mbuf_ctor, (void *)pcap,
-            rte_eth_dev_socket_id(info->pid), MEMPOOL_F_DMA);
+            rte_eth_dev_socket_id(pinfo->pid), MEMPOOL_F_DMA);
         scrn_printf(0, 0, "\r");
-        if (info->q[qid].pcap_mp == NULL)
-            pktgen_log_panic("Cannot init port %d for %d PCAP packets", info->pid, pcap->pkt_count);
+        if (port->pcap_mp[qid] == NULL)
+            pktgen_log_panic("Cannot init port %d for %d PCAP packets", pinfo->pid,
+                             pcap->pkt_count);
 
         data_size = ((uint64_t)pcap->pkt_count * max_pkt_size);
         scrn_printf(
@@ -333,9 +505,8 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *info, unsigned qid)
         pktgen.mem_used += data_size;
         pktgen.total_mem_used += data_size;
 
-        pktgen_set_port_flags(info, SEND_PCAP_PKTS);
+        pktgen_set_port_flags(pinfo, SEND_PCAP_PKTS);
     }
-
-    pktgen_packet_rate(info);
     return 0;
 }
+#endif

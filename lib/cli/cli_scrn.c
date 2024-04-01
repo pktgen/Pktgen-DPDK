@@ -15,7 +15,6 @@
 
 #include <rte_atomic.h>
 #include <rte_malloc.h>
-#include <rte_spinlock.h>
 
 #include <cli.h>
 #include "cli_scrn.h"

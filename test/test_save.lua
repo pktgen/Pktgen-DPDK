@@ -7,7 +7,6 @@
 
 -- #######################################################################
 -- Pktgen Configuration script information:
---   GUI socket is Not Enabled
 --   Flags 00000804
 --   Number of ports: 2
 --   Number ports per page: 4
@@ -46,12 +45,12 @@ pktgen.pattern('0', 'abc');
 
 pktgen.jitter('0', 50);
 pktgen.mpls('0', 'disable');
-pktgen.mpls_entry('0', '0');
+pktgen.range.mpls_entry('0', '0');
 pktgen.qinq('0', 'disable');
-pktgen.qinqids('0', 0, 0);
+pktgen.range.qinqids('0', 0, 0);
 pktgen.gre('0', 'disable');
 pktgen.gre_eth('0', 'disable');
-pktgen.gre_key('0', 0);
+pktgen.range.gre_key('0', 0);
 --
 -- Port flag values:
 pktgen.icmp_echo('0', 'disable');

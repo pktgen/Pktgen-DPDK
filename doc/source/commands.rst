@@ -171,7 +171,7 @@ The ``page`` commands to show different screens::
     page [0-7]                         - Show the port pages or configuration or sequence page
     page main                          - Display page zero
     page range                         - Display the range packet page
-    page config | cfg                  - Display the configuration page
+    page cpu                           - Display the CPU page
     page pcap                          - Display the pcap page
     page cpu                           - Display some information about the CPU system
     page next                          - Display next page of PCAP packets.

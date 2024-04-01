@@ -520,9 +520,9 @@ sleep_cmd(int argc __rte_unused, char **argv)
         return 0;
     }
 
-    while (cnt--) {
+    while (cnt--)
         rte_delay_us_sleep(250 * 1000);
-    }
+
     return 0;
 }
 
@@ -581,12 +581,15 @@ ver_cmd(const char *val __rte_unused)
 static struct cli_map cli_env_map[] = {
     {10, "env"}, {20, "env get %s"}, {30, "env set %s %s"}, {40, "env del %s"}, {-1, NULL}};
 
+// clang-format off
 static const char *cli_env_help[] = {
     "env                       - Display current evironment variables",
     "env get <string>          - Get the requested variable",
     "env set <string> <string> - Set the given variable to string",
-    "env del <string>          - Delete the given variable", NULL};
-
+    "env del <string>          - Delete the given variable",
+    NULL
+};
+// clang-format on
 static int
 env_cmd(int argc, char **argv)
 {
@@ -618,12 +621,10 @@ env_cmd(int argc, char **argv)
 static int
 script_cmd(int argc, char **argv)
 {
-    int i;
-
     if (argc <= 1)
         return -1;
 
-    for (i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++)
         if (cli_execute_cmdfile(argv[1]))
             return -1;
     return 0;
@@ -632,9 +633,7 @@ script_cmd(int argc, char **argv)
 static int
 echo_cmd(int argc, char **argv)
 {
-    int i;
-
-    for (i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++)
         cli_printf("%s ", argv[i]);
     cli_printf("\n");
     return 0;
@@ -647,9 +646,11 @@ version_cmd(int argc __rte_unused, char **argv __rte_unused)
     return 0;
 }
 
+// clang-format off
 static struct cli_tree cli_default_tree[] = {
     c_file("copyright", copyright_file, "DPDK copyright information"),
-    c_file("dpdk-version", version_file, "DPDK version"), c_bin("/sbin"),
+    c_file("dpdk-version", version_file, "DPDK version"),
+    c_bin("/sbin"),
 
     c_cmd("delay", delay_cmd, "delay a number of milliseconds"),
     c_cmd("sleep", sleep_cmd, "delay a number of seconds"),
@@ -661,6 +662,7 @@ static struct cli_tree cli_default_tree[] = {
     c_cmd("pwd", pwd_cmd, "pwd # display current working directory"),
     c_cmd("screen.clear", scrn_cmd, "screen.clear # clear the screen"),
     c_cmd("quit", quit_cmd, "quit # quit the application"),
+    c_alias("exit", "quit", "exit # exit the application"),
     c_cmd("history", hist_cmd, "history # display the current history"),
     c_cmd("more", more_cmd, "more <file> # display a file content"),
 #ifdef CLI_DEBUG_CMDS
@@ -675,7 +677,11 @@ static struct cli_tree cli_default_tree[] = {
     c_cmd("version", version_cmd, "Display version information"),
 
     /* The following are environment variables */
-    c_str("SHELL", NULL, "CLI shell"), c_str("DPDK_VER", ver_cmd, ""), c_end()};
+    c_str("SHELL", NULL, "CLI shell"),
+    c_str("DPDK_VER", ver_cmd, ""),
+    c_end()
+};
+// clang-format on
 
 int
 cli_default_tree_init(void)

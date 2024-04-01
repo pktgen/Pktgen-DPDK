@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2024>, Intel Corporation.
+ * Copyright(c) <2013-2024>, Intel Corporation.
  */
 
 /*
@@ -18,7 +18,7 @@
  * CPUs so far.
  *
  * Written 2011 by Kenneth Jonsson, WindRiver.
- * Adapted to DPDK by Keith Wiles, WindRiver 2013-01-08
+ * Adapted to Pktgen by Keith Wiles, WindRiver 2013-01-08
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +67,7 @@ static lcore_t *
 set_raw_socket_id(const char *line, lcore_t *lc)
 {
     lc->u.sid = as_int(line);
+    printf("Socket ID: %u, (%s)\n", lc->u.sid, line);
     return lc;
 }
 
@@ -113,10 +114,16 @@ ignore_line(const char *unused, lcore_t *lc)
 static do_line_fn
 get_matching_action(const char *line)
 {
+    // clang-format off
     static struct action actions[] = {
-        {"processor", new_lcore},     {"physical id", set_raw_socket_id},
-        {"core id", set_raw_core_id}, {"model name", set_model_name},
-        {"\n", set_thread_id_str},    {NULL, NULL}};
+        {"processor", new_lcore},
+        {"physical id", set_raw_socket_id},
+        {"core id", set_raw_core_id},
+        {"model name", set_model_name},
+        {"\n", set_thread_id_str},
+        {NULL, NULL}
+    };
+    // clang-format on
     struct action *action;
 
     for (action = actions; action->fn != NULL; ++action)
@@ -159,7 +166,7 @@ closest_gte(lcore_t *lc, lcore_t *sel, unsigned v, getter_fn get)
 
 /*
  * Makes the property returned and set by 'get'/'set' start from zero
- * and increase by one for each unique value that propery has.
+ * and increase by one for each unique value that property has.
  * Ex: core id "0,1,4,5,0,1,4,5" -> "0,1,2,3,0,1,2,3"
  */
 static void
@@ -205,7 +212,7 @@ my_getline(char **line, size_t *line_sz, int fd)
     if (*line == NULL) {
         if (*line_sz == 0)
             *line_sz = MAX_LINE_SIZE;
-        l = malloc(*line_sz);
+        l = calloc(1, *line_sz);
         if (l == NULL)
             return -1;
         *line = l;
@@ -224,8 +231,7 @@ my_getline(char **line, size_t *line_sz, int fd)
     return sz;
 }
 
-#define MAX_CNT 256
-static lc_info_t lcore_info[MAX_CNT];
+static lc_info_t lcore_info[RTE_MAX_LCORE];
 
 struct cmap *
 cmap_create(void)
@@ -239,7 +245,7 @@ cmap_create(void)
 
     memset(lcore_info, '\0', sizeof(lcore_info));
 
-    cmap = malloc(sizeof(struct cmap));
+    cmap = calloc(1, sizeof(struct cmap));
     if (!cmap)
         return NULL;
 

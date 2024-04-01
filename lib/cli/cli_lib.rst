@@ -487,7 +487,7 @@ Example:
 			if (node->file_data && (node->fflags & CLI_FREE_DATA))
 				free(node->file_data);
 
-	        node->file_data = malloc(32 * 1024);
+	        node->file_data = calloc(1, 32 * 1024);
 			if (!node->file_data)
 				return -1;
 	        node->file_size = 32 * 1024;

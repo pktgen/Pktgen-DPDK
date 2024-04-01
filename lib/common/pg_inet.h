@@ -414,15 +414,15 @@ typedef union {
 typedef struct pkt_hdr_s {
     struct rte_ether_hdr eth; /**< Ethernet header */
     union {
-        struct rte_ipv4_hdr ipv4; /**< IPv4 Header */
-        struct rte_ipv6_hdr ipv6; /**< IPv6 Header */
-        tcpip_t tip;              /**< TCP + IPv4 Headers */
-        udpip_t uip;              /**< UDP + IPv4 Headers */
-        gtpuUdpIp_t guip;         /**< GTP-U + UDP + IPv4 Header */
-        struct rte_icmp_hdr icmp; /**< ICMP + IPv4 Headers */
-        tcpipv6_t tip6;           /**< TCP + IPv6 Headers */
-        udpipv6_t uip6;           /**< UDP + IPv6 Headers */
-        uint64_t pad[8];          /**< Length of structures */
+        struct rte_ipv4_hdr ipv4;                        /**< IPv4 Header */
+        struct rte_ipv6_hdr ipv6;                        /**< IPv6 Header */
+        tcpip_t tip;                                     /**< TCP + IPv4 Headers */
+        udpip_t uip;                                     /**< UDP + IPv4 Headers */
+        gtpuUdpIp_t guip;                                /**< GTP-U + UDP + IPv4 Header */
+        struct rte_icmp_hdr icmp;                        /**< ICMP + IPv4 Headers */
+        tcpipv6_t tip6;                                  /**< TCP + IPv6 Headers */
+        udpipv6_t uip6;                                  /**< UDP + IPv6 Headers */
+        uint8_t pad[128 - sizeof(struct rte_ether_hdr)]; /* Force 128 bytes */
     } __attribute__((packed)) u;
 } pkt_hdr_t;
 

@@ -45,24 +45,7 @@
 #include <rte_eth_bond.h>
 #include <rte_eth_bond_8023ad.h>
 #endif
-
-static inline uint16_t
-valid_pkt_size(char *val)
-{
-    uint16_t pkt_size;
-
-    if (!val)
-        return (MIN_PKT_SIZE + RTE_ETHER_CRC_LEN);
-
-    pkt_size = atoi(val);
-    if (pkt_size < pktgen.eth_min_pkt)
-        pkt_size = pktgen.eth_min_pkt;
-
-    if (pkt_size > pktgen.eth_max_pkt)
-        pkt_size = pktgen.eth_max_pkt;
-
-    return pkt_size;
-}
+#include <hmap.h>
 
 static inline uint16_t
 valid_gtpu_teid(port_info_t *info __rte_unused, char *val)
@@ -217,14 +200,14 @@ range_cmd(int argc, char **argv)
             cli_printf("Failed to parse MAC address from (%s)\n", val);
             break;
         }
-        foreach_port(portlist, range_set_dest_mac(info, what, &mac[0]));
+        foreach_port(portlist, range_set_dest_mac(pinfo, what, &mac[0]));
         break;
     case 21:
         if (pg_ether_aton(val, &mac[0]) == NULL) {
             cli_printf("Failed to parse MAC address from (%s)\n", val);
             break;
         }
-        foreach_port(portlist, range_set_src_mac(info, what, &mac[0]));
+        foreach_port(portlist, range_set_src_mac(pinfo, what, &mac[0]));
         break;
     case 22:
         if (pg_ether_aton(argv[4], &mac[0]) == NULL) {
@@ -243,10 +226,10 @@ range_cmd(int argc, char **argv)
             cli_printf("Failed to parse MAC address from (%s)\n", argv[7]);
             break;
         }
-        foreach_port(portlist, range_set_dest_mac(info, "start", &mac[0]);
-                     range_set_dest_mac(info, "min", &mac[1]);
-                     range_set_dest_mac(info, "max", &mac[2]);
-                     range_set_dest_mac(info, "inc", &mac[3]));
+        foreach_port(portlist, range_set_dest_mac(pinfo, "start", &mac[0]);
+                     range_set_dest_mac(pinfo, "min", &mac[1]);
+                     range_set_dest_mac(pinfo, "max", &mac[2]);
+                     range_set_dest_mac(pinfo, "inc", &mac[3]));
         break;
     case 23:
         if (pg_ether_aton(argv[4], &mac[0]) == NULL) {
@@ -265,10 +248,10 @@ range_cmd(int argc, char **argv)
             cli_printf("Failed to parse MAC address from (%s)\n", argv[7]);
             break;
         }
-        foreach_port(portlist, range_set_src_mac(info, "start", &mac[0]);
-                     range_set_src_mac(info, "min", &mac[1]);
-                     range_set_src_mac(info, "max", &mac[2]);
-                     range_set_src_mac(info, "inc", &mac[3]));
+        foreach_port(portlist, range_set_src_mac(pinfo, "start", &mac[0]);
+                     range_set_src_mac(pinfo, "min", &mac[1]);
+                     range_set_src_mac(pinfo, "max", &mac[2]);
+                     range_set_src_mac(pinfo, "inc", &mac[3]));
         break;
     case 30:
         /* Remove the /XX mask value is supplied */
@@ -276,7 +259,7 @@ range_cmd(int argc, char **argv)
         if (p)
             *p = '\0';
         _atoip(val, 0, &ip, sizeof(ip));
-        foreach_port(portlist, range_set_dst_ip(info, what, &ip));
+        foreach_port(portlist, range_set_dst_ip(pinfo, what, &ip));
         break;
     case 31:
         /* Remove the /XX mask value is supplied */
@@ -284,27 +267,27 @@ range_cmd(int argc, char **argv)
         if (p)
             *p = '\0';
         _atoip(argv[5], 0, &ip, sizeof(ip));
-        foreach_port(portlist, range_set_src_ip(info, what, &ip));
+        foreach_port(portlist, range_set_src_ip(pinfo, what, &ip));
         break;
     case 32:
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "start", &ip);
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "start", &ip);
                      _atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "min", &ip);
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "min", &ip);
                      _atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "max", &ip);
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "max", &ip);
                      _atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "inc", &ip));
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "inc", &ip));
         break;
     case 33:
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "start", &ip);
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "start", &ip);
                      _atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "min", &ip);
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "min", &ip);
                      _atoip(argv[6], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "max", &ip);
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "max", &ip);
                      _atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "inc", &ip));
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "inc", &ip));
         break;
     case 34:
         /* Remove the /XX mask value is supplied */
@@ -312,7 +295,7 @@ range_cmd(int argc, char **argv)
         if (p)
             *p = '\0';
         _atoip(val, 0, &ip, sizeof(ip));
-        foreach_port(portlist, range_set_dst_ip(info, what, &ip));
+        foreach_port(portlist, range_set_dst_ip(pinfo, what, &ip));
         break;
     case 35:
         /* Remove the /XX mask value is supplied */
@@ -320,167 +303,169 @@ range_cmd(int argc, char **argv)
         if (p)
             *p = '\0';
         _atoip(argv[5], 0, &ip, sizeof(ip));
-        foreach_port(portlist, range_set_src_ip(info, what, &ip));
+        foreach_port(portlist, range_set_src_ip(pinfo, what, &ip));
         break;
     case 36:
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "start", &ip);
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "start", &ip);
                      _atoip(argv[5], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "min", &ip);
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "min", &ip);
                      _atoip(argv[6], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "max", &ip);
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "max", &ip);
                      _atoip(argv[7], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_dst_ip(info, (char *)(uintptr_t) "inc", &ip));
+                     range_set_dst_ip(pinfo, (char *)(uintptr_t) "inc", &ip));
         break;
     case 37:
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "start", &ip);
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "start", &ip);
                      _atoip(argv[5], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "min", &ip);
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "min", &ip);
                      _atoip(argv[6], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "max", &ip);
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "max", &ip);
                      _atoip(argv[7], PG_IPADDR_V6, &ip, sizeof(ip));
-                     range_set_src_ip(info, (char *)(uintptr_t) "inc", &ip));
+                     range_set_src_ip(pinfo, (char *)(uintptr_t) "inc", &ip));
         break;
     case 40:
-        foreach_port(portlist, range_set_proto(info, argv[3]));
+        foreach_port(portlist, range_set_proto(pinfo, argv[3]));
         break;
     case 41:
-        foreach_port(portlist, range_set_pkt_type(info, argv[3]));
+        foreach_port(portlist, range_set_pkt_type(pinfo, argv[3]));
         break;
     case 42:
-        foreach_port(portlist, range_set_tcp_flag_set(info, argv[5]));
+        foreach_port(portlist, range_set_tcp_flag_set(pinfo, argv[5]));
         break;
     case 43:
-        foreach_port(portlist, range_set_tcp_flag_clr(info, argv[5]));
+        foreach_port(portlist, range_set_tcp_flag_clr(pinfo, argv[5]));
         break;
     case 44:
-        foreach_port(portlist, range_set_tcp_seq(info, (char *)(uintptr_t) "start", atoi(argv[4]));
-                     range_set_tcp_seq(info, (char *)(uintptr_t) "min", atoi(argv[5]));
-                     range_set_tcp_seq(info, (char *)(uintptr_t) "max", atoi(argv[6]));
-                     range_set_tcp_seq(info, (char *)(uintptr_t) "inc", atoi(argv[7])));
+        foreach_port(portlist, range_set_tcp_seq(pinfo, (char *)(uintptr_t) "start", atoi(argv[4]));
+                     range_set_tcp_seq(pinfo, (char *)(uintptr_t) "min", atoi(argv[5]));
+                     range_set_tcp_seq(pinfo, (char *)(uintptr_t) "max", atoi(argv[6]));
+                     range_set_tcp_seq(pinfo, (char *)(uintptr_t) "inc", atoi(argv[7])));
         break;
     case 45:
-        foreach_port(portlist, range_set_tcp_ack(info, (char *)(uintptr_t) "start", atoi(argv[4]));
-                     range_set_tcp_ack(info, (char *)(uintptr_t) "min", atoi(argv[5]));
-                     range_set_tcp_ack(info, (char *)(uintptr_t) "max", atoi(argv[6]));
-                     range_set_tcp_ack(info, (char *)(uintptr_t) "inc", atoi(argv[7])));
+        foreach_port(portlist, range_set_tcp_ack(pinfo, (char *)(uintptr_t) "start", atoi(argv[4]));
+                     range_set_tcp_ack(pinfo, (char *)(uintptr_t) "min", atoi(argv[5]));
+                     range_set_tcp_ack(pinfo, (char *)(uintptr_t) "max", atoi(argv[6]));
+                     range_set_tcp_ack(pinfo, (char *)(uintptr_t) "inc", atoi(argv[7])));
         break;
     case 46:
-        foreach_port(portlist, range_set_tcp_seq(info, what, atoi(val)));
+        foreach_port(portlist, range_set_tcp_seq(pinfo, what, atoi(val)));
         break;
     case 47:
-        foreach_port(portlist, range_set_tcp_ack(info, what, atoi(val)));
+        foreach_port(portlist, range_set_tcp_ack(pinfo, what, atoi(val)));
         break;
     case 50:
-        foreach_port(portlist, range_set_dst_port(info, what, atoi(val)));
+        foreach_port(portlist, range_set_dst_port(pinfo, what, atoi(val)));
         break;
     case 51:
-        foreach_port(portlist, range_set_src_port(info, what, atoi(val)));
+        foreach_port(portlist, range_set_src_port(pinfo, what, atoi(val)));
         break;
     case 52:
-        foreach_port(portlist, range_set_dst_port(info, (char *)(uintptr_t) "start", atoi(argv[4]));
-                     range_set_dst_port(info, (char *)(uintptr_t) "min", atoi(argv[5]));
-                     range_set_dst_port(info, (char *)(uintptr_t) "max", atoi(argv[6]));
-                     range_set_dst_port(info, (char *)(uintptr_t) "inc", atoi(argv[7])));
+        foreach_port(portlist,
+                     range_set_dst_port(pinfo, (char *)(uintptr_t) "start", atoi(argv[4]));
+                     range_set_dst_port(pinfo, (char *)(uintptr_t) "min", atoi(argv[5]));
+                     range_set_dst_port(pinfo, (char *)(uintptr_t) "max", atoi(argv[6]));
+                     range_set_dst_port(pinfo, (char *)(uintptr_t) "inc", atoi(argv[7])));
         break;
     case 53:
-        foreach_port(portlist, range_set_src_port(info, (char *)(uintptr_t) "start", atoi(argv[4]));
-                     range_set_src_port(info, (char *)(uintptr_t) "min", atoi(argv[5]));
-                     range_set_src_port(info, (char *)(uintptr_t) "max", atoi(argv[6]));
-                     range_set_src_port(info, (char *)(uintptr_t) "inc", atoi(argv[7])));
+        foreach_port(portlist,
+                     range_set_src_port(pinfo, (char *)(uintptr_t) "start", atoi(argv[4]));
+                     range_set_src_port(pinfo, (char *)(uintptr_t) "min", atoi(argv[5]));
+                     range_set_src_port(pinfo, (char *)(uintptr_t) "max", atoi(argv[6]));
+                     range_set_src_port(pinfo, (char *)(uintptr_t) "inc", atoi(argv[7])));
         break;
     case 55:
-        foreach_port(portlist, range_set_ttl(info, argv[3], atoi(argv[4])));
+        foreach_port(portlist, range_set_ttl(pinfo, argv[3], atoi(argv[4])));
         break;
     case 56:
-        foreach_port(portlist, range_set_ttl(info, (char *)(uintptr_t) "start", atoi(argv[3]));
-                     range_set_ttl(info, (char *)(uintptr_t) "min", atoi(argv[4]));
-                     range_set_ttl(info, (char *)(uintptr_t) "max", atoi(argv[5]));
-                     range_set_ttl(info, (char *)(uintptr_t) "inc", atoi(argv[6])));
+        foreach_port(portlist, range_set_ttl(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_ttl(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_ttl(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_ttl(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])));
         break;
     case 60:
-        foreach_port(portlist, range_set_vlan_id(info, argv[3], atoi(what)));
+        foreach_port(portlist, range_set_vlan_id(pinfo, argv[3], atoi(what)));
         break;
     case 61:
-        foreach_port(portlist, range_set_vlan_id(info, (char *)(uintptr_t) "start", atoi(argv[3]));
-                     range_set_vlan_id(info, (char *)(uintptr_t) "min", atoi(argv[4]));
-                     range_set_vlan_id(info, (char *)(uintptr_t) "max", atoi(argv[5]));
-                     range_set_vlan_id(info, (char *)(uintptr_t) "inc", atoi(argv[6])));
+        foreach_port(portlist, range_set_vlan_id(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_vlan_id(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_vlan_id(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_vlan_id(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])));
         break;
     case 70:
-        foreach_port(portlist, range_set_pkt_size(info, argv[3],
-                                                  strcmp("inc", argv[3]) ? valid_pkt_size(what)
-                                                                         : atoi(what)));
+        foreach_port(portlist,
+                     range_set_pkt_size(pinfo, argv[3],
+                                        strcmp("inc", argv[3]) ? atoi(argv[4]) : atoi(argv[3])));
         break;
     case 71:
         foreach_port(portlist,
-                     range_set_pkt_size(info, (char *)(uintptr_t) "start", valid_pkt_size(argv[3]));
-                     range_set_pkt_size(info, (char *)(uintptr_t) "min", valid_pkt_size(argv[4]));
-                     range_set_pkt_size(info, (char *)(uintptr_t) "max", valid_pkt_size(argv[5]));
-                     range_set_pkt_size(info, (char *)(uintptr_t) "inc", atoi(argv[6])););
+                     range_set_pkt_size(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_pkt_size(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_pkt_size(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_pkt_size(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])););
         break;
     case 80:
-        foreach_port(portlist, range_set_mpls_entry(info, strtoul(what, NULL, 16)));
+        foreach_port(portlist, range_set_mpls_entry(pinfo, strtoul(what, NULL, 16)));
         break;
     case 85:
-        foreach_port(portlist, range_set_qinqids(info, atoi(what), atoi(val)));
+        foreach_port(portlist, range_set_qinqids(pinfo, atoi(what), atoi(val)));
         break;
     case 90:
     case 91:
-        foreach_port(portlist, range_set_gre_key(info, strtoul(what, NULL, 10)));
+        foreach_port(portlist, range_set_gre_key(pinfo, strtoul(what, NULL, 10)));
         break;
     case 100:
-        foreach_port(
-            portlist,
-            range_set_gtpu_teid(info, argv[3],
-                                strcmp("inc", argv[3]) ? valid_gtpu_teid(info, what) : atoi(what)));
+        foreach_port(portlist,
+                     range_set_gtpu_teid(pinfo, argv[3],
+                                         strcmp("inc", argv[3]) ? valid_gtpu_teid(pinfo, what)
+                                                                : atoi(what)));
         break;
     case 101:
         foreach_port(
-            portlist,
-            range_set_gtpu_teid(info, (char *)(uintptr_t) "start", valid_gtpu_teid(info, argv[3]));
-            range_set_gtpu_teid(info, (char *)(uintptr_t) "min", valid_gtpu_teid(info, argv[4]));
-            range_set_gtpu_teid(info, (char *)(uintptr_t) "max", valid_gtpu_teid(info, argv[5]));
-            range_set_gtpu_teid(info, (char *)(uintptr_t) "inc", atoi(argv[6])););
+            portlist, range_set_gtpu_teid(pinfo, (char *)(uintptr_t) "start",
+                                          valid_gtpu_teid(pinfo, argv[3]));
+            range_set_gtpu_teid(pinfo, (char *)(uintptr_t) "min", valid_gtpu_teid(pinfo, argv[4]));
+            range_set_gtpu_teid(pinfo, (char *)(uintptr_t) "max", valid_gtpu_teid(pinfo, argv[5]));
+            range_set_gtpu_teid(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])););
         break;
     case 160:
-        foreach_port(portlist, range_set_cos_id(info, argv[3], atoi(what)));
+        foreach_port(portlist, range_set_cos_id(pinfo, argv[3], atoi(what)));
         break;
     case 161:
-        foreach_port(portlist, range_set_cos_id(info, (char *)(uintptr_t) "start", atoi(argv[3]));
-                     range_set_cos_id(info, (char *)(uintptr_t) "min", atoi(argv[4]));
-                     range_set_cos_id(info, (char *)(uintptr_t) "max", atoi(argv[5]));
-                     range_set_cos_id(info, (char *)(uintptr_t) "inc", atoi(argv[6])););
+        foreach_port(portlist, range_set_cos_id(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_cos_id(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_cos_id(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_cos_id(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])););
         break;
     case 170:
-        foreach_port(portlist, range_set_tos_id(info, argv[3], atoi(what)));
+        foreach_port(portlist, range_set_tos_id(pinfo, argv[3], atoi(what)));
         break;
     case 171:
-        foreach_port(portlist, range_set_tos_id(info, (char *)(uintptr_t) "start", atoi(argv[3]));
-                     range_set_tos_id(info, (char *)(uintptr_t) "min", atoi(argv[4]));
-                     range_set_tos_id(info, (char *)(uintptr_t) "max", atoi(argv[5]));
-                     range_set_tos_id(info, (char *)(uintptr_t) "inc", atoi(argv[6])));
+        foreach_port(portlist, range_set_tos_id(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_tos_id(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_tos_id(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_tos_id(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])));
         break;
     case 172:
-        foreach_port(portlist, range_set_hop_limits(info, argv[3], atoi(what)));
+        foreach_port(portlist, range_set_hop_limits(pinfo, argv[3], atoi(what)));
         break;
     case 173:
         foreach_port(portlist,
-                     range_set_hop_limits(info, (char *)(uintptr_t) "start", atoi(argv[3]));
-                     range_set_hop_limits(info, (char *)(uintptr_t) "min", atoi(argv[4]));
-                     range_set_hop_limits(info, (char *)(uintptr_t) "max", atoi(argv[5]));
-                     range_set_hop_limits(info, (char *)(uintptr_t) "inc", atoi(argv[6])));
+                     range_set_hop_limits(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_hop_limits(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_hop_limits(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_hop_limits(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])));
         break;
     case 174:
-        foreach_port(portlist, range_set_traffic_class(info, argv[3], atoi(what)));
+        foreach_port(portlist, range_set_traffic_class(pinfo, argv[3], atoi(what)));
         break;
     case 175:
         foreach_port(portlist,
-                     range_set_traffic_class(info, (char *)(uintptr_t) "start", atoi(argv[3]));
-                     range_set_traffic_class(info, (char *)(uintptr_t) "min", atoi(argv[4]));
-                     range_set_traffic_class(info, (char *)(uintptr_t) "max", atoi(argv[5]));
-                     range_set_traffic_class(info, (char *)(uintptr_t) "inc", atoi(argv[6])));
+                     range_set_traffic_class(pinfo, (char *)(uintptr_t) "start", atoi(argv[3]));
+                     range_set_traffic_class(pinfo, (char *)(uintptr_t) "min", atoi(argv[4]));
+                     range_set_traffic_class(pinfo, (char *)(uintptr_t) "max", atoi(argv[5]));
+                     range_set_traffic_class(pinfo, (char *)(uintptr_t) "inc", atoi(argv[6])));
         break;
 
     default:
@@ -623,91 +608,91 @@ set_cmd(int argc, char **argv)
         n = cli_map_list_search(m->fmt, argv[2], 2);
         foreach_port(portlist, _do(switch (n) {
             case 0:
-                single_set_tx_count(info, value);
+                single_set_tx_count(pinfo, value);
                 break;
             case 1:
-                single_set_pkt_size(info, valid_pkt_size(argv[3]));
+                single_set_pkt_size(pinfo, atoi(argv[3]));
                 break;
             case 2:
-                single_set_tx_rate(info, argv[3]);
+                single_set_tx_rate(pinfo, argv[3]);
                 break;
             case 3:
-                single_set_tx_burst(info, value);
+                single_set_tx_burst(pinfo, value);
                 break;
             case 4:
-                debug_set_tx_cycles(info, value);
+                debug_set_tx_cycles(pinfo, value);
                 break;
             case 5:
-                single_set_port_value(info, what[0], value);
+                single_set_port_value(pinfo, what[0], value);
                 break;
             case 6:
-                single_set_port_value(info, what[0], value);
+                single_set_port_value(pinfo, what[0], value);
                 break;
             case 7:
-                pktgen_set_port_prime(info, value);
+                pktgen_set_port_prime(pinfo, value);
                 break;
             case 8:
-                debug_set_port_dump(info, value);
+                debug_set_port_dump(pinfo, value);
                 break;
             case 9: /* vlanid and vlan are valid */
             case 10:
-                single_set_vlan_id(info, value);
+                single_set_vlan_id(pinfo, value);
                 break;
             case 11:
                 /* FALLTHRU */
             case 12:
                 /* FALLTHRU */
             case 13:
-                pktgen_set_port_seqCnt(info, value);
+                pktgen_set_port_seqCnt(pinfo, value);
                 break;
             case 14:
-                single_set_ttl_value(info, value);
+                single_set_ttl_value(pinfo, value);
                 break;
             case 15:
-                single_set_tx_burst(info, value);
+                single_set_tx_burst(pinfo, value);
                 break;
             case 16:
-                single_set_rx_burst(info, value);
+                single_set_rx_burst(pinfo, value);
                 break;
             default:
                 return cli_cmd_error("Set command is invalid", "Set", argc, argv);
         }));
         break;
     case 11:
-        foreach_port(portlist, single_set_jitter(info, strtoull(argv[3], NULL, 0)));
+        foreach_port(portlist, single_set_jitter(pinfo, strtoull(argv[3], NULL, 0)));
         break;
     case 20:
-        foreach_port(portlist, single_set_pkt_type(info, argv[3]));
+        foreach_port(portlist, single_set_pkt_type(pinfo, argv[3]));
         break;
     case 21:
-        foreach_port(portlist, single_set_proto(info, argv[3]));
+        foreach_port(portlist, single_set_proto(pinfo, argv[3]));
         break;
     case 22:
         if (pg_ether_aton(argv[4], &mac) == NULL) {
             cli_printf("Failed to parse MAC address from (%s)\n", argv[4]);
             break;
         }
-        foreach_port(portlist, single_set_src_mac(info, &mac));
+        foreach_port(portlist, single_set_src_mac(pinfo, &mac));
         break;
     case 23:
         if (pg_ether_aton(argv[4], &mac) == NULL) {
             cli_printf("Failed to parse MAC address from (%s)\n", argv[4]);
             break;
         }
-        foreach_port(portlist, single_set_dst_mac(info, &mac));
+        foreach_port(portlist, single_set_dst_mac(pinfo, &mac));
         break;
     case 24:
-        foreach_port(portlist, pattern_set_type(info, argv[3]));
+        foreach_port(portlist, pattern_set_type(pinfo, argv[3]));
         break;
     case 25:
-        foreach_port(portlist, pattern_set_user_pattern(info, argv[4]));
+        foreach_port(portlist, pattern_set_user_pattern(pinfo, argv[4]));
         break;
     case 30:
         p = strchr(argv[4], '/');
         if (!p)
             cli_printf("src IP address should contain subnet value, default /32 for IPv4\n");
         ip_ver = _atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-        foreach_port(portlist, single_set_ipaddr(info, 's', &ip, ip_ver));
+        foreach_port(portlist, single_set_ipaddr(pinfo, 's', &ip, ip_ver));
         break;
     case 31:
         /* Remove the /XX mask value if supplied */
@@ -717,7 +702,7 @@ set_cmd(int argc, char **argv)
             *p = '\0';
         }
         ip_ver = _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
-        foreach_port(portlist, single_set_ipaddr(info, 'd', &ip, ip_ver));
+        foreach_port(portlist, single_set_ipaddr(pinfo, 'd', &ip, ip_ver));
         break;
     case 32:
         p = strchr(argv[4], '/');
@@ -725,7 +710,7 @@ set_cmd(int argc, char **argv)
             cli_printf("src IP address should contain subnet value, default /128 for IPv6\n");
 
         ip_ver = _atoip(argv[4], PG_IPADDR_V6 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-        foreach_port(portlist, single_set_ipaddr(info, 's', &ip, ip_ver));
+        foreach_port(portlist, single_set_ipaddr(pinfo, 's', &ip, ip_ver));
         break;
     case 33:
         /* Remove the /XX mask value if supplied */
@@ -735,19 +720,19 @@ set_cmd(int argc, char **argv)
             *p = '\0';
         }
         ip_ver = _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
-        foreach_port(portlist, single_set_ipaddr(info, 'd', &ip, ip_ver));
+        foreach_port(portlist, single_set_ipaddr(pinfo, 'd', &ip, ip_ver));
         break;
     case 34:
-        foreach_port(portlist, single_set_tcp_flag_set(info, argv[5]));
+        foreach_port(portlist, single_set_tcp_flag_set(pinfo, argv[5]));
         break;
     case 35:
-        foreach_port(portlist, single_set_tcp_flag_clr(info, argv[5]));
+        foreach_port(portlist, single_set_tcp_flag_clr(pinfo, argv[5]));
         break;
     case 36:
-        foreach_port(portlist, single_set_tcp_seq(info, atoi(argv[4])));
+        foreach_port(portlist, single_set_tcp_seq(pinfo, atoi(argv[4])));
         break;
     case 37:
-        foreach_port(portlist, single_set_tcp_ack(info, atoi(argv[4])));
+        foreach_port(portlist, single_set_tcp_ack(pinfo, atoi(argv[4])));
         break;
     case 40:
         pktgen_set_page_size(atoi(argv[2]));
@@ -755,7 +740,7 @@ set_cmd(int argc, char **argv)
     case 50:
         id1 = strtol(argv[3], NULL, 0);
         id2 = strtol(argv[4], NULL, 0);
-        foreach_port(portlist, single_set_qinqids(info, id1, id2));
+        foreach_port(portlist, single_set_qinqids(pinfo, id1, id2));
         break;
     case 60: {
         char mask[34] = {0}, *m;
@@ -773,29 +758,29 @@ set_cmd(int argc, char **argv)
                 if ((cb == '0') || (cb == '1') || (cb == '.') || (cb == 'X') || (cb == 'x'))
                     mask[idx++] = cb;
         }
-        foreach_port(portlist, enable_random(info, pktgen_set_random_bitfield(info->rnd_bitfields,
+        foreach_port(portlist, enable_random(pinfo, pktgen_set_random_bitfield(pinfo->rnd_bitfields,
                                                                               id1, id2, mask)
                                                        ? ENABLE_STATE
                                                        : DISABLE_STATE));
     } break;
     case 70:
         id1 = strtol(argv[3], NULL, 0);
-        foreach_port(portlist, single_set_cos(info, id1));
+        foreach_port(portlist, single_set_cos(pinfo, id1));
         break;
     case 80:
         id1 = strtol(argv[3], NULL, 0);
-        foreach_port(portlist, single_set_tos(info, id1));
+        foreach_port(portlist, single_set_tos(pinfo, id1));
         break;
     case 90:
         id1 = strtol(argv[3], NULL, 0);
         id2 = strtol(argv[4], NULL, 0);
         u1  = strtol(argv[5], NULL, 0);
-        foreach_port(portlist, single_set_vxlan(info, id1, id2, u1));
+        foreach_port(portlist, single_set_vxlan(pinfo, id1, id2, u1));
         break;
     case 100:
         u1 = strtol(argv[4], NULL, 0);
         u2 = strtol(argv[5], NULL, 0);
-        foreach_port(portlist, single_set_latsampler_params(info, argv[3], u1, u2, argv[6]));
+        foreach_port(portlist, single_set_latsampler_params(pinfo, argv[3], u1, u2, argv[6]));
         break;
     default:
         return cli_cmd_error("Command invalid", "Set", argc, argv);
@@ -831,35 +816,38 @@ pcap_cmd(int argc, char **argv)
     uint32_t max_cnt;
     uint32_t value;
     portlist_t portlist;
+    port_info_t *pinfo;
 
     m = cli_mapping(pcap_map, argc, argv);
     if (!m)
         return cli_cmd_error("PCAP command invalid", "PCAP", argc, argv);
 
+    pinfo = l2p_get_port_pinfo(pktgen.curr_port);
     switch (m->index) {
     case 10:
-        pcap  = pktgen.info[pktgen.portNum].pcap;
+        pcap  = l2p_get_pcap(pinfo->pid);
         value = strtoul(argv[1], NULL, 10);
 
         if (pcap) {
             max_cnt = pcap->pkt_count;
             if (value >= max_cnt)
-                pcap->pkt_idx = max_cnt - RTE_MIN(PCAP_PAGE_SIZE, (int)max_cnt);
+                pcap->pkt_index = max_cnt - RTE_MIN(PCAP_PAGE_SIZE, (int)max_cnt);
             else
-                pcap->pkt_idx = value;
+                pcap->pkt_index = value;
             pktgen.flags |= PRINT_LABELS_FLAG;
         } else
-            pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.portNum);
+            pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.curr_port);
         break;
     case 20:
-        if (pktgen.info[pktgen.portNum].pcap)
-            _pcap_info(pktgen.info[pktgen.portNum].pcap, pktgen.portNum, 1);
+        pcap = l2p_get_pcap(pinfo->pid);
+        if (pcap)
+            pktgen_pcap_info(pcap, pktgen.curr_port, 1);
         else
-            pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.portNum);
+            pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.curr_port);
         break;
     case 30:
         portlist_parse(argv[2], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, pcap_filter(info, argv[3]));
+        foreach_port(portlist, pcap_filter(pinfo, argv[3]));
         break;
     default:
         return cli_cmd_error("PCAP command invalid", "PCAP", argc, argv);
@@ -910,25 +898,25 @@ start_stop_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        foreach_port(portlist, pktgen_start_transmitting(info));
+        foreach_port(portlist, pktgen_start_transmitting(pinfo));
         break;
     case 20:
-        foreach_port(portlist, pktgen_stop_transmitting(info));
+        foreach_port(portlist, pktgen_stop_transmitting(pinfo));
         break;
     case 40:
-        foreach_port(portlist, pktgen_prime_ports(info));
+        foreach_port(portlist, pktgen_prime_ports(pinfo));
         break;
     case 50:
         if (argv[3][0] == 'g')
-            foreach_port(portlist, pktgen_send_arp_requests(info, GRATUITOUS_ARP));
+            foreach_port(portlist, pktgen_send_arp_requests(pinfo, GRATUITOUS_ARP));
         else
-            foreach_port(portlist, pktgen_send_arp_requests(info, 0));
+            foreach_port(portlist, pktgen_send_arp_requests(pinfo, 0));
         break;
     case 60:
-        foreach_port(portlist, pktgen_start_latency_sampler(info));
+        foreach_port(portlist, pktgen_start_latency_sampler(pinfo));
         break;
     case 70:
-        foreach_port(portlist, pktgen_stop_latency_sampler(info));
+        foreach_port(portlist, pktgen_stop_latency_sampler(pinfo));
         break;
     default:
         return cli_cmd_error("Start/Stop command invalid", "Start", argc, argv);
@@ -996,15 +984,13 @@ theme_cmd(int argc, char **argv)
     "latency|" /*  7 */ \
     "pcap|"    /*  8 */ \
     "blink|"   /*  9 */ \
-    "rx_tap|"  /* 10 */ \
-    "tx_tap|"  /* 11 */ \
-    "icmp|"    /* 12 */ \
-    "range|"   /* 13 */ \
-    "capture|" /* 14 */ \
-    "bonding|" /* 15 */ \
-    "vxlan|"   /* 16 */ \
-    "rate|"    /* 17 */ \
-    "lat"      /* 18 */
+    "icmp|"    /* 10 */ \
+    "range|"   /* 11 */ \
+    "capture|" /* 12 */ \
+    "bonding|" /* 13 */ \
+    "vxlan|"   /* 14 */ \
+    "rate|"    /* 15 */ \
+    "lat"      /* 16 */
 
 // clang-format off
 static struct cli_map enable_map[] = {
@@ -1031,8 +1017,6 @@ static const char *enable_help[] = {
     "enable|disable <portlist> latency  - Enable/disable latency testing",
     "enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist",
     "enable|disable <portlist> blink    - Blink LED on port(s)",
-    "enable|disable <portlist> rx_tap   - Enable/Disable RX Tap support",
-    "enable|disable <portlist> tx_tap   - Enable/Disable TX Tap support",
     "enable|disable <portlist> icmp     - Enable/Disable sending ICMP packets",
     "enable|disable <portlist> range    - Enable or Disable the given portlist for sending a range "
     "of packets",
@@ -1042,7 +1026,6 @@ static const char *enable_help[] = {
     "current working directory.",
     "enable|disable <portlist> bonding  - Enable call TX with zero packets for bonding driver",
     "enable|disable <portlist> vxlan    - Send VxLAN packets",
-    "enable|disable <portlist> rate     - Enable/Disable Rate Packing on given ports",
     "enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",
     "enable|disable clock_gettime       - Enable/disable use of new clock_gettime() instead of rdtsc()",
     "enable|disable screen              - Enable/disable updating the screen and unlock/lock window"
@@ -1073,35 +1056,35 @@ en_dis_cmd(int argc, char **argv)
 
         switch (n) {
         case 0:
-            foreach_port(portlist, enable_process(info, state));
+            foreach_port(portlist, enable_process(pinfo, state));
             break;
         case 1:
-            foreach_port(portlist, enable_mpls(info, state));
+            foreach_port(portlist, enable_mpls(pinfo, state));
             break;
         case 2:
-            foreach_port(portlist, enable_qinq(info, state));
+            foreach_port(portlist, enable_qinq(pinfo, state));
             break;
         case 3:
-            foreach_port(portlist, enable_gre(info, state));
+            foreach_port(portlist, enable_gre(pinfo, state));
             break;
         case 4:
-            foreach_port(portlist, enable_gre_eth(info, state));
+            foreach_port(portlist, enable_gre_eth(pinfo, state));
             break;
         case 5:
-            foreach_port(portlist, enable_vlan(info, state));
+            foreach_port(portlist, enable_vlan(pinfo, state));
             break;
         case 6:
-            foreach_port(portlist, enable_random(info, state));
+            foreach_port(portlist, enable_random(pinfo, state));
             break;
         case 7:
-        case 18: /* lat or latency type */
-            foreach_port(portlist, enable_latency(info, state));
+        case 16: /* lat or latency type */
+            foreach_port(portlist, enable_latency(pinfo, state));
             break;
         case 8:
-            foreach_port(portlist, enable_pcap(info, state));
+            foreach_port(portlist, enable_pcap(pinfo, state));
             break;
         case 9:
-            foreach_port(portlist, debug_blink(info, state));
+            foreach_port(portlist, debug_blink(pinfo, state));
 
             if (pktgen.blinklist)
                 pktgen.flags |= BLINK_PORTS_FLAG;
@@ -1109,30 +1092,21 @@ en_dis_cmd(int argc, char **argv)
                 pktgen.flags &= ~BLINK_PORTS_FLAG;
             break;
         case 10:
-            foreach_port(portlist, enable_rx_tap(info, state));
+            foreach_port(portlist, enable_icmp_echo(pinfo, state));
             break;
         case 11:
-            foreach_port(portlist, enable_tx_tap(info, state));
+            foreach_port(portlist, enable_range(pinfo, state));
             break;
         case 12:
-            foreach_port(portlist, enable_icmp_echo(info, state));
+            foreach_port(portlist, pktgen_set_capture(pinfo, state));
             break;
         case 13:
-            foreach_port(portlist, enable_range(info, state));
-            break;
-        case 14:
-            foreach_port(portlist, pktgen_set_capture(info, state));
-            break;
-        case 15:
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
-            foreach_port(portlist, enable_bonding(info, state));
+            foreach_port(portlist, enable_bonding(pinfo, state));
 #endif
             break;
-        case 16:
-            foreach_port(portlist, enable_vxlan(info, state));
-            break;
-        case 17:
-            foreach_port(portlist, enable_rate(info, state));
+        case 14:
+            foreach_port(portlist, enable_vxlan(pinfo, state));
             break;
         default:
             return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);
@@ -1159,24 +1133,15 @@ en_dis_cmd(int argc, char **argv)
     return 0;
 }
 
-#ifdef RTE_LIBRTE_SMEM
-#include <rte_smem.h>
-#endif
-
 // clang-format off
 static struct cli_map dbg_map[] = {
-    {10, "dbg l2p"},
-    {20, "dbg tx_dbg"},
+    {20, "dbg %|tx_dbg|dbg"},
     {21, "dbg tx_rate %P"},
     {30, "dbg %|mempool|dump %P %s"},
-    {40, "dbg pdump %P"},
     {50, "dbg memzone"},
     {51, "dbg memseg"},
     {60, "dbg hexdump %H %d"},
     {61, "dbg hexdump %H"},
-#ifdef RTE_LIBRTE_SMEM
-    {70, "dbg smem"},
-#endif
     {80, "dbg break"},
     {90, "dbg memcpy"},
     {91, "dbg memcpy %d %d"},
@@ -1186,19 +1151,13 @@ static struct cli_map dbg_map[] = {
 
 static const char *dbg_help[] = {
     "",
-    "dbg l2p                          - Dump out internal lcore to port mapping",
-    "dbg tx_dbg                       - Enable tx debug output",
+    "dbg tx_dbg|dbg                   - Enable tx debug output",
     "dbg tx_rate <portlist>           - Show packet rate for all ports",
-    "dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type",
-    "                                   types - rx|tx|range|seq|rate|arp|pcap",
-    "dbg pdump <portlist>             - Hex dump the first packet to be sent, single packet mode "
-    "only",
+    "dbg mempool|dump <portlist> <type> - Dump out the mempool info for a given type",
+    "                                   types - rx|tx",
     "dbg memzone                      - List all of the current memzones",
     "dbg memseg                       - List all of the current memsegs",
     "dbg hexdump <addr> <len>         - hex dump memory at given address",
-#ifdef RTE_LIBRTE_SMEM
-    "dbg smem                         - dump out the SMEM structure",
-#endif
     "dbg break                        - break into the debugger",
     "dbg memcpy [loop-cnt KBytes]     - run a memcpy test",
     CLI_HELP_PAUSE,
@@ -1258,9 +1217,6 @@ dbg_cmd(int argc, char **argv)
     len = 32;
     cnt = 100000;
     switch (m->index) {
-    case 10:
-        pktgen_l2p_dump();
-        break;
     case 20:
         if ((pktgen.flags & TX_DEBUG_FLAG) == 0)
             pktgen.flags |= TX_DEBUG_FLAG;
@@ -1270,16 +1226,11 @@ dbg_cmd(int argc, char **argv)
         break;
     case 21:
         portlist_parse(argv[2], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, debug_tx_rate(info));
+        foreach_port(portlist, debug_tx_rate(pinfo));
         break;
     case 30:
         portlist_parse(argv[2], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, debug_mempool_dump(info, argv[3]));
-        break;
-    case 40:
-        portlist_parse(argv[2], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, debug_pdump(info));
-        pktgen_update_display();
+        foreach_port(portlist, debug_mempool_dump(pinfo, argv[3]));
         break;
     case 50:
         rte_memzone_dump(stdout);
@@ -1296,11 +1247,6 @@ dbg_cmd(int argc, char **argv)
             len = strtoul(argv[3], NULL, 0);
         rte_hexdump(stdout, "", addr, len);
         break;
-#ifdef RTE_LIBRTE_SMEM
-    case 70:
-        rte_smem_list_dump(stdout);
-        break;
-#endif
     case 80:
         kill(0, SIGINT);
         break;
@@ -1372,7 +1318,7 @@ seq_1_set_cmd(int argc __rte_unused, char **argv)
         cli_printf("invalid MAC string (%s)\n", argv[4]);
         return -1;
     }
-    foreach_port(portlist, pktgen_set_seq(info, seqnum, &dmac, &smac, &dst, &src, atoi(argv[7]),
+    foreach_port(portlist, pktgen_set_seq(pinfo, seqnum, &dmac, &smac, &dst, &src, atoi(argv[7]),
                                           atoi(argv[8]), eth[3], proto[0], atoi(argv[11]),
                                           atoi(argv[12]), teid));
 
@@ -1435,7 +1381,7 @@ seq_2_set_cmd(int argc __rte_unused, char **argv)
         cli_printf("invalid MAC string (%s)\n", argv[6]);
         return -1;
     }
-    foreach_port(portlist, pktgen_set_seq(info, seqnum, &dmac, &smac, &dst, &src, atoi(argv[12]),
+    foreach_port(portlist, pktgen_set_seq(pinfo, seqnum, &dmac, &smac, &dst, &src, atoi(argv[12]),
                                           atoi(argv[14]), eth[3], proto[0], atoi(argv[18]),
                                           atoi(argv[20]), teid));
 
@@ -1473,7 +1419,7 @@ seq_3_set_cmd(int argc __rte_unused, char **argv)
 
     portlist_parse(argv[2], pktgen.nb_ports, &portlist);
 
-    foreach_port(portlist, pktgen_set_cos_tos_seq(info, seqnum, cos, tos));
+    foreach_port(portlist, pktgen_set_cos_tos_seq(pinfo, seqnum, cos, tos));
 
     pktgen_update_display();
     return 0;
@@ -1510,7 +1456,7 @@ seq_4_set_cmd(int argc __rte_unused, char **argv)
 
     portlist_parse(argv[2], pktgen.nb_ports, &portlist);
 
-    foreach_port(portlist, pktgen_set_vxlan_seq(info, seqnum, flag, gid, vid));
+    foreach_port(portlist, pktgen_set_vxlan_seq(pinfo, seqnum, flag, gid, vid));
 
     pktgen_update_display();
     return 0;
@@ -1691,7 +1637,7 @@ static const char *misc_help[] = {
 #endif
     "geometry                           - Show the display geometry Columns by Rows (ColxRow)",
     "clear <portlist> stats             - Clear the statistics",
-    "clr                                - Clear all statistics",
+    "clr                                - Clear all Statistics",
     "reset <portlist>                   - Reset the configuration the ports to the default",
     "rst                                - Reset the configuration for all ports",
     "ports per page [1-6]               - Set the number of ports displayed per page",
@@ -1710,7 +1656,6 @@ misc_cmd(int argc, char **argv)
     struct cli_map *m;
     portlist_t portlist;
     uint16_t rows, cols;
-    int paused;
 
     m = cli_mapping(misc_map, argc, argv);
     if (!m)
@@ -1719,21 +1664,15 @@ misc_cmd(int argc, char **argv)
     switch (m->index) {
     case 10:
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, pktgen_clear_stats(info));
+        foreach_port(portlist, pktgen_clear_stats(pinfo));
         pktgen_clear_display();
         break;
     case 20:
         pktgen_display_get_geometry(&rows, &cols);
         break;
     case 30:
-        paused = scrn_is_paused();
-        scrn_pause();
         if (cli_execute_cmdfile(argv[1]))
             cli_printf("load command failed for %s\n", argv[1]);
-        if (paused)
-            pktgen_force_update();
-        else
-            scrn_resume();
         break;
 #ifdef LUA_ENABLED
     case 40:
@@ -1751,11 +1690,11 @@ misc_cmd(int argc, char **argv)
         break;
     case 100:
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, pktgen_reset(info));
+        foreach_port(portlist, pktgen_reset(pinfo));
         break;
     case 110:
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, pktgen_port_restart(info));
+        foreach_port(portlist, pktgen_port_restart(pinfo));
         break;
     case 120:
     case 130:
@@ -1763,7 +1702,7 @@ misc_cmd(int argc, char **argv)
         break;
     case 140:
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, pktgen_ping4(info));
+        foreach_port(portlist, pktgen_ping4(pinfo));
         pktgen_force_update();
         break;
 #ifdef INCLUDE_PING6
@@ -1782,20 +1721,19 @@ misc_cmd(int argc, char **argv)
 // clang-format off
 static struct cli_map page_map[] = {
     {10, "page %d"},
-    {11, "page %|main|range|config|cfg|pcap|cpu|next|sequence|seq|rnd|"
-         "log|latency|lat|stats|xstats|rate|rate-pacing"},
+    {11, "page %|main|range|cpu|pcap|system|sys|next|sequence|seq|rnd|"
+         "log|latency|lat|stats|xstats"},
     {-1, NULL}
 };
-// clang-format on
 
 static const char *page_help[] = {
     "",
     "page [0-7]                         - Show the port pages or configuration or sequence page",
     "page main                          - Display page zero",
     "page range                         - Display the range packet page",
-    "page config | cfg                  - Display the configuration page",
+    "page cpu                           - Display the CPU page",
     "page pcap                          - Display the pcap page",
-    "page cpu                           - Display some information about the CPU system",
+    "page system | sys                  - Display some information about the CPU system",
     "page next                          - Display next page of PCAP packets.",
     "page sequence | seq                - sequence will display a set of packets for a given port",
     "                                     Note: use the 'port <number>' to display a new port "
@@ -1807,9 +1745,10 @@ static const char *page_help[] = {
     "page latency | lat                 - Display the latency page",
     "page stats                         - Display physical ports stats for all ports",
     "page xstats                        - Display port XSTATS values",
-    "page rate                          - Display Rate Pacing values",
     CLI_HELP_PAUSE,
-    NULL};
+    NULL
+};
+// clang-format on
 
 static int
 page_cmd(int argc, char **argv)
@@ -1839,7 +1778,6 @@ static struct cli_map plugin_map[] = {
     {30, "plugin %|rm|del|delete %s"},
     {-1, NULL}
 };
-// clang-format on
 
 static const char *plugin_help[] = {
     "",
@@ -1848,7 +1786,9 @@ static const char *plugin_help[] = {
     "plugin load <filename> <path>      - Load a plugin file at path",
     "plugin rm|delete <plugin>          - Remove or delete a plugin",
     CLI_HELP_PAUSE,
-    NULL};
+    NULL
+};
+// clang-format on
 
 static int
 plugin_cmd(int argc, char **argv)
@@ -1903,7 +1843,7 @@ static const char *bonding_help[] = {
     "bonding show                     - Show all bonding configurations", CLI_HELP_PAUSE, NULL};
 
 static void
-bonding_dump(port_info_t *info)
+bonding_dump(port_info_t *pinfo)
 {
     uint16_t pid;
 
@@ -1911,14 +1851,14 @@ bonding_dump(port_info_t *info)
     {
         struct rte_eth_bond_8023ad_conf conf;
 
-        if (info->pid != pid)
+        if (pinfo->pid != pid)
             continue;
 
         if (rte_eth_bond_8023ad_conf_get(pid, &conf) < 0)
             continue;
 
         printf("Port %d information:\n", pid);
-        show_bonding_mode(info);
+        show_bonding_mode(pinfo);
         printf("\n");
     }
 }
@@ -1936,11 +1876,11 @@ bonding_cmd(int argc, char **argv)
     switch (m->index) {
     case 10:
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
-        foreach_port(portlist, bonding_dump(info));
+        foreach_port(portlist, bonding_dump(pinfo));
         break;
     case 20:
         portlist = 0xFFFFFFFF;
-        foreach_port(portlist, bonding_dump(info));
+        foreach_port(portlist, bonding_dump(pinfo));
         break;
     default:
         return cli_cmd_error("Bonding invalid command", "Bonding", argc, argv);
@@ -1948,218 +1888,6 @@ bonding_cmd(int argc, char **argv)
     return 0;
 }
 #endif
-
-#define rate_types      \
-    "count|"   /*  0 */ \
-    "size|"    /*  1 */ \
-    "burst|"   /*  2 */ \
-    "sport|"   /*  3 */ \
-    "dport|"   /*  4 */ \
-    "ttl|"     /*  5 */ \
-    "txburst|" /*  6 */ \
-    "rxburst"  /*  7 */
-
-// clang-format off
-static struct cli_map rate_map[] = {
-    {10, "rate %P %|" rate_types " %d"},
-    {20, "rate %P type %|arp|ipv4|ipv6|ip4|ip6|vlan"},
-    {21, "rate %P proto %|udp|tcp|icmp"},
-    {22, "rate %P src mac %m"},
-    {23, "rate %P dst mac %m"},
-    {30, "rate %P src ip %4"},
-    {31, "rate %P dst ip %4"},
-    {32, "rate %P src ip %6"},
-    {33, "rate %P dst ip %6"},
-    {34, "rate %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
-    {35, "rate %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
-    {36, "rate %P tcp seq %u"},
-    {37, "rate %P tcp ack %u"},
-    {40, "rate %P fps %d"},
-    {45, "rate %P lines %d"},
-    {46, "rate %P pixels %d"},
-    {50, "rate %P color bits %d"},
-    {60, "rate %P payload size %d"},
-    {70, "rate %P overhead %d"},
-    {-1, NULL}
-};
-// clang-format on
-
-static const char *rate_help[] = {
-    "",
-    "rate <portlist> count <value>        - number of packets to transmit",
-    "rate <portlist> size <value>         - size of the packet to transmit",
-    "rate <portlist> rate <percent>       - Packet rate in percentage",
-    "rate <portlist> txburst|burst <value> - number of packets in a Tx burst",
-    "rate <portlist> rxburst <value>      - number of packets in a Rx burst",
-    "rate <portlist> sport <value>        - Source port number for UDP/TCP",
-    "rate <portlist> dport <value>        - Destination port number for UDP/TCP",
-    "rate <portlist> ttl <value>          - Set the TTL value for the single port more",
-    "rate <portlist> src|dst mac <addr>   - Set MAC addresses 00:11:22:33:44:55 or 0011:2233:4455 "
-    "format",
-    "rate <portlist> type ipv4|ipv6|vlan|arp - Set the packet type to IPv4 or IPv6 or VLAN",
-    "rate <portlist> proto udp|tcp|icmp   - Set the packet protocol to UDP or TCP or ICMP per port",
-    "rate <portlist> [src|dst] ip ipaddr  - Set IP addresses, Source must include network mask "
-    "e.g. 10.1.2.3/24",
-
-    "rate <portlist> tcp flag set urg|ack|psh|rst|syn|fin|all - Set a TCP flag",
-    "rate <portlist> tcp flag clr urg|ack|psh|rst|syn|fin|all - Clear a TCP flag",
-    "rate <portlist> tcp seq <sequence> - Set the TCP sequence number",
-    "rate <portlist> tcp ack <acknowledge> - Set the TCP acknowledge number",
-
-    "rate <portlist> fps <value>          - Set the frame per second value e.g. 60fps",
-    "rate <portlist> lines <value>        - Set the number of video lines, e.g. 720",
-    "rate <portlist> pixels <value>       - Set the number of pixels per line, e.g. 1280",
-    "rate <portlist> color bits <value>   - Set the color bit size 8, 16, 24, ...",
-    "rate <portlist> payload size <value> - Set the payload size",
-    "rate <portlist> overhead <value>     - Set the packet overhead + payload = total packet size",
-    CLI_HELP_PAUSE,
-    NULL};
-
-static int
-rate_cmd(int argc, char **argv)
-{
-    struct cli_map *m;
-    char *what, *p;
-    struct rte_ether_addr mac;
-    struct pg_ipaddr ip;
-    portlist_t portlist;
-    int value, n, ip_ver;
-
-    m = cli_mapping(rate_map, argc, argv);
-    if (!m)
-        return cli_cmd_error("Rate invalid command", "Rate", argc, argv);
-
-    portlist_parse(argv[1], pktgen.nb_ports, &portlist);
-
-    what  = argv[2];
-    value = atoi(argv[3]);
-
-    switch (m->index) {
-    case 10:
-        n = cli_map_list_search(m->fmt, argv[2], 2);
-        foreach_port(portlist, _do(switch (n) {
-                         case 0:
-                             rate_set_tx_count(info, value);
-                             break;
-                         case 1:
-                             rate_set_pkt_size(info, valid_pkt_size(argv[3]));
-                             break;
-                         case 2:
-                             rate_set_tx_burst(info, value);
-                             break;
-                         case 3:
-                             rate_set_port_value(info, what[0], value);
-                             break;
-                         case 4:
-                             rate_set_port_value(info, what[0], value);
-                             break;
-                         case 5:
-                             rate_set_ttl_value(info, value);
-                             break;
-                         case 6:
-                             rate_set_tx_burst(info, value);
-                             break;
-                         case 7:
-                             rate_set_rx_burst(info, value);
-                             break;
-                         default:
-                             return cli_cmd_error("Set rate command is invalid", "Rate", argc,
-                                                  argv);
-                     }));
-        break;
-    case 20:
-        foreach_port(portlist, rate_set_pkt_type(info, argv[3]));
-        break;
-    case 21:
-        foreach_port(portlist, rate_set_proto(info, argv[3]));
-        break;
-    case 22:
-        if (pg_ether_aton(argv[4], &mac) == NULL) {
-            cli_printf("Failed to parse MAC address from (%s)\n", argv[4]);
-            break;
-        }
-        foreach_port(portlist, rate_set_src_mac(info, &mac));
-        break;
-    case 23:
-        if (pg_ether_aton(argv[4], &mac) == NULL) {
-            cli_printf("Failed to parse MAC address from (%s)\n", argv[4]);
-            break;
-        }
-        foreach_port(portlist, rate_set_dst_mac(info, &mac));
-        break;
-    case 30:
-        p = strchr(argv[4], '/');
-        if (!p)
-            cli_printf("src IP address should contain /NN subnet value, default /32\n");
-
-        ip_ver = _atoip(argv[4], PG_IPADDR_V4 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-        foreach_port(portlist, rate_set_ipaddr(info, 's', &ip, ip_ver));
-        break;
-    case 31:
-        /* Remove the /XX mask value if supplied */
-        p = strchr(argv[4], '/');
-        if (p) {
-            cli_printf("Subnet mask not required, removing subnet mask value\n");
-            *p = '\0';
-        }
-        ip_ver = _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
-        foreach_port(portlist, rate_set_ipaddr(info, 'd', &ip, ip_ver));
-        break;
-    case 32:
-        p = strchr(argv[4], '/');
-        if (!p)
-            cli_printf("src IP address should contain /NN subnet value, default /128\n");
-
-        ip_ver = _atoip(argv[4], PG_IPADDR_V6 | PG_IPADDR_NETWORK, &ip, sizeof(ip));
-        foreach_port(portlist, rate_set_ipaddr(info, 's', &ip, ip_ver));
-        break;
-    case 33:
-        /* Remove the /XX mask value if supplied */
-        p = strchr(argv[4], '/');
-        if (p) {
-            cli_printf("Subnet mask not required, removing subnet mask value\n");
-            *p = '\0';
-        }
-        ip_ver = _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
-        foreach_port(portlist, rate_set_ipaddr(info, 'd', &ip, ip_ver));
-        break;
-    case 34:
-        foreach_port(portlist, rate_set_tcp_flag_set(info, argv[5]));
-        break;
-    case 35:
-        foreach_port(portlist, rate_set_tcp_flag_clr(info, argv[5]));
-        break;
-    case 36:
-        foreach_port(portlist, rate_set_tcp_seq(info, atoi(argv[4])));
-        break;
-    case 37:
-        foreach_port(portlist, rate_set_tcp_ack(info, atoi(argv[4])));
-        break;
-    case 40: /* fps */
-        foreach_port(portlist, rate_set_value(info, "fps", atoi(argv[3])));
-        break;
-    case 45: /* lines */
-        foreach_port(portlist, rate_set_value(info, "lines", atoi(argv[3])));
-        break;
-    case 46: /* pixels */
-        foreach_port(portlist, rate_set_value(info, "pixels", atoi(argv[3])));
-        break;
-    case 50: /* color bits */
-        foreach_port(portlist, rate_set_value(info, "color", atoi(argv[4])));
-        break;
-    case 60: /* payload size */
-        foreach_port(portlist, rate_set_value(info, "payload", atoi(argv[4])));
-        break;
-    case 70: /* overhead */
-        foreach_port(portlist, rate_set_value(info, "overhead", atoi(argv[3])));
-        break;
-    default:
-        return cli_cmd_error("Rate invalid command", "Rate", argc, argv);
-    }
-
-    pktgen_update_display();
-    return 0;
-}
 
 // clang-format off
 static struct cli_map latency_map[] = {
@@ -2174,7 +1902,8 @@ static const char *latency_help[] = {
     "latency <portlist> entropy <value>   - Entropy value to adjust the src-port by (SPORT + (i % N)) (default: 1)",
     "                                       e.eg. latency 0 entropy 16",
     CLI_HELP_PAUSE,
-    NULL};
+    NULL
+};
 // clang-format on
 
 static int
@@ -2194,10 +1923,10 @@ latency_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        foreach_port(portlist, latency_set_rate(info, value));
+        foreach_port(portlist, latency_set_rate(pinfo, value));
         break;
     case 20:
-        foreach_port(portlist, latency_set_entropy(info, (uint16_t)value));
+        foreach_port(portlist, latency_set_entropy(pinfo, (uint16_t)value));
         break;
     default:
         return cli_cmd_error("Latency invalid command", "Latency", argc, argv);
@@ -2207,12 +1936,59 @@ latency_cmd(int argc, char **argv)
     return 0;
 }
 
+// clang-format off
+static struct cli_map hmap_map[] = {
+    {10, "hmap list"},
+    {20, "hmap dump all"},
+    {30, "hmap dump %s"},
+    {-1, NULL}
+};
+
+static const char *hmap_help[] = {
+    "",
+    "hmap list               - Show the hmap names currently active",
+    "hmap dump all           - Dump all hmap information",
+    "hmap dump <hmap-name>   - Dump the hmap information for <hmap-name>",
+    CLI_HELP_PAUSE,
+    NULL
+};
+// clang-format on
+static int
+hmap_cmd(int argc, char **argv)
+{
+    struct cli_map *m;
+
+    m = cli_mapping(hmap_map, argc, argv);
+    if (!m)
+        return cli_cmd_error("hmap invalid command", "Hashmap", argc, argv);
+
+    switch (m->index) {
+    case 10:
+        hmap_list_maps(NULL);
+        break;
+    case 20:
+        hmap_dump_all(NULL, 1);
+        break;
+    case 30:
+        hmap_dump_map(NULL, argv[2], 1);
+        break;
+    default:
+        return cli_cmd_error("Hashmap invalid command", "Hashmap", argc, argv);
+    }
+
+    pktgen_update_display();
+    return 0;
+
+    return 0;
+}
+
 /**********************************************************/
 /**********************************************************/
 /****** CONTEXT (list of instruction) */
 
 static int help_cmd(int argc, char **argv);
 
+// clang-format off
 static struct cli_tree default_tree[] = {
     c_dir("/pktgen/bin"),
     c_cmd("help", help_cmd, "help command"),
@@ -2257,14 +2033,15 @@ static struct cli_tree default_tree[] = {
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
     c_cmd("bonding", bonding_cmd, "Bonding commands"),
 #endif
-    c_cmd("rate", rate_cmd, "Rate setup commands"),
     c_cmd("latency", latency_cmd, "Latency setup commands"),
+    c_cmd("hmap", hmap_cmd, "hashmap commands"),
 
     c_alias("on", "enable screen", "Enable screen updates"),
     c_alias("off", "disable screen", "Disable screen updates"),
 
-    c_end()};
-
+    c_end()
+};
+// clang-format on
 static int
 init_tree(void)
 {
@@ -2288,8 +2065,8 @@ init_tree(void)
     cli_help_add("Misc", misc_map, misc_help);
     cli_help_add("Theme", theme_map, theme_help);
     cli_help_add("Plugin", plugin_map, plugin_help);
-    cli_help_add("Rate", rate_map, rate_help);
     cli_help_add("Latency", latency_map, latency_help);
+    cli_help_add("Hashmap", hmap_map, hmap_help);
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
     cli_help_add("Bonding", bonding_map, bonding_help);
 #endif

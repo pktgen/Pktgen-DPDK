@@ -15,6 +15,7 @@
 #include "pktgen-log.h"
 #include "pktgen-ipv4.h"
 #include "pktgen-txbuff.h"
+#include "l2p.h"
 
 /**
  *
@@ -35,7 +36,7 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
     uint16_t tlen;
 
     /* IPv4 Header constructor */
-    tlen = pkt->pktSize - pkt->ether_hdr_size;
+    tlen = pkt->pkt_size - pkt->ether_hdr_size;
 
     /* Zero out the header space */
     memset((char *)ip, 0, sizeof(struct rte_ipv4_hdr));
@@ -71,26 +72,25 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
 void
 pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 {
-    port_info_t *info = &pktgen.info[pid];
-    pkt_seq_t *ppkt   = &info->seq_pkt[PING_PKT];
-    pkt_seq_t *spkt   = &info->seq_pkt[seq_idx];
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
+    pkt_seq_t *ppkt    = &pinfo->seq_pkt[SPECIAL_PKT];
+    pkt_seq_t *spkt    = &pinfo->seq_pkt[seq_idx];
     struct rte_mbuf *m;
+    l2p_port_t *port;
 
-    m = rte_pktmbuf_alloc(info->special_mp);
-    if (unlikely(m == NULL)) {
+    port = l2p_get_port(pid);
+    if (rte_mempool_get(port->special_mp, (void **)&m)) {
         pktgen_log_warning("No packet buffers found");
         return;
     }
     *ppkt = *spkt; /* Copy the sequence setup to the ping setup. */
-    pktgen_packet_ctor(info, PING_PKT, ICMP4_ECHO);
-    rte_memcpy((uint8_t *)m->buf_addr + m->data_off, (uint8_t *)&ppkt->hdr, ppkt->pktSize);
+    pktgen_packet_ctor(pinfo, SPECIAL_PKT, ICMP4_ECHO);
+    rte_memcpy(rte_pktmbuf_mtod(m, uint8_t *), (uint8_t *)ppkt->hdr, ppkt->pkt_size);
 
-    m->pkt_len  = ppkt->pktSize;
-    m->data_len = ppkt->pktSize;
+    m->pkt_len  = ppkt->pkt_size;
+    m->data_len = ppkt->pkt_size;
 
-    tx_buffer(info->q[0].txbuff, m);
-
-    pktgen_set_q_flags(info, 0, DO_TX_FLUSH);
+    tx_send_packets(pinfo, l2p_get_txqid(rte_lcore_id()), &m, 1);
 }
 
 /**
@@ -108,7 +108,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
 void
 pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan)
 {
-    port_info_t *info         = &pktgen.info[pid];
+    port_info_t *pinfo        = l2p_get_port_pinfo(pid);
     struct rte_ether_hdr *eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
     struct rte_ipv4_hdr *ip   = (struct rte_ipv4_hdr *)&eth[1];
     char buff[24];
@@ -118,7 +118,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
         ip = (struct rte_ipv4_hdr *)((char *)ip + sizeof(struct rte_vlan_hdr));
 
     /* Look for a ICMP echo requests, but only if enabled. */
-    if ((rte_atomic32_read(&info->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
+    if ((rte_atomic32_read(&pinfo->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
         (ip->next_proto_id == PG_IPPROTO_ICMP)) {
         struct rte_icmp_hdr *icmp =
             (struct rte_icmp_hdr *)((uintptr_t)ip + sizeof(struct rte_ipv4_hdr));
@@ -140,7 +140,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
             }
 
             /* Toss all broadcast addresses and requests not for this port */
-            idx = pktgen_find_matching_ipsrc(info, ip->dst_addr);
+            idx = pktgen_find_matching_ipsrc(pinfo, ip->dst_addr);
 
             /* ARP request not for this interface. */
             if (unlikely(idx == -1)) {
@@ -149,7 +149,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
                 return;
             }
 
-            info->pkt_stats.echo_pkts++;
+            pinfo->pkt_stats.echo_pkts++;
 
             icmp->icmp_type = ICMP4_ECHO_REPLY;
 
@@ -171,13 +171,11 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
             /* Swap the MAC addresses */
             ethAddrSwap(&eth->dst_addr, &eth->src_addr);
 
-            tx_buffer(info->q[qid].txbuff, m);
-
-            pktgen_set_q_flags(info, qid, DO_TX_FLUSH);
+            tx_send_packets(pinfo, qid, &m, 1);
 
             /* No need to free mbuf as it was reused. */
             return;
         } else if (unlikely(icmp->icmp_type == ICMP4_ECHO_REPLY))
-            info->pkt_stats.echo_pkts++;
+            pinfo->pkt_stats.echo_pkts++;
     }
 }

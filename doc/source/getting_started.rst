@@ -257,7 +257,6 @@ Here is the default.cfg file::
     'pktgen': [
         '-T',
         '-P',
-        '--crc-strip',
         '-m [2:3].0',
         '-m [4:5].1',
         '-m [10:11].2',

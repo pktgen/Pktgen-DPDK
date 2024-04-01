@@ -1,5 +1,4 @@
 option('enable_lua', type: 'boolean', value: false, description: 'Enable Lua support')
-option('enable_gui', type: 'boolean', value: false, description: 'build the gui')
 option('enable_docs', type: 'boolean', value: false, description: 'build documentation')
 option('enable-avx', type: 'boolean', value: true, description: 'Try to compile with AVX support')
 option('enable-avx2', type: 'boolean', value: true, description: 'Try to compile with AVX2 support')

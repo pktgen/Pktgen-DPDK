@@ -5,6 +5,9 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
+#include <rte_hexdump.h>
+
+#include "pktgen.h"
 #include "pktgen-ether.h"
 #include "pktgen-seq.h"
 #include "pktgen-port-cfg.h"
@@ -20,22 +23,19 @@
  *
  * SEE ALSO:
  */
-
 char *
-pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt)
+pktgen_ether_hdr_ctor(port_info_t *pinfo, pkt_seq_t *pkt)
 {
     struct rte_ether_hdr *eth;
-    uint32_t flags;
     uint16_t vlan_id;
 
-    eth = &pkt->hdr.eth;
+    eth = &pkt->hdr->eth;
 
     /* src and dest addr */
     rte_ether_addr_copy(&pkt->eth_src_addr, &eth->src_addr);
     rte_ether_addr_copy(&pkt->eth_dst_addr, &eth->dst_addr);
 
-    flags = rte_atomic32_read(&info->port_flags);
-    if (flags & SEND_VLAN_ID) {
+    if (pktgen_tst_port_flags(pinfo, SEND_VLAN_ID)) {
         /* vlan ethernet header */
         eth->ether_type = htons(RTE_ETHER_TYPE_VLAN);
 
@@ -49,7 +49,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt)
         pkt->ether_hdr_size = sizeof(struct rte_ether_hdr) + sizeof(struct rte_vlan_hdr);
 
         return (char *)(rte_vlan_hdr + 1);
-    } else if (flags & SEND_MPLS_LABEL) {
+    } else if (pktgen_tst_port_flags(pinfo, SEND_MPLS_LABEL)) {
         /* MPLS unicast ethernet header */
         eth->ether_type = htons(ETHER_TYPE_MPLS_UNICAST);
 
@@ -66,7 +66,7 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt)
         pkt->ether_hdr_size = sizeof(struct rte_ether_hdr) + sizeof(mplsHdr_t);
 
         return (char *)(mpls_hdr + 1);
-    } else if (flags & SEND_Q_IN_Q_IDS) {
+    } else if (pktgen_tst_port_flags(pinfo, SEND_Q_IN_Q_IDS)) {
         /* Q-in-Q ethernet header */
         eth->ether_type = htons(ETHER_TYPE_Q_IN_Q);
 
@@ -89,6 +89,11 @@ pktgen_ether_hdr_ctor(port_info_t *info, pkt_seq_t *pkt)
         eth->ether_type     = htons(pkt->ethType);
         pkt->ether_hdr_size = sizeof(struct rte_ether_hdr);
     }
+
+#ifdef TX_DEBUG_PKT
+    if (eth->dst_addr.addr_bytes[0] & 1)
+        rte_hexdump(stdout, "Ether", eth, sizeof(struct rte_ether_hdr));
+#endif
 
     return (char *)(eth + 1);
 }

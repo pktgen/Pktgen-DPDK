@@ -23,12 +23,6 @@ buildlua: FORCE
 debuglua: FORCE
 	${Build} clean debuglua
 
-buildgui: FORCE
-	${Build} clean buildgui
-
-rebuildgui: FORCE
-	${Build} clean buildgui
-
 debug: FORCE
 	${Build} clean debug
 

@@ -558,11 +558,6 @@ cli_start(const char *msg)
 
     this_cli->plen = this_cli->prompt(0);
 
-    /* Must be set before command files are executed */
-    this_cli->quit_flag = 0;
-
-    cli_execute_cmdfiles();
-
     while (!this_cli->quit_flag) {
         if (cli_poll(&c))
             cli_input(&c, 1);
@@ -624,12 +619,9 @@ cli_init(int nb_entries, uint32_t nb_hist)
     struct cli_node *node;
     struct cli_node *root;
 
-    cli = malloc(sizeof(struct cli));
-    if (cli == NULL) {
-        RTE_LOG(ERR, EAL, "Unable to allocate CLI structure\n");
-        return -1;
-    }
-    memset(cli, '\0', sizeof(struct cli));
+    cli = calloc(1, sizeof(struct cli));
+    if (cli == NULL)
+        rte_exit(EXIT_FAILURE, "Unable to allocate CLI structure\n");
 
     this_cli = cli;
 
@@ -647,12 +639,9 @@ cli_init(int nb_entries, uint32_t nb_hist)
         nb_hist = CLI_DEFAULT_HIST_LINES;
 
     size          = (nb_entries * sizeof(struct cli_node));
-    cli->node_mem = malloc(size);
-    if (cli->node_mem == NULL) {
-        RTE_LOG(ERR, EAL, "Unable to allocate CLI node structures\n");
-        goto error_exit;
-    }
-    memset(cli->node_mem, '\0', size);
+    cli->node_mem = calloc(1, size);
+    if (cli->node_mem == NULL)
+        rte_exit(EXIT_FAILURE, "Unable to allocate CLI node structures\n");
 
     cli->nb_hist = nb_hist;
 
@@ -670,7 +659,7 @@ cli_init(int nb_entries, uint32_t nb_hist)
     if (!cli->vt)
         goto error_exit;
 
-    cli->scratch = calloc(CLI_MAX_SCRATCH_LENGTH + 1, 1);
+    cli->scratch = calloc(1, CLI_MAX_SCRATCH_LENGTH);
     if (!cli->scratch)
         goto error_exit;
 
@@ -856,21 +845,28 @@ cli_execute_cmdfile(const char *filename)
 int
 cli_execute_cmdfiles(void)
 {
-    int i, cnt;
-
-    cnt = this_cli->cmd_files.idx;
-
-    for (i = 0; i < cnt; i++) {
+    this_scrn->no_write = 1;
+    for (uint32_t i = 0; i < this_cli->cmd_files.idx; i++) {
         const char *path;
+
         if ((path = this_cli->cmd_files.filename[i]) == NULL)
             continue;
 
-        if (cli_execute_cmdfile(path))
+        if (cli_execute_cmdfile(path)) {
+            this_scrn->no_write = 0;
             return -1;
+        }
 
         free((char *)(uintptr_t)path);
         this_cli->cmd_files.filename[i] = NULL;
     }
     this_cli->cmd_files.idx = 0;
+    this_scrn->no_write     = 0;
     return 0;
+}
+
+int
+cli_num_cmdfiles(void)
+{
+    return this_cli->cmd_files.idx;
 }

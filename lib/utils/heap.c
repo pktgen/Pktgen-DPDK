@@ -4,8 +4,7 @@
 
 #include <stdio.h>
 #include <sys/queue.h>
-
-#include <rte_spinlock.h>
+#include <pthread.h>
 
 #include "heap.h"
 
@@ -23,7 +22,7 @@ heap_create(void *addr, size_t size)
     if (!heap)
         return NULL;
 
-    rte_spinlock_init(&heap->sl);
+    pthread_spin_init(&heap->sl, PTHREAD_PROCESS_PRIVATE);
 
     heap->addr        = addr;
     heap->total_space = size;
@@ -40,7 +39,7 @@ heap_create(void *addr, size_t size)
 }
 
 /******************************************************************************
- * simpleMemDestory - Destory a heap.
+ * simpleMemDestroy - Destroy a heap.
  *
  *   heap - is the free heap structure pointer.
  */
@@ -64,7 +63,7 @@ heap_free(heap_t *heap, void *addr, size_t size)
     if (!heap || !addr || size == 0)
         return -1;
 
-    rte_spinlock_lock(&heap->sl);
+    pthread_spin_lock(&heap->sl);
 
     p = addr;
 
@@ -72,7 +71,7 @@ heap_free(heap_t *heap, void *addr, size_t size)
     p->size           = size;
 
     STAILQ_FOREACH (q, &heap->list, next) {
-        /* insert into accending order */
+        /* insert into ascending order */
         if (p < q->next.stqe_next)
             break;
     }
@@ -96,7 +95,7 @@ heap_free(heap_t *heap, void *addr, size_t size)
     } else
         STAILQ_INSERT_TAIL(&heap->list, p, next);
 
-    rte_spinlock_unlock(&heap->sl);
+    pthread_spin_unlock(&heap->sl);
 
     return 0;
 }
@@ -127,7 +126,7 @@ heap_alloc(heap_t *heap, size_t size)
     if (!heap || size == 0)
         return NULL;
 
-    rte_spinlock_lock(&heap->sl);
+    pthread_spin_lock(&heap->sl);
 
     size = RTE_ALIGN_CEIL(size, sizeof(heap_entry_t));
 
@@ -182,7 +181,7 @@ heap_alloc(heap_t *heap, size_t size)
         }
     }
 
-    rte_spinlock_unlock(&heap->sl);
+    pthread_spin_unlock(&heap->sl);
 
     return ret_ptr;
 }

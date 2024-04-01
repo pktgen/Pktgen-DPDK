@@ -11,9 +11,9 @@
 #include "pktgen.h"
 
 void
-pktgen_send_seq_pkt(port_info_t *info, uint32_t seq_idx)
+pktgen_send_seq_pkt(port_info_t *pinfo, uint32_t seq_idx)
 {
-    (void)info;
+    (void)pinfo;
     (void)seq_idx;
 }
 
@@ -33,19 +33,20 @@ void
 pktgen_page_seq(uint32_t pid)
 {
     uint32_t i, row, col, sav;
-    port_info_t *info;
+    port_info_t *pinfo;
     pkt_seq_t *pkt;
     char buff[128];
 
-    pktgen_display_set_color("top.page");
-    display_topline("<Sequence Page>");
+    display_topline("<Sequence Page>", 0, 0, 0);
 
-    info = &pktgen.info[pid];
+    pinfo = l2p_get_port_pinfo(pid);
+    if (pinfo == NULL)
+        return;
 
     pktgen_display_set_color("top.ports");
-    row = PORT_STATE_ROW;
+    row = PORT_FLAGS_ROW;
     col = 1;
-    scrn_printf(row, col, "Port: %2d, Sequence Count: %2d of %2d  ", pid, info->seqCnt,
+    scrn_printf(row, col, "Port: %2d, Sequence Count: %2d of %2d  ", pid, pinfo->seqCnt,
                 NUM_SEQ_PKTS);
     pktgen_display_set_color("stats.stat.label");
     scrn_printf(row++, col + 97, "GTP-u");
@@ -57,12 +58,12 @@ pktgen_page_seq(uint32_t pid)
     scrn_fgcolor(SCRN_DEFAULT_FG, SCRN_NO_ATTR);
     sav = row;
     for (i = 0; i <= NUM_SEQ_PKTS; i++) {
-        if (i >= info->seqCnt)
+        if (i >= pinfo->seqCnt)
             scrn_eol_pos(row++, col);
     }
     row = sav;
-    for (i = 0; i < info->seqCnt; i++) {
-        pkt = &info->seq_pkt[i];
+    for (i = 0; i < pinfo->seqCnt; i++) {
+        pkt = &pinfo->seq_pkt[i];
 
         col = 1;
         scrn_printf(row, col, "%2d:", i);
@@ -118,7 +119,7 @@ pktgen_page_seq(uint32_t pid)
         scrn_printf(row, col, "%*s", 16, buff);
 
         col += 16;
-        scrn_printf(row, col, "%6d", pkt->pktSize + RTE_ETHER_CRC_LEN);
+        scrn_printf(row, col, "%6d", pkt->pkt_size + RTE_ETHER_CRC_LEN);
 
         row++;
     }

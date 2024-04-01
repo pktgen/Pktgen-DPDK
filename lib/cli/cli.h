@@ -893,6 +893,8 @@ int cli_execute_cmdfile(const char *path);
  */
 int cli_execute_cmdfiles(void);
 
+int cli_num_cmdfiles(void);
+
 /**
  * Remove a node from the directory tree
  *

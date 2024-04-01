@@ -51,8 +51,8 @@ typedef struct pkt_seq_s {
     uint16_t qinq_innerid; /**< Inner VLAN ID if Q-in-Q */
     uint32_t gre_key;      /**< GRE key if used */
 
-    uint16_t pktSize;    /**< Size of packet in bytes not counting FCS */
-    uint8_t seq_enabled; /**< Enable or disable this sequence through GUI */
+    uint16_t pkt_size;   /**< Size of packet in bytes not counting FCS */
+    uint8_t seq_enabled; /**< Enable or disable this sequence */
     union {
         uint8_t ttl;        /**< TTL value for IPv4 headers */
         uint8_t hop_limits; /**< Hop limits for IPv6 headers */
@@ -68,9 +68,7 @@ typedef struct pkt_seq_s {
         };
     };
     uint64_t ol_flags; /**< offload flags */
-
-    pkt_hdr_t hdr __rte_cache_aligned; /**< Packet header data */
-    uint8_t pad[DEFAULT_MBUF_SIZE];
+    pkt_hdr_t *hdr;    /**< Packet header data */
 } pkt_seq_t __rte_cache_aligned;
 
 struct port_info_s;

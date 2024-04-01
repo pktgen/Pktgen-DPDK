@@ -16,8 +16,6 @@
 extern "C" {
 #endif
 
-void pktgen_l2p_dump(void);
-
 void pktgen_interact(void);
 
 void *pktgen_get_lua(void);

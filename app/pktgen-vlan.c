@@ -32,7 +32,7 @@ pktgen_process_vlan(struct rte_mbuf *m, uint32_t pid, uint32_t qid)
     pktType_e pType;
     struct rte_ether_hdr *eth;
     struct rte_vlan_hdr *rte_vlan_hdr;
-    port_info_t *info = &pktgen.info[pid];
+    port_info_t *info = l2p_get_port_pinfo(pid);
 
     eth = rte_pktmbuf_mtod(m, struct rte_ether_hdr *);
 

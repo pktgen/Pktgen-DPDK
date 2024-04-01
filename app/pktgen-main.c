@@ -29,38 +29,6 @@
 #include "pktgen-log.h"
 #include "cli-functions.h"
 
-/* Offset to the mbuf dynamic field holding pktgen data. */
-int pktgen_dynfield_offset = -1;
-
-/* Descriptor used for the mbuf dynamic field configuration. */
-static const struct rte_mbuf_dynfield pktgen_dynfield_desc = {
-    .name  = "pktgen_dynfield_data",
-    .size  = sizeof(union pktgen_data),
-    .align = __alignof__(union pktgen_data),
-};
-
-#ifdef GUI
-int pktgen_gui_main(int argc, char *argv[]);
-#endif
-
-/**
- *
- * pktgen_l2p_dump - Dump the l2p table
- *
- * DESCRIPTION
- * Dump the l2p table
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-pktgen_l2p_dump(void)
-{
-    pg_raw_dump_l2p(pktgen.l2p);
-}
-
 #ifdef LUA_ENABLED
 /**
  *
@@ -92,40 +60,35 @@ pktgen_get_lua(void)
  *
  * SEE ALSO:
  */
-
 static void
 pktgen_usage(const char *prgname)
 {
     printf("Usage: %s [EAL options] -- [-h] [-v] [-P] [-G] [-g host:port] [-T] [-f cmd_file] [-l "
-           "log_file] [-s "
-           "P:PCAP_file] [-m <string>]\n"
-           "  -s P:file    PCAP packet stream file, 'P' is the port number\n"
-           "  -s P:file0,file1,... list of PCAP packet stream files per queue, 'P' is the port "
-           "number\n"
+           "log_file] [-s P:filepath] [-m <string>]\n"
 #ifdef LUA_ENABLED
-           "  -f filename  Command file (.pkt) to execute or a Lua script (.lua) file\n"
+           "  -f filename   Command file (.pkt) to execute or a Lua script (.lua) file\n"
 #else
-           "  -f filename  Command file (.pkt) to execute\n"
+           "  -f filename   Command file (.pkt) to execute\n"
 #endif
-           "  -l filename  Write log to filename\n"
-           "  -P           Enable PROMISCUOUS mode on all ports\n"
-           "  -g address   Optional IP address and port number default is (localhost:0x5606)\n"
-           "               If -g is used that enable socket support as a server application\n"
-           "  -G           Enable socket support using default server values localhost:0x5606 \n"
-           "  -N           Enable NUMA support\n"
-           "  -T           Enable the color output\n"
-           "  -v           Verbose output\n"
-           "  -j           Enable jumbo frames of 9600 bytes\n"
-           "  -c           Enable clock_gettime\n"
-           "  --txd=N      set the number of descriptors in Tx rings to N \n"
-           "  --rxd=N      set the number of descriptors in Rx rings to N \n"
-           "  --no-crc-strip  Do not strip CRC on all ports, (Default is to strip crc)\n"
-           "  -m <string>  matrix for mapping ports to logical cores\n"
+           "  -l filename   Write log to filename\n"
+           "  -s P:filepath PCAP packet stream file, 'P' is the port number\n"
+           "  -P            Enable PROMISCUOUS mode on all ports\n"
+           "  -g address    Optional IP address and port number default is (localhost:0x5606)\n"
+           "                If -g is used that enable socket support as a server application\n"
+           "  -G            Enable socket support using default server values localhost:0x5606 \n"
+           "  -N            Enable NUMA support\n"
+           "  -T            Enable the color output\n"
+           "  -v            Verbose output\n"
+           "  -j            Enable jumbo frames of 9600 bytes\n"
+           "  -c            Enable clock_gettime\n"
+           "  --txd=N       set the number of descriptors in Tx rings to N \n"
+           "  --rxd=N       set the number of descriptors in Rx rings to N \n"
+           "  -m <string>   matrix for mapping ports to logical cores\n"
            "      BNF: (or kind of BNF)\n"
            "      <matrix-string>   := \"\"\" <lcore-port> { \",\" <lcore-port>} \"\"\"\n"
-           "      <lcore-port>      := <lcore-list> \".\" <port-list>\n"
+           "      <lcore-port>      := <lcore-list> \".\" <port>\n"
            "      <lcore-list>      := \"[\" <rx-list> \":\" <tx-list> \"]\"\n"
-           "      <port-list>       := \"[\" <rx-list> \":\" <tx-list>\"]\"\n"
+           "      <port>            := \"<num>\"\n"
            "      <rx-list>         := <num> { \"/\" (<num> | <list>) }\n"
            "      <tx-list>         := <num> { \"/\" (<num> | <list>) }\n"
            "      <list>            := <num> { \"/\" (<range> | <list>) }\n"
@@ -141,8 +104,6 @@ pktgen_usage(const char *prgname)
            "                                      cores 2,4,5 handle port 1 rx/tx\n"
            "      [1:2].0, [4:6].1, ...         - core 1 handles port 0 rx,\n"
            "                                      core 2 handles port 0 tx,\n"
-           "      [1:2].[0-1], [4:6].[2/3], ... - core 1 handles port 0 & 1 rx,\n"
-           "                                      core 2 handles port  0 & 1 tx\n"
            "      [1:2-3].0, [4:5-6].1, ...     - core 1 handles port 0 rx, cores 2,3 handle port "
            "0 tx\n"
            "                                      core 4 handles port 1 rx & core 5,6 handles port "
@@ -155,10 +116,6 @@ pktgen_usage(const char *prgname)
            "port 0 tx\n"
            "                                      core 4,5 handles port 1 rx & core 6,8 handles "
            "port 1 tx\n"
-           "      [1:2].[0:0-7], [3:4].[1:0-7], - core 1 handles port 0 rx, core 2 handles ports "
-           "0-7 tx\n"
-           "                                      core 3 handles port 1 rx & core 4 handles port "
-           "0-7 tx\n"
            "      BTW: you can use \"{}\" instead of \"[]\" as it does not matter to the syntax.\n"
            "  -h           Display the help information\n",
            prgname);
@@ -179,15 +136,20 @@ pktgen_usage(const char *prgname)
 static int
 pktgen_parse_args(int argc, char **argv)
 {
-    int opt, ret, port, q;
+    int opt, ret;
     char **argvopt;
     int option_index;
-    char *prgname                 = argv[0], *p, *pc;
-    static struct option lgopts[] = {{"crc-strip", 0, 0, 0},
-                                     {"no-crc-strip", 0, 0, 0},
-                                     {"txd", required_argument, 0, 't'},
-                                     {"rxd", required_argument, 0, 'r'},
-                                     {NULL, 0, 0, 0}};
+    char *prgname   = argv[0], *p;
+    char buff[1024] = {0};
+    pcap_info_t *pcap;
+    // clang-format off
+    static struct option lgopts[] = {
+        {"txd", required_argument, 0, 't'},
+        {"rxd", required_argument, 0, 'r'},
+        {NULL, 0, 0, 0}
+    };
+    // clang-format on
+    uint16_t pid;
 
     argvopt = argv;
 
@@ -198,17 +160,12 @@ pktgen_parse_args(int argc, char **argv)
     for (opt = 0; opt < argc; opt++)
         pktgen.argv[opt] = strdup(argv[opt]);
 
-    pktgen_set_hw_strip_crc(1);
-
-    pktgen.eth_min_pkt   = RTE_ETHER_MIN_LEN;
-    pktgen.eth_mtu       = RTE_ETHER_MTU;
-    pktgen.eth_max_pkt   = RTE_ETHER_MAX_LEN;
     pktgen.mbuf_dataroom = RTE_MBUF_DEFAULT_DATAROOM;
     pktgen.mbuf_buf_size = RTE_MBUF_DEFAULT_BUF_SIZE;
 
     pktgen.verbose = 0;
     while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTvjtrc", lgopts, &option_index)) !=
-           EOF)
+           EOF) {
         switch (opt) {
         case 't':
             pktgen.nb_txd = atoi(optarg);
@@ -222,12 +179,10 @@ pktgen_parse_args(int argc, char **argv)
 
         case 'j':
             pktgen.flags |= JUMBO_PKTS_FLAG;
-            pktgen.eth_mtu       = PG_JUMBO_ETHER_MTU;
-            pktgen.eth_max_pkt   = PG_JUMBO_FRAME_LEN;
             pktgen.mbuf_dataroom = PG_JUMBO_FRAME_LEN;
             pktgen.mbuf_buf_size = pktgen.mbuf_dataroom + RTE_PKTMBUF_HEADROOM;
 
-            pktgen_log_info("**** Jumbo Frames of %d enabled.", pktgen.eth_max_pkt);
+            pktgen_log_info("**** Jumbo Frames of %'d enabled.", RTE_ETHER_MAX_JUMBO_FRAME_LEN);
             break;
 
         case 'p':
@@ -243,38 +198,26 @@ pktgen_parse_args(int argc, char **argv)
             break;
 
         case 'm': /* Matrix for port mapping. */
-            if (pg_parse_matrix(pktgen.l2p, optarg) == -1) {
-                pktgen_log_error("invalid matrix string (%s)", optarg);
+            if (l2p_parse_mapping_add(optarg)) {
+                pktgen_log_error("too many mapping entries");
                 pktgen_usage(prgname);
                 return -1;
             }
             break;
 
         case 's': /* Read a PCAP packet capture file (stream) */
-            port = strtol(optarg, NULL, 10);
-            p    = strchr(optarg, ':');
-            pc   = strchr(optarg, ',');
+            snprintf(buff, sizeof(buff), "%s", optarg);
+            p = strchr(buff, ':');
             if (p == NULL)
                 goto pcap_err;
-            if (pc == NULL) {
-                pktgen.info[port].pcap = _pcap_open(++p, port);
-                if (pktgen.info[port].pcap == NULL)
-                    goto pcap_err;
-            } else {
-                q = 0;
-                while (p != NULL && q < NUM_Q) {
-                    p++;
-                    pc = strchr(p, ',');
-                    if (pc != NULL)
-                        *pc = '\0';
-                    pktgen.info[port].pcaps[q] = _pcap_open(p, port);
-                    if (pktgen.info[port].pcaps[q] == NULL)
-                        goto pcap_err;
-                    p = pc;
-                    q++;
-                }
-                pktgen.info[port].pcap = pktgen.info[port].pcaps[0];
-            }
+            *p++ = '\0';
+
+            pid = (uint16_t)strtol(buff, NULL, 10);
+
+            pcap = pktgen_pcap_open(p, pid);
+            if (pcap == NULL)
+                goto pcap_err;
+            l2p_set_pcap_info(pid, pcap);
             break;
         case 'P': /* Enable promiscuous mode on the ports */
             pktgen.flags |= PROMISCUOUS_ON_FLAG;
@@ -285,11 +228,11 @@ pktgen_parse_args(int argc, char **argv)
             break;
 
         case 'G':
-            pktgen.flags |= (ENABLE_GUI_FLAG | IS_SERVER_FLAG);
+            pktgen.flags |= IS_SERVER_FLAG;
             break;
 
         case 'g': /* Define the port number and IP address used for the socket connection. */
-            pktgen.flags |= (ENABLE_GUI_FLAG | IS_SERVER_FLAG);
+            pktgen.flags |= IS_SERVER_FLAG;
 
             p = strchr(optarg, ':');
             if (p == NULL) /* No : symbol means pktgen is a server application. */
@@ -302,7 +245,7 @@ pktgen_parse_args(int argc, char **argv)
                     pktgen.hostname = (char *)strdupf(pktgen.hostname, optarg);
 
                 pktgen.socket_port = strtol(++p, NULL, 0);
-                pktgen_log_info(">>> Socket GUI support %s%c0x%x", pktgen.hostname, c,
+                pktgen_log_info(">>> Socket support %s%c0x%x", pktgen.hostname, c,
                                 pktgen.socket_port);
             }
             break;
@@ -321,17 +264,11 @@ pktgen_parse_args(int argc, char **argv)
             pktgen_usage(prgname);
             return -1;
 
-        case 0: /* crc-strip for all ports */
-            printf(">>> Strip CRC in hardware is the default\n");
-            pktgen_set_hw_strip_crc(1);
-            break;
-        case 1: /* no-crc-strip for all ports */
-            pktgen_set_hw_strip_crc(0);
-            break;
         default:
             pktgen_usage(prgname);
             return -1;
         }
+    }
 
     /* Setup the program name */
     if (optind >= 0)
@@ -339,6 +276,10 @@ pktgen_parse_args(int argc, char **argv)
 
     ret    = optind - 1;
     optind = 1; /* reset getopt lib */
+
+    if (l2p_parse_mappings() < 0)
+        pktgen_log_error("error or too many mapping entries");
+
     return ret;
 
 pcap_err:
@@ -418,7 +359,6 @@ pktgen_lua_dofile(void *ld, const char *filename)
 int
 main(int argc, char **argv)
 {
-    uint32_t i;
     int32_t ret;
     struct sigaction sa;
     sigset_t set;
@@ -458,10 +398,9 @@ main(int argc, char **argv)
     pktgen.nb_txd            = DEFAULT_TX_DESC;
     pktgen.nb_ports_per_page = DEFAULT_PORTS_PER_PAGE;
 
-    if ((pktgen.l2p = l2p_create()) == NULL)
-        pktgen_log_panic("Unable to create l2p");
+    l2p_create();
 
-    pktgen.portdesc_cnt = get_portdesc(pktgen.portlist, pktgen.portdesc, RTE_MAX_ETHPORTS, 0);
+    pktgen.portdesc_cnt = get_portdesc(pktgen.portdesc, RTE_MAX_ETHPORTS, 0);
 
     /* Initialize the screen and logging */
     pktgen_init_log();
@@ -474,11 +413,6 @@ main(int argc, char **argv)
 
     argc -= ret;
     argv += ret;
-
-    /* Configure pktgen data which will be encapsulated in the mbuf. */
-    pktgen_dynfield_offset = rte_mbuf_dynfield_register(&pktgen_dynfield_desc);
-    if (pktgen_dynfield_offset < 0)
-        rte_exit(EXIT_FAILURE, "Cannot register mbuf field\n");
 
     if (pktgen_cli_create()) {
         cli_destroy();
@@ -506,9 +440,9 @@ main(int argc, char **argv)
         return -1;
     }
 
-    i = rte_get_main_lcore();
-    if (get_lcore_rxcnt(pktgen.l2p, i) || get_lcore_txcnt(pktgen.l2p, i)) {
-        cli_printf("*** Error can not use initial lcore for a port\n");
+    if (l2p_get_pid_by_lcore(rte_get_main_lcore()) < RTE_MAX_ETHPORTS) {
+        cli_printf("*** Error can not use initial lcore %d for port handling\n",
+                   rte_get_main_lcore());
         cli_printf("    The initial lcore is %d\n", rte_get_main_lcore());
         cli_destroy();
         scrn_destroy();
@@ -538,9 +472,7 @@ main(int argc, char **argv)
     /* launch per-lcore init on every lcore except initial and initial + 1 lcores */
     ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MAIN);
     if (ret != 0)
-        pktgen_log_error("Failed to start lcore %d, return %d", i, ret);
-
-    rte_delay_us_sleep(250000); /* Wait for the lcores to start up. */
+        pktgen_log_error("Failed to start lcores, return %d", ret);
 
     /* Disable printing log messages of level info and below to screen, */
     /* erase the screen and start updating the screen again. */
@@ -551,29 +483,7 @@ main(int argc, char **argv)
 
     pktgen_clear_display();
 
-    pktgen_log_info("=== Timer Setup\n");
     pktgen_timer_setup();
-
-    pktgen_log_info("=== After Timer Setup\n");
-
-    if (pktgen.flags & ENABLE_GUI_FLAG) {
-        if (!scrn_is_paused()) {
-            scrn_pause();
-            scrn_cls();
-            scrn_setw(1);
-            scrn_pos(this_scrn->nrows, 1);
-        }
-#ifdef LUA_ENABLED
-        pktgen.ld_sock = lua_create_instance();
-
-        lua_start_socket(pktgen.ld_sock, &pktgen.thread, pktgen.hostname, pktgen.socket_port);
-#endif
-#ifdef GUI
-        pktgen_gui_main(argc, argv);
-#endif
-    }
-
-    pktgen_log_info("=== Run CLI\n");
 
     /* Unblock SIGWINCH so main thread
      * can handle screen resizes */
@@ -582,21 +492,24 @@ main(int argc, char **argv)
     pthread_sigmask(SIG_UNBLOCK, &set, NULL);
 
     /* execute the command files if present */
-    scrn_resume();
+    scrn_pause();
     cli_execute_cmdfiles();
+    scrn_resume();
+    pktgen_clear_display();
 
     cli_start(NULL); /* Start accepting input from user */
 
     scrn_pause();
     scrn_setw(1); /* Reset the window size, from possible crash run. */
-    scrn_printf(this_scrn->nrows + 1, 1,
-                "\n"); /* Move the cursor to the bottom of the screen again */
+    /* Move the cursor to the bottom of the screen again */
+    scrn_printf(this_scrn->nrows + 1, 1, "\n");
 
     pktgen_stop_running();
 
     /* Wait for all of the cores to stop running and exit. */
     rte_eal_mp_wait_lcore();
 
+    int i = 0;
     RTE_ETH_FOREACH_DEV(i)
     {
         rte_eth_dev_stop(i);
@@ -622,13 +535,10 @@ main(int argc, char **argv)
 void
 pktgen_stop_running(void)
 {
-    uint16_t lid;
-
 #ifdef LUA_ENABLED
     lua_execute_close(pktgen.ld);
 #endif
 
     pktgen.timer_running = 0;
-    for (lid = 0; lid < RTE_MAX_LCORE; lid++)
-        pg_stop_lcore(pktgen.l2p, lid);
+    pktgen.force_quit    = 1;
 }

@@ -38,7 +38,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         ipv4->dst_addr = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
 
         ipv4->version_ihl   = (IPv4_VERSION << 4) | (sizeof(struct rte_ipv4_hdr) / 4);
-        tlen                = pkt->pktSize - pkt->ether_hdr_size;
+        tlen                = pkt->pkt_size - pkt->ether_hdr_size;
         ipv4->total_length  = htons(tlen);
         ipv4->next_proto_id = pkt->ipProto;
 
@@ -64,7 +64,7 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         rte_memcpy(ipv6->dst_addr, &pkt->ip_dst_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
         rte_memcpy(ipv6->src_addr, &pkt->ip_src_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
 
-        tlen              = pkt->pktSize - (pkt->ether_hdr_size + sizeof(struct rte_ipv6_hdr));
+        tlen              = pkt->pkt_size - (pkt->ether_hdr_size + sizeof(struct rte_ipv6_hdr));
         ipv6->payload_len = htons(tlen);
         ipv6->proto       = pkt->ipProto;
 

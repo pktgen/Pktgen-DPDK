@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-/* Created 2013 by Keith Wiles @ intel.com */
+/* Created 2013-2024 by Keith Wiles @ intel.com */
 
 #ifndef _COPYRIGHT_INFO_H
 #define _COPYRIGHT_INFO_H

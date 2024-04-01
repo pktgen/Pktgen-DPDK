@@ -10,59 +10,56 @@
 
 #include "pktgen-display.h"
 #include "pktgen-cpu.h"
-#include "pktgen-cfg.h"
+#include "pktgen-sys.h"
 
-/*
- * 2 sockets, 18 cores, 2 threads
- * Socket   :    0         1         2         3
- * Core   0 : [ 0,36]   [18,54]   [18,54]   [18,54]
- */
+#include "coreinfo.h"
+
 /**
  *
- * pktgen_page_config - Show the configuration page for pktgen.
+ * pktgen_page_system - Show the system page for pktgen.
  *
  * DESCRIPTION
- * Display the pktgen configuration page. (Not used)
+ * Display the pktgen system page. (Not used)
  *
  * RETURNS: N/A
  *
  * SEE ALSO:
  */
-
 void
-pktgen_page_config(void)
+pktgen_page_system(void)
 {
     uint32_t i, row, col, cnt, nb_sockets, nb_cores, nb_threads;
     static int counter = 0;
     char buff[2048];
 
     pktgen_display_set_color("top.page");
-    display_topline("<CPU Page>");
+    display_topline("<System Page>", 0, 0, 0);
 
-    if ((pktgen.core_cnt == 0) || (pktgen.lscpu == NULL))
+    cnt = coreinfo_lcore_cnt();
+    if ((cnt == 0) || (pktgen.lscpu == NULL))
         pktgen_cpu_init();
 
-    cnt        = pktgen.core_cnt;
-    nb_sockets = coremap_cnt(pktgen.core_info, cnt, 0);
-    nb_cores   = coremap_cnt(pktgen.core_info, cnt, 1);
-    nb_threads = coremap_cnt(pktgen.core_info, cnt, 2);
+    nb_sockets = coreinfo_socket_cnt();
+    nb_cores   = coreinfo_core_cnt();
+    nb_threads = coreinfo_thread_cnt();
 
     if ((counter++ & 3) != 0)
         return;
 
-    pktgen_display_set_color("top.ports");
-    row = 2;
+    row = 3;
     col = 1;
-    scrn_printf(row++, 2, "%d sockets, %d cores, %d threads", nb_sockets, nb_cores, nb_threads);
+    pktgen_display_set_color("stats.total.data");
+    scrn_printf(row++, 1, "Number of sockets %d, cores/socket %d, threads/core %d, total %d",
+                nb_sockets, nb_cores, nb_threads, cnt);
 
-    pktgen_display_set_color("stats.stat.label");
+    pktgen_display_set_color("stats.dyn.label");
     sprintf(buff, "Socket   : ");
     for (i = 0; i < nb_sockets; i++)
         strncatf(buff, "%4d      ", i);
     scrn_printf(row, col + 2, "%s", buff);
     scrn_printf(0, 0, "Port description");
 
-    pktgen_display_set_color("stats.stat.values");
+    pktgen_display_set_color("stats.stat.label");
     row++;
     buff[0] = '\0';
     for (i = 0; i < nb_cores; i++) {
@@ -77,13 +74,18 @@ pktgen_page_config(void)
     }
     scrn_printf(row, 1, "%s", buff);
 
+    pktgen_display_set_color("stats.bdf");
     col = 13 + (nb_sockets * 10) + 1;
     for (i = 0; i < pktgen.portdesc_cnt; i++)
         scrn_printf(row + i, col, "%s", pktgen.portdesc[i]);
 
-    row += RTE_MAX(nb_cores, pktgen.portdesc_cnt) + 2;
+    row += RTE_MAX(nb_cores, pktgen.portdesc_cnt);
+    scrn_pos(row, 1);
+    pktgen_display_set_color("stats.stat.values");
+
+    row += pktgen.nb_ports + 4;
     if (pktgen.flags & PRINT_LABELS_FLAG) {
-        pktgen.last_row = row;
+        pktgen.last_row = row + pktgen.nb_ports;
         display_dashline(pktgen.last_row);
 
         scrn_setw(pktgen.last_row);

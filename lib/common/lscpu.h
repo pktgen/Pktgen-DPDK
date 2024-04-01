@@ -33,7 +33,6 @@ typedef struct {
     char *model_name;
     char *cpu_flags;
     char *cache_size;
-    /* char	  * dummy; */
     short numa_cpus[RTE_MAX_NUMA_NODES][RTE_MAX_LCORE];
 } lscpu_t;
 

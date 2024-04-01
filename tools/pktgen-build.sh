@@ -16,11 +16,10 @@ currdir=`pwd`
 script_dir=$(cd "${BASH_SOURCE[0]%/*}" & pwd -P)
 export sdk_path="${PKTGEN_SDK:-${script_dir%/*}}"
 export target_dir="${PKTGEN_TARGET:-usr/local}"
-export build_dir="${PKTGEN_BUILD:-${currdir}/Builddir}"
+export build_dir="${PKTGEN_BUILD:-${currdir}/builddir}"
 install_path="${PKTGEN_DESTDIR:-${currdir}}"
 
 export lua_enabled="-Denable_lua=false"
-export gui_enabled="-Denable_gui=false"
 
 configure="setup"
 
@@ -58,16 +57,15 @@ echo ""
 function dump_options() {
 	echo " Build and install values:"
 	echo "   lua_enabled       : "$lua_enabled
-	echo "   gui_enabled       : "$gui_enabled
 	echo ""
 }
 
 function run_meson() {
 	btype="-Dbuildtype="$buildtype
 
-    echo "meson $configure $btype $lua_enabled $gui_enabled $build_dir"
-	if ! meson $configure $btype $lua_enabled $gui_enabled $build_dir; then
-        echo "*** ERROR: meson $configure $btype $lua_enabled $gui_enabled $build_dir"
+    echo "meson $configure $btype $lua_enabled $build_dir"
+	if ! meson $configure $btype $lua_enabled $build_dir; then
+        echo "*** ERROR: meson $configure $btype $lua_enabled $build_dir"
         configure=""
         return 1
     fi
@@ -150,7 +148,6 @@ usage() {
 	echo "                If the '"$build_dir"' directory exists it will use ninja to build Pktgen without"
 	echo "                running meson unless one of the meson.build files were changed"
 	echo "  build       - same as 'make' with no arguments"
-	echo "  buildgui    - same as 'make build' except enable gui build"
 	echo "  buildlua    - same as 'make build' except enable Lua build"
 	echo "  debug       - turn off optimization, may need to do 'clean' then 'debug' the first time"
 	echo "  debugopt    - turn optimization on with -O2, may need to do 'clean' then 'debugopt' the first time"
@@ -162,7 +159,7 @@ usage() {
 	echo " Build and install environment variables:"
 	echo "  PKTGEN_INSTALL_PATH - The install path, defaults to Pktgen SDK directory"
 	echo "  PKTGEN_TARGET       - The target directory appended to install path, defaults to 'usr'"
-	echo "  PKTGEN_BUILD        - The build directory appended to install path, default to 'Builddir'"
+	echo "  PKTGEN_BUILD        - The build directory appended to install path, default to 'builddir'"
 	echo "  PKTGEN_DESTDIR      - The install destination directory"
 	echo ""
 	dump_options
@@ -177,13 +174,6 @@ do
 		;;
 
 	'build')
-		dump_options
-		ninja_build && ninja_install
-		;;
-
-	'buildgui')
-		gui_enabled="-Denable_gui=true"
-		lua_enabled="-Denable_lua=true"
 		dump_options
 		ninja_build && ninja_install
 		;;

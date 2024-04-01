@@ -45,11 +45,11 @@ typedef struct pkt_sizes_s {
 
 struct port_info_s;
 
-void pktgen_get_link_status(struct port_info_s *info, int pid, int wait);
+void pktgen_get_link_status(struct port_info_s *info);
 void pktgen_process_stats(void);
 
 void pktgen_page_stats(void);
-void pktgen_page_phys_stats(uint16_t pid);
+void pktgen_page_queue_stats(uint16_t pid);
 void pktgen_page_xstats(uint16_t pid);
 
 #ifdef __cplusplus

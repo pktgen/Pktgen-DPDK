@@ -35,12 +35,11 @@ _append(unparse_t *up, const char *format, ...)
 
     /* First time just allocate some memory to use for buffer */
     if (up->buffer == NULL) {
-        up->buffer = malloc(4 * FGEN_EXTRA_SPACE);
+        up->buffer = calloc(1, 4 * FGEN_EXTRA_SPACE);
         if (up->buffer == NULL) {
             printf("Buffer is NULL\n");
             return -1;
         }
-        memset(up->buffer, 0, (4 * FGEN_EXTRA_SPACE));
         up->buf_len = (4 * FGEN_EXTRA_SPACE);
         up->used    = 0;
     }

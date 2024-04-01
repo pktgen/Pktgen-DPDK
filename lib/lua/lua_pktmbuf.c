@@ -88,9 +88,7 @@ _get(lua_State *L)
 
     mbp = luaL_checkudata(L, 1, Pktmbuf);
 
-    m = rte_pktmbuf_alloc(*mbp);
-
-    if (m)
+    if (rte_mempool_get(*mbp, (void **)&m) == 0)
         lua_pushlightuserdata(L, m);
 
     return 1;

@@ -194,7 +194,7 @@ leave:
  */
 
 void
-pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd_bits_t *rbits)
+pktgen_rnd_bits_apply(port_info_t *pinfo, struct rte_mbuf **pkts, size_t cnt, rnd_bits_t *rbits)
 {
     rnd_bits_t *rnd_bits;
     size_t mbuf_cnt;
@@ -204,7 +204,7 @@ pktgen_rnd_bits_apply(port_info_t *info, struct rte_mbuf **pkts, size_t cnt, rnd
     bf_spec_t *bf_spec;
 
     /* the info pointer could be null. */
-    rnd_bits = (rbits) ? rbits : info->rnd_bitfields;
+    rnd_bits = (rbits) ? rbits : pinfo->rnd_bitfields;
     if ((active_specs = rnd_bits->active_specs) == 0)
         return;
 
@@ -266,13 +266,12 @@ pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t *rn
     mask[35] = '\0';
     mask[8] = mask[17] = mask[26] = ' ';
 
-    pktgen_display_set_color("top.page");
-    display_topline("<Random bitfield Page>");
+    display_topline("<Random bitfield Page>", 0, 0, 0);
 
     pktgen_display_set_color("top.ports");
     scrn_printf(1, 3, "Port %d", pid);
 
-    row = PORT_STATE_ROW;
+    row = PORT_FLAGS_ROW;
 
     if (rnd_bits == NULL) {
         scrn_cprintf(10, this_scrn->ncols, "** Port is not active - no random bitfields set **");

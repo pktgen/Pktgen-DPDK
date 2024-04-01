@@ -42,6 +42,8 @@ foreach arg: warning_flags
 	endif
 endforeach
 
+fgen_dep = dependency('libfgen', required: true)
+
 lua_dep = dependency('', required: false)
 
 if get_option('enable_lua')
@@ -73,13 +75,10 @@ else
 	dpdk_libs_path = join_paths(dpdk_prefix, get_option('libdir'))
 	message('DPDK lib path: ' + dpdk_libs_path)
 
-	dpdk_bond = cc.find_library('librte_net_bond', dirs: [dpdk_libs_path], required: false)
+	dpdk_bond = cc.find_library('rte_net_bond', dirs: [dpdk_libs_path], required: false)
 
-	subdir('tools')
-
-	subdir('lib')
-
-	subdir('app')
-
-	subdir('doc')
+	subdirs =['tools', 'lib', 'examples', 'app', 'doc']
+	foreach d:subdirs
+		subdir(d)
+	endforeach
 endif

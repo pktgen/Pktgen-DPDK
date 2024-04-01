@@ -226,7 +226,7 @@ cli_file_create(const char *path, const char *type)
 
     file = basename(mypath);
 
-    data = malloc(CLI_FILE_SIZE);
+    data = calloc(1, CLI_FILE_SIZE);
     if (data) {
         parent = cli_last_dir_in_path(path);
         if (parent) {
@@ -252,7 +252,7 @@ cli_file_create(const char *path, const char *type)
 int
 cli_system(char *p)
 {
-    char buf[256];
+    char buf[1024];
     size_t n;
     FILE *f;
 

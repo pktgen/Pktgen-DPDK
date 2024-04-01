@@ -34,7 +34,7 @@ void pktgen_init_screen(int theme);
  *
  * SEE ALSO:
  */
-void display_topline(const char *msg);
+void display_topline(const char *msg, int pstart, int pstop, int pcnt);
 
 /**
  *

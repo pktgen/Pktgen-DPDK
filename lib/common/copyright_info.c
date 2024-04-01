@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-/* Created 2013 by Keith Wiles @ intel.com */
+/* Created 2010-2024 by Keith Wiles @ intel.com */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +25,7 @@
 
 #define COPYRIGHT_MSG       "Copyright(c) <2010-2024>, Intel Corporation. All rights reserved."
 #define COPYRIGHT_MSG_SHORT "Copyright(c) <2010-2024>, Intel Corporation"
-#define POWERED_BY_DPDK     "Powered by DPDK"
+#define POWERED_BY_DPDK     "Powered by"
 
 /**
  *

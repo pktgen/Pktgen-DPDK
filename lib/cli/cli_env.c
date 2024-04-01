@@ -28,7 +28,7 @@ cli_env_create(void)
 {
     struct cli_env *env;
 
-    env = (struct cli_env *)malloc(sizeof(struct cli_env));
+    env = (struct cli_env *)calloc(1, sizeof(struct cli_env));
     if (!env)
         return NULL;
     memset(env, '\0', sizeof(struct cli_env));
@@ -80,7 +80,7 @@ __env_set(struct cli_env *env, const char *var, const char *val)
         return n;
     }
 
-    n = (struct env_node *)malloc(sizeof(struct env_node));
+    n = (struct env_node *)calloc(1, sizeof(struct env_node));
     if (!n)
         return NULL;
 

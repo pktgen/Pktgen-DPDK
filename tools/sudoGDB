@@ -1,0 +1,10 @@
+#
+# Wrapper for running a CNDP application with GDB. Normally used with vscode debugging.
+#   CNDP needs to run in sudo or privileged mode, use this wrapper
+#   to run a application if needing to debug the application.
+dir=`pwd`
+abs_path=${dir}/usr/local/lib/x86_64-linux-gnu
+rel_path=${dir}/../lib/x86_64-linux-gnu
+ld_paths=${abs_path}:${rel_path}
+
+sudo LD_LIBRARY_PATH=${ld_paths} /usr/bin/gdb "$@"

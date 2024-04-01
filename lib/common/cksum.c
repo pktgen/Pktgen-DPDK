@@ -71,7 +71,6 @@
 #include "port_config.h"
 
 #include "pg_inet.h"
-#include "mbuf.h"
 #include "cksum.h"
 
 /**

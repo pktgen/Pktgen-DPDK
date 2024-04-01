@@ -7,7 +7,6 @@
 
 #######################################################################
 # Pktgen Configuration script information:
-#   GUI socket is Enabled
 #   Flags 00000834
 #   Number of ports: 4
 #   Number ports per page: 4
@@ -67,7 +66,6 @@ disable 0 capture
 disable 0 rx_tap
 disable 0 tx_tap
 disable 0 vlan
-disable 0 rate
 
 #
 # Range packet information:
@@ -143,15 +141,6 @@ range 0 size max 1518
 range 0 size inc 0
 
 #
-# Set up the rate data for the port.
-rate 0 fps 60
-rate 0 lines 720
-rate 0 pixels 1280
-rate 0 color bits 1
-rate 0 payload size 800
-
-rate 0 overhead 0
-#
 # Set up the sequence data for the port.
 set 0 seq_cnt 0
 
@@ -203,7 +192,6 @@ disable 1 capture
 disable 1 rx_tap
 disable 1 tx_tap
 disable 1 vlan
-disable 1 rate
 
 #
 # Range packet information:
@@ -278,15 +266,6 @@ range 1 size min 64
 range 1 size max 1518
 range 1 size inc 0
 
-#
-# Set up the rate data for the port.
-rate 1 fps 60
-rate 1 lines 720
-rate 1 pixels 1280
-rate 1 color bits 1
-rate 1 payload size 800
-
-rate 1 overhead 0
 #
 # Set up the sequence data for the port.
 set 1 seq_cnt 0
@@ -414,15 +393,6 @@ range 2 size min 64
 range 2 size max 1518
 range 2 size inc 0
 
-#
-# Set up the rate data for the port.
-rate 2 fps 60
-rate 2 lines 720
-rate 2 pixels 1280
-rate 2 color bits 1
-rate 2 payload size 800
-
-rate 2 overhead 0
 #
 # Set up the sequence data for the port.
 set 2 seq_cnt 0

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) <2021-2024> Intel Corporation
  */
-/* Created using ideas from DPDK tgen */
+/* Created using ideas from DPDK */
 
 #include <stdint.h>        // for uint32_t, uint16_t, int32_t, uint8_t
 #include <stdbool.h>
@@ -630,14 +630,14 @@ _parse_payload(fgen_t *fg, frame_t *f, int lidx)
         case 0: /* Force the frame size to a given length */
             if (only++)
                 _ERR_RET("Can't have append and size at the same time\n");
-            fsize = STRTOL(val); /* The size includes the CRC length */
+            fsize = STRTOL(val); /* The size includes the FCS length */
 
             if (fsize < ETHER_MIN_LEN)
                 fsize = ETHER_MIN_LEN;
             else if (fsize > ETHER_MAX_LEN)
                 fsize = ETHER_MAX_LEN;
 
-            fsize -= ETHER_CRC_LEN; /* remove the CRC length */
+            fsize -= ETHER_CRC_LEN; /* remove the FCS length */
 
             /* fsize is the absolute packet length even if current packet is greater */
             if (fsize != pktlen)

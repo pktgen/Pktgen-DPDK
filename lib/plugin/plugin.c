@@ -199,7 +199,7 @@ plugin_create(char *plugin, char *path)
     }
 
     /* Create the plugin structure and begin loading plugin */
-    pin = malloc(sizeof(struct plugin));
+    pin = calloc(1, sizeof(struct plugin));
     if (!pin)
         return -1;
     memset(pin, 0, sizeof(struct plugin));

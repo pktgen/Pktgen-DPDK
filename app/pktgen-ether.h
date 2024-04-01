@@ -16,8 +16,6 @@
 extern "C" {
 #endif
 
-typedef struct rte_eth_stats eth_stats_t;
-
 struct port_info_s;
 
 char *pktgen_ether_hdr_ctor(struct port_info_s *info, pkt_seq_t *pkt);

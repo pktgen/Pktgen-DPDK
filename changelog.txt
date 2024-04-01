@@ -14,6 +14,8 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
  - 24.03.0 - Fix a number of problems with save command for lua scripts.
              Removed the decompile/compile/sendPkt/recvPkt references.
              Compiled with DPDK 24.03.0
+ - 23.11.1 - Update and fix performance issues.
+ - 23.11.0 - Add a new application pktperf to test performance improvements and validation.
  - 23.10.2 - Fix range tcp flags and help messages
  - 23.10.1 - Fix rte_thread_setname() change to rte_thread_set_name() for lua builds
  - 23.10.0 - Change TX rate calculations to be more accurate
@@ -219,8 +221,8 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
            loading command or lua files is faster because of the screen updates fixed.
  - 3.0.17- Fixed a formating issue on sequence page for port numbers.
            Save of lua code wrong for pktgen.range() should be pktgen.set_range().
- - 3.0.16- Add command line option to strip CRC in hardware one RX.
-           Option is '--crc-strip' which strips the CRC on RX for all ports.
+ - 3.0.16- Add command line option to strip FCS in hardware one RX.
+           Option is '--crc-strip' which strips the FCS on RX for all ports.
  - 3.0.15- Update Lua to 5.3.3 version187
            Change lua pktgen.range() to pktgen.set_range() plus added
            the range commands from pktgen.dst_mac() to pktgen.range.dst_mac().

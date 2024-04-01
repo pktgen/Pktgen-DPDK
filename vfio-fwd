@@ -1,0 +1,278 @@
+#
+# Pktgen 23.03.1 (DPDK 23.03.0)
+# Copyright(c) <2010-2024>, Intel Corporation. All rights reserved., Powered by DPDK
+
+# Command line arguments: (DPDK args are defaults)
+# ./usr/local/bin/pktgen -c 3fc0f4 -n 3 -m 512 --proc-type primary -- -v -T -P -G -m [4-5:6-7].0 -m [14-15:16-17].1 -m [18-19:20-21].2 -f themes/black-yellow.theme -f lb-fwd
+
+#######################################################################
+# Pktgen Configuration script information:
+#   Flags 00000834
+#   Number of ports: 3
+#   Number ports per page: 4
+#   Number descriptors: RX 1024 TX: 2048
+#   Promiscuous mode is Enabled
+
+
+# Global configuration:
+disable mac_from_arp
+
+######################### Port  0 ##################################
+#
+# Port:  0, Burst (Rx/Tx): 64/ 64, Rate:100%, Flags:00000010, TX Count:Forever
+#           Sequence count:0, Prime:1 VLAN ID:0001, Link: <UP-40000-FD>
+#
+# Set up the primary port information:
+set 0 count 0
+set 0 size 64
+set 0 rate 100
+set 0 rxburst 64
+set 0 txburst 64
+set 0 sport 1111
+set 0 dport 2222
+set 0 prime 1
+set 0 type ipv4
+set 0 proto udp
+set 0 dst ip 198.18.0.5
+set 0 src ip 198.18.0.2/24
+set 0 tcp flag clr all
+set 0 tcp flag set ack
+set 0 tcp seq 74616
+set 0 tcp ack 74640
+set 0 dst mac 3c:fd:fe:e4:34:c1
+set 0 src mac 00:11:22:33:44:01
+set 0 vlan 1
+
+set 0 pattern abc
+
+set 0 jitter 50
+disable 0 mpls
+range 0 mpls entry 0x0
+disable 0 qinq
+set 0 qinqids 0 0
+disable 0 gre
+disable 0 gre_eth
+disable 0 vxlan
+set 0 vxlan 0x0 0 0
+#
+# Port flag values:
+disable 0 icmp
+disable 0 pcap
+disable 0 range
+disable 0 latency
+enable 0 process
+disable 0 capture
+disable 0 rx_tap
+disable 0 tx_tap
+disable 0 vlan
+disable 0 rate
+
+#
+# Range packet information:
+range 0 src mac start 3c:fd:fe:e4:38:41
+range 0 src mac min 00:00:00:00:00:00
+range 0 src mac max 00:00:00:00:00:00
+range 0 src mac inc 00:00:00:00:00:00
+
+range 0 dst mac start 3c:fd:fe:e4:38:40
+range 0 dst mac min 00:00:00:00:00:00
+range 0 dst mac max 00:00:00:00:00:00
+range 0 dst mac inc 00:00:00:00:00:00
+
+range 0 src ip start 192.168.1.1
+range 0 src ip min 192.168.1.1
+range 0 src ip max 192.168.1.254
+range 0 src ip inc 0.0.0.0
+
+range 0 dst ip start 192.168.2.1
+range 0 dst ip min 192.168.2.1
+range 0 dst ip max 192.168.2.254
+range 0 dst ip inc 0.0.0.1
+
+range 0 proto tcp
+
+range 0 src port start 1234
+range 0 src port min 0
+range 0 src port max 65535
+range 0 src port inc 1
+
+range 0 dst port start 5678
+range 0 dst port min 0
+range 0 dst port max 65535
+range 0 dst port inc 1
+
+range 0 tcp flag clr all
+range 0 tcp flag set ack
+
+range 0 tcp seq start 74616
+range 0 tcp seq min 0
+range 0 tcp seq max 536870911
+range 0 tcp seq inc 0
+
+range 0 tcp ack start 74640
+range 0 tcp ack min 0
+range 0 tcp ack max 536870911
+range 0 tcp ack inc 0
+
+range 0 ttl start 64
+range 0 ttl min 0
+range 0 ttl max 255
+range 0 ttl inc 0
+
+range 0 vlan start 1
+range 0 vlan min 1
+range 0 vlan max 4095
+range 0 vlan inc 0
+
+range 0 cos start 0
+range 0 cos min 0
+range 0 cos max 7
+range 0 cos inc 0
+
+range 0 tos start 0
+range 0 tos min 0
+range 0 tos max 255
+range 0 tos inc 0
+range 0 gre key 0
+
+range 0 size start 64
+range 0 size min 64
+range 0 size max 1518
+range 0 size inc 0
+
+#
+# Set up the sequence data for the port.
+set 0 seq_cnt 0
+
+######################### Port  1 ##################################
+#
+# Port:  1, Burst (Rx/Tx): 64/ 64, Rate:100%, Flags:00000010, TX Count:Forever
+#           Sequence count:0, Prime:1 VLAN ID:0001, Link: <UP-40000-FD>
+#
+# Set up the primary port information:
+set 1 count 0
+set 1 size 64
+set 1 rate 100
+set 1 rxburst 64
+set 1 txburst 64
+set 1 sport 2222
+set 1 dport 3333
+set 1 prime 1
+set 1 type ipv4
+set 1 proto udp
+set 1 dst ip 198.18.0.5
+set 1 src ip 198.18.0.3/24
+set 1 tcp flag clr all
+set 1 tcp flag set ack
+set 1 tcp seq 74616
+set 1 tcp ack 74640
+set 1 dst mac 3c:fd:fe:e6:a5:71
+set 1 src mac 00:11:22:33:44:02
+set 1 vlan 1
+
+set 1 pattern abc
+
+set 1 jitter 50
+disable 1 mpls
+range 1 mpls entry 0x0
+disable 1 qinq
+set 1 qinqids 0 0
+disable 1 gre
+disable 1 gre_eth
+disable 1 vxlan
+set 1 vxlan 0x0 0 0
+#
+# Port flag values:
+disable 1 icmp
+disable 1 pcap
+disable 1 range
+disable 1 latency
+enable 1 process
+disable 1 capture
+disable 1 rx_tap
+disable 1 tx_tap
+disable 1 vlan
+disable 1 rate
+
+#
+# Range packet information:
+range 1 src mac start 3c:fd:fe:e6:a5:70
+range 1 src mac min 00:00:00:00:00:00
+range 1 src mac max 00:00:00:00:00:00
+range 1 src mac inc 00:00:00:00:00:00
+
+range 1 dst mac start 3c:fd:fe:e6:a5:71
+range 1 dst mac min 00:00:00:00:00:00
+range 1 dst mac max 00:00:00:00:00:00
+range 1 dst mac inc 00:00:00:00:00:00
+
+range 1 src ip start 192.168.2.1
+range 1 src ip min 192.168.2.1
+range 1 src ip max 192.168.2.254
+range 1 src ip inc 0.0.0.0
+
+range 1 dst ip start 192.168.3.1
+range 1 dst ip min 192.168.3.1
+range 1 dst ip max 192.168.3.254
+range 1 dst ip inc 0.0.0.1
+
+range 1 proto tcp
+
+range 1 src port start 1234
+range 1 src port min 0
+range 1 src port max 65535
+range 1 src port inc 1
+
+range 1 dst port start 5678
+range 1 dst port min 0
+range 1 dst port max 65535
+range 1 dst port inc 1
+
+range 1 tcp flag clr all
+range 1 tcp flag set ack
+
+range 1 tcp seq start 74616
+range 1 tcp seq min 0
+range 1 tcp seq max 536870911
+range 1 tcp seq inc 0
+
+range 1 tcp ack start 74640
+range 1 tcp ack min 0
+range 1 tcp ack max 536870911
+range 1 tcp ack inc 0
+
+range 1 ttl start 64
+range 1 ttl min 0
+range 1 ttl max 255
+range 1 ttl inc 0
+
+range 1 vlan start 1
+range 1 vlan min 1
+range 1 vlan max 4095
+range 1 vlan inc 0
+
+range 1 cos start 0
+range 1 cos min 0
+range 1 cos max 7
+range 1 cos inc 0
+
+range 1 tos start 0
+range 1 tos min 0
+range 1 tos max 255
+range 1 tos inc 0
+range 1 gre key 0
+
+range 1 size start 64
+range 1 size min 64
+range 1 size max 1518
+range 1 size inc 0
+
+#
+# Set up the sequence data for the port.
+set 1 seq_cnt 0
+
+# Enable screen updates and cleanup
+on
+cls
+
+################################ Done #################################

@@ -144,7 +144,7 @@ theme_color_map_t theme_color_map[] = {
 /* Initialize screen data structures */
 /* Print out the top line on the screen */
 void
-display_topline(const char *msg)
+display_topline(const char *msg, int pstart, int pstop, int pcnt)
 {
     if (this_scrn && this_scrn->type != SCRN_STDIN_TYPE) {
         scrn_puts("\n");
@@ -152,10 +152,13 @@ display_topline(const char *msg)
     }
 
     pktgen_display_set_color("top.page");
-    scrn_printf(1, 20, "%s", msg);
+    scrn_printf(PAGE_TITLE_ROW, 3, "%s ", msg);
+    if (pcnt > 0) {
+        pktgen_display_set_color("stats.port.totlbl");
+        scrn_puts("Ports %d-%d of %d", pstart, pstop, pcnt);
+    }
     pktgen_display_set_color("top.copyright");
     scrn_puts("  %s", copyright_msg_short());
-    pktgen_display_set_color(NULL);
 }
 
 /* Print out the dashed line on the screen. */
@@ -178,7 +181,8 @@ display_dashline(int last_row)
     pktgen_display_set_color("stats.port.linklbl");
     scrn_printf(last_row, 3, " %s ", pktgen_version());
     pktgen_display_set_color("top.poweredby");
-    scrn_puts(" %s ", powered_by());
+    scrn_puts(" %s %s", powered_by(), rte_version());
+    pktgen_display_set_color("stats.port.rate");
     scrn_puts(" (pid:%d) ", getpid());
     pktgen_display_set_color(NULL);
 }
@@ -361,7 +365,7 @@ pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr)
     at = get_attr_by_name(attr);
 
     if ((fg == SCRN_UNKNOWN_COLOR) || (bg == SCRN_UNKNOWN_COLOR) || (at == SCRN_UNKNOWN_ATTR)) {
-        pktgen_log_error("Unknown color or attribute (%s, %s, %s)\n", fg_color, bg_color, attr);
+        pktgen_log_error("Unknown color or attribute (%s, %s, %s)", fg_color, bg_color, attr);
         return;
     }
 
@@ -378,7 +382,7 @@ pktgen_theme_save(char *filename)
 
     f = fopen(filename, "w+");
     if (f == NULL) {
-        pktgen_log_error("Unable to open file %s\n", filename);
+        pktgen_log_error("Unable to open file %s", filename);
         return;
     }
 

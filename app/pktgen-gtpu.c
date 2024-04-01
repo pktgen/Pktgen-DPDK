@@ -97,5 +97,5 @@ pktgen_gtpu_hdr_ctor(pkt_seq_t *pkt, void *hdr, uint16_t ipProto, uint8_t flags,
      * in bytes (rest of the packet following the mandatory 8-byte GTP header).
      * Includes the optional fields.
      */
-    gtppHdr->tot_len = htons(pkt->pktSize - (l4HdrSize + sizeof(gtpuHdr_t) + pkt->ether_hdr_size));
+    gtppHdr->tot_len = htons(pkt->pkt_size - (l4HdrSize + sizeof(gtpuHdr_t) + pkt->ether_hdr_size));
 }

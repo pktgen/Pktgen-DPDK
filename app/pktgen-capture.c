@@ -41,18 +41,16 @@
  * SEE ALSO:
  */
 void
-pktgen_packet_capture_init(capture_t *cap, int socket_id)
+pktgen_packet_capture_init(int sid)
 {
     char memzone_name[RTE_MEMZONE_NAMESIZE];
+    capture_t *cap = &pktgen.capture[sid];
 
-    if (!cap)
-        return;
-
-    snprintf(memzone_name, sizeof(memzone_name), "Capture_MZ_%d", socket_id);
-    cap->mz = rte_memzone_reserve(memzone_name, CAPTURE_BUFF_SIZE, socket_id,
+    snprintf(memzone_name, sizeof(memzone_name), "Capture_MZ_%d", sid);
+    cap->mz = rte_memzone_reserve(memzone_name, CAPTURE_BUFF_SIZE, sid,
                                   RTE_MEMZONE_2MB | RTE_MEMZONE_SIZE_HINT_ONLY);
     if (cap->mz == NULL)
-        printf("*** Unable to create capture memzone for socket ID %d\n", socket_id);
+        printf("*** Unable to create capture memzone for socket ID %d\n", sid);
     else {
         cap->port    = RTE_MAX_ETHPORTS;
         cap->used    = 0;
@@ -83,51 +81,38 @@ pktgen_packet_capture_init(capture_t *cap, int socket_id)
  */
 
 void
-pktgen_set_capture(port_info_t *info, uint32_t onOff)
+pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
 {
     capture_t *cap;
 
     if (onOff == ENABLE_STATE) {
-        /* Enabling an aleady enabled port is a no-op */
-        if (rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS)
+        /* Enabling an already enabled port is a no-op */
+        if (rte_atomic32_read(&pinfo->port_flags) & CAPTURE_PKTS)
             return;
-
-        if (get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
-            pktgen_log_warning("Port %d has no RX queue: capture is not possible", info->pid);
-            return;
-        }
 
         /* Find an lcore that can capture packets for the requested port */
-        uint16_t lid_idx, lid, rxid;
-        for (lid_idx = 0; lid_idx < get_port_nb_lids(pktgen.l2p, info->pid); ++lid_idx) {
-            lid = get_port_lid(pktgen.l2p, info->pid, lid_idx);
-            for (rxid = 0; rxid < get_lcore_rxcnt(pktgen.l2p, lid); ++rxid)
-                if (get_rx_pid(pktgen.l2p, lid, rxid) == info->pid)
-                    goto found_rx_lid;
-        }
-        lid = RTE_MAX_LCORE;
-
-    found_rx_lid:
-        if (lid == RTE_MAX_LCORE) {
-            pktgen_log_warning("Port %d has no rx lcore: capture is not possible", info->pid);
+        uint16_t lid;
+        if ((lid = l2p_get_lcore_by_pid(pinfo->pid)) >= RTE_MAX_LCORE) {
+            pktgen_log_warning("Port %d has no rx lcore: capture is not possible", pinfo->pid);
             return;
         }
 
         /* Get socket of the selected lcore and check if capturing is possible */
-        uint16_t sid = pktgen.core_info[lid].s.socket_id;
+        uint16_t sid = coreinfo_get(lid)->socket_id;
 
         cap = &pktgen.capture[sid];
 
         if (cap->mz == NULL) {
-            pktgen_log_warning("No memory allocated for capturing on socket %d, are hugepages"
-                               " allocated on this socket?",
-                               sid);
+            pktgen_log_warning(
+                "No memory allocated for capturing on socket %d for port %d, are hugepages"
+                " allocated on this socket?",
+                sid, pinfo->pid);
             return;
         }
 
         /* Everything checks out: enable packet capture */
         cap->used    = 0;
-        cap->port    = info->pid;
+        cap->port    = pinfo->pid;
         cap->nb_pkts = 0;
 
         cap->tail = cap->mz->addr;
@@ -137,38 +122,31 @@ pktgen_set_capture(port_info_t *info, uint32_t onOff)
         memset(cap->tail, 0, sizeof(cap_hdr_t));
         memset(cap->end, 0, sizeof(cap_hdr_t));
 
-        pktgen_set_port_flags(info, CAPTURE_PKTS);
+        pktgen_set_port_flags(pinfo, CAPTURE_PKTS);
 
         pktgen_log_info("Capturing on port %d, lcore %d, socket %d; buffer size: %.2f MB ",
-                        info->pid, lid, sid, (double)cap->mz->len / (1024 * 1024));
+                        pinfo->pid, lid, sid, (double)cap->mz->len / (1024 * 1024));
         pktgen_log_info("  (~%.2f seconds for 64 byte packets at line rate)",
                         (double)cap->mz->len /
                             (66 /* 64 bytes payload + 2 bytes for payload size */
-                             * ((double)info->link.link_speed * 1000 * 1000 / 8) /* Xbit -> Xbyte */
+                             * ((double)pinfo->link.link_speed * Million / 8) /* Xbit -> Xbyte */
                              / 84) /* 64 bytes payload + 20 byte etherrnet
                                     * frame overhead: 84 bytes per packet */
         );
     } else {
-        if (!(rte_atomic32_read(&info->port_flags) & CAPTURE_PKTS))
+        if (!(rte_atomic32_read(&pinfo->port_flags) & CAPTURE_PKTS))
             return;
-
-        /* This should never happen: capture cannot have been enabled when */
-        /* this condition is true. */
-        if (get_port_rxcnt(pktgen.l2p, info->pid) == 0) {
-            pktgen_log_warning("Port %d has no RX queue: capture is not possible", info->pid);
-            return;
-        }
 
         int sid;
         for (sid = 0; sid < RTE_MAX_NUMA_NODES; ++sid) {
             cap = &pktgen.capture[sid];
-            if (cap->mz && (cap->port == info->pid))
+            if (cap->mz && (cap->port == pinfo->pid))
                 break;
         }
 
         /* This should never happen. */
         if (sid == RTE_MAX_NUMA_NODES) {
-            pktgen_log_error("Could not find socket for port %d", info->pid);
+            pktgen_log_error("Could not find socket for port %d", pinfo->pid);
             return;
         }
 
@@ -241,7 +219,7 @@ pktgen_set_capture(port_info_t *info, uint32_t onOff)
         cap->tail = (cap_hdr_t *)cap->mz->addr;
         cap->port = RTE_MAX_ETHPORTS;
 
-        pktgen_clr_port_flags(info, CAPTURE_PKTS);
+        pktgen_clr_port_flags(pinfo, CAPTURE_PKTS);
     }
 }
 
@@ -253,7 +231,7 @@ pktgen_set_capture(port_info_t *info, uint32_t onOff)
  * Capture packet contents to memory, so they can be written to disk later.
  *
  * A captured packet is stored as follows:
- * - uint16_t: untruncated packet length
+ * - uint16_t: non-truncated packet length
  * - uint16_t: size of actual packet contents that are stored
  * - unsigned char[]: packet contents (number of bytes stored equals previous
  *       uint16_t)

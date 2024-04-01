@@ -27,24 +27,24 @@
 void
 pktgen_packet_dump(struct rte_mbuf *m, int pid)
 {
-    port_info_t *info = &pktgen.info[pid];
-    int plen          = (m->pkt_len + RTE_ETHER_CRC_LEN);
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
+    int plen           = (m->pkt_len + RTE_ETHER_CRC_LEN);
     unsigned char *curr_data;
     struct rte_mbuf *curr_mbuf;
 
-    /* Checking if info->dump_tail will not overflow is done in the caller */
-    if (info->dump_list[info->dump_tail].data != NULL)
-        rte_free(info->dump_list[info->dump_tail].data);
+    /* Checking if pinfo->dump_tail will not overflow is done in the caller */
+    if (pinfo->dump_list[pinfo->dump_tail].data != NULL)
+        rte_free(pinfo->dump_list[pinfo->dump_tail].data);
 
-    info->dump_list[info->dump_tail].data =
+    pinfo->dump_list[pinfo->dump_tail].data =
         rte_zmalloc_socket("Packet data", plen, 0, rte_socket_id());
-    info->dump_list[info->dump_tail].len = plen;
+    pinfo->dump_list[pinfo->dump_tail].len = plen;
 
-    for (curr_data = info->dump_list[info->dump_tail].data, curr_mbuf = m; curr_mbuf != NULL;
-         curr_data += curr_mbuf->data_len, curr_mbuf                  = curr_mbuf->next)
+    for (curr_data = pinfo->dump_list[pinfo->dump_tail].data, curr_mbuf = m; curr_mbuf != NULL;
+         curr_data += curr_mbuf->data_len, curr_mbuf                    = curr_mbuf->next)
         rte_memcpy(curr_data, (uint8_t *)curr_mbuf->buf_addr + m->data_off, curr_mbuf->data_len);
 
-    ++info->dump_tail;
+    ++pinfo->dump_tail;
 }
 
 /**
@@ -62,16 +62,16 @@ pktgen_packet_dump(struct rte_mbuf *m, int pid)
 void
 pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
 {
-    port_info_t *info = &pktgen.info[pid];
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
     int i;
 
     /* Don't dump more packets than the user asked */
-    if (nb_dump > info->dump_count)
-        nb_dump = info->dump_count;
+    if (nb_dump > pinfo->dump_count)
+        nb_dump = pinfo->dump_count;
 
     /* Don't overflow packet array */
-    if (nb_dump > MAX_DUMP_PACKETS - info->dump_tail)
-        nb_dump = MAX_DUMP_PACKETS - info->dump_tail;
+    if (nb_dump > MAX_DUMP_PACKETS - pinfo->dump_tail)
+        nb_dump = MAX_DUMP_PACKETS - pinfo->dump_tail;
 
     if (nb_dump == 0)
         return;
@@ -79,7 +79,7 @@ pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
     for (i = 0; i < nb_dump; i++)
         pktgen_packet_dump(pkts[i], pid);
 
-    info->dump_count -= nb_dump;
+    pinfo->dump_count -= nb_dump;
 }
 
 /**
@@ -98,7 +98,7 @@ pktgen_packet_dump_bulk(struct rte_mbuf **pkts, int nb_dump, int pid)
 void
 pktgen_print_packet_dump(void)
 {
-    port_info_t *info;
+    port_info_t *pinfo;
 
     unsigned int pid;
     unsigned int i, j;
@@ -107,13 +107,12 @@ pktgen_print_packet_dump(void)
     char buff[4096];
 
     for (pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
-        if (get_map(pktgen.l2p, pid, RTE_MAX_LCORE) == 0)
+        pinfo = l2p_get_port_pinfo(pid);
+        if (pinfo == NULL)
             continue;
-
-        info = &pktgen.info[pid];
-        for (; info->dump_head < info->dump_tail; ++info->dump_head) {
-            pdata = (unsigned char *)info->dump_list[info->dump_head].data;
-            plen  = info->dump_list[info->dump_head].len;
+        for (; pinfo->dump_head < pinfo->dump_tail; ++pinfo->dump_head) {
+            pdata = (unsigned char *)pinfo->dump_list[pinfo->dump_head].data;
+            plen  = pinfo->dump_list[pinfo->dump_head].len;
 
             snprintf(buff, sizeof(buff), "Port %d, packet with length %d:", pid, plen);
 
@@ -144,8 +143,8 @@ pktgen_print_packet_dump(void)
             }
             pktgen_log_info("%s", buff);
 
-            rte_free(info->dump_list[info->dump_head].data);
-            info->dump_list[info->dump_head].data = NULL;
+            rte_free(pinfo->dump_list[pinfo->dump_head].data);
+            pinfo->dump_list[pinfo->dump_head].data = NULL;
         }
     }
 }

@@ -31,14 +31,17 @@ Usage:
 
 Options:
 --------
-    -h, --help, -u, --usage:
+    -h, --help | -u, --usage:
             Display usage information and quit
+              
+    -s, --setup:
+            Setup the environment for running the configuration file.
 
     -l, --list:
             Print a list of known configuration files
 
-        -n, --norun
-        Just create the command line and outpuyt the line with no-running.
+    -n, --no-run:
+        Just create the command line and output the line without running Pktgen.
 
     -v, --verbose
             Print out more information
@@ -167,7 +170,7 @@ def show_configs():
                         " If you do not plan to use this module you can safely ignore this " \
                         "message.\n")
                 finally:
-                        # reset the descriptoin to empty, for next loop/file
+                        # reset the description to empty, for next loop/file
                         cfg.description = ""
 
         sys.exit(0)
@@ -190,7 +193,7 @@ def run_cfg(cfg_file):
                 err_exit("'app_name' variable is missing from cfg.run in config file")
 
         # convert the cfg.run['app_name'] into a global variable used in
-        # the creation of the applicaiton/path. app_name must be a global variable.
+        # the creation of the application/path. app_name must be a global variable.
         global app_name
         app_name = cfg.run['app_name']
 
@@ -384,7 +387,7 @@ def parse_args():
 
         try:
                 opts, args = getopt.getopt(sys.argv[1:], "hulsvn",
-                                ["help", "usage", "list", "setup", "verbose", "norun", ])
+                                ["help", "usage", "list", "setup", "verbose", "no-run", ])
 
         except getopt.GetoptError as error:
                 print(str(error))
@@ -401,7 +404,7 @@ def parse_args():
                         run_flag = False
                 if opt == "--verbose" or opt == "-v":
                         verbose = True
-                if opt == "--norun" or opt == "-n":
+                if opt == "--no-run" or opt == "-n":
                         norun = True
 
         if not args or len(args) > 1:

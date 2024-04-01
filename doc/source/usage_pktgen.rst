@@ -13,7 +13,7 @@ The :ref:`usage_eal` were shown in the previous section.
 
 The ``pktgen`` arguments are::
 
-Usage: ./app/app/x86_64-dnet-linux-gcc/pktgen [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
+Usage: pktgen [EAL options] -- [-h] [-P] [-G] [-T] [-f cmd_file] [-l log_file] [-s P:PCAP_file] [-m <string>]
   -s P:file    PCAP packet stream file, 'P' is the port number
   -f filename  Command file (.pkt) to execute or a Lua script (.lua) file
   -l filename  Write log to filename
@@ -24,7 +24,6 @@ Usage: ./app/app/x86_64-dnet-linux-gcc/pktgen [EAL options] -- [-h] [-P] [-G] [-
   -G           Enable socket support using default server values localhost:0x5606
   -N           Enable NUMA support
   -T           Enable the color output
-  --crc-strip  Strip CRC on all ports
   -h           Display the help information
 
 

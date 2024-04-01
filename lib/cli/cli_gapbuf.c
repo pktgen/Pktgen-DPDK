@@ -65,7 +65,7 @@ gb_init_buf(struct gapbuf *gb, int size)
 
     free(gb->buf);
 
-    gb->buf = malloc(size);
+    gb->buf = calloc(1, size);
     if (!gb->buf)
         return -1;
 
@@ -80,7 +80,7 @@ gb_create(void)
 {
     struct gapbuf *gb;
 
-    gb = malloc(sizeof(struct gapbuf));
+    gb = calloc(1, sizeof(struct gapbuf));
     if (!gb)
         return NULL;
 

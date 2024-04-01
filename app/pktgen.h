@@ -71,14 +71,11 @@
 #include <copyright_info.h>
 #include <l2p.h>
 #include <port_config.h>
-#include <core_info.h>
 
-#include <pg_pcap.h>
 #include <pg_inet.h>
 #include <cksum.h>
 
-#include <mbuf.h>
-#include <coremap.h>
+#include <coreinfo.h>
 #include <lscpu.h>
 #include <utils.h>
 
@@ -92,7 +89,6 @@
 #include "pktgen-log.h"
 #include "pktgen-latency.h"
 #include "pktgen-random.h"
-#include "pktgen-rate.h"
 #include "pktgen-seq.h"
 #include "pktgen-version.h"
 
@@ -123,19 +119,19 @@ extern "C" {
 #define RTE_ETH_FOREACH_DEV(p) for (_p = 0; _p < pktgen.nb_ports; _p++)
 #endif
 
-#define forall_ports(_action)          \
-    do {                               \
-        uint16_t pid;                  \
-                                       \
-        RTE_ETH_FOREACH_DEV(pid)       \
-        {                              \
-            port_info_t *info;         \
-                                       \
-            info = &pktgen.info[pid];  \
-            if (info->seq_pkt == NULL) \
-                continue;              \
-            _action;                   \
-        }                              \
+#define forall_ports(_action)                \
+    do {                                     \
+        uint16_t pid;                        \
+                                             \
+        RTE_ETH_FOREACH_DEV(pid)             \
+        {                                    \
+            port_info_t *pinfo;              \
+                                             \
+            pinfo = l2p_get_port_pinfo(pid); \
+            if (pinfo->seq_pkt == NULL)      \
+                continue;                    \
+            _action;                         \
+        }                                    \
     } while ((0))
 
 #define foreach_port(_portlist, _action)                  \
@@ -145,14 +141,14 @@ extern "C" {
                                                           \
         RTE_ETH_FOREACH_DEV(pid)                          \
         {                                                 \
-            port_info_t *info;                            \
+            port_info_t *pinfo;                           \
                                                           \
             idx = (pid / (sizeof(uint64_t) * 8));         \
             bit = (pid - (idx * (sizeof(uint64_t) * 8))); \
             if ((_pl[idx] & (1LL << bit)) == 0)           \
                 continue;                                 \
-            info = &pktgen.info[pid];                     \
-            if (info->seq_pkt == NULL)                    \
+            pinfo = l2p_get_port_pinfo(pid);              \
+            if (pinfo->seq_pkt == NULL)                   \
                 continue;                                 \
             _action;                                      \
         }                                                 \
@@ -170,19 +166,23 @@ enum {
     MAX_SCRN_COLS = 132,
 
     COLUMN_WIDTH_0 = 22,
-    COLUMN_WIDTH_1 = 22,
-    COLUMN_WIDTH_3 = 21,
+    COLUMN_WIDTH_1 = 24,
+    COLUMN_WIDTH_3 = 24,
 
     /* Row locations for start of data */
-    PORT_STATE_ROWS = 1,
-    LINK_STATE_ROWS = 6,
+    PAGE_TITLE_ROWS = 1,
+    PORT_FLAGS_ROWS = 1,
+    LINK_STATE_ROWS = 1,
+    PKT_RATE_ROWS   = 9,
     PKT_SIZE_ROWS   = 10,
     PKT_TOTALS_ROWS = 7,
     IP_ADDR_ROWS    = 12,
 
-    PORT_STATE_ROW = 2,
-    LINK_STATE_ROW = (PORT_STATE_ROW + PORT_STATE_ROWS),
-    PKT_SIZE_ROW   = (LINK_STATE_ROW + LINK_STATE_ROWS),
+    PAGE_TITLE_ROW = 1,
+    PORT_FLAGS_ROW = (PAGE_TITLE_ROW + PAGE_TITLE_ROWS),
+    LINK_STATE_ROW = (PORT_FLAGS_ROW + PORT_FLAGS_ROWS),
+    PKT_RATE_ROW   = (LINK_STATE_ROW + LINK_STATE_ROWS),
+    PKT_SIZE_ROW   = (PKT_RATE_ROW + PKT_RATE_ROWS),
     PKT_TOTALS_ROW = (PKT_SIZE_ROW + PKT_SIZE_ROWS),
     IP_ADDR_ROW    = (PKT_TOTALS_ROW + PKT_TOTALS_ROWS),
 
@@ -220,31 +220,25 @@ enum {
 
     FIRST_SEQ_PKT  = 0,
     SINGLE_PKT     = (FIRST_SEQ_PKT + NUM_SEQ_PKTS), /* 16 */
-    PING_PKT       = (SINGLE_PKT + 1),               /* 17 */
-    RANGE_PKT      = (PING_PKT + 1),                 /* 18 */
-    DUMP_PKT       = (RANGE_PKT + 1),                /* 19 */
-    RATE_PKT       = (DUMP_PKT + 1),                 /* 20 */
-    LATENCY_PKT    = (RATE_PKT + 1),                 /* 21 */
+    SPECIAL_PKT    = (SINGLE_PKT + 1),               /* 17 */
+    RANGE_PKT      = (SPECIAL_PKT + 1),              /* 18 */
+    LATENCY_PKT    = (RANGE_PKT + 1),                /* 19 */
     NUM_TOTAL_PKTS = (LATENCY_PKT + 1),
 
     INTER_FRAME_GAP       = 12, /**< in bytes */
-    START_FRAME_DELIMITER = 1,
-    PKT_PREAMBLE_SIZE     = 7, /**< in bytes */
+    START_FRAME_DELIMITER = 1,  /**< Starting frame delimiter bytes */
+    PKT_PREAMBLE_SIZE     = 7,  /**< in bytes */
+    /* total number of bytes in frame overhead, includes the FCS checksum byte count */
     PKT_OVERHEAD_SIZE =
-        (INTER_FRAME_GAP + START_FRAME_DELIMITER + PKT_PREAMBLE_SIZE /* + RTE_ETHER_CRC_LEN*/),
+        (INTER_FRAME_GAP + START_FRAME_DELIMITER + PKT_PREAMBLE_SIZE + RTE_ETHER_CRC_LEN),
+    MIN_v6_PKT_SIZE = 78, /**< does include FCS bytes */
 
-    MIN_v6_PKT_SIZE = (78 - RTE_ETHER_CRC_LEN),
-
-    MAX_RX_QUEUES = 16, /**< RX Queues per port */
-    MAX_TX_QUEUES = 16, /**< TX Queues per port */
-
-    PCAP_PAGE_SIZE = 25, /**< Size of the PCAP display page */
-
-    SOCKET0 = 0 /**< Socket ID value for allocation */
+    MAX_RX_QUEUES  = 16, /**< RX Queues per port */
+    MAX_TX_QUEUES  = 16, /**< TX Queues per port */
+    PCAP_PAGE_SIZE = 25  /**< Size of the PCAP display page */
 };
 
-#define MIN_PKT_SIZE (pktgen.eth_min_pkt - RTE_ETHER_CRC_LEN)
-#define MAX_PKT_SIZE (pktgen.eth_max_pkt - RTE_ETHER_CRC_LEN)
+#define WIRE_SIZE(pkt_size, t) (t)(pkt_size + PKT_OVERHEAD_SIZE)
 
 typedef struct rte_mbuf rte_mbuf_t;
 
@@ -253,86 +247,58 @@ typedef union {
     uint64_t u64;
 } ethaddr_t;
 
-#define MAX_PORT_DESC_SIZE 132
 /* Ethernet addresses of ports */
 typedef struct pktgen_s {
-    struct cmdline *cl; /**< Command Line information pointer */
+    int verbose;                           /**< Verbose flag */
+    int32_t argc;                          /**< Number of arguments */
+    uint32_t blinklist;                    /**< Port list for blinking the led */
+    uint32_t flags;                        /**< Flag values */
+    volatile int force_quit;               /**< Flag to force quit */
+    struct cmdline *cl;                    /**< Command Line information pointer */
+    char *argv[64];                        /**< Argument list */
+    char *hostname;                        /**< hostname */
+    int32_t socket_port;                   /**< port number */
+    volatile uint8_t timer_running;        /**< flag to denote timer is running */
+    uint16_t ident;                        /**< IPv4 ident value */
+    uint16_t last_row;                     /**< last static row of the screen */
+    uint16_t nb_ports;                     /**< Number of ports in the system */
+    uint8_t starting_port;                 /**< Starting port to display */
+    uint8_t ending_port;                   /**< Ending port to display */
+    uint8_t nb_ports_per_page;             /**< Number of ports to display per page */
+    uint16_t mbuf_dataroom;                /**< Size of data room in mbuf */
+    uint16_t mbuf_buf_size;                /**< MBUF default buf size */
+    uint16_t nb_rxd;                       /**< Number of receive descriptors */
+    uint16_t nb_txd;                       /**< Number of transmit descriptors */
+    uint16_t curr_port;                    /**< Current Port number */
+    uint64_t hz;                           /**< Number of cycles per seconds */
+    uint64_t page_timeout;                 /**< Timeout for page update */
+    uint64_t stats_timeout;                /**< Timeout for stats update */
+    uint64_t max_total_ipackets;           /**< Total Max seen input packet rate */
+    uint64_t max_total_opackets;           /**< Total Max seen output packet rate */
+    uint64_t counter;                      /**< A debug counter */
+    uint64_t mem_used;                     /**< Display memory used counters per ports */
+    uint64_t total_mem_used;               /**< Display memory used for all ports */
+    struct rte_eth_stats cumm_rate_totals; /**< port rates total values */
+
 #ifdef LUA_ENABLED
     luaData_t *ld;      /**< General Lua Data pointer */
     luaData_t *ld_sock; /**< Info for Lua Socket */
+    pthread_t thread;   /**< Thread structure for Lua server */
 #endif
-    char *hostname;            /**< GUI hostname */
-    int verbose;               /**< Verbose flag */
-    int32_t socket_port;       /**< GUI port number */
-    uint32_t blinklist;        /**< Port list for blinking the led */
-    uint32_t flags;            /**< Flag values */
-    uint16_t ident;            /**< IPv4 ident value */
-    uint16_t last_row;         /**< last static row of the screen */
-    uint16_t nb_ports;         /**< Number of ports in the system */
-    uint8_t starting_port;     /**< Starting port to display */
-    uint8_t ending_port;       /**< Ending port to display */
-    uint8_t nb_ports_per_page; /**< Number of ports to display per page */
-    uint16_t eth_min_pkt;      /**< Minimum Ethernet packet size without CRC */
-    uint16_t eth_mtu;          /**< MTU size, could be jumbo or not */
-    uint16_t eth_max_pkt;      /**< Max packet size, could be jumbo or not */
-    uint16_t mbuf_dataroom;    /**< Size of data room in mbuf */
-    uint16_t mbuf_buf_size;    /**< MBUF default buf size */
-    uint16_t nb_rxd;           /**< Number of receive descriptors */
-    uint16_t nb_txd;           /**< Number of transmit descriptors */
-    uint16_t portNum;          /**< Current Port number */
-    uint16_t port_cnt;         /**< Number of ports used in total */
-    uint64_t hz;               /**< Number of cycles per seconds */
-    uint64_t tx_next_cycle;    /**< Number of cycles to next transmit burst */
-    uint64_t tx_bond_cycle;    /**< Numbe of cycles to check bond interface */
-    uint64_t page_timeout;     /**< Timeout for page update */
-    uint64_t stats_timeout;    /**< Timeout for stats update */
 
-    int (*callout)(void *callout_arg);
-    void *callout_arg;
-
-    struct rte_pci_addr blocklist[RTE_MAX_ETHPORTS];
-    struct rte_pci_addr portlist[RTE_MAX_ETHPORTS];
-    uint8_t *portdesc[RTE_MAX_ETHPORTS];
-    uint32_t portdesc_cnt;
-    uint32_t blocklist_cnt;
-
-    /* port to lcore mapping */
-    l2p_t *l2p;
-
-    port_info_t info[RTE_MAX_ETHPORTS]; /**< Port information */
-    lc_info_t core_info[RTE_MAX_LCORE];
-    lscpu_t *lscpu;
-    uint16_t core_cnt;
-    char *uname;
-    eth_stats_t cumm_rate_totals; /**< port rates total values */
-    uint64_t max_total_ipackets;  /**< Total Max seen input packet rate */
-    uint64_t max_total_opackets;  /**< Total Max seen output packet rate */
-
-    pthread_t thread; /**< Thread structure for Lua server */
-
-    uint64_t counter;        /**< A debug counter */
-    uint64_t mem_used;       /**< Display memory used counters per ports */
-    uint64_t total_mem_used; /**< Display memory used for all ports */
-    int32_t argc;            /**< Number of arguments */
-    char *argv[64];          /**< Argument list */
-
+    uint8_t *portdesc[RTE_MAX_ETHPORTS];   /**< Port descriptions from lspci */
+    uint32_t portdesc_cnt;                 /**< Number of ports in portdesc array */
+    lscpu_t *lscpu;                        /**< CPU information */
     capture_t capture[RTE_MAX_NUMA_NODES]; /**< Packet capture, 1 struct per socket */
-    uint8_t is_gui_running;
-    volatile uint8_t timer_running;
 } pktgen_t;
 
-enum {                                     /* Queue flags */
-       CLEAR_FAST_ALLOC_FLAG = 0x00000001, /**< Clear the TX fast alloc flag */
-       DO_TX_FLUSH = 0x00000002 /**< Do a TX Flush by sending all of the pkts in the queue */
-};
-
-enum {                                     /* Pktgen flags bits */
-       PRINT_LABELS_FLAG      = (1 << 0),  /**< Print constant labels on stats display */
-       MAC_FROM_ARP_FLAG      = (1 << 1),  /**< Configure the SRC MAC from a ARP request */
-       PROMISCUOUS_ON_FLAG    = (1 << 2),  /**< Enable promiscuous mode */
-       NUMA_SUPPORT_FLAG      = (1 << 3),  /**< Enable NUMA support */
-       IS_SERVER_FLAG         = (1 << 4),  /**< Pktgen is a Server */
-       ENABLE_GUI_FLAG        = (1 << 5),  /**< GUI support is enabled */
+enum {                                    /* Pktgen flags bits */
+       PRINT_LABELS_FLAG      = (1 << 0), /**< Print constant labels on stats display */
+       MAC_FROM_ARP_FLAG      = (1 << 1), /**< Configure the SRC MAC from a ARP request */
+       PROMISCUOUS_ON_FLAG    = (1 << 2), /**< Enable promiscuous mode */
+       NUMA_SUPPORT_FLAG      = (1 << 3), /**< Enable NUMA support */
+       IS_SERVER_FLAG         = (1 << 4), /**< Pktgen is a Server */
+       RESERVED_05            = (1 << 5),
        LUA_SHELL_FLAG         = (1 << 6),  /**< Enable Lua Shell */
        TX_DEBUG_FLAG          = (1 << 7),  /**< TX Debug output */
        Not_USED               = (1 << 8),  /**< Not Used */
@@ -343,17 +309,16 @@ enum {                                     /* Pktgen flags bits */
        JUMBO_PKTS_FLAG        = (1 << 13), /**< Enable Jumbo frames */
        RESERVED_14            = (1 << 14),
        RESERVED_15            = (1 << 15),
-       CONFIG_PAGE_FLAG       = (1 << 16), /**< Display the configure page */
+       CPU_PAGE_FLAG          = (1 << 16), /**< Display the CPU page */
        SEQUENCE_PAGE_FLAG     = (1 << 17), /**< Display the Packet sequence page */
        RANGE_PAGE_FLAG        = (1 << 18), /**< Display the range page */
        PCAP_PAGE_FLAG         = (1 << 19), /**< Display the PCAP page */
-       CPU_PAGE_FLAG          = (1 << 20), /**< Display the PCAP page */
+       SYSTEM_PAGE_FLAG       = (1 << 20), /**< Display the System page */
        RND_BITFIELD_PAGE_FLAG = (1 << 21), /**< Display the random bitfield page */
        LOG_PAGE_FLAG          = (1 << 22), /**< Display the message log page */
        LATENCY_PAGE_FLAG      = (1 << 23), /**< Display latency page */
        STATS_PAGE_FLAG        = (1 << 24), /**< Display the physical port stats */
        XSTATS_PAGE_FLAG       = (1 << 25), /**< Display the physical port stats */
-       RATE_PAGE_FLAG         = (1 << 26), /**< Display the Rate Pacing stats */
        RESERVED_27            = (1 << 27),
        RESERVED_28            = (1 << 28),
        RESERVED_29            = (1 << 29),
@@ -365,22 +330,21 @@ enum {                                     /* Pktgen flags bits */
 #define UPDATE_DISPLAY_TICK_RATE     (pktgen.hz / UPDATE_DISPLAY_TICK_INTERVAL)
 
 #define PAGE_MASK_BITS                                                                          \
-    (CONFIG_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | PCAP_PAGE_FLAG | CPU_PAGE_FLAG | \
+    (CPU_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | PCAP_PAGE_FLAG | SYSTEM_PAGE_FLAG | \
      RND_BITFIELD_PAGE_FLAG | LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | XSTATS_PAGE_FLAG |            \
-     STATS_PAGE_FLAG | RATE_PAGE_FLAG)
+     STATS_PAGE_FLAG)
 
 extern pktgen_t pktgen;
 
 void pktgen_page_display(void);
 
-void pktgen_packet_ctor(port_info_t *info, int32_t seq_idx, int32_t type);
-void pktgen_packet_rate(port_info_t *info);
+void pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type);
+void pktgen_packet_rate(port_info_t *pinfo);
 
-int pktgen_find_matching_ipsrc(port_info_t *info, uint32_t addr);
-int pktgen_find_matching_ipdst(port_info_t *info, uint32_t addr);
+int pktgen_find_matching_ipsrc(port_info_t *pinfo, uint32_t addr);
+int pktgen_find_matching_ipdst(port_info_t *pinfo, uint32_t addr);
 
 int pktgen_launch_one_lcore(void *arg);
-uint64_t pktgen_wire_size(port_info_t *info);
 void pktgen_input_start(void);
 void stat_timer_dump(void);
 void stat_timer_clear(void);
@@ -420,63 +384,30 @@ typedef struct {
 #define TSTAMP_MAGIC 0xf00dcafe
 
 static __inline__ void
-pktgen_set_port_flags(port_info_t *info, uint32_t flags)
+pktgen_set_port_flags(port_info_t *pinfo, uint32_t flags)
 {
     uint32_t val;
 
-    do
-        val = rte_atomic32_read(&info->port_flags);
-    while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt, val, (val | flags)) ==
-           0);
+    do {
+        val = rte_atomic32_read(&pinfo->port_flags);
+    } while (!rte_atomic32_cmpset((volatile uint32_t *)&pinfo->port_flags.cnt, val, (val | flags)));
 }
 
 static __inline__ void
-pktgen_clr_port_flags(port_info_t *info, uint32_t flags)
+pktgen_clr_port_flags(port_info_t *pinfo, uint32_t flags)
 {
     uint32_t val;
 
-    do
-        val = rte_atomic32_read(&info->port_flags);
-    while (rte_atomic32_cmpset((volatile uint32_t *)&info->port_flags.cnt, val, (val & ~flags)) ==
-           0);
+    do {
+        val = rte_atomic32_read(&pinfo->port_flags);
+    } while (
+        !rte_atomic32_cmpset((volatile uint32_t *)&pinfo->port_flags.cnt, val, (val & ~flags)));
 }
 
 static __inline__ int
-pktgen_tst_port_flags(port_info_t *info, uint32_t flags)
+pktgen_tst_port_flags(port_info_t *pinfo, uint32_t flags)
 {
-    if (rte_atomic32_read(&info->port_flags) & flags)
-        return 1;
-    return 0;
-}
-
-static __inline__ void
-pktgen_set_q_flags(port_info_t *info, uint8_t q, uint32_t flags)
-{
-    uint32_t val;
-
-    do
-        val = rte_atomic32_read(&info->q[q].flags);
-    while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt, val, (val | flags)) ==
-           0);
-}
-
-static __inline__ void
-pktgen_clr_q_flags(port_info_t *info, uint8_t q, uint32_t flags)
-{
-    uint32_t val;
-
-    do
-        val = rte_atomic32_read(&info->q[q].flags);
-    while (rte_atomic32_cmpset((volatile uint32_t *)&info->q[q].flags.cnt, val, (val & ~flags)) ==
-           0);
-}
-
-static __inline__ int
-pktgen_tst_q_flags(port_info_t *info, uint8_t q, uint32_t flags)
-{
-    if (rte_atomic32_read(&info->q[q].flags) & flags)
-        return 1;
-    return 0;
+    return ((rte_atomic32_read(&pinfo->port_flags) & flags) ? 1 : 0);
 }
 
 /* onOff values */
@@ -506,7 +437,7 @@ pktgen_version(void)
     if (pkt_version[0] != 0)
         return pkt_version;
 
-    snprintf(pkt_version, sizeof(pkt_version), "%s (%s)", PKTGEN_VERSION, rte_version());
+    snprintf(pkt_version, sizeof(pkt_version), "%s", PKTGEN_VERSION);
     return pkt_version;
 }
 
@@ -526,7 +457,7 @@ strdupf(char *str, const char *new)
  * Internal function to execute a shell command and grab the output from the
  * command.
  *
- * RETURNS: Nubmer of lines read.
+ * RETURNS: Number of lines read.
  *
  * SEE ALSO:
  */

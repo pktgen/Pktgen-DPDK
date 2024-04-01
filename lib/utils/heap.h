@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <sys/queue.h>
+#include <pthread.h>
 
-#include <rte_spinlock.h>
+#include <rte_common.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +27,7 @@ typedef struct heap {
     STAILQ_HEAD(, heap_entry) list; /**< Heap entry list */
     void *addr;                     /**< Base Heap address pointer */
     size_t total_space;             /**< total space in heap */
-    rte_spinlock_t sl;              /**< Spinlocl for this heap */
+    pthread_spinlock_t sl;          /**< Spinlock for this heap */
 } heap_t;
 
 /**

@@ -129,21 +129,18 @@ lua_create_instance(void)
     struct rte_luaData_list *luaData_list = NULL;
     struct rte_tailq_entry *te;
 
-    ld = (luaData_t *)malloc(sizeof(luaData_t));
+    ld = (luaData_t *)calloc(1, sizeof(luaData_t));
     if (!ld)
         return NULL;
-
-    memset(ld, 0, sizeof(luaData_t));
 
     ld->client_socket = -1;
     ld->server_socket = -1;
 
-    ld->buffer = malloc(LUA_BUFFER_SIZE);
+    ld->buffer = calloc(1, LUA_BUFFER_SIZE);
     if (!ld->buffer) {
         free(ld);
         return NULL;
     }
-    memset(ld->buffer, 0, LUA_BUFFER_SIZE);
 
     ld->L = luaL_newstate();
     if (!ld->L) {
@@ -167,14 +164,13 @@ lua_create_instance(void)
     luaData_list = RTE_TAILQ_CAST(rte_luaData_tailq.head, rte_luaData_list);
 
     /* try to allocate tailq entry */
-    te = malloc(sizeof(*te));
+    te = calloc(1, sizeof(*te));
     if (te == NULL) {
         DBG("Cannot allocate tailq entry!\n");
         lua_close(ld->L);
         free(ld);
         return NULL;
     }
-    memset(te, 0, sizeof(*te));
     te->data = ld;
 
     rte_mcfg_tailq_read_lock();

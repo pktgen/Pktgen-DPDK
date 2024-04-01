@@ -204,12 +204,10 @@ cli_set_history(uint32_t nb_hist)
 
     size = nb_hist * sizeof(struct cli_hist);
 
-    cli->hist_mem = malloc(size);
+    cli->hist_mem = calloc(1, size);
     if (cli->hist_mem) {
         uint32_t i;
         struct cli_hist *hist = cli->hist_mem;
-
-        memset(cli->hist_mem, '\0', size);
 
         /* Setup the history support is number of lines given */
         for (i = 0; i < nb_hist; i++, hist++)

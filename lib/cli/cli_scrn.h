@@ -76,7 +76,7 @@ extern "C" {
 #define vt100_multi_left   ESC "\133%uD"
 
 /* Result of parsing : it must be synchronized with
- * vt100_commands[] in vt100_keys.c */
+ * vt100_cmds_list[] in vt100_cmds.c */
 enum {
     VT100_INVALID_KEY = 0,
     VT100_KEY_UP_ARR,
@@ -139,14 +139,15 @@ struct vt100_cmds {
 
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
-    rte_atomic32_t pause;   /**< Pause the update of the screen. */
-    uint16_t nrows;         /**< Max number of rows. */
-    uint16_t ncols;         /**< Max number of columns. */
-    uint16_t theme;         /**< Current theme state on or off */
-    uint16_t type;          /**< screen I/O type */
-    struct termios oldterm; /**< Old terminal setup information */
-    FILE *fd_out;           /**< File descriptor for output */
-    FILE *fd_in;            /**< File descriptor for input */
+    rte_atomic32_t pause __rte_cache_aligned; /**< Pause the update of the screen. */
+    uint16_t nrows;                           /**< Max number of rows. */
+    uint16_t ncols;                           /**< Max number of columns. */
+    uint16_t theme;                           /**< Current theme state on or off */
+    uint16_t type;                            /**< screen I/O type */
+    uint16_t no_write;                        /**< Disable screen write */
+    struct termios oldterm;                   /**< Old terminal setup information */
+    FILE *fd_out;                             /**< File descriptor for output */
+    FILE *fd_in;                              /**< File descriptor for input */
 };
 
 /** A single byte to hold port of a Red/Green/Blue color value */
@@ -208,7 +209,7 @@ typedef enum {
 
 #define SCRN_BLINK SCRN_SLOW_BLINK
 
-/** A single byte to hold port of a Red/Green/Blue color value */
+/** A single byte to hold part of a Red/Green/Blue color value */
 typedef uint8_t cli_rgb_t;
 
 static inline int
@@ -217,7 +218,7 @@ scrn_write(const void *str, int len)
     if (len <= 0)
         len = strlen(str);
 
-    if (write(fileno(this_scrn->fd_out), str, len) != len)
+    if (this_scrn->no_write == 0 && write(fileno(this_scrn->fd_out), str, len) != len)
         fprintf(stderr, "%s: Write failed\n", __func__);
 
     return len;

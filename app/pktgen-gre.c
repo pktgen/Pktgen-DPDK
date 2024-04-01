@@ -34,7 +34,7 @@ pktgen_gre_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greIp_t *gre
     /* Create the IP header */
     gre->ip.version_ihl     = (IPv4_VERSION << 4) | (sizeof(struct rte_ipv4_hdr) / 4);
     gre->ip.type_of_service = 0;
-    gre->ip.total_length    = htons(pkt->pktSize - pkt->ether_hdr_size);
+    gre->ip.total_length    = htons(pkt->pkt_size - pkt->ether_hdr_size);
 
     pktgen.ident += 27; /* bump by a prime number */
     gre->ip.packet_id       = htons(pktgen.ident);
@@ -112,7 +112,7 @@ pktgen_gre_ether_hdr_ctor(port_info_t *info __rte_unused, pkt_seq_t *pkt, greEth
     /* Create the IP header */
     gre->ip.version_ihl     = (IPv4_VERSION << 4) | (sizeof(struct rte_ipv4_hdr) / 4);
     gre->ip.type_of_service = 0;
-    gre->ip.total_length    = htons(pkt->pktSize - pkt->ether_hdr_size);
+    gre->ip.total_length    = htons(pkt->pkt_size - pkt->ether_hdr_size);
 
     pktgen.ident += 27; /* bump by a prime number */
     gre->ip.packet_id       = htons(pktgen.ident);

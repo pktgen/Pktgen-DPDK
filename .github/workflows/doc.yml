@@ -26,14 +26,14 @@ jobs:
           sudo apt install python3-sphinx meson ninja-build
       - name: Build docs
         run: |
-          meson -Donly_docs=true duilddir
+          meson -Donly_docs=true builddir
           make docs
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: "./duilddir/doc/source/html"
+          path: "./builddir/doc/source/html"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1

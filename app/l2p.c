@@ -70,22 +70,22 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
 
     snprintf(name, sizeof(name), "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
 
-    sz = nb_mbufs * DEFAULT_MBUF_SIZE;
+    sz = nb_mbufs * RTE_MBUF_DEFAULT_BUF_SIZE;
     sz = RTE_ALIGN_CEIL(sz + sizeof(struct rte_mempool), 1024);
 
     pktgen.mem_used += sz;
     pktgen.total_mem_used += sz;
 
     /* create the mbuf pool */
-    mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE, DEFAULT_MBUF_SIZE,
-                                 sid);
+    mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE,
+                                 RTE_MBUF_DEFAULT_BUF_SIZE, sid);
     if (mp == NULL)
         rte_exit(EXIT_FAILURE,
                  "Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, NUMA %d: %s\n", name,
                  port->pid, lport->rx_qid, nb_mbufs, sid, rte_strerror(rte_errno));
 
     pktgen_log_info("  Create: '%-*s' - Memory used (MBUFs %'6u x size %'6u) = %'8lu KB @ %p\n", 16,
-                    name, nb_mbufs, DEFAULT_MBUF_SIZE, sz / 1024, mp);
+                    name, nb_mbufs, RTE_MBUF_DEFAULT_BUF_SIZE, sz / 1024, mp);
 
     return mp;
 }

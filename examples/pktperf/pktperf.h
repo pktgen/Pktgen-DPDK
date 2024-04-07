@@ -52,6 +52,24 @@ extern "C" {
         fflush(stdout);                                            \
     } while (0)
 
+#define ERR_RET(format, args...)                                   \
+    do {                                                           \
+        char buf[64];                                              \
+        snprintf(buf, sizeof(buf), "%s(%'d)", __func__, __LINE__); \
+        printf("ERROR>%-24s:" format, buf, ##args);                \
+        fflush(stdout);                                            \
+        return EXIT_FAILURE;                                       \
+    } while (0)
+
+#define ERR_RET_NULL(format, args...)                              \
+    do {                                                           \
+        char buf[64];                                              \
+        snprintf(buf, sizeof(buf), "%s(%'d)", __func__, __LINE__); \
+        printf("ERROR>%-24s:" format, buf, ##args);                \
+        fflush(stdout);                                            \
+        return NULL;                                               \
+    } while (0)
+
 #define DBG_PRINT(format, args...)                                     \
     do {                                                               \
         if (info->verbose) {                                           \
@@ -176,12 +194,13 @@ typedef struct {
 
 extern txpkts_info_t *info;
 
-int parse_args(int argc, char **argv);
+int parse_configuration(int argc, char **argv);
 void packet_rate(l2p_port_t *port);
 void print_stats(void);
 int port_setup(l2p_port_t *port);
 void packet_constructor(l2p_lport_t *lport, uint8_t *pkt);
-void usage(const char *prgname);
+
+void usage(int err);
 
 #ifdef __cplusplus
 }

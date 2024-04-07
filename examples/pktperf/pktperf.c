@@ -205,10 +205,7 @@ txpkts_launch_one_lcore(__rte_unused void *dummy)
     l2p_lport_t *lport = info->lports[rte_lcore_id()];
 
     if (lport == NULL || lport->port == NULL || lport->port->pid >= RTE_MAX_ETHPORTS)
-        return 0;
-
-    if (lport == NULL || lport->port == NULL || lport->port->pid >= RTE_MAX_ETHPORTS)
-        return 0;
+        ERR_RET("lport or port is NULL\n");
 
     switch (lport->mode) {
     case LCORE_MODE_RX:
@@ -222,7 +219,7 @@ txpkts_launch_one_lcore(__rte_unused void *dummy)
         break;
     case LCORE_MODE_UNKNOWN:
     default:
-        rte_exit(EXIT_FAILURE, "Invalid mode %u\n", lport->mode);
+        ERR_RET("Invalid mode %u\n", lport->mode);
         break;
     }
     return 0;
@@ -237,40 +234,43 @@ signal_handler(int signum)
     }
 }
 
-int
-main(int argc, char **argv)
+static int
+initialize_dpdk(int argc, char **argv)
 {
-    int ret, lid;
+    int ret = 0;
 
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
     srandom(RANDOM_SEED);
     setlocale(LC_ALL, "");
 
-    (void)rte_set_application_usage_hook(usage);
-
-    /* Init EAL. */
     if ((ret = rte_eal_init(argc, argv)) < 0)
-        rte_exit(EXIT_FAILURE, "Invalid EAL arguments\n");
-    argc -= ret;
+        ERR_RET("Invalid DPDK arguments\n");
+
+    argc -= ret; /* Skip DPDK configuration options */
     argv += ret;
 
-    /* parse application arguments (after the EAL ones) */
-    if (parse_args(argc, argv) < 0)
-        rte_exit(EXIT_FAILURE, "Invalid PKTPERF arguments\n");
+    if ((info->num_ports = rte_eth_dev_count_avail()) == 0)
+        ERR_RET("No Ethernet ports found - bye\n");
 
-    for (int pid = 0; pid < info->num_ports; pid++) {
-        if (port_setup(&info->ports[pid]) < 0)
-            rte_exit(EXIT_FAILURE, "Port setup failed\n");
-    }
+    if (parse_configuration(argc, argv) < 0)
+        ERR_RET("Invalid configuration\n");
 
-    info->fgen = fgen_create(0);
+    return 0;
+}
 
-    /* launch per-lcore init on every worker lcore */
-    rte_eal_mp_remote_launch(txpkts_launch_one_lcore, NULL, SKIP_MAIN);
+static int
+launch_lcore_threads(void)
+{
+    int lid;
 
+    /* Scroll the screen to keep console output for debugging */
     for (int i = 0; i < 10; i++)
         PRINT("\n\n\n\n\n\n\n\n\n\n\n");
+
+    /* launch per-lcore init on every worker lcore */
+    if (rte_eal_mp_remote_launch(txpkts_launch_one_lcore, NULL, SKIP_MAIN) != 0)
+        ERR_RET("Failed to launch lcore threads\n");
 
     /* Display the statistics  */
     do {
@@ -282,7 +282,7 @@ main(int argc, char **argv)
     {
         DBG_PRINT("Waiting for lcore %d to exit\n", lid);
         if (rte_eal_wait_lcore(lid) < 0)
-            rte_exit(EXIT_FAILURE, "Error waiting for lcore %d to exit\n", lid);
+            ERR_RET("Error waiting for lcore %d to exit\n", lid);
     }
 
     for (uint16_t portid = 0; portid < info->num_ports; portid++) {
@@ -292,9 +292,45 @@ main(int argc, char **argv)
         DBG_PRINT("\n");
     }
 
-    rte_eal_cleanup();
-    free(info);
-    PRINT("Bye...\n");
+    return rte_eal_cleanup();
+}
 
-    return 0;
+static txpkts_info_t *
+info_alloc(void)
+{
+    txpkts_info_t *txinfo;
+
+    txinfo = (txpkts_info_t *)calloc(1, sizeof(txpkts_info_t));
+    if (txinfo) {
+        for (int i = 0; i < RTE_MAX_ETHPORTS; i++) {
+            int ret;
+
+            txinfo->ports[i].pid = RTE_MAX_ETHPORTS + 1; /* set to invalid port id */
+
+            ret = pthread_spin_init(&txinfo->ports[i].tx_lock, PTHREAD_PROCESS_PRIVATE);
+            if (ret != 0) {
+                free(txinfo);
+                ERR_RET_NULL("Unable to initialize tx_lock for port %d: %s\n", i, strerror(ret));
+            }
+        }
+    }
+
+    return txinfo;
+}
+
+int
+main(int argc, char **argv)
+{
+    info = info_alloc();
+    if (info) {
+        if (initialize_dpdk(argc, argv) == 0) {
+            if (launch_lcore_threads() == 0) {        // Waits for all threads to exit
+                free(info);
+                return EXIT_SUCCESS;
+            }
+        }
+        free(info);
+    }
+
+    return EXIT_FAILURE;
 }

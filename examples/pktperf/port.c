@@ -57,7 +57,7 @@ port_setup(l2p_port_t *port)
     struct rte_eth_dev_info dev_info;
 
     if (!port)
-        rte_exit(EXIT_FAILURE, "%s: port is NULL\n", __func__);
+        ERR_RET("%s: port is NULL\n", __func__);
 
     pid = port->pid;
 
@@ -70,8 +70,7 @@ port_setup(l2p_port_t *port)
 
         ret = rte_eth_dev_info_get(pid, &dev_info);
         if (ret != 0)
-            rte_exit(EXIT_FAILURE, "Error during getting device (port %u) info: %s\n", pid,
-                     strerror(-ret));
+            ERR_RET("Error during getting device (port %u) info: %s\n", pid, strerror(-ret));
         DBG_PRINT("Driver: %s\n", dev_info.driver_name);
 
         if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
@@ -97,15 +96,14 @@ port_setup(l2p_port_t *port)
         /* Configure the number of queues for a port. */
         ret = rte_eth_dev_configure(pid, port->num_rx_qids, port->num_tx_qids, &local_port_conf);
         if (ret < 0)
-            rte_exit(EXIT_FAILURE, "Can't configure device: err=%d, port=%u\n", ret, pid);
+            ERR_RET("Can't configure device: err=%d, port=%u\n", ret, pid);
 
         ret = rte_eth_dev_adjust_nb_rx_tx_desc(pid, &info->nb_rxd, &info->nb_txd);
         if (ret < 0)
-            rte_exit(EXIT_FAILURE, "Can't adjust number of descriptors: port=%u:%s\n", pid,
-                     rte_strerror(-ret));
+            ERR_RET("Can't adjust number of descriptors: port=%u:%s\n", pid, rte_strerror(-ret));
 
         if ((ret = rte_eth_macaddr_get(pid, &port->mac_addr)) < 0)
-            rte_exit(EXIT_FAILURE, "Can't get MAC address: err=%d, port=%u\n", ret, pid);
+            ERR_RET("Can't get MAC address: err=%d, port=%u\n", ret, pid);
 
         DBG_PRINT("Port %u MAC address: " RTE_ETHER_ADDR_PRT_FMT "\n", pid,
                   RTE_ETHER_ADDR_BYTES(&port->mac_addr));
@@ -115,7 +113,7 @@ port_setup(l2p_port_t *port)
 
         ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
         if (ret < 0)
-            rte_exit(EXIT_FAILURE, "Port %u, Failed to disable Ptype parsing\n", pid);
+            ERR_RET("Port %u, Failed to disable Ptype parsing\n", pid);
         DBG_PRINT("Port %u configured with %08x Ptypes\n", pid, RTE_PTYPE_UNKNOWN);
 
         if (port->mtu_size < dev_info.min_mtu) {
@@ -130,8 +128,8 @@ port_setup(l2p_port_t *port)
         }
 
         if ((ret = rte_eth_dev_set_mtu(pid, port->mtu_size)) < 0)
-            rte_exit(EXIT_FAILURE, "Cannot set MTU %u on port %u, (%d)%s", port->mtu_size, pid,
-                     -ret, rte_strerror(-ret));
+            ERR_RET("Cannot set MTU %u on port %u, (%d)%s", port->mtu_size, pid, -ret,
+                    rte_strerror(-ret));
 
         DBG_PRINT("Port %u Rx/Tx queues %u/%u\n", pid, port->num_rx_qids, port->num_tx_qids);
 
@@ -141,7 +139,7 @@ port_setup(l2p_port_t *port)
 
             ret = rte_eth_rx_queue_setup(pid, q, info->nb_rxd, sid, &rxq_conf, port->rx_mp);
             if (ret < 0)
-                rte_exit(EXIT_FAILURE, "rte_eth_rx_queue_setup:err=%d, port=%u\n", ret, pid);
+                ERR_RET("rte_eth_rx_queue_setup:err=%d, port=%u\n", ret, pid);
             DBG_PRINT("Port %u:%u configured with %u RX descriptors\n", pid, q, info->nb_rxd);
 
             txq_conf          = dev_info.default_txconf;
@@ -149,15 +147,14 @@ port_setup(l2p_port_t *port)
 
             ret = rte_eth_tx_queue_setup(pid, q, info->nb_txd, sid, &txq_conf);
             if (ret < 0)
-                rte_exit(EXIT_FAILURE, "rte_eth_tx_queue_setup:err=%d, port=%u\n", ret, pid);
+                ERR_RET("rte_eth_tx_queue_setup:err=%d, port=%u\n", ret, pid);
             DBG_PRINT("Port %u:%u configured with %u TX descriptors\n", pid, q, info->nb_txd);
         }
 
         if (info->promiscuous_on) {
             ret = rte_eth_promiscuous_enable(pid);
             if (ret != 0)
-                rte_exit(EXIT_FAILURE, "rte_eth_promiscuous_enable:err=%s, port=%u\n",
-                         rte_strerror(-ret), pid);
+                ERR_RET("rte_eth_promiscuous_enable:err=%s, port=%u\n", rte_strerror(-ret), pid);
             DBG_PRINT("Port %u promiscuous mode enabled\n", pid);
         }
         DBG_PRINT("Port %u promiscuous mode is '%s'\n", pid, info->promiscuous_on ? "on" : "off");
@@ -165,7 +162,7 @@ port_setup(l2p_port_t *port)
         /* Start device */
         ret = rte_eth_dev_start(pid);
         if (ret < 0)
-            rte_exit(EXIT_FAILURE, "rte_eth_dev_start:err=%d, port=%u\n", ret, pid);
+            ERR_RET("rte_eth_dev_start:err=%d, port=%u\n", ret, pid);
         DBG_PRINT("Port %u started\n", pid);
     }
     DBG_PRINT("Port %u initialized\n", pid);

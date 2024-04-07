@@ -125,14 +125,14 @@ void
 pktgen_config_ports(void)
 {
     struct rte_eth_conf conf;
-    uint16_t pid, sid;
+    uint16_t pid;
     pkt_seq_t *pkt;
     port_info_t *pinfo;
-    int32_t ret;
+    int32_t ret, sid;
     l2p_port_t *port;
 
     /* Find out the total number of ports in the system. */
-    /* We have already blocklisted the ones we needed to in main routine. */
+    /* We have already block list the ones we needed to in main routine. */
     pktgen.nb_ports = rte_eth_dev_count_avail();
     if (pktgen.nb_ports == 0)
         pktgen_log_panic("*** Did not find any ports to use ***");
@@ -148,10 +148,10 @@ pktgen_config_ports(void)
         if ((pid = l2p_get_pid_by_lcore(lid)) >= RTE_MAX_ETHPORTS)
             continue;
 
+        sid = rte_eth_dev_socket_id(pid);
+
         pinfo = l2p_get_port_pinfo(pid);
         if (pinfo == NULL) {
-            uint16_t sid = rte_eth_dev_socket_id(pid);
-
             /* Allocate each port_info_t structure on the correct NUMA node for the port */
             pinfo = rte_zmalloc_socket(NULL, sizeof(port_info_t), RTE_CACHE_LINE_SIZE, sid);
             if (!pinfo)

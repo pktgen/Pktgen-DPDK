@@ -1256,7 +1256,7 @@ pktgen_main_rxtx_loop(uint8_t lid)
         for (int i = 0; i < pmap.rx.cnt; i++) {
             port_info_t *info = pmap.rx.infos[i];
 
-            pktgen_main_receive(info, lid, pkts_burst, info->tx_burst);
+            pktgen_main_receive(info, lid, pkts_burst, info->rx_burst);
         }
 
         curr_tsc = pktgen_get_time();

@@ -85,7 +85,7 @@ called 'tools/pktgen-build.sh' and uses a very simple Makefile to help build Pkt
 If you prefer you can still use meson/ninja directly.
 
 ```console
-git clone http://dpdk.org/git/apps/pktgen-dpdk
+git clone https://github.com/pktgen/Pktgen-DPDK
 
 cd pktgen-dpdk
 make

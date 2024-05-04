@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) <2017-2023> Intel Corporation
+# Copyright(c) <2017-2024> Intel Corporation
 
 if get_option('enable_lua')
 	sources = files(

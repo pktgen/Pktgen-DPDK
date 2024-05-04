@@ -1,7 +1,7 @@
 /*-
  *   BSD LICENSE
  *
- *   Copyright(c) <2010-2023>-2014 Intel Corporation. All rights reserved.
+ *   Copyright(c) <2010-2024>-2014 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2018-2023> Intel Corporation.
+ * Copyright(c) <2018-2024> Intel Corporation.
  */
 
 #ifndef _PLUGIN_H_

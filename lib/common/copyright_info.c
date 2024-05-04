@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2023>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2024>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -23,8 +23,8 @@
 
 #include "copyright_info.h"
 
-#define COPYRIGHT_MSG       "Copyright(c) <2010-2023>, Intel Corporation. All rights reserved."
-#define COPYRIGHT_MSG_SHORT "Copyright(c) <2010-2023>, Intel Corporation"
+#define COPYRIGHT_MSG       "Copyright(c) <2010-2024>, Intel Corporation. All rights reserved."
+#define COPYRIGHT_MSG_SHORT "Copyright(c) <2010-2024>, Intel Corporation"
 #define POWERED_BY_DPDK     "Powered by DPDK"
 
 /**

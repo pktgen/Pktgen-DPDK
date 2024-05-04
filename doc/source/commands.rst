@@ -473,7 +473,7 @@ pages
 The Random or rnd page.
 ::
 
-  Port 0           <Random bitfield Page>  Copyright(c) <2010-2023>, Intel Corporation
+  Port 0           <Random bitfield Page>  Copyright(c) <2010-2024>, Intel Corporation
     Index   Offset     Act?  Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]
        0        0      No   00000000 00000000 00000000 00000000
        1        0      No   00000000 00000000 00000000 00000000
@@ -512,7 +512,7 @@ The Random or rnd page.
 The sequence or seq page.
 ::
 
-	<Sequence Page>  Copyright(c) <2010-2023>, Intel Corporation
+	<Sequence Page>  Copyright(c) <2010-2024>, Intel Corporation
 	  Port   :  0, Sequence Count:  8 of 16                                                                            GTPu
 	    * Seq:            Dst MAC           Src MAC          Dst IP            Src IP    Port S/D Protocol:VLAN  Size  TEID
 	    *   0:  3c:fd:fe:9c:5c:d9 3c:fd:fe:9c:5c:d8     192.168.1.1    192.168.0.1/24   1234/5678 IPv4/TCP:0001   64     0
@@ -529,7 +529,7 @@ The sequence or seq page.
 The CPU information page.
 ::
 
-	<CPU Page>  Copyright(c) <2010-2023>, Intel Corporation
+	<CPU Page>  Copyright(c) <2010-2024>, Intel Corporation
 
 	Kernel: Linux rkwiles-DESK1.intel.com 4.4.0-66-generic #87-Ubuntu SMP Fri Mar 3 15:29:05 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
 
@@ -562,7 +562,7 @@ The CPU information page.
 The latency page.
 ::
 
-	-- Ports 0-3 of 8   <Main Page>  Copyright(c) <2010-2023>, Intel Corporation
+	-- Ports 0-3 of 8   <Main Page>  Copyright(c) <2010-2024>, Intel Corporation
 		Flags:Port         :   P----S---------:0   P--------------:1   P--------------:2   P--------------:3
 		Link State         :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 		Pkts/s Max/Rx      :                 0/0                 0/0                 0/0                 0/0                   0/0
@@ -591,7 +591,7 @@ The latency page.
 The config or cfg page.
 ::
 
-	<CPU Page>  Copyright(c) <2010-2023>, Intel Corporation
+	<CPU Page>  Copyright(c) <2010-2024>, Intel Corporation
 	 2 sockets, 18 cores, 2 threads
 	  Socket   :    0         1      Port description
 	  Core   0 : [ 0,36]   [18,54]   0000:04:00.0 : Intel Corporation X710 for 10GbE SFP+ (rev 01)

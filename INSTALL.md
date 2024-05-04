@@ -6,7 +6,7 @@ Pktgen is a traffic generator powered by DPDK at wire rate traffic with 64 byte 
 ## (Pktgen) Sounds like 'Packet-Gen'
 
 ---
-**Copyright &copy; \<2010-2020\>, Intel Corporation. All rights reserved.**
+**Copyright &copy; \<2010-2024\>, Intel Corporation. All rights reserved.**
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -39,20 +39,26 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 SPDX-License-Identifier: BSD-3-Clause
 
-Pktgen: Created 2010-2020 by Keith Wiles @ Intel.com
+Pktgen: Created 2010-2024 by Keith Wiles @ Intel.com
 
 ---
 
 ## Installation
 
-INSTALL for setting up Pktgen with DPDK on Ubuntu 18.04 to 20.04 desktop
-it should work on most Linux systems as long as the kernel has hugeTLB page support and build DPDK.
+INSTALL for setting up Pktgen with DPDK on Ubuntu 22.04 to 23.10 desktop it should work on most Linux systems as long as the kernel has hugeTLB page support and builds DPDK.
 
-### Note
+## Please Note:
+>Pktgen-DPDK main repo is located @ https://github.com/pktgen/Pktgen-DPDK
+Documentation can be found @ https://pktgen.github.io/Pktgen-DPDK/
 
->Tested with Ubuntu 18.04 and up to 20.04 kernel versions
-Linux 4.15.0-39-generic #42-Ubuntu SMP Tue Oct 23 15:48:01 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
-Please install the latest version of DPDK from dpdk.org and follow the build instructions
+#### Submitting bug fixes or enhancements to Pktgen-DPDK
+
+>Please fork Pktgen-DPDK from GitHub and submit a pull-request as I do not accept patches sent to DPDK mailing list. If you have any questions or issues please create an issue on Github.
+
+>Tested with Ubuntu 23.10 kernel version 6.5.0-28-generic (Mantic), and other earlier versions should work.
+Please use the latest DPDK and latest Pktgen versions other combinations may work, but with limited resources and time the latest versions are the only ones tested.
+
+>Please install the latest version of DPDK from dpdk.org and follow the build instructions
 using meson/ninja. Then install DPDK on your system.
 
 ## Building Pktgen
@@ -64,10 +70,14 @@ using meson/ninja. At least a libdpdk.pc file must be present in the system for 
 instructions to build DPDK. You may need to install meson and ninja, if not already installed.
 
 ```console
-git clone https://dpdk.org/git/dpdk
-sudo rm -fr /usr/local/lib/x86_64-linux-gnu # DPDK changed a number of lib names and need to clean up
+git clone git://dpdk.org/dpdk
+
+Or if git is blocked
+
+git clone http://dpdk.org/git/dpdk
+
 cd dpdk
-meson build
+meson setup build
 ninja -C build
 sudo ninja -C build install
 sudo ldconfig  # make sure ld.so is pointing new DPDK libraries
@@ -87,7 +97,8 @@ If you prefer you can still use meson/ninja directly.
 ```console
 git clone https://github.com/pktgen/Pktgen-DPDK
 
-cd pktgen-dpdk
+cd pktgen-dpdk # or Pktgen-DPDK or whatever name you gave the cloned directory
+
 make
 or
 make build    # Same as 'make'
@@ -120,10 +131,14 @@ do not all fit on the screen at one time via the 'page' command.
 
 Type 'help' at the 'Pktgen>' prompt to see the complete Pktgen command line
 commands. Pktgen uses VT100 control codes or escape codes to display the screens,
-which means your terminal must support VT100. The Hyperterminal in windows is not
-going to work for Pktgen as it has a few problems with VT100 codes.
+which means your terminal must support VT100.
 
-Pktgen has a number of modes to send packets single, range, random, sequeue and
+#### Note:
+`Hyperterminal in windows is not going to work for Pktgen as it has a few problems with VT100 codes.`
+
+## Quick comment on Pktgen modes
+
+Pktgen has a number of modes to send packets single, range, random, sequence and
 PCAP modes. Each mode has its own set of packet buffers and you must configure
 each mode to work correctly. The single packet mode is the information displayed
 at startup screen or when using the 'page main or page 0' command. The other

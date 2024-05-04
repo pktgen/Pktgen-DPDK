@@ -28,7 +28,7 @@ also send ``pktgen`` a command script file and display the output::
 
    Lua Version      : Lua 5.3
    Pktgen Version   : 2.9.0
-   Pktgen Copyright : Copyright(c) `<2010-2023>`, Intel Corp.
+   Pktgen Copyright : Copyright(c) `<2010-2024>`, Intel Corp.
    Pktgen Authors   : Keith Wiles @ Wind River Systems
 
    Hello World!!!!
@@ -47,7 +47,7 @@ function::
    f()
    Lua Version      : Lua 5.3
    Pktgen Version   : 2.9.0
-   Pktgen Copyright : Copyright(c) `<2010-2023>`, Intel Corp.
+   Pktgen Copyright : Copyright(c) `<2010-2024>`, Intel Corp.
    Pktgen Authors   : Keith Wiles @ Wind River Systems
 
    Hello World!!!!
@@ -60,7 +60,7 @@ You can also just send it commands via echo::
           | socat - TCP4:172.25.40.163:22022
    Lua Version      : Lua 5.3
    Pktgen Version   : 2.9.0
-   Pktgen Copyright : Copyright(c) `<2010-2023>`, Intel Corp.
+   Pktgen Copyright : Copyright(c) `<2010-2024>`, Intel Corp.
    Pktgen Authors   : Keith Wiles @ Wind River Systems
 
    Hello World!!!!

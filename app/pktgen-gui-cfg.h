@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2016-2023>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016-2024>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -56,7 +56,7 @@ const char intel_copyright[] = {
     "\n"
     "   BSD LICENSE\n"
     "\n"
-    "   Copyright(c) <2010-2023>, Intel Corporation. All rights reserved.\n"
+    "   Copyright(c) <2010-2024>, Intel Corporation. All rights reserved.\n"
     "\n"
     "   Redistribution and use in source and binary forms, with or without\n"
     "   modification, are permitted provided that the following conditions\n"
@@ -95,7 +95,7 @@ const gchar *authors[] = {
 // clang-format on
 
 #define GUI_VERSION         " Version 1.0.0 "
-#define COPYRIGHT_MSG       "Copyright(c) <2010-2023>, Intel Corporation. All rights reserved."
+#define COPYRIGHT_MSG       "Copyright(c) <2010-2024>, Intel Corporation. All rights reserved."
 #define POWERED_BY_DPDK     "GUI" GUI_VERSION "\n Powered by DPDK"
 #define PKTGEN_GUI_APP_NAME ("Pktgen GUI" GUI_VERSION)
 

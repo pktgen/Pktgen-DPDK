@@ -88,7 +88,7 @@ The output when running ``pktgen`` will look something like the following::
 
 Once ``pktgen`` is running you will see an output like the following::
 
-	| Ports 0-3 of 8   <Main Page>  Copyright(c) <2010-2023>, Intel Corporation
+	| Ports 0-3 of 8   <Main Page>  Copyright(c) <2010-2024>, Intel Corporation
 	  Flags:Port       :   P--------------:0   P--------------:1   P--------------:2   P--------------:3
 	Link State         :       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>       <UP-10000-FD>     ----TotalRate----
 	Pkts/s Max/Rx      :                 0/0                 0/0                 0/0                 0/0                   0/0

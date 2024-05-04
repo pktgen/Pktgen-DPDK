@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) <2019-2023> Intel Corporation
+# Copyright(c) <2019-2024> Intel Corporation
 
 # set up map-to-def script using python, either built-in or external
 python3 = import('python').find_installation(required: false)

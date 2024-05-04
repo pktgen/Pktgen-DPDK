@@ -1,6 +1,8 @@
 #! /bin/bash
 
 for filename in $(git diff --cached --name-only | grep '.*\.[c|h]$'); do
-  clang-format -style=file -i $filename; git add $filename;
+  if [ -f $filename ]; then
+     clang-format -style=file -i $filename; git add $filename;
+  fi
 done
 

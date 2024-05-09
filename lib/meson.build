@@ -3,7 +3,6 @@
 
 subdir('hmap')
 subdir('common')
-subdir('fgen')
 subdir('utils')
 subdir('vec')
 subdir('plugin')

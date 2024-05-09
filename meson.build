@@ -42,7 +42,7 @@ foreach arg: warning_flags
 	endif
 endforeach
 
-fgen_dep = dependency('libfgen', required: true)
+fgen_dep = dependency('libfgen', required: false)
 
 lua_dep = dependency('', required: false)
 

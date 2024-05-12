@@ -2352,14 +2352,20 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     pinfo->delta     = 0;
 
     pkt->ip_mask = DEFAULT_NETMASK;
-    if ((pid & 1) == 0) {
-        pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-        pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
-        dst_info                          = l2p_get_port_pinfo(pid + 1);
+    if (pktgen.nb_ports > 1) {
+        if ((pid & 1) == 0) {
+            pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+            pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
+            dst_info                          = l2p_get_port_pinfo(pid + 1);
+        } else {
+            pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+            pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
+            dst_info                          = l2p_get_port_pinfo(pid - 1);
+        }
     } else {
         pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-        pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
-        dst_info                          = l2p_get_port_pinfo(pid - 1);
+        pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
+        dst_info                          = l2p_get_port_pinfo(pid);
     }
 
     if (dst_info->seq_pkt != NULL) {

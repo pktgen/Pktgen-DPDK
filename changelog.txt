@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 24.05.3 - Fix single port case causing a segfault.
  - 24.05.2 - Make fgen requirement optional, which removes pktperf example.
  - 24.05.1 - Merge in the performance updates and remove old/unused features.
  - 24.05.0 - Update copyright and add comments to README.md and INSTALL.md files to point

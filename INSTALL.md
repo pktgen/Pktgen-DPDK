@@ -69,6 +69,12 @@ using meson/ninja. At least a libdpdk.pc file must be present in the system for 
 >Please read the DPDK.org documentation to understand more on building DPDK. The following is the minimum set of
 instructions to build DPDK. You may need to install meson and ninja, if not already installed.
 
+May need to install the BSD headers to build Pktgen code base for Ubuntu do the following:
+
+```console
+sudo apt-get install libbsd-dev
+```
+
 ```console
 git clone git://dpdk.org/dpdk
 

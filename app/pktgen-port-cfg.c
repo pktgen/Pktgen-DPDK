@@ -235,6 +235,8 @@ pktgen_config_ports(void)
             pinfo->lsc_enabled = 1;
         }
 
+        conf.rxmode.offloads &= pinfo->dev_info.rx_offload_capa;
+
         if ((ret = rte_eth_dev_configure(pid, l2p_get_rxcnt(pid), l2p_get_txcnt(pid), &conf)) < 0)
             pktgen_log_panic("Cannot configure device: port=%d, Num queues %d,%d", pid,
                              l2p_get_rxcnt(pid), l2p_get_txcnt(pid));

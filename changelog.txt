@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 24.05.5 - Add a requirement for libbsd to app/meson.build Ubuntu 22.04.4
  - 24.05.4 - Update docs to install BSD headers.
  - 24.05.3 - Fix single port case causing a segfault.
  - 24.05.2 - Make fgen requirement optional, which removes pktperf example.

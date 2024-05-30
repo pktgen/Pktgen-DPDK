@@ -165,7 +165,8 @@ pktgen_config_ports(void)
             pinfo->seq_pkt = rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
                                                 RTE_CACHE_LINE_SIZE, sid);
             if (pinfo->seq_pkt == NULL)
-                pktgen_log_panic("Unable to allocate %'ld pkt_seq_t headers", NUM_TOTAL_PKTS);
+                pktgen_log_panic("Unable to allocate %'ld pkt_seq_t headers",
+                                 (long int)NUM_TOTAL_PKTS);
 
             size_t pktsz = RTE_ETHER_MAX_LEN;
             if (pktgen.flags & JUMBO_PKTS_FLAG)

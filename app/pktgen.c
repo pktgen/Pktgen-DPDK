@@ -967,7 +967,6 @@ pktgen_setup_packets(uint16_t pid)
 
             if (pktgen_tst_port_flags(pinfo, SEND_RANGE_PKTS)) {
                 idx = RANGE_PKT;
-                pktgen_range_setup(pinfo);
             } else if (pktgen_tst_port_flags(pinfo, SEND_SEQ_PKTS))
                 idx = FIRST_SEQ_PKT;
             else if (pktgen_tst_port_flags(pinfo, (SEND_SINGLE_PKTS | SEND_RANDOM_PKTS)))

@@ -26,7 +26,6 @@
 void
 pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 {
-
     if (pkt->ipProto == PG_IPPROTO_TCP) {
         if (unlikely(range->tcp_seq_inc != 0)) {
             uint32_t seq = pkt->tcp_seq;
@@ -332,7 +331,7 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
 
             if (unlikely(range->vlan_id_inc != 0)) {
                 /* Since VLAN is set to MIN_VLAN_ID, check this and skip first increment
-                 * to maintian the range sequence in sync with other range fields */
+                 * to maintain the range sequence in sync with other range fields */
                 uint32_t p;
                 static uint8_t min_vlan_set = 0;
 

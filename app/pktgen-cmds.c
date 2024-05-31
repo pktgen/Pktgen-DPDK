@@ -3606,9 +3606,10 @@ range_set_pkt_size(port_info_t *pinfo, char *what, uint16_t size)
     } else {
         if (size < RTE_ETHER_MIN_LEN)
             size = RTE_ETHER_MIN_LEN;
-        else if ((pktgen.flags & JUMBO_PKTS_FLAG) && (size > RTE_ETHER_MAX_JUMBO_FRAME_LEN))
+
+        if ((pktgen.flags & JUMBO_PKTS_FLAG) && (size > RTE_ETHER_MAX_JUMBO_FRAME_LEN))
             size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
-        else
+        else if (size > RTE_ETHER_MAX_LEN)
             size = RTE_ETHER_MAX_LEN;
 
         if (pinfo->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6 && size < MIN_v6_PKT_SIZE)

@@ -34,7 +34,7 @@ pktgen_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
 }
 
 static __inline__ void
-pcap_convert(pcap_info_t *pcap, pcaprec_hdr_t *pHdr)
+pcap_convert(pcap_info_t *pcap, pcap_record_hdr_t *pHdr)
 {
     if (pcap->convert) {
         pHdr->incl_len = ntohl(pHdr->incl_len);
@@ -57,7 +57,7 @@ pcap_rewind(pcap_info_t *pcap)
 static void
 pcap_get_info(pcap_info_t *pcap)
 {
-    pcaprec_hdr_t hdr;
+    pcap_record_hdr_t hdr;
     if (fread(&pcap->info, 1, sizeof(pcap_hdr_t), pcap->fp) != sizeof(pcap_hdr_t))
         rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
 
@@ -82,7 +82,7 @@ pcap_get_info(pcap_info_t *pcap)
 
     /* count the number of packets and get the largest size packet */
     for (;;) {
-        if (fread(&hdr, 1, sizeof(pcaprec_hdr_t), pcap->fp) != sizeof(hdr))
+        if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
             break;
 
         /* Convert the packet header to the correct format if needed */
@@ -103,9 +103,9 @@ mbuf_iterate_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
 {
     pcap_info_t *pcap  = (pcap_info_t *)opaque;
     struct rte_mbuf *m = (struct rte_mbuf *)obj;
-    pcaprec_hdr_t hdr;
+    pcap_record_hdr_t hdr;
 
-    if (fread(&hdr, 1, sizeof(pcaprec_hdr_t), pcap->fp) != sizeof(hdr))
+    if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
         rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
 
     pcap_convert(pcap, &hdr); /* Convert the packet header to the correct format. */
@@ -202,7 +202,7 @@ pktgen_print_pcap(uint16_t pid)
     l2p_port_t *port;
     pkt_hdr_t *hdr;
     pcap_info_t *pcap;
-    pcaprec_hdr_t pcap_hdr;
+    pcap_record_hdr_t pcap_hdr;
     char buff[64];
     char pkt_buff[DEFAULT_MBUF_SIZE];
 #endif
@@ -357,7 +357,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
 {
     struct rte_mbuf *m = _m;
     uint32_t mbuf_size, buf_len, priv_size = 0;
-    pcaprec_hdr_t hdr;
+    pcap_record_hdr_t hdr;
     ssize_t len = -1;
     char buffer[DEFAULT_MBUF_SIZE];
     pcap_info_t *pcap = (pcap_info_t *)opaque_arg;
@@ -428,7 +428,7 @@ pktgen_pcap_mbuf_ctor(struct rte_mempool *mp, void *opaque_arg, void *_m, unsign
 int
 pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *pinfo, unsigned qid)
 {
-    pcaprec_hdr_t hdr;
+    pcap_record_hdr_t hdr;
     uint32_t elt_count, max_pkt_size, len, i;
     uint64_t data_size, pkt_sizes = 0;
     char buffer[DEFAULT_MBUF_SIZE];
@@ -510,3 +510,63 @@ pktgen_pcap_parse(pcap_info_t *pcap, port_info_t *pinfo, unsigned qid)
     return 0;
 }
 #endif
+
+FILE *
+pktgen_create_pcap_file(char *filename)
+{
+    struct pcap_file_header file_header;
+    file_header.magic         = 0xa1b2c3d4;
+    file_header.version_major = 2;
+    file_header.version_minor = 4;
+    file_header.thiszone      = 0;
+    file_header.sigfigs       = 0;
+    file_header.snaplen       = 65535;
+    file_header.linktype      = 1;        // LINKTYPE_ETHERNET
+
+    printf("Creating PCAP file: %s, %lu, %lu\n", filename, sizeof(struct pcap_file_header),
+           sizeof(struct pcap_pkthdr));
+
+    // Open the output file
+    FILE *file = fopen(filename, "wb");
+    if (!file)
+        return NULL;
+
+    // Write the file header
+    fwrite(&file_header, sizeof(uint8_t), sizeof(file_header), file);
+    fflush(file);
+
+    return file;
+}
+
+void
+pktgen_close_pcap_file(FILE *fp)
+{
+    if (fp)
+        fclose(fp);
+}
+
+int
+pktgen_write_mbuf_to_pcap_file(FILE *fp, struct rte_mbuf *mbuf)
+{
+    // Packet header
+    pcap_record_hdr_t packet_header;
+    size_t size;
+
+    if (fp == NULL)
+        return 0;
+
+    packet_header.ts_sec   = 0;
+    packet_header.ts_usec  = 0;
+    packet_header.incl_len = rte_pktmbuf_pkt_len(mbuf);
+    packet_header.orig_len = rte_pktmbuf_pkt_len(mbuf);
+
+    // Write the packet header
+    if ((size = fwrite(&packet_header, sizeof(uint8_t), sizeof(packet_header), fp)) != 16)
+        printf("Error writing packet header %ld\n", size);
+
+    // Write the packet data
+    fwrite(rte_pktmbuf_mtod(mbuf, char *), sizeof(uint8_t), rte_pktmbuf_pkt_len(mbuf), fp);
+    fflush(fp);
+
+    return 0;
+}

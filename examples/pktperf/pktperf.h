@@ -188,6 +188,7 @@ typedef struct {
     uint16_t nb_rxd;         /* number of RX descriptors */
     uint16_t nb_txd;         /* number of TX descriptors */
     uint16_t timeout_secs;   /* Statistics print timeout */
+    uint16_t ip_proto;       /* IP protocol type */
     fgen_t *fgen;            /* Packet generator */
     const char *fgen_file;   /* File to use for packet generator */
 } txpkts_info_t;
@@ -198,7 +199,7 @@ int parse_configuration(int argc, char **argv);
 void packet_rate(l2p_port_t *port);
 void print_stats(void);
 int port_setup(l2p_port_t *port);
-void packet_constructor(l2p_lport_t *lport, uint8_t *pkt);
+void packet_constructor(l2p_lport_t *lport, uint8_t *pkt, uint16_t proto);
 
 void usage(int err);
 

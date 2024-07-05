@@ -1145,21 +1145,28 @@ static struct cli_map dbg_map[] = {
     {80, "dbg break"},
     {90, "dbg memcpy"},
     {91, "dbg memcpy %d %d"},
+#ifdef TX_DEBUG
+    {100, "dbg %|enable|disable|on|off tx pcap %P"},
+#endif
     {-1, NULL}
 };
 // clang-format on
 
 static const char *dbg_help[] = {
     "",
-    "dbg tx_dbg|dbg                   - Enable tx debug output",
-    "dbg tx_rate <portlist>           - Show packet rate for all ports",
-    "dbg mempool|dump <portlist> <type> - Dump out the mempool info for a given type",
-    "                                   types - rx|tx",
-    "dbg memzone                      - List all of the current memzones",
-    "dbg memseg                       - List all of the current memsegs",
-    "dbg hexdump <addr> <len>         - hex dump memory at given address",
-    "dbg break                        - break into the debugger",
-    "dbg memcpy [loop-cnt KBytes]     - run a memcpy test",
+    "dbg tx_dbg|dbg                        - Enable tx debug output",
+    "dbg tx_rate <portlist>                - Show packet rate for all ports",
+    "dbg mempool|dump <portlist> <type>    - Dump out the mempool info for a given type",
+    "                                        types - rx|tx",
+    "dbg memzone                           - List all of the current memzones",
+    "dbg memseg                            - List all of the current memsegs",
+    "dbg hexdump <addr> <len>              - hex dump memory at given address",
+    "dbg break                             - break into the debugger",
+    "dbg memcpy [loop-cnt KBytes]          - run a memcpy test",
+#ifdef TX_DEBUG
+    "dbg enable|disable tx pcap <portlist> - Enable/disable writing pcap file for transmitted "
+    "packets",
+#endif
     CLI_HELP_PAUSE,
     NULL};
 
@@ -1258,6 +1265,12 @@ dbg_cmd(int argc, char **argv)
         rte_memcpy_perf(cnt, len, 0);
         rte_memcpy_perf(cnt, len, 1);
         break;
+#ifdef TX_DEBUG
+    case 100: /* enable/disable TX packets written to PCAP file */
+        portlist_parse(argv[4], pktgen.nb_ports, &portlist);
+        foreach_port(portlist, pktgen_pcap_handler(pinfo, estate(argv[1])));
+        break;
+#endif
     default:
         return cli_cmd_error("Debug invalid command", "Debug", argc, argv);
     }

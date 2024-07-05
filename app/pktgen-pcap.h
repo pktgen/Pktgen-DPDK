@@ -28,12 +28,12 @@ typedef struct pcap_hdr_s {
     uint32_t network;       /**< data link type */
 } pcap_hdr_t;
 
-typedef struct pcaprec_hdr_s {
+typedef struct pcap_record_hdr_s {
     uint32_t ts_sec;   /**< timestamp seconds */
     uint32_t ts_usec;  /**< timestamp microseconds */
     uint32_t incl_len; /**< number of octets of packet saved in file */
     uint32_t orig_len; /**< actual length of packet */
-} pcaprec_hdr_t;
+} pcap_record_hdr_t;
 
 typedef struct pcap_info_s {
     char *filename;                  /**< allocated string for filename of pcap */
@@ -53,6 +53,10 @@ pcap_info_t *pktgen_pcap_open(char *filename, uint16_t port);
 void pktgen_pcap_close(pcap_info_t *pcap);
 void pktgen_page_pcap(uint16_t pid);
 void pktgen_pcap_info(pcap_info_t *pcap, uint16_t port, int flag);
+
+FILE *pktgen_create_pcap_file(char *filename);
+void pktgen_close_pcap_file(FILE *fp);
+int pktgen_write_mbuf_to_pcap_file(FILE *fp, struct rte_mbuf *mbuf);
 
 #ifdef __cplusplus
 }

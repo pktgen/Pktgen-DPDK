@@ -348,6 +348,7 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
         for (int i = 0; i < nb_pkts; i++) {
             pinfo->queue_stats.q_obytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
 #ifdef TX_DEBUG
+            pktgen_write_mbuf_to_pcap_file(pinfo->pcap_file, pkts[i]);
             pktgen_validate_pkt(pkts[i]);
 #endif
         }

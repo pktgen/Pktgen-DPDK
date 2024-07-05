@@ -33,6 +33,8 @@
 #define FGEN_STRING_OPT "fgen"
 #define FGEN_FILE_OPT   "fgen-file"
 #define VERBOSE_OPT     "verbose"
+#define TCP_OPT         "tcp"
+#define UDP_OPT         "udp"
 #define HELP_OPT        "help"
 
 // clang-format off
@@ -48,12 +50,14 @@ static const struct option lgopts[] = {
 	{FGEN_STRING_OPT,       0, 0, 'f'},
 	{FGEN_FILE_OPT,         0, 0, 'F'},
     {VERBOSE_OPT,           0, 0, 'v'},
+    {TCP_OPT,               0, 0, 't'},
+    {UDP_OPT,               0, 0, 'u'},
 	{HELP_OPT,			    0, 0, 'h'},
 	{NULL,				    0, 0, 0}
 };
 // clang-format on
 
-static const char *short_options = "t:b:s:r:d:m:T:M:F:f:Pvh";
+static const char *short_options = "t:b:s:r:d:m:T:M:F:f:Pvhtu";
 
 /* display usage */
 void
@@ -70,6 +74,8 @@ usage(int err)
         "\t-T|--timeout <secs>      Timeout period in seconds (default %d second)\n"
         "\t-P|--no-promiscuous      Turn off promiscuous mode (default On)\n"
         "\t-M|--mbuf-count <count>  Number of mbufs to allocate (default %'d, max %'d)\n"
+        "\t-t|--tcp                 Use TCP\n"
+        "\t-u|--udp                 Use UDP (default UDP)\n"
         "\t-f|--fgen <string>       FGEN string to load\n"
         "\t-F|--fgen-file <file>    FGEN file to load\n"
         "\t-v|--verbose             Verbose output\n"
@@ -256,6 +262,7 @@ parse_args(int argc, char **argv)
     info->mbuf_count     = DEFAULT_MBUF_COUNT;
     info->pkt_size       = DEFAULT_PKT_SIZE;
     info->tx_rate        = DEFAULT_TX_RATE;
+    info->ip_proto       = IPPROTO_UDP;
     info->force_quit     = false;
     info->verbose        = false;
 
@@ -347,6 +354,14 @@ parse_args(int argc, char **argv)
                 ERR_PRINT("Unable to load FGEN file '%s'\n", optarg);
                 usage(EXIT_FAILURE);
             }
+            break;
+
+        case 't': /* TCP */
+            info->ip_proto = IPPROTO_TCP;
+            break;
+
+        case 'u': /* UDP */
+            info->ip_proto = IPPROTO_UDP;
             break;
 
         case 'v': /* Verbose option */

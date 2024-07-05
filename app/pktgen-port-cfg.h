@@ -194,6 +194,7 @@ typedef struct port_info_s {
     uint32_t latsamp_rate;        /**< Sampling rate i.e., samples per second  */
     uint32_t latsamp_num_samples; /**< Number of samples to collect  */
     char latsamp_outfile[256];    /**< Path to file for dumping latency samples */
+    FILE *pcap_file;              /**< PCAP file handle */
 } port_info_t;
 
 struct vxlan {

@@ -33,7 +33,7 @@ mbuf_iterate_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
     struct rte_mbuf *m = (struct rte_mbuf *)obj;
     uint16_t plen      = info->pkt_size - RTE_ETHER_CRC_LEN;
 
-    packet_constructor(lport, rte_pktmbuf_mtod(m, uint8_t *));
+    packet_constructor(lport, rte_pktmbuf_mtod(m, uint8_t *), info->ip_proto);
 
     m->pool     = mp;
     m->next     = NULL;

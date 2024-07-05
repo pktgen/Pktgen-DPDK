@@ -21,6 +21,8 @@
 
 #include <pktperf.h>
 
+enum { DEFAULT_WND_SIZE = 8192 };
+
 /**
  *
  * packet_rate - Calculate the transmit rate.
@@ -74,7 +76,7 @@ get_rand(long range)
  *     Source          :    3c:fd:fe:e4:38:40
  */
 void
-packet_constructor(l2p_lport_t *lport, uint8_t *pkt)
+packet_constructor(l2p_lport_t *lport, uint8_t *pkt, uint16_t proto)
 {
     l2p_port_t *port = lport->port;
     uint16_t len;
@@ -82,6 +84,7 @@ packet_constructor(l2p_lport_t *lport, uint8_t *pkt)
     struct rte_ether_hdr *eth;
     struct rte_ipv4_hdr *ipv4;
     struct rte_udp_hdr *udp;
+    struct rte_tcp_hdr *tcp;
     uint16_t tx_qid;
 
     if (info->fgen_file) {
@@ -93,7 +96,6 @@ packet_constructor(l2p_lport_t *lport, uint8_t *pkt)
 
     eth  = (struct rte_ether_hdr *)pkt;
     ipv4 = (struct rte_ipv4_hdr *)(pkt + sizeof(struct rte_ether_hdr));
-    udp  = (struct rte_udp_hdr *)(pkt + sizeof(struct rte_ether_hdr) + sizeof(struct rte_ipv4_hdr));
 
     for (unsigned int i = 0; i < RTE_ETHER_MAX_LEN; i++)
         pkt[i] = (uint8_t)(32 + (i % (127 - 32)));
@@ -115,7 +117,7 @@ packet_constructor(l2p_lport_t *lport, uint8_t *pkt)
     ipv4->packet_id       = rte_cpu_to_be_16(1);
     ipv4->fragment_offset = 0;
     ipv4->time_to_live    = 64;
-    ipv4->next_proto_id   = IPPROTO_UDP;
+    ipv4->next_proto_id   = proto;
     ipv4->hdr_checksum    = 0;
 
     snprintf(addr, sizeof(addr), "192.18.0.%u", (uint8_t)(get_rand(200) + 1));
@@ -123,14 +125,37 @@ packet_constructor(l2p_lport_t *lport, uint8_t *pkt)
     snprintf(addr, sizeof(addr), "192.18.0.%u", (uint8_t)(get_rand(200) + 1));
     inet_pton(AF_INET, addr, &ipv4->src_addr);
 
-    udp->src_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
-    udp->dst_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
+    if (proto == IPPROTO_UDP) {
+        udp = (struct rte_udp_hdr *)(pkt + sizeof(struct rte_ether_hdr) +
+                                     sizeof(struct rte_ipv4_hdr));
 
-    len = (uint16_t)(info->pkt_size - sizeof(struct rte_ether_hdr) - sizeof(struct rte_ipv4_hdr) -
-                     RTE_ETHER_CRC_LEN);
-    udp->dgram_len   = rte_cpu_to_be_16(len);
-    udp->dgram_cksum = 0;
-    udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, udp);
+        udp->src_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
+        udp->dst_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
+
+        len              = (uint16_t)(info->pkt_size - sizeof(struct rte_ether_hdr) -
+                         sizeof(struct rte_ipv4_hdr) - RTE_ETHER_CRC_LEN);
+        udp->dgram_len   = rte_cpu_to_be_16(len);
+        udp->dgram_cksum = 0;
+        udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)udp);
+        if (udp->dgram_cksum == 0)
+            udp->dgram_cksum = 0xFFFF;
+    } else if (proto == IPPROTO_TCP) {
+        tcp = (struct rte_tcp_hdr *)(pkt + sizeof(struct rte_ether_hdr) +
+                                     sizeof(struct rte_ipv4_hdr));
+
+        tcp->src_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
+        tcp->dst_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
+        tcp->sent_seq = rte_cpu_to_be_32(0);
+        tcp->recv_ack = rte_cpu_to_be_32(0);
+        tcp->data_off =
+            ((sizeof(struct rte_tcp_hdr) / sizeof(uint32_t)) << 4); /* Offset in words */
+        tcp->tcp_flags = RTE_TCP_ACK_FLAG;
+        tcp->rx_win    = rte_cpu_to_be_16(DEFAULT_WND_SIZE);
+        tcp->tcp_urp   = 0;
+
+        tcp->cksum = 0;
+        tcp->cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)tcp);
+    }
 
     ipv4->hdr_checksum = rte_ipv4_cksum(ipv4);
 }

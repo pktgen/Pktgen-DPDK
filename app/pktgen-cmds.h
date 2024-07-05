@@ -104,6 +104,7 @@
     void debug_mempool_dump(port_info_t * pinfo, char *name);
     void debug_set_port_dump(port_info_t * pinfo, uint32_t cnt);
     void debug_tx_rate(port_info_t * pinfo);
+    void pktgen_pcap_handler(port_info_t * pinfo, uint32_t state);
 
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
     void show_bonding_mode(port_info_t * pinfo);

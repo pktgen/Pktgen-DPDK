@@ -255,20 +255,6 @@ pktgen_config_ports(void)
         if (ret < 0)
             rte_exit(EXIT_FAILURE, "Port %u, Failed to disable Ptype parsing\n", pid);
 
-        uint16_t mtu_size = RTE_ETHER_MIN_MTU;
-        if (mtu_size < pinfo->dev_info.min_mtu) {
-            pktgen_log_info("Increasing MTU from %u to %u", mtu_size, pinfo->dev_info.min_mtu);
-            mtu_size = pinfo->dev_info.min_mtu;
-        }
-        if (mtu_size > pinfo->dev_info.max_mtu) {
-            pktgen_log_info("Reducing MTU from %u to %u", mtu_size, pinfo->dev_info.max_mtu);
-            mtu_size = pinfo->dev_info.max_mtu;
-        }
-
-        if ((ret = rte_eth_dev_set_mtu(pid, mtu_size)) < 0)
-            pktgen_log_panic("Cannot set MTU %u on port %u, (%d)%s", mtu_size, pid, -ret,
-                             rte_strerror(-ret));
-
         for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
             struct rte_eth_rxconf rxq_conf;
             struct rte_eth_conf conf = {0};

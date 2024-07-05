@@ -383,7 +383,7 @@ pktgen_script_save(char *path)
         if (pinfo->rnd_bitfields && pinfo->rnd_bitfields->active_specs) {
             uint32_t active = pinfo->rnd_bitfields->active_specs;
             bf_spec_t *bf;
-            fprintf(fd, "\n-- Rnd bitfeilds\n");
+            fprintf(fd, "\n-- Rnd bitfields\n");
             for (j = 0; j < MAX_RND_BITFIELDS; j++) {
                 if ((active & (1 << j)) == 0)
                     continue;
@@ -751,7 +751,7 @@ pktgen_lua_save(char *path)
         if (pinfo->rnd_bitfields && pinfo->rnd_bitfields->active_specs) {
             uint32_t active = pinfo->rnd_bitfields->active_specs;
             bf_spec_t *bf;
-            fprintf(fd, "\n-- Rnd bitfeilds\n");
+            fprintf(fd, "\n-- Rnd bitfields\n");
             fflush(fd);
             for (j = 0; j < MAX_RND_BITFIELDS; j++) {
                 if ((active & (1 << j)) == 0)
@@ -1431,7 +1431,7 @@ pktgen_stop_latency_sampler(port_info_t *pinfo)
     /* Dump stats to file */
     outfile = fopen(pinfo->latsamp_outfile, "w");
     if (outfile == NULL)
-        pktgen_log_error("Cannot open the latcol outfile!");
+        pktgen_log_error("Cannot open the latency outfile!");
     else {
         pktgen_log_info("Writing to file %s", pinfo->latsamp_outfile);
         fprintf(outfile, "Latency\n");
@@ -3818,4 +3818,32 @@ void
 pktgen_quit(void)
 {
     cli_quit();
+}
+
+static void
+_pcap_file_close(port_info_t *port)
+{
+    pktgen_close_pcap_file(port->pcap_file);
+    port->pcap_file = NULL;
+}
+
+static void
+_pcap_file_open(port_info_t *port, char *filename)
+{
+    _pcap_file_close(port);
+
+    port->pcap_file = pktgen_create_pcap_file(filename);
+}
+
+void
+pktgen_pcap_handler(port_info_t *pinfo, uint32_t state)
+{
+    if (state == ENABLE_STATE) {
+        char filename[64];
+
+        snprintf(filename, sizeof(filename), "tx-%d.pcap", pinfo->pid);
+        _pcap_file_open(pinfo, filename);
+    } else if (state == DISABLE_STATE) {
+        _pcap_file_close(pinfo);
+    }
 }

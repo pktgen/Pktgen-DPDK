@@ -9,13 +9,15 @@ project('pktgen', 'C',
 		'warning_level=3',
 		'werror=true'
 	],
-	meson_version: '>= 0.47.1'
+	meson_version: '>= 0.58.0'
 )
 
 pktgen_conf = configuration_data()
 
 # set up some global vars for compiler, platform, configuration, etc.
 cc = meson.get_compiler('c')
+pktgen_source_root = meson.current_source_dir()
+pktgen_build_root = meson.current_build_dir()
 
 target = target_machine.cpu_family()
 if (target != 'riscv64') and (target != 'aarch64')
@@ -70,7 +72,7 @@ if get_option('only_docs')
 	subdir('doc')
 else
 	dpdk = dependency('libdpdk', required: true, method: 'pkg-config')
-	dpdk_prefix = dpdk.get_pkgconfig_variable('prefix')
+	dpdk_prefix = dpdk.get_variable('prefix')
 	message('prefix: ' + dpdk_prefix + ' libdir: ' + get_option('libdir'))
 	dpdk_libs_path = join_paths(dpdk_prefix, get_option('libdir'))
 	message('DPDK lib path: ' + dpdk_libs_path)

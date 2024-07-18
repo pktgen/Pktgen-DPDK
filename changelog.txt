@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 24.07.1 - add back support for Lua socket support.
  - 24.07.0 - fix TX errors of packets greater then 100 bytes as MTU size was wrong.
              Add support for UDP/TCP packets in pktperf application.
              Update version date.

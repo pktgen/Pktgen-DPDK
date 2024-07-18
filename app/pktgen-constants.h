@@ -37,7 +37,6 @@ enum {
  * For Jumbo frame buffers lets use MTU 9216 + FCS(4) + L2(14) = 9234, for buffer size we use 10KB
  */
 #define _MBUF_LEN (PG_JUMBO_FRAME_LEN + RTE_PKTMBUF_HEADROOM + sizeof(struct rte_mbuf))
-// #define DEFAULT_MBUF_SIZE RTE_MBUF_DEFAULT_BUF_SIZE
 
 #ifdef __cplusplus
 }

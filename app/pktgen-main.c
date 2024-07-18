@@ -485,6 +485,22 @@ main(int argc, char **argv)
 
     pktgen_timer_setup();
 
+#ifdef LUA_ENABLED
+    if (pktgen.flags & IS_SERVER_FLAG) {
+        pktgen.ld_sock = lua_create_instance();
+        if (pktgen.ld_sock == NULL) {
+            pktgen_log_error("Failed to open Lua socket server support library");
+            return -1;
+        }
+
+        if (lua_start_socket(pktgen.ld_sock, &pktgen.thread, pktgen.hostname, pktgen.socket_port) <
+            0) {
+            pktgen_log_error("Failed to start Lua socket server thread");
+            return -1;
+        }
+    }
+#endif
+
     /* Unblock SIGWINCH so main thread
      * can handle screen resizes */
     sigemptyset(&set);

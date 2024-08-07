@@ -26,7 +26,7 @@ pktgen_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
     printf(" snaplen: %d,", pcap->info.snaplen);
     printf(" sigfigs: %d,", pcap->info.sigfigs);
     printf(" network: %d", pcap->info.network);
-    printf(" Endian: %s\n", pcap->convert ? "Big" : "Little");
+    printf(" Convert Endian: %s\n", pcap->convert ? "Yes" : "No");
     if (flag)
         printf("  Packet count: %d\n", pcap->pkt_count);
     printf("\n");
@@ -58,17 +58,14 @@ static void
 pcap_get_info(pcap_info_t *pcap)
 {
     pcap_record_hdr_t hdr;
+
     if (fread(&pcap->info, 1, sizeof(pcap_hdr_t), pcap->fp) != sizeof(pcap_hdr_t))
         rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
 
-    /* Make sure we have a valid PCAP file for Big or Little Endian formats. */
-    if (pcap->info.magic_number != PCAP_MAGIC_NUMBER)
-        pcap->convert = 0;
-    else if (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER))
-        pcap->convert = 1;
-    else
-        rte_exit(EXIT_FAILURE, "%s: invalid magic number 0x%08x\n", __func__,
-                 pcap->info.magic_number);
+    pcap->convert = (PCAP_MAGIC_NUMBER == pcap->info.magic_number) ? 0 : 1;
+
+    printf("PCAP: MAGIC_NUMBER 0x%08x == 0x%08x, Convert: %s\n", PCAP_MAGIC_NUMBER,
+           pcap->info.magic_number, (pcap->convert) ? "Yes" : "No");
 
     if (pcap->convert) {
         pcap->info.magic_number  = ntohl(pcap->info.magic_number);
@@ -80,6 +77,7 @@ pcap_get_info(pcap_info_t *pcap)
         pcap->info.network       = ntohl(pcap->info.network);
     }
 
+    pcap->max_pkt_size = 0;
     /* count the number of packets and get the largest size packet */
     for (;;) {
         if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
@@ -95,15 +93,19 @@ pcap_get_info(pcap_info_t *pcap)
         if (hdr.incl_len > pcap->max_pkt_size)
             pcap->max_pkt_size = hdr.incl_len;
     }
+    pcap->max_pkt_size += RTE_PKTMBUF_HEADROOM;
+    pcap->max_pkt_size = RTE_ALIGN_CEIL(pcap->max_pkt_size, RTE_CACHE_LINE_SIZE);
+    printf("PCAP: Max Packet Size: %d\n", pcap->max_pkt_size);
+
     pcap_rewind(pcap);
 }
 
 static __inline__ void
 mbuf_iterate_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_idx __rte_unused)
 {
-    pcap_info_t *pcap  = (pcap_info_t *)opaque;
-    struct rte_mbuf *m = (struct rte_mbuf *)obj;
-    pcap_record_hdr_t hdr;
+    pcap_info_t *pcap     = (pcap_info_t *)opaque;
+    struct rte_mbuf *m    = (struct rte_mbuf *)obj;
+    pcap_record_hdr_t hdr = {0};
 
     if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
         rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);

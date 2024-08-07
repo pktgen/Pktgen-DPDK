@@ -55,7 +55,7 @@ convert_bitfield(bf_spec_t *bf)
 }
 
 /**
- * pktgen_save - Save a configuration as a startup script
+ * pktgen_script_save - Save a configuration as a startup script
  *
  * DESCRIPTION
  * Save a configuration as a startup script
@@ -464,7 +464,7 @@ pktgen_lua_save(char *path)
     fprintf(fd, "pktgen.mac_from_arp(\"%s\");\n\n",
             (pktgen.flags & MAC_FROM_ARP_FLAG) ? "enable" : "disable");
 
-    for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
+    for (i = 0; i < pktgen.nb_ports; i++) {
         pinfo = l2p_get_port_pinfo(i);
         pkt   = &pinfo->seq_pkt[SINGLE_PKT];
         range = &pinfo->range;

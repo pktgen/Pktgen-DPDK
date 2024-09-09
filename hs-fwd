@@ -63,8 +63,6 @@ disable 0 range
 disable 0 latency
 enable 0 process
 disable 0 capture
-disable 0 rx_tap
-disable 0 tx_tap
 disable 0 vlan
 
 #
@@ -189,8 +187,6 @@ disable 1 range
 disable 1 latency
 enable 1 process
 disable 1 capture
-disable 1 rx_tap
-disable 1 tx_tap
 disable 1 vlan
 
 #
@@ -315,10 +311,7 @@ disable 2 range
 disable 2 latency
 enable 2 process
 disable 2 capture
-disable 2 rx_tap
-disable 2 tx_tap
 disable 2 vlan
-disable 2 rate
 
 #
 # Range packet information:

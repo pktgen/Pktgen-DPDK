@@ -19,6 +19,7 @@
 
 #include <pg_delay.h>
 
+#include <rte_ether.h>
 #include <rte_net.h>
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
 #include <rte_eth_bond.h>
@@ -2321,25 +2322,13 @@ pktgen_clear_stats(port_info_t *pinfo)
  */
 
 void
-pktgen_port_defaults(uint32_t pid, uint8_t seq)
+pktgen_port_defaults(uint16_t pid)
 {
-    port_info_t *pinfo    = l2p_get_port_pinfo(pid);
-    pkt_seq_t *pkt        = &pinfo->seq_pkt[seq];
-    port_info_t *dst_info = NULL;
-
-    pkt->pkt_size  = (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
-    pkt->sport     = DEFAULT_SRC_PORT;
-    pkt->dport     = DEFAULT_DST_PORT;
-    pkt->ttl       = DEFAULT_TTL;
-    pkt->ipProto   = PG_IPPROTO_TCP;
-    pkt->ethType   = RTE_ETHER_TYPE_IPV4;
-    pkt->vlanid    = DEFAULT_VLAN_ID;
-    pkt->cos       = DEFAULT_COS;
-    pkt->tos       = DEFAULT_TOS;
-    pkt->tcp_flags = DEFAULT_TCP_FLAGS;
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
 
     rte_atomic64_set(&pinfo->transmit_count, DEFAULT_TX_COUNT);
     rte_atomic64_init(&pinfo->current_tx_count);
+
     pinfo->tx_rate   = DEFAULT_TX_RATE;
     pinfo->tx_burst  = DEFAULT_PKT_TX_BURST;
     pinfo->rx_burst  = DEFAULT_PKT_RX_BURST;
@@ -2351,32 +2340,71 @@ pktgen_port_defaults(uint32_t pid, uint8_t seq)
     pinfo->prime_cnt = DEFAULT_PRIME_COUNT;
     pinfo->delta     = 0;
 
-    pkt->ip_mask = DEFAULT_NETMASK;
-    if (pktgen.nb_ports > 1) {
-        if ((pid & 1) == 0) {
-            pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-            pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
-            dst_info                          = l2p_get_port_pinfo(pid + 1);
-        } else {
-            pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-            pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
-            dst_info                          = l2p_get_port_pinfo(pid - 1);
-        }
-    } else {
-        pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
-        pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
-        dst_info                          = l2p_get_port_pinfo(pid);
-    }
-
-    if (dst_info->seq_pkt != NULL) {
-        rte_ether_addr_copy(&dst_info->seq_pkt[SINGLE_PKT].eth_src_addr, &pkt->eth_dst_addr);
-        rte_ether_addr_copy(&dst_info->seq_pkt[LATENCY_PKT].eth_src_addr, &pkt->eth_dst_addr);
-    } else
-        memset(&pkt->eth_dst_addr, 0, sizeof(pkt->eth_dst_addr));
-
-    pktgen_packet_ctor(pinfo, seq, -1);
+    if (rte_eth_macaddr_get(pid, &pinfo->src_mac) < 0)
+        pktgen_log_panic("Can't get MAC address: port=%u", pid);
 
     pktgen.flags |= PRINT_LABELS_FLAG;
+}
+
+/**
+ *
+ * pktgen_seq_defaults - Set all ports back to the default values.
+ *
+ * DESCRIPTION
+ * Reset the ports back to the defaults.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+pktgen_seq_defaults(uint16_t pid)
+{
+    port_info_t *pi, *pinfo = l2p_get_port_pinfo(pid);
+    pkt_seq_t *pkt = NULL;
+
+    pktgen_log_info("   Setting sequence defaults for port %u", pid);
+
+    /* Setup the port and packet defaults */
+    for (uint8_t s = 0; s < NUM_TOTAL_PKTS; s++) {
+        pkt = &pinfo->seq_pkt[s];
+
+        pkt->pkt_size  = (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
+        pkt->sport     = DEFAULT_SRC_PORT;
+        pkt->dport     = DEFAULT_DST_PORT;
+        pkt->ttl       = DEFAULT_TTL;
+        pkt->ipProto   = PG_IPPROTO_TCP;
+        pkt->ethType   = RTE_ETHER_TYPE_IPV4;
+        pkt->vlanid    = DEFAULT_VLAN_ID;
+        pkt->cos       = DEFAULT_COS;
+        pkt->tos       = DEFAULT_TOS;
+        pkt->tcp_flags = DEFAULT_TCP_FLAGS;
+
+        pkt->ip_mask = DEFAULT_NETMASK;
+        if (pktgen.nb_ports > 1) {
+            if ((pid & 1) == 0) {
+                pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+                pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
+            } else {
+                pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+                pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid - 1) << 8) | 1;
+            }
+        } else {
+            pkt->ip_src_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | (pid << 8) | 1;
+            pkt->ip_dst_addr.addr.ipv4.s_addr = DEFAULT_IP_ADDR | ((pid + 1) << 8) | 1;
+        }
+        rte_ether_addr_copy(&pinfo->src_mac, &pkt->eth_src_addr);
+
+        if (pid < (pktgen.nb_ports - 1) && (pid & 1) == 0) {
+            pi = l2p_get_port_pinfo(pid + 1);
+            rte_ether_addr_copy(&pi->src_mac, &pkt->eth_dst_addr);
+        } else if (pid > 0 && (pid & 1) == 1) {
+            pi = l2p_get_port_pinfo(pid - 1);
+            rte_ether_addr_copy(&pi->src_mac, &pkt->eth_dst_addr);
+        }
+        pktgen_packet_ctor(pinfo, s, -1);
+    }
 }
 
 /**
@@ -2438,13 +2466,12 @@ pktgen_ping6(port_info_t *pinfo)
 void
 pktgen_reset(port_info_t *pinfo)
 {
-    uint32_t s;
     char off[8];
 
     if (pinfo == NULL)
         rte_exit(EXIT_FAILURE, "No port_info_t pointer specified\n");
 
-    printf("Reset configuration to default %d\n", pinfo->pid);
+    pktgen_log_info("Reset port %u configuration to default", pinfo->pid);
 
     strcpy(off, "off");
     pktgen_stop_transmitting(pinfo);
@@ -2453,10 +2480,8 @@ pktgen_reset(port_info_t *pinfo)
 
     /* Make sure the port is active and enabled. */
     if (pinfo->seq_pkt) {
-        pinfo->seq_pkt[SINGLE_PKT].pkt_size = (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
-
-        for (s = 0; s < NUM_TOTAL_PKTS; s++)
-            pktgen_port_defaults(pinfo->pid, s);
+        pktgen_port_defaults(pinfo->pid);
+        pktgen_seq_defaults(pinfo->pid);
 
         pktgen_range_setup(pinfo);
         pktgen_clear_stats(pinfo);
@@ -2466,7 +2491,8 @@ pktgen_reset(port_info_t *pinfo)
         memset(pinfo->rnd_bitfields, 0, sizeof(struct rnd_bits_s));
         pktgen_rnd_bits_init(&pinfo->rnd_bitfields);
         pktgen_set_port_seqCnt(pinfo, 0);
-    }
+    } else
+        pktgen_log_info("No sequence packets allocated for port %u", pinfo->pid);
 
     pktgen_update_display();
 }
@@ -3006,10 +3032,10 @@ void
 single_set_mac(port_info_t *pinfo, const char *which, struct rte_ether_addr *mac)
 {
     if (!strcmp(which, "dst")) {
-        memcpy(&pinfo->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
+        rte_ether_addr_copy(mac, &pinfo->seq_pkt[SINGLE_PKT].eth_dst_addr);
         pktgen_packet_ctor(pinfo, SINGLE_PKT, -1);
     } else if (!strcmp(which, "src")) {
-        memcpy(&pinfo->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
+        rte_ether_addr_copy(mac, &pinfo->seq_pkt[SINGLE_PKT].eth_src_addr);
         pktgen_packet_ctor(pinfo, SINGLE_PKT, -1);
     }
 }
@@ -3029,7 +3055,7 @@ single_set_mac(port_info_t *pinfo, const char *which, struct rte_ether_addr *mac
 void
 single_set_dst_mac(port_info_t *pinfo, struct rte_ether_addr *mac)
 {
-    memcpy(&pinfo->seq_pkt[SINGLE_PKT].eth_dst_addr, mac, 6);
+    rte_ether_addr_copy(mac, &pinfo->seq_pkt[SINGLE_PKT].eth_dst_addr);
     pktgen_packet_ctor(pinfo, SINGLE_PKT, -1);
 }
 
@@ -3048,7 +3074,7 @@ single_set_dst_mac(port_info_t *pinfo, struct rte_ether_addr *mac)
 void
 single_set_src_mac(port_info_t *pinfo, struct rte_ether_addr *mac)
 {
-    memcpy(&pinfo->seq_pkt[SINGLE_PKT].eth_src_addr, mac, 6);
+    rte_ether_addr_copy(mac, &pinfo->seq_pkt[SINGLE_PKT].eth_src_addr);
     pktgen_packet_ctor(pinfo, SINGLE_PKT, -1);
 }
 
@@ -3226,7 +3252,7 @@ range_set_dest_mac(port_info_t *pinfo, const char *what, struct rte_ether_addr *
     else if (!strcmp(what, "start")) {
         inet_mtoh64(mac, &pinfo->range.dst_mac);
         /* Changes add below to reflect MAC value in range */
-        memcpy(&pinfo->seq_pkt[RANGE_PKT].eth_dst_addr, mac, 6);
+        rte_ether_addr_copy(mac, &pinfo->seq_pkt[RANGE_PKT].eth_dst_addr);
     }
 }
 
@@ -3254,7 +3280,7 @@ range_set_src_mac(port_info_t *pinfo, const char *what, struct rte_ether_addr *m
     else if (!strcmp(what, "start")) {
         inet_mtoh64(mac, &pinfo->range.src_mac);
         /* Changes add below to reflect MAC value in range */
-        memcpy(&pinfo->seq_pkt[RANGE_PKT].eth_src_addr, mac, 6);
+        rte_ether_addr_copy(mac, &pinfo->seq_pkt[RANGE_PKT].eth_src_addr);
     }
 }
 
@@ -3753,8 +3779,8 @@ pktgen_set_seq(port_info_t *pinfo, uint32_t seqnum, struct rte_ether_addr *daddr
     pkt_seq_t *pkt;
 
     pkt = &pinfo->seq_pkt[seqnum];
-    memcpy(&pkt->eth_dst_addr, daddr, 6);
-    memcpy(&pkt->eth_src_addr, saddr, 6);
+    rte_ether_addr_copy(daddr, &pkt->eth_dst_addr);
+    rte_ether_addr_copy(saddr, &pkt->eth_src_addr);
     pkt->ip_mask = size_to_mask(ip_saddr->prefixlen);
     if (type == '4') {
         pkt->ip_src_addr.addr.ipv4.s_addr = htonl(ip_saddr->ipv4.s_addr);

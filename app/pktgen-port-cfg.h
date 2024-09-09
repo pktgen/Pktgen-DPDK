@@ -137,6 +137,7 @@ typedef struct port_info_s {
     double tx_rate;                   /**< Percentage rate for tx packets with fractions */
     struct rte_eth_link link;         /**< Link Information like speed and duplex */
     struct rte_eth_dev_info dev_info; /**< PCI info + driver name */
+    struct rte_ether_addr src_mac;    /**< Source MAC address of the port */
 
     /* Packet buffer space for traffic generator, shared for all packets per port */
     uint16_t seqIdx;     /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */

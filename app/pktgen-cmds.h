@@ -63,7 +63,8 @@
     void pktgen_set_page_size(uint32_t page_size);
     void pktgen_set_port_number(uint16_t port_number);
     void pktgen_set_port_prime(port_info_t * pinfo, uint32_t cnt);
-    void pktgen_port_defaults(uint32_t pid, uint8_t seq);
+    void pktgen_port_defaults(uint16_t pid);
+    void pktgen_seq_defaults(uint16_t pid);
 
     struct pg_ipaddr;
 

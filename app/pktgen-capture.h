@@ -38,7 +38,7 @@ typedef struct capture_s {
 } capture_t;
 
 /* Capture initialization */
-void pktgen_packet_capture_init(int socket_id);
+void pktgen_packet_capture_init(uint16_t socket_id);
 
 /* Enable/disable capture for port */
 void pktgen_set_capture(port_info_t *pinfo, uint32_t onOff);

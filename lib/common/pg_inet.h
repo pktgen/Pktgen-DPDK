@@ -90,7 +90,7 @@ struct pg_ipaddr {
 #define PG_IPPROTO_L4_GTPU_PORT 2152
 
 #define IPv4(a, b, c, d) \
-    ((uint32_t)(((a)&0xff) << 24) | (((b)&0xff) << 16) | (((c)&0xff) << 8) | ((d)&0xff))
+    ((uint32_t)(((a) & 0xff) << 24) | (((b) & 0xff) << 16) | (((c) & 0xff) << 8) | ((d) & 0xff))
 
 /*************************************************************************
  *
@@ -166,14 +166,39 @@ typedef struct udpipv6_s {
     struct rte_udp_hdr udp; /* UDP header for protocol */
 } __attribute__((__packed__)) udpipv6_t;
 
+typedef struct tcp_flags_s {
+    const char *name;
+    uint16_t bit;
+} tcp_flags_t;
+
+/* TCP Flag bits */
 enum {
-    URG_FLAG = 0x20,
-    ACK_FLAG = 0x10,
-    PSH_FLAG = 0x08,
-    RST_FLAG = 0x04,
-    SYN_FLAG = 0x02,
-    FIN_FLAG = 0x01
+    RS0_FLAG = 0x800,
+    RS1_FLAG = 0x400,
+    RS2_FLAG = 0x200,
+    RS3_FLAG = 0x100,
+    CWR_FLAG = 0x080,
+    ECE_FLAG = 0x040,
+    URG_FLAG = 0x020,
+    ACK_FLAG = 0x010,
+    PSH_FLAG = 0x008,
+    RST_FLAG = 0x004,
+    SYN_FLAG = 0x002,
+    FIN_FLAG = 0x001
 };
+#define TCP_FLAGS_LIST                                                                  \
+    {                                                                                   \
+        {"rs0", RS0_FLAG}, {"rs1", RS1_FLAG}, {"rs2", RS2_FLAG}, {"rs3", RS3_FLAG},     \
+            {"cwr", CWR_FLAG}, {"ece", ECE_FLAG}, {"urg", URG_FLAG}, {"ack", ACK_FLAG}, \
+            {"psh", PSH_FLAG}, {"rst", RST_FLAG}, {"syn", SYN_FLAG}, {"fin", FIN_FLAG}, \
+        {                                                                               \
+            NULL, 0                                                                     \
+        }                                                                               \
+    }
+
+/* TCP header length and flags */
+#define TCP_HDR_LENGTH_MASK 0xF000
+#define TCP_FLAGS_MASK      0x0FFF
 
 /* The TCP/IPv4 Pseudo header */
 typedef struct tcpip_s {

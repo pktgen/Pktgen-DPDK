@@ -77,6 +77,7 @@ pktgen_script_save(char *path)
     int i, j;
     uint64_t lcore;
     struct rte_ether_addr eaddr;
+    char buf[128];
 
     fd = fopen(path, "w");
     if (fd == NULL)
@@ -168,19 +169,8 @@ pktgen_script_save(char *path)
                     : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
                                  pkt->ip_mask));
 
-        fprintf(fd, "set %d tcp flag clr all\n", i);
-        if (pkt->tcp_flags & URG_FLAG)
-            fprintf(fd, "set %d tcp flag set %s\n", i, "urg");
-        if (pkt->tcp_flags & ACK_FLAG)
-            fprintf(fd, "set %d tcp flag set %s\n", i, "ack");
-        if (pkt->tcp_flags & PSH_FLAG)
-            fprintf(fd, "set %d tcp flag set %s\n", i, "psh");
-        if (pkt->tcp_flags & RST_FLAG)
-            fprintf(fd, "set %d tcp flag set %s\n", i, "rst");
-        if (pkt->tcp_flags & SYN_FLAG)
-            fprintf(fd, "set %d tcp flag set %s\n", i, "syn");
-        if (pkt->tcp_flags & FIN_FLAG)
-            fprintf(fd, "set %d tcp flag set %s\n", i, "fin");
+        tcp_str_from_flags(pkt->tcp_flags, buf, sizeof(buf));
+        fprintf(fd, "set %d tcp flags %s\n", i, buf);
 
         fprintf(fd, "set %d tcp seq %u\n", i, pkt->tcp_seq);
         fprintf(fd, "set %d tcp ack %u\n", i, pkt->tcp_ack);
@@ -286,19 +276,8 @@ pktgen_script_save(char *path)
         fprintf(fd, "range %d dst port inc %d\n", i, range->dst_port_inc);
 
         fprintf(fd, "\n");
-        fprintf(fd, "range %d tcp flag clr all\n", i);
-        if (range->tcp_flags & URG_FLAG)
-            fprintf(fd, "range %d tcp flag set %s\n", i, "urg");
-        if (range->tcp_flags & ACK_FLAG)
-            fprintf(fd, "range %d tcp flag set %s\n", i, "ack");
-        if (range->tcp_flags & PSH_FLAG)
-            fprintf(fd, "range %d tcp flag set %s\n", i, "psh");
-        if (range->tcp_flags & RST_FLAG)
-            fprintf(fd, "range %d tcp flag set %s\n", i, "rst");
-        if (range->tcp_flags & SYN_FLAG)
-            fprintf(fd, "range %d tcp flag set %s\n", i, "syn");
-        if (range->tcp_flags & FIN_FLAG)
-            fprintf(fd, "range %d tcp flag set %s\n", i, "fin");
+        tcp_str_from_flags(range->tcp_flags, buf, sizeof(buf));
+        fprintf(fd, "range %d tcp flags %s\n", i, buf);
 
         fprintf(fd, "\n");
         fprintf(fd, "range %d tcp seq start %u\n", i, range->tcp_seq);
@@ -2808,29 +2787,69 @@ single_set_ipaddr(port_info_t *pinfo, char type, struct pg_ipaddr *ip, int ip_ve
     pktgen_packet_ctor(pinfo, SINGLE_PKT, -1);
 }
 
-static uint8_t
-tcp_flag_from_str(const char *str)
+uint16_t
+tcp_flags_from_str(const char *str)
 {
-    if (_cp("urg"))
-        return URG_FLAG;
-    if (_cp("ack"))
-        return ACK_FLAG;
-    if (_cp("psh"))
-        return PSH_FLAG;
-    if (_cp("rst"))
-        return RST_FLAG;
-    if (_cp("syn"))
-        return SYN_FLAG;
-    if (_cp("fin"))
-        return FIN_FLAG;
-    if (_cp("all"))
-        return URG_FLAG | ACK_FLAG | PSH_FLAG | RST_FLAG | SYN_FLAG | FIN_FLAG;
+    tcp_flags_t flag_list[] = TCP_FLAGS_LIST;
+    uint16_t flags          = 0;
+    char flags_str[128];
+    char *fields[16];
+    int num_fields;
+
+    memset(flags_str, 0, sizeof(flags_str));
+    strncpy(flags_str, str, sizeof(flags_str) - 1);
+
+    num_fields = rte_strsplit(flags_str, strlen(flags_str), fields, RTE_DIM(fields), ',');
+    for (int i = 0; i < num_fields; i++) {
+        if (!strcmp(fields[i], "clr")) {
+            flags = 0;
+            break;
+        }
+        for (tcp_flags_t *flag = flag_list; flag->name; flag++) {
+            if (!strcmp(fields[i], flag->name)) {
+                flags |= flag->bit;
+                break;
+            }
+        }
+    }
+    return flags;
+}
+
+int
+tcp_str_from_flags(uint16_t flags, char *buf, size_t len)
+{
+    tcp_flags_t flag_list[] = TCP_FLAGS_LIST;
+    char *str               = NULL;
+    int n                   = 0;
+
+    if (buf == NULL || len < 4)
+        return -1;
+
+    memset(buf, 0, len);
+    if ((flags & TCP_FLAGS_MASK) == 0) {
+        strcpy(buf, "clr");
+        return 0;
+    }
+
+    for (tcp_flags_t *flag = flag_list; flag->name; flag++) {
+        if (flags & flag->bit) {
+            if (str)
+                n = snprintf(str, len, ",%s", flag->name);
+            else {
+                str = buf;
+                n   = snprintf(str, len, "%s", flag->name);
+            }
+            str += n;
+            len -= n;
+        }
+    }
+
     return 0;
 }
 
 /**
  *
- * single_set_tcp_flag_set - Set a TCP flag
+ * single_set_tcp_flags - Set a TCP flag
  *
  * DESCRIPTION
  * Set a TCP flag for the single packet.
@@ -2841,32 +2860,14 @@ tcp_flag_from_str(const char *str)
  */
 
 void
-single_set_tcp_flag_set(port_info_t *pinfo, const char *which)
+single_set_tcp_flags(port_info_t *pinfo, const char *flags)
 {
-    pinfo->seq_pkt[SINGLE_PKT].tcp_flags |= tcp_flag_from_str(which);
+    pinfo->seq_pkt[SINGLE_PKT].tcp_flags = tcp_flags_from_str(flags);
 }
 
 /**
  *
- * single_set_tcp_flag_clr - Clear a TCP flag
- *
- * DESCRIPTION
- * Clear a TCP flag for the single packet.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-void
-single_set_tcp_flag_clr(port_info_t *pinfo, const char *which)
-{
-    pinfo->seq_pkt[SINGLE_PKT].tcp_flags &= ~tcp_flag_from_str(which);
-}
-
-/**
- *
- * range_set_tcp_flag_set - Set a TCP flag
+ * range_set_tcp_flags - Set a TCP flag
  *
  * DESCRIPTION
  * Set a TCP flag for the range packet.
@@ -2877,18 +2878,18 @@ single_set_tcp_flag_clr(port_info_t *pinfo, const char *which)
  */
 
 void
-range_set_tcp_flag_set(port_info_t *pinfo, const char *which)
+range_set_tcp_flags(port_info_t *pinfo, const char *flags)
 {
-    pinfo->range.tcp_flags |= tcp_flag_from_str(which);
+    pinfo->range.tcp_flags              = tcp_flags_from_str(flags);
     pinfo->seq_pkt[RANGE_PKT].tcp_flags = pinfo->range.tcp_flags;
 }
 
 /**
  *
- * range_set_tcp_flag_clr - Clear a TCP flag
+ * seq_set_tcp_flags - Set a TCP flag
  *
  * DESCRIPTION
- * Clear a TCP flag for the range packet.
+ * Set a TCP flag for the single packet.
  *
  * RETURNS: N/A
  *
@@ -2896,10 +2897,9 @@ range_set_tcp_flag_set(port_info_t *pinfo, const char *which)
  */
 
 void
-range_set_tcp_flag_clr(port_info_t *pinfo, const char *which)
+seq_set_tcp_flags(port_info_t *pinfo, uint32_t seqnum, const char *flags)
 {
-    pinfo->range.tcp_flags &= ~tcp_flag_from_str(which);
-    pinfo->seq_pkt[RANGE_PKT].tcp_flags = pinfo->range.tcp_flags;
+    pinfo->seq_pkt[seqnum].tcp_flags = tcp_flags_from_str(flags);
 }
 
 /**

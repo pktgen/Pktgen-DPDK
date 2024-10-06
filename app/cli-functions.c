@@ -150,8 +150,8 @@ static const char *range_help[] = {
     "       or  range 0 dst ip 0.0.0.0 0.0.0.0 1.2.3.4 0.0.1.0",
     "range <portlist> type ipv4|ipv6               - Set the range packet type to IPv4 or IPv6",
     "range <portlist> proto tcp|udp                - Set the IP protocol type",
-    "range <portlist> tcp flag set <flag>          - Set the TCP flag",
-    "range <portlist> tcp flag clr <flag>          - Clear the TCP flag",
+    "range <portlist> tcp flags <string>           - Set TCP flags: "
+    "cwr,ece,urg,ack,psh,rst,syn,fin,clr",
     "range <portlist> tcp seq <SMMI> <value>       - Set the TCP sequence number",
     "       or  range <portlist> tcp seq <start> <min> <max> <inc>",
     "range <portlist> tcp ack <SMMI> <value>       - Set the TCP acknowledge number",
@@ -331,11 +331,8 @@ range_cmd(int argc, char **argv)
     case 41:
         foreach_port(portlist, range_set_pkt_type(pinfo, argv[3]));
         break;
-    case 42:
-        foreach_port(portlist, range_set_tcp_flag_set(pinfo, argv[5]));
-        break;
     case 43:
-        foreach_port(portlist, range_set_tcp_flag_clr(pinfo, argv[5]));
+        foreach_port(portlist, range_set_tcp_flags(pinfo, argv[4]));
         break;
     case 44:
         foreach_port(portlist, range_set_tcp_seq(pinfo, (char *)(uintptr_t) "start", atoi(argv[4]));
@@ -508,8 +505,7 @@ static struct cli_map set_map[] = {
     {31, "set %P dst ip %4"},
     {32, "set %P src ip %6"},
     {33, "set %P dst ip %6"},
-    {34, "set %P tcp flag set %|urg|ack|psh|rst|syn|fin|all"},
-    {35, "set %P tcp flag clr %|urg|ack|psh|rst|syn|fin|all"},
+    {34, "set %P tcp %|flag|flags %s"},
     {36, "set %P tcp seq %d"},
     {37, "set %P tcp ack %d"},
     {40, "set ports_per_page %d"},
@@ -555,9 +551,8 @@ static const char *set_help[] = {
     "set <portlist> user pattern <string> - A 16 byte string, must set 'pattern user' command",
     "set <portlist> [src|dst] ip ipaddr - Set IP addresses, Source must include network mask e.g. "
     "10.1.2.3/24",
-    "set <portlist> tcp flag set urg|ack|psh|rst|syn|fin|all - Set a TCP flag",
-    "set <portlist> tcp flag clr urg|ack|psh|rst|syn|fin|all - Clear a TCP flag",
-    "set <portlist> tcp seq <sequence> - Set the TCP sequence number",
+    "set <portlist> tcp flags <string>  - Set TCP flags: cwr,ece,urg,ack,psh,rst,syn,fin,clr",
+    "set <portlist> tcp seq <sequence>  - Set the TCP sequence number",
     "set <portlist> tcp ack <acknowledge> - Set the TCP acknowledge number",
     "set <portlist> qinqids <id1> <id2> - Set the Q-in-Q ID's for the portlist",
     "set <portlist> rnd <idx> <off> <mask> - Set random mask for all transmitted packets from "
@@ -723,10 +718,7 @@ set_cmd(int argc, char **argv)
         foreach_port(portlist, single_set_ipaddr(pinfo, 'd', &ip, ip_ver));
         break;
     case 34:
-        foreach_port(portlist, single_set_tcp_flag_set(pinfo, argv[5]));
-        break;
-    case 35:
-        foreach_port(portlist, single_set_tcp_flag_clr(pinfo, argv[5]));
+        foreach_port(portlist, single_set_tcp_flags(pinfo, argv[4]));
         break;
     case 36:
         foreach_port(portlist, single_set_tcp_seq(pinfo, atoi(argv[4])));
@@ -1483,17 +1475,40 @@ seq_4_set_cmd(int argc __rte_unused, char **argv)
     return 0;
 }
 
+static int
+seq_5_set_cmd(int argc __rte_unused, char **argv)
+{
+    int seqnum = atoi(argv[1]);
+    portlist_t portlist;
+
+    if (seqnum >= NUM_SEQ_PKTS) {
+        cli_printf("Sequence number too large\n");
+        return -1;
+    }
+
+    portlist_parse(argv[2], pktgen.nb_ports, &portlist);
+
+    foreach_port(portlist, seq_set_tcp_flags(pinfo, seqnum, argv[5]));
+
+    pktgen_update_display();
+    return 0;
+}
+
 // clang-format off
 static struct cli_map seq_map[] = {
     {10, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d"},
     {11, "%|seq|sequence %d %P %m %m %4 %4 %d %d %|ipv4|ipv6 %|udp|tcp|icmp %d %d %d"},
+
     {12, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 "
          "%|udp|tcp|icmp vlan %d size %d"},
     {13, "%|seq|sequence %d %P dst %m src %m dst %4 src %4 sport %d dport %d %|ipv4|ipv6 "
          "%|udp|tcp|icmp vlan %d size %d teid %d"},
+
     {15, "%|seq|sequence %d %P cos %d tos %d"},
     {16, "%|seq|sequence %d %P vxlan %d gid %d vid %d"},
     {17, "%|seq|sequence %d %P vxlan %h gid %d vid %d"},
+
+    {18, "%|seq|sequence %d %P tcp %|flag|flags %s"},
     {-1, NULL}
 };
 // clang-format on
@@ -1509,6 +1524,8 @@ static const char *seq_help[] = {
     "                                   - Set the sequence packet information, make sure the "
     "src-IP",
     "                                     has the netmask value eg 1.2.3.4/24",
+    "sequence <seq#> <portlist> tcp flags <flags> - Set the TCP flags: "
+    "cwr,ece,urg,ack,psh,rst,syn,fin,clr",
     CLI_HELP_PAUSE,
     NULL};
 
@@ -1536,6 +1553,9 @@ seq_cmd(int argc, char **argv)
     case 16:
     case 17:
         seq_4_set_cmd(argc, argv);
+        break;
+    case 18:
+        seq_5_set_cmd(argc, argv);
         break;
     default:
         return cli_cmd_error("Sequence invalid command", "Sequence", argc, argv);

@@ -100,7 +100,7 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "PktSize/Rx:Tx Burst");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src/Dest Port");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Type:VLAN ID:Flags");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst  IP Address");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Src  IP Address");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Dst MAC Address");
@@ -142,7 +142,7 @@ pktgen_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-        snprintf(buff, sizeof(buff), "%s / %s:%04x",
+        snprintf(buff, sizeof(buff), "%s / %s:%04x:%04x",
                  (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "IPv4"
                  : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "IPv6"
                  : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "ARP"
@@ -150,7 +150,7 @@ pktgen_print_static_data(void)
                  (pkt->ipProto == PG_IPPROTO_TCP)    ? "TCP"
                  : (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP"
                                                      : "UDP",
-                 pkt->vlanid);
+                 pkt->vlanid, pkt->tcp_flags);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         scrn_printf(

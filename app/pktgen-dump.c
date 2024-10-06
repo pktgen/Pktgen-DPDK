@@ -37,7 +37,7 @@ pktgen_packet_dump(struct rte_mbuf *m, int pid)
         rte_free(pinfo->dump_list[pinfo->dump_tail].data);
 
     pinfo->dump_list[pinfo->dump_tail].data =
-        rte_zmalloc_socket("Packet data", plen, 0, rte_socket_id());
+        pg_zmalloc_socket("Packet data", plen, 0, rte_socket_id());
     pinfo->dump_list[pinfo->dump_tail].len = plen;
 
     for (curr_data = pinfo->dump_list[pinfo->dump_tail].data, curr_mbuf = m; curr_mbuf != NULL;

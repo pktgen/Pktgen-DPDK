@@ -41,7 +41,7 @@
  * SEE ALSO:
  */
 void
-pktgen_packet_capture_init(int sid)
+pktgen_packet_capture_init(uint16_t sid)
 {
     char memzone_name[RTE_MEMZONE_NAMESIZE];
     capture_t *cap = &pktgen.capture[sid];

@@ -10,6 +10,15 @@
 
 #include "vec.h"
 
+inline void *
+pg_zmalloc_socket(const char *type, size_t size, unsigned int align, int socket)
+{
+    if (socket == SOCKET_ID_ANY)
+        return rte_zmalloc(type, size, align);
+    else
+        return rte_zmalloc_socket(type, size, align, socket);
+}
+
 static void
 vec_obj_init(struct rte_mempool *mp, void *uarg __rte_unused, void *obj, unsigned idx __rte_unused)
 {
@@ -46,7 +55,7 @@ vec_create(const char *name, unsigned int n, uint16_t flags)
 
     vec_size = vec_calc_size(n);
 
-    vec = rte_zmalloc_socket(name, vec_size, RTE_CACHE_LINE_SIZE, rte_socket_id());
+    vec = pg_zmalloc_socket(name, vec_size, RTE_CACHE_LINE_SIZE, rte_socket_id());
     if (vec) {
         vec->tlen  = n;
         vec->flags = flags;

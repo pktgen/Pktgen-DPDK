@@ -96,22 +96,10 @@ pktgen_print_static_data(void)
     /* Labels for static fields */
     pktgen_display_set_color("stats.stat.label");
     ip_row = row;
-#if 0
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TCP Flags");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TCP Seq/Ack");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pattern Type");
-#endif
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Size/Rx:Tx Burst");
-#if 0
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "TTL/Port Src/Dest");
-#endif
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port Src/Dest");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Type:VLAN ID");
-#if 0
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "802.1p CoS/DSCP/IPP");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "VxLAN Flg/Grp/vid");
-#endif
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Type:VLAN ID:Flags");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "IP  Destination");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "    Source");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MAC Destination");
@@ -140,22 +128,6 @@ pktgen_print_static_data(void)
         col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
         row = ip_row;
 
-#if 0
-        snprintf(buff, sizeof(buff), "%s%s%s%s%s%s", pkt->tcp_flags & URG_FLAG ? "U" : ".",
-                 pkt->tcp_flags & ACK_FLAG ? "A" : ".", pkt->tcp_flags & PSH_FLAG ? "P" : ".",
-                 pkt->tcp_flags & RST_FLAG ? "R" : ".", pkt->tcp_flags & SYN_FLAG ? "S" : ".",
-                 pkt->tcp_flags & FIN_FLAG ? "F" : ".");
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-        snprintf(buff, sizeof(buff), "%u/%u", pkt->tcp_seq, pkt->tcp_ack);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-                    (pinfo->fill_pattern_type == ABC_FILL_PATTERN)    ? "abcd..."
-                    : (pinfo->fill_pattern_type == NO_FILL_PATTERN)   ? "None"
-                    : (pinfo->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero"
-                                                                     : pinfo->user_pattern);
-#endif
         pktgen_display_set_color("stats.rate.count");
         pktgen_transmit_count_rate(pid, buff, sizeof(buff));
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -164,12 +136,9 @@ pktgen_print_static_data(void)
         snprintf(buff, sizeof(buff), "%d /%3d:%3d", pkt->pkt_size + RTE_ETHER_CRC_LEN,
                  pinfo->rx_burst, pinfo->tx_burst);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#if 0
-        snprintf(buff, sizeof(buff), "%d/%5d/%5d", pkt->ttl, pkt->sport, pkt->dport);
-#endif
         snprintf(buff, sizeof(buff), "%5d/%5d", pkt->sport, pkt->dport);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-        snprintf(buff, sizeof(buff), "%s / %s:%04x",
+        snprintf(buff, sizeof(buff), "%s / %s:%04x:%04x",
                  (pkt->ethType == RTE_ETHER_TYPE_IPV4)   ? "IPv4"
                  : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "IPv6"
                  : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "ARP"
@@ -178,16 +147,9 @@ pktgen_print_static_data(void)
                  : (pkt->ipProto == PG_IPPROTO_ICMP)                            ? "ICMP"
                  : (rte_atomic32_read(&pinfo->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
                                                                                 : "UDP",
-                 pkt->vlanid);
+                 pkt->vlanid, pkt->tcp_flags);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-#if 0
-        snprintf(buff, sizeof(buff), "%3d/%3d/%3d", pkt->cos, pkt->tos >> 2, pkt->tos >> 5);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-        snprintf(buff, sizeof(buff), "%04x/%5d/%5d", pkt->vni_flags, pkt->group_id, pkt->vxlan_id);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-#endif
         pktgen_display_set_color("stats.ip");
         if (pkt->ethType == RTE_ETHER_TYPE_IPV6) {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

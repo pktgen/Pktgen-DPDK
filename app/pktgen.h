@@ -299,20 +299,20 @@ enum {                                    /* Pktgen flags bits */
        NUMA_SUPPORT_FLAG      = (1 << 3), /**< Enable NUMA support */
        IS_SERVER_FLAG         = (1 << 4), /**< Pktgen is a Server */
        RESERVED_05            = (1 << 5),
-       LUA_SHELL_FLAG         = (1 << 6),  /**< Enable Lua Shell */
-       TX_DEBUG_FLAG          = (1 << 7),  /**< TX Debug output */
-       Not_USED               = (1 << 8),  /**< Not Used */
-       FAKE_PORTS_FLAG        = (1 << 9),  /**< Fake ports enabled */
+       LUA_SHELL_FLAG         = (1 << 6), /**< Enable Lua Shell */
+       TX_DEBUG_FLAG          = (1 << 7), /**< TX Debug output */
+       RESERVED_8             = (1 << 8),
+       RESERVED_9             = (1 << 9),
        BLINK_PORTS_FLAG       = (1 << 10), /**< Blink the port leds */
        ENABLE_THEME_FLAG      = (1 << 11), /**< Enable theme or color support */
        CLOCK_GETTIME_FLAG     = (1 << 12), /**< Enable clock_gettime() instead of rdtsc() */
        JUMBO_PKTS_FLAG        = (1 << 13), /**< Enable Jumbo frames */
        RESERVED_14            = (1 << 14),
-       RESERVED_15            = (1 << 15),
+       MAIN_PAGE_FLAG         = (1 << 15), /**< Display the main page */
        CPU_PAGE_FLAG          = (1 << 16), /**< Display the CPU page */
        SEQUENCE_PAGE_FLAG     = (1 << 17), /**< Display the Packet sequence page */
        RANGE_PAGE_FLAG        = (1 << 18), /**< Display the range page */
-       PCAP_PAGE_FLAG         = (1 << 19), /**< Display the PCAP page */
+       RESERVED_19            = (1 << 19),
        SYSTEM_PAGE_FLAG       = (1 << 20), /**< Display the System page */
        RND_BITFIELD_PAGE_FLAG = (1 << 21), /**< Display the random bitfield page */
        LOG_PAGE_FLAG          = (1 << 22), /**< Display the message log page */
@@ -330,7 +330,7 @@ enum {                                    /* Pktgen flags bits */
 #define UPDATE_DISPLAY_TICK_RATE     (pktgen.hz / UPDATE_DISPLAY_TICK_INTERVAL)
 
 #define PAGE_MASK_BITS                                                                          \
-    (CPU_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | PCAP_PAGE_FLAG | SYSTEM_PAGE_FLAG | \
+    (MAIN_PAGE_FLAG | CPU_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | SYSTEM_PAGE_FLAG | \
      RND_BITFIELD_PAGE_FLAG | LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | XSTATS_PAGE_FLAG |            \
      STATS_PAGE_FLAG)
 

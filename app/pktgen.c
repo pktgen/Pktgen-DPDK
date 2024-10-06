@@ -1304,10 +1304,13 @@ _page_display(void)
     scrn_printf(1, 1, "%c", "-\\|/"[(counter++ & 3)]);
     pktgen_display_set_color(NULL);
 
-    if (pktgen.flags & SYSTEM_PAGE_FLAG)
+    if ((pktgen.flags & PAGE_MASK_BITS) == 0)
+        pktgen.flags |= MAIN_PAGE_FLAG;
+
+    if (pktgen.flags & MAIN_PAGE_FLAG)
+        pktgen_page_stats();
+    else if (pktgen.flags & SYSTEM_PAGE_FLAG)
         pktgen_page_system();
-    else if (pktgen.flags & PCAP_PAGE_FLAG)
-        pktgen_page_pcap(pktgen.curr_port);
     else if (pktgen.flags & RANGE_PAGE_FLAG)
         pktgen_page_range();
     else if (pktgen.flags & CPU_PAGE_FLAG)
@@ -1326,8 +1329,6 @@ _page_display(void)
         pktgen_page_queue_stats(pktgen.curr_port);
     else if (pktgen.flags & XSTATS_PAGE_FLAG)
         pktgen_page_xstats(pktgen.curr_port);
-    else
-        pktgen_page_stats();
 }
 
 /**

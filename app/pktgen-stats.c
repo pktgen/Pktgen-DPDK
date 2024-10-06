@@ -343,12 +343,12 @@ pktgen_page_stats(void)
         memset(&sizes, 0, sizeof(pkt_sizes_t));
         memset(&stats, 0, sizeof(pkt_stats_t));
 
-        /* Display the disable string when port is not enabled. */
         col = (COLUMN_WIDTH_1 * pid) + COLUMN_WIDTH_0;
 
         /* Display the port number for the column */
         row = PORT_FLAGS_ROW;
         snprintf(buff, sizeof(buff), "%d:%s", pid + sp, pktgen_flags_string(pinfo));
+
         pktgen_display_set_color("stats.port.flags");
         scrn_printf(row, col, "%*s", COLUMN_WIDTH_1, buff);
 

@@ -794,6 +794,7 @@ set_cmd(int argc, char **argv)
 static struct cli_map pcap_map[] = {
     {10, "pcap %D"},
     {20, "pcap show"},
+    {21, "pcap show all"},
     {30, "pcap filter %P %s"},
     {-1, NULL}
 };
@@ -844,6 +845,13 @@ pcap_cmd(int argc, char **argv)
             pktgen_pcap_info(pcap, pktgen.curr_port, 1);
         else
             pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.curr_port);
+        break;
+    case 21:
+        for (int pid = 0; pid < pktgen.nb_ports; pid++) {
+            pcap = l2p_get_pcap(pid);
+            if (pcap)
+                pktgen_pcap_info(pcap, pid, 1);
+        }
         break;
     case 30:
         portlist_parse(argv[2], pktgen.nb_ports, &portlist);

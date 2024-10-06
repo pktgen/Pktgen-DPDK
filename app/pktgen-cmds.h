@@ -63,7 +63,8 @@
     void pktgen_set_page_size(uint32_t page_size);
     void pktgen_set_port_number(uint16_t port_number);
     void pktgen_set_port_prime(port_info_t * pinfo, uint32_t cnt);
-    void pktgen_port_defaults(uint32_t pid, uint8_t seq);
+    void pktgen_port_defaults(uint16_t pid);
+    void pktgen_seq_defaults(uint16_t pid);
 
     struct pg_ipaddr;
 
@@ -72,8 +73,7 @@
     void single_set_proto(port_info_t * pinfo, char *type);
     void single_set_tcp_seq(port_info_t * pinfo, uint32_t seq);
     void single_set_tcp_ack(port_info_t * pinfo, uint32_t ack);
-    void single_set_tcp_flag_set(port_info_t * pinfo, const char *which);
-    void single_set_tcp_flag_clr(port_info_t * pinfo, const char *which);
+    void single_set_tcp_flags(port_info_t * pinfo, const char *flags);
     void single_set_vlan_id(port_info_t * pinfo, uint16_t vlanid);
     void single_set_cos(port_info_t * pinfo, uint8_t cos);
     void single_set_tos(port_info_t * pinfo, uint8_t tos);
@@ -145,8 +145,7 @@
     void range_set_dst_port(port_info_t * pinfo, char *what, uint16_t port);
     void range_set_proto(port_info_t * pinfo, const char *type);
     void range_set_pkt_type(port_info_t * pinfo, const char *type);
-    void range_set_tcp_flag_set(port_info_t * pinfo, const char *which);
-    void range_set_tcp_flag_clr(port_info_t * pinfo, const char *which);
+    void range_set_tcp_flags(port_info_t * pinfo, const char *flags);
     void range_set_tcp_seq(port_info_t * pinfo, char *what, uint32_t seq);
     void range_set_tcp_ack(port_info_t * pinfo, char *what, uint32_t ack);
     void range_set_pkt_size(port_info_t * pinfo, char *what, uint16_t size);
@@ -170,10 +169,14 @@
     void pktgen_set_cos_tos_seq(port_info_t * pinfo, uint32_t seqnum, uint32_t cos, uint32_t tos);
     void pktgen_set_vxlan_seq(port_info_t * pinfo, uint32_t seqnum, uint32_t flag, uint32_t gid,
                               uint32_t vid);
+    void seq_set_tcp_flags(port_info_t * pinfo, uint32_t seqnum, const char *flags);
 
     /* Pattern */
     void pattern_set_type(port_info_t * pinfo, char *str);
     void pattern_set_user_pattern(port_info_t * pinfo, char *str);
+
+    uint16_t tcp_flags_from_str(const char *str);
+    int tcp_str_from_flags(uint16_t flags, char *buf, size_t len);
 
 #ifdef __cplusplus
 }

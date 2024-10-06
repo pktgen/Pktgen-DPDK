@@ -363,7 +363,7 @@ set_seqTable(lua_State *L, uint32_t seqnum)
     struct rte_ether_addr saddr;
     struct pg_ipaddr ip_daddr;
     struct pg_ipaddr ip_saddr;
-    char *ipProto, *ethType;
+    char *ipProto, *ethType, *tcp_flags;
 
     portlist = pktgen_get_portlist(L, 2);
     if (portlist == INVALID_PORTLIST)
@@ -374,14 +374,15 @@ set_seqTable(lua_State *L, uint32_t seqnum)
     getf_ipaddr(L, "ip_dst_addr", &ip_daddr, PG_IPADDR_V4);
     getf_ipaddr(L, "ip_src_addr", &ip_saddr, PG_IPADDR_NETWORK | PG_IPADDR_V4);
 
-    sport   = getf_integer(L, "sport");
-    dport   = getf_integer(L, "dport");
-    ipProto = getf_string(L, "ipProto");
-    ethType = getf_string(L, "ethType");
-    vlanid  = getf_integer(L, "vlanid");
-    pktSize = getf_integer(L, "pktSize");
-    cos     = getf_integer(L, "cos");
-    tos     = getf_integer(L, "tos");
+    sport     = getf_integer(L, "sport");
+    dport     = getf_integer(L, "dport");
+    ipProto   = getf_string(L, "ipProto");
+    ethType   = getf_string(L, "ethType");
+    vlanid    = getf_integer(L, "vlanid");
+    pktSize   = getf_integer(L, "pktSize");
+    cos       = getf_integer(L, "cos");
+    tos       = getf_integer(L, "tos");
+    tcp_flags = getf_string(L, "tcp_flags");
 
     gtpu_teid = getf_integer(L, "gtpu_teid");
 
@@ -393,7 +394,8 @@ set_seqTable(lua_State *L, uint32_t seqnum)
     foreach_port(portlist,
                  pktgen_set_seq(pinfo, seqnum, &daddr, &saddr, &ip_daddr, &ip_saddr, sport, dport,
                                 ethType[3], ipProto[0], vlanid, pktSize, gtpu_teid);
-                 pktgen_set_cos_tos_seq(pinfo, seqnum, cos, tos));
+                 pktgen_set_cos_tos_seq(pinfo, seqnum, cos, tos);
+                 seq_set_tcp_flags(pinfo, seqnum, tcp_flags));
 
     pktgen_update_display();
 
@@ -428,6 +430,46 @@ pktgen_seqTable(lua_State *L)
         return -1;
 
     return set_seqTable(L, seqnum);
+}
+
+/**
+ *
+ * pktgen_seq_tcp_flag - Set the TCP Flags for a given port and sequence number.
+ *
+ * DESCRIPTION
+ * Set the sequence data for a given port and sequence number.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_seq_tcp_flags(lua_State *L)
+{
+    portlist_t portlist;
+    uint32_t seqnum;
+    const char *flag_str;
+
+    switch (lua_gettop(L)) {
+    default:
+        return luaL_error(L, "seq_tcp_flags, wrong number of arguments");
+    case 3:
+        break;
+    }
+    seqnum = luaL_checkinteger(L, 1);
+    if (seqnum >= NUM_SEQ_PKTS)
+        return -1;
+
+    portlist = pktgen_get_portlist(L, 2);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
+
+    flag_str = luaL_checkstring(L, 3);
+
+    foreach_port(portlist, seq_set_tcp_flags(pinfo, seqnum, flag_str));
+
+    return 0;
 }
 
 /**
@@ -693,6 +735,41 @@ pktgen_set_type(lua_State *L)
         return luaL_error(L, "invalid portlist");
 
     foreach_port(portlist, single_set_pkt_type(pinfo, type));
+
+    pktgen_update_display();
+    return 0;
+}
+
+/**
+ *
+ * pktgen_set_tcp_flags - Set the TCP flags
+ *
+ * DESCRIPTION
+ * Set the port packet types to IPv4 or v6.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_set_tcp_flags(lua_State *L)
+{
+    char *type;
+    portlist_t portlist;
+
+    switch (lua_gettop(L)) {
+    default:
+        return luaL_error(L, "set_type, wrong number of arguments");
+    case 2:
+        break;
+    }
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
+
+    type = (char *)luaL_checkstring(L, 2);
+    foreach_port(portlist, single_set_tcp_flags(pinfo, type));
 
     pktgen_update_display();
     return 0;
@@ -3853,11 +3930,12 @@ static const luaL_Reg pktgenlib[] = {
     {"stop", pktgen_stop},   /* Stop a set of ports sending packets */
 
     /* Set the single packet value on main screen */
-    {"set_mac", pktgen_set_mac},         /* Set the MAC address for a port */
-    {"set_ipaddr", pktgen_set_ip_addr},  /* Set the src and dst IP addresses */
-    {"mac_from_arp", pktgen_macFromArp}, /* Configure MAC from ARP packet */
-    {"set_proto", pktgen_prototype},     /* Set the prototype value */
-    {"set_type", pktgen_set_type},       /* Set the type value */
+    {"set_mac", pktgen_set_mac},             /* Set the MAC address for a port */
+    {"set_ipaddr", pktgen_set_ip_addr},      /* Set the src and dst IP addresses */
+    {"mac_from_arp", pktgen_macFromArp},     /* Configure MAC from ARP packet */
+    {"set_proto", pktgen_prototype},         /* Set the prototype value */
+    {"set_type", pktgen_set_type},           /* Set the type value */
+    {"set_tcp_flags", pktgen_set_tcp_flags}, /* Set TCP flags for a given port */
 
     {"ping4", pktgen_send_ping4}, /* Send a Ping IPv4 packet (ICMP echo) */
 #ifdef INCLUDE_PING6
@@ -3869,8 +3947,9 @@ static const luaL_Reg pktgenlib[] = {
     {"send_arp", pktgen_sendARP}, /* Send a ARP request or GRATUITOUS_ARP */
 
     /* Setup sequence packets */
-    {"seq", pktgen_seq},           /* Set the sequence data for a port */
-    {"seqTable", pktgen_seqTable}, /* Set the sequence data for a port using tables */
+    {"seq", pktgen_seq},                     /* Set the sequence data for a port */
+    {"seqTable", pktgen_seqTable},           /* Set the sequence data for a port using tables */
+    {"seq_tcp_flags", pktgen_seq_tcp_flags}, /* Set tcp flags */
 
     {"screen", pktgen_scrn},      /* Turn off and on the screen updates */
     {"prime", pktgen_prime},      /* Send a small number of packets to prime the routes */

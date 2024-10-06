@@ -203,6 +203,15 @@ void packet_constructor(l2p_lport_t *lport, uint8_t *pkt, uint16_t proto);
 
 void usage(int err);
 
+inline void *
+pg_zmalloc_socket(const char *type, size_t size, unsigned int align, int socket)
+{
+    if (socket == SOCKET_ID_ANY)
+        return rte_zmalloc(type, size, align);
+    else
+        return rte_zmalloc_socket(type, size, align, socket);
+}
+
 #ifdef __cplusplus
 }
 #endif

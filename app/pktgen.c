@@ -353,6 +353,9 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
 #endif
         }
 
+        if (pktgen_tst_port_flags(pinfo, SEND_RANDOM_PKTS))
+            pktgen_rnd_bits_apply(pinfo, pkts, to_send, NULL);
+
         do {
             sent = rte_eth_tx_burst(pinfo->pid, qid, pkts, to_send);
             to_send -= sent;
@@ -1329,6 +1332,8 @@ _page_display(void)
         pktgen_page_queue_stats(pktgen.curr_port);
     else if (pktgen.flags & XSTATS_PAGE_FLAG)
         pktgen_page_xstats(pktgen.curr_port);
+    else
+        pktgen_page_stats();
 }
 
 /**

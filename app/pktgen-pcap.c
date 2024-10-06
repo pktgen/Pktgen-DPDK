@@ -63,10 +63,14 @@ pcap_get_info(pcap_info_t *pcap)
     if (fread(&pcap->info, 1, sizeof(pcap_hdr_t), pcap->fp) != sizeof(pcap_hdr_t))
         rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
 
-    pcap->convert = (PCAP_MAGIC_NUMBER == pcap->info.magic_number) ? 0 : 1;
-
-    printf("PCAP: MAGIC_NUMBER 0x%08x == 0x%08x, Convert: %s\n", PCAP_MAGIC_NUMBER,
-           pcap->info.magic_number, (pcap->convert) ? "Yes" : "No");
+    /* Make sure we have a valid PCAP file for Big or Little Endian formats. */
+    if (pcap->info.magic_number != PCAP_MAGIC_NUMBER)
+        pcap->convert = 0;
+    else if (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER))
+        pcap->convert = 1;
+    else
+        rte_exit(EXIT_FAILURE, "%s: invalid magic number 0x%08x\n", __func__,
+                 pcap->info.magic_number);
 
     if (pcap->convert) {
         pcap->info.magic_number  = ntohl(pcap->info.magic_number);

@@ -124,8 +124,8 @@ parse_cores(uint16_t pid, const char *cores, int mode)
         lport = l2p->lports[l];
         if (lport == NULL) {
             snprintf(name, sizeof(name), "lport-%u:%u", l, port->pid);
-            lport = rte_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE,
-                                       rte_eth_dev_socket_id(port->pid));
+            lport = pg_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE,
+                                      rte_eth_dev_socket_id(port->pid));
             if (!lport)
                 rte_exit(EXIT_FAILURE, "Failed to allocate memory for lport info\n");
             lport->lid = l;

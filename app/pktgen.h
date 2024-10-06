@@ -488,6 +488,15 @@ do_command(const char *cmd, int (*display)(char *, int))
     return i;
 }
 
+inline void *
+pg_zmalloc_socket(const char *type, size_t size, unsigned int align, int socket)
+{
+    if (socket == SOCKET_ID_ANY)
+        return rte_zmalloc(type, size, align);
+    else
+        return rte_zmalloc_socket(type, size, align, socket);
+}
+
 #ifndef MEMPOOL_F_DMA
 #define MEMPOOL_F_DMA 0
 #endif

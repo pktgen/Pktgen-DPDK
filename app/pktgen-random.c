@@ -64,8 +64,8 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 {
     int i;
 
-    *rnd_bits = (rnd_bits_t *)rte_zmalloc_socket("Random bitfield structure", sizeof(rnd_bits_t), 0,
-                                                 rte_socket_id());
+    *rnd_bits = (rnd_bits_t *)pg_zmalloc_socket("Random bitfield structure", sizeof(rnd_bits_t), 0,
+                                                rte_socket_id());
 
     pktgen_display_set_color("stats.stat.values");
 
@@ -268,17 +268,17 @@ pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, rnd_bits_t *rn
 
     display_topline("<Random bitfield Page>", 0, 0, 0);
 
-    pktgen_display_set_color("top.ports");
-    scrn_printf(1, 3, "Port %d", pid);
-
     row = PORT_FLAGS_ROW;
+
+    pktgen_display_set_color("top.ports");
+    scrn_printf(row++, 3, "Port %d", pid);
 
     if (rnd_bits == NULL) {
         scrn_cprintf(10, this_scrn->ncols, "** Port is not active - no random bitfields set **");
         row = 28;
         goto leave;
     }
-    pktgen_display_set_color("stats.stats.label");
+    pktgen_display_set_color("stats.stat.label");
     /* Header line */
     scrn_printf(row++, 1, "%8s %8s %8s  %s", "Index", "Offset", "Act?",
                 "Mask [0 = 0 bit, 1 = 1 bit, X = random bit, . = ignore]");

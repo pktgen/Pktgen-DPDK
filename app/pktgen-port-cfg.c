@@ -110,6 +110,173 @@ dump_device_info(void)
     printf("\n");
 }
 
+static port_info_t *
+initialize_port_info(uint16_t pid)
+{
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
+    int32_t sid = rte_eth_dev_socket_id(pid), ret = 0;
+    struct rte_eth_conf conf;
+
+    /* If port info is already set ignore */
+    if (pinfo) {
+        pktgen_log_panic("Port info already setup for port %u", pid);
+        return pinfo;
+    }
+
+    /* Allocate each port_info_t structure on the correct NUMA node for the port */
+    pinfo = rte_zmalloc_socket(NULL, sizeof(port_info_t), RTE_CACHE_LINE_SIZE, sid);
+    if (!pinfo)
+        pktgen_log_panic("Cannot allocate memory for port_info_t");
+
+    pinfo->pid = pid;
+    l2p_set_port_pinfo(pid, pinfo);
+
+    rte_eth_dev_info_get(pid, &pinfo->dev_info);
+
+    /* Get a clean copy of the configuration structure */
+    rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
+
+    if (pktgen.flags & JUMBO_PKTS_FLAG) {
+        conf.rxmode.max_lro_pkt_size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
+        if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
+            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
+    }
+
+    conf.rx_adv_conf.rss_conf.rss_key = NULL;
+    conf.rx_adv_conf.rss_conf.rss_hf &= pinfo->dev_info.flow_type_rss_offloads;
+    if (pinfo->dev_info.max_rx_queues == 1)
+        conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
+
+    if (pinfo->dev_info.max_vfs) {
+        if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
+            conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
+    }
+
+    pinfo->lsc_enabled = 0;
+    if (*pinfo->dev_info.dev_flags & RTE_ETH_DEV_INTR_LSC) {
+        conf.intr_conf.lsc = 1;
+        pinfo->lsc_enabled = 1;
+    }
+
+    conf.rxmode.offloads &= pinfo->dev_info.rx_offload_capa;
+
+    pktgen_log_info("   Allocate packet sequence array");
+
+    /* allocate the sequence packet array */
+    pinfo->seq_pkt =
+        rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE, sid);
+    if (pinfo->seq_pkt == NULL)
+        pktgen_log_panic("Unable to allocate %'ld pkt_seq_t headers", (long int)NUM_TOTAL_PKTS);
+
+    size_t pktsz = RTE_ETHER_MAX_LEN;
+    if (pktgen.flags & JUMBO_PKTS_FLAG)
+        pktsz = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
+
+    for (int i = 0; i < NUM_TOTAL_PKTS; i++) {
+        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, sid);
+        if (pinfo->seq_pkt[i].hdr == NULL)
+            pktgen_log_panic("Unable to allocate %ld pkt_seq_t buffer space", pktsz);
+
+        pinfo->seq_pkt[i].seq_enabled = 1;
+        pinfo->seq_pkt[i].tcp_flags   = DEFAULT_TCP_FLAGS;
+        pinfo->seq_pkt[i].tcp_seq     = DEFAULT_TCP_SEQ_NUMBER;
+        pinfo->seq_pkt[i].tcp_ack     = DEFAULT_TCP_ACK_NUMBER;
+    }
+
+    pktgen_log_info("   Setup latency defaults");
+
+    latency_t *lat           = &pinfo->latency;
+    lat->jitter_threshold_us = DEFAULT_JITTER_THRESHOLD;
+    lat->latency_rate_us     = DEFAULT_LATENCY_RATE;
+    lat->latency_entropy     = DEFAULT_LATENCY_ENTROPY;
+    lat->latency_rate_cycles =
+        pktgen_get_timer_hz() / ((uint64_t)MAX_LATENCY_RATE / lat->latency_rate_us);
+    uint64_t ticks               = pktgen_get_timer_hz() / (uint64_t)1000000;
+    lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
+
+    pktgen_log_info("   Setup fill pattern defaults");
+
+    pinfo->fill_pattern_type = ABC_FILL_PATTERN;
+    snprintf(pinfo->user_pattern, sizeof(pinfo->user_pattern), "%s", "0123456789abcdef");
+
+    pktgen_log_info("   Configure device");
+    if ((ret = rte_eth_dev_configure(pid, l2p_get_rxcnt(pid), l2p_get_txcnt(pid), &conf)) < 0)
+        pktgen_log_panic("Cannot configure device: port=%d, Num queues %d,%d", pid,
+                         l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+
+    pktgen_log_info("   Setup number of descriptors RX: %u, TX: %u", pktgen.nb_rxd, pktgen.nb_txd);
+    ret = rte_eth_dev_adjust_nb_rx_tx_desc(pid, &pktgen.nb_rxd, &pktgen.nb_txd);
+    if (ret < 0)
+        pktgen_log_panic("Can't adjust number of descriptors: port=%u:%s", pid, rte_strerror(-ret));
+    pktgen_log_info("           Updated descriptors RX: %u, TX: %u", pktgen.nb_rxd, pktgen.nb_txd);
+
+    if ((ret = rte_eth_macaddr_get(pid, &pinfo->src_mac)) < 0)
+        pktgen_log_panic("Can't get MAC address: err=%d, port=%u", ret, pid);
+
+    char buff[64];
+    pktgen_log_info("   Source MAC: %s", inet_mtoa(buff, sizeof(buff), &pinfo->src_mac));
+
+    pktgen_log_info("   Setup up Ptypes");
+    ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
+    if (ret < 0)
+        pktgen_log_panic("Port %u, Failed to disable Ptype parsing", pid);
+
+    l2p_port_t *lport = l2p_get_port(pid);
+    if (lport == NULL)
+        pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
+
+    pktgen_log_info("   Number of RX/TX queues %u/%u", l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+    for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
+        struct rte_eth_rxconf rxq_conf;
+        struct rte_eth_conf conf = {0};
+
+        rte_eth_dev_conf_get(pid, &conf);
+
+        rxq_conf          = pinfo->dev_info.default_rxconf;
+        rxq_conf.offloads = conf.rxmode.offloads;
+
+        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp);
+        if (ret < 0)
+            pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
+                             rte_strerror(-ret));
+    }
+
+    for (int q = 0; q < l2p_get_txcnt(pid); q++) {
+        struct rte_eth_txconf *txconf;
+
+        txconf           = &pinfo->dev_info.default_txconf;
+        txconf->offloads = default_port_conf.txmode.offloads;
+
+        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);
+        if (ret < 0)
+            pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid,
+                             rte_strerror(-ret));
+    }
+    if (pktgen.verbose)
+        pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ", (pktgen.mem_used + 1023) / 1024);
+
+    if (pktgen.verbose)
+        rte_eth_dev_info_dump(NULL, pid);
+
+    /* If enabled, put device in promiscuous mode. */
+    if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
+        pktgen_log_info("   Enabling promiscuous mode");
+        if (rte_eth_promiscuous_enable(pid))
+            pktgen_log_panic("Enabling promiscuous failed: %s", rte_strerror(-rte_errno));
+    }
+
+    pktgen_log_info("   Setup port defaults");
+    pktgen_port_defaults(pid);
+
+    pktgen_log_info("   Start network device");
+    /* Start device */
+    if ((ret = rte_eth_dev_start(pid)) < 0)
+        pktgen_log_panic("rte_eth_dev_start: port=%d, %s", pid, rte_strerror(-ret));
+
+    pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
+    return pinfo;
+}
+
 /**
  *
  * pktgen_config_ports - Configure the ports for RX and TX
@@ -124,11 +291,8 @@ dump_device_info(void)
 void
 pktgen_config_ports(void)
 {
-    struct rte_eth_conf conf;
     uint16_t pid;
     port_info_t *pinfo;
-    int32_t ret, sid;
-    l2p_port_t *port;
 
     /* Find out the total number of ports in the system. */
     /* We have already block list the ones we needed to in main routine. */
@@ -142,209 +306,44 @@ pktgen_config_ports(void)
     pktgen.ending_port =
         ((pktgen.nb_ports > pktgen.nb_ports_per_page) ? pktgen.nb_ports_per_page : pktgen.nb_ports);
 
-    /* For each lcore setup each port that is handled by that lcore. */
-    for (uint16_t lid = 0; lid < RTE_MAX_LCORE; lid++) {
-        if ((pid = l2p_get_pid_by_lcore(lid)) >= RTE_MAX_ETHPORTS)
-            continue;
+    RTE_ETH_FOREACH_DEV(pid)
+    {
+        pktgen_log_info("Initialize Port %u ... ", pid);
 
-        sid = rte_eth_dev_socket_id(pid);
-
-        pinfo = l2p_get_port_pinfo(pid);
+        pinfo = initialize_port_info(pid);
         if (pinfo == NULL) {
-            /* Allocate each port_info_t structure on the correct NUMA node for the port */
-            pinfo = rte_zmalloc_socket(NULL, sizeof(port_info_t), RTE_CACHE_LINE_SIZE, sid);
-            if (!pinfo)
-                rte_exit(EXIT_FAILURE, "Cannot allocate memory for port_info_t\n");
-
-            pinfo->pid = pid;
-
-            pinfo->fill_pattern_type = ABC_FILL_PATTERN;
-            snprintf(pinfo->user_pattern, sizeof(pinfo->user_pattern), "%s", "0123456789abcdef");
-
-            pinfo->seq_pkt = rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
-                                                RTE_CACHE_LINE_SIZE, sid);
-            if (pinfo->seq_pkt == NULL)
-                pktgen_log_panic("Unable to allocate %'ld pkt_seq_t headers",
-                                 (long int)NUM_TOTAL_PKTS);
-
-            size_t pktsz = RTE_ETHER_MAX_LEN;
-            if (pktgen.flags & JUMBO_PKTS_FLAG)
-                pktsz = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
-
-            for (int i = 0; i < NUM_TOTAL_PKTS; i++) {
-                pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, sid);
-                if (pinfo->seq_pkt[i].hdr == NULL)
-                    pktgen_log_panic("Unable to allocate %ld pkt_seq_t buffer space", pktsz);
-
-                pinfo->seq_pkt[i].seq_enabled = 1;
-                pinfo->seq_pkt[i].tcp_flags   = DEFAULT_TCP_FLAGS;
-                pinfo->seq_pkt[i].tcp_seq     = DEFAULT_TCP_SEQ_NUMBER;
-                pinfo->seq_pkt[i].tcp_ack     = DEFAULT_TCP_ACK_NUMBER;
-            }
-
-            latency_t *lat           = &pinfo->latency;
-            lat->jitter_threshold_us = DEFAULT_JITTER_THRESHOLD;
-            lat->latency_rate_us     = DEFAULT_LATENCY_RATE;
-            lat->latency_entropy     = DEFAULT_LATENCY_ENTROPY;
-            lat->latency_rate_cycles =
-                pktgen_get_timer_hz() / ((uint64_t)MAX_LATENCY_RATE / lat->latency_rate_us);
-            uint64_t ticks               = pktgen_get_timer_hz() / (uint64_t)1000000;
-            lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
-
-            pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
-
-            l2p_set_port_pinfo(pid, pinfo);
+            pktgen_log_info("Failed: port_info_t for port %u initialize\n", pid);
+            return;
         }
     }
 
     RTE_ETH_FOREACH_DEV(pid)
     {
+        pktgen_log_info("Initialize Port %u sequence ... ", pid);
         pinfo = l2p_get_port_pinfo(pid);
-        port  = l2p_get_port(pid);
-        if (pinfo == NULL || port == NULL)
-            continue;
 
-        /* grab the socket id value based on the pid being used. */
-        sid = rte_eth_dev_socket_id(pid);
-
-        rte_eth_dev_info_get(pid, &pinfo->dev_info);
-
-        pktgen_log_info("Initialize Port %u ... ", pid);
-
-        /* Get a clean copy of the configuration structure */
-        rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
-
-        if (pktgen.flags & JUMBO_PKTS_FLAG) {
-            conf.rxmode.max_lro_pkt_size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
-            if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
-                conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
-        }
-
-        conf.rx_adv_conf.rss_conf.rss_key = NULL;
-        conf.rx_adv_conf.rss_conf.rss_hf &= pinfo->dev_info.flow_type_rss_offloads;
-        if (pinfo->dev_info.max_rx_queues == 1)
-            conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
-
-        if (pinfo->dev_info.max_vfs) {
-            if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
-                conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
-        }
-
-        pinfo->lsc_enabled = 0;
-        if (*pinfo->dev_info.dev_flags & RTE_ETH_DEV_INTR_LSC) {
-            conf.intr_conf.lsc = 1;
-            pinfo->lsc_enabled = 1;
-        }
-
-        conf.rxmode.offloads &= pinfo->dev_info.rx_offload_capa;
-
-        if ((ret = rte_eth_dev_configure(pid, l2p_get_rxcnt(pid), l2p_get_txcnt(pid), &conf)) < 0)
-            pktgen_log_panic("Cannot configure device: port=%d, Num queues %d,%d", pid,
-                             l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
-
-        ret = rte_eth_dev_adjust_nb_rx_tx_desc(pid, &pktgen.nb_rxd, &pktgen.nb_txd);
-        if (ret < 0)
-            rte_exit(EXIT_FAILURE, "Can't adjust number of descriptors: port=%u:%s\n", pid,
-                     rte_strerror(-ret));
-
-        ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
-        if (ret < 0)
-            rte_exit(EXIT_FAILURE, "Port %u, Failed to disable Ptype parsing\n", pid);
-
-        for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
-            struct rte_eth_rxconf rxq_conf;
-            struct rte_eth_conf conf = {0};
-
-            rte_eth_dev_conf_get(pid, &conf);
-
-            rxq_conf          = pinfo->dev_info.default_rxconf;
-            rxq_conf.offloads = conf.rxmode.offloads;
-
-            ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, port->rx_mp);
-            if (ret < 0)
-                pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
-                                 rte_strerror(-ret));
-        }
-
-        for (int q = 0; q < l2p_get_txcnt(pid); q++) {
-            struct rte_eth_txconf *txconf;
-
-            txconf           = &pinfo->dev_info.default_txconf;
-            txconf->offloads = default_port_conf.txmode.offloads;
-
-            ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);
-            if (ret < 0)
-                pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid,
-                                 rte_strerror(-ret));
-        }
-        if (pktgen.verbose)
-            pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ",
-                            (pktgen.mem_used + 1023) / 1024);
-
-        /* If enabled, put device in promiscuous mode. */
-        if (pktgen.flags & PROMISCUOUS_ON_FLAG)
-            if (rte_eth_promiscuous_enable(pid))
-                rte_exit(EXIT_FAILURE, "Enabling promiscuous failed: %s\n",
-                         rte_strerror(-rte_errno));
-
-        struct rte_ether_addr mac;
-
-        if ((ret = rte_eth_macaddr_get(pid, &mac)) < 0)
-            rte_exit(EXIT_FAILURE, "Can't get MAC address: err=%d, port=%u\n", ret, pid);
-
-        /* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
-        for (int i = 0; i < NUM_TOTAL_PKTS; i++)
-            ethAddrCopy(&pinfo->seq_pkt[i].eth_src_addr, &mac);
-
-        if (pktgen.verbose)
-            rte_eth_dev_info_dump(NULL, pid);
-
-        pinfo->seq_pkt[SINGLE_PKT].pkt_size  = RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN;
-        pinfo->seq_pkt[RANGE_PKT].pkt_size   = RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN;
-        pinfo->seq_pkt[LATENCY_PKT].pkt_size = RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN;
-
+        pktgen_log_info("   Setup sequence defaults");
         /* Setup the port and packet defaults */
-        for (uint8_t s = 0; s < NUM_TOTAL_PKTS; s++)
-            pktgen_port_defaults(pid, s);
+        pktgen_seq_defaults(pid);
 
+        pktgen_log_info("   Setup range defaults");
         pktgen_range_setup(pinfo);
+
+        pktgen_log_info("   Setup latency defaults");
         pktgen_latency_setup(pinfo);
 
+        pktgen_log_info("   Setup clear stats");
         pktgen_clear_stats(pinfo);
 
+        pktgen_log_info("   Setup random bits");
         pktgen_rnd_bits_init(&pinfo->rnd_bitfields);
-
-        /* Start device */
-        if ((ret = rte_eth_dev_start(pid)) < 0)
-            pktgen_log_panic("rte_eth_dev_start: port=%d, %s", pid, rte_strerror(-ret));
-    }
-
-    for (pid = 0; pid < rte_eth_dev_count_avail(); pid++) {
-        port_info_t *pi;
-        struct rte_ether_addr *mac;
-
-        pinfo = l2p_get_port_pinfo(pid);
-        if (pinfo == NULL)
-            continue;
-
-        if ((pid + 1) >= rte_eth_dev_count_avail())
-            pi = l2p_get_port_pinfo(0);
-        else
-            pi = l2p_get_port_pinfo(pid + 1);
-
-        mac = &pi->seq_pkt[FIRST_SEQ_PKT].eth_src_addr;
-
-        ethAddrCopy(&pinfo->seq_pkt[pid].eth_dst_addr, mac);
-        for (int i = 0; i < NUM_TOTAL_PKTS; i++)
-            ethAddrCopy(&pinfo->seq_pkt[i].eth_dst_addr, mac);
     }
 
     /* Clear the log information by putting a blank line */
-    pktgen_log_info("");
-
-    dump_device_info();
+    if (pktgen.verbose)
+        dump_device_info();
 
     /* Setup the packet capture per port if needed. */
-    for (sid = 0; sid < coreinfo_socket_cnt(); sid++)
+    for (uint16_t sid = 0; sid < coreinfo_socket_cnt(); sid++)
         pktgen_packet_capture_init(sid);
 }

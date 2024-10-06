@@ -15,8 +15,9 @@ local seq_table = {			-- entries can be in any order
     ["pktSize"] = 128,		-- 64 - 1518
     ["teid"] = 3,
     ["cos"] = 5,
-    ["tos"] = 6
+    ["tos"] = 6,
+    ["tcp_flags"] = "fin,ack,cwr"
   };
 -- seqTable( seq#, portlist, table );
 pktgen.seqTable(0, "all", seq_table );
-pktgen.set("all", "seq_cnt", 1);
+pktgen.set("all", "seq_cnt", 4);

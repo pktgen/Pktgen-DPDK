@@ -49,9 +49,9 @@ typedef struct pcap_info_s {
 
 } pcap_info_t;
 
-pcap_info_t *pktgen_pcap_open(char *filename, uint16_t port);
-void pktgen_pcap_close(pcap_info_t *pcap);
-void pktgen_page_pcap(uint16_t pid);
+int pktgen_pcap_add(char *filename, uint16_t port);
+int pktgen_pcap_open(void);
+void pktgen_pcap_close(void);
 void pktgen_pcap_info(pcap_info_t *pcap, uint16_t port, int flag);
 
 FILE *pktgen_create_pcap_file(char *filename);

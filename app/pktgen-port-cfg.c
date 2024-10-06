@@ -126,7 +126,6 @@ pktgen_config_ports(void)
 {
     struct rte_eth_conf conf;
     uint16_t pid;
-    pkt_seq_t *pkt;
     port_info_t *pinfo;
     int32_t ret, sid;
     l2p_port_t *port;
@@ -192,6 +191,8 @@ pktgen_config_ports(void)
             uint64_t ticks               = pktgen_get_timer_hz() / (uint64_t)1000000;
             lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
 
+            pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
+
             l2p_set_port_pinfo(pid, pinfo);
         }
     }
@@ -246,11 +247,6 @@ pktgen_config_ports(void)
             rte_exit(EXIT_FAILURE, "Can't adjust number of descriptors: port=%u:%s\n", pid,
                      rte_strerror(-ret));
 
-        pkt = &pinfo->seq_pkt[SINGLE_PKT];
-
-        if ((ret = rte_eth_macaddr_get(pid, &pkt->eth_src_addr)) < 0)
-            rte_exit(EXIT_FAILURE, "Can't get MAC address: err=%d, port=%u\n", ret, pid);
-
         ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
         if (ret < 0)
             rte_exit(EXIT_FAILURE, "Port %u, Failed to disable Ptype parsing\n", pid);
@@ -291,11 +287,15 @@ pktgen_config_ports(void)
                 rte_exit(EXIT_FAILURE, "Enabling promiscuous failed: %s\n",
                          rte_strerror(-rte_errno));
 
+        struct rte_ether_addr mac;
+
+        if ((ret = rte_eth_macaddr_get(pid, &mac)) < 0)
+            rte_exit(EXIT_FAILURE, "Can't get MAC address: err=%d, port=%u\n", ret, pid);
+
         /* Copy the first Src MAC address in SINGLE_PKT to the rest of the sequence packets. */
-        for (int i = 0; i < NUM_SEQ_PKTS; i++)
-            ethAddrCopy(&pinfo->seq_pkt[i].eth_src_addr, &pkt->eth_src_addr);
-        ethAddrCopy(&pinfo->seq_pkt[RANGE_PKT].eth_src_addr, &pkt->eth_src_addr);
-        ethAddrCopy(&pinfo->seq_pkt[LATENCY_PKT].eth_src_addr, &pkt->eth_src_addr);
+        for (int i = 0; i < NUM_TOTAL_PKTS; i++)
+            ethAddrCopy(&pinfo->seq_pkt[i].eth_src_addr, &mac);
+
         if (pktgen.verbose)
             rte_eth_dev_info_dump(NULL, pid);
 
@@ -317,6 +317,26 @@ pktgen_config_ports(void)
         /* Start device */
         if ((ret = rte_eth_dev_start(pid)) < 0)
             pktgen_log_panic("rte_eth_dev_start: port=%d, %s", pid, rte_strerror(-ret));
+    }
+
+    for (pid = 0; pid < rte_eth_dev_count_avail(); pid++) {
+        port_info_t *pi;
+        struct rte_ether_addr *mac;
+
+        pinfo = l2p_get_port_pinfo(pid);
+        if (pinfo == NULL)
+            continue;
+
+        if ((pid + 1) >= rte_eth_dev_count_avail())
+            pi = l2p_get_port_pinfo(0);
+        else
+            pi = l2p_get_port_pinfo(pid + 1);
+
+        mac = &pi->seq_pkt[FIRST_SEQ_PKT].eth_src_addr;
+
+        ethAddrCopy(&pinfo->seq_pkt[pid].eth_dst_addr, mac);
+        for (int i = 0; i < NUM_TOTAL_PKTS; i++)
+            ethAddrCopy(&pinfo->seq_pkt[i].eth_dst_addr, mac);
     }
 
     /* Clear the log information by putting a blank line */

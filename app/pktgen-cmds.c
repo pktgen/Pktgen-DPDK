@@ -975,33 +975,33 @@ pktgen_port_stats(int port, const char *name, struct rte_eth_stats *pstats)
 char *
 pktgen_flags_string(port_info_t *pinfo)
 {
-    static char buff[32];
+    static char buff[64];
     uint32_t flags = rte_atomic32_read(&pinfo->port_flags);
 
     buff[0] = '\0';
     // clang-format off
     snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%-6s%6s",
              (pktgen.flags & PROMISCUOUS_ON_FLAG) ? 'P' : '-',
-             (flags & ICMP_ECHO_ENABLE_FLAG) ? 'E' : '-',
-             (flags & BONDING_TX_PACKETS) ? 'B' : '-',
-             (flags & PROCESS_INPUT_PKTS) ? 'I' : '-',
-             (flags & SEND_LATENCY_PKTS) ? 'L' : '-',
-             (flags & SEND_RANDOM_PKTS) ? 'R' : '-',
-             (flags & CAPTURE_PKTS) ? 'c' : '-',
+             (flags & ICMP_ECHO_ENABLE_FLAG)      ? 'E' : '-',
+             (flags & BONDING_TX_PACKETS)         ? 'B' : '-',
+             (flags & PROCESS_INPUT_PKTS)         ? 'I' : '-',
+             (flags & SEND_LATENCY_PKTS)          ? 'L' : '-',
+             (flags & SEND_RANDOM_PKTS)           ? 'R' : '-',
+             (flags & CAPTURE_PKTS)               ? 'c' : '-',
 
-             (flags & SEND_VLAN_ID)            ? "VLAN"
-             : (flags & SEND_VXLAN_PACKETS)    ? "VxLan"
-             : (flags & SEND_MPLS_LABEL)       ? "MPLS"
-             : (flags & SEND_Q_IN_Q_IDS)       ? "QnQ"
-             : (flags & SEND_GRE_IPv4_HEADER)  ? "GREip"
-             : (flags & SEND_GRE_ETHER_HEADER) ? "GREet"
-                                               : "",
+             (flags & SEND_VLAN_ID)               ? "VLAN"
+             : (flags & SEND_VXLAN_PACKETS)       ? "VxLan"
+             : (flags & SEND_MPLS_LABEL)          ? "MPLS"
+             : (flags & SEND_Q_IN_Q_IDS)          ? "QnQ"
+             : (flags & SEND_GRE_IPv4_HEADER)     ? "GREip"
+             : (flags & SEND_GRE_ETHER_HEADER)    ? "GREet"
+                                                  : "",
 
-             (flags & SEND_PCAP_PKTS)     ? "PCAP"
-             : (flags & SEND_SEQ_PKTS)    ? "Seq"
-             : (flags & SEND_RANGE_PKTS)  ? "Range"
-             : (flags & SEND_SINGLE_PKTS) ? "Single"
-                                          : "Unkn");
+             (flags & SEND_PCAP_PKTS)             ? "PCAP"
+             : (flags & SEND_SEQ_PKTS)            ? "Seq"
+             : (flags & SEND_RANGE_PKTS)          ? "Range"
+             : (flags & SEND_SINGLE_PKTS)         ? "Single"
+                                                  : "Unkn");
     // clang-format on
 
     return buff;
@@ -1557,8 +1557,10 @@ enable_pcap(port_info_t *pinfo, uint32_t state)
         if (state == ENABLE_STATE) {
             pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
             pktgen_set_port_flags(pinfo, SEND_PCAP_PKTS);
-        } else
+        } else {
             pktgen_clr_port_flags(pinfo, SEND_PCAP_PKTS);
+            pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
+        }
         pinfo->tx_cycles = 0;
     }
 }
@@ -2551,8 +2553,10 @@ pktgen_set_port_seqCnt(port_info_t *pinfo, uint32_t cnt)
     if (cnt) {
         pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
         pktgen_set_port_flags(pinfo, SEND_SEQ_PKTS);
-    } else
+    } else {
         pktgen_clr_port_flags(pinfo, SEND_SEQ_PKTS);
+        pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
+    }
 }
 
 /**
@@ -3685,11 +3689,6 @@ pktgen_set_page(char *str)
     } else if (_cp("system") || _cp("sys")) {
         pktgen.flags &= ~PAGE_MASK_BITS;
         pktgen.flags |= SYSTEM_PAGE_FLAG;
-    } else if (_cp("pcap")) {
-        pktgen.flags &= ~PAGE_MASK_BITS;
-        pktgen.flags |= PCAP_PAGE_FLAG;
-        if (pcap)
-            pcap->pkt_index = 0;
     } else if (_cp("range")) {
         pktgen.flags &= ~PAGE_MASK_BITS;
         pktgen.flags |= RANGE_PAGE_FLAG;
@@ -3716,6 +3715,7 @@ pktgen_set_page(char *str)
         pktgen.flags |= LATENCY_PAGE_FLAG;
     } else {
         uint16_t start_port;
+
         if (_cp("main"))
             page = 0;
         start_port = (page * pktgen.nb_ports_per_page);
@@ -3727,7 +3727,7 @@ pktgen_set_page(char *str)
         }
         if (pktgen.flags & PAGE_MASK_BITS) {
             pktgen.flags &= ~PAGE_MASK_BITS;
-            pktgen.flags |= PRINT_LABELS_FLAG;
+            pktgen.flags |= (MAIN_PAGE_FLAG | PRINT_LABELS_FLAG);
         }
     }
     pktgen_clear_display();

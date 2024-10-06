@@ -794,6 +794,7 @@ set_cmd(int argc, char **argv)
 static struct cli_map pcap_map[] = {
     {10, "pcap %D"},
     {20, "pcap show"},
+    {21, "pcap show all"},
     {30, "pcap filter %P %s"},
     {-1, NULL}
 };
@@ -844,6 +845,13 @@ pcap_cmd(int argc, char **argv)
             pktgen_pcap_info(pcap, pktgen.curr_port, 1);
         else
             pktgen_log_error(" ** PCAP file is not loaded on port %d", pktgen.curr_port);
+        break;
+    case 21:
+        for (int pid = 0; pid < pktgen.nb_ports; pid++) {
+            pcap = l2p_get_pcap(pid);
+            if (pcap)
+                pktgen_pcap_info(pcap, pid, 1);
+        }
         break;
     case 30:
         portlist_parse(argv[2], pktgen.nb_ports, &portlist);
@@ -1734,7 +1742,7 @@ misc_cmd(int argc, char **argv)
 // clang-format off
 static struct cli_map page_map[] = {
     {10, "page %d"},
-    {11, "page %|main|range|cpu|pcap|system|sys|next|sequence|seq|rnd|"
+    {11, "page %|main|range|cpu|system|sys|next|sequence|seq|rnd|"
          "log|latency|lat|stats|xstats"},
     {-1, NULL}
 };
@@ -1745,9 +1753,7 @@ static const char *page_help[] = {
     "page main                          - Display page zero",
     "page range                         - Display the range packet page",
     "page cpu                           - Display the CPU page",
-    "page pcap                          - Display the pcap page",
     "page system | sys                  - Display some information about the CPU system",
-    "page next                          - Display next page of PCAP packets.",
     "page sequence | seq                - sequence will display a set of packets for a given port",
     "                                     Note: use the 'port <number>' to display a new port "
     "sequence",

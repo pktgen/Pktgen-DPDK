@@ -141,7 +141,6 @@ pktgen_parse_args(int argc, char **argv)
     int option_index;
     char *prgname   = argv[0], *p;
     char buff[1024] = {0};
-    pcap_info_t *pcap;
     // clang-format off
     static struct option lgopts[] = {
         {"txd", required_argument, 0, 't'},
@@ -214,10 +213,8 @@ pktgen_parse_args(int argc, char **argv)
 
             pid = (uint16_t)strtol(buff, NULL, 10);
 
-            pcap = pktgen_pcap_open(p, pid);
-            if (pcap == NULL)
+            if (pktgen_pcap_add(p, pid) < 0)
                 goto pcap_err;
-            l2p_set_pcap_info(pid, pcap);
             break;
         case 'P': /* Enable promiscuous mode on the ports */
             pktgen.flags |= PROMISCUOUS_ON_FLAG;
@@ -279,6 +276,8 @@ pktgen_parse_args(int argc, char **argv)
 
     if (l2p_parse_mappings() < 0)
         pktgen_log_error("error or too many mapping entries");
+    if (pktgen_pcap_open() < 0)
+        pktgen_log_error("error opening PCAP files");
 
     return ret;
 

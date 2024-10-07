@@ -1094,7 +1094,7 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts_bur
             pktgen_packet_dump_bulk(pkts_burst, nb_rx, pid);
 
         if (unlikely(pktgen_tst_port_flags(pinfo, CAPTURE_PKTS))) {
-            capture_t *capture = &pktgen.capture[rte_socket_id()];
+            capture_t *capture = &pktgen.capture[pg_socket_id()];
 
             if (unlikely(capture->port == pid))
                 pktgen_packet_capture_bulk(pkts_burst, nb_rx, capture);

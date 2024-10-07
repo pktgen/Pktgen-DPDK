@@ -120,7 +120,7 @@ port_setup(l2p_port_t *port)
 
         /* Setup Rx/Tx Queues */
         for (int q = 0; q < port->num_rx_qids; q++) {
-            uint32_t sid = rte_eth_dev_socket_id(pid);
+            uint32_t sid = pg_eth_dev_socket_id(pid);
 
             ret = rte_eth_rx_queue_setup(pid, q, info->nb_rxd, sid, &rxq_conf, port->rx_mp);
             if (ret < 0)

@@ -138,12 +138,12 @@ pktgen_pcap_add(char *filename, uint16_t pid)
     if (filename == NULL)
         rte_exit(EXIT_FAILURE, "%s: PCAP filename is NULL\n", __func__);
 
-    sid = rte_eth_dev_socket_id(pid);
+    sid = pg_eth_dev_socket_id(pid);
 
     snprintf(name, sizeof(name), "PCAP-Info-%d", pid);
-    pcap = (pcap_info_t *)pg_zmalloc_socket(name, sizeof(pcap_info_t), RTE_CACHE_LINE_SIZE, sid);
+    pcap = (pcap_info_t *)rte_zmalloc_socket(name, sizeof(pcap_info_t), RTE_CACHE_LINE_SIZE, sid);
     if (pcap == NULL)
-        rte_exit(EXIT_FAILURE, "%s: pg_zmalloc_socket() failed for pcap_info_t structure\n",
+        rte_exit(EXIT_FAILURE, "%s: rte_zmalloc_socket() failed for pcap_info_t structure\n",
                  __func__);
 
     /* Default to little endian format. */
@@ -168,7 +168,7 @@ pktgen_pcap_open(void)
 
         pcap = pcap_info_list[pid];
 
-        sid = rte_eth_dev_socket_id(pid);
+        sid = pg_eth_dev_socket_id(pid);
 
         /* Read the pcap file trailer. */
         pcap->fp = fopen((const char *)pcap->filename, "r");

@@ -93,12 +93,12 @@ create_pktmbuf_pool(const char *type, uint16_t lid, uint16_t pid, uint32_t nb_mb
     char name[RTE_MEMZONE_NAMESIZE];
 
     printf("Creating %s mbuf pool for lcore %3u, port %2u, MBUF Count %'u on NUMA %d\n", type, lid,
-           pid, nb_mbufs, rte_eth_dev_socket_id(pid));
+           pid, nb_mbufs, pg_eth_dev_socket_id(pid));
 
     /* Create the pktmbuf pool one per lcore/port */
     snprintf(name, sizeof(name), "%s-%u/%u", type, lid, pid);
     return rte_pktmbuf_pool_create(name, info->mbuf_count, cache_size, 0, RTE_MBUF_DEFAULT_BUF_SIZE,
-                                   rte_eth_dev_socket_id(pid));
+                                   pg_eth_dev_socket_id(pid));
 }
 
 static int
@@ -132,12 +132,12 @@ parse_cores(l2p_port_t *port, const char *cores, int mode)
     DBG_PRINT("lcore: %d to %d\n", l, h);
     do {
         l2p_lport_t *lport;
-        int32_t sid = rte_eth_dev_socket_id(port->pid);
+        int32_t sid = pg_eth_dev_socket_id(port->pid);
 
         lport = info->lports[l];
         if (lport == NULL) {
             snprintf(name, sizeof(name), "lport-%u:%u", l, port->pid);
-            lport = pg_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE, sid);
+            lport = rte_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE, sid);
             if (!lport)
                 ERR_RET("Failed to allocate memory for lport info\n");
             lport->lid = l;

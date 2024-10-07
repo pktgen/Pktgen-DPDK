@@ -64,8 +64,8 @@ pktgen_rnd_bits_init(rnd_bits_t **rnd_bits)
 {
     int i;
 
-    *rnd_bits = (rnd_bits_t *)pg_zmalloc_socket("Random bitfield structure", sizeof(rnd_bits_t), 0,
-                                                rte_socket_id());
+    *rnd_bits = (rnd_bits_t *)rte_zmalloc_socket("Random bitfield structure", sizeof(rnd_bits_t), 0,
+                                                 pg_socket_id());
 
     pktgen_display_set_color("stats.stat.values");
 

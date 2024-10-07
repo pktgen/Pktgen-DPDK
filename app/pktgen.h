@@ -488,13 +488,20 @@ do_command(const char *cmd, int (*display)(char *, int))
     return i;
 }
 
-inline void *
-pg_zmalloc_socket(const char *type, size_t size, unsigned int align, int socket)
+static __inline__ int
+pg_socket_id(void)
 {
-    if (socket == SOCKET_ID_ANY)
-        return rte_zmalloc(type, size, align);
-    else
-        return rte_zmalloc_socket(type, size, align, socket);
+    int sid = rte_socket_id();
+
+    return (sid == -1) ? 0 : sid;
+}
+
+static __inline__ int
+pg_eth_dev_socket_id(int pid)
+{
+    int sid = rte_eth_dev_socket_id(pid);
+
+    return (sid == -1) ? 0 : sid;
 }
 
 #ifndef MEMPOOL_F_DMA

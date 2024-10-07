@@ -53,7 +53,7 @@ _new(lua_State *L)
     mbp = (pktmbuf_t **)lua_newuserdata(L, sizeof(void *));
 
     snprintf(poolname, sizeof(poolname), "%s-%d", name, lua_inst++);
-    mp = rte_pktmbuf_pool_create(poolname, n, csize, 0, size, rte_socket_id());
+    mp = rte_pktmbuf_pool_create(poolname, n, csize, 0, size, pg_socket_id());
     if (mp == NULL)
         luaL_error(L, "Failed to create MBUF Pool");
     *mbp = mp;

@@ -114,7 +114,7 @@ static port_info_t *
 initialize_port_info(uint16_t pid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
-    int32_t sid = rte_eth_dev_socket_id(pid), ret = 0;
+    int32_t sid = pg_eth_dev_socket_id(pid), ret = 0;
     struct rte_eth_conf conf;
 
     /* If port info is already set ignore */

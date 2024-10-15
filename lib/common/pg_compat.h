@@ -24,6 +24,22 @@ extern "C" {
 #define PG_JUMBO_ETHER_MTU 9216
 #define PG_JUMBO_FRAME_LEN (PG_JUMBO_ETHER_MTU + RTE_ETHER_CRC_LEN + RTE_ETHER_HDR_LEN)
 
+static __inline__ int
+pg_socket_id(void)
+{
+    int sid = rte_socket_id();
+
+    return (sid == -1) ? 0 : sid;
+}
+
+static __inline__ int
+pg_eth_dev_socket_id(int pid)
+{
+    int sid = rte_eth_dev_socket_id(pid);
+
+    return (sid == -1) ? 0 : sid;
+}
+
 #ifdef __cplusplus
 }
 #endif

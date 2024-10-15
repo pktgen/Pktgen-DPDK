@@ -10,14 +10,6 @@
 
 #include "vec.h"
 
-static __inline__ int
-pg_socket_id(void)
-{
-    int sid = rte_socket_id();
-
-    return (sid == -1) ? 0 : sid;
-}
-
 static void
 vec_obj_init(struct rte_mempool *mp, void *uarg __rte_unused, void *obj, unsigned idx __rte_unused)
 {

@@ -36,6 +36,7 @@
 #include <time.h>
 
 #include <pg_compat.h>
+#include <pg_strings.h>
 #include <rte_config.h>
 
 #include <rte_errno.h>
@@ -486,22 +487,6 @@ do_command(const char *cmd, int (*display)(char *, int))
         free(line);
 
     return i;
-}
-
-static __inline__ int
-pg_socket_id(void)
-{
-    int sid = rte_socket_id();
-
-    return (sid == -1) ? 0 : sid;
-}
-
-static __inline__ int
-pg_eth_dev_socket_id(int pid)
-{
-    int sid = rte_eth_dev_socket_id(pid);
-
-    return (sid == -1) ? 0 : sid;
 }
 
 #ifndef MEMPOOL_F_DMA

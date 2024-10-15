@@ -2,7 +2,5 @@
 # Copyright(c) <2020-2024> Intel Corporation
 
 sources = files('vec.c')
-libvec = library('vec', sources,
-	dependencies: [utils, dpdk])
-vec = declare_dependency(link_with: libvec,
-	include_directories: include_directories('.'))
+libvec = library('vec', sources, dependencies: [common, utils, dpdk])
+vec = declare_dependency(link_with: libvec, include_directories: include_directories('.'))

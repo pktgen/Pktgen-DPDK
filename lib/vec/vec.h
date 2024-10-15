@@ -7,6 +7,7 @@
 #define __VEC_H
 
 #include <rte_malloc.h>
+#include <pg_compat.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -1042,9 +1042,6 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
 
         pktgen_setup_packets(pinfo->pid);
 
-        if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS))
-            mp = l2p_get_pcap_mp(pinfo->pid);
-
         pinfo->qcnt[qid]++; /* Count the number of times queue is sending */
 
         if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS))
@@ -1151,8 +1148,6 @@ pktgen_main_rxtx_loop(void)
         if (curr_tsc >= tx_next_cycle) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
-            if (unlikely(pinfo->tx_cycles == 0))
-                continue;
             pktgen_main_transmit(pinfo, tx_qid);
         }
         if (curr_tsc >= tx_bond_cycle) {
@@ -1207,8 +1202,6 @@ pktgen_main_tx_loop(void)
         if (curr_tsc >= tx_next_cycle) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
-            if (unlikely(pinfo->tx_cycles == 0))
-                continue;
             pktgen_main_transmit(pinfo, tx_qid);
         }
         if (curr_tsc >= tx_bond_cycle) {

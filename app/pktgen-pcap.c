@@ -30,7 +30,7 @@ pktgen_pcap_info(pcap_info_t *pcap, uint16_t port, int flag)
     printf(" network: %d", pcap->info.network);
     printf(" Convert Endian: %s\n", pcap->convert ? "Yes" : "No");
     if (flag)
-        printf("  Packet count: %d\n", pcap->pkt_count);
+        printf("  Packet count: %d, max size %d\n", pcap->pkt_count, pcap->max_pkt_size);
     fflush(stdout);
 }
 
@@ -64,9 +64,9 @@ pcap_get_info(pcap_info_t *pcap)
         rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
 
     /* Make sure we have a valid PCAP file for Big or Little Endian formats. */
-    if (pcap->info.magic_number != PCAP_MAGIC_NUMBER)
+    if (pcap->info.magic_number == PCAP_MAGIC_NUMBER)
         pcap->convert = 0;
-    else if (pcap->info.magic_number != ntohl(PCAP_MAGIC_NUMBER))
+    else if (pcap->info.magic_number == ntohl(PCAP_MAGIC_NUMBER))
         pcap->convert = 1;
     else
         rte_exit(EXIT_FAILURE, "%s: invalid magic number 0x%08x\n", __func__,
@@ -112,8 +112,11 @@ mbuf_iterate_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
     struct rte_mbuf *m    = (struct rte_mbuf *)obj;
     pcap_record_hdr_t hdr = {0};
 
-    if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
-        rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
+    if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr)) {
+        pcap_rewind(pcap);
+        if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
+            rte_exit(EXIT_FAILURE, "%s: failed to read pcap header\n", __func__);
+    }
 
     pcap_convert(pcap, &hdr); /* Convert the packet header to the correct format. */
 
@@ -161,6 +164,7 @@ pktgen_pcap_open(void)
     struct rte_mempool *mp;
     char name[64] = {0};
     uint16_t sid;
+    uint32_t pkt_count;
 
     for (int pid = 0; pid < RTE_MAX_ETHPORTS; pid++) {
         if ((pcap = pcap_info_list[pid]) == NULL)
@@ -177,9 +181,17 @@ pktgen_pcap_open(void)
 
         pcap_get_info(pcap);
 
+        pkt_count = pcap->pkt_count;
+        if (pkt_count == 0) {
+            fclose(pcap->fp);
+            rte_exit(EXIT_FAILURE, "%s: PCAP file is empty: %s\n", __func__, pcap->filename);
+        }
+        if (pkt_count < (DEFAULT_TX_DESC * 4))
+            pkt_count = (DEFAULT_TX_DESC * 4);
+
         snprintf(name, sizeof(name), "pcap-%d", pid);
-        mp = rte_pktmbuf_pool_create(name, pcap->pkt_count, 0, DEFAULT_PRIV_SIZE,
-                                     pcap->max_pkt_size, sid);
+        mp =
+            rte_pktmbuf_pool_create(name, pkt_count, 0, DEFAULT_PRIV_SIZE, pcap->max_pkt_size, sid);
         if (mp == NULL)
             rte_exit(EXIT_FAILURE,
                      "Cannot create mbuf pool (%s) port %d, nb_mbufs %d, socket_id %d: %s", name,

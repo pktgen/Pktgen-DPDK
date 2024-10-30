@@ -89,8 +89,10 @@ struct pg_ipaddr {
 
 #define PG_IPPROTO_L4_GTPU_PORT 2152
 
+// clang-format off
 #define IPv4(a, b, c, d) \
     ((uint32_t)(((a) & 0xff) << 24) | (((b) & 0xff) << 16) | (((c) & 0xff) << 8) | ((d) & 0xff))
+// clang-format on
 
 /*************************************************************************
  *

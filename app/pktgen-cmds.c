@@ -157,15 +157,14 @@ pktgen_script_save(char *path)
                 (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                 : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
                                                     : "udp");
-        fprintf(
-            fd, "set %d dst ip %s\n", i,
-            (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX)
-                : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
-                             0xFFFFFFFF));
+        fprintf(fd, "set %d dst ip %s\n", i,
+                (pkt->ethType == RTE_ETHER_TYPE_IPV6)
+                    ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.a, PG_PREFIXMAX)
+                    : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+                                 0xFFFFFFFF));
         fprintf(fd, "set %d src ip %s\n", i,
                 (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                    ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                    ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.a,
                                  pkt->ip_src_addr.prefixlen)
                     : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
                                  pkt->ip_mask));
@@ -331,13 +330,12 @@ pktgen_script_save(char *path)
             fprintf(fd, "%s ", inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
             fprintf(fd, "%s ",
                     (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                        ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
-                                     PG_PREFIXMAX)
+                        ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.a, PG_PREFIXMAX)
                         : inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
                                      0xFFFFFFFF));
             fprintf(fd, "%s ",
                     (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                        ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                        ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.a,
                                      pkt->ip_src_addr.prefixlen)
                         : inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_src_addr.addr.ipv4.s_addr),
                                      pkt->ip_mask));
@@ -491,15 +489,14 @@ pktgen_lua_save(char *path)
                 (pkt->ipProto == PG_IPPROTO_TCP)    ? "tcp"
                 : (pkt->ipProto == PG_IPPROTO_ICMP) ? "icmp"
                                                     : "udp");
-        fprintf(
-            fd, "pktgen.set_ipaddr('%d', 'dst', '%s');\n", i,
-            (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr, PG_PREFIXMAX)
-                : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
-                             0xFFFFFFFF));
+        fprintf(fd, "pktgen.set_ipaddr('%d', 'dst', '%s');\n", i,
+                (pkt->ethType == RTE_ETHER_TYPE_IPV6)
+                    ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.a, PG_PREFIXMAX)
+                    : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+                                 0xFFFFFFFF));
         fprintf(fd, "pktgen.set_ipaddr('%d', 'src','%s');\n", i,
                 (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                    ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                    ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.a,
                                  pkt->ip_src_addr.prefixlen)
                     : inet_ntop4(buff, sizeof(buff), ntohl(pkt->ip_src_addr.addr.ipv4.s_addr),
                                  pkt->ip_mask));
@@ -657,15 +654,15 @@ pktgen_lua_save(char *path)
                 fprintf(fd, "-- pktgen.seq(%d, '%d', '%s' ", j, i,
                         inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
                 fprintf(fd, "'%s', ", inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
+                fprintf(
+                    fd, "'%s', ",
+                    (pkt->ethType == RTE_ETHER_TYPE_IPV6)
+                        ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.a, PG_PREFIXMAX)
+                        : inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+                                     0xFFFFFFFF));
                 fprintf(fd, "'%s', ",
                         (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                            ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
-                                         PG_PREFIXMAX)
-                            : inet_ntop4(buff, sizeof(buff),
-                                         htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
-                fprintf(fd, "'%s', ",
-                        (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                            ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                            ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.a,
                                          pkt->ip_src_addr.prefixlen)
                             : inet_ntop4(buff, sizeof(buff),
                                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr), pkt->ip_mask));
@@ -688,15 +685,15 @@ pktgen_lua_save(char *path)
                         inet_mtoa(buff, sizeof(buff), &pkt->eth_dst_addr));
                 fprintf(fd, "  ['eth_src_addr'] = '%s',\n",
                         inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
-                fprintf(fd, "  ['ip_dst_addr'] = '%s',\n",
-                        (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                            ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
-                                         PG_PREFIXMAX)
-                            : inet_ntop4(buff, sizeof(buff),
-                                         htonl(pkt->ip_dst_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
+                fprintf(
+                    fd, "  ['ip_dst_addr'] = '%s',\n",
+                    (pkt->ethType == RTE_ETHER_TYPE_IPV6)
+                        ? inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.a, PG_PREFIXMAX)
+                        : inet_ntop4(buff, sizeof(buff), htonl(pkt->ip_dst_addr.addr.ipv4.s_addr),
+                                     0xFFFFFFFF));
                 fprintf(fd, "  ['ip_src_addr'] = '%s',\n",
                         (pkt->ethType == RTE_ETHER_TYPE_IPV6)
-                            ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                            ? inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.a,
                                          pkt->ip_src_addr.prefixlen)
                             : inet_ntop4(buff, sizeof(buff),
                                          htonl(pkt->ip_src_addr.addr.ipv4.s_addr), 0xFFFFFFFF));
@@ -2805,11 +2802,9 @@ single_set_ipaddr(port_info_t *pinfo, char type, struct pg_ipaddr *ip, int ip_ve
     } else if (ip_ver == 6) {
         if (type == 's') {
             pkt->ip_src_addr.prefixlen = ip->prefixlen;
-            rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr, ip->ipv6.s6_addr,
-                       sizeof(struct in6_addr));
+            rte_memcpy(&pkt->ip_src_addr.addr.ipv6, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         } else if (type == 'd')
-            rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr, ip->ipv6.s6_addr,
-                       sizeof(struct in6_addr));
+            rte_memcpy(&pkt->ip_dst_addr.addr.ipv6, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else
             return;
 
@@ -3307,13 +3302,13 @@ range_set_src_ip(port_info_t *pinfo, char *what, struct pg_ipaddr *ip)
 {
     if (pinfo->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6) {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-            rte_memcpy(pinfo->range.src_ipv6_min, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.src_ipv6_min, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-            rte_memcpy(pinfo->range.src_ipv6_max, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.src_ipv6_max, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
-            rte_memcpy(pinfo->range.src_ipv6_inc, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.src_ipv6_inc, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else if (!strcmp(what, "start"))
-            rte_memcpy(pinfo->range.src_ipv6, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.src_ipv6, &ip->ipv6, sizeof(struct rte_ipv6_addr));
     } else {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
             pinfo->range.src_ip_min = ntohl(ip->ipv4.s_addr);
@@ -3343,13 +3338,13 @@ range_set_dst_ip(port_info_t *pinfo, char *what, struct pg_ipaddr *ip)
 {
     if (pinfo->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6) {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
-            rte_memcpy(pinfo->range.dst_ipv6_min, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.dst_ipv6_min, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else if (!strcmp(what, "max") || !strcmp(what, "maximum"))
-            rte_memcpy(pinfo->range.dst_ipv6_max, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.dst_ipv6_max, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else if (!strcmp(what, "inc") || !strcmp(what, "increment"))
-            rte_memcpy(pinfo->range.dst_ipv6_inc, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.dst_ipv6_inc, &ip->ipv6, sizeof(struct rte_ipv6_addr));
         else if (!strcmp(what, "start"))
-            rte_memcpy(pinfo->range.dst_ipv6, ip->ipv6.s6_addr, sizeof(struct in6_addr));
+            rte_memcpy(pinfo->range.dst_ipv6, &ip->ipv6, sizeof(struct rte_ipv6_addr));
     } else {
         if (!strcmp(what, "min") || !strcmp(what, "minimum"))
             pinfo->range.dst_ip_min = ntohl(ip->ipv4.s_addr);
@@ -3788,10 +3783,8 @@ pktgen_set_seq(port_info_t *pinfo, uint32_t seqnum, struct rte_ether_addr *daddr
         pkt->ip_src_addr.addr.ipv4.s_addr = htonl(ip_saddr->ipv4.s_addr);
         pkt->ip_dst_addr.addr.ipv4.s_addr = htonl(ip_daddr->ipv4.s_addr);
     } else {
-        memcpy(&pkt->ip_src_addr.addr.ipv6.s6_addr, ip_saddr->ipv6.s6_addr,
-               sizeof(struct in6_addr));
-        memcpy(&pkt->ip_dst_addr.addr.ipv6.s6_addr, ip_daddr->ipv6.s6_addr,
-               sizeof(struct in6_addr));
+        memcpy(&pkt->ip_src_addr.addr.ipv6, &ip_saddr->ipv6, sizeof(struct rte_ipv6_addr));
+        memcpy(&pkt->ip_dst_addr.addr.ipv6, &ip_daddr->ipv6, sizeof(struct rte_ipv6_addr));
     }
     pkt->dport    = dport;
     pkt->sport    = sport;

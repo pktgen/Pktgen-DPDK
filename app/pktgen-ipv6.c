@@ -42,8 +42,8 @@ pktgen_ipv6_ctor(pkt_seq_t *pkt, void *hdr)
     ip->hop_limits  = pkt->hop_limits;
     ip->proto       = pkt->ipProto;
 
-    rte_memcpy(&ip->dst_addr, pkt->ip_dst_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
-    rte_memcpy(&ip->src_addr, pkt->ip_src_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
+    rte_memcpy(&ip->dst_addr, &pkt->ip_dst_addr.addr.ipv6, sizeof(struct rte_ipv6_addr));
+    rte_memcpy(&ip->src_addr, &pkt->ip_src_addr.addr.ipv6, sizeof(struct rte_ipv6_addr));
 }
 
 /**

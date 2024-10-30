@@ -153,10 +153,10 @@ pktgen_print_static_data(void)
         pktgen_display_set_color("stats.ip");
         if (pkt->ethType == RTE_ETHER_TYPE_IPV6) {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-                        inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.s6_addr,
+                        inet_ntop6(buff, sizeof(buff), pkt->ip_dst_addr.addr.ipv6.a,
                                    PG_PREFIXMAX | ((COLUMN_WIDTH_1 - 1) << 8)));
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
-                        inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.s6_addr,
+                        inet_ntop6(buff, sizeof(buff), pkt->ip_src_addr.addr.ipv6.a,
                                    pkt->ip_src_addr.prefixlen | ((COLUMN_WIDTH_1 - 1) << 8)));
         } else {
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,

@@ -304,30 +304,30 @@ pktgen_range_ctor(range_info_t *range, pkt_seq_t *pkt)
             if (unlikely(!inet6AddrIsUnspecified(range->src_ipv6_inc))) {
                 uint8_t p[PG_IN6ADDRSZ];
 
-                rte_memcpy(p, pkt->ip_src_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
+                rte_memcpy(p, &pkt->ip_src_addr.addr.ipv6, sizeof(struct rte_ipv6_addr));
                 inet6AddrAdd(p, range->src_ipv6_inc, p);
-                if (memcmp(p, range->src_ipv6_min, sizeof(struct in6_addr)) < 0)
-                    rte_memcpy(p, range->src_ipv6_min, sizeof(struct in6_addr));
-                else if (memcmp(p, range->src_ipv6_max, sizeof(struct in6_addr)) > 0)
-                    rte_memcpy(p, range->src_ipv6_min, sizeof(struct in6_addr));
-                rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr, p, sizeof(struct in6_addr));
+                if (memcmp(p, range->src_ipv6_min, sizeof(struct rte_ipv6_addr)) < 0)
+                    rte_memcpy(p, range->src_ipv6_min, sizeof(struct rte_ipv6_addr));
+                else if (memcmp(p, range->src_ipv6_max, sizeof(struct rte_ipv6_addr)) > 0)
+                    rte_memcpy(p, range->src_ipv6_min, sizeof(struct rte_ipv6_addr));
+                rte_memcpy(&pkt->ip_src_addr.addr.ipv6, p, sizeof(struct rte_ipv6_addr));
             } else
-                rte_memcpy(pkt->ip_src_addr.addr.ipv6.s6_addr, range->src_ipv6,
-                           sizeof(struct in6_addr));
+                rte_memcpy(&pkt->ip_src_addr.addr.ipv6, range->src_ipv6,
+                           sizeof(struct rte_ipv6_addr));
 
             if (unlikely(!inet6AddrIsUnspecified(range->dst_ipv6_inc))) {
                 uint8_t p[PG_IN6ADDRSZ];
 
-                rte_memcpy(p, pkt->ip_dst_addr.addr.ipv6.s6_addr, sizeof(struct in6_addr));
+                rte_memcpy(p, &pkt->ip_dst_addr.addr.ipv6, sizeof(struct rte_ipv6_addr));
                 inet6AddrAdd(p, range->dst_ipv6_inc, p);
-                if (memcmp(p, range->dst_ipv6_min, sizeof(struct in6_addr)) < 0)
-                    rte_memcpy(p, range->dst_ipv6_min, sizeof(struct in6_addr));
-                else if (memcmp(p, range->dst_ipv6_max, sizeof(struct in6_addr)) > 0)
-                    rte_memcpy(p, range->dst_ipv6_min, sizeof(struct in6_addr));
-                rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr, p, sizeof(struct in6_addr));
+                if (memcmp(p, range->dst_ipv6_min, sizeof(struct rte_ipv6_addr)) < 0)
+                    rte_memcpy(p, range->dst_ipv6_min, sizeof(struct rte_ipv6_addr));
+                else if (memcmp(p, range->dst_ipv6_max, sizeof(struct rte_ipv6_addr)) > 0)
+                    rte_memcpy(p, range->dst_ipv6_min, sizeof(struct rte_ipv6_addr));
+                rte_memcpy(&pkt->ip_dst_addr.addr.ipv6, p, sizeof(struct rte_ipv6_addr));
             } else
-                rte_memcpy(pkt->ip_dst_addr.addr.ipv6.s6_addr, range->dst_ipv6,
-                           sizeof(struct in6_addr));
+                rte_memcpy(&pkt->ip_dst_addr.addr.ipv6, range->dst_ipv6,
+                           sizeof(struct rte_ipv6_addr));
 
             if (unlikely(range->vlan_id_inc != 0)) {
                 /* Since VLAN is set to MIN_VLAN_ID, check this and skip first increment

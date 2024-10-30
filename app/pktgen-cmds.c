@@ -355,7 +355,8 @@ pktgen_script_save(char *path)
         pcap_info_t *pcap = l2p_get_pcap(pinfo->pid);
         if (pcap) {
             fprintf(fd, "#\n# PCAP port %d\n", i);
-            fprintf(fd, "#    Packet count: %d\n", pcap->pkt_count);
+            fprintf(fd, "#    Packet count: %d, max size: %d\n", pcap->pkt_count,
+                    pcap->max_pkt_size);
             fprintf(fd, "#    Filename    : %s\n", pcap->filename);
         }
         fprintf(fd, "\n");
@@ -723,7 +724,8 @@ pktgen_lua_save(char *path)
         pcap_info_t *pcap = l2p_get_pcap(pinfo->pid);
         if (pcap) {
             fprintf(fd, "--\n-- PCAP port %d\n", i);
-            fprintf(fd, "--    Packet count: %d\n", pcap->pkt_count);
+            fprintf(fd, "--    Packet count: %d, max size: %d\n", pcap->pkt_count,
+                    pcap->max_pkt_size);
             fprintf(fd, "--    Filename    : %s\n", pcap->filename);
         }
         fprintf(fd, "\n");
@@ -1538,7 +1540,7 @@ enable_pcap(port_info_t *pinfo, uint32_t state)
             pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
             pktgen_set_port_flags(pinfo, SEND_PCAP_PKTS);
         } else {
-            pktgen_clr_port_flags(pinfo, SEND_PCAP_PKTS);
+            pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
             pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
         }
         pinfo->tx_cycles = 0;
@@ -2559,7 +2561,7 @@ pktgen_set_port_seqCnt(port_info_t *pinfo, uint32_t cnt)
         pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
         pktgen_set_port_flags(pinfo, SEND_SEQ_PKTS);
     } else {
-        pktgen_clr_port_flags(pinfo, SEND_SEQ_PKTS);
+        pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
         pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
     }
 }
@@ -3124,7 +3126,7 @@ enable_range(port_info_t *pinfo, uint32_t state)
         pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
         pktgen_set_port_flags(pinfo, SEND_RANGE_PKTS);
     } else {
-        pktgen_clr_port_flags(pinfo, SEND_RANGE_PKTS);
+        pktgen_clr_port_flags(pinfo, EXCLUSIVE_MODES);
         pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
     }
 

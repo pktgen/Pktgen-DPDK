@@ -36,50 +36,55 @@ extern "C" {
     50108        // Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
 #define MAX_LATENCY_QUEUES 10
 
+// clang-format off
 enum { /* Per port flag bits */
        /* Supported packet modes non-exclusive */
-       SEND_ARP_REQUEST      = (1 << 0), /**< Send a ARP request */
-       SEND_GRATUITOUS_ARP   = (1 << 1), /**< Send a Gratuitous ARP */
-       ICMP_ECHO_ENABLE_FLAG = (1 << 2), /**< Enable ICMP Echo support */
-       BONDING_TX_PACKETS    = (1 << 3), /**< Bonding driver send zero pkts */
+       SEND_ARP_REQUEST         = (1 << 0), /**< Send a ARP request */
+       SEND_GRATUITOUS_ARP      = (1 << 1), /**< Send a Gratuitous ARP */
+       ICMP_ECHO_ENABLE_FLAG    = (1 << 2), /**< Enable ICMP Echo support */
+       BONDING_TX_PACKETS       = (1 << 3), /**< Bonding driver send zero pkts */
 
-       PROCESS_INPUT_PKTS = (1 << 4), /**< Process input packets */
-       CAPTURE_PKTS       = (1 << 5), /**< Capture received packets */
-       SEND_PING4_REQUEST = (1 << 6), /**< Send a IPv4 Ping request */
-       SEND_PING6_REQUEST = (1 << 7), /**< Send a IPv6 Ping request */
+       /* Receive packet modes */
+       PROCESS_INPUT_PKTS       = (1 << 4), /**< Process input packets */
+       CAPTURE_PKTS             = (1 << 5), /**< Capture received packets */
+       SAMPLING_LATENCIES       = (1 << 6), /**< Sampling latency measurements */
+
+       SEND_PING4_REQUEST       = (1 << 8), /**< Send a IPv4 Ping request */
+       SEND_PING6_REQUEST       = (1 << 9), /**< Send a IPv6 Ping request */
 
        /* Exclusive Packet sending modes */
-       SEND_SINGLE_PKTS = (1 << 12), /**< Send single packets */
-       SEND_PCAP_PKTS   = (1 << 13), /**< Send a pcap file of packets */
-       SEND_RANGE_PKTS  = (1 << 14), /**< Send range of packets */
-       SEND_SEQ_PKTS    = (1 << 15), /**< Send sequence of packets */
-       SEND_RANDOM_PKTS = (1 << 16), /**< Send random bitfields in packets */
+       SEND_SINGLE_PKTS         = (1 << 12), /**< Send single packets */
+       SEND_PCAP_PKTS           = (1 << 13), /**< Send a pcap file of packets */
+       SEND_RANGE_PKTS          = (1 << 14), /**< Send range of packets */
+       SEND_SEQ_PKTS            = (1 << 15), /**< Send sequence of packets */
 
        /* Exclusive Packet type modes */
-       SEND_VLAN_ID          = (1 << 19), /**< Send packets with VLAN ID */
-       SEND_MPLS_LABEL       = (1 << 20), /**< Send MPLS label */
-       SEND_Q_IN_Q_IDS       = (1 << 21), /**< Send packets with Q-in-Q */
-       SEND_GRE_IPv4_HEADER  = (1 << 22), /**< Encapsulate IPv4 in GRE */
-       SEND_GRE_ETHER_HEADER = (1 << 23), /**< Encapsulate Ethernet frame in GRE */
-       SEND_VXLAN_PACKETS    = (1 << 24), /**< Send VxLAN Packets */
-       SAMPLING_LATENCIES    = (1 << 25), /**< Sampling latency measurements> */
-       SEND_LATENCY_PKTS     = (1 << 26), /**< Send latency packets in any mode */
+       SEND_RANDOM_PKTS         = (1 << 16), /**< Send random bitfields in packets */
+       SEND_VLAN_ID             = (1 << 17), /**< Send packets with VLAN ID */
+       SEND_MPLS_LABEL          = (1 << 18), /**< Send MPLS label */
+       SEND_Q_IN_Q_IDS          = (1 << 19), /**< Send packets with Q-in-Q */
+       
+       SEND_GRE_IPv4_HEADER     = (1 << 20), /**< Encapsulate IPv4 in GRE */
+       SEND_GRE_ETHER_HEADER    = (1 << 21), /**< Encapsulate Ethernet frame in GRE */
+       SEND_VXLAN_PACKETS       = (1 << 22), /**< Send VxLAN Packets */
+       SEND_LATENCY_PKTS        = (1 << 23), /**< Send latency packets in any mode */
 
        /* Sending flags */
-       SETUP_TRANSMIT_PKTS    = (1 << 28), /**< Need to setup transmit packets */
-       STOP_RECEIVING_PACKETS = (1 << 29), /**< Stop receiving packet */
-       SENDING_PACKETS        = (1 << 30), /**< sending packets on this port */
-       SEND_FOREVER           = (1 << 31), /**< Send packets forever */
+       SETUP_TRANSMIT_PKTS      = (1 << 28), /**< Need to setup transmit packets */
+       STOP_RECEIVING_PACKETS   = (1 << 29), /**< Stop receiving packet */
+       SENDING_PACKETS          = (1 << 30), /**< sending packets on this port */
+       SEND_FOREVER             = (1 << 31), /**< Send packets forever */
 
-       SEND_ARP_PING_REQUESTS =
+       SEND_ARP_PING_REQUESTS   =
            (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST)
 };
+// clang-format on
 
 #define EXCLUSIVE_MODES (SEND_SINGLE_PKTS | SEND_PCAP_PKTS | SEND_RANGE_PKTS | SEND_SEQ_PKTS)
 
-#define EXCLUSIVE_PKT_MODES                                                  \
-    (SEND_VLAN_ID | SEND_VXLAN_PACKETS | SEND_MPLS_LABEL | SEND_Q_IN_Q_IDS | \
-     SEND_GRE_IPv4_HEADER | SEND_GRE_ETHER_HEADER)
+#define EXCLUSIVE_PKT_MODES                                                                       \
+    (SEND_RANDOM_PKTS | SEND_VLAN_ID | SEND_MPLS_LABEL | SEND_Q_IN_Q_IDS | SEND_GRE_IPv4_HEADER | \
+     SEND_GRE_ETHER_HEADER | SEND_VXLAN_PACKETS | SEND_LATENCY_PKTS)
 
 #define RTE_PMD_PARAM_UNSET -1
 

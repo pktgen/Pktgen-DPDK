@@ -343,14 +343,14 @@ parse_args(int argc, char **argv)
             break;
 
         case 'f': /* FGEN string */
-            if (fgen_load_strings(info->fgen, (const char **)&optarg, 1) < 0) {
+            if (fgen_load_strings(info->fgen, &optarg, 1) < 0) {
                 ERR_PRINT("Unable to load FGEN string '%s'\n", optarg);
                 usage(EXIT_FAILURE);
             }
             break;
 
         case 'F': /* FGEN file */
-            if (fgen_load_file(info->fgen, optarg) < 0) {
+            if (fgen_load_files(info->fgen, &optarg, 1) < 0) {
                 ERR_PRINT("Unable to load FGEN file '%s'\n", optarg);
                 usage(EXIT_FAILURE);
             }

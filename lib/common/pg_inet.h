@@ -188,15 +188,12 @@ enum {
     SYN_FLAG = 0x002,
     FIN_FLAG = 0x001
 };
-#define TCP_FLAGS_LIST                                                                  \
-    {                                                                                   \
-        {"rs0", RS0_FLAG}, {"rs1", RS1_FLAG}, {"rs2", RS2_FLAG}, {"rs3", RS3_FLAG},     \
-            {"cwr", CWR_FLAG}, {"ece", ECE_FLAG}, {"urg", URG_FLAG}, {"ack", ACK_FLAG}, \
-            {"psh", PSH_FLAG}, {"rst", RST_FLAG}, {"syn", SYN_FLAG}, {"fin", FIN_FLAG}, \
-        {                                                                               \
-            NULL, 0                                                                     \
-        }                                                                               \
-    }
+#define TCP_FLAGS_LIST                                                              \
+    {                                                                               \
+        {"rs0", RS0_FLAG}, {"rs1", RS1_FLAG}, {"rs2", RS2_FLAG}, {"rs3", RS3_FLAG}, \
+        {"cwr", CWR_FLAG}, {"ece", ECE_FLAG}, {"urg", URG_FLAG}, {"ack", ACK_FLAG}, \
+        {"psh", PSH_FLAG}, {"rst", RST_FLAG}, {"syn", SYN_FLAG}, {"fin", FIN_FLAG}, \
+        {NULL, 0}}
 
 /* TCP header length and flags */
 #define TCP_HDR_LENGTH_MASK 0xF000
@@ -401,7 +398,7 @@ typedef struct greHdr_s {
 typedef struct greIp_s {
     struct rte_ipv4_hdr ip; /* Outer IPv4 header */
     greHdr_t gre;           /* GRE header for protocol */
-} __attribute__((__packed__)) greIp_t;
+} greIp_t;
 
 /* the GRE/Ethernet header */
 typedef struct greEther_s {
@@ -450,7 +447,7 @@ typedef struct pkt_hdr_s {
         tcpipv6_t tip6;                                  /**< TCP + IPv6 Headers */
         udpipv6_t uip6;                                  /**< UDP + IPv6 Headers */
         uint8_t pad[128 - sizeof(struct rte_ether_hdr)]; /* Force 128 bytes */
-    } __attribute__((packed)) u;
+    } u;
 } pkt_hdr_t;
 
 typedef struct ipv4_5tuple {

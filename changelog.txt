@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 23.10.1 - fix compiler warnings on packed-not-aligned for ubuntu 24.10
  - 24.10.0 - fix a number of bugs for pcap crash, tcp flags, socket crash, random and startup.
              PCAP crash memory overrun was found and fixed.
  - 24.07.1 - add back support for Lua socket support.

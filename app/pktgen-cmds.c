@@ -2860,11 +2860,15 @@ tcp_str_from_flags(uint16_t flags, char *buf, size_t len)
 
     for (tcp_flags_t *flag = flag_list; flag->name; flag++) {
         if (flags & flag->bit) {
-            if (str)
+            if (str) {
+                if (n + strlen(flag->name) + 1 >= len)
+                    return -1;
                 n = snprintf(str, len, ",%s", flag->name);
-            else {
+            } else {
                 str = buf;
-                n   = snprintf(str, len, "%s", flag->name);
+                if (n + strlen(flag->name) + 1 >= len)
+                    return -1;
+                n = snprintf(str, len, "%s", flag->name);
             }
             str += n;
             len -= n;

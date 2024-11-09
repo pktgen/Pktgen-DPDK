@@ -188,12 +188,14 @@ enum {
     SYN_FLAG = 0x002,
     FIN_FLAG = 0x001
 };
+// clang-format off
 #define TCP_FLAGS_LIST                                                              \
     {                                                                               \
         {"rs0", RS0_FLAG}, {"rs1", RS1_FLAG}, {"rs2", RS2_FLAG}, {"rs3", RS3_FLAG}, \
         {"cwr", CWR_FLAG}, {"ece", ECE_FLAG}, {"urg", URG_FLAG}, {"ack", ACK_FLAG}, \
         {"psh", PSH_FLAG}, {"rst", RST_FLAG}, {"syn", SYN_FLAG}, {"fin", FIN_FLAG}, \
         {NULL, 0}}
+// clang-format on
 
 /* TCP header length and flags */
 #define TCP_HDR_LENGTH_MASK 0xF000

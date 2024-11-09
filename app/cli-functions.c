@@ -269,6 +269,7 @@ range_cmd(int argc, char **argv)
         foreach_port(portlist, range_set_src_ip(pinfo, what, &ip));
         break;
     case 32:
+        // clang-format off
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
                      range_set_dst_ip(pinfo, (char *)(uintptr_t)"start", &ip);
                      _atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
@@ -277,8 +278,10 @@ range_cmd(int argc, char **argv)
                      range_set_dst_ip(pinfo, (char *)(uintptr_t)"max", &ip);
                      _atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
                      range_set_dst_ip(pinfo, (char *)(uintptr_t)"inc", &ip));
+        // clang-format on
         break;
     case 33:
+        // clang-format off
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V4, &ip, sizeof(ip));
                      range_set_src_ip(pinfo, (char *)(uintptr_t)"start", &ip);
                      _atoip(argv[5], PG_IPADDR_V4, &ip, sizeof(ip));
@@ -287,6 +290,7 @@ range_cmd(int argc, char **argv)
                      range_set_src_ip(pinfo, (char *)(uintptr_t)"max", &ip);
                      _atoip(argv[7], PG_IPADDR_V4, &ip, sizeof(ip));
                      range_set_src_ip(pinfo, (char *)(uintptr_t)"inc", &ip));
+        // clang-format on
         break;
     case 34:
         /* Remove the /XX mask value is supplied */
@@ -305,6 +309,7 @@ range_cmd(int argc, char **argv)
         foreach_port(portlist, range_set_src_ip(pinfo, what, &ip));
         break;
     case 36:
+        // clang-format off
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
                      range_set_dst_ip(pinfo, (char *)(uintptr_t)"start", &ip);
                      _atoip(argv[5], PG_IPADDR_V6, &ip, sizeof(ip));
@@ -313,8 +318,10 @@ range_cmd(int argc, char **argv)
                      range_set_dst_ip(pinfo, (char *)(uintptr_t)"max", &ip);
                      _atoip(argv[7], PG_IPADDR_V6, &ip, sizeof(ip));
                      range_set_dst_ip(pinfo, (char *)(uintptr_t)"inc", &ip));
+        // clang-format on
         break;
     case 37:
+        // clang-format off
         foreach_port(portlist, _atoip(argv[4], PG_IPADDR_V6, &ip, sizeof(ip));
                      range_set_src_ip(pinfo, (char *)(uintptr_t)"start", &ip);
                      _atoip(argv[5], PG_IPADDR_V6, &ip, sizeof(ip));
@@ -323,6 +330,7 @@ range_cmd(int argc, char **argv)
                      range_set_src_ip(pinfo, (char *)(uintptr_t)"max", &ip);
                      _atoip(argv[7], PG_IPADDR_V6, &ip, sizeof(ip));
                      range_set_src_ip(pinfo, (char *)(uintptr_t)"inc", &ip));
+        // clang-format on
         break;
     case 40:
         foreach_port(portlist, range_set_proto(pinfo, argv[3]));
@@ -334,16 +342,20 @@ range_cmd(int argc, char **argv)
         foreach_port(portlist, range_set_tcp_flags(pinfo, argv[4]));
         break;
     case 44:
+        // clang-format off
         foreach_port(portlist, range_set_tcp_seq(pinfo, (char *)(uintptr_t)"start", atoi(argv[4]));
                      range_set_tcp_seq(pinfo, (char *)(uintptr_t)"min", atoi(argv[5]));
                      range_set_tcp_seq(pinfo, (char *)(uintptr_t)"max", atoi(argv[6]));
                      range_set_tcp_seq(pinfo, (char *)(uintptr_t)"inc", atoi(argv[7])));
+        // clang-format on
         break;
     case 45:
+        // clang-format off
         foreach_port(portlist, range_set_tcp_ack(pinfo, (char *)(uintptr_t)"start", atoi(argv[4]));
                      range_set_tcp_ack(pinfo, (char *)(uintptr_t)"min", atoi(argv[5]));
                      range_set_tcp_ack(pinfo, (char *)(uintptr_t)"max", atoi(argv[6]));
                      range_set_tcp_ack(pinfo, (char *)(uintptr_t)"inc", atoi(argv[7])));
+        // clang-format on
         break;
     case 46:
         foreach_port(portlist, range_set_tcp_seq(pinfo, what, atoi(val)));
@@ -358,34 +370,42 @@ range_cmd(int argc, char **argv)
         foreach_port(portlist, range_set_src_port(pinfo, what, atoi(val)));
         break;
     case 52:
+        // clang-format off
         foreach_port(portlist, range_set_dst_port(pinfo, (char *)(uintptr_t)"start", atoi(argv[4]));
                      range_set_dst_port(pinfo, (char *)(uintptr_t)"min", atoi(argv[5]));
                      range_set_dst_port(pinfo, (char *)(uintptr_t)"max", atoi(argv[6]));
                      range_set_dst_port(pinfo, (char *)(uintptr_t)"inc", atoi(argv[7])));
+        // clang-format on
         break;
     case 53:
+        // clang-format off
         foreach_port(portlist, range_set_src_port(pinfo, (char *)(uintptr_t)"start", atoi(argv[4]));
                      range_set_src_port(pinfo, (char *)(uintptr_t)"min", atoi(argv[5]));
                      range_set_src_port(pinfo, (char *)(uintptr_t)"max", atoi(argv[6]));
                      range_set_src_port(pinfo, (char *)(uintptr_t)"inc", atoi(argv[7])));
+        // clang-format on
         break;
     case 55:
         foreach_port(portlist, range_set_ttl(pinfo, argv[3], atoi(argv[4])));
         break;
     case 56:
+        // clang-format off
         foreach_port(portlist, range_set_ttl(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_ttl(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_ttl(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_ttl(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])));
+        // clang-format on
         break;
     case 60:
         foreach_port(portlist, range_set_vlan_id(pinfo, argv[3], atoi(what)));
         break;
     case 61:
+        // clang-format off
         foreach_port(portlist, range_set_vlan_id(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_vlan_id(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_vlan_id(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_vlan_id(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])));
+        // clang-format on
         break;
     case 70:
         foreach_port(portlist,
@@ -393,10 +413,12 @@ range_cmd(int argc, char **argv)
                                         strcmp("inc", argv[3]) ? atoi(argv[4]) : atoi(argv[3])));
         break;
     case 71:
+        // clang-format off
         foreach_port(portlist, range_set_pkt_size(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_pkt_size(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_pkt_size(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_pkt_size(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])););
+        // clang-format on
         break;
     case 80:
         foreach_port(portlist, range_set_mpls_entry(pinfo, strtoul(what, NULL, 16)));
@@ -415,50 +437,60 @@ range_cmd(int argc, char **argv)
                                                                 : atoi(what)));
         break;
     case 101:
+        // clang-format off
         foreach_port(
             portlist,
             range_set_gtpu_teid(pinfo, (char *)(uintptr_t)"start", valid_gtpu_teid(pinfo, argv[3]));
             range_set_gtpu_teid(pinfo, (char *)(uintptr_t)"min", valid_gtpu_teid(pinfo, argv[4]));
             range_set_gtpu_teid(pinfo, (char *)(uintptr_t)"max", valid_gtpu_teid(pinfo, argv[5]));
             range_set_gtpu_teid(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])););
+        // clang-format on
         break;
     case 160:
         foreach_port(portlist, range_set_cos_id(pinfo, argv[3], atoi(what)));
         break;
     case 161:
+        // clang-format off
         foreach_port(portlist, range_set_cos_id(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_cos_id(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_cos_id(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_cos_id(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])););
+        // clang-format on
         break;
     case 170:
         foreach_port(portlist, range_set_tos_id(pinfo, argv[3], atoi(what)));
         break;
     case 171:
+        // clang-format off
         foreach_port(portlist, range_set_tos_id(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_tos_id(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_tos_id(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_tos_id(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])));
+        // clang-format on
         break;
     case 172:
         foreach_port(portlist, range_set_hop_limits(pinfo, argv[3], atoi(what)));
         break;
     case 173:
+        // clang-format off
         foreach_port(portlist,
                      range_set_hop_limits(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_hop_limits(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_hop_limits(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_hop_limits(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])));
+        // clang-format on
         break;
     case 174:
         foreach_port(portlist, range_set_traffic_class(pinfo, argv[3], atoi(what)));
         break;
     case 175:
+        // clang-format off
         foreach_port(portlist,
                      range_set_traffic_class(pinfo, (char *)(uintptr_t)"start", atoi(argv[3]));
                      range_set_traffic_class(pinfo, (char *)(uintptr_t)"min", atoi(argv[4]));
                      range_set_traffic_class(pinfo, (char *)(uintptr_t)"max", atoi(argv[5]));
                      range_set_traffic_class(pinfo, (char *)(uintptr_t)"inc", atoi(argv[6])));
+        // clang-format on
         break;
 
     default:

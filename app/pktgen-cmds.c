@@ -2830,7 +2830,7 @@ tcp_flags_from_str(const char *str)
     for (int i = 0; i < num_fields; i++) {
         if (!strcmp(fields[i], "clr")) {
             flags = 0;
-            break;
+            continue;
         }
         for (tcp_flags_t *flag = flag_list; flag->name; flag++) {
             if (!strcmp(fields[i], flag->name)) {

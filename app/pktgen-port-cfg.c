@@ -131,7 +131,8 @@ initialize_port_info(uint16_t pid)
     pinfo->pid = pid;
     l2p_set_port_pinfo(pid, pinfo);
 
-    rte_eth_dev_info_get(pid, &pinfo->dev_info);
+    if (rte_eth_dev_info_get(pid, &pinfo->dev_info) < 0)
+        rte_exit(EXIT_FAILURE, "Cannot get device info for port %u", pid);
 
     /* Get a clean copy of the configuration structure */
     rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
@@ -230,7 +231,8 @@ initialize_port_info(uint16_t pid)
         struct rte_eth_rxconf rxq_conf;
         struct rte_eth_conf conf = {0};
 
-        rte_eth_dev_conf_get(pid, &conf);
+        if (rte_eth_dev_conf_get(pid, &conf) < 0)
+            pktgen_log_panic("rte_eth_dev_conf_get: err=%d, port=%d", ret, pid);
 
         rxq_conf          = pinfo->dev_info.default_rxconf;
         rxq_conf.offloads = conf.rxmode.offloads;
@@ -256,7 +258,7 @@ initialize_port_info(uint16_t pid)
         pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ", (pktgen.mem_used + 1023) / 1024);
 
     if (pktgen.verbose)
-        rte_eth_dev_info_dump(NULL, pid);
+        rte_eth_dev_info_dump(stderr, pid);
 
     /* If enabled, put device in promiscuous mode. */
     if (pktgen.flags & PROMISCUOUS_ON_FLAG) {

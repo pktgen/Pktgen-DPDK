@@ -3383,7 +3383,9 @@ port_info(lua_State *L, port_info_t *pinfo)
     setf_string(L, "src_mac", buff);
     lua_rawset(L, -3);
 
-    rte_eth_dev_info_get(pinfo->pid, &dev);
+    if (rte_eth_dev_info_get(pinfo->pid, &dev) < 0)
+        rte_exit(EXIT_FAILURE, "Cannot get device info for port %u\n", pinfo->pid);
+
     const struct rte_bus *bus = NULL;
     if (dev.device)
         bus = rte_bus_find_by_device(dev.device);

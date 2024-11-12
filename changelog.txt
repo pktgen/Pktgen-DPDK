@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 24.10.3 - fix DPDK compatibility issues with 24.11.0-rc2
  - 24.10.2 = fix tcp flags setting code.
  - 24.10.1 - fix compiler warnings on packed-not-aligned for ubuntu 24.10
  - 24.10.0 - fix a number of bugs for pcap crash, tcp flags, socket crash, random and startup.

@@ -411,7 +411,10 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     struct rte_eth_dev_info *di = &dev_info;
     char buf[512];
 
-    rte_eth_dev_info_get(pid, &dev_info);
+    if (rte_eth_dev_info_get(pid, &dev_info) < 0) {
+        fprintf(f, "Failed to get eth dev info for port %u\n", pid);
+        return;
+    }
 
     if (!f)
         f = stderr;

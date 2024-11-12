@@ -146,7 +146,10 @@ link_state(lua_State *L, uint16_t pid)
     char buff[32];
 
     lua_pushinteger(L, pid); /* Push the table index */
-    rte_eth_link_get_nowait(pid, &link);
+    if (rte_eth_link_get_nowait(pid, &link) < 0) {
+        fprintf(stderr, "Port %u: Failed to get link status\n", pid);
+        return;
+    }
 
     if (link.link_status)
         snprintf(buff, sizeof(buff), "<UP-%u-%s>", (uint32_t)link.link_speed,

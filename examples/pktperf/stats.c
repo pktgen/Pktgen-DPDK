@@ -41,7 +41,6 @@
 void
 print_stats(void)
 {
-    struct rte_eth_link link;
     struct rte_eth_stats rate;
     char link_status_text[RTE_ETH_LINK_MAX_STR_LEN];
     char twirl[]   = "|/-\\";
@@ -63,8 +62,6 @@ print_stats(void)
             continue;
         }
 
-        memset(&port->link, 0, sizeof(port->link));
-        rte_eth_link_get_nowait(port->pid, &port->link);
         packet_rate(port);
 
         rte_eth_stats_get(port->pid, &port->stats);
@@ -96,9 +93,12 @@ print_stats(void)
             memcpy(p, c, sizeof(qstats_t));
         }
 
-        memset(&link, 0, sizeof(link));
-        rte_eth_link_get_nowait(pid, &link);
-        rte_eth_link_to_str(link_status_text, sizeof(link_status_text), &link);
+        memset(&port->link, 0, sizeof(port->link));
+        if (rte_eth_link_get_nowait(port->pid, &port->link) < 0) {
+            printf("Port %u: Failed to get link status\n", pid);
+            continue;
+        }
+        rte_eth_link_to_str(link_status_text, sizeof(link_status_text), &port->link);
 
         printf("%2u >> %s, ", pid, link_status_text);
 

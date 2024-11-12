@@ -172,7 +172,8 @@ pktgen_print_static_data(void)
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1,
                     inet_mtoa(buff, sizeof(buff), &pkt->eth_src_addr));
 
-        rte_eth_dev_info_get(pid, &dev);
+        if (rte_eth_dev_info_get(pid, &dev) < 0)
+            rte_exit(EXIT_FAILURE, "Cannot get device info for port %u\n", pid);
 
         const struct rte_bus *bus = NULL;
         if (dev.device)

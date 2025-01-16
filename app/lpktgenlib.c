@@ -65,7 +65,7 @@ pktgen_get_portlist(lua_State *L, int index)
     portlist_t portlist;
 
     if (lua_isstring(L, index)) {
-        if (portlist_parse(luaL_checkstring(L, 1), pktgen.nb_ports, &portlist) < 0)
+        if (portlist_parse(luaL_checkstring(L, index), pktgen.nb_ports, &portlist) < 0)
             portlist = INVALID_PORTLIST;
     } else if (lua_isnumber(L, index))
         portlist = (uint64_t)lua_tonumber(L, index);

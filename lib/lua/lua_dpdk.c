@@ -35,10 +35,6 @@ int luaopen_dapi(lua_State *L);
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-#ifndef __rte_weak
-#define __rte_weak __attribute__((__weak__))
-#endif
-
 static int lua_logtype;
 
 static __inline__ void
@@ -409,7 +405,7 @@ luaopen_dpdk(lua_State *L)
     return 1;
 }
 
-__rte_weak int
+__attribute__((__weak__)) int
 luaopen_dapi(lua_State *L __rte_unused)
 {
     return 0;

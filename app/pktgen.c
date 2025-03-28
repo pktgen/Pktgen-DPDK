@@ -902,6 +902,8 @@ mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
 
     m->pkt_len  = pkt->pkt_size;
     m->data_len = pkt->pkt_size;
+    m->l2_len   = pkt->ether_hdr_size;
+    m->l3_len   = sizeof(struct rte_ipv4_hdr);
 
     switch (pkt->ethType) {
     case RTE_ETHER_TYPE_IPV4:

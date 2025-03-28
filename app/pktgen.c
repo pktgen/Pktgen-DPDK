@@ -514,21 +514,24 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
     else
         l3_hdr = pktgen_ether_hdr_ctor(pinfo, pkt);
 
+    uint64_t offload_capa = pinfo->dev_info.tx_offload_capa;
     if (likely(pkt->ethType == RTE_ETHER_TYPE_IPV4)) {
+        bool ipv4_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
         if (likely(pkt->ipProto == PG_IPPROTO_TCP)) {
+            bool tcp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
             if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
                 /* Construct the TCP header */
-                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, tcp_cksum_offload);
 
                 /* IPv4 Header constructor */
-                pktgen_ipv4_ctor(pkt, l3_hdr);
+                pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
             } else {
                 /* Construct the GTP-U header */
                 pktgen_gtpu_hdr_ctor(pkt, l3_hdr, pkt->ipProto, GTPu_VERSION | GTPu_PT_FLAG, 0, 0,
                                      0);
 
                 /* Construct the TCP header */
-                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, tcp_cksum_offload);
                 if (sport_entropy != 0) {
                     struct rte_ipv4_hdr *ipv4 = (struct rte_ipv4_hdr *)l3_hdr;
                     struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv4[1];
@@ -537,29 +540,30 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
                 }
 
                 /* IPv4 Header constructor */
-                pktgen_ipv4_ctor(pkt, l3_hdr);
+                pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
             }
         } else if (pkt->ipProto == PG_IPPROTO_UDP) {
+            bool udp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
             if (pktgen_tst_port_flags(pinfo, SEND_VXLAN_PACKETS)) {
                 /* Construct the UDP header */
                 pkt->dport = VXLAN_PORT_ID;
-                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload);
 
                 /* IPv4 Header constructor */
-                pktgen_ipv4_ctor(pkt, l3_hdr);
+                pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
             } else if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
                 /* Construct the UDP header */
-                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload);
 
                 /* IPv4 Header constructor */
-                pktgen_ipv4_ctor(pkt, l3_hdr);
+                pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
             } else {
                 /* Construct the GTP-U header */
                 pktgen_gtpu_hdr_ctor(pkt, l3_hdr, pkt->ipProto, GTPu_VERSION | GTPu_PT_FLAG, 0, 0,
                                      0);
 
                 /* Construct the UDP header */
-                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4);
+                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload);
                 if (sport_entropy != 0) {
                     struct rte_ipv4_hdr *ipv4 = (struct rte_ipv4_hdr *)l3_hdr;
                     struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv4[1];
@@ -568,7 +572,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
                 }
 
                 /* IPv4 Header constructor */
-                pktgen_ipv4_ctor(pkt, l3_hdr);
+                pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
             }
         } else if (pkt->ipProto == PG_IPPROTO_ICMP) {
             struct rte_ipv4_hdr *ipv4;
@@ -615,12 +619,13 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
                 icmp->icmp_cksum = 0xFFFF;
 
             /* IPv4 Header constructor */
-            pktgen_ipv4_ctor(pkt, l3_hdr);
+            pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
         }
     } else if (pkt->ethType == RTE_ETHER_TYPE_IPV6) {
         if (pkt->ipProto == PG_IPPROTO_TCP) {
+            bool tcp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
             /* Construct the TCP header */
-            pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6);
+            pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6, tcp_cksum_offload);
             if (sport_entropy != 0) {
                 struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)l3_hdr;
                 struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv6[1];
@@ -631,8 +636,9 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
             /* IPv6 Header constructor */
             pktgen_ipv6_ctor(pkt, l3_hdr);
         } else if (pkt->ipProto == PG_IPPROTO_UDP) {
+            bool udp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
             /* Construct the UDP header */
-            pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6);
+            pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6, udp_cksum_offload);
             if (sport_entropy != 0) {
                 struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)l3_hdr;
                 struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv6[1];

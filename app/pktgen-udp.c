@@ -25,7 +25,7 @@
  */
 
 void *
-pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
+pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type, bool cksum_offload)
 {
     uint16_t tlen;
 
@@ -56,9 +56,11 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         }
 
         udp->dgram_cksum = 0;
-        udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)udp);
-        if (udp->dgram_cksum == 0)
-            udp->dgram_cksum = 0xFFFF;
+        if (cksum_offload) {
+            udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)udp);
+            if (udp->dgram_cksum == 0)
+                udp->dgram_cksum = 0xFFFF;
+        }
     } else {
         struct rte_ipv6_hdr *ipv6 = hdr;
         struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv6[1];
@@ -78,9 +80,11 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         udp->dst_port  = htons(pkt->dport);
 
         udp->dgram_cksum = 0;
-        udp->dgram_cksum = rte_ipv6_udptcp_cksum(ipv6, (const void *)udp);
-        if (udp->dgram_cksum == 0)
-            udp->dgram_cksum = 0xFFFF;
+        if (!cksum_offload) {
+            udp->dgram_cksum = rte_ipv6_udptcp_cksum(ipv6, (const void *)udp);
+            if (udp->dgram_cksum == 0)
+                udp->dgram_cksum = 0xFFFF;
+        }
     }
 
     /* Return the original pointer for IP ctor */

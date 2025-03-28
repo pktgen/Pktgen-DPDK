@@ -30,7 +30,7 @@
  */
 
 void
-pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
+pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr, bool cksum_offload)
 {
     struct rte_ipv4_hdr *ip = hdr;
     uint16_t tlen;
@@ -54,7 +54,8 @@ pktgen_ipv4_ctor(pkt_seq_t *pkt, void *hdr)
     ip->src_addr        = htonl(pkt->ip_src_addr.addr.ipv4.s_addr);
     ip->dst_addr        = htonl(pkt->ip_dst_addr.addr.ipv4.s_addr);
     ip->hdr_checksum    = 0;
-    ip->hdr_checksum    = rte_ipv4_cksum((const struct rte_ipv4_hdr *)ip);
+    if (!cksum_offload)
+        ip->hdr_checksum = rte_ipv4_cksum((const struct rte_ipv4_hdr *)ip);
 }
 
 /**

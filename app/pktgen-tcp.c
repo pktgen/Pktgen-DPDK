@@ -25,7 +25,7 @@
  */
 
 void *
-pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
+pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type, bool cksum_offload)
 {
     uint16_t tlen;
 
@@ -53,7 +53,9 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         tcp->tcp_urp   = 0;
 
         tcp->cksum = 0;
-        tcp->cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)tcp);
+        if (!cksum_offload)
+            tcp->cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)tcp);
+
     } else {
         struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)hdr;
         struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv6[1];
@@ -79,7 +81,8 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type)
         tcp->tcp_urp   = 0;
 
         tcp->cksum = 0;
-        tcp->cksum = rte_ipv6_udptcp_cksum(ipv6, (const void *)tcp);
+        if (!cksum_offload)
+            tcp->cksum = rte_ipv6_udptcp_cksum(ipv6, (const void *)tcp);
     }
 
     /* In this case we return the original value to allow IP ctor to work */

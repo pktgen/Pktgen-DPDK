@@ -18,14 +18,14 @@ The main system requirement is that the DPDK packet processing framework is
 supported.
 
 The `DPDK Linux Getting Started Guide
-<http://www.dpdk.org/doc/guides/linux_gsg/index.html>`_ has a section on the
+<https://doc.dpdk.org/guides/linux_gsg/index.html>`_ has a section on the
 `System Requirements
-<http://www.dpdk.org/doc/guides/linux_gsg/sys_reqs.html>`_ that explains the
+<https://doc.dpdk.org/guides/linux_gsg/sys_reqs.html>`_ that explains the
 BIOS, System and Toolchain requirements to compile and run a DPDK based
 application such as ``pktgen``. Ensure that your system meets those requirements
 before proceeding.
 
-You will also need a `DPDK supported NIC <http://www.dpdk.org/doc/nics>`_.
+You will also need a `DPDK supported NIC <https://core.dpdk.org/supported/nics/>`_.
 
 The current version of ``pktgen`` was developed and tested using Ubuntu 13.10
 x86_64, kernel version 3.5.0-25, on a Westmere Dual socket board running at
@@ -40,7 +40,7 @@ the ``HUGETLBFS`` kernel option must be enabled.
 
 The DPDK Linux Getting Started Guide has a section on the `Use of Hugepages in
 the Linux Environment
-<http://www.dpdk.org/doc/guides/linux_gsg/sys_reqs.html#use-of-hugepages-in-the-linux-environment>`_.
+<https://doc.dpdk.org/guides/linux_gsg/sys_reqs.html#use-of-hugepages-in-the-linux-environment>`_.
 
 Once you have made the required changed make sure you have HUGE TLB support in the kernel with the following commands::
 
@@ -98,7 +98,7 @@ BIOS settings
 In the BIOS make sure that the HPET High Precision Event Timer is
 enabled. Also make sure hyper-threading is enabled. See the DPDK documentation
 on `enabling additional BIOS functionality
-<http://www.dpdk.org/doc/guides/linux_gsg/enable_func.html#enabling-additional-functionality>`_
+<https://doc.dpdk.org/guides/linux_gsg/enable_func.html#enabling-additional-functionality>`_
 for more details.
 
 

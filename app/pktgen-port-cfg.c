@@ -39,33 +39,29 @@ enum {
     TX_WTHRESH_1GB = 16, /**< Default value for 1GB ports */
 };
 
+// clang-format off
 static struct rte_eth_conf default_port_conf = {
-    .rxmode =
-        {
-            .mq_mode          = RTE_ETH_MQ_RX_RSS,
-            .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
-            .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
-            .mtu              = RTE_ETHER_MAX_JUMBO_FRAME_LEN
-          },
-
-    .rx_adv_conf =
-        {
-            .rss_conf =
-                {
-                    .rss_key = NULL,
-                    .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
-                },
+    .rxmode = {
+        .mq_mode          = RTE_ETH_MQ_RX_RSS,
+        .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
+        .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
+        .mtu              = RTE_ETHER_MAX_JUMBO_FRAME_LEN
+    },
+    .txmode = {
+        .mq_mode = RTE_ETH_MQ_TX_NONE,
+    },
+    .rx_adv_conf = {
+        .rss_conf = {
+            .rss_key = NULL,
+            .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
+                      RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
         },
-    .txmode =
-        {
-            .mq_mode = RTE_ETH_MQ_TX_NONE,
-        },
-    .intr_conf =
-        {
-            .lsc = 0,
-        },
+    },
+    .intr_conf = {
+        .lsc = 0,
+    },
 };
+// clang-format on
 
 static void
 dump_device_info(void)
@@ -146,13 +142,11 @@ initialize_port_info(uint16_t pid)
         if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
     }
-
     
     if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
         pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
         conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
     }
-  
 
     if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM) {
         pktgen_log_info("   Enabling Tx UDP_CKSUM offload\r\n");
@@ -163,8 +157,6 @@ initialize_port_info(uint16_t pid)
         pktgen_log_info("   Enabling Tx IPV4_CKSUM offload\r\n");
         conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
     }
-
-
 
     conf.rx_adv_conf.rss_conf.rss_key = NULL;
     conf.rx_adv_conf.rss_conf.rss_hf &= pinfo->dev_info.flow_type_rss_offloads;

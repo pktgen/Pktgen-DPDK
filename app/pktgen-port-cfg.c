@@ -45,7 +45,8 @@ static struct rte_eth_conf default_port_conf = {
             .mq_mode          = RTE_ETH_MQ_RX_RSS,
             .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
             .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
-        },
+            .mtu              = RTE_ETHER_MAX_JUMBO_FRAME_LEN
+          },
 
     .rx_adv_conf =
         {
@@ -137,11 +138,33 @@ initialize_port_info(uint16_t pid)
     /* Get a clean copy of the configuration structure */
     rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
 
+    conf.rxmode.mtu = pinfo->dev_info.max_mtu;
+    pktgen_log_info("   Max MTU: %d", pinfo->dev_info.max_mtu);
+
     if (pktgen.flags & JUMBO_PKTS_FLAG) {
         conf.rxmode.max_lro_pkt_size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
         if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
     }
+
+    
+    if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
+        pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
+        conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
+    }
+  
+
+    if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM) {
+        pktgen_log_info("   Enabling Tx UDP_CKSUM offload\r\n");
+        conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
+    }
+
+    if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM) {
+        pktgen_log_info("   Enabling Tx IPV4_CKSUM offload\r\n");
+        conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
+    }
+
+
 
     conf.rx_adv_conf.rss_conf.rss_key = NULL;
     conf.rx_adv_conf.rss_conf.rss_hf &= pinfo->dev_info.flow_type_rss_offloads;
@@ -237,6 +260,8 @@ initialize_port_info(uint16_t pid)
         rxq_conf          = pinfo->dev_info.default_rxconf;
         rxq_conf.offloads = conf.rxmode.offloads;
 
+        pktgen_log_info("   RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
+
         ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp);
         if (ret < 0)
             pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
@@ -247,7 +272,9 @@ initialize_port_info(uint16_t pid)
         struct rte_eth_txconf *txconf;
 
         txconf           = &pinfo->dev_info.default_txconf;
-        txconf->offloads = default_port_conf.txmode.offloads;
+        txconf->offloads = conf.txmode.offloads;
+
+        pktgen_log_info("   TX queue %d enabled offloads: 0x%0lx", q, txconf->offloads);
 
         ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);
         if (ret < 0)

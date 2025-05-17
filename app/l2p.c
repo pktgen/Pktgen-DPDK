@@ -69,7 +69,7 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
     sid = pg_eth_dev_socket_id(port->pid);
 
     snprintf(name, sizeof(name), "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
-   
+
     const int bufSize = PG_JUMBO_FRAME_LEN;
 
     sz = nb_mbufs * bufSize;

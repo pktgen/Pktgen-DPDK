@@ -79,8 +79,7 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
     pktgen.total_mem_used += sz;
 
     /* create the mbuf pool */
-    mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE,
-                                 bufSize, sid);
+    mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE, bufSize, sid);
     if (mp == NULL)
         rte_exit(EXIT_FAILURE,
                  "Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, NUMA %d: %s\n", name,

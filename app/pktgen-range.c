@@ -760,6 +760,9 @@ pktgen_range_setup(port_info_t *pinfo)
     range->pkt_size_inc = 0;
     range->pkt_size_min = (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
     range->pkt_size_max = (RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN);
+    range->pkt_size_max = (pktgen.flags & JUMBO_PKTS_FLAG) ? RTE_ETHER_MAX_JUMBO_FRAME_LEN
+                                                           : RTE_ETHER_MAX_LEN;
+    range->pkt_size_max -= RTE_ETHER_CRC_LEN;
 
     range->vxlan_gid     = pinfo->seq_pkt[SINGLE_PKT].group_id;
     range->vxlan_gid_inc = 0;

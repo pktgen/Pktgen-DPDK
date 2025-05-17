@@ -356,31 +356,30 @@ pktgen_page_stats(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, prev->ierrors, prev->oerrors);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        for (int qid = 0; qid < RTE_ETHDEV_QUEUE_STAT_CNTRS; qid++) {
-            sizes.broadcast += pinfo->pkt_sizes.broadcast;
-            sizes.multicast += pinfo->pkt_sizes.multicast;
-            sizes._64 += pinfo->pkt_sizes._64;
-            sizes._65_127 += pinfo->pkt_sizes._65_127;
-            sizes._128_255 += pinfo->pkt_sizes._128_255;
-            sizes._256_511 += pinfo->pkt_sizes._256_511;
-            sizes._512_1023 += pinfo->pkt_sizes._512_1023;
-            sizes._1024_1518 += pinfo->pkt_sizes._1024_1518;
-            sizes.runt += pinfo->pkt_sizes.runt;
-            sizes.jumbo += pinfo->pkt_sizes.jumbo;
+        // Not really needed but makes the code easier to read
+        sizes.broadcast  = pinfo->pkt_sizes.broadcast;
+        sizes.multicast  = pinfo->pkt_sizes.multicast;
+        sizes._64        = pinfo->pkt_sizes._64;
+        sizes._65_127    = pinfo->pkt_sizes._65_127;
+        sizes._128_255   = pinfo->pkt_sizes._128_255;
+        sizes._256_511   = pinfo->pkt_sizes._256_511;
+        sizes._512_1023  = pinfo->pkt_sizes._512_1023;
+        sizes._1024_1518 = pinfo->pkt_sizes._1024_1518;
+        sizes.runt       = pinfo->pkt_sizes.runt;
+        sizes.jumbo      = pinfo->pkt_sizes.jumbo;
 
-            stats.arp_pkts += pinfo->pkt_stats.arp_pkts;
-            stats.dropped_pkts += pinfo->pkt_stats.dropped_pkts;
-            stats.echo_pkts += pinfo->pkt_stats.echo_pkts;
-            stats.ibadcrc += pinfo->pkt_stats.ibadcrc;
-            stats.ibadlen += pinfo->pkt_stats.ibadlen;
-            stats.imissed += pinfo->pkt_stats.imissed;
-            stats.ip_pkts += pinfo->pkt_stats.ip_pkts;
-            stats.ipv6_pkts += pinfo->pkt_stats.ipv6_pkts;
-            stats.rx_nombuf += pinfo->pkt_stats.rx_nombuf;
-            stats.tx_failed += pinfo->pkt_stats.tx_failed;
-            stats.unknown_pkts += pinfo->pkt_stats.unknown_pkts;
-            stats.vlan_pkts += pinfo->pkt_stats.vlan_pkts;
-        }
+        stats.arp_pkts     = pinfo->pkt_stats.arp_pkts;
+        stats.dropped_pkts = pinfo->pkt_stats.dropped_pkts;
+        stats.echo_pkts    = pinfo->pkt_stats.echo_pkts;
+        stats.ibadcrc      = pinfo->pkt_stats.ibadcrc;
+        stats.ibadlen      = pinfo->pkt_stats.ibadlen;
+        stats.imissed      = pinfo->pkt_stats.imissed;
+        stats.ip_pkts      = pinfo->pkt_stats.ip_pkts;
+        stats.ipv6_pkts    = pinfo->pkt_stats.ipv6_pkts;
+        stats.rx_nombuf    = pinfo->pkt_stats.rx_nombuf;
+        stats.tx_failed    = pinfo->pkt_stats.tx_failed;
+        stats.unknown_pkts = pinfo->pkt_stats.unknown_pkts;
+        stats.vlan_pkts    = pinfo->pkt_stats.vlan_pkts;
 
         /* Packets Sizes */
         row = PKT_SIZE_ROW;

@@ -356,7 +356,7 @@ pktgen_page_stats(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, prev->ierrors, prev->oerrors);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        for (int qid = 0; qid < RTE_ETHDEV_QUEUE_STAT_CNTRS; qid++) {
+        for (int qid = 0; qid < 1; qid++) {
             sizes.broadcast += pinfo->pkt_sizes.broadcast;
             sizes.multicast += pinfo->pkt_sizes.multicast;
             sizes._64 += pinfo->pkt_sizes._64;

@@ -2709,7 +2709,7 @@ single_set_pkt_size(port_info_t *pinfo, uint16_t size)
 
     if ((pktgen.flags & JUMBO_PKTS_FLAG) && size > RTE_ETHER_MAX_JUMBO_FRAME_LEN)
         size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
-    else if (size > RTE_ETHER_MAX_LEN)
+    else if (!(pktgen.flags & JUMBO_PKTS_FLAG) && size > RTE_ETHER_MAX_LEN)
         size = RTE_ETHER_MAX_LEN;
 
     if ((pkt->ethType == RTE_ETHER_TYPE_IPV6) && (size < MIN_v6_PKT_SIZE))

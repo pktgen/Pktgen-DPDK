@@ -142,7 +142,7 @@ initialize_port_info(uint16_t pid)
         if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
     }
-    
+
     if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
         pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
         conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;

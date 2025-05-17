@@ -70,7 +70,7 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
 
     snprintf(name, sizeof(name), "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
    
-    const int bufSize =  PG_JUMBO_FRAME_LEN;
+    const int bufSize = PG_JUMBO_FRAME_LEN;
 
     sz = nb_mbufs * bufSize;
     sz = RTE_ALIGN_CEIL(sz + sizeof(struct rte_mempool), 1024);

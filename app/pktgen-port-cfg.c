@@ -283,7 +283,7 @@ initialize_port_info(uint16_t pid)
     if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
         pktgen_log_info("   Enabling promiscuous mode");
         if (rte_eth_promiscuous_enable(pid))
-            pktgen_log_panic("Enabling promiscuous failed: %s", rte_strerror(-rte_errno));
+            pktgen_log_info("Enabling promiscuous failed: %s", rte_strerror(-rte_errno));
     }
 
     pktgen_log_info("   Setup port defaults");

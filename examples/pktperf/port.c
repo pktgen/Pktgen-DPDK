@@ -154,8 +154,10 @@ port_setup(l2p_port_t *port)
         if (info->promiscuous_on) {
             ret = rte_eth_promiscuous_enable(pid);
             if (ret != 0)
-                ERR_RET("rte_eth_promiscuous_enable:err=%s, port=%u\n", rte_strerror(-ret), pid);
-            DBG_PRINT("Port %u promiscuous mode enabled\n", pid);
+                DBG_PRINT("INFO: rte_eth_promiscuous_enable:err=%s, port=%u\n", rte_strerror(-ret),
+                          pid);
+            else
+                DBG_PRINT("Port %u promiscuous mode enabled\n", pid);
         }
         DBG_PRINT("Port %u promiscuous mode is '%s'\n", pid, info->promiscuous_on ? "on" : "off");
 

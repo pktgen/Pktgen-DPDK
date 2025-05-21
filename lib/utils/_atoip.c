@@ -174,17 +174,15 @@ inet_ipton6(const char *src, unsigned char *dst)
         if (dbloct_count == 8)
             return 0;
 
-        /*
-         * Since some memmove()'s erroneously fail to handle
-         * overlapping regions, we'll do the shift by hand.
-         */
+        /* Use memmove()'s to handle overlapping regions. */
         const int n = tp - colonp;
-        int i;
 
-        for (i = 1; i <= n; i++) {
-            endp[-i]      = colonp[n - i];
-            colonp[n - i] = 0;
-        }
+        // Move n bytes from colonp to the end of tmp
+        memmove(endp - n, colonp, n);
+
+        // Clear original memory
+        memset(colonp, 0, n);
+
         tp = endp;
     }
     if (tp != endp)

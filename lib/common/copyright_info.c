@@ -43,7 +43,8 @@ void
 print_copyright(const char *appname, const char *created_by)
 {
     printf("\n*** %s\n", COPYRIGHT_MSG);
-    printf("*** %s created by: %s -- >>> %s <<<\n\n", appname, created_by, POWERED_BY_DPDK);
+    printf("*** %s created by: %s >>> %s %s <<<\n\n", appname, created_by, POWERED_BY_DPDK,
+           rte_version());
 }
 
 /**

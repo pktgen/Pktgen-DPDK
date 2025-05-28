@@ -383,7 +383,7 @@ main(int argc, char **argv)
     scrn_setw(1);     /* Reset the window size, from possible crash run. */
     scrn_pos(100, 1); /* Move the cursor to the bottom of the screen again */
 
-    print_copyright(PKTGEN_VER_PREFIX, PKTGEN_VER_CREATED_BY);
+    print_copyright(PKTGEN_VERSION, PKTGEN_VER_CREATED_BY);
     fflush(stdout);
 
     /* call before the rte_eal_init() */

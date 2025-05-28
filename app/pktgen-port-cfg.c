@@ -45,7 +45,7 @@ static struct rte_eth_conf default_port_conf = {
         .mq_mode          = RTE_ETH_MQ_RX_RSS,
         .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
         .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
-        .mtu              = RTE_ETHER_MAX_JUMBO_FRAME_LEN
+        .mtu              = RTE_ETHER_MTU
     },
     .txmode = {
         .mq_mode = RTE_ETH_MQ_TX_NONE,
@@ -107,12 +107,28 @@ dump_device_info(void)
     printf("\n");
 }
 
+static uint32_t
+eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
+{
+    uint32_t overhead_len;
+
+    if (max_mtu != UINT16_MAX && max_rx_pktlen > max_mtu)
+        overhead_len = max_rx_pktlen - max_mtu;
+    else
+        overhead_len = RTE_ETHER_HDR_LEN + RTE_ETHER_CRC_LEN;
+
+    return overhead_len;
+}
+
+#define MAX_JUMBO_PKT_LEN 9600
 static port_info_t *
 initialize_port_info(uint16_t pid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
     int32_t sid = pg_eth_dev_socket_id(pid), ret = 0;
     struct rte_eth_conf conf;
+    uint32_t eth_overhead_len;
+    uint32_t max_mtu;
 
     /* If port info is already set ignore */
     if (pinfo) {
@@ -134,11 +150,18 @@ initialize_port_info(uint16_t pid)
     /* Get a clean copy of the configuration structure */
     rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
 
-    conf.rxmode.mtu = pinfo->dev_info.max_mtu;
-    pktgen_log_info("   Max MTU: %d", pinfo->dev_info.max_mtu);
-
     if (pktgen.flags & JUMBO_PKTS_FLAG) {
         conf.rxmode.max_lro_pkt_size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
+        eth_overhead_len =
+            eth_dev_get_overhead_len(pinfo->dev_info.max_rx_pktlen, pinfo->dev_info.max_mtu);
+        max_mtu = pinfo->dev_info.max_mtu - eth_overhead_len;
+        /* device may have higher theoretical MTU e.g. for infiniband */
+        if (max_mtu > MAX_JUMBO_PKT_LEN)
+            max_mtu = MAX_JUMBO_PKT_LEN;
+        pktgen_log_info("   Max MTU: %d", max_mtu);
+        conf.rxmode.mtu = max_mtu;
+        if (pinfo->dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
+            conf.rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
         if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
     }

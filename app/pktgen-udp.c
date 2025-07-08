@@ -61,9 +61,8 @@ pktgen_udp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type, bool cksum_offload,
             udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)udp);
             if (udp->dgram_cksum == 0)
                 udp->dgram_cksum = 0xFFFF;
-        } else if (cksum_offload && cksum_requires_phdr) {
+        } else if (cksum_offload && cksum_requires_phdr)
             udp->dgram_cksum = rte_ipv4_phdr_cksum(ipv4, 0);
-        }
 
     } else {
         struct rte_ipv6_hdr *ipv6 = hdr;

@@ -28,7 +28,7 @@ extern "C" {
  * SEE ALSO:
  */
 
-void *pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type, bool cksum_offload);
+void *pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type, bool cksum_offload, bool cksum_requires_phdr);
 
 #ifdef __cplusplus
 }

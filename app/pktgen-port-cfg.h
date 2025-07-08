@@ -160,6 +160,11 @@ typedef struct port_info_s {
     char user_pattern[USER_PATTERN_SIZE]; /**< User set pattern values */
     fill_t fill_pattern_type;             /**< Type of pattern to fill with */
 
+    /** Whether the pseudo-header is required when calculating the checksum.
+     *  Depends on the original NIC driver (e.g., ixgbe NICs expect the pseudo-header)
+     *  See Table 1.133: https://doc.dpdk.org/guides/nics/overview.html */
+    bool cksum_requires_phdr;
+
     union {
         uint64_t vxlan; /**< VxLAN 64 bit word */
         struct {

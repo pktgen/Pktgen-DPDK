@@ -39,6 +39,15 @@ enum {
     TX_WTHRESH_1GB = 16, /**< Default value for 1GB ports */
 };
 
+/**
+ * An array of drivers that require a pseudo-header calculation before the checksum calculation.
+ * The names used are the ones used by DPDK.
+ */
+static const char *DRIVERS_REQUIRING_PHDR[] = {
+    "net_ixgbe",
+    // TODO: Add the others
+};
+
 // clang-format off
 static struct rte_eth_conf default_port_conf = {
     .rxmode = {
@@ -107,6 +116,24 @@ dump_device_info(void)
     printf("\n");
 }
 
+/**
+* Determines whether the pseudo-header is required when calculating the checksum.
+* Depends on the original NIC driver (e.g., ixgbe NICs expect the pseudo-header)
+* See Table 1.133: https://doc.dpdk.org/guides/nics/overview.html
+*/
+bool
+is_cksum_phdr_required(const char *driver_name)
+{
+   size_t num_drivers = sizeof(DRIVERS_REQUIRING_PHDR) / sizeof(DRIVERS_REQUIRING_PHDR[0]);
+
+   for (size_t i = 0; i < num_drivers; i++) {
+       if (strcmp(driver_name, DRIVERS_REQUIRING_PHDR[i]) == 0)
+           return true;
+   }
+
+   return false;
+}
+
 static uint32_t
 eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
 {
@@ -119,6 +146,7 @@ eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
 
     return overhead_len;
 }
+
 
 #define MAX_JUMBO_PKT_LEN 9600
 static port_info_t *
@@ -198,6 +226,9 @@ initialize_port_info(uint16_t pid)
     }
 
     conf.rxmode.offloads &= pinfo->dev_info.rx_offload_capa;
+
+    /* Determines if pseudo-header is needed, based on the driver type */
+    pinfo->cksum_requires_phdr = is_cksum_phdr_required(pinfo->dev_info.driver_name);
 
     pktgen_log_info("   Allocate packet sequence array");
 

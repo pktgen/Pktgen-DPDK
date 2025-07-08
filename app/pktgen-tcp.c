@@ -54,11 +54,10 @@ pktgen_tcp_hdr_ctor(pkt_seq_t *pkt, void *hdr, int type, bool cksum_offload,
         tcp->tcp_urp   = 0;
 
         tcp->cksum = 0;
-        if (!cksum_offload) {
+        if (!cksum_offload)
             tcp->cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)tcp);
-        } else if (cksum_offload && cksum_requires_phdr) {
+        else if (cksum_offload && cksum_requires_phdr)
             tcp->cksum = rte_ipv4_phdr_cksum(ipv4, 0);
-        }
 
     } else {
         struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)hdr;

@@ -521,7 +521,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
             bool tcp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
             if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
                 /* Construct the TCP header */
-                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, tcp_cksum_offload);
+                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, tcp_cksum_offload, pinfo->cksum_requires_phdr);
 
                 /* IPv4 Header constructor */
                 pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
@@ -531,7 +531,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
                                      0);
 
                 /* Construct the TCP header */
-                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, tcp_cksum_offload);
+                pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, tcp_cksum_offload, pinfo->cksum_requires_phdr);
                 if (sport_entropy != 0) {
                     struct rte_ipv4_hdr *ipv4 = (struct rte_ipv4_hdr *)l3_hdr;
                     struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv4[1];
@@ -547,13 +547,15 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
             if (pktgen_tst_port_flags(pinfo, SEND_VXLAN_PACKETS)) {
                 /* Construct the UDP header */
                 pkt->dport = VXLAN_PORT_ID;
-                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload);
+                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload,
+                                    pinfo->cksum_requires_phdr);
 
                 /* IPv4 Header constructor */
                 pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
             } else if (pkt->dport != PG_IPPROTO_L4_GTPU_PORT) {
                 /* Construct the UDP header */
-                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload);
+                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload,
+                                    pinfo->cksum_requires_phdr);
 
                 /* IPv4 Header constructor */
                 pktgen_ipv4_ctor(pkt, l3_hdr, ipv4_cksum_offload);
@@ -563,7 +565,8 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
                                      0);
 
                 /* Construct the UDP header */
-                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload);
+                pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV4, udp_cksum_offload,
+                                    pinfo->cksum_requires_phdr);
                 if (sport_entropy != 0) {
                     struct rte_ipv4_hdr *ipv4 = (struct rte_ipv4_hdr *)l3_hdr;
                     struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv4[1];
@@ -625,7 +628,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
         if (pkt->ipProto == PG_IPPROTO_TCP) {
             bool tcp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
             /* Construct the TCP header */
-            pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6, tcp_cksum_offload);
+            pktgen_tcp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6, tcp_cksum_offload, pinfo->cksum_requires_phdr);
             if (sport_entropy != 0) {
                 struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)l3_hdr;
                 struct rte_tcp_hdr *tcp   = (struct rte_tcp_hdr *)&ipv6[1];
@@ -638,7 +641,8 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
         } else if (pkt->ipProto == PG_IPPROTO_UDP) {
             bool udp_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
             /* Construct the UDP header */
-            pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6, udp_cksum_offload);
+            pktgen_udp_hdr_ctor(pkt, l3_hdr, RTE_ETHER_TYPE_IPV6, udp_cksum_offload,
+                                pinfo->cksum_requires_phdr);
             if (sport_entropy != 0) {
                 struct rte_ipv6_hdr *ipv6 = (struct rte_ipv6_hdr *)l3_hdr;
                 struct rte_udp_hdr *udp   = (struct rte_udp_hdr *)&ipv6[1];

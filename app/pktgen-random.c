@@ -19,7 +19,6 @@
 #include "pktgen-display.h"
 #include "pktgen-log.h"
 
-
 /* Allow PRNG function to be changed at runtime for testing*/
 #ifdef TESTING
 static rnd_func_t _rnd_func = NULL;

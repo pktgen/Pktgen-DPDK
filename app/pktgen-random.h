@@ -14,6 +14,8 @@
 
 #include "pktgen-seq.h"
 
+#include "xorshift64star.h" /* PRNG function */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,6 +56,24 @@ void pktgen_rnd_bits_apply(struct port_info_s *info, struct rte_mbuf **pkt, size
 
 /* Display page with random bitfield settings */
 void pktgen_page_random_bitfields(uint32_t print_labels, uint16_t pid, struct rnd_bits_s *rnd_bits);
+
+/**
+ *
+ * pktgen_default_rnd_func - Default function used to generate random values
+ *
+ * DESCRIPTION
+ * Default function to use for generating random values. This function is used
+ * when no external random function is set using pktgen_set_rnd_func();
+ *
+ * RETURNS: 32-bit random value.
+ *
+ * SEE ALSO:
+ */
+static __inline__ uint32_t
+pktgen_default_rnd_func(void)
+{
+    return (uint32_t)xorshift64star();
+}
 
 #ifdef TESTING
 /* Change PRNG function at runtime */

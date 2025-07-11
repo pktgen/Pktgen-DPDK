@@ -145,7 +145,7 @@ pktgen_print_static_data(void)
                                                          : "Other",
                  (pkt->ipProto == PG_IPPROTO_TCP)                               ? "TCP"
                  : (pkt->ipProto == PG_IPPROTO_ICMP)                            ? "ICMP"
-                 : (rte_atomic32_read(&pinfo->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
+                 : (rte_atomic64_read(&pinfo->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
                                                                                 : "UDP",
                  pkt->vlanid, pkt->tcp_flags);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);

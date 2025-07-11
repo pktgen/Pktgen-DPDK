@@ -66,14 +66,17 @@ static const char *title_help[] = {
 
 static const char *status_help[] = {
     "",
-    "       Flags: P----------------- - Promiscuous mode enabled",
-    "               E                 - ICMP Echo enabled",
-    "                B                - Bonding enabled LACP 802.3ad",
-    "                 I               - Process packets on input enabled",
-    "                  *              - Using TAP interface for this port can be [-rt*]",
-    "                   C             - Capture received packets",
-    "                    ------       - Modes Single, pcap, sequence, latency, random, Rate",
-    "                          ------ - Modes VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH",
+    "       Flags: P------------------------ - Promiscuous mode enabled",
+    "               E                        - ICMP Echo enabled",
+    "                B                       - Bonding enabled LACP 802.3ad",
+    "                 I                      - Process packets on input enabled",
+    "                  L                     - Sends latency packets",
+    "                   i                    - Randomizing the source IP address",
+    "                    R                   - Perform bit randomization (`rnd` page)",
+    "                     C                  - Capture received packets",
+    "                      <.......>          - Modes: Single, pcap, sequence, latency, "
+    "Rate",
+    "                               <......> - Modes: VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH",
     "Notes: <state>       - Use enable|disable or on|off to set the state.",
     "       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word "
     "'all'",
@@ -1001,24 +1004,25 @@ theme_cmd(int argc, char **argv)
     return 0;
 }
 
-#define ed_type         \
-    "process|" /*  0 */ \
-    "mpls|"    /*  1 */ \
-    "qinq|"    /*  2 */ \
-    "gre|"     /*  3 */ \
-    "gre_eth|" /*  4 */ \
-    "vlan|"    /*  5 */ \
-    "random|"  /*  6 */ \
-    "latency|" /*  7 */ \
-    "pcap|"    /*  8 */ \
-    "blink|"   /*  9 */ \
-    "icmp|"    /* 10 */ \
-    "range|"   /* 11 */ \
-    "capture|" /* 12 */ \
-    "bonding|" /* 13 */ \
-    "vxlan|"   /* 14 */ \
-    "rate|"    /* 15 */ \
-    "lat"      /* 16 */
+#define ed_type          \
+    "process|"  /*  0 */ \
+    "mpls|"     /*  1 */ \
+    "qinq|"     /*  2 */ \
+    "gre|"      /*  3 */ \
+    "gre_eth|"  /*  4 */ \
+    "vlan|"     /*  5 */ \
+    "random|"   /*  6 */ \
+    "latency|"  /*  7 */ \
+    "pcap|"     /*  8 */ \
+    "blink|"    /*  9 */ \
+    "icmp|"     /* 10 */ \
+    "range|"    /* 11 */ \
+    "capture|"  /* 12 */ \
+    "bonding|"  /* 13 */ \
+    "vxlan|"    /* 14 */ \
+    "rate|"     /* 15 */ \
+    "rnd_s_ip|" /* 16 */ \
+    "lat"       /* 17 */
 
 // clang-format off
 static struct cli_map enable_map[] = {
@@ -1041,7 +1045,9 @@ static const char *enable_help[] = {
     "enable|disable <portlist> gre      - Enable/disable GRE support",
     "enable|disable <portlist> gre_eth  - Enable/disable GRE with Ethernet frame payload",
     "enable|disable <portlist> vlan     - Enable/disable VLAN tagging",
-    "enable|disable <portlist> random   - Enable/disable Random packet support",
+    "enable|disable <portlist> rnd_s_ip - Enable/disable randomizing the source IP address on "
+    "every packet",
+    "enable|disable <portlist> random   - Enable/disable Random packet support through the `rnd` page",
     "enable|disable <portlist> latency  - Enable/disable latency testing",
     "enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist",
     "enable|disable <portlist> blink    - Blink LED on port(s)",
@@ -1105,7 +1111,7 @@ en_dis_cmd(int argc, char **argv)
             foreach_port(portlist, enable_random(pinfo, state));
             break;
         case 7:
-        case 16: /* lat or latency type */
+        case 17: /* lat or latency type */
             foreach_port(portlist, enable_latency(pinfo, state));
             break;
         case 8:
@@ -1135,6 +1141,9 @@ en_dis_cmd(int argc, char **argv)
             break;
         case 14:
             foreach_port(portlist, enable_vxlan(pinfo, state));
+            break;
+        case 16:
+            foreach_port(portlist, enable_rnd_s_ip(pinfo, state));
             break;
         default:
             return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);

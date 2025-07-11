@@ -3360,7 +3360,7 @@ port_info(lua_State *L, port_info_t *pinfo)
     setf_string(L, "proto_type",
                 (pkt->ipProto == PG_IPPROTO_TCP)                               ? "TCP"
                 : (pkt->ipProto == PG_IPPROTO_ICMP)                            ? "ICMP"
-                : (rte_atomic32_read(&pinfo->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
+                : (rte_atomic64_read(&pinfo->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
                                                                                : "UDP");
     setf_integer(L, "vlanid", pkt->vlanid);
 

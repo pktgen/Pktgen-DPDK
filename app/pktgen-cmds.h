@@ -120,6 +120,7 @@
     void enable_gre(port_info_t * pinfo, uint32_t state);
     void enable_gre_eth(port_info_t * pinfo, uint32_t state);
     void enable_icmp_echo(port_info_t * pinfo, uint32_t state);
+    void enable_rnd_s_ip(port_info_t * pinfo, uint32_t state);
     void enable_random(port_info_t * pinfo, uint32_t state);
     void enable_latency(port_info_t * pinfo, uint32_t state);
     void enable_mac_from_arp(uint32_t state);

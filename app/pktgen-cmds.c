@@ -129,8 +129,8 @@ pktgen_script_save(char *path)
         else
             snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&pinfo->transmit_count));
         fprintf(fd, "#\n");
-        flags = rte_atomic32_read(&pinfo->port_flags);
-        fprintf(fd, "# Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
+        flags = rte_atomic64_read(&pinfo->port_flags);
+        fprintf(fd, "# Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%16x, TX Count:%s\n",
                 pinfo->pid, pinfo->rx_burst, pinfo->tx_burst, pinfo->tx_rate, flags, buff);
         fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ", pinfo->seqCnt,
                 pinfo->prime_cnt, pinfo->vlanid);
@@ -460,8 +460,8 @@ pktgen_lua_save(char *path)
         else
             snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&pinfo->transmit_count));
         fprintf(fd, "-- \n");
-        flags = rte_atomic32_read(&pinfo->port_flags);
-        fprintf(fd, "-- Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%08x, TX Count:%s\n",
+        flags = rte_atomic64_read(&pinfo->port_flags);
+        fprintf(fd, "-- Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%16x, TX Count:%s\n",
                 pinfo->pid, pinfo->rx_burst, pinfo->tx_burst, pinfo->tx_rate, flags, buff);
         fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ", pinfo->seqCnt,
                 pinfo->prime_cnt, pinfo->vlanid);
@@ -955,16 +955,17 @@ char *
 pktgen_flags_string(port_info_t *pinfo)
 {
     static char buff[64];
-    uint32_t flags = rte_atomic32_read(&pinfo->port_flags);
+    uint64_t flags = rte_atomic64_read(&pinfo->port_flags);
 
     buff[0] = '\0';
     // clang-format off
-    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%-6s%6s",
+    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%-6s%6s",
              (pktgen.flags & PROMISCUOUS_ON_FLAG) ? 'P' : '-',
              (flags & ICMP_ECHO_ENABLE_FLAG)      ? 'E' : '-',
              (flags & BONDING_TX_PACKETS)         ? 'B' : '-',
              (flags & PROCESS_INPUT_PKTS)         ? 'I' : '-',
              (flags & SEND_LATENCY_PKTS)          ? 'L' : '-',
+             (flags & RANDOMIZE_SRC_IP)           ? 'i' : '-',
              (flags & SEND_RANDOM_PKTS)           ? 'R' : '-',
              (flags & CAPTURE_PKTS)               ? 'c' : '-',
 
@@ -1168,6 +1169,31 @@ enable_mac_from_arp(uint32_t onOff)
         pktgen.flags |= MAC_FROM_ARP_FLAG;
     else
         pktgen.flags &= ~MAC_FROM_ARP_FLAG;
+}
+
+/**
+ *
+ * enable_rnd_s_ip - Enable/disable randomizing the source IP address
+ *
+ * DESCRIPTION
+ * Enable/disable randomizing the source IP address.
+ *
+ * Naively randomizes the addresses, as validating each IP could be a performance
+ * bottleneck (given that only ~14% are invalid) and some people might want to
+ * test invalid IPs too.
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+enable_rnd_s_ip(port_info_t *pinfo, uint32_t onOff)
+{
+    if (onOff == ENABLE_STATE)
+        pktgen_set_port_flags(pinfo, RANDOMIZE_SRC_IP);
+    else
+        pktgen_clr_port_flags(pinfo, RANDOMIZE_SRC_IP);
 }
 
 /**

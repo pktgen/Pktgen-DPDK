@@ -119,7 +119,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
         ip = (struct rte_ipv4_hdr *)((char *)ip + sizeof(struct rte_vlan_hdr));
 
     /* Look for a ICMP echo requests, but only if enabled. */
-    if ((rte_atomic32_read(&pinfo->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
+    if ((rte_atomic64_read(&pinfo->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
         (ip->next_proto_id == PG_IPPROTO_ICMP)) {
         struct rte_icmp_hdr *icmp =
             (struct rte_icmp_hdr *)((uintptr_t)ip + sizeof(struct rte_ipv4_hdr));

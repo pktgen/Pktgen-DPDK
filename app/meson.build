@@ -26,6 +26,7 @@ sources = files(
 	'pktgen-udp.c',
 	'pktgen-vlan.c',
 	'pktgen.c',
+	'xorshift64star.c',
 )
 
 if get_option('enable_lua')

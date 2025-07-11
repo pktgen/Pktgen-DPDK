@@ -87,7 +87,7 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
 
     if (onOff == ENABLE_STATE) {
         /* Enabling an already enabled port is a no-op */
-        if (rte_atomic32_read(&pinfo->port_flags) & CAPTURE_PKTS)
+        if (rte_atomic64_read(&pinfo->port_flags) & CAPTURE_PKTS)
             return;
 
         /* Find an lcore that can capture packets for the requested port */
@@ -134,7 +134,7 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
                                     * frame overhead: 84 bytes per packet */
         );
     } else {
-        if (!(rte_atomic32_read(&pinfo->port_flags) & CAPTURE_PKTS))
+        if (!(rte_atomic64_read(&pinfo->port_flags) & CAPTURE_PKTS))
             return;
 
         int sid;

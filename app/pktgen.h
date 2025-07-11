@@ -385,30 +385,30 @@ typedef struct {
 #define TSTAMP_MAGIC 0xf00dcafe
 
 static __inline__ void
-pktgen_set_port_flags(port_info_t *pinfo, uint32_t flags)
+pktgen_set_port_flags(port_info_t *pinfo, uint64_t flags)
 {
-    uint32_t val;
+    uint64_t val;
 
     do {
-        val = rte_atomic32_read(&pinfo->port_flags);
-    } while (!rte_atomic32_cmpset((volatile uint32_t *)&pinfo->port_flags.cnt, val, (val | flags)));
+        val = rte_atomic64_read(&pinfo->port_flags);
+    } while (!rte_atomic64_cmpset((volatile uint64_t *)&pinfo->port_flags.cnt, val, (val | flags)));
 }
 
 static __inline__ void
-pktgen_clr_port_flags(port_info_t *pinfo, uint32_t flags)
+pktgen_clr_port_flags(port_info_t *pinfo, uint64_t flags)
 {
-    uint32_t val;
+    uint64_t val;
 
     do {
-        val = rte_atomic32_read(&pinfo->port_flags);
+        val = rte_atomic64_read(&pinfo->port_flags);
     } while (
-        !rte_atomic32_cmpset((volatile uint32_t *)&pinfo->port_flags.cnt, val, (val & ~flags)));
+        !rte_atomic64_cmpset((volatile uint64_t *)&pinfo->port_flags.cnt, val, (val & ~flags)));
 }
 
 static __inline__ int
-pktgen_tst_port_flags(port_info_t *pinfo, uint32_t flags)
+pktgen_tst_port_flags(port_info_t *pinfo, uint64_t flags)
 {
-    return ((rte_atomic32_read(&pinfo->port_flags) & flags) ? 1 : 0);
+    return ((rte_atomic64_read(&pinfo->port_flags) & flags) ? 1 : 0);
 }
 
 /* onOff values */

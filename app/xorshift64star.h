@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-static uint64_t xor_state[1];
+extern uint64_t xor_state[1];
 
 static inline uint64_t
 xorshift64star(void)

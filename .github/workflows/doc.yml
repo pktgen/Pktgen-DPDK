@@ -29,7 +29,7 @@ jobs:
           meson -Donly_docs=true builddir
           make docs
       - name: Setup Pages
-        uses: actions/configure-pages@v2
+        uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

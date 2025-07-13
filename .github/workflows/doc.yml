@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           sudo apt install python3-sphinx meson ninja-build
@@ -29,11 +29,11 @@ jobs:
           meson -Donly_docs=true builddir
           make docs
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v2
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           path: "./builddir/doc/source/html"
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v1

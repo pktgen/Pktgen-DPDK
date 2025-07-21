@@ -508,7 +508,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
     }
 
     /*
-     * Randomizes the source IP address and port. Only randomizes if in the "single packet" setting 
+     * Randomizes the source IP address and port. Only randomizes if in the "single packet" setting
      * and not processing input packets.
      * For details, see https://github.com/pktgen/Pktgen-DPDK/pull/342
      */

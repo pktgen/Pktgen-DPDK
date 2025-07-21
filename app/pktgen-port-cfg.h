@@ -79,6 +79,7 @@ enum { /* Per port flag bits */
            (SEND_ARP_REQUEST | SEND_GRATUITOUS_ARP | SEND_PING4_REQUEST | SEND_PING6_REQUEST)
 };
 #define RANDOMIZE_SRC_IP (1ULL << 32) /**< Set the source IP address as random */
+#define RANDOMIZE_SRC_PT (1ULL << 33) /**< Set the source port as random */
 // clang-format on
 
 #define EXCLUSIVE_MODES (SEND_SINGLE_PKTS | SEND_PCAP_PKTS | SEND_RANGE_PKTS | SEND_SEQ_PKTS)

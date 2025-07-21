@@ -959,13 +959,14 @@ pktgen_flags_string(port_info_t *pinfo)
 
     buff[0] = '\0';
     // clang-format off
-    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%-6s%6s",
+    snprintf(buff, sizeof(buff), "%c%c%c%c%c%c%c%c%c%-6s%6s",
              (pktgen.flags & PROMISCUOUS_ON_FLAG) ? 'P' : '-',
              (flags & ICMP_ECHO_ENABLE_FLAG)      ? 'E' : '-',
              (flags & BONDING_TX_PACKETS)         ? 'B' : '-',
              (flags & PROCESS_INPUT_PKTS)         ? 'I' : '-',
              (flags & SEND_LATENCY_PKTS)          ? 'L' : '-',
              (flags & RANDOMIZE_SRC_IP)           ? 'i' : '-',
+             (flags & RANDOMIZE_SRC_PT)           ? 'p' : '-',
              (flags & SEND_RANDOM_PKTS)           ? 'R' : '-',
              (flags & CAPTURE_PKTS)               ? 'c' : '-',
 
@@ -1194,6 +1195,30 @@ enable_rnd_s_ip(port_info_t *pinfo, uint32_t onOff)
         pktgen_set_port_flags(pinfo, RANDOMIZE_SRC_IP);
     else
         pktgen_clr_port_flags(pinfo, RANDOMIZE_SRC_IP);
+}
+
+/**
+ *
+ * enable_rnd_s_pt - Enable/disable randomizing the source port
+ *
+ * DESCRIPTION
+ * Enable/disable randomizing the source port.
+ *
+ * Naively randomizes the port, as despite it probably being weird for some ports to 
+ * receive traffic, all of them are technically valid (except for port 0). 
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+void
+enable_rnd_s_pt(port_info_t *pinfo, uint32_t onOff)
+{
+    if (onOff == ENABLE_STATE)
+        pktgen_set_port_flags(pinfo, RANDOMIZE_SRC_PT);
+    else
+        pktgen_clr_port_flags(pinfo, RANDOMIZE_SRC_PT);
 }
 
 /**

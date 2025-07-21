@@ -66,17 +66,18 @@ static const char *title_help[] = {
 
 static const char *status_help[] = {
     "",
-    "       Flags: P------------------------ - Promiscuous mode enabled",
-    "               E                        - ICMP Echo enabled",
-    "                B                       - Bonding enabled LACP 802.3ad",
-    "                 I                      - Process packets on input enabled",
-    "                  L                     - Sends latency packets",
-    "                   i                    - Randomizing the source IP address",
-    "                    R                   - Perform bit randomization (`rnd` page)",
-    "                     C                  - Capture received packets",
-    "                      <.......>          - Modes: Single, pcap, sequence, latency, "
+    "       Flags: P------------------------- - Promiscuous mode enabled",
+    "               E                         - ICMP Echo enabled",
+    "                B                        - Bonding enabled LACP 802.3ad",
+    "                 I                       - Process packets on input enabled",
+    "                  L                      - Sends latency packets",
+    "                   i                     - Randomizing the source IP address",
+    "                    p                    - Randomizing the source port",
+    "                     R                   - Perform bit randomization (`rnd` page)",
+    "                      C                  - Capture received packets",
+    "                       <.......>         - Modes: Single, pcap, sequence, latency, "
     "Rate",
-    "                               <......> - Modes: VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH",
+    "                                <......> - Modes: VLAN, VxLAN, MPLS, QnQ, GRE IPv4, GRE ETH",
     "Notes: <state>       - Use enable|disable or on|off to set the state.",
     "       <portlist>    - a list of ports (no spaces) as 2,4,6-9,12 or 3-5,8 or 5 or the word "
     "'all'",
@@ -1022,7 +1023,8 @@ theme_cmd(int argc, char **argv)
     "vxlan|"    /* 14 */ \
     "rate|"     /* 15 */ \
     "rnd_s_ip|" /* 16 */ \
-    "lat"       /* 17 */
+    "rnd_s_pt|" /* 17 */ \
+    "lat"       /* 18 */
 
 // clang-format off
 static struct cli_map enable_map[] = {
@@ -1047,6 +1049,7 @@ static const char *enable_help[] = {
     "enable|disable <portlist> vlan     - Enable/disable VLAN tagging",
     "enable|disable <portlist> rnd_s_ip - Enable/disable randomizing the source IP address on "
     "every packet",
+    "enable|disable <portlist> rnd_s_pt - Enable/disable randomizing the source port on every packet",
     "enable|disable <portlist> random   - Enable/disable Random packet support through the `rnd` page",
     "enable|disable <portlist> latency  - Enable/disable latency testing",
     "enable|disable <portlist> pcap     - Enable or Disable sending pcap packets on a portlist",
@@ -1111,7 +1114,7 @@ en_dis_cmd(int argc, char **argv)
             foreach_port(portlist, enable_random(pinfo, state));
             break;
         case 7:
-        case 17: /* lat or latency type */
+        case 18: /* lat or latency type */
             foreach_port(portlist, enable_latency(pinfo, state));
             break;
         case 8:
@@ -1144,6 +1147,9 @@ en_dis_cmd(int argc, char **argv)
             break;
         case 16:
             foreach_port(portlist, enable_rnd_s_ip(pinfo, state));
+            break;
+        case 17:
+            foreach_port(portlist, enable_rnd_s_pt(pinfo, state));
             break;
         default:
             return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);

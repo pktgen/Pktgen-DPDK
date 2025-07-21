@@ -508,15 +508,20 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
     }
 
     /*
-     * Randomizes the source IP address if in the single packet setting and not processing input
-     * packets.
+     * Randomizes the source IP address and port. Only randomizes if in the "single packet" setting
+     * and not processing input packets.
      * For details, see https://github.com/pktgen/Pktgen-DPDK/pull/342
      */
+    if (pktgen_tst_port_flags(pinfo, SEND_SINGLE_PKTS) &&
+        !pktgen_tst_port_flags(pinfo, PROCESS_INPUT_PKTS)) {
 
-    if (pktgen_tst_port_flags(pinfo, RANDOMIZE_SRC_IP) &&
-        pktgen_tst_port_flags(pinfo, SEND_SINGLE_PKTS) &&
-        !pktgen_tst_port_flags(pinfo, PROCESS_INPUT_PKTS))
-        pkt->ip_src_addr.addr.ipv4.s_addr = pktgen_default_rnd_func();
+        if (pktgen_tst_port_flags(pinfo, RANDOMIZE_SRC_IP))
+            pkt->ip_src_addr.addr.ipv4.s_addr = pktgen_default_rnd_func();
+
+        if (pktgen_tst_port_flags(pinfo, RANDOMIZE_SRC_PT))
+            pkt->sport =
+                (pktgen_default_rnd_func() % 65535) + 1; /* Avoid port 0, the only invalid port */
+    }
 
     /* Add GRE header and adjust rte_ether_hdr pointer if requested */
     if (pktgen_tst_port_flags(pinfo, SEND_GRE_IPv4_HEADER))

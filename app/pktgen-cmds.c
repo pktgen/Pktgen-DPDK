@@ -1204,8 +1204,8 @@ enable_rnd_s_ip(port_info_t *pinfo, uint32_t onOff)
  * DESCRIPTION
  * Enable/disable randomizing the source port.
  *
- * Naively randomizes the port, as despite it probably being weird for some ports to 
- * receive traffic, all of them are technically valid (except for port 0). 
+ * Naively randomizes the port, as despite it probably being weird for some ports to
+ * receive traffic, all of them are technically valid (except for port 0).
  *
  * RETURNS: N/A
  *

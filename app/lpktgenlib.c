@@ -2381,6 +2381,72 @@ pktgen_gre_eth(lua_State *L)
 
 /**
  *
+ * pktgen_rnd_s_ip - Enable or disable randomizing the source IP address
+ *
+ * DESCRIPTION
+ * Enable or disable randomizing the source IP address
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_rnd_s_ip(lua_State *L)
+{
+    portlist_t portlist;
+
+    switch (lua_gettop(L)) {
+    default:
+        return luaL_error(L, "rnd_s_ip, wrong number of arguments");
+    case 2:
+        break;
+    }
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
+
+    foreach_port(portlist, enable_rnd_s_ip(pinfo, estate(luaL_checkstring(L, 2))));
+
+    pktgen_update_display();
+    return 0;
+}
+
+/**
+ *
+ * pktgen_rnd_s_pt - Enable or disable randomizing the source port
+ *
+ * DESCRIPTION
+ * Enable or disable randomizing the source port
+ *
+ * RETURNS: N/A
+ *
+ * SEE ALSO:
+ */
+
+static int
+pktgen_rnd_s_pt(lua_State *L)
+{
+    portlist_t portlist;
+
+    switch (lua_gettop(L)) {
+    default:
+        return luaL_error(L, "rnd_s_pt, wrong number of arguments");
+    case 2:
+        break;
+    }
+    portlist = pktgen_get_portlist(L, 1);
+    if (portlist == INVALID_PORTLIST)
+        return luaL_error(L, "invalid portlist");
+
+    foreach_port(portlist, enable_rnd_s_pt(pinfo, estate(luaL_checkstring(L, 2))));
+
+    pktgen_update_display();
+    return 0;
+}
+
+/**
+ *
  * range_pkt_size - Set the port range size.
  *
  * DESCRIPTION
@@ -3782,6 +3848,8 @@ static const char *lua_help_info[] = {
     "qinq           - Enable or disable Q-in-Q header\n",
     "gre            - Enable or disable GRE with IPv4 payload\n",
     "gre_eth        - Enable or disable GRE with Ethernet payload\n",
+    "rnd_s_ip       - Enable or disable randomizing the source IP address\n",
+    "rnd_s_pt       - Enable or disable randomizing the source port\n",
     "rnd            - Enable or disable random bit patterns for a given portlist\n",
     "rnd_list       - List of current random bit patterns\n",
     "\n",
@@ -3977,10 +4045,12 @@ static const luaL_Reg pktgenlib[] = {
     {"vxlan", single_vxlan},       /* Enable or disable VxLAN */
     {"vxlan_id", single_vxlan_id}, /* Set the VxLAN values */
 
-    {"mpls", pktgen_mpls},       /* Enable or disable MPLS header */
-    {"qinq", pktgen_qinq},       /* Enable or disable Q-in-Q header */
-    {"gre", pktgen_gre},         /* Enable or disable GRE with IPv4 payload */
-    {"gre_eth", pktgen_gre_eth}, /* Enable or disable GRE with Ethernet payload */
+    {"mpls", pktgen_mpls},         /* Enable or disable MPLS header */
+    {"qinq", pktgen_qinq},         /* Enable or disable Q-in-Q header */
+    {"gre", pktgen_gre},           /* Enable or disable GRE with IPv4 payload */
+    {"gre_eth", pktgen_gre_eth},   /* Enable or disable GRE with Ethernet payload */
+    {"rnd_s_ip", pktgen_rnd_s_ip}, /* Enable or disable randomizing the source IP address */
+    {"rnd_s_pt", pktgen_rnd_s_pt}, /* Enable or disable randomizing the source port */
 
     {"set_range", range}, /* Enable or disable sending range data on a port. */
 

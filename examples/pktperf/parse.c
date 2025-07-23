@@ -96,7 +96,7 @@ create_pktmbuf_pool(const char *type, uint16_t lid, uint16_t pid, uint32_t nb_mb
            pid, nb_mbufs, pg_eth_dev_socket_id(pid));
 
     /* Create the pktmbuf pool one per lcore/port */
-    snprintf(name, sizeof(name), "%s-%u/%u", type, lid, pid);
+    snprintf(name, sizeof(name) - 1, "%s-%u/%u", type, lid, pid);
     return rte_pktmbuf_pool_create(name, info->mbuf_count, cache_size, 0, RTE_MBUF_DEFAULT_BUF_SIZE,
                                    pg_eth_dev_socket_id(pid));
 }
@@ -104,30 +104,31 @@ create_pktmbuf_pool(const char *type, uint16_t lid, uint16_t pid, uint32_t nb_mb
 static int
 parse_cores(l2p_port_t *port, const char *cores, int mode)
 {
-    char *core_map = NULL;
-    int num_cores  = 0, l, h, num_fields;
-    char *fields[3];
+    char *core_map  = NULL;
+    int num_cores   = 0, l, h, num_fields;
+    char *fields[3] = {0}, *f0, *f1;
     char name[64];
 
     core_map = alloca(MAX_ALLOCA_SIZE);
     if (!core_map)
         ERR_RET("out of memory for core string\n");
 
-    snprintf(core_map, MAX_ALLOCA_SIZE, "%s", cores);
+    snprintf(core_map, MAX_ALLOCA_SIZE - 1, "%s", cores);
 
     num_fields = rte_strsplit(core_map, strlen(core_map), fields, RTE_DIM(fields), '-');
     if (num_fields <= 0 || num_fields > 2)
         ERR_RET("invalid core mapping '%s'\n", cores);
     DBG_PRINT("num_fields: %d from cores '%s'\n", num_fields, cores);
+    f0 = fields[0];
+    f1 = (fields[1] == NULL) ? f0 : fields[1];
+    f0 = pg_strtrimset(f0, "[]");
+    f0 = pg_strtrimset(f0, "{}");
+    f1 = pg_strtrimset(f1, "[]");
+    f1 = pg_strtrimset(f1, "{}");
 
-    if (num_fields == 1) {
-        DBG_PRINT("single core specified: %s\n", fields[0]);
-        l = h = strtol(fields[0], NULL, 10);
-    } else if (num_fields == 2) {
-        DBG_PRINT("range of cores specified: %s - %s\n", fields[0], fields[1]);
-        l = strtol(fields[0], NULL, 10);
-        h = strtol(fields[1], NULL, 10);
-    }
+    DBG_PRINT("range of cores specified: %s - %s\n", f0, f1);
+    l = strtol(f0, NULL, 10);
+    h = strtol(f1, NULL, 10);
 
     DBG_PRINT("lcore: %d to %d\n", l, h);
     do {
@@ -136,7 +137,7 @@ parse_cores(l2p_port_t *port, const char *cores, int mode)
 
         lport = info->lports[l];
         if (lport == NULL) {
-            snprintf(name, sizeof(name), "lport-%u:%u", l, port->pid);
+            snprintf(name, sizeof(name) - 1, "lport-%u:%u", l, port->pid);
             lport = rte_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE, sid);
             if (!lport)
                 ERR_RET("Failed to allocate memory for lport info\n");
@@ -194,7 +195,7 @@ parse_cores(l2p_port_t *port, const char *cores, int mode)
 static int
 parse_mapping(const char *map)
 {
-    char *fields[3], *f0, *f1, *lcores[3], *c0, *c1;
+    char *fields[3] = {0}, *f0, *f1, *lcores[3] = {0}, *c0, *c1;
     char *mapping = NULL;
     int num_fields, num_cores, num_lcores;
     uint16_t pid;
@@ -212,8 +213,12 @@ parse_mapping(const char *map)
     num_fields = rte_strsplit(mapping, strlen(mapping), fields, RTE_DIM(fields), '.');
     if (num_fields != 2)
         ERR_RET("Invalid mapping format '%s'\n", mapping);
-    f0 = pg_strtrimset(fields[0], "[]");
-    f1 = fields[1];
+    f0 = fields[0];
+    f1 = (fields[1] == NULL) ? f0 : fields[1];
+    f0 = pg_strtrimset(f0, "[]");
+    f0 = pg_strtrimset(f0, "{}");
+    f1 = pg_strtrimset(f1, "[]");
+    f1 = pg_strtrimset(f1, "{}");
     DBG_PRINT("Mapping: fields(%u) lcore '%s', port '%s'\n", num_fields, f0, f1);
 
     pid = strtol(f1, NULL, 10);
@@ -224,8 +229,10 @@ parse_mapping(const char *map)
     info->ports[pid].pid = pid;
 
     num_lcores = rte_strsplit(f0, strlen(f0), lcores, RTE_DIM(lcores), ':');
-    c0         = lcores[0];
-    c1         = lcores[1];
+    if (num_lcores <= 0 || num_lcores > 2)
+        ERR_RET("Invalid mapping format '%s'\n", fields[0]);
+    c0 = lcores[0];
+    c1 = (lcores[1] == NULL) ? c0 : lcores[1];
     if (num_lcores == 1) {
         num_cores = parse_cores(&info->ports[pid], c0, LCORE_MODE_BOTH);
         if (num_cores <= 0)
@@ -298,7 +305,7 @@ parse_args(int argc, char **argv)
             break;
 
         case 'd': /* Number of Rx/Tx descriptors */
-            snprintf(rxtx_desc, sizeof(rxtx_desc), "%s", optarg);
+            snprintf(rxtx_desc, sizeof(rxtx_desc) - 1, "%s", optarg);
             if (rte_strsplit(rxtx_desc, strlen(rxtx_desc), descs, RTE_DIM(descs), '/') != 2)
                 ERR_RET("Invalid Rx/Tx descriptors '%s'\n", optarg);
             info->nb_rxd = strtoul(descs[0], NULL, 10);

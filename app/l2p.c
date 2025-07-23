@@ -68,7 +68,7 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
 
     sid = pg_eth_dev_socket_id(port->pid);
 
-    snprintf(name, sizeof(name), "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
+    snprintf(name, sizeof(name) - 1, "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
 
     const int bufSize = PG_JUMBO_FRAME_LEN;
 
@@ -98,7 +98,7 @@ parse_cores(uint16_t pid, const char *cores, int mode)
     l2p_port_t *port = &l2p->ports[pid];
     char *core_map   = NULL;
     int num_cores    = 0, l, h, num_fields;
-    char *fields[3];
+    char *fields[3]  = {0}, *f0, *f1;
     char name[64];
     int mbuf_count = MAX_MBUFS_PER_PORT(DEFAULT_RX_DESC, DEFAULT_TX_DESC);
 
@@ -106,27 +106,31 @@ parse_cores(uint16_t pid, const char *cores, int mode)
     if (!core_map)
         rte_exit(EXIT_FAILURE, "out of memory for core string\n");
 
-    snprintf(core_map, MAX_ALLOCA_SIZE, "%s", cores);
+    snprintf(core_map, MAX_ALLOCA_SIZE - 1, "%s", cores);
 
     num_fields = rte_strsplit(core_map, strlen(core_map), fields, RTE_DIM(fields), '-');
     if (num_fields <= 0 || num_fields > 2)
         rte_exit(EXIT_FAILURE, "invalid core mapping '%s'\n", cores);
+    f0 = fields[0];
+    f1 = (fields[1] == NULL) ? f0 : fields[1];
+    f0 = pg_strtrimset(f0, "[]");
+    f0 = pg_strtrimset(f0, "{}");
+    f1 = pg_strtrimset(f1, "[]");
+    f1 = pg_strtrimset(f1, "{}");
 
-    if (num_fields == 1) {
-        l = h = strtol(fields[0], NULL, 10);
-    } else if (num_fields == 2) {
-        l = strtol(fields[0], NULL, 10);
-        h = strtol(fields[1], NULL, 10);
-    }
+    l = strtol(f0, NULL, 10);
+    h = strtol(f1, NULL, 10);
+
+    printf("#### f0 %s, f1 %s, Lid %u to %u\n", f0, f1, l, h);
 
     do {
         l2p_lport_t *lport;
+        int32_t sid = pg_eth_dev_socket_id(port->pid);
 
         lport = l2p->lports[l];
         if (lport == NULL) {
-            snprintf(name, sizeof(name), "lport-%u:%u", l, port->pid);
-            lport = rte_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE,
-                                       pg_eth_dev_socket_id(port->pid));
+            snprintf(name, sizeof(name) - 1, "lport-%u:%u", l, port->pid);
+            lport = rte_zmalloc_socket(name, sizeof(l2p_lport_t), RTE_CACHE_LINE_SIZE, sid);
             if (!lport)
                 rte_exit(EXIT_FAILURE, "Failed to allocate memory for lport info\n");
             lport->lid = l;
@@ -179,8 +183,8 @@ parse_cores(uint16_t pid, const char *cores, int mode)
 static int
 parse_mapping(const char *map)
 {
-    l2p_t *l2p = l2p_get();
-    char *fields[3], *lcores[3];
+    l2p_t *l2p      = l2p_get();
+    char *fields[3] = {0}, *f0, *f1, *lcores[3] = {0}, *c0, *c1;
     char *mapping = NULL;
     int num_fields, num_cores, num_lcores;
     uint16_t pid;
@@ -195,7 +199,7 @@ parse_mapping(const char *map)
         printf("unable to allocate map string\n");
         goto leave;
     }
-    snprintf(mapping, MAX_ALLOCA_SIZE, "%s", map);
+    snprintf(mapping, MAX_ALLOCA_SIZE - 1, "%s", map);
 
     /* parse map into a lcore list and port number */
     num_fields = rte_strsplit(mapping, strlen(mapping), fields, RTE_DIM(fields), '.');
@@ -203,39 +207,50 @@ parse_mapping(const char *map)
         printf("Invalid mapping format '%s'\n", map);
         goto leave;
     }
+    f0 = fields[0];
+    f1 = (fields[1] == NULL) ? f0 : fields[1];
+    f0 = pg_strtrimset(f0, "[]");
+    f0 = pg_strtrimset(f0, "{}");
+    f1 = pg_strtrimset(f1, "[]");
+    f1 = pg_strtrimset(f1, "{}");
 
-    pid = strtol(fields[1], NULL, 10);
+    pid = strtol(f1, NULL, 10);
     if (pid >= RTE_MAX_ETHPORTS) {
-        printf("Invalid port number '%s'\n", fields[1]);
+        printf("Invalid port number '%s'\n", f1);
         goto leave;
     }
 
     l2p->ports[pid].pid = pid;
     l2p->num_ports++;
 
-    num_lcores = rte_strsplit(fields[0], strlen(mapping), lcores, RTE_DIM(lcores), ':');
+    num_lcores = rte_strsplit(f0, strlen(f0), lcores, RTE_DIM(lcores), ':');
+    if (num_lcores <= 0 || num_lcores > 2) {
+        printf("Invalid mapping format '%s'\n", fields[0]);
+        goto leave;
+    }
+    c0 = lcores[0];
+    c1 = (lcores[1] == NULL) ? c0 : lcores[1];
+    c0 = pg_strtrimset(c0, "[]");
+    c0 = pg_strtrimset(c0, "{}");
+    c1 = pg_strtrimset(c1, "[]");
+    c1 = pg_strtrimset(c1, "{}");
+
     if (num_lcores == 1) {
-        if (lcores[0][0] == '{' || lcores[0][0] == '[')
-            lcores[0]++;
-        num_cores = parse_cores(pid, lcores[0], LCORE_MODE_BOTH);
+        num_cores = parse_cores(pid, c0, LCORE_MODE_BOTH);
         if (num_cores <= 0) {
-            printf("Invalid mapping format '%s'\n", map);
+            printf("Invalid mapping format '%s'\n", c0);
             goto leave;
         }
     } else {
-        if (lcores[0][0] == '{' || lcores[0][0] == '[')
-            lcores[0]++;
-        num_cores = parse_cores(pid, lcores[0], LCORE_MODE_RX);
+        num_cores = parse_cores(pid, c0, LCORE_MODE_RX);
         if (num_cores <= 0) {
-            printf("Invalid mapping format '%s'\n", map);
+            printf("Invalid mapping format '%s'\n", c0);
             goto leave;
         }
 
-        if (lcores[1][strlen(lcores[1]) - 1] == '}' || lcores[1][strlen(lcores[1]) - 1] == ']')
-            lcores[1][strlen(lcores[1]) - 1] = '\0';
-        num_cores = parse_cores(pid, lcores[1], LCORE_MODE_TX);
+        num_cores = parse_cores(pid, c1, LCORE_MODE_TX);
         if (num_cores <= 0) {
-            printf("Invalid mapping format '%s'\n", map);
+            printf("Invalid mapping format '%s'\n", c1);
             goto leave;
         }
     }

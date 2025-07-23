@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 25.07.1 - fix copyright dates and fix pktperf examples to support uneven queues
  - 25.07.0 - add IPv4 pseudo-header calculation for specific drivers
              add src IP randomization
              add src Port randomization

@@ -75,7 +75,7 @@ static struct rte_eth_conf default_port_conf = {
 static void
 dump_device_info(void)
 {
-    printf("\n%-4s %-16s %-5s %-4s %-17s %-17s %s\n", "Port", "DevName", "Index", "NUMA",
+    printf("\n%-4s %-16s %-5s %-4s %-22s %-17s %s\n", "Port", "DevName", "Index", "NUMA",
            "PCI Information", "Src MAC", "Promiscuous");
 
     for (uint16_t i = 0; i < pktgen.nb_ports; i++) {

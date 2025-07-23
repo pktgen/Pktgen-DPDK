@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2024>, Intel Corporation.
+ * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
 #include "cli.h"
@@ -139,7 +139,7 @@ cli_history_next(void)
             return NULL;
 
         if (cli->curr_hist == CIRCLEQ_LAST(&cli->hd_hist))
-            return (char *)(uintptr_t) "";
+            return (char *)(uintptr_t)"";
 
         hist           = CIRCLEQ_LOOP_NEXT(&cli->hd_hist, cli->curr_hist, next);
         cli->curr_hist = hist;

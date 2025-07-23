@@ -141,6 +141,9 @@ port_setup(l2p_port_t *port)
             if (ret < 0)
                 ERR_RET("rte_eth_rx_queue_setup:err=%d, port=%u\n", ret, pid);
             DBG_PRINT("Port %u:%u configured with %u RX descriptors\n", pid, q, info->nb_rxd);
+        }
+        for (int q = 0; q < port->num_tx_qids; q++) {
+            uint32_t sid = pg_eth_dev_socket_id(pid);
 
             txq_conf          = dev_info.default_txconf;
             txq_conf.offloads = local_port_conf.txmode.offloads;

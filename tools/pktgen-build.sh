@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) <2019-2024> Intel Corporation
+# Copyright(c) <2019-2025> Intel Corporation
 
 # A simple script to help build Pktgen using meson/ninja tools.
 # The script also creates an installed directory called ./usr in the top level directory.

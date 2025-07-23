@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) <2018-2024> Intel Corporation
+# Copyright(c) <2018-2025> Intel Corporation
 
 sources = files('plugin.c')
 libplugin = library('plugin', sources,

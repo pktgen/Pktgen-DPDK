@@ -194,7 +194,7 @@ parse_cores(l2p_port_t *port, const char *cores, int mode)
 static int
 parse_mapping(const char *map)
 {
-    char *fields[3], *lcores[3];
+    char *fields[3], *f0, *f1, *lcores[3], *c0, *c1;
     char *mapping = NULL;
     int num_fields, num_cores, num_lcores;
     uint16_t pid;
@@ -205,37 +205,41 @@ parse_mapping(const char *map)
     mapping = alloca(MAX_ALLOCA_SIZE);
     if (!mapping)
         ERR_RET("unable to allocate map string\n");
-    snprintf(mapping, MAX_ALLOCA_SIZE, "%s", map);
-    DBG_PRINT("Mapping: '%s'\n", map);
+    snprintf(mapping, MAX_ALLOCA_SIZE - 1, "%s", map);
+    DBG_PRINT("Mapping: '%s'\n", mapping);
 
     /* parse map into a lcore list and port number */
     num_fields = rte_strsplit(mapping, strlen(mapping), fields, RTE_DIM(fields), '.');
     if (num_fields != 2)
-        ERR_RET("Invalid mapping format '%s'\n", map);
-    DBG_PRINT("Mapping: fields(%u) lcore '%s', port '%s'\n", num_fields, fields[0], fields[1]);
+        ERR_RET("Invalid mapping format '%s'\n", mapping);
+    f0 = pg_strtrimset(fields[0], "[]");
+    f1 = fields[1];
+    DBG_PRINT("Mapping: fields(%u) lcore '%s', port '%s'\n", num_fields, f0, f1);
 
-    pid = strtol(fields[1], NULL, 10);
+    pid = strtol(f1, NULL, 10);
     if (pid >= RTE_MAX_ETHPORTS)
-        ERR_RET("Invalid port number '%s'\n", fields[1]);
+        ERR_RET("Invalid port number '%s'\n", f1);
     DBG_PRINT("Mapping: Port %u\n", pid);
 
     info->ports[pid].pid = pid;
 
-    num_lcores = rte_strsplit(fields[0], strlen(mapping), lcores, RTE_DIM(lcores), ':');
+    num_lcores = rte_strsplit(f0, strlen(f0), lcores, RTE_DIM(lcores), ':');
+    c0         = lcores[0];
+    c1         = lcores[1];
     if (num_lcores == 1) {
-        num_cores = parse_cores(&info->ports[pid], lcores[0], LCORE_MODE_BOTH);
+        num_cores = parse_cores(&info->ports[pid], c0, LCORE_MODE_BOTH);
         if (num_cores <= 0)
-            ERR_RET("Invalid mapping format '%s'\n", map);
+            ERR_RET("Invalid mapping format '%s'\n", c0);
         DBG_PRINT("num_cores for both Rx/Tx: %d\n", num_cores);
     } else {
-        num_cores = parse_cores(&info->ports[pid], lcores[0], LCORE_MODE_RX);
+        num_cores = parse_cores(&info->ports[pid], c0, LCORE_MODE_RX);
         if (num_cores <= 0)
-            ERR_RET("Invalid mapping format '%s'\n", map);
+            ERR_RET("Invalid mapping format '%s'\n", c0);
         DBG_PRINT("num_cores for RX: %d\n", num_cores);
 
-        num_cores = parse_cores(&info->ports[pid], lcores[1], LCORE_MODE_TX);
+        num_cores = parse_cores(&info->ports[pid], c1, LCORE_MODE_TX);
         if (num_cores <= 0)
-            ERR_RET("Invalid mapping format '%s'\n", map);
+            ERR_RET("Invalid mapping format '%s'\n", c1);
         DBG_PRINT("num_cores for TX: %d\n", num_cores);
     }
 

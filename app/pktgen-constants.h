@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2024>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,9 +19,9 @@ enum {
     MAX_PKT_TX_BURST                  = 128, /* Used to create Max array sizes */
     DEFAULT_PKT_RX_BURST              = 64,  /* Increasing this number consumes memory very fast */
     DEFAULT_PKT_TX_BURST              = 32,  /* Increasing this number consumes memory very fast */
-    DEFAULT_RX_DESC                   = (MAX_PKT_RX_BURST * 8),
-    DEFAULT_TX_DESC                   = (MAX_PKT_TX_BURST * 16),
-    DEFAULT_MBUFS_PER_PORT_MULTIPLIER = 8, /* Multiplier for number of mbufs per port */
+    DEFAULT_RX_DESC                   = (MAX_PKT_RX_BURST * 16),
+    DEFAULT_TX_DESC                   = (MAX_PKT_TX_BURST * 32),
+    DEFAULT_MBUFS_PER_PORT_MULTIPLIER = 16, /* Multiplier for number of mbufs per port */
     MAX_SPECIAL_MBUFS                 = 1024,
     MBUF_CACHE_SIZE                   = 128,
     DEFAULT_PRIV_SIZE                 = 0,

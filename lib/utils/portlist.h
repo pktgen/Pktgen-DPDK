@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2020-2024> Intel Corporation.
+ * Copyright(c) <2020-2025> Intel Corporation.
  */
 
 /**
@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 typedef uint64_t portlist_t;
-#define INVALID_PORTLIST ((portlist_t)-1)
+#define INVALID_PORTLIST ((portlist_t) - 1)
 
 /**
  * Parse a portlist string into a mask or bitmap value.

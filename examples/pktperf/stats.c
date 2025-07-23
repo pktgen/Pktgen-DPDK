@@ -21,20 +21,22 @@
 
 #include <pktperf.h>
 
-#define sprint(name, cntr, nl)                                         \
-    do {                                                               \
-        qstats_t *r;                                                   \
-        uint64_t total = 0;                                            \
-        printf("  %-8s", name);                                        \
-        for (uint16_t q = 0; q < port->num_rx_qids; q++) {             \
-            r = &port->pq[q].rate;                                     \
-            total += r->cntr[q];                                       \
-            printf("|%'12" PRIu64, (r->cntr[q] / info->timeout_secs)); \
-        }                                                              \
-        printf("|%'14" PRIu64 "|", (total / info->timeout_secs));      \
-        if (nl)                                                        \
-            printf("\n");                                              \
-        fflush(stdout);                                                \
+#define sprint(name, cntr, nl)                                                            \
+    do {                                                                                  \
+        qstats_t *r;                                                                      \
+        uint64_t total     = 0;                                                           \
+        uint16_t nb_queues = (port->num_rx_qids > port->num_tx_qids) ? port->num_rx_qids  \
+                                                                     : port->num_tx_qids; \
+        printf("  %-12s", name);                                                          \
+        for (uint16_t q = 0; q < nb_queues; q++) {                                        \
+            r = &port->pq[q].rate;                                                        \
+            total += r->cntr[q];                                                          \
+            printf("|%'12" PRIu64, (r->cntr[q] / info->timeout_secs));                    \
+        }                                                                                 \
+        printf("|%'14" PRIu64 "|", (total / info->timeout_secs));                         \
+        if (nl)                                                                           \
+            printf("\n");                                                                 \
+        fflush(stdout);                                                                   \
     } while (0)
 
 /* Print out statistics on packets dropped */
@@ -72,7 +74,9 @@ print_stats(void)
         rate.rx_nombuf = port->stats.rx_nombuf - port->pstats.rx_nombuf;
         memcpy(&port->pstats, &port->stats, sizeof(struct rte_eth_stats));
 
-        for (uint16_t q = 0; q < port->num_rx_qids; q++) {
+        uint16_t nb_queues = (port->num_rx_qids > port->num_tx_qids) ? port->num_rx_qids
+                                                                     : port->num_tx_qids;
+        for (uint16_t q = 0; q < nb_queues; q++) {
             qstats_t *c, *p, *r;
 
             c = &port->pq[q].curr;
@@ -100,16 +104,21 @@ print_stats(void)
         }
         rte_eth_link_to_str(link_status_text, sizeof(link_status_text), &port->link);
 
-        printf("%2u >> %s, ", pid, link_status_text);
-
+        printf("%2u >> %s ", pid, link_status_text);
         packet_rate(port);
-        printf("MaxPPS: %'" PRIu64 ", TxCPB: %'" PRIu64 "\n", port->pps, port->tx_cycles);
+        printf("MaxPPS:%'" PRIu64 ", TxCPB:%'" PRIu64 "\n", port->pps, port->tx_cycles);
 
-        printf("  Queue ID");
-        for (uint16_t q = 0; q < port->num_rx_qids; q++)
-            printf("|%8u    ", q);
-        printf("|  %8s    |\n", "Total");
-        printf("  --------+------------+------------+------------+--------------+\n");
+        printf("      MBUFs/port:%'u Rx/Tx:%'d/%'d TxRate:%u%%, PID:%d\n", info->mbuf_count,
+               info->nb_rxd, info->nb_txd, info->tx_rate, getpid());
+
+        printf("  Queue ID    ");
+        for (uint16_t q = 0; q < nb_queues; q++)
+            printf("|%10u  ", q);
+        printf("|  %11s |\n", "Total");
+        printf("  ------------+");
+        for (uint16_t q = 0; q < nb_queues; q++)
+            printf("------------+");
+        printf("--------------+\n");
 
         sprint("RxQs", q_ipackets, 0);
         if (rate.ierrors)
@@ -127,11 +136,8 @@ print_stats(void)
         sprint("TxTime", q_tx_time, 1);
         printf("\n");
     }
-    printf("Pktperf: Burst: %'u, MBUFs/port: %'" PRIu32 ", PktSize:%'" PRIu32
-           ", Rx/Tx %'d/%'d, TxRate %u%%, PID: %d\n",
-           info->burst_count, info->mbuf_count, info->pkt_size, info->nb_rxd, info->nb_txd,
-           info->tx_rate, getpid());
-    printf("         Port mapping: ");
+    printf("   Size: %'u Burst: %'u ", info->pkt_size, info->burst_count);
+    printf("Mapping: ");
     for (int i = 0; i < info->num_mappings; i++)
         printf("%s ", info->mappings[i]);
     printf("\n");

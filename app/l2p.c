@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2012-2024>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2012-2025>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -100,7 +100,7 @@ parse_cores(uint16_t pid, const char *cores, int mode)
     int num_cores    = 0, l, h, num_fields;
     char *fields[3];
     char name[64];
-    int mbuf_count = MAX_MBUFS_PER_PORT(1024, 1024);
+    int mbuf_count = MAX_MBUFS_PER_PORT(DEFAULT_RX_DESC, DEFAULT_TX_DESC);
 
     core_map = alloca(MAX_ALLOCA_SIZE);
     if (!core_map)

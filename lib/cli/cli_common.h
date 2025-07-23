@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2024>, Intel Corporation.
+ * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
 #ifndef _CLI_COMMON_H_
@@ -41,7 +41,8 @@ extern "C" {
  *   N/A
  */
 
-static inline int __attribute__((format(printf, 1, 2))) cli_printf(const char *fmt, ...)
+static inline int __attribute__((format(printf, 1, 2)))
+cli_printf(const char *fmt, ...)
 {
     va_list vaList;
     int n;

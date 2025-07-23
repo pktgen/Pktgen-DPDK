@@ -1,5 +1,5 @@
 /*-
- *   Copyright(c) <2015-2024>-2016 Intel Corporation. All rights reserved.
+ *   Copyright(c) <2015-2025>-2016 Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -41,9 +41,9 @@ int cmdline_get_help_args(cmdline_parse_token_hdr_t *tk, char *dstbuf, unsigned 
             &cmdline_token_args_ops,    /* ops */    \
             offsetof(structure, field), /* offset */ \
         },                              /* args */   \
-            {                                        \
-                0,                                   \
-            },                                       \
+        {                                            \
+            0,                                       \
+        },                                           \
     }
 
 void cmdline_args_free(int argc, char **argv);

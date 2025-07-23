@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2024>, Intel Corporation.
+ * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
 #include <fnmatch.h>
@@ -162,9 +162,9 @@ complete_args(int argc, char **argv, uint32_t types)
                 gb_str_insert(gb, &node->name[slen], nlen);
 
             if (is_directory(node))
-                gb_str_insert(gb, (char *)(uintptr_t) "/", 1);
+                gb_str_insert(gb, (char *)(uintptr_t)"/", 1);
             else
-                gb_str_insert(gb, (char *)(uintptr_t) " ", 1);
+                gb_str_insert(gb, (char *)(uintptr_t)" ", 1);
         }
     }
     cli_node_list_free(nodes);
@@ -224,7 +224,7 @@ cli_auto_complete(void)
         gb_copy_to_buf(this_cli->gb, save, size);
 
         /* Add the -? to the command */
-        gb_str_insert(this_cli->gb, (char *)(uintptr_t) "-?", 2);
+        gb_str_insert(this_cli->gb, (char *)(uintptr_t)"-?", 2);
 
         cli_execute();
 

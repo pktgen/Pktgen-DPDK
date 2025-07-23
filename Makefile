@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) <2019-2024> Intel Corporation
+# Copyright(c) <2019-2025> Intel Corporation
 
 #
 # Head Makefile for compiling Pktgen-DPDK, but just a wrapper around

@@ -29,6 +29,7 @@ extern "C" {
 
 #include <fgen_common.h>
 #include <fgen.h>
+#include <utils.h>
 
 #define PRINT(format, args...)  \
     do {                        \
@@ -75,7 +76,7 @@ extern "C" {
         if (info->verbose) {                                           \
             char buf[64];                                              \
             snprintf(buf, sizeof(buf), "%s(%'d)", __func__, __LINE__); \
-            printf("DEBUG>%-24s:" format, buf, ##args);                \
+            printf("DEBUG> %-24s:" format, buf, ##args);               \
             fflush(stdout);                                            \
         }                                                              \
     } while (0)

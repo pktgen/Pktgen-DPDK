@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2024>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -472,6 +472,12 @@ main(int argc, char **argv)
     ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MAIN);
     if (ret != 0)
         pktgen_log_error("Failed to start lcores, return %d", ret);
+
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    fflush(stdout);
 
     /* Disable printing log messages of level info and below to screen, */
     /* erase the screen and start updating the screen again. */

@@ -55,6 +55,13 @@ print_stats(void)
     printf("%s%s", clr, top_left);
 
     printf("Port    : Rate Statistics per queue (%c)\n", twirl[cnt++ % 4]);
+    printf("          Size: %'u Burst: %'u ", info->pkt_size, info->burst_count);
+    printf("Mapping : ");
+    for (int i = 0; i < info->num_mappings; i++)
+        printf("%s ", info->mappings[i]);
+    printf("\n");
+    printf("          MBUFs:%'u Rx/Tx:%'d/%'d TxRate:%u%%, PID:%d\n", info->mbuf_count,
+           info->nb_rxd, info->nb_txd, info->tx_rate, getpid());
 
     for (uint16_t pid = 0; pid < info->num_ports; pid++) {
         l2p_port_t *port = &info->ports[pid];
@@ -104,12 +111,9 @@ print_stats(void)
         }
         rte_eth_link_to_str(link_status_text, sizeof(link_status_text), &port->link);
 
-        printf("%2u >> %s ", pid, link_status_text);
+        printf(" %2u     : %s, ", pid, link_status_text);
         packet_rate(port);
-        printf("MaxPPS:%'" PRIu64 ", TxCPB:%'" PRIu64 "\n", port->pps, port->tx_cycles);
-
-        printf("      MBUFs/port:%'u Rx/Tx:%'d/%'d TxRate:%u%%, PID:%d\n", info->mbuf_count,
-               info->nb_rxd, info->nb_txd, info->tx_rate, getpid());
+        printf("MaxPPS:%'" PRIu64 ", TxCPB:%'" PRIu64 "\n\n", port->pps, port->tx_cycles);
 
         printf("  Queue ID    ");
         for (uint16_t q = 0; q < nb_queues; q++)
@@ -130,17 +134,11 @@ print_stats(void)
         if (rate.oerrors)
             printf(" Err : %'12" PRIu64, rate.oerrors);
         printf("\n");
-        sprint("TxDrop", q_tx_drops, 1);
+        sprint("TxFull", q_tx_drops, 1);        // tx_drops mean the TX ring was full
         sprint("NoTxMBUF", q_no_txmbufs, 1);
         sprint("RxTime", q_rx_time, 1);
         sprint("TxTime", q_tx_time, 1);
         printf("\n");
     }
-    printf("   Size: %'u Burst: %'u ", info->pkt_size, info->burst_count);
-    printf("Mapping: ");
-    for (int i = 0; i < info->num_mappings; i++)
-        printf("%s ", info->mappings[i]);
-    printf("\n");
-
     fflush(stdout);
 }

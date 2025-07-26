@@ -1325,7 +1325,9 @@ pktgen_start_transmitting(port_info_t *pinfo)
         if (rte_atomic64_read(&pinfo->current_tx_count) == 0)
             pktgen_set_port_flags(pinfo, SEND_FOREVER);
 
-        pktgen_set_port_flags(pinfo, (SENDING_PACKETS | SETUP_TRANSMIT_PKTS));
+        pktgen_set_port_flags(pinfo, SETUP_TRANSMIT_PKTS);
+        pktgen_setup_packets(pinfo->pid);        // will clear the SETUP_TRANSMIT_PKTS flag
+        pktgen_set_port_flags(pinfo, SENDING_PACKETS);
     }
 }
 

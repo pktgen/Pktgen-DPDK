@@ -21,8 +21,11 @@ extern "C" {
 
 #define __RTE_VERSION RTE_VERSION_NUM(RTE_VER_YEAR, RTE_VER_MONTH, RTE_VER_MINOR, RTE_VER_RELEASE)
 
-#define PG_JUMBO_ETHER_MTU 9216
-#define PG_JUMBO_FRAME_LEN (PG_JUMBO_ETHER_MTU + RTE_ETHER_CRC_LEN + RTE_ETHER_HDR_LEN)
+#define PG_JUMBO_ETHER_MTU     9216        // 9K total size of the Ethernet jumbo frame
+#define PG_JUMBO_DATAROOM_SIZE 9000        // 9K data room size in the Ethernet jumbo frame
+#define PG_JUMBO_HEADROOM_SIZE \
+    (PG_JUMBO_ETHER_MTU -      \
+     PG_JUMBO_DATAROOM_SIZE)        // 9K headroom size in the Ethernet jumbo frame
 
 static __inline__ int
 pg_socket_id(void)

@@ -147,15 +147,16 @@ eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
     return overhead_len;
 }
 
-#define MAX_JUMBO_PKT_LEN 9600
 static port_info_t *
 initialize_port_info(uint16_t pid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
     int32_t sid = pg_eth_dev_socket_id(pid), ret = 0;
-    struct rte_eth_conf conf;
+    struct rte_eth_conf conf = default_port_conf;
     uint32_t eth_overhead_len;
     uint32_t max_mtu;
+
+    pktgen_log_info("Port info setup for port %u", pid);
 
     /* If port info is already set ignore */
     if (pinfo) {
@@ -174,23 +175,24 @@ initialize_port_info(uint16_t pid)
     if (rte_eth_dev_info_get(pid, &pinfo->dev_info) < 0)
         rte_exit(EXIT_FAILURE, "Cannot get device info for port %u", pid);
 
-    /* Get a clean copy of the configuration structure */
-    rte_memcpy(&conf, &default_port_conf, sizeof(struct rte_eth_conf));
-
     if (pktgen.flags & JUMBO_PKTS_FLAG) {
-        conf.rxmode.max_lro_pkt_size = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
+        conf.rxmode.max_lro_pkt_size = PG_JUMBO_ETHER_MTU;
         eth_overhead_len =
             eth_dev_get_overhead_len(pinfo->dev_info.max_rx_pktlen, pinfo->dev_info.max_mtu);
         max_mtu = pinfo->dev_info.max_mtu - eth_overhead_len;
+
         /* device may have higher theoretical MTU e.g. for infiniband */
-        if (max_mtu > MAX_JUMBO_PKT_LEN)
-            max_mtu = MAX_JUMBO_PKT_LEN;
+        if (max_mtu > PG_JUMBO_ETHER_MTU)
+            max_mtu = PG_JUMBO_ETHER_MTU;
         pktgen_log_info("   Max MTU: %d", max_mtu);
+
         conf.rxmode.mtu = max_mtu;
+#if 0        // Tx performance takes a big hit when enabled
         if (pinfo->dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
             conf.rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
         if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
+#endif
     }
 
     if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
@@ -268,7 +270,8 @@ initialize_port_info(uint16_t pid)
     pinfo->fill_pattern_type = ABC_FILL_PATTERN;
     snprintf(pinfo->user_pattern, sizeof(pinfo->user_pattern), "%s", "0123456789abcdef");
 
-    pktgen_log_info("   Configure device");
+    pktgen_log_info("   Configure device: RxQueueCnt: %u, TxQueueCnt: %u", l2p_get_rxcnt(pid),
+                    l2p_get_txcnt(pid));
     if ((ret = rte_eth_dev_configure(pid, l2p_get_rxcnt(pid), l2p_get_txcnt(pid), &conf)) < 0)
         pktgen_log_panic("Cannot configure device: port=%d, Num queues %d,%d", pid,
                          l2p_get_rxcnt(pid), l2p_get_txcnt(pid));

@@ -60,8 +60,8 @@ print_stats(void)
     for (int i = 0; i < info->num_mappings; i++)
         printf("%s ", info->mappings[i]);
     printf("\n");
-    printf("          MBUFs:%'u Rx/Tx:%'d/%'d TxRate:%u%%, PID:%d\n", info->mbuf_count,
-           info->nb_rxd, info->nb_txd, info->tx_rate, getpid());
+    printf("          MBUFs:%'u Size:%'u Rx/Tx:%'d/%'d TxRate:%u%%, PID:%d\n", info->mbuf_count,
+           info->mbuf_size, info->nb_rxd, info->nb_txd, info->tx_rate, getpid());
 
     for (uint16_t pid = 0; pid < info->num_ports; pid++) {
         l2p_port_t *port = &info->ports[pid];

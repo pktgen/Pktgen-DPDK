@@ -32,7 +32,7 @@
 #include "l2p.h"
 #include "utils.h"
 
-static l2p_t l2p_info, *l2p;
+static l2p_t l2p_info, *l2p = &l2p_info;
 
 l2p_t *
 l2p_get(void)
@@ -48,13 +48,8 @@ l2p_get(void)
 void
 l2p_create(void)
 {
-    memset(&l2p_info, 0, sizeof(l2p_t));
-
-    l2p = &l2p_info;
-    for (int i = 0; i < RTE_MAX_ETHPORTS; i++) {
+    for (int i = 0; i < RTE_MAX_ETHPORTS; i++)
         l2p->ports[i].pid = RTE_MAX_ETHPORTS + 1;
-        pthread_spin_init(&l2p->ports[i].lock, PTHREAD_PROCESS_PRIVATE);
-    }
 }
 
 static struct rte_mempool *
@@ -70,7 +65,7 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
 
     snprintf(name, sizeof(name) - 1, "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
 
-    const int bufSize = PG_JUMBO_FRAME_LEN;
+    const int bufSize = pktgen.mbuf_buf_size;
 
     sz = nb_mbufs * bufSize;
     sz = RTE_ALIGN_CEIL(sz + sizeof(struct rte_mempool), 1024);
@@ -99,8 +94,8 @@ parse_cores(uint16_t pid, const char *cores, int mode)
     char *core_map   = NULL;
     int num_cores    = 0, l, h, num_fields;
     char *fields[3]  = {0}, *f0, *f1;
+    int mbuf_count   = MAX_MBUFS_PER_PORT(DEFAULT_RX_DESC, DEFAULT_TX_DESC);
     char name[64];
-    int mbuf_count = MAX_MBUFS_PER_PORT(DEFAULT_RX_DESC, DEFAULT_TX_DESC);
 
     core_map = alloca(MAX_ALLOCA_SIZE);
     if (!core_map)
@@ -120,8 +115,6 @@ parse_cores(uint16_t pid, const char *cores, int mode)
 
     l = strtol(f0, NULL, 10);
     h = strtol(f1, NULL, 10);
-
-    printf("#### f0 %s, f1 %s, Lid %u to %u\n", f0, f1, l, h);
 
     do {
         l2p_lport_t *lport;

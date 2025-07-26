@@ -16,6 +16,7 @@
 #include <rte_atomic.h>
 
 #include <pktgen-pcap.h>
+#include <pktgen-log.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +37,6 @@ enum { LCORE_MODE_UNKNOWN = 0, LCORE_MODE_RX = 1, LCORE_MODE_TX = 2, LCORE_MODE_
 struct port_info_s;
 
 typedef struct l2p_port_s {
-    pthread_spinlock_t lock;                       /* Lock for this port */
     struct port_info_s *pinfo;                     /* Port information pointer */
     uint16_t pid;                                  /* Port ID attached to lcore */
     uint16_t num_rx_qids;                          /* Number of Rx queues */
@@ -63,6 +63,20 @@ typedef struct {
     uint16_t num_ports;                 /* Number of ports */
 } l2p_t;
 
+#define L2P_ERR(fmt, args...) printf("%s: " fmt "\n", __func__, ##args);
+
+#define L2P_ERR_RET(fmt, args...) \
+    do {                          \
+        L2P_ERR(fmt, ##args);     \
+        return -1;                \
+    } while (0)
+
+#define L2P_NULL_RET(fmt, args...) \
+    do {                           \
+        L2P_ERR(fmt, ##args);      \
+        return NULL;               \
+    } while (0)
+
 l2p_t *l2p_get(void);
 
 static __inline__ l2p_port_t *
@@ -70,10 +84,8 @@ l2p_get_port(uint16_t pid)
 {
     l2p_t *l2p = l2p_get();
 
-    if ((pid < RTE_MAX_ETHPORTS) && (l2p->ports[pid].pid < RTE_MAX_ETHPORTS))
-        return &l2p->ports[pid];
-    else
-        return NULL;
+    return ((pid < RTE_MAX_ETHPORTS) && (l2p->ports[pid].pid < RTE_MAX_ETHPORTS)) ? &l2p->ports[pid]
+                                                                                  : NULL;
 }
 
 static __inline__ uint16_t
@@ -119,7 +131,7 @@ l2p_get_rx_mp(uint16_t pid)
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
-        return NULL;
+        L2P_NULL_RET("Invalid port ID %u", pid);
 
     return l2p->ports[pid].rx_mp;
 }
@@ -130,7 +142,7 @@ l2p_get_tx_mp(uint16_t pid)
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
-        return NULL;
+        L2P_NULL_RET("Invalid port ID %u", pid);
 
     return l2p->ports[pid].tx_mp;
 }
@@ -141,7 +153,7 @@ l2p_get_special_mp(uint16_t pid)
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
-        return NULL;
+        L2P_NULL_RET("Invalid port ID %u", pid);
 
     return l2p->ports[pid].special_mp;
 }
@@ -152,7 +164,8 @@ l2p_get_type(uint16_t lid)
     l2p_t *l2p = l2p_get();
 
     if (lid >= RTE_MAX_LCORE)
-        return -1;
+        L2P_ERR_RET("Invalid lcore ID %u", lid);
+
     return l2p->lports[lid]->mode;
 }
 
@@ -161,10 +174,7 @@ l2p_get_port_pinfo(uint16_t pid)
 {
     l2p_port_t *port = l2p_get_port(pid);
 
-    if (port == NULL)
-        return NULL;
-
-    return port->pinfo;
+    return (port == NULL) ? NULL : port->pinfo;
 }
 
 static __inline__ int
@@ -173,7 +183,7 @@ l2p_set_port_pinfo(uint16_t pid, struct port_info_s *pinfo)
     l2p_port_t *port = l2p_get_port(pid);
 
     if (port == NULL)
-        return -1;
+        L2P_ERR_RET("Invalid port ID %u", pid);
 
     port->pinfo = pinfo;
     return 0;
@@ -187,7 +197,7 @@ l2p_get_pinfo_by_lcore(uint16_t lid)
 
     if (lid >= RTE_MAX_LCORE || l2p->lports[lid]->lid >= RTE_MAX_LCORE ||
         (port = l2p->lports[lid]->port) == NULL)
-        return NULL;
+        L2P_NULL_RET("Invalid lcore ID %u", lid);
 
     return port->pinfo;
 }
@@ -200,7 +210,7 @@ l2p_set_pinfo_by_lcore(uint16_t lid, struct port_info_s *pinfo)
 
     if (lid >= RTE_MAX_LCORE || l2p->lports[lid]->lid >= RTE_MAX_LCORE ||
         (port = l2p->lports[lid]->port) == NULL)
-        return -1;
+        L2P_ERR_RET("Invalid lcore ID %u", lid);
 
     port->pinfo = pinfo;
 
@@ -284,7 +294,7 @@ l2p_get_pcap(uint16_t pid)
 
     if (pid < RTE_MAX_ETHPORTS && l2p->ports[pid].pid < RTE_MAX_ETHPORTS)
         return l2p->ports[pid].pcap_info;
-    return NULL;
+    L2P_NULL_RET("Invalid port ID %u", pid);
 }
 
 static __inline__ int
@@ -293,7 +303,7 @@ l2p_set_pcap_info(uint16_t pid, pcap_info_t *pcap_info)
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS || l2p->ports[pid].pid >= RTE_MAX_ETHPORTS)
-        return -1;
+        L2P_ERR_RET("Invalid port ID %u", pid);
     l2p->ports[pid].pcap_info = pcap_info;
     return 0;
 }
@@ -305,7 +315,7 @@ l2p_get_pcap_mp(uint16_t pid)
 
     if (pid >= RTE_MAX_ETHPORTS || l2p->ports[pid].pid >= RTE_MAX_ETHPORTS ||
         l2p->ports[pid].pcap_info == NULL)
-        return NULL;
+        L2P_NULL_RET("Invalid port ID %u", pid);
 
     return l2p->ports[pid].pcap_info->mp;
 }
@@ -316,7 +326,7 @@ l2p_set_pcap_mp(uint16_t pid, struct rte_mempool *mp)
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS || l2p->ports[pid].pid >= RTE_MAX_ETHPORTS)
-        return -1;
+        L2P_ERR_RET("Invalid port ID %u", pid);
 
     l2p->ports[pid].pcap_info->mp = mp;
     return 0;

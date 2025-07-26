@@ -293,7 +293,7 @@ rte_eth_desc_lim_dump(FILE *f, struct rte_eth_desc_lim *lim, int tx_flag)
 static inline void
 rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_flag)
 {
-    fprintf(f, "  %s: Port Config\n", tx_flag ? "Tx" : "Rx");
+    fprintf(f, "  %s: Port Config (Default)\n", tx_flag ? "Tx" : "Rx");
 
     fprintf(f,
             "     burst_size     :%5" PRIu16 "  ring_size       :%5" PRIu16
@@ -414,8 +414,7 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 static inline void
 rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 {
-    struct rte_eth_dev_info dev_info;
-    struct rte_eth_dev_info *di = &dev_info;
+    struct rte_eth_dev_info dev_info, *di = &dev_info;
     char buf[512];
 
     if (rte_eth_dev_info_get(pid, &dev_info) < 0) {
@@ -429,7 +428,7 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     char dev_name[64];
 
     rte_eth_dev_get_name_by_port(pid, dev_name);
-    fprintf(f, "** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n", dev_name,
+    fprintf(f, "\n** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n", dev_name,
             di->if_index, *di->dev_flags);
 
     fprintf(f,

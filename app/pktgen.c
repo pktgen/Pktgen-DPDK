@@ -37,6 +37,8 @@ TXlib */
 #include <pthread.h>
 #include <sched.h>
 
+#define TX_DEBUG_PERF 0
+
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
@@ -45,47 +47,6 @@ next_poisson_time(double rateParameter)
 {
     return -logf(1.0f - ((double)random()) / (double)(RAND_MAX)) / rateParameter;
 }
-
-#ifdef TX_DEBUG
-/* dump a mbuf on console */
-static void
-pg_pktmbuf_dump(FILE *f, const struct rte_mbuf *m, unsigned dump_len)
-{
-    unsigned int len;
-    unsigned int nb_segs;
-
-    fprintf(f, "dump mbuf at %p, iova=%#" PRIx64 ", buf_len=%u, mempool '%s'\n", m,
-            rte_mbuf_iova_get(m), m->buf_len, m->pool->name);
-    fprintf(f, "  pkt_len=%u, ol_flags=%#" PRIx64 ", nb_segs=%u, port=%u", m->pkt_len, m->ol_flags,
-            m->nb_segs, m->port);
-
-    if (m->ol_flags & (RTE_MBUF_F_RX_QINQ | RTE_MBUF_F_TX_QINQ))
-        fprintf(f, ", vlan_tci_outer=%u", m->vlan_tci_outer);
-
-    if (m->ol_flags & (RTE_MBUF_F_RX_VLAN | RTE_MBUF_F_TX_VLAN))
-        fprintf(f, ", vlan_tci=%u", m->vlan_tci);
-
-    fprintf(f, ", ptype=%#" PRIx32 "\n", m->packet_type);
-
-    nb_segs = m->nb_segs;
-
-    while (m && nb_segs != 0) {
-        __rte_mbuf_sanity_check(m, 0);
-
-        fprintf(f, "  segment at %p, data=%p, len=%u, off=%u, refcnt=%u\n", m,
-                rte_pktmbuf_mtod(m, void *), m->data_len, m->data_off, rte_mbuf_refcnt_read(m));
-
-        len = dump_len;
-        if (len > m->data_len)
-            len = m->data_len;
-        if (len != 0)
-            rte_hexdump(f, NULL, rte_pktmbuf_mtod(m, void *), len);
-        dump_len -= len;
-        m = m->next;
-        nb_segs--;
-    }
-}
-#endif
 
 /**
  *
@@ -142,11 +103,12 @@ pktgen_packet_rate(port_info_t *port)
     }
 
     link_speed = (uint64_t)port->link.link_speed * Million;
-    pps        = (((link_speed / wire_size) * ((port->tx_rate == 0) ? 1.0 : port->tx_rate)) / 100);
+    pps        = (((link_speed / wire_size) * ((port->tx_rate == 0) ? 1 : port->tx_rate)) / 100);
     pps        = ((pps > 0) ? pps : 1);
     cpb        = (rte_get_timer_hz() / pps) * (uint64_t)port->tx_burst; /* Cycles per Burst */
 
-    port->tx_cycles = (uint64_t)l2p_get_txcnt(port->pid) * cpb;
+    // divide up the work between the number of transmit queues, so multiple by queue count.
+    port->tx_cycles = cpb * (uint64_t)l2p_get_txcnt(port->pid);
     port->tx_pps    = pps;
 }
 
@@ -161,7 +123,7 @@ pktgen_packet_rate(port_info_t *port)
  *
  * SEE ALSO:
  */
-static __inline__ void
+static inline void
 pktgen_fill_pattern(uint8_t *p, uint16_t len, uint32_t type, char *user)
 {
     uint32_t i;
@@ -260,7 +222,7 @@ pktgen_find_matching_ipdst(port_info_t *pinfo, uint32_t addr)
     return ret;
 }
 
-static __inline__ tstamp_t *
+static inline tstamp_t *
 pktgen_tstamp_pointer(port_info_t *pinfo __rte_unused, char *p)
 {
     int offset = 0;
@@ -312,32 +274,6 @@ pktgen_tstamp_inject(port_info_t *pinfo, uint16_t qid)
     }
 }
 
-#ifdef TX_DEBUG
-static __inline__ void
-pktgen_validate_pkt(rte_mbuf_t *mbuf)
-{
-    int dump         = 0;
-    const char *msg  = NULL;
-    uint16_t pkt_len = rte_pktmbuf_pkt_len(mbuf);
-
-    if (pkt_len > RTE_ETHER_MAX_LEN) {
-        dump = 1;
-        msg  = "Packet too long";
-    } else if (pkt_len < (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN)) {
-        dump = 1;
-        msg  = "Packet too short";
-    }
-
-    if (dump) {
-        printf("*** %s (len %u) %s ***\n", msg, pkt_len, mbuf->pool->name);
-        pg_pktmbuf_dump(stdout, mbuf, 64);
-    }
-    if (rte_pktmbuf_pkt_len(mbuf) > (RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN))
-        printf("%s: pkt_len %u Mempool '%s'\n", __func__, rte_pktmbuf_pkt_len(mbuf),
-               mbuf->pool->name);
-}
-#endif
-
 void
 tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
@@ -345,13 +281,8 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
         uint16_t sent, to_send = nb_pkts;
 
         pinfo->queue_stats.q_opackets[qid] += nb_pkts;
-        for (int i = 0; i < nb_pkts; i++) {
+        for (int i = 0; i < nb_pkts; i++)
             pinfo->queue_stats.q_obytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-#ifdef TX_DEBUG
-            pktgen_write_mbuf_to_pcap_file(pinfo->pcap_file, pkts[i]);
-            pktgen_validate_pkt(pkts[i]);
-#endif
-        }
 
         if (pktgen_tst_port_flags(pinfo, SEND_RANDOM_PKTS))
             pktgen_rnd_bits_apply(pinfo, pkts, to_send, NULL);
@@ -367,7 +298,7 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
     }
 }
 
-static __inline__ void
+static inline void
 pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
     int lid = rte_lcore_id();
@@ -447,7 +378,7 @@ pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts
  *
  * SEE ALSO:
  */
-static __inline__ void
+static inline void
 pktgen_tx_flush(port_info_t *pinfo, uint16_t qid)
 {
     rte_eth_tx_done_cleanup(pinfo->pid, qid, 0);
@@ -464,7 +395,7 @@ pktgen_tx_flush(port_info_t *pinfo, uint16_t qid)
  *
  * SEE ALSO:
  */
-static __inline__ void
+static inline void
 pktgen_exit_cleanup(uint8_t lid __rte_unused)
 {
 }
@@ -707,7 +638,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
  *
  * SEE ALSO:
  */
-static __inline__ pktType_e
+static inline pktType_e
 pktgen_packet_type(struct rte_mbuf *m)
 {
     pktType_e ret;
@@ -828,7 +759,7 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
  * SEE ALSO:
  */
 #define PREFETCH_OFFSET 3
-static __inline__ void
+static inline void
 pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
 {
     int j, i;
@@ -903,7 +834,7 @@ struct pkt_setup_s {
     port_info_t *pinfo;
 };
 
-static __inline__ void
+static inline void
 mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
                  unsigned obj_idx __rte_unused)
 {
@@ -993,10 +924,9 @@ pktgen_setup_packets(uint16_t pid)
     if (port == NULL)
         rte_exit(EXIT_FAILURE, "Invalid l2p port for %d\n", pid);
 
-    /* Make sure we are not updating the mempool from two different lcores */
-    pthread_spin_lock(&port->lock);
-
     if (pktgen_tst_port_flags(pinfo, SETUP_TRANSMIT_PKTS)) {
+        pktgen_clr_port_flags(pinfo, SETUP_TRANSMIT_PKTS);
+
         if (!pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS)) {
             struct pkt_setup_s s;
             int32_t idx = SINGLE_PKT;
@@ -1012,9 +942,7 @@ pktgen_setup_packets(uint16_t pid)
             s.seq_idx = idx;
             rte_mempool_obj_iter(tx_mp, mempool_setup_cb, &s);
         }
-        pktgen_clr_port_flags(pinfo, SETUP_TRANSMIT_PKTS);
     }
-    pthread_spin_unlock(&port->lock);
 }
 
 /**
@@ -1028,7 +956,7 @@ pktgen_setup_packets(uint16_t pid)
  *
  * SEE ALSO:
  */
-static __inline__ void
+void
 pktgen_send_pkts(port_info_t *pinfo, uint16_t qid, struct rte_mempool *mp)
 {
     uint64_t txCnt;
@@ -1060,19 +988,15 @@ pktgen_send_pkts(port_info_t *pinfo, uint16_t qid, struct rte_mempool *mp)
  *
  * SEE ALSO:
  */
-static void
+static inline void
 pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
 {
-    struct rte_mempool *mp = NULL;
-
     /* Transmit ARP/Ping packets if needed */
     pktgen_send_special(pinfo);
 
     /* When not transmitting on this port then continue. */
     if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        mp = l2p_get_tx_mp(pinfo->pid);
-
-        pktgen_setup_packets(pinfo->pid);
+        struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
 
         pinfo->qcnt[qid]++; /* Count the number of times queue is sending */
 
@@ -1095,7 +1019,7 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
  *
  * SEE ALSO:
  */
-static __inline__ void
+static inline void
 pktgen_main_receive(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts_burst,
                     uint16_t nb_pkts)
 {
@@ -1194,6 +1118,23 @@ pktgen_main_rxtx_loop(void)
     pktgen_exit_cleanup(lid);
 }
 
+#if TX_DEBUG_PERF
+static __inline__ void
+do_tx_process(port_info_t *pinfo, struct rte_mempool *mp, uint16_t tx_qid, struct rte_mbuf **mbufs,
+              uint16_t n_mbufs)
+{
+    /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
+    if (rte_mempool_get_bulk(mp, (void **)mbufs, n_mbufs) == 0) {
+        uint16_t nb_pkts = rte_eth_tx_burst(pinfo->pid, tx_qid, mbufs, n_mbufs);
+        if (unlikely(nb_pkts != n_mbufs)) {
+            pktgen_log_info("rte_eth_tx_burst returned %u of %u packets", nb_pkts, n_mbufs);
+            rte_mempool_put_bulk(mp, (void **)&mbufs[nb_pkts], n_mbufs - nb_pkts);
+        }
+    } else
+        pktgen_log_info("rte_mempool_get_bulk failed");
+}
+#endif
+
 /**
  *
  * pktgen_main_tx_loop - Main transmit loop for a core, no receive packet handling
@@ -1208,16 +1149,20 @@ pktgen_main_rxtx_loop(void)
 static void
 pktgen_main_tx_loop(void)
 {
-    port_info_t *pinfo;
-    uint64_t curr_tsc, tx_next_cycle, tx_bond_cycle;
     uint16_t tx_qid, lid = rte_lcore_id();
+    port_info_t *pinfo = l2p_get_pinfo_by_lcore(lid);
+    uint64_t curr_tsc, tx_next_cycle, tx_bond_cycle;
+#if TX_DEBUG_PERF
+    uint16_t tx_burst = pinfo->tx_burst;
+    struct rte_mbuf *mbufs[MAX_PKT_TX_BURST];
+    struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
+#endif
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
         rte_exit(0, "Invalid initial lcore assigned to a port");
     }
 
-    pinfo  = l2p_get_pinfo_by_lcore(lid);
     tx_qid = l2p_get_txqid(lid);
 
     printf("TX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, tx_qid,
@@ -1234,7 +1179,12 @@ pktgen_main_tx_loop(void)
         if (curr_tsc >= tx_next_cycle) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
+#if TX_DEBUG_PERF
+            if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS))
+                do_tx_process(pinfo, mp, tx_qid, mbufs, tx_burst);
+#else
             pktgen_main_transmit(pinfo, tx_qid);
+#endif
         }
         if (curr_tsc >= tx_bond_cycle) {
             tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;

@@ -29,6 +29,7 @@
 #define MAPPING_OPT     "map"
 #define TIMEOUT_OPT     "timeout"
 #define PROMISCUOUS_OPT "no-promiscuous"
+#define JUMBO_OPT       "jumbo"
 #define MBUF_COUNT_OPT  "mbuf-count"
 #define FGEN_STRING_OPT "fgen"
 #define FGEN_FILE_OPT   "fgen-file"
@@ -47,6 +48,7 @@ static const struct option lgopts[] = {
 	{TIMEOUT_OPT,		    1, 0, 'T'},
     {MBUF_COUNT_OPT,        1, 0, 'M'},
 	{PROMISCUOUS_OPT,       0, 0, 'P'},
+	{JUMBO_OPT,             0, 0, 'j'},
 	{FGEN_STRING_OPT,       0, 0, 'f'},
 	{FGEN_FILE_OPT,         0, 0, 'F'},
     {VERBOSE_OPT,           0, 0, 'v'},
@@ -57,7 +59,7 @@ static const struct option lgopts[] = {
 };
 // clang-format on
 
-static const char *short_options = "t:b:s:r:d:m:T:M:F:f:Pvhtu";
+static const char *short_options = "t:b:s:r:d:m:T:M:F:f:Pjvhtu";
 
 /* display usage */
 void
@@ -76,6 +78,7 @@ usage(int err)
         "\t-M|--mbuf-count <count>  Number of mbufs to allocate (default %'d, max %'d)\n"
         "\t-t|--tcp                 Use TCP\n"
         "\t-u|--udp                 Use UDP (default UDP)\n"
+        "\t-j|--jumbo               Enable jumbo frame support\n"
         "\t-f|--fgen <string>       FGEN string to load\n"
         "\t-F|--fgen-file <file>    FGEN file to load\n"
         "\t-v|--verbose             Verbose output\n"
@@ -90,15 +93,18 @@ static struct rte_mempool *
 create_pktmbuf_pool(const char *type, uint16_t lid, uint16_t pid, uint32_t nb_mbufs,
                     uint32_t cache_size)
 {
+    struct rte_mempool *mp;
     char name[RTE_MEMZONE_NAMESIZE];
-
-    printf("Creating %s mbuf pool for lcore %3u, port %2u, MBUF Count %'u on NUMA %d\n", type, lid,
-           pid, nb_mbufs, pg_eth_dev_socket_id(pid));
 
     /* Create the pktmbuf pool one per lcore/port */
     snprintf(name, sizeof(name) - 1, "%s-%u/%u", type, lid, pid);
-    return rte_pktmbuf_pool_create(name, info->mbuf_count, cache_size, 0, RTE_MBUF_DEFAULT_BUF_SIZE,
-                                   pg_eth_dev_socket_id(pid));
+
+    printf("Creating %s mbuf pool for lcore %3u, port %2u, MBUF Count %'u, size %'u on NUMA %d\n",
+           name, lid, pid, nb_mbufs, info->mbuf_size, pg_eth_dev_socket_id(pid));
+
+    mp = rte_pktmbuf_pool_create(name, info->mbuf_count, cache_size, 0, info->mbuf_size,
+                                 pg_eth_dev_socket_id(pid));
+    return mp;
 }
 
 static int
@@ -253,6 +259,64 @@ parse_mapping(const char *map)
     return EXIT_SUCCESS;
 }
 
+static void
+validate_args(void)
+{
+    if (info->tx_rate > MAX_TX_RATE)
+        info->tx_rate = DEFAULT_TX_RATE;
+    DBG_PRINT("Packet Tx rate: %'u\n", info->tx_rate);
+
+    if (info->burst_count <= 0)
+        info->burst_count = DEFAULT_BURST_COUNT;
+    else if (info->burst_count > MAX_BURST_COUNT)
+        info->burst_count = MAX_BURST_COUNT;
+    DBG_PRINT("RX/TX burst count: %'u\n", info->burst_count);
+
+    if (info->pkt_size <= 0)
+        info->pkt_size = DEFAULT_PKT_SIZE;
+    else if (info->pkt_size > MAX_PKT_SIZE)
+        info->pkt_size = MAX_PKT_SIZE;
+    DBG_PRINT("Packet size: %'u\n", info->pkt_size);
+
+    if (info->mbuf_count < DEFAULT_MBUF_COUNT)
+        info->mbuf_count = DEFAULT_MBUF_COUNT;
+    else if (info->mbuf_count > MAX_MBUF_COUNT) {
+        ERR_PRINT("invalid MBUF Count value 1 <= %'u <= %'d (default %'d)\n", info->mbuf_count,
+                  MAX_MBUF_COUNT, DEFAULT_MBUF_COUNT);
+        usage(EXIT_FAILURE);
+    }
+    DBG_PRINT("Timeout period: %'u\n", info->timeout_secs);
+
+    if (info->nb_rxd < MIN_RX_DESC || info->nb_rxd > MAX_RX_DESC)
+        info->nb_rxd = DEFAULT_RX_DESC;
+    if (info->nb_txd < MIN_TX_DESC || info->nb_txd > MAX_TX_DESC)
+        info->nb_txd = DEFAULT_TX_DESC;
+    DBG_PRINT("Rx/Tx Ring Size: %'u/%'u\n", info->nb_rxd, info->nb_txd);
+
+    if (info->timeout_secs <= 0)
+        info->timeout_secs = DEFAULT_TIMEOUT_PERIOD;
+    else if (info->timeout_secs > MAX_TIMEOUT_PERIOD) {
+        ERR_PRINT("invalid timeout value 1 <= %'u <= %'d (default %d)\n", info->timeout_secs,
+                  MAX_TIMEOUT_PERIOD, DEFAULT_TIMEOUT_PERIOD);
+        usage(EXIT_FAILURE);
+    }
+    DBG_PRINT("Timeout period: %'u\n", info->timeout_secs);
+
+    printf("num_ports: %'u, nb_rxd %'u, nb_txd %'u, burst %'u, lcores %'u\n", info->num_ports,
+           info->nb_rxd, info->nb_txd, info->burst_count, rte_lcore_count());
+    info->mbuf_count += info->num_ports * (info->nb_rxd + info->nb_txd + info->burst_count +
+                                           (rte_lcore_count() * MEMPOOL_CACHE_SIZE));
+    info->mbuf_count = RTE_MAX(info->mbuf_count, DEFAULT_MBUF_COUNT);
+
+    DBG_PRINT("TX packet application started, Burst size %'u, Packet size %'u, Rate %u%%\n",
+              info->burst_count, info->pkt_size, info->tx_rate);
+
+    if (info->num_mappings == 0) {
+        ERR_PRINT("No port mappings specified, use '-m' option\n");
+        usage(EXIT_FAILURE);
+    }
+}
+
 /* Parse the argument given on the command line of the application */
 static int
 parse_args(int argc, char **argv)
@@ -266,11 +330,13 @@ parse_args(int argc, char **argv)
     argvopt = argv;
 
     info->promiscuous_on = DEFAULT_PROMISCUOUS_MODE;
+    info->jumbo_frame_on = DEFAULT_JUMBO_FRAME_MODE;
     info->timeout_secs   = DEFAULT_TIMEOUT_PERIOD;
     info->burst_count    = DEFAULT_BURST_COUNT;
     info->nb_rxd         = DEFAULT_RX_DESC;
     info->nb_txd         = DEFAULT_TX_DESC;
     info->mbuf_count     = DEFAULT_MBUF_COUNT;
+    info->mbuf_size      = RTE_MBUF_DEFAULT_BUF_SIZE;
     info->pkt_size       = DEFAULT_PKT_SIZE;
     info->tx_rate        = DEFAULT_TX_RATE;
     info->ip_proto       = IPPROTO_UDP;
@@ -281,27 +347,14 @@ parse_args(int argc, char **argv)
         switch (opt) {
         case 'b': /* RX/TX burst option */
             info->burst_count = strtoul(optarg, NULL, 10);
-            if (info->burst_count <= 0)
-                info->burst_count = DEFAULT_BURST_COUNT;
-            else if (info->burst_count > MAX_BURST_COUNT)
-                info->burst_count = MAX_BURST_COUNT;
-            DBG_PRINT("RX/TX burst count: %'u\n", info->burst_count);
             break;
 
         case 's': /* Packet size option */
             info->pkt_size = strtoul(optarg, NULL, 10);
-            if (info->pkt_size <= 0)
-                info->pkt_size = DEFAULT_PKT_SIZE;
-            else if (info->pkt_size > MAX_PKT_SIZE)
-                info->pkt_size = MAX_PKT_SIZE;
-            DBG_PRINT("Packet size: %'u\n", info->pkt_size);
             break;
 
         case 'r': /* Tx Rate option */
             info->tx_rate = strtoul(optarg, NULL, 10);
-            if (info->tx_rate > MAX_TX_RATE)
-                info->tx_rate = DEFAULT_TX_RATE;
-            DBG_PRINT("Packet Tx rate: %'u\n", info->tx_rate);
             break;
 
         case 'd': /* Number of Rx/Tx descriptors */
@@ -309,12 +362,7 @@ parse_args(int argc, char **argv)
             if (rte_strsplit(rxtx_desc, strlen(rxtx_desc), descs, RTE_DIM(descs), '/') != 2)
                 ERR_RET("Invalid Rx/Tx descriptors '%s'\n", optarg);
             info->nb_rxd = strtoul(descs[0], NULL, 10);
-            if (info->nb_rxd < MIN_RX_DESC || info->nb_rxd > MAX_RX_DESC)
-                info->nb_rxd = DEFAULT_RX_DESC;
             info->nb_txd = strtoul(descs[1], NULL, 10);
-            if (info->nb_txd < MIN_TX_DESC || info->nb_txd > MAX_TX_DESC)
-                info->nb_txd = DEFAULT_TX_DESC;
-            DBG_PRINT("Rx/Tx Ring Size: %'u/%'u\n", info->nb_rxd, info->nb_txd);
             break;
 
         case 'm': /* Mapping option */
@@ -326,26 +374,10 @@ parse_args(int argc, char **argv)
 
         case 'T': /* Timeout option */
             info->timeout_secs = strtol(optarg, NULL, 0);
-            if (info->timeout_secs <= 0)
-                info->timeout_secs = DEFAULT_TIMEOUT_PERIOD;
-            else if (info->timeout_secs > MAX_TIMEOUT_PERIOD) {
-                ERR_PRINT("invalid timeout value 1 <= %'u <= %'d (default %d)\n",
-                          info->timeout_secs, MAX_TIMEOUT_PERIOD, DEFAULT_TIMEOUT_PERIOD);
-                usage(EXIT_FAILURE);
-            }
-            DBG_PRINT("Timeout period: %'u\n", info->timeout_secs);
             break;
 
         case 'M': /* MBUF Count */
             info->mbuf_count = strtol(optarg, NULL, 0);
-            if (info->mbuf_count < DEFAULT_MBUF_COUNT)
-                info->mbuf_count = DEFAULT_MBUF_COUNT;
-            else if (info->mbuf_count > MAX_MBUF_COUNT) {
-                ERR_PRINT("invalid MBUF Count value 1 <= %'u <= %'d (default %'d)\n",
-                          info->mbuf_count, MAX_MBUF_COUNT, DEFAULT_MBUF_COUNT);
-                usage(EXIT_FAILURE);
-            }
-            DBG_PRINT("Timeout period: %'u\n", info->timeout_secs);
             break;
 
         case 'P': /* Promiscuous option */
@@ -375,6 +407,11 @@ parse_args(int argc, char **argv)
             info->ip_proto = IPPROTO_UDP;
             break;
 
+        case 'j': /* Jumbo frames */
+            info->mbuf_size      = JUMBO_MBUF_SIZE;
+            info->jumbo_frame_on = 1;
+            break;
+
         case 'v': /* Verbose option */
             info->verbose = true;
             break;
@@ -388,23 +425,10 @@ parse_args(int argc, char **argv)
             break;
         }
     }
+    validate_args();
 
     ret    = optind - 1;
     optind = 1; /* reset getopt lib */
-
-    printf("num_ports: %'u, nb_rxd %'u, nb_txd %'u, burst %'u, lcores %'u\n", info->num_ports,
-           info->nb_rxd, info->nb_txd, info->burst_count, rte_lcore_count());
-    info->mbuf_count += info->num_ports * (info->nb_rxd + info->nb_txd + info->burst_count +
-                                           (rte_lcore_count() * MEMPOOL_CACHE_SIZE));
-    info->mbuf_count = RTE_MAX(info->mbuf_count, DEFAULT_MBUF_COUNT);
-
-    DBG_PRINT("TX packet application started, Burst size %'u, Packet size %'u, Rate %u%%\n",
-              info->burst_count, info->pkt_size, info->tx_rate);
-
-    if (info->num_mappings == 0) {
-        ERR_PRINT("No port mappings specified, use '-m' option\n");
-        usage(EXIT_FAILURE);
-    }
 
     return ret;
 }

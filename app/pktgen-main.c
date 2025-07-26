@@ -160,7 +160,8 @@ pktgen_parse_args(int argc, char **argv)
         pktgen.argv[opt] = strdup(argv[opt]);
 
     pktgen.mbuf_dataroom = RTE_MBUF_DEFAULT_DATAROOM;
-    pktgen.mbuf_buf_size = RTE_MBUF_DEFAULT_BUF_SIZE;
+    pktgen.mbuf_headroom = RTE_PKTMBUF_HEADROOM;
+    pktgen.mbuf_buf_size = pktgen.mbuf_dataroom + pktgen.mbuf_headroom;
 
     pktgen.verbose = 0;
     while ((opt = getopt_long(argc, argvopt, "p:m:f:l:s:g:hPNGTvjtrc", lgopts, &option_index)) !=
@@ -178,8 +179,8 @@ pktgen_parse_args(int argc, char **argv)
 
         case 'j':
             pktgen.flags |= JUMBO_PKTS_FLAG;
-            pktgen.mbuf_dataroom = PG_JUMBO_FRAME_LEN;
-            pktgen.mbuf_buf_size = pktgen.mbuf_dataroom + RTE_PKTMBUF_HEADROOM;
+            pktgen.mbuf_dataroom = PG_JUMBO_DATAROOM_SIZE;
+            pktgen.mbuf_buf_size = pktgen.mbuf_dataroom + pktgen.mbuf_headroom;
 
             pktgen_log_info("**** Jumbo Frames of %'d enabled.", RTE_ETHER_MAX_JUMBO_FRAME_LEN);
             break;
@@ -473,10 +474,8 @@ main(int argc, char **argv)
     if (ret != 0)
         pktgen_log_error("Failed to start lcores, return %d", ret);
 
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    for (uint16_t i = 0; i < 4; i++)
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     fflush(stdout);
 
     /* Disable printing log messages of level info and below to screen, */

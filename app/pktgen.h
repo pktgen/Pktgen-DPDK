@@ -268,6 +268,7 @@ typedef struct pktgen_s {
     uint8_t nb_ports_per_page;             /**< Number of ports to display per page */
     uint16_t mbuf_dataroom;                /**< Size of data room in mbuf */
     uint16_t mbuf_buf_size;                /**< MBUF default buf size */
+    uint16_t mbuf_headroom;                /**< Size of headroom in mbuf */
     uint16_t nb_rxd;                       /**< Number of receive descriptors */
     uint16_t nb_txd;                       /**< Number of transmit descriptors */
     uint16_t curr_port;                    /**< Current Port number */
@@ -351,6 +352,8 @@ void stat_timer_dump(void);
 void stat_timer_clear(void);
 void pktgen_timer_setup(void);
 double next_poisson_time(double rateParameter);
+
+void pktgen_setup_packets(uint16_t pid);
 
 static inline uint64_t
 pktgen_get_time(void)

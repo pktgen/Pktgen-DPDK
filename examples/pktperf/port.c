@@ -28,6 +28,10 @@ static struct rte_eth_conf port_conf = {
             .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
             .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
         },
+    .txmode =
+        {
+            .mq_mode = RTE_ETH_MQ_TX_NONE,
+        },
 
     .rx_adv_conf =
         {
@@ -37,15 +41,24 @@ static struct rte_eth_conf port_conf = {
                     .rss_hf = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP | RTE_ETH_RSS_SCTP,
                 },
         },
-    .txmode =
-        {
-            .mq_mode = RTE_ETH_MQ_TX_NONE,
-        },
     .intr_conf =
         {
             .lsc = 0,
         },
 };
+
+static uint32_t
+eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
+{
+    uint32_t overhead_len;
+
+    if (max_mtu != UINT16_MAX && max_rx_pktlen > max_mtu)
+        overhead_len = max_rx_pktlen - max_mtu;
+    else
+        overhead_len = RTE_ETHER_HDR_LEN + RTE_ETHER_CRC_LEN;
+
+    return overhead_len;
+}
 
 int
 port_setup(l2p_port_t *port)
@@ -53,7 +66,7 @@ port_setup(l2p_port_t *port)
     uint16_t pid;
     struct rte_eth_rxconf rxq_conf;
     struct rte_eth_txconf txq_conf;
-    struct rte_eth_conf local_port_conf = port_conf;
+    struct rte_eth_conf conf = port_conf;
     struct rte_eth_dev_info dev_info;
 
     if (!port)
@@ -73,28 +86,53 @@ port_setup(l2p_port_t *port)
             ERR_RET("Error during getting device (port %u) info: %s\n", pid, strerror(-ret));
         DBG_PRINT("Driver: %s\n", dev_info.driver_name);
 
+        if (info->jumbo_frame_on) {
+            uint32_t eth_overhead_len;
+            uint32_t max_mtu;
+
+            conf.rxmode.max_lro_pkt_size = JUMBO_ETHER_MTU;
+            eth_overhead_len = eth_dev_get_overhead_len(dev_info.max_rx_pktlen, dev_info.max_mtu);
+            max_mtu          = dev_info.max_mtu - eth_overhead_len;
+            printf("Jumbo Frames enabled: Default Max Rx pktlen: %'u, MTU %'u, overhead len: %'u, "
+                   "New MTU %'d\n",
+                   dev_info.max_rx_pktlen, dev_info.max_mtu, eth_overhead_len, max_mtu);
+
+            /* device may have higher theoretical MTU e.g. for infiniband */
+            if (max_mtu > JUMBO_ETHER_MTU)
+                max_mtu = JUMBO_ETHER_MTU;
+            printf("Jumbo Frames enabled: Using Max MTU: %'d", max_mtu);
+
+            conf.rxmode.mtu = max_mtu;
+#if 0        // Tx performance takes a big hit when enabled
+            if (dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
+                conf.rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
+            if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
+                conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
+#endif
+        }
+
         if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
-            local_port_conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
+            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
 
         DBG_PRINT("Port %u configure with %u:%u queues\n", pid, port->num_rx_qids,
                   port->num_tx_qids);
 
-        local_port_conf.rx_adv_conf.rss_conf.rss_key = NULL;
-        local_port_conf.rx_adv_conf.rss_conf.rss_hf &= dev_info.flow_type_rss_offloads;
+        conf.rx_adv_conf.rss_conf.rss_key = NULL;
+        conf.rx_adv_conf.rss_conf.rss_hf &= dev_info.flow_type_rss_offloads;
         if (dev_info.max_rx_queues == 1)
-            local_port_conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
+            conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
 
         DBG_PRINT("Port %u configure with mode %" PRIx64 "\n", pid,
-                  local_port_conf.rx_adv_conf.rss_conf.rss_hf);
+                  conf.rx_adv_conf.rss_conf.rss_hf);
 
         if (dev_info.max_vfs) {
-            if (local_port_conf.rx_adv_conf.rss_conf.rss_hf != 0)
-                local_port_conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
+            if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
+                conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
         }
-        DBG_PRINT("Port %u configure with mode %u\n", pid, local_port_conf.rxmode.mq_mode);
+        DBG_PRINT("Port %u configure with mode %u\n", pid, conf.rxmode.mq_mode);
 
         /* Configure the number of queues for a port. */
-        ret = rte_eth_dev_configure(pid, port->num_rx_qids, port->num_tx_qids, &local_port_conf);
+        ret = rte_eth_dev_configure(pid, port->num_rx_qids, port->num_tx_qids, &conf);
         if (ret < 0)
             ERR_RET("Can't configure device: err=%d, port=%u\n", ret, pid);
 
@@ -109,7 +147,7 @@ port_setup(l2p_port_t *port)
                   RTE_ETHER_ADDR_BYTES(&port->mac_addr));
 
         rxq_conf          = dev_info.default_rxconf;
-        rxq_conf.offloads = local_port_conf.rxmode.offloads;
+        rxq_conf.offloads = conf.rxmode.offloads;
 
         ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
         if (ret < 0)
@@ -146,7 +184,7 @@ port_setup(l2p_port_t *port)
             uint32_t sid = pg_eth_dev_socket_id(pid);
 
             txq_conf          = dev_info.default_txconf;
-            txq_conf.offloads = local_port_conf.txmode.offloads;
+            txq_conf.offloads = conf.txmode.offloads;
 
             ret = rte_eth_tx_queue_setup(pid, q, info->nb_txd, sid, &txq_conf);
             if (ret < 0)

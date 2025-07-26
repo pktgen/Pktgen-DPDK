@@ -119,7 +119,7 @@ pktgen_print_static_data(void)
     for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
         pinfo = l2p_get_port_pinfo(pid + sp);
         if (pinfo == NULL)
-            continue;
+            break;
         pktgen_display_set_color("stats.stat.values");
 
         pkt = &pinfo->seq_pkt[SINGLE_PKT];
@@ -277,7 +277,7 @@ pktgen_page_stats(void)
     {
         pinfo = l2p_get_port_pinfo(pid);
         if (pinfo == NULL)
-            continue;
+            break;
 
         rate = &pinfo->rate_stats;
 
@@ -302,7 +302,7 @@ pktgen_page_stats(void)
     for (pid = 0; pid < pktgen.nb_ports_per_page; pid++) {
         pinfo = l2p_get_port_pinfo(pid + sp);
         if (pinfo == NULL)
-            continue;
+            break;
 
         memset(&sizes, 0, sizeof(pkt_sizes_t));
         memset(&stats, 0, sizeof(pkt_stats_t));
@@ -474,7 +474,7 @@ pktgen_process_stats(void)
     {
         pinfo = l2p_get_port_pinfo(pid);
         if (pinfo == NULL)
-            continue;
+            break;
 
         pktgen_get_link_status(pinfo);
 
@@ -541,6 +541,7 @@ pktgen_page_queue_stats(uint16_t pid)
     struct rte_eth_stats *s, *r;
     struct rte_ether_addr ethaddr;
     char buff[128], mac_buf[32], dev_name[64];
+    uint64_t ipackets, ibytes, opackets, obytes, errs;
     port_info_t *pinfo;
 
     pinfo = l2p_get_port_pinfo(pid);
@@ -590,8 +591,8 @@ pktgen_page_queue_stats(uint16_t pid)
     scrn_printf(row + 5, col, "%*s", width, buff);
 
     row += 6;
-
-    hdr = 0;
+    ipackets = ibytes = opackets = obytes = errs = 0;
+    hdr                                          = 0;
     for (q = 0; q < RTE_ETHDEV_QUEUE_STAT_CNTRS; q++) {
         uint64_t rxpkts, txpkts, txbytes, rxbytes, errors, qcnt;
 
@@ -599,8 +600,8 @@ pktgen_page_queue_stats(uint16_t pid)
             hdr = 1;
             row++;
             pktgen_display_set_color("stats.port.status");
-            scrn_printf(row++, 1, " Rate/s %12s %12s %12s %12s %12s %12s", "ipackets", "opackets",
-                        "ibytes MB", "obytes MB", "errors", "bursts");
+            scrn_printf(row++, 1, "%-8s: %14s %14s %14s %14s %14s %14s", "Rate/sec", "ipackets",
+                        "opackets", "ibytes MB", "obytes MB", "errors", "bursts");
             pktgen_display_set_color("stats.stat.values");
         }
 
@@ -612,11 +613,18 @@ pktgen_page_queue_stats(uint16_t pid)
         qcnt                = pinfo->qcnt[q] - pinfo->prev_qcnt[q];
         pinfo->prev_qcnt[q] = pinfo->qcnt[q];
 
-        scrn_printf(row++, 1, "  Q %2d: %'12lu %'12lu %'12lu %'12lu %'12lu %'12lu", q, rxpkts,
+        scrn_printf(row++, 1, "  Q %2d  : %'14lu %'14lu %'14lu %'14lu %'14lu %'14lu", q, rxpkts,
                     txpkts, rxbytes, txbytes, errors, qcnt);
+        ipackets += rxpkts;
+        ibytes += rxbytes;
+        opackets += txpkts;
+        obytes += txbytes;
+        errs += errors;
     }
+    scrn_printf(row++, 1, " %-7s: %'14lu %'14lu %'14lu %'14lu %'14lu", "Totals", ipackets, opackets,
+                ibytes, obytes, errs);
     pktgen_display_set_color(NULL);
-    display_dashline(++row);
+    display_dashline(row + 2);
     scrn_eol();
 }
 

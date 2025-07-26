@@ -81,6 +81,12 @@ extern "C" {
         }                                                              \
     } while (0)
 
+#define JUMBO_ETHER_MTU     9216        // 9K total size of the Ethernet jumbo frame
+#define JUMBO_DATAROOM_SIZE 9000        // 9K data room size in the Ethernet jumbo frame
+#define JUMBO_HEADROOM_SIZE \
+    (JUMBO_ETHER_MTU - JUMBO_DATAROOM_SIZE)        // 9K headroom size in the Ethernet jumbo frame
+#define JUMBO_MBUF_SIZE (JUMBO_ETHER_MTU + RTE_PKTMBUF_HEADROOM)
+
 enum {
     DEFAULT_PKT_SIZE         = 64,           /* Default packet size */
     DEFAULT_TX_RATE          = 100,          /* Default TX rate */
@@ -90,6 +96,7 @@ enum {
     DEFAULT_TX_DRAIN_US      = 100,          /* default TX drain every ~100us */
     DEFAULT_TIMEOUT_PERIOD   = 1,            /* 1 seconds default */
     DEFAULT_PROMISCUOUS_MODE = 1,            /* default to enabled */
+    DEFAULT_JUMBO_FRAME_MODE = 0,            /* default to disabled for jumbo frames */
     DEFAULT_MBUF_COUNT       = (8 * 1024),   /* default to 16K mbufs */
     MAX_MBUF_COUNT           = (128 * 1024), /* max to 128K mbufs */
     MIN_RX_DESC              = 512,          /* Minimum number of RX descriptors */
@@ -182,8 +189,10 @@ typedef struct {
 
     /* Configuration values from command line options */
     uint32_t mbuf_count;     /* Number of mbufs to allocate per port. */
+    uint32_t mbuf_size;      /* Size of the MBUFS being used */
     uint16_t tx_rate;        /* packet TX rate percentage */
     uint16_t promiscuous_on; /* Ports set in promiscuous mode off by default. */
+    uint16_t jumbo_frame_on; /* Enable jumbo frame support */
     uint16_t burst_count;    /* Burst size for RX and TX */
     uint16_t pkt_size;       /* Packet size with FCS */
     uint16_t nb_rxd;         /* number of RX descriptors */

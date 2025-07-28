@@ -362,11 +362,11 @@ pktgen_get_time(void)
         struct timespec tp;
 
         if (clock_gettime(CLOCK_REALTIME, &tp) < 0)
-            return rte_rdtsc_precise();
+            return rte_rdtsc();
 
         return rte_timespec_to_ns(&tp);
     } else
-        return rte_rdtsc_precise();
+        return rte_rdtsc();
 }
 
 static inline uint64_t

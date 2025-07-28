@@ -25,6 +25,7 @@ sources = files(
 	'pktgen-tcp.c',
 	'pktgen-udp.c',
 	'pktgen-vlan.c',
+	'pktgen-workq.c',
 	'pktgen.c',
 	'xorshift64star.c',
 )

@@ -33,11 +33,10 @@ TXlib */
 #include "pktgen-log.h"
 #include "pktgen-gtpu.h"
 #include "pktgen-sys.h"
+#include "pktgen-workq.h"
 
 #include <pthread.h>
 #include <sched.h>
-
-#define TX_DEBUG_PERF 0
 
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
@@ -420,6 +419,12 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
     char *l3_hdr              = (char *)&eth[1]; /* Pointer to l3 hdr location for GRE header */
     uint16_t pktsz            = (pktgen.flags & JUMBO_PKTS_FLAG) ? RTE_ETHER_MAX_JUMBO_FRAME_LEN
                                                                  : RTE_ETHER_MAX_LEN;
+    struct rte_eth_dev_info dev_info = {0};
+    int ret;
+
+    ret = rte_eth_dev_info_get(pinfo->pid, &dev_info);
+    if (ret < 0)
+        printf("Error during getting device (port %u) info: %s\n", pinfo->pid, strerror(-ret));
 
     /* Fill in the pattern for data space. */
     pktgen_fill_pattern((uint8_t *)pkt->hdr, pktsz, pinfo->fill_pattern_type, pinfo->user_pattern);
@@ -462,7 +467,7 @@ pktgen_packet_ctor(port_info_t *pinfo, int32_t seq_idx, int32_t type)
     else
         l3_hdr = pktgen_ether_hdr_ctor(pinfo, pkt);
 
-    uint64_t offload_capa = pinfo->dev_info.tx_offload_capa;
+    uint64_t offload_capa = dev_info.tx_offload_capa;
     if (likely(pkt->ethType == RTE_ETHER_TYPE_IPV4)) {
         bool ipv4_cksum_offload = offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
         if (likely(pkt->ipProto == PG_IPPROTO_TCP)) {
@@ -838,11 +843,17 @@ static inline void
 mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
                  unsigned obj_idx __rte_unused)
 {
-    struct rte_mbuf *m    = (struct rte_mbuf *)obj;
-    struct pkt_setup_s *s = (struct pkt_setup_s *)opaque;
-    port_info_t *pinfo    = s->pinfo;
+    struct rte_mbuf *m               = (struct rte_mbuf *)obj;
+    struct pkt_setup_s *s            = (struct pkt_setup_s *)opaque;
+    struct rte_eth_dev_info dev_info = {0};
+    port_info_t *pinfo               = s->pinfo;
     int32_t idx, seq_idx = s->seq_idx;
     pkt_seq_t *pkt;
+    int ret;
+
+    ret = rte_eth_dev_info_get(pinfo->pid, &dev_info);
+    if (ret != 0)
+        printf("Error during getting device (port %u) info: %s\n", pinfo->pid, strerror(-ret));
 
     idx = seq_idx;
     if (pktgen_tst_port_flags(pinfo, SEND_SEQ_PKTS)) {
@@ -868,7 +879,7 @@ mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
 
     switch (pkt->ethType) {
     case RTE_ETHER_TYPE_IPV4:
-        if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM)
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM)
             pkt->ol_flags = RTE_MBUF_F_TX_IP_CKSUM | RTE_MBUF_F_TX_IPV4;
         break;
 
@@ -877,7 +888,7 @@ mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
         break;
 
     case RTE_ETHER_TYPE_VLAN:
-        if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_VLAN_INSERT) {
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_VLAN_INSERT) {
             /* TODO */
         }
         break;
@@ -887,11 +898,11 @@ mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
 
     switch (pkt->ipProto) {
     case PG_IPPROTO_UDP:
-        if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM)
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM)
             pkt->ol_flags |= RTE_MBUF_F_TX_UDP_CKSUM;
         break;
     case PG_IPPROTO_TCP:
-        if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM)
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM)
             pkt->ol_flags |= RTE_MBUF_F_TX_TCP_CKSUM;
         break;
     default:
@@ -960,7 +971,7 @@ void
 pktgen_send_pkts(port_info_t *pinfo, uint16_t qid, struct rte_mempool *mp)
 {
     uint64_t txCnt;
-    struct rte_mbuf *pkts[pinfo->tx_burst];
+    struct rte_mbuf **pkts = pinfo->tx_pkts;
 
     if (!pktgen_tst_port_flags(pinfo, SEND_FOREVER)) {
         txCnt = pkt_atomic64_tx_count(&pinfo->current_tx_count, pinfo->tx_burst);
@@ -991,17 +1002,19 @@ pktgen_send_pkts(port_info_t *pinfo, uint16_t qid, struct rte_mempool *mp)
 static inline void
 pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
 {
+    uint16_t pid = pinfo->pid;
+
     /* Transmit ARP/Ping packets if needed */
     pktgen_send_special(pinfo);
 
     /* When not transmitting on this port then continue. */
     if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
+        struct rte_mempool *mp = l2p_get_tx_mp(pid);
 
         pinfo->qcnt[qid]++; /* Count the number of times queue is sending */
 
         if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS))
-            mp = l2p_get_pcap_mp(pinfo->pid);
+            mp = l2p_get_pcap_mp(pid);
 
         pktgen_send_pkts(pinfo, qid, mp);
     }
@@ -1020,10 +1033,10 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
  * SEE ALSO:
  */
 static inline void
-pktgen_main_receive(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts_burst,
-                    uint16_t nb_pkts)
+pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 {
-    uint16_t pid, nb_rx;
+    uint16_t nb_rx, nb_pkts = pinfo->rx_burst, pid;
+    struct rte_mbuf **pkts = pinfo->rx_pkts;
 
     if (unlikely(pktgen_tst_port_flags(pinfo, STOP_RECEIVING_PACKETS)))
         return;
@@ -1031,30 +1044,65 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts_bur
     pid = pinfo->pid;
 
     /* Read packets from RX queues and free the mbufs */
-    if (likely((nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, nb_pkts)) > 0)) {
+    if (likely((nb_rx = rte_eth_rx_burst(pid, qid, pkts, nb_pkts)) > 0)) {
         struct rte_eth_stats *qstats = &pinfo->queue_stats;
 
         qstats->q_ipackets[qid] += nb_rx;
         for (int i = 0; i < nb_rx; i++)
-            qstats->q_ibytes[qid] += rte_pktmbuf_pkt_len(pkts_burst[i]);
+            qstats->q_ibytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
 
-        pktgen_tstamp_check(pinfo, pkts_burst, nb_rx);
+        pktgen_tstamp_check(pinfo, pkts, nb_rx);
 
         /* classify the packets for the counters */
-        pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid, qid);
+        pktgen_packet_classify_bulk(pkts, nb_rx, pid, qid);
 
         if (unlikely(pinfo->dump_count > 0))
-            pktgen_packet_dump_bulk(pkts_burst, nb_rx, pid);
+            pktgen_packet_dump_bulk(pkts, nb_rx, pid);
 
         if (unlikely(pktgen_tst_port_flags(pinfo, CAPTURE_PKTS))) {
             capture_t *capture = &pktgen.capture[pg_socket_id()];
 
             if (unlikely(capture->port == pid))
-                pktgen_packet_capture_bulk(pkts_burst, nb_rx, capture);
+                pktgen_packet_capture_bulk(pkts, nb_rx, capture);
         }
 
-        rte_pktmbuf_free_bulk(pkts_burst, nb_rx);
+        rte_pktmbuf_free_bulk(pkts, nb_rx);
     }
+}
+
+static int
+pktgen_rx_workq_setup(uint16_t pid)
+{
+    workq_fn funcs[] = {pktgen_main_receive};
+
+    for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
+        if (workq_add(WORKQ_RX, pid, funcs[i]))
+            return -1;
+    }
+    return 0;
+}
+
+static int
+pktgen_tx_workq_setup(uint16_t pid)
+{
+    workq_fn funcs[] = {pktgen_main_transmit};
+
+    for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
+        if (workq_add(WORKQ_TX, pid, funcs[i]))
+            return -1;
+    }
+    return 0;
+}
+
+static int
+pktgen_workq_setup(workq_type_t wqt, uint16_t pid, void *arg)
+{
+    if (!rte_eth_dev_is_valid_port(pid))
+        return -1;
+
+    if (workq_port_arg_set(pid, arg))
+        return -1;
+    return (wqt == WORKQ_RX) ? pktgen_rx_workq_setup(pid) : pktgen_tx_workq_setup(pid);
 }
 
 /**
@@ -1073,9 +1121,8 @@ static void
 pktgen_main_rxtx_loop(void)
 {
     port_info_t *pinfo;
-    struct rte_mbuf *pkts_burst[MAX_PKT_RX_BURST];
     uint64_t curr_tsc, tx_next_cycle, tx_bond_cycle;
-    uint16_t rx_qid, tx_qid, lid = rte_lcore_id();
+    uint16_t pid, rx_qid, tx_qid, lid = rte_lcore_id();
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
@@ -1084,19 +1131,25 @@ pktgen_main_rxtx_loop(void)
 
     pinfo = l2p_get_pinfo_by_lcore(lid);
 
+    curr_tsc      = pktgen_get_time();
+    tx_next_cycle = curr_tsc;
+    tx_bond_cycle = curr_tsc + (pktgen_get_timer_hz() / 10);
+
+    pid    = pinfo->pid;
     rx_qid = l2p_get_rxqid(lid);
     tx_qid = l2p_get_txqid(lid);
 
     printf("RX/TX lid %3d, pid %2d, qids %2d/%2d Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
            tx_qid, l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
 
-    curr_tsc      = pktgen_get_time();
-    tx_next_cycle = curr_tsc;
-    tx_bond_cycle = curr_tsc + (pktgen_get_timer_hz() / 10);
+    if (pktgen_workq_setup(WORKQ_RX, pid, pinfo))
+        rte_exit(EXIT_FAILURE, "Error setting up Rx work queue for pid %u\n", pid);
+    if (pktgen_workq_setup(WORKQ_TX, pid, pinfo))
+        rte_exit(EXIT_FAILURE, "Error setting up Tx work queue for pid %u\n", pid);
 
     while (pktgen.force_quit == 0) {
-        /* Read Packets */
-        pktgen_main_receive(pinfo, rx_qid, pkts_burst, pinfo->tx_burst);
+        /* Process RX workqueue list */
+        workq_run(WORKQ_RX, pid, rx_qid);
 
         curr_tsc = pktgen_get_time();
 
@@ -1104,12 +1157,13 @@ pktgen_main_rxtx_loop(void)
         if (curr_tsc >= tx_next_cycle) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
-            pktgen_main_transmit(pinfo, tx_qid);
+            // Process TX workqueue list
+            workq_run(WORKQ_TX, pid, tx_qid);
         }
         if (curr_tsc >= tx_bond_cycle) {
             tx_bond_cycle = curr_tsc + (pktgen_get_timer_hz() / 10);
             if (pktgen_tst_port_flags(pinfo, BONDING_TX_PACKETS))
-                rte_eth_tx_burst(pinfo->pid, tx_qid, NULL, 0);
+                rte_eth_tx_burst(pid, tx_qid, NULL, 0);
         }
     }
 
@@ -1117,23 +1171,6 @@ pktgen_main_rxtx_loop(void)
 
     pktgen_exit_cleanup(lid);
 }
-
-#if TX_DEBUG_PERF
-static __inline__ void
-do_tx_process(port_info_t *pinfo, struct rte_mempool *mp, uint16_t tx_qid, struct rte_mbuf **mbufs,
-              uint16_t n_mbufs)
-{
-    /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
-    if (rte_mempool_get_bulk(mp, (void **)mbufs, n_mbufs) == 0) {
-        uint16_t nb_pkts = rte_eth_tx_burst(pinfo->pid, tx_qid, mbufs, n_mbufs);
-        if (unlikely(nb_pkts != n_mbufs)) {
-            pktgen_log_info("rte_eth_tx_burst returned %u of %u packets", nb_pkts, n_mbufs);
-            rte_mempool_put_bulk(mp, (void **)&mbufs[nb_pkts], n_mbufs - nb_pkts);
-        }
-    } else
-        pktgen_log_info("rte_mempool_get_bulk failed");
-}
-#endif
 
 /**
  *
@@ -1152,41 +1189,36 @@ pktgen_main_tx_loop(void)
     uint16_t tx_qid, lid = rte_lcore_id();
     port_info_t *pinfo = l2p_get_pinfo_by_lcore(lid);
     uint64_t curr_tsc, tx_next_cycle, tx_bond_cycle;
-#if TX_DEBUG_PERF
-    uint16_t tx_burst = pinfo->tx_burst;
-    struct rte_mbuf *mbufs[MAX_PKT_TX_BURST];
-    struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
-#endif
+    uint16_t pid = pinfo->pid;
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
         rte_exit(0, "Invalid initial lcore assigned to a port");
     }
 
+    curr_tsc      = pktgen_get_time();
+    tx_next_cycle = curr_tsc + pinfo->tx_cycles;
+    tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
+
     tx_qid = l2p_get_txqid(lid);
 
     printf("TX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, tx_qid,
            l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
 
-    curr_tsc      = pktgen_get_time();
-    tx_next_cycle = curr_tsc;
-    tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
+    if (pktgen_workq_setup(WORKQ_TX, pid, pinfo))
+        rte_exit(EXIT_FAILURE, "Error setting up Tx work queue for pid %u\n", pid);
 
-    while (pktgen.force_quit == 0) {
+    while (unlikely(pktgen.force_quit == 0)) {
         curr_tsc = pktgen_get_time();
 
         /* Determine when is the next time to send packets */
-        if (curr_tsc >= tx_next_cycle) {
+        if (unlikely(curr_tsc >= tx_next_cycle)) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
-#if TX_DEBUG_PERF
-            if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS))
-                do_tx_process(pinfo, mp, tx_qid, mbufs, tx_burst);
-#else
-            pktgen_main_transmit(pinfo, tx_qid);
-#endif
+            // Process TX workqueue list
+            workq_run(WORKQ_TX, pid, tx_qid);
         }
-        if (curr_tsc >= tx_bond_cycle) {
+        if (unlikely(curr_tsc >= tx_bond_cycle)) {
             tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
             if (pktgen_tst_port_flags(pinfo, BONDING_TX_PACKETS))
                 rte_eth_tx_burst(pinfo->pid, tx_qid, NULL, 0);
@@ -1214,8 +1246,7 @@ static void
 pktgen_main_rx_loop(void)
 {
     port_info_t *pinfo;
-    struct rte_mbuf *pkts_burst[MAX_PKT_RX_BURST];
-    uint16_t lid = rte_lcore_id(), rx_qid = l2p_get_rxqid(lid);
+    uint16_t lid = rte_lcore_id(), rx_qid = l2p_get_rxqid(lid), pid;
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
@@ -1228,8 +1259,15 @@ pktgen_main_rx_loop(void)
     printf("RX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
            l2p_get_rx_mp(pinfo->pid)->name, l2p_get_rx_mp(pinfo->pid));
 
-    while (pktgen.force_quit == 0)
-        pktgen_main_receive(pinfo, rx_qid, pkts_burst, pinfo->rx_burst);
+    pid = pinfo->pid;
+
+    if (pktgen_workq_setup(WORKQ_RX, pid, pinfo))
+        rte_exit(EXIT_FAILURE, "Error setting up Rx work queue for pid %u\n", pid);
+
+    while (pktgen.force_quit == 0) {
+        workq_run(WORKQ_RX, pid, rx_qid);
+    }
+    workq_port_destroy(pid);
 
     pktgen_log_debug("Exit %d", lid);
 

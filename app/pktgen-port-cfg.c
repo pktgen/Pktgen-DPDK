@@ -48,29 +48,32 @@ static const char *DRIVERS_REQUIRING_PHDR[] = {
     // TODO: Add the others
 };
 
-// clang-format off
 static struct rte_eth_conf default_port_conf = {
-    .rxmode = {
-        .mq_mode          = RTE_ETH_MQ_RX_RSS,
-        .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
-        .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
-        .mtu              = RTE_ETHER_MTU
-    },
-    .txmode = {
-        .mq_mode = RTE_ETH_MQ_TX_NONE,
-    },
-    .rx_adv_conf = {
-        .rss_conf = {
-            .rss_key = NULL,
-            .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                      RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+    .rxmode =
+        {
+            .mq_mode          = RTE_ETH_MQ_RX_RSS,
+            .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
+            .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
+            .mtu              = RTE_ETHER_MTU,
         },
-    },
-    .intr_conf = {
-        .lsc = 0,
-    },
+    .txmode =
+        {
+            .mq_mode = RTE_ETH_MQ_TX_NONE,
+        },
+    .rx_adv_conf =
+        {
+            .rss_conf =
+                {
+                    .rss_key = NULL,
+                    .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
+                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+                },
+        },
+    .intr_conf =
+        {
+            .lsc = 0,
+        },
 };
-// clang-format on
 
 static void
 dump_device_info(void)
@@ -124,9 +127,11 @@ dump_device_info(void)
 bool
 is_cksum_phdr_required(const char *driver_name)
 {
-    size_t num_drivers = sizeof(DRIVERS_REQUIRING_PHDR) / sizeof(DRIVERS_REQUIRING_PHDR[0]);
+    size_t num_drivers = RTE_DIM(DRIVERS_REQUIRING_PHDR);
 
     for (size_t i = 0; i < num_drivers; i++) {
+        if (DRIVERS_REQUIRING_PHDR[i] == NULL)
+            break;
         if (strcmp(driver_name, DRIVERS_REQUIRING_PHDR[i]) == 0)
             return true;
     }
@@ -148,103 +153,63 @@ eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
 }
 
 static port_info_t *
-initialize_port_info(uint16_t pid)
+allocate_port_info(uint16_t pid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
-    int32_t sid = pg_eth_dev_socket_id(pid), ret = 0;
-    struct rte_eth_conf conf = default_port_conf;
-    uint32_t eth_overhead_len;
-    uint32_t max_mtu;
+    int32_t sid        = pg_eth_dev_socket_id(pid);
 
     pktgen_log_info("Port info setup for port %u", pid);
 
     /* If port info is already set ignore */
     if (pinfo) {
-        pktgen_log_panic("Port info already setup for port %u", pid);
-        return pinfo;
+        pktgen_log_error("Port info already setup for port %u", pid);
+        goto leave;
     }
 
     /* Allocate each port_info_t structure on the correct NUMA node for the port */
-    pinfo = rte_zmalloc_socket(NULL, sizeof(port_info_t), RTE_CACHE_LINE_SIZE, sid);
-    if (!pinfo)
-        pktgen_log_panic("Cannot allocate memory for port_info_t");
+    if ((pinfo = rte_zmalloc_socket(NULL, sizeof(port_info_t), RTE_CACHE_LINE_SIZE, sid)) == NULL)
+        goto leave;
 
-    pinfo->pid = pid;
-    l2p_set_port_pinfo(pid, pinfo);
+    pinfo->pid     = pid;
+    pinfo->sid     = sid;
+    pinfo->max_mtu = RTE_ETHER_MAX_LEN;
+    pinfo->conf    = default_port_conf;
 
-    if (rte_eth_dev_info_get(pid, &pinfo->dev_info) < 0)
-        rte_exit(EXIT_FAILURE, "Cannot get device info for port %u", pid);
-
-    if (pktgen.flags & JUMBO_PKTS_FLAG) {
-        conf.rxmode.max_lro_pkt_size = PG_JUMBO_ETHER_MTU;
-        eth_overhead_len =
-            eth_dev_get_overhead_len(pinfo->dev_info.max_rx_pktlen, pinfo->dev_info.max_mtu);
-        max_mtu = pinfo->dev_info.max_mtu - eth_overhead_len;
-
-        /* device may have higher theoretical MTU e.g. for infiniband */
-        if (max_mtu > PG_JUMBO_ETHER_MTU)
-            max_mtu = PG_JUMBO_ETHER_MTU;
-        pktgen_log_info("   Max MTU: %d", max_mtu);
-
-        conf.rxmode.mtu = max_mtu;
-#if 0        // Tx performance takes a big hit when enabled
-        if (pinfo->dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
-            conf.rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
-        if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
-            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
-#endif
+    if (rte_eth_dev_info_get(pid, &pinfo->dev_info) < 0) {
+        pktgen_log_error("Cannot get device info for port %u", pid);
+        goto leave;
     }
 
-    if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
-        pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
-        conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
+    pinfo->rx_pkts = rte_calloc_socket("RxMbufs", MAX_PKT_RX_BURST, sizeof(struct rte_mbuf *),
+                                       RTE_CACHE_LINE_SIZE, sid);
+    pinfo->tx_pkts = rte_calloc_socket("TxMbufs", MAX_PKT_TX_BURST, sizeof(struct rte_mbuf *),
+                                       RTE_CACHE_LINE_SIZE, sid);
+    if (pinfo->rx_pkts == NULL || pinfo->tx_pkts == NULL) {
+        pktgen_log_error("Cannot allocate RX/TX burst for port %u", pid);
+        goto leave;
     }
 
-    if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM) {
-        pktgen_log_info("   Enabling Tx UDP_CKSUM offload\r\n");
-        conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
+    if (l2p_set_port_pinfo(pid, pinfo)) {
+        pktgen_log_error("Failed to set port info for port %u", pid);
+        goto leave;
     }
-
-    if (pinfo->dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM) {
-        pktgen_log_info("   Enabling Tx IPV4_CKSUM offload\r\n");
-        conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
-    }
-
-    conf.rx_adv_conf.rss_conf.rss_key = NULL;
-    conf.rx_adv_conf.rss_conf.rss_hf &= pinfo->dev_info.flow_type_rss_offloads;
-    if (pinfo->dev_info.max_rx_queues == 1)
-        conf.rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
-
-    if (pinfo->dev_info.max_vfs) {
-        if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
-            conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
-    }
-
-    pinfo->lsc_enabled = 0;
-    if (*pinfo->dev_info.dev_flags & RTE_ETH_DEV_INTR_LSC) {
-        conf.intr_conf.lsc = 1;
-        pinfo->lsc_enabled = 1;
-    }
-
-    conf.rxmode.offloads &= pinfo->dev_info.rx_offload_capa;
-
-    /* Determines if pseudo-header is needed, based on the driver type */
-    pinfo->cksum_requires_phdr = is_cksum_phdr_required(pinfo->dev_info.driver_name);
 
     pktgen_log_info("   Allocate packet sequence array");
-
-    /* allocate the sequence packet array */
-    pinfo->seq_pkt =
-        rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE, sid);
-    if (pinfo->seq_pkt == NULL)
-        pktgen_log_panic("Unable to allocate %'ld pkt_seq_t headers", (long int)NUM_TOTAL_PKTS);
 
     size_t pktsz = RTE_ETHER_MAX_LEN;
     if (pktgen.flags & JUMBO_PKTS_FLAG)
         pktsz = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
 
+    /* allocate the sequence packet array */
+    pinfo->seq_pkt = rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
+                                        RTE_CACHE_LINE_SIZE, pinfo->sid);
+    if (pinfo->seq_pkt == NULL) {
+        pktgen_log_error("Unable to allocate %'ld pkt_seq_t headers", (long int)NUM_TOTAL_PKTS);
+        goto leave;
+    }
+
     for (int i = 0; i < NUM_TOTAL_PKTS; i++) {
-        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, sid);
+        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, pinfo->sid);
         if (pinfo->seq_pkt[i].hdr == NULL)
             pktgen_log_panic("Unable to allocate %ld pkt_seq_t buffer space", pktsz);
 
@@ -254,9 +219,29 @@ initialize_port_info(uint16_t pid)
         pinfo->seq_pkt[i].tcp_ack     = DEFAULT_TCP_ACK_NUMBER;
     }
 
+    /* Determines if pseudo-header is needed, based on the driver type */
+    pinfo->cksum_requires_phdr = is_cksum_phdr_required(pinfo->dev_info.driver_name);
+    pktgen_log_info("   Checksum offload Pseudo-header required: %s",
+                    pinfo->cksum_requires_phdr ? "Yes" : "No");
+
+    return pinfo;
+leave:
+    if (pinfo) {
+        rte_free(pinfo->rx_pkts);
+        rte_free(pinfo->tx_pkts);
+        rte_free(pinfo);
+        l2p_set_port_pinfo(pid, NULL);
+    }
+    return NULL;
+}
+
+static void
+setup_latency_defaults(port_info_t *pinfo)
+{
+    latency_t *lat = &pinfo->latency;
+
     pktgen_log_info("   Setup latency defaults");
 
-    latency_t *lat           = &pinfo->latency;
     lat->jitter_threshold_us = DEFAULT_JITTER_THRESHOLD;
     lat->latency_rate_us     = DEFAULT_LATENCY_RATE;
     lat->latency_entropy     = DEFAULT_LATENCY_ENTROPY;
@@ -264,91 +249,285 @@ initialize_port_info(uint16_t pid)
         pktgen_get_timer_hz() / ((uint64_t)MAX_LATENCY_RATE / lat->latency_rate_us);
     uint64_t ticks               = pktgen_get_timer_hz() / (uint64_t)1000000;
     lat->jitter_threshold_cycles = lat->jitter_threshold_us * ticks;
+}
 
+static void
+setup_fill_pattern_defaults(port_info_t *pinfo)
+{
     pktgen_log_info("   Setup fill pattern defaults");
 
     pinfo->fill_pattern_type = ABC_FILL_PATTERN;
     snprintf(pinfo->user_pattern, sizeof(pinfo->user_pattern), "%s", "0123456789abcdef");
+}
+
+static void
+setup_mtu_defaults(port_info_t *pinfo)
+{
+    struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
+    struct rte_eth_conf *conf      = &pinfo->conf;
+
+    pktgen_log_info("   Setup MTU defaults and Jumbo Frames are %s",
+                    (pktgen.flags & JUMBO_PKTS_FLAG) ? "Enabled" : "Disabled");
+
+    if (pktgen.flags & JUMBO_PKTS_FLAG) {
+        uint32_t eth_overhead_len;
+
+        conf->rxmode.max_lro_pkt_size = PG_JUMBO_ETHER_MTU;
+        eth_overhead_len = eth_dev_get_overhead_len(dinfo->max_rx_pktlen, dinfo->max_mtu);
+        pinfo->max_mtu   = dinfo->max_mtu - eth_overhead_len;
+
+        /* device may have higher theoretical MTU e.g. for infiniband */
+        if (pinfo->max_mtu > PG_JUMBO_ETHER_MTU)
+            pinfo->max_mtu = PG_JUMBO_ETHER_MTU;
+
+        pktgen_log_info(
+            "   Jumbo Frames enabled: Default Max Rx pktlen: %'u, MTU %'u, overhead len: %'u, "
+            "New MTU %'d",
+            dinfo->max_rx_pktlen, dinfo->max_mtu, eth_overhead_len, pinfo->max_mtu);
+
+#if 0        // FIXME: Tx performance takes a big hit when enabled
+        if (dinfo->rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
+            conf->rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
+        if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
+            conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
+#endif
+    }
+    conf->rxmode.mtu = pinfo->max_mtu;
+}
+
+static void
+setup_rx_offload_defaults(port_info_t *pinfo)
+{
+    struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
+    struct rte_eth_conf *conf      = &pinfo->conf;
+
+    conf->rx_adv_conf.rss_conf.rss_key = NULL;
+    conf->rx_adv_conf.rss_conf.rss_hf &= dinfo->flow_type_rss_offloads;
+    if (dinfo->max_rx_queues == 1)
+        conf->rxmode.mq_mode = RTE_ETH_MQ_RX_NONE;
+
+    if (dinfo->max_vfs) {
+        if (conf->rx_adv_conf.rss_conf.rss_hf != 0)
+            conf->rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
+    }
+    conf->rxmode.offloads &= dinfo->rx_offload_capa;
+}
+
+static void
+setup_tx_offload_defaults(port_info_t *pinfo)
+{
+    struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
+    struct rte_eth_conf *conf      = &pinfo->conf;
+
+    pktgen_log_info("   Setup TX offload defaults");
+
+    if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
+        conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
+#if 0
+    if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
+        pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
+        conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
+    }
+
+    if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM) {
+        pktgen_log_info("   Enabling Tx UDP_CKSUM offload\r\n");
+        conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
+    }
+
+    if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM) {
+        pktgen_log_info("   Enabling Tx IPV4_CKSUM offload\r\n");
+        conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
+    }
+#endif
+}
+
+static void
+setup_device_configuration(port_info_t *pinfo)
+{
+    uint16_t pid = pinfo->pid;
+    int ret;
 
     pktgen_log_info("   Configure device: RxQueueCnt: %u, TxQueueCnt: %u", l2p_get_rxcnt(pid),
                     l2p_get_txcnt(pid));
-    if ((ret = rte_eth_dev_configure(pid, l2p_get_rxcnt(pid), l2p_get_txcnt(pid), &conf)) < 0)
+
+    ret = rte_eth_dev_configure(pid, l2p_get_rxcnt(pid), l2p_get_txcnt(pid), &pinfo->conf);
+    if (ret < 0)
         pktgen_log_panic("Cannot configure device: port=%d, Num queues %d,%d", pid,
                          l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+}
+
+static void
+setup_rxtx_descriptors(port_info_t *pinfo)
+{
+    uint16_t pid = pinfo->pid;
+    int ret;
 
     pktgen_log_info("   Setup number of descriptors RX: %u, TX: %u", pktgen.nb_rxd, pktgen.nb_txd);
+
     ret = rte_eth_dev_adjust_nb_rx_tx_desc(pid, &pktgen.nb_rxd, &pktgen.nb_txd);
     if (ret < 0)
         pktgen_log_panic("Can't adjust number of descriptors: port=%u:%s", pid, rte_strerror(-ret));
     pktgen_log_info("           Updated descriptors RX: %u, TX: %u", pktgen.nb_rxd, pktgen.nb_txd);
+}
 
-    if ((ret = rte_eth_macaddr_get(pid, &pinfo->src_mac)) < 0)
-        pktgen_log_panic("Can't get MAC address: err=%d, port=%u", ret, pid);
-
+static void
+get_src_mac_address(port_info_t *pinfo)
+{
+    uint16_t pid = pinfo->pid;
     char buff[64];
-    pktgen_log_info("   Source MAC: %s", inet_mtoa(buff, sizeof(buff), &pinfo->src_mac));
 
-    pktgen_log_info("   Setup up Ptypes");
-    ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
+    int ret = rte_eth_macaddr_get(pid, &pinfo->src_mac);
     if (ret < 0)
-        pktgen_log_panic("Port %u, Failed to disable Ptype parsing", pid);
+        pktgen_log_panic("Port %u, Failed to get source MAC address, (%d)%s", pinfo->pid, -ret,
+                         rte_strerror(-ret));
+    else
+        pktgen_log_info("   Source MAC: %s", inet_mtoa(buff, sizeof(buff), &pinfo->src_mac));
+}
+
+static void
+setup_device_ptypes(port_info_t *pinfo)
+{
+    pktgen_log_info("   Setup up device Ptypes");
+
+    int ret = rte_eth_dev_set_ptypes(pinfo->pid, RTE_PTYPE_UNKNOWN, NULL, 0);
+    if (ret < 0)
+        pktgen_log_panic("Port %u, Failed to disable Ptype parsing", pinfo->pid);
+}
+
+static void
+setup_device_mtu(port_info_t *pinfo)
+{
+    struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
+    struct rte_eth_conf *conf      = &pinfo->conf;
+    uint32_t max_mtu               = RTE_ETHER_MAX_LEN;
+    int ret;
+
+    if (max_mtu < dinfo->min_mtu) {
+        pktgen_log_warning("Increasing MTU from %u to %u", max_mtu, dinfo->min_mtu);
+        max_mtu = dinfo->min_mtu;
+    }
+    if (max_mtu > dinfo->max_mtu) {
+        pktgen_log_warning("Reducing MTU from %u to %u", max_mtu, dinfo->max_mtu);
+        max_mtu = dinfo->max_mtu;
+    }
+    conf->rxmode.mtu = max_mtu;
+
+    if ((ret = rte_eth_dev_set_mtu(pinfo->pid, pinfo->max_mtu)) < 0)
+        pktgen_log_panic("Cannot set MTU on port %u, (%d)%s", pinfo->pid, -ret, rte_strerror(-ret));
+}
+
+static void
+setup_rx_queues(port_info_t *pinfo)
+{
+    struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
+    struct rte_eth_conf *conf      = &pinfo->conf;
+    uint16_t pid                   = pinfo->pid;
+    int ret;
 
     l2p_port_t *lport = l2p_get_port(pid);
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
 
-    pktgen_log_info("   Number of RX/TX queues %u/%u", l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+    pktgen_log_info("   Number of RX queues %u", l2p_get_rxcnt(pid));
     for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
         struct rte_eth_rxconf rxq_conf;
-        struct rte_eth_conf conf = {0};
 
-        if (rte_eth_dev_conf_get(pid, &conf) < 0)
-            pktgen_log_panic("rte_eth_dev_conf_get: err=%d, port=%d", ret, pid);
+        rxq_conf          = dinfo->default_rxconf;
+        rxq_conf.offloads = conf->rxmode.offloads;
 
-        rxq_conf          = pinfo->dev_info.default_rxconf;
-        rxq_conf.offloads = conf.rxmode.offloads;
+        pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
 
-        pktgen_log_info("   RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
-
-        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp);
+        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, pinfo->sid, &rxq_conf, lport->rx_mp);
         if (ret < 0)
             pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));
     }
+}
 
+static void
+setup_tx_queues(port_info_t *pinfo)
+{
+    struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
+    struct rte_eth_conf *conf      = &pinfo->conf;
+    uint16_t pid                   = pinfo->pid;
+    int ret;
+
+    l2p_port_t *lport = l2p_get_port(pid);
+    if (lport == NULL)
+        pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
+
+    pktgen_log_info("   Number of TX queues %u", l2p_get_txcnt(pid));
     for (int q = 0; q < l2p_get_txcnt(pid); q++) {
-        struct rte_eth_txconf *txconf;
+        struct rte_eth_txconf txq_conf;
 
-        txconf           = &pinfo->dev_info.default_txconf;
-        txconf->offloads = conf.txmode.offloads;
+        txq_conf          = dinfo->default_txconf;
+        txq_conf.offloads = conf->txmode.offloads;
 
-        pktgen_log_info("   TX queue %d enabled offloads: 0x%0lx", q, txconf->offloads);
+        pktgen_log_info("     TX queue %d enabled offloads: 0x%0lx", q, txq_conf.offloads);
 
-        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, txconf);
+        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_rxd, pinfo->sid, &txq_conf);
         if (ret < 0)
             pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));
     }
+}
+
+static void
+setup_promiscuous_mode(port_info_t *pinfo)
+{
+    /* If enabled, put device in promiscuous mode. */
+    if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
+        pktgen_log_info("   Enabling promiscuous mode");
+        if (rte_eth_promiscuous_enable(pinfo->pid))
+            pktgen_log_info("Enabling promiscuous failed: %s", rte_strerror(-rte_errno));
+    }
+}
+
+static void
+startup_device(port_info_t *pinfo)
+{
+    int ret;
+
+    pktgen_log_info("   Start network device");
+
+    /* Start device */
+    if ((ret = rte_eth_dev_start(pinfo->pid)) < 0)
+        pktgen_log_panic("rte_eth_dev_start: port=%d, %s", pinfo->pid, rte_strerror(-ret));
+}
+
+static port_info_t *
+initialize_port_info(uint16_t pid)
+{
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
+
+    if ((pinfo = allocate_port_info(pid)) == NULL)
+        pktgen_log_panic("Unable to allocate port_info_t for port %u", pid);
+
+    setup_latency_defaults(pinfo);
+    setup_fill_pattern_defaults(pinfo);
+    setup_mtu_defaults(pinfo);
+    setup_rx_offload_defaults(pinfo);
+    setup_tx_offload_defaults(pinfo);
+    setup_device_configuration(pinfo);
+    setup_rxtx_descriptors(pinfo);
+    get_src_mac_address(pinfo);
+    setup_device_ptypes(pinfo);
+    setup_device_mtu(pinfo);
+    setup_rx_queues(pinfo);
+    setup_tx_queues(pinfo);
+
     if (pktgen.verbose)
         pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ", (pktgen.mem_used + 1023) / 1024);
 
     if (pktgen.verbose)
         rte_eth_dev_info_dump(stderr, pid);
 
-    /* If enabled, put device in promiscuous mode. */
-    if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
-        pktgen_log_info("   Enabling promiscuous mode");
-        if (rte_eth_promiscuous_enable(pid))
-            pktgen_log_info("Enabling promiscuous failed: %s", rte_strerror(-rte_errno));
-    }
+    setup_promiscuous_mode(pinfo);
 
     pktgen_log_info("   Setup port defaults");
     pktgen_port_defaults(pid);
 
-    pktgen_log_info("   Start network device");
-    /* Start device */
-    if ((ret = rte_eth_dev_start(pid)) < 0)
-        pktgen_log_panic("rte_eth_dev_start: port=%d, %s", pid, rte_strerror(-ret));
+    startup_device(pinfo);
 
     pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
     return pinfo;

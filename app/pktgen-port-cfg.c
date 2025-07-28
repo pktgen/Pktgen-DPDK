@@ -236,7 +236,7 @@ leave:
 }
 
 static void
-setup_latency_defaults(port_info_t *pinfo)
+_latency_defaults(port_info_t *pinfo)
 {
     latency_t *lat = &pinfo->latency;
 
@@ -252,7 +252,7 @@ setup_latency_defaults(port_info_t *pinfo)
 }
 
 static void
-setup_fill_pattern_defaults(port_info_t *pinfo)
+_fill_pattern_defaults(port_info_t *pinfo)
 {
     pktgen_log_info("   Setup fill pattern defaults");
 
@@ -261,7 +261,7 @@ setup_fill_pattern_defaults(port_info_t *pinfo)
 }
 
 static void
-setup_mtu_defaults(port_info_t *pinfo)
+_mtu_defaults(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
@@ -281,22 +281,24 @@ setup_mtu_defaults(port_info_t *pinfo)
             pinfo->max_mtu = PG_JUMBO_ETHER_MTU;
 
         pktgen_log_info(
-            "   Jumbo Frames enabled: Default Max Rx pktlen: %'u, MTU %'u, overhead len: %'u, "
+            "     Jumbo Frames: Default Max Rx pktlen: %'u, MTU %'u, overhead len: %'u, "
             "New MTU %'d",
             dinfo->max_rx_pktlen, dinfo->max_mtu, eth_overhead_len, pinfo->max_mtu);
 
-#if 0        // FIXME: Tx performance takes a big hit when enabled
+        pktgen_log_info("     Note: Using Scatter/Multi-segs offloads");
+        pktgen_log_info("     Note: Performance may be degraded due to reduced Tx performance");
+
+        // FIXME: Tx performance takes a big hit when enabled
         if (dinfo->rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
             conf->rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
         if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
             conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_MULTI_SEGS;
-#endif
     }
     conf->rxmode.mtu = pinfo->max_mtu;
 }
 
 static void
-setup_rx_offload_defaults(port_info_t *pinfo)
+_rx_offload_defaults(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
@@ -314,7 +316,7 @@ setup_rx_offload_defaults(port_info_t *pinfo)
 }
 
 static void
-setup_tx_offload_defaults(port_info_t *pinfo)
+_tx_offload_defaults(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
@@ -323,7 +325,8 @@ setup_tx_offload_defaults(port_info_t *pinfo)
 
     if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
-#if 0
+
+#if 0        // FIXME: Tx performance drops when using these offloads.
     if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
         pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
@@ -342,7 +345,7 @@ setup_tx_offload_defaults(port_info_t *pinfo)
 }
 
 static void
-setup_device_configuration(port_info_t *pinfo)
+_device_configuration(port_info_t *pinfo)
 {
     uint16_t pid = pinfo->pid;
     int ret;
@@ -357,7 +360,7 @@ setup_device_configuration(port_info_t *pinfo)
 }
 
 static void
-setup_rxtx_descriptors(port_info_t *pinfo)
+_rxtx_descriptors(port_info_t *pinfo)
 {
     uint16_t pid = pinfo->pid;
     int ret;
@@ -371,7 +374,7 @@ setup_rxtx_descriptors(port_info_t *pinfo)
 }
 
 static void
-get_src_mac_address(port_info_t *pinfo)
+_src_mac_address(port_info_t *pinfo)
 {
     uint16_t pid = pinfo->pid;
     char buff[64];
@@ -385,7 +388,7 @@ get_src_mac_address(port_info_t *pinfo)
 }
 
 static void
-setup_device_ptypes(port_info_t *pinfo)
+_device_ptypes(port_info_t *pinfo)
 {
     pktgen_log_info("   Setup up device Ptypes");
 
@@ -395,7 +398,7 @@ setup_device_ptypes(port_info_t *pinfo)
 }
 
 static void
-setup_device_mtu(port_info_t *pinfo)
+_device_mtu(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
@@ -417,7 +420,7 @@ setup_device_mtu(port_info_t *pinfo)
 }
 
 static void
-setup_rx_queues(port_info_t *pinfo)
+_rx_queues(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
@@ -445,7 +448,7 @@ setup_rx_queues(port_info_t *pinfo)
 }
 
 static void
-setup_tx_queues(port_info_t *pinfo)
+_tx_queues(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
@@ -473,7 +476,7 @@ setup_tx_queues(port_info_t *pinfo)
 }
 
 static void
-setup_promiscuous_mode(port_info_t *pinfo)
+_promiscuous_mode(port_info_t *pinfo)
 {
     /* If enabled, put device in promiscuous mode. */
     if (pktgen.flags & PROMISCUOUS_ON_FLAG) {
@@ -484,7 +487,17 @@ setup_promiscuous_mode(port_info_t *pinfo)
 }
 
 static void
-startup_device(port_info_t *pinfo)
+_debug_output(port_info_t *pinfo)
+{
+    if (pktgen.verbose)
+        pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ", (pktgen.mem_used + 1023) / 1024);
+
+    if (pktgen.verbose)
+        rte_eth_dev_info_dump(stderr, pinfo->pid);
+}
+
+static void
+_device_start(port_info_t *pinfo)
 {
     int ret;
 
@@ -495,41 +508,49 @@ startup_device(port_info_t *pinfo)
         pktgen_log_panic("rte_eth_dev_start: port=%d, %s", pinfo->pid, rte_strerror(-ret));
 }
 
+static void
+_port_defaults(port_info_t *pinfo)
+{
+    pktgen_log_info("   Setup port defaults");
+
+    pktgen_port_defaults(pinfo->pid);
+}
+
 static port_info_t *
 initialize_port_info(uint16_t pid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
+    // clang-format off
+    void (*setups[])(port_info_t *) = {
+        _latency_defaults,
+        _fill_pattern_defaults,
+        _mtu_defaults,        
+        _rx_offload_defaults,
+        _tx_offload_defaults, 
+        _device_configuration,
+        _rxtx_descriptors,    
+        _src_mac_address,
+        _device_ptypes,       
+        _device_mtu,
+        _rx_queues,           
+        _tx_queues,
+        _debug_output,        
+        _promiscuous_mode,
+        _port_defaults,
+        _device_start,
+    };
+    // clang-format on
 
     if ((pinfo = allocate_port_info(pid)) == NULL)
         pktgen_log_panic("Unable to allocate port_info_t for port %u", pid);
 
-    setup_latency_defaults(pinfo);
-    setup_fill_pattern_defaults(pinfo);
-    setup_mtu_defaults(pinfo);
-    setup_rx_offload_defaults(pinfo);
-    setup_tx_offload_defaults(pinfo);
-    setup_device_configuration(pinfo);
-    setup_rxtx_descriptors(pinfo);
-    get_src_mac_address(pinfo);
-    setup_device_ptypes(pinfo);
-    setup_device_mtu(pinfo);
-    setup_rx_queues(pinfo);
-    setup_tx_queues(pinfo);
-
-    if (pktgen.verbose)
-        pktgen_log_info("%*sPort memory used = %6lu KB", 57, " ", (pktgen.mem_used + 1023) / 1024);
-
-    if (pktgen.verbose)
-        rte_eth_dev_info_dump(stderr, pid);
-
-    setup_promiscuous_mode(pinfo);
-
-    pktgen_log_info("   Setup port defaults");
-    pktgen_port_defaults(pid);
-
-    startup_device(pinfo);
+    for (uint16_t i = 0; i < RTE_DIM(setups); i++) {
+        if (setups[i])
+            setups[i](pinfo);
+    }
 
     pktgen_set_port_flags(pinfo, SEND_SINGLE_PKTS);
+
     return pinfo;
 }
 

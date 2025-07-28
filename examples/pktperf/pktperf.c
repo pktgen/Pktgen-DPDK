@@ -71,7 +71,7 @@ do_tx_process(l2p_lport_t *lport, struct rte_mbuf **mbufs, uint16_t n_mbufs, uin
     l2p_port_t *port = lport->port;
     struct rte_mempool *mp;
     qstats_t *c;
-    uint16_t nb_pkts, pid, tx_qid;
+    uint16_t pid, tx_qid;
 
     pid    = port->pid;
     tx_qid = lport->tx_qid;
@@ -81,17 +81,16 @@ do_tx_process(l2p_lport_t *lport, struct rte_mbuf **mbufs, uint16_t n_mbufs, uin
     /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
     if (rte_mempool_get_bulk(mp, (void **)mbufs, n_mbufs) == 0) {
         uint16_t plen = info->pkt_size - RTE_ETHER_CRC_LEN;
+        uint16_t sent, send = n_mbufs;
 
-        nb_pkts = rte_eth_tx_burst(pid, tx_qid, mbufs, n_mbufs);
-        if (unlikely(nb_pkts != n_mbufs)) {
-            uint32_t n = n_mbufs - nb_pkts;
+        do {
+            sent = rte_eth_tx_burst(pid, tx_qid, mbufs, send);
+            send -= sent;
+            mbufs += sent;
+        } while (send > 0);
 
-            rte_mempool_put_bulk(mp, (void **)&mbufs[nb_pkts], n);
-            c->q_tx_drops[tx_qid] += n;
-            return;
-        }
-        c->q_opackets[tx_qid] += nb_pkts;
-        c->q_obytes[tx_qid] += (nb_pkts * plen); /* does not include FCS */
+        c->q_opackets[tx_qid] += n_mbufs;
+        c->q_obytes[tx_qid] += (n_mbufs * plen); /* does not include FCS */
 
         c->q_tx_time[tx_qid] = rte_rdtsc() - curr_tsc;
     } else

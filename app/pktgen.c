@@ -38,6 +38,8 @@ TXlib */
 #include <pthread.h>
 #include <sched.h>
 
+#define FAST_TX_MODE 0
+
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
@@ -1020,6 +1022,25 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
     }
 }
 
+static __inline__ void
+fast_main_transmit(port_info_t *pinfo, uint16_t qid)
+{
+    if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
+        struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
+        struct rte_mbuf **pkts = pinfo->tx_pkts;
+
+        /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
+        if (rte_mempool_get_bulk(mp, (void **)pkts, pinfo->tx_burst) == 0) {
+            uint16_t sent, send = pinfo->tx_burst;
+            do {
+                sent = rte_eth_tx_burst(pinfo->pid, qid, pkts, send);
+                send -= sent;
+                pkts += sent;
+            } while (send > 0);
+        }
+    }
+}
+
 /**
  *
  * pktgen_main_receive - Main receive routine for packets of a port.
@@ -1085,7 +1106,13 @@ pktgen_rx_workq_setup(uint16_t pid)
 static int
 pktgen_tx_workq_setup(uint16_t pid)
 {
+#if FAST_TX_MODE
+    workq_fn funcs[] = {fast_main_transmit};
+    (void)pktgen_main_transmit;
+#else
     workq_fn funcs[] = {pktgen_main_transmit};
+    (void)fast_main_transmit;
+#endif
 
     for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
         if (workq_add(WORKQ_TX, pid, funcs[i]))
@@ -1097,11 +1124,9 @@ pktgen_tx_workq_setup(uint16_t pid)
 static int
 pktgen_workq_setup(workq_type_t wqt, uint16_t pid, void *arg)
 {
-    if (!rte_eth_dev_is_valid_port(pid))
-        return -1;
-
     if (workq_port_arg_set(pid, arg))
         return -1;
+
     return (wqt == WORKQ_RX) ? pktgen_rx_workq_setup(pid) : pktgen_tx_workq_setup(pid);
 }
 

@@ -154,7 +154,7 @@ typedef struct l2p_port_s {
     uint16_t num_rx_qids;           /* Number of Rx queues */
     uint16_t num_tx_qids;           /* Number of Tx queues */
     uint16_t mtu_size;              /* MTU size */
-    uint16_t max_pkt_size;          /* Max packet size */
+    uint16_t cksum_requires_phdr;   /* Flag to indicate if pseudo-header is needed for port */
     uint64_t tx_cycles;             /* Tx cycles */
     uint64_t wire_size;             /* Port wire size */
     uint64_t pps;                   /* Packets per second */

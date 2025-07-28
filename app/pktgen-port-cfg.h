@@ -26,6 +26,7 @@
 #include "pktgen-pcap.h"
 #include "pktgen-dump.h"
 #include "pktgen-ether.h"
+#include "pktgen-workq.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -130,21 +131,27 @@ typedef struct {
 } latency_t;
 
 typedef struct port_info_s {
-    rte_atomic64_t port_flags;        /**< Special send flags for ARP and other */
-    rte_atomic64_t transmit_count;    /**< Packets to transmit loaded into current_tx_count */
-    rte_atomic64_t current_tx_count;  /**< Current number of packets to send */
-    volatile uint64_t tx_cycles;      /**< Number cycles between TX bursts */
-    uint16_t pid;                     /**< Port ID value */
-    uint16_t tx_burst;                /**< Number of TX burst packets */
-    uint16_t lsc_enabled;             /**< Enable link state change */
-    uint16_t rx_burst;                /**< RX burst size */
-    uint64_t tx_pps;                  /**< Transmit packets per seconds */
-    uint64_t tx_count;                /**< Total count of tx attempts */
-    uint64_t delta;                   /**< Delta value for latency testing */
-    double tx_rate;                   /**< Percentage rate for tx packets with fractions */
-    struct rte_eth_link link;         /**< Link Information like speed and duplex */
-    struct rte_eth_dev_info dev_info; /**< PCI info + driver name */
-    struct rte_ether_addr src_mac;    /**< Source MAC address of the port */
+    struct rte_eth_dev_info dev_info; /**< Device information */
+    struct rte_eth_conf conf;         /**< Configuration settings */
+    struct rte_mbuf **rx_pkts;        /**< Array of pointers to packet buffers for RX */
+    struct rte_mbuf **tx_pkts;        /**< Array of pointers to packet buffers for TX */
+
+    rte_atomic64_t port_flags;       /**< Special send flags for ARP and other */
+    rte_atomic64_t transmit_count;   /**< Packets to transmit loaded into current_tx_count */
+    rte_atomic64_t current_tx_count; /**< Current number of packets to send */
+    volatile uint64_t tx_cycles;     /**< Number cycles between TX bursts */
+    uint16_t pid;                    /**< Port ID value */
+    uint16_t sid;                    /** Socket or NUMA ID value */
+    uint16_t rx_burst;               /**< Number of RX burst size */
+    uint16_t tx_burst;               /**< Number of TX burst packets */
+    uint16_t lsc_enabled;            /**< Enable link state change */
+    uint16_t max_mtu;                /**< Maximum MTU size */
+    uint64_t tx_pps;                 /**< Transmit packets per seconds */
+    uint64_t tx_count;               /**< Total count of tx attempts */
+    uint64_t delta;                  /**< Delta value for latency testing */
+    double tx_rate;                  /**< Percentage rate for tx packets with fractions */
+    struct rte_eth_link link;        /**< Link Information like speed and duplex */
+    struct rte_ether_addr src_mac;   /**< Source MAC address of the port */
 
     /* Packet buffer space for traffic generator, shared for all packets per port */
     uint16_t seqIdx;     /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */

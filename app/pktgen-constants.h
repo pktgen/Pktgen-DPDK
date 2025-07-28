@@ -15,8 +15,8 @@ extern "C" {
 #endif
 
 enum {
-    MAX_PKT_RX_BURST                  = 128,  /* Used to create Max array sizes */
-    MAX_PKT_TX_BURST                  = 128,  /* Used to create Max array sizes */
+    MAX_PKT_RX_BURST                  = 256,  /* Used to create Max array sizes */
+    MAX_PKT_TX_BURST                  = 256,  /* Used to create Max array sizes */
     DEFAULT_PKT_RX_BURST              = 64,   /* Increasing this number consumes memory very fast */
     DEFAULT_PKT_TX_BURST              = 32,   /* Increasing this number consumes memory very fast */
     DEFAULT_RX_DESC                   = 1024, /* Default Rx/Tx ring descriptor size */

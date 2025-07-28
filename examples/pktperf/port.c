@@ -21,12 +21,22 @@
 
 #include <pktperf.h>
 
+/**
+ * An array of drivers that require a pseudo-header calculation before the checksum calculation.
+ * The names used are the ones used by DPDK.
+ */
+static const char *DRIVERS_REQUIRING_PHDR[] = {
+    "net_ixgbe",
+    // TODO: Add the others
+};
+
 static struct rte_eth_conf port_conf = {
     .rxmode =
         {
             .mq_mode          = RTE_ETH_MQ_RX_RSS,
             .max_lro_pkt_size = RTE_ETHER_MAX_LEN,
             .offloads         = RTE_ETH_RX_OFFLOAD_CHECKSUM,
+            .mtu              = RTE_ETHER_MTU,
         },
     .txmode =
         {
@@ -38,7 +48,8 @@ static struct rte_eth_conf port_conf = {
             .rss_conf =
                 {
                     .rss_key = NULL,
-                    .rss_hf = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP | RTE_ETH_RSS_SCTP,
+                    .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
+                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
                 },
         },
     .intr_conf =
@@ -46,6 +57,26 @@ static struct rte_eth_conf port_conf = {
             .lsc = 0,
         },
 };
+
+/**
+ * Determines whether the pseudo-header is required when calculating the checksum.
+ * Depends on the original NIC driver (e.g., ixgbe NICs expect the pseudo-header)
+ * See Table 1.133: https://doc.dpdk.org/guides/nics/overview.html
+ */
+bool
+is_cksum_phdr_required(const char *driver_name)
+{
+    size_t num_drivers = RTE_DIM(DRIVERS_REQUIRING_PHDR);
+
+    for (size_t i = 0; i < num_drivers; i++) {
+        if (DRIVERS_REQUIRING_PHDR[i] == NULL)
+            break;
+        if (strcmp(driver_name, DRIVERS_REQUIRING_PHDR[i]) == 0)
+            return true;
+    }
+
+    return false;
+}
 
 static uint32_t
 eth_dev_get_overhead_len(uint32_t max_rx_pktlen, uint16_t max_mtu)
@@ -86,6 +117,11 @@ port_setup(l2p_port_t *port)
             ERR_RET("Error during getting device (port %u) info: %s\n", pid, strerror(-ret));
         DBG_PRINT("Driver: %s\n", dev_info.driver_name);
 
+        /* Determines if pseudo-header is needed, based on the driver type */
+        port->cksum_requires_phdr = is_cksum_phdr_required(dev_info.driver_name);
+        printf("   Checksum offload Pseudo-header required: %s\n",
+               port->cksum_requires_phdr ? "Yes" : "No");
+
         if (info->jumbo_frame_on) {
             uint32_t eth_overhead_len;
             uint32_t max_mtu;
@@ -113,6 +149,22 @@ port_setup(l2p_port_t *port)
 
         if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
+#if 0
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
+            printf("   Enabling Tx TCP_CKSUM offload");
+            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
+        }
+
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_UDP_CKSUM) {
+            printf("   Enabling Tx UDP_CKSUM offload\r\n");
+            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_UDP_CKSUM;
+        }
+
+        if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_IPV4_CKSUM) {
+            printf("   Enabling Tx IPV4_CKSUM offload\r\n");
+            conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
+        }
+#endif
 
         DBG_PRINT("Port %u configure with %u:%u queues\n", pid, port->num_rx_qids,
                   port->num_tx_qids);
@@ -129,6 +181,8 @@ port_setup(l2p_port_t *port)
             if (conf.rx_adv_conf.rss_conf.rss_hf != 0)
                 conf.rxmode.mq_mode = RTE_ETH_MQ_RX_VMDQ_RSS;
         }
+        conf.rxmode.offloads &= dev_info.rx_offload_capa;
+
         DBG_PRINT("Port %u configure with mode %u\n", pid, conf.rxmode.mq_mode);
 
         /* Configure the number of queues for a port. */
@@ -146,9 +200,6 @@ port_setup(l2p_port_t *port)
         DBG_PRINT("Port %u MAC address: " RTE_ETHER_ADDR_PRT_FMT "\n", pid,
                   RTE_ETHER_ADDR_BYTES(&port->mac_addr));
 
-        rxq_conf          = dev_info.default_rxconf;
-        rxq_conf.offloads = conf.rxmode.offloads;
-
         ret = rte_eth_dev_set_ptypes(pid, RTE_PTYPE_UNKNOWN, NULL, 0);
         if (ret < 0)
             ERR_RET("Port %u, Failed to disable Ptype parsing\n", pid);
@@ -156,13 +207,11 @@ port_setup(l2p_port_t *port)
 
         if (port->mtu_size < dev_info.min_mtu) {
             INFO_PRINT("Increasing MTU from %u to %u", port->mtu_size, dev_info.min_mtu);
-            port->mtu_size     = dev_info.min_mtu;
-            port->max_pkt_size = dev_info.min_mtu + RTE_ETHER_HDR_LEN;
+            port->mtu_size = dev_info.min_mtu;
         }
         if (port->mtu_size > dev_info.max_mtu) {
             INFO_PRINT("Reducing MTU from %u to %u", port->mtu_size, dev_info.max_mtu);
-            port->mtu_size     = dev_info.max_mtu;
-            port->max_pkt_size = dev_info.max_mtu + RTE_ETHER_HDR_LEN;
+            port->mtu_size = dev_info.max_mtu;
         }
 
         if ((ret = rte_eth_dev_set_mtu(pid, port->mtu_size)) < 0)
@@ -174,6 +223,9 @@ port_setup(l2p_port_t *port)
         /* Setup Rx/Tx Queues */
         for (int q = 0; q < port->num_rx_qids; q++) {
             uint32_t sid = pg_eth_dev_socket_id(pid);
+
+            rxq_conf          = dev_info.default_rxconf;
+            rxq_conf.offloads = conf.rxmode.offloads;
 
             ret = rte_eth_rx_queue_setup(pid, q, info->nb_rxd, sid, &rxq_conf, port->rx_mp);
             if (ret < 0)

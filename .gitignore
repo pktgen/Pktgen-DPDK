@@ -18,3 +18,4 @@ x86_64-*
 lib/lua/build
 builddir/
 usr/local
+tx_perf

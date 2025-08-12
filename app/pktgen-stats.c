@@ -233,9 +233,8 @@ pktgen_get_link_status(port_info_t *pinfo)
                 link.link_duplex  = RTE_ETH_LINK_FULL_DUPLEX;
                 link.link_autoneg = RTE_ETH_LINK_SPEED_AUTONEG;
                 link.link_status  = RTE_ETH_LINK_UP;
-            } else {
+            } else
                 memcpy(&pinfo->link, &link, sizeof(struct rte_eth_link));
-            }
 
             /* Recompute packet rate only when link is up and speed changed */
             if (link.link_status == RTE_ETH_LINK_UP && prev_link_speed != link.link_speed)

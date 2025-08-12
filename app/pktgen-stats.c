@@ -7,6 +7,7 @@
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <stdio.h>
+#include <string.h>
 
 #include <pg_delay.h>
 #include <lua_config.h>
@@ -225,10 +226,7 @@ pktgen_get_link_status(port_info_t *pinfo)
 
     if (rte_eth_link_get_nowait(pinfo->pid, &link) == 0) {
         /* Update cached link info whenever any field changes */
-        if (link.link_status != pinfo->link.link_status ||
-            link.link_speed != pinfo->link.link_speed ||
-            link.link_duplex != pinfo->link.link_duplex ||
-            link.link_autoneg != pinfo->link.link_autoneg) {
+        if (memcmp(&pinfo->link, &link, sizeof(pinfo->link)) != 0) {
             if (link.link_speed == RTE_ETH_SPEED_NUM_UNKNOWN) {
                 /* Setup a few default values to prevent problems later. */
                 link.link_speed   = RTE_ETH_SPEED_NUM_10G;
@@ -236,10 +234,7 @@ pktgen_get_link_status(port_info_t *pinfo)
                 link.link_autoneg = RTE_ETH_LINK_SPEED_AUTONEG;
                 link.link_status  = RTE_ETH_LINK_UP;
             } else {
-                pinfo->link.link_status  = link.link_status;
-                pinfo->link.link_speed   = link.link_speed;
-                pinfo->link.link_autoneg = link.link_autoneg;
-                pinfo->link.link_duplex  = link.link_duplex;
+                memcpy(&pinfo->link, &link, sizeof(struct rte_eth_link));
             }
 
             /* Recompute packet rate only when link is up and speed changed */

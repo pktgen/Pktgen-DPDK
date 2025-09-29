@@ -221,24 +221,35 @@ pktgen_print_static_data(void)
 void
 pktgen_get_link_status(port_info_t *pinfo)
 {
-    struct rte_eth_link link = {0};
-    uint32_t prev_link_speed = pinfo->link.link_speed;
+    struct rte_eth_link link = (struct rte_eth_link){0};
 
-    if (rte_eth_link_get_nowait(pinfo->pid, &link) == 0) {
-        /* Update cached link info whenever any field changes */
-        if (memcmp(&pinfo->link, &link, sizeof(pinfo->link)) != 0) {
-            if (link.link_speed == RTE_ETH_SPEED_NUM_UNKNOWN) {
-                /* Setup a few default values to prevent problems later. */
-                link.link_speed   = RTE_ETH_SPEED_NUM_10G;
-                link.link_duplex  = RTE_ETH_LINK_FULL_DUPLEX;
-                link.link_autoneg = RTE_ETH_LINK_SPEED_AUTONEG;
-                link.link_status  = RTE_ETH_LINK_UP;
-            } else
-                memcpy(&pinfo->link, &link, sizeof(struct rte_eth_link));
+    if (rte_eth_link_get_nowait(pinfo->pid, &link) != 0)
+        return;
 
-            /* Recompute packet rate only when link is up and speed changed */
-            if (link.link_status == RTE_ETH_LINK_UP && prev_link_speed != link.link_speed)
-                pktgen_packet_rate(pinfo);
+    /* Provide safe defaults only when link is UP but speed unknown */
+    if (link.link_status == RTE_ETH_LINK_UP && link.link_speed == RTE_ETH_SPEED_NUM_UNKNOWN) {
+        link.link_speed   = RTE_ETH_SPEED_NUM_10G;
+        link.link_duplex  = RTE_ETH_LINK_FULL_DUPLEX;
+        link.link_autoneg = RTE_ETH_LINK_SPEED_AUTONEG;
+    }
+
+    /* Change if status toggled or (while up) speed/duplex/autoneg differ */
+    if (link.link_status != pinfo->link.link_status ||
+        (link.link_status == RTE_ETH_LINK_UP && (link.link_speed != pinfo->link.link_speed ||
+                                                 link.link_duplex != pinfo->link.link_duplex ||
+                                                 link.link_autoneg != pinfo->link.link_autoneg))) {
+
+        pinfo->link.link_status  = link.link_status;
+        pinfo->link.link_speed   = link.link_speed;
+        pinfo->link.link_autoneg = link.link_autoneg;
+        pinfo->link.link_duplex  = link.link_duplex;
+
+        if (link.link_status == RTE_ETH_LINK_UP)
+            pktgen_packet_rate(pinfo);
+        else {
+            /* Link down: zero pacing so UI reflects inactive state */
+            pinfo->tx_cycles = 0;
+            pinfo->tx_pps    = 0;
         }
     }
 }

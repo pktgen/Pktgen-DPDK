@@ -33,6 +33,7 @@ Pktgen was created 2010 by Keith Wiles @ windriver.com, now at intel.com
 .. toctree::
    :maxdepth: 1
 
+  ../../docs/QUICKSTART.md
    getting_started.rst
    running.rst
    usage_eal.rst

@@ -1,0 +1,52 @@
+# Markdownlint configuration
+# Adjusted for Pktgen project documentation style.
+# Rule references: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Disable long line rule; technical lines (URLs, tables, commands) often exceed 80 chars.
+MD013: false
+
+# Allow inline HTML only if absolutely needed (currently we removed it).
+MD033: true  # Disallow inline HTML (set to false to allow)
+
+# Require fenced code block style consistency (use backticks).
+MD048:
+  style: backtick
+
+# Enforce heading style ATX (# ...)
+MD003:
+  style: atx
+
+# No multiple consecutive blank lines
+MD012: true
+
+# Trailing spaces not allowed (except for deliberate hard-breaks)
+MD009:
+  strict: true
+
+# Lists: allow different markers but keep consistent indentation
+MD004: true
+
+# Ordered list numbering can be all '1.' for simplicity
+MD029:
+  style: one
+
+# Code blocks and lists separated by blank lines
+MD031: true
+
+# First line should be a top-level heading
+MD041: true
+
+# Horizontal rules style (enforce ---)
+MD035:
+  style: ---
+
+# Emphasis markers style (prefer *)
+MD049:
+  style: asterisk
+
+# Strong emphasis style (prefer **)
+MD050:
+  style: asterisk
+
+# Heading levels should only increment by one level at a time
+MD001: true

@@ -1,218 +1,275 @@
-Pktgen - Traffic Generator powered by DPDK
-=====================================================
+# Pktgen — DPDK Traffic Generator
 
-**Pktgen is a traffic generator powered by DPDK at wire rate traffic with 64 byte frames.**
+High‑performance, scriptable packet generator capable of wire‑rate transmission with 64‑byte frames.
 
-** (Pktgen) Sounds like 'Packet-Gen'**
+Pronounced: “packet‑gen”
+
+[Documentation](https://pktgen.github.io/Pktgen-DPDK/) · [Releases](https://github.com/pktgen/Pktgen-DPDK/releases)
 
 ---
 
-``` console
-**Copyright &copy; \<2010-2024\>, Intel Corporation. All rights reserved.**
+## Table of Contents
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
+1. [Overview](#1-overview)
+1. [Features](#2-features-partial-list)
+1. [Quick Start](#3-quick-start)
+1. [Building](#4-building-details)
+1. [Configuration Files](#5-configuration-files-cfg)
+1. [Configuration Key Reference](#6-configuration-key-reference)
+1. [Runtime Modes & Pages](#7-runtime-modes--pages)
+1. [Automation & Remote Control](#8-automation--remote-control)
+1. [Advanced Topics](#9-advanced-topics)
+1. [Contributing](#10-contributing)
+1. [License](#11-license)
+1. [Related Links](#12-related-links)
+1. [Acknowledgments](#13-acknowledgments)
 
-- Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
+---
 
-- Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in
-  the documentation and/or other materials provided with the
-  distribution.
+## 1. Overview
 
-- Neither the name of Intel Corporation nor the names of its
-  contributors may be used to endorse or promote products derived
-  from this software without specific prior written permission.
+Pktgen is a multi‑port, multi‑core traffic generator built on top of [DPDK]. It targets realistic, repeatable performance and functional packet tests while remaining fully controllable via an interactive console, Lua scripts, or a remote TCP socket.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE.
+> Primary repository: <https://github.com/pktgen/Pktgen-DPDK>
+
+## 2. Features (Partial List)
+
+- Wire‑rate 64B packet generation (hardware and core count permitting)
+- Multi‑port / multi‑queue scaling
+- IPv4 / IPv6, TCP / UDP, VLAN, GRE, GTP-U support
+- Packet sequence, range, random, pcap replay and latency modes
+- Latency & jitter measurement, per‑queue and extended stats pages
+- Lua scripting (local or remote) + TCP control socket (default port 22022)
+- Configurable theming and multiple display pages (main, seq, range, rnd, pcap, stats, xstats)
+- Plugin architecture (`lib/plugin`), capture and pcap dumping
+- Dynamic rate control and pacing recalculated on size/speed changes
+
+## 3. Quick Start
+
+Prerequisites (typical Ubuntu 22.04+):
+
+- Latest DPDK (build + install using Meson/Ninja)
+- libbsd (`sudo apt install libbsd-dev`)
+- Hugepages configured (e.g. 1G or 2M pages) and NICs bound to `vfio-pci` or `igb_uio`
+- Python 3.x for helper scripts
+
+Clone and build:
+
+```bash
+git clone https://github.com/pktgen/Pktgen-DPDK.git
+cd Pktgen-DPDK
+meson setup builddir
+meson compile -C builddir
+```
+
+Initial device setup (only once per boot) then run a config:
+
+```bash
+sudo ./tools/run.py -s default   # bind devices & prepare environment
+sudo ./tools/run.py default      # launch using cfg/default.cfg
+```
+
+Minimal manual run (no helper script) example (adjust cores/ports):
+
+```bash
+sudo ./builddir/app/pktgen -l 0-3 -n 4 -- -P -m "[1:2].0" -T
+```
+
+## 4. Building (Details)
+
+Pktgen uses Meson/Ninja. A convenience `Makefile` and `tools/pktgen-build.sh` wrap standard steps.
+
+1. Build and install DPDK so `libdpdk.pc` is installed (often under `/usr/local/lib/x86_64-linux-gnu/pkgconfig`).
+1. Export or append to `PKG_CONFIG_PATH` if that path is non‑standard:
+
+```bash
+export PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+```
+
+1. Build Pktgen:
+
+```bash
+meson setup builddir
+meson compile -C builddir
+```
+
+Or use:
+
+```bash
+make          # uses Meson/Ninja under the hood
+make rebuild  # clean reconfigure & build
+make rebuildlua
+```
+
+1. (Optional) Install Pktgen artifacts via Meson if desired.
+
+Troubleshooting hints:
+
+- If runtime fails to find DPDK libs: run `sudo ldconfig` or add the library path to `/etc/ld.so.conf.d/`.
+- Enable IOMMU for vfio: edit GRUB adding `intel_iommu=on` (or `amd_iommu=on`) then `update-grub` and reboot.
+
+## 5. Configuration Files (`cfg/`)
+
+Configuration files are Python fragments consumed by `tools/run.py`. They define two dictionaries: `setup` (device binding, privilege wrapper) and `run` (execution parameters).
+
+Trimmed example:
+
+```python
+description = 'Simple default configuration'
+
+setup = {
+    'devices': (
+        '81:00.0','81:00.1'
+    ),
+    'uio': 'vfio-pci'
+}
+
+run = {
+    'app_name': 'pktgen',
+    'cores': '14,15-16',      # control lcore, then worker/core ranges
+    'map': ('[15:16].0',),     # tx:rx core pair -> port
+    'opts': ('-T','-P'),       # -T: color theme, -P: promiscuous
+    'theme': 'themes/black-yellow.theme'
+}
+```
+
+Common keys (not exhaustive):
+
+- `devices`: PCI BDFs to bind.
+- `blocklist`: exclude listed devices.
+- `cores`: control and worker core list/ranges.
+- `map`: mapping of core pairs to ports `[tx:rx].port`.
+- `opts`: extra runtime flags passed after `--`.
+- `nrank`, `proc`, `log`, `prefix`: process / logging / multi‑process tuning.
+
+See existing examples in `cfg/` (e.g. `default.cfg`, `two-ports.cfg`, `pktgen-1.cfg`, `pktgen-2.cfg`).
+
+## 6. Configuration Key Reference
+
+| Key | Location | Type | Example | Description |
+|-----|----------|------|---------|-------------|
+| devices | setup | tuple/list | `('81:00.0','81:00.1')` | PCI BDFs to bind to DPDK |
+| uio | setup | string | `vfio-pci` | Kernel driver to bind (vfio-pci / igb_uio / uio_pci_generic) |
+| exec | setup/run | tuple | `('sudo','-E')` | Wrapper for privileged execution |
+| app_name | run | string | `pktgen` | Binary name; resolved via `app_path` list |
+| app_path | run | tuple/list | `('./app/%(target)s/%(app_name)s', ...)` | Candidate paths to locate binary |
+| cores | run | string | `14,15-16` | Control + worker cores; ranges and commas allowed |
+| map | run | tuple/list | `('[15:16].0',)` | TX:RX core pair mapped to port id |
+| opts | run | tuple/list | `('-T','-P')` | Extra runtime flags passed after `--` |
+| theme | run | string | `themes/black-yellow.theme` | Color/theme selection |
+| blocklist | run | tuple/list | `('81:00.2',)` | Exclude listed PCI devices |
+| nrank | run | string/int | `4` | Multi-process ranking parameter (advanced) |
+| proc | run | string | `auto` | Process type / role selection |
+| log | run | string/int | `7` | Log verbosity level |
+| prefix | run | string | `pg` | DPDK shared resource (memzone) prefix |
+
+> Not all keys are required; unused advanced keys can be omitted. Refer to examples in `cfg/` for patterns.
+
+## 7. Runtime Modes & Pages
+
+Modes: single (default), sequence, range, random, pcap replay, latency.
+
+Display pages correspond to configuration areas: `page main|seq|range|rnd|pcap|stats|xstats`.
+Each mode maintains separate packet template buffers—configure the active mode explicitly.
+
+## 8. Automation & Remote Control
+
+Pktgen exposes a TCP socket (default port `22022`) offering a Lua REPL‑like interface (no prompt). Examples:
+
+Interactive with socat:
+
+```bash
+socat -d -d READLINE TCP4:localhost:22022
+```
+
+Run a Lua script remotely:
+
+```bash
+socat - TCP4:localhost:22022 < test/hello-world.lua
+```
+
+Single command:
+
+```bash
+echo "f,e=loadfile('test/hello-world.lua'); f();" | socat - TCP4:localhost:22022
+```
+
+Example script (`test/hello-world.lua`):
+
+```lua
+package.path = package.path .. ";?.lua;test/?.lua;app/?.lua;"
+printf("Lua Version: %s\n", pktgen.info.Lua_Version)
+printf("Pktgen Version: %s\n", pktgen.info.Pktgen_Version)
+printf("Pktgen Copyright: %s\n", pktgen.info.Pktgen_Copyright)
+printf("Pktgen Authors: %s\n", pktgen.info.Pktgen_Authors)
+printf("\nHello World!!!!\n")
+```
+
+## 9. Advanced Topics
+
+- Multiple instances: see `pktgen-1.cfg` / `pktgen-2.cfg` for running concurrently (ensure isolated devices/cores).
+- Themes: located under `themes/`, selected via `-T` or config `theme` key.
+- Latency: latency packets can be injected in any mode; view stats on `page stats` / latency display.
+- Capture & PCAP: capture to pcap files or replay existing pcaps (`pcap/` directory contains samples).
+- Performance tuning: pin isolated cores, match NUMA locality (ports & mempools), ensure sufficient mbufs, verify TSC stability.
+- Plugins: extend via modules under `lib/plugin`.
+
+## 10. Contributing
+
+Please fork and submit pull requests via GitHub. Patches sent to the DPDK mailing list are not accepted for this repo.
+
+For detailed guidelines (coding style, commit message format, documentation rules) see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Extended Markdown formatting conventions are documented in [`docs/STYLE.md`](./docs/STYLE.md).
+Community expectations and reporting process: see [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
+
+Report issues / feature requests: <https://github.com/pktgen/Pktgen-DPDK/issues>
+
+When filing issues include:
+
+- Pktgen version (`cat VERSION` → current: 25.08.0)
+- DPDK version & build config
+- NIC model(s) & driver
+- Reproduction steps + minimal config
+
+### 10.1 Markdown Linting (Pre-Commit Hook)
+
+Documentation style is enforced via markdownlint.
+
+Enable the hook:
+
+```bash
+ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
+chmod +x .githooks/pre-commit
+```
+
+Requirements:
+
+```bash
+node --version   # ensure Node.js installed
+npm install --no-save markdownlint-cli2  # optional; hook auto-installs if missing
+```
+
+On commit, staged `*.md` files are linted. If violations are found the commit is aborted; some fixable rules may be auto-corrected—re-add and recommit.
+
+## 11. License
 
 SPDX-License-Identifier: BSD-3-Clause
+Copyright © 2010-2025 Intel Corporation
 
-Pktgen: Created 2010-2024 by Keith Wiles @ Intel.com
-```
+Full license text is available in [`LICENSE`](./LICENSE).
+
+## 12. Related Links
+
+- Documentation: <https://pktgen.github.io/Pktgen-DPDK/>
+- Install guide (legacy / extended details): [`INSTALL.md`](./INSTALL.md)
+- Example pcaps: `pcap/`
+
+## 13. Acknowledgments
+
+Created and maintained by Keith Wiles @ Intel Corporation with contributions from the community.
 
 ---
 
-## Please Note:
->Pktgen-DPDK main repo is located @ https://github.com/pktgen/Pktgen-DPDK
-Documentation can be found @ https://pktgen.github.io/Pktgen-DPDK/
+If this tool helps your testing, consider starring the project or contributing improvements.
 
->When submitting bug fixes or enhancements please fork Pktgen and submit a pull-request as I do not accept patches sent to DPDK mailing list. If you have any questions or issues please create an issue on Github.
-
----
-Using the tools/run.py script to setup and run pktgen with different configurations. The configuration files are located in the cfg directory with filenames ending in .cfg.
-
-To use a configuration file;
-
-``` console
-$ ./tools/run.py -s default  # to setup the ports and attach them to DPDK (only needed once per boot)
-
-$ ./tools/run.py default     # Run the default configuration
-```
-
-The configuration files are python scripts or a set of variables that run.py uses to initialize and run pktgen.
-Here is an example of the default.cfg file:
-
-``` console
-	description = 'A Pktgen default simple configuration'
-
-	# Setup configuration
-	setup = {
-	    'exec': (
-		'sudo', '-E'
-		),
-
-	    'devices': (
-		    '81:00.0', '81:00.1', '81:00.2', '81:00.3',
-		    '83:00.0', '83:00.1', '83:00.2', '83:00.3'
-		    ),
-	    # UIO module type, igb_uio, vfio-pci or uio_pci_generic
-	    'uio': 'vfio-pci'
-	    }
-
-	# Run command and options
-	run = {
-	    'exec': (
-		'sudo', '-E'
-		),
-
-	    # Application name and use app_path to help locate the app
-	    'app_name': 'pktgen',
-
-	    # using (sdk) or (target) for specific variables
-	    # add (app_name) of the application
-	    # Each path is tested for the application
-	    'app_path': (
-		'./app/%(target)s/%(app_name)s',
-		'%(sdk)s/%(target)s/app/%(app_name)s',
-		),
-
-	    'cores': '14,15-22',
-	    'nrank': '4',
-	    'proc': 'auto',
-	    'log': '7',
-	    'prefix': 'pg',
-
-	    'blocklist': (
-		#'81:00.0', '81:00.1', '81:00.2', '81:00.3',
-		#'83:00.0', '83:00.1', '83:00.2', '83:00.3',
-		'81:00.2', '81:00.3',
-		'83:00.2', '83:00.3'
-		),
-
-	    'opts': (
-		'-T',
-		'-P',
-		),
-	    'map': (
-		'[15:16].0',
-		'[17:18].1',
-		'[19:20].2',
-		'[21:22].3'
-		),
-
-	    'theme': 'themes/black-yellow.theme'
-	}
-```
-
-------------------------------------------------------------------------------------------
-### Two Pktgen instances running on the same machine with connected via a loopback ports
-
-Look at the two new files pktgen-1.cfg and pktgen-2.cfg in the cfg directory for some help on
-the configuration to run two Pktgen instances at the same time on the same machine.
-
-------------------------------------------------------------------------------------------
-### Socket Support for Pktgen.
-
-Pktgen has a TCP socket connection to allow you to control Pktgen from a remote
-program or console. The TCP connection is using port 0x5606 or 22022 and presents
-a Lua command shell interface. If you telnet to the machine running Pktgen on port
-22022 you will get a lua command shell like interface. This interface does not have
-a command line prompt, but you can issue Lua code or load script files from the local
-disk of the machine. You can also send programs to the remote Pktgen machine to
-load scripts from a remote location.
-
-One method to connect to Pktgen is using telnet, but another method would be to
-use 'socat' program on a Linux machine. The socat program is very powerful application
-and can do a lot of things. I used socat to debug Pktgen using the following
-command, which gives me a readline interface to Pktgen's socket interface.
-Remember to use the '-G' option or -g host:port pktgen option, then make sure you
-use the same address in the socat line.
-
-``` console
-$ socat -d -d READLINE TCP4:localhost:22022
-```
-
-'You will see socat create the connection and then wait for Lua command scripts for you'
-To exit this command type Control-D to exit and close the connection.
-
-You can also just send Pktgen a script file and display the output.
-
----------
-    $ socat - TCP4:localhost:22022 < test/hello-world.lua
-
-    Lua Version: Lua 5.3
-    Pktgen Version : 3.6.1
-    Pktgen Copyright : Copyright(c) `<2010-2025>`, Intel Corporation
-    Pktgen Authors : Keith Wiles @ Intel Corporation
-
-Hello World!!!!
---------
-
-Here is the program I sent Pktgen:
-
-    $ cat test/hello-world.lua
-    package.path = package.path ..";?.lua;test/?.lua;app/?.lua;"
-
-    printf("Lua Vesrion: %s\n", pktgen.info.Lua_Version);
-    printf("Pktgen Version : %s\n", pktgen.info.Pktgen_Version);
-    printf("Pktgen Copyright : %s\n", pktgen.info.Pktgen_Copyright);
-    printf("Pktgen Authors : %s\n", pktgen.info.Pktgen_Authors);
-
-    printf("\nHello World!!!!\n");
------------
-
-Here is a command from my Mac Book pro laptop, which loads a file from the local
-disk where Pktgen is running and then we execute the file with 'f()'.
-
-------------------
-
-    $ socat READLINE TCP4:172.25.40.163:22022
-    f,e = loadfile("test/hello-world.lua")
-    f()
-    Lua Version: Lua 5.3
-    Pktgen Version : 3.6.1
-    Pktgen Copyright : Copyright(c) `<2010-2025>`, Intel Corporation
-    Pktgen Authors : Keith Wiles @ Intel Corporation
-
-    Hello World!!!!
-    <Control-D>
-------------------
-
-You can also just send it commands via echo.
-
------------------
-
-    $ echo "f,e = loadfile('test/hello-world.lua'); f();"| socat - TCP4:172.25.40.163:22022
-    Lua Version: Lua 5.3
-    Pktgen Version : 3.6.1
-    Pktgen Copyright : Copyright(c) `<2010-2025>`, Intel Corporation
-    Pktgen Authors : Keith Wiles @ Intel Corporation
-
-    Hello World!!!!
-----------------------
-
-Keith Wiles @ Intel Corporation
+[DPDK]: https://www.dpdk.org/

@@ -1,0 +1,46 @@
+name: Markdown Lint
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - '.markdownlint.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - '**/*.md'
+      - '.markdownlint.yml'
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install markdownlint tools
+        run: |
+          npm install --no-save markdownlint-cli2
+
+      - name: Run markdownlint
+        run: |
+          npx markdownlint-cli2 "**/*.md" "!usr/**" "!builddir/**"
+
+      - name: Upload markdownlint report (always)
+        if: always()
+        run: |
+          # Create simple summary artifact (non-blocking)
+          echo "Markdown lint completed" > markdownlint-summary.txt
+        
+      - name: Store summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: markdownlint-summary
+          path: markdownlint-summary.txt

@@ -47,19 +47,18 @@ Pktgen: Created 2010-2024 by Keith Wiles @ Intel.com
 
 INSTALL for setting up Pktgen with DPDK on Ubuntu 22.04 to 23.10 desktop it should work on most Linux systems as long as the kernel has hugeTLB page support and builds DPDK.
 
-## Please Note:
->Pktgen-DPDK main repo is located @ https://github.com/pktgen/Pktgen-DPDK
-Documentation can be found @ https://pktgen.github.io/Pktgen-DPDK/
+## Please Note
 
-#### Submitting bug fixes or enhancements to Pktgen-DPDK
+> Pktgen-DPDK main repo is located @ <https://github.com/pktgen/Pktgen-DPDK>
+> Documentation can be found @ <https://pktgen.github.io/Pktgen-DPDK/>
 
->Please fork Pktgen-DPDK from GitHub and submit a pull-request as I do not accept patches sent to DPDK mailing list. If you have any questions or issues please create an issue on Github.
+### Submitting bug fixes or enhancements to Pktgen-DPDK
 
->Tested with Ubuntu 23.10 kernel version 6.5.0-28-generic (Mantic), and other earlier versions should work.
-Please use the latest DPDK and latest Pktgen versions other combinations may work, but with limited resources and time the latest versions are the only ones tested.
-
->Please install the latest version of DPDK from dpdk.org and follow the build instructions
-using meson/ninja. Then install DPDK on your system.
+> Please fork Pktgen-DPDK from GitHub and submit a pull-request as I do not accept patches sent to DPDK mailing list. If you have any questions or issues please create an issue on Github.
+> Tested with Ubuntu 23.10 kernel version 6.5.0-28-generic (Mantic), and other earlier versions should work.
+> Please use the latest DPDK and latest Pktgen versions other combinations may work, but with limited resources and time the latest versions are the only ones tested.
+>
+> Please install the latest version of DPDK from dpdk.org and follow the build instructions using meson/ninja. Then install DPDK on your system.
 
 ## Building Pktgen
 
@@ -92,7 +91,7 @@ sudo ldconfig  # make sure ld.so is pointing new DPDK libraries
 DPDK places the libdpdk.pc (pkg-config file) in a non-standard location and you need to set enviroment variable PKG_CONFIG_PATH to the location of the file. On Ubuntu 20.04 build of DPDK it places the file here /usr/local/lib/x86_64-linux-gnu/pkgconfig/libdpdk.pc
 
 ```console
-$ export PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig
+export PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig
 ```
 
 Building Pktgen after you have built and installed DPDK. The new build system uses meson/ninja, but Pktgen has a build script
@@ -137,8 +136,9 @@ Type 'help' at the 'Pktgen>' prompt to see the complete Pktgen command line
 commands. Pktgen uses VT100 control codes or escape codes to display the screens,
 which means your terminal must support VT100.
 
-#### Note:
-`Hyperterminal in windows is not going to work for Pktgen as it has a few problems with VT100 codes.`
+### Note
+
+`Hyperterminal in Windows is not going to work for Pktgen as it has a few problems with VT100 codes.`
 
 ## Quick comment on Pktgen modes
 
@@ -161,8 +161,10 @@ the environment.
 
 Before you run the script you will need to run:
 
-    # export RTE_SDK=<DPDKinstallDir>
-    # export RTE_TARGET=x86_64-native-linux-gcc
+```bash
+export RTE_SDK=<DPDKinstallDir>
+export RTE_TARGET=x86_64-native-linux-gcc
+```
 
 Make sure you run the setup script as root via `./tools/setup.sh`. The setup
 script is a bash script and tries to setup the system correctly, but you may have to
@@ -181,17 +183,23 @@ Add the following lines: Change the $RTE_SDK to the location of the DPDK version
 directory. Your SDK directory maybe named differently, but should point to the DPDK
 SDK directory.
 
-    # export RTE_SDK=<DPDKinstallDir>
-    # export RTE_TARGET=x86_64-native-linux-gcc
+```bash
+export RTE_SDK=<DPDKinstallDir>
+export RTE_TARGET=x86_64-native-linux-gcc
+```
 
 or use clang if you have it installed
 
-    # export RTE_TARGET=x86_64-native-linux-clang
+```bash
+export RTE_TARGET=x86_64-native-linux-clang
+```
 
 Create the DPDK build tree if you haven't already:
 
-    # cd $RTE_SDK
-    # make install T=x86_64-native-linux-gcc -j
+```bash
+cd $RTE_SDK
+make install T=x86_64-native-linux-gcc -j
+```
 
 The above command will create the x86_64-native-linux-gcc directory in the
 top level of the current-dkdp directory. The above command will build the basic
@@ -199,15 +207,18 @@ DPDK libraries and build tree.
 
 Next we build pktgen:
 
-    # cd <PktgenInstallDir>
-    # make -j
+```bash
+cd <PktgenInstallDir>
+make -j
+```
 
-For CentOS and pcap support you may need to try:
-For libpcap-devel
+For CentOS and pcap support you may need to try (for libpcap-devel):
 
-    # yum install dnf-plugins-core
-    # yum config-manager --set-enabled PowerTools
-    # yum repolist
+```bash
+yum install dnf-plugins-core
+yum config-manager --set-enabled PowerTools
+yum repolist
+```
 
 You should now have pktgen built.
 

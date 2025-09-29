@@ -1,3 +1,52 @@
+#!/usr/bin/env bash
+# Pre-commit hook for Markdown linting and optional auto-fix.
+# Usage: ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
+# Requires Node.js (npx). Installs markdownlint-cli2 on demand (no permanent dependency).
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+STAGED_MD_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(md|MD)$' || true)
+[ -z "$STAGED_MD_FILES" ] && exit 0
+
+if ! command -v npx >/dev/null 2>&1; then
+  echo "[pre-commit] npx (Node.js) not found. Install Node.js to lint Markdown." >&2
+  exit 1
+fi
+
+echo "[pre-commit] Linting Markdown files:"
+echo "$STAGED_MD_FILES" | sed 's/^/  - /'
+
+if ! npx --yes -- markdownlint-cli2 --version >/dev/null 2>&1; then
+  echo "[pre-commit] Installing markdownlint-cli2 (ephemeral)." >&2
+  npm install --no-save markdownlint-cli2 >/dev/null 2>&1 || {
+    echo "[pre-commit] Failed to install markdownlint-cli2." >&2
+    exit 1
+  }
+fi
+
+CONFIG_FILE=".markdownlint.yml"
+[ -f "$CONFIG_FILE" ] || CONFIG_FILE=".markdownlint.yaml"
+
+LINT_OK=1
+if ! npx --yes -- markdownlint-cli2 $STAGED_MD_FILES --config "$CONFIG_FILE"; then
+  LINT_OK=0
+fi
+
+if [ $LINT_OK -eq 0 ]; then
+  echo "[pre-commit] Markdown issues detected. Attempting optional auto-fix (markdownlint legacy)." >&2
+  if npx --yes -- markdownlint --version >/dev/null 2>&1; then
+    npx --yes -- markdownlint --fix $STAGED_MD_FILES || true
+    git add $STAGED_MD_FILES || true
+  fi
+  echo "[pre-commit] Commit aborted. Review fixes and re-stage." >&2
+  exit 1
+fi
+
+echo "[pre-commit] Markdown lint passed."
+exit 0
 #! /bin/bash
 
 for filename in $(git diff --cached --name-only | grep '.*\.[c|h]$'); do

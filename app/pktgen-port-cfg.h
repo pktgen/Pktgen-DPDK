@@ -101,6 +101,15 @@ typedef enum {
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
 typedef struct {
+    double q;                           /**< quantile target (es. 0.9, 0.95, 0.99) */
+    double m[5];                        /**< marker heights */
+    double n[5];                        /**< marker positions */
+    double np[5];                       /**< desired positions */
+    double dn[5];                       /**< increments per marker */
+    uint64_t count;
+} quantile_t;
+
+typedef struct {
     uint64_t data[MAX_LATENCY_ENTRIES]; /** Record for latencies */
     uint32_t idx;                       /**< Index to the latencies array */
     uint64_t next;                      /**< Next latency entry */
@@ -127,6 +136,9 @@ typedef struct {
     uint64_t max_cycles;              /**< maximum cycles per latency packet */
     uint32_t next_index;              /**< Next index to use for sending latency packets */
     uint32_t expect_index;            /**< Expected index for received latency packets */
+    quantile_t q90;                   /**< 90th percentile latency statistics */
+    quantile_t q95;                   /**< 95th percentile latency statistics */
+    quantile_t q99;                   /**< 99th percentile latency statistics */
     MARKER end_stats;
 } latency_t;
 

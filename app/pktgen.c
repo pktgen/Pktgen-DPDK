@@ -299,6 +299,118 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
     }
 }
 
+// Compare two double values for qsort.
+static int cmp_double(const void *a, const void *b) {
+    double da = *(const double *)a;
+    double db = *(const double *)b;
+    return (da > db) - (da < db);
+}
+
+// Prepares P^2 quantile estimator after the first 5 samples are collected.
+static void quantile_init(quantile_t *q, double *s) {
+    for (int i = 0; i < 5; i++) {
+        q->m[i] = s[i];
+        q->n[i] = i + 1;
+    }
+    q->np[0] = 1;
+    q->np[1] = 1 + 2 * q->q;
+    q->np[2] = 1 + 4 * q->q;
+    q->np[3] = 3 + 2 * q->q;
+    q->np[4] = 5;
+    q->dn[0] = 0;
+    q->dn[1] = q->q / 2;    
+    q->dn[2] = q->q;
+    q->dn[3] = (1 + q->q) / 2;
+    q->dn[4] = 1;
+    q->count = 5;
+}
+
+// Parabolic interpolation functions for new quantile value.
+static inline double parabolic(double m_prev, double m, double m_next,
+                               double n_prev, double n_next, double d)
+{
+    double num = d * (m_next - m_prev +
+                      (d - 1) * ((m_next - 2*m + m_prev) / (n_next - n_prev)));
+    double den = (n_next - n_prev);
+    return m + num / den;
+}
+
+// Linear interpolation function for new quantile value.
+// used when parabolic interpolation goes out of bounds.
+static inline double linear(double m, double m_adj,
+                            double n, double n_adj, double d) {
+    return m + d * (m_adj - m) / (n_adj - n);
+}
+
+// Update quantile estimator with a new sample.
+static void quantile_update(quantile_t *q, double x) {
+    if (q->count < 5) return;
+
+    int k;
+    if (x < q->m[0]) {
+        q->m[0] = x;
+        k = 0;
+    } else if (x < q->m[1]) k = 0;
+    else if (x < q->m[2]) k = 1;
+    else if (x < q->m[3]) k = 2;
+    else if (x <= q->m[4]) k = 3;
+    else {
+        q->m[4] = x;
+        k = 3;
+    }
+
+    for (int i = k + 1; i < 5; i++)
+        q->n[i]++;
+
+    for (int i = 0; i < 5; i++)
+        q->np[i] += q->dn[i];
+
+    for (int i = 1; i < 4; i++) {
+        double d = q->np[i] - q->n[i];
+        if ((d >= 1 && q->n[i+1] - q->n[i] > 1) ||
+            (d <= -1 && q->n[i-1] - q->n[i] < -1)) {
+
+            int s = (d >= 0) ? 1 : -1;
+            double q_new = parabolic(q->m[i-1], q->m[i], q->m[i+1],
+                         q->n[i-1], q->n[i+1], s);
+            if (q_new > q->m[i-1] && q_new < q->m[i+1])
+                q->m[i] = q_new;
+            else
+                q->m[i] = linear(q->m[i], q->m[i + s],
+                                 q->n[i], q->n[i + s], s);
+            q->n[i] += s;
+        }
+    }
+
+    q->count++;
+}
+// Update latency percentiles with a new latency sample in cycles after the first 5 samples are collected.
+static void update_latency_percentiles(latency_t *lat, uint64_t cycles) {
+    static double init_samples[3][5];
+
+    if (lat->q90.count < 5) {
+        init_samples[0][lat->q90.count] = (double)cycles;
+        init_samples[1][lat->q90.count] = (double)cycles;
+        init_samples[2][lat->q90.count] = (double)cycles;
+        lat->q90.count++;
+        lat->q95.count++;
+        lat->q99.count++;
+        if (lat->q90.count == 5) {
+            qsort(init_samples[0], 5, sizeof(double), cmp_double);
+            qsort(init_samples[1], 5, sizeof(double), cmp_double);
+            qsort(init_samples[2], 5, sizeof(double), cmp_double);
+            quantile_init(&lat->q90, init_samples[0]);
+            quantile_init(&lat->q95, init_samples[1]);
+            quantile_init(&lat->q99, init_samples[2]);
+        }
+        return;
+    }
+
+    quantile_update(&lat->q90, (double)cycles);
+    quantile_update(&lat->q95, (double)cycles);
+    quantile_update(&lat->q99, (double)cycles);
+}
+
 static inline void
 pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
@@ -330,6 +442,7 @@ pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts
 
             if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS)) {
                 lat->running_cycles += cycles;
+                update_latency_percentiles(lat, cycles);
 
                 if (lat->min_cycles == 0 || cycles < lat->min_cycles)
                     lat->min_cycles = cycles;

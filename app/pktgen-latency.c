@@ -89,6 +89,10 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Minimum(us)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Average(us)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Maximum(us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Percentiles:");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  90th Cycles / us");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  95th Cycles / us");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  99th Cycles / us");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter:");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Threshold (us)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Count/Percent");
@@ -318,6 +322,31 @@ pktgen_page_latency(void)
         latency = cycles_to_us(lat->max_cycles, per_cycle);
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->max_cycles, latency);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+        row++; /* Skip Percentiles header */
+        double q90, q95, q99;
+        if (lat->q90.count > 5) {
+            q90 = cycles_to_us(lat->q90.m[2], per_cycle);
+            snprintf(buff, sizeof(buff), "%'8.0f/%'8.2f", lat->q90.m[2], q90);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+            q95 = cycles_to_us(lat->q95.m[2], per_cycle);
+            snprintf(buff, sizeof(buff), "%'8.0f/%'8.2f", lat->q95.m[2], q95);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+            q99 = cycles_to_us(lat->q99.m[2], per_cycle);
+            snprintf(buff, sizeof(buff), "%'8.0f/%'8.2f", lat->q99.m[2], q99);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+        } else {
+            snprintf(buff, sizeof(buff), "%'8.0f/%'8.2f", 0.0, 0.0);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+            snprintf(buff, sizeof(buff), "%'8.0f/%'8.2f", 0.0, 0.0);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+            snprintf(buff, sizeof(buff), "%'8.0f/%'8.2f", 0.0, 0.0);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        }
 
         row++; /* Skip Jitter header */
         snprintf(buff, sizeof(buff), "%'" PRIu64, lat->jitter_threshold_us);
@@ -347,10 +376,23 @@ pktgen_page_latency(void)
     scrn_eol();
 }
 
+// initialize latency quantile for 90th, 95th, and 99th percentiles
+static inline void latency_quantiles_init(latency_t *lat)
+{
+    lat->q90.q = 0.90;
+    lat->q95.q = 0.95;
+    lat->q99.q = 0.99;
+
+    lat->q90.count = 0;
+    lat->q95.count = 0;
+    lat->q99.count = 0;
+}
+
 void
 pktgen_latency_setup(port_info_t *pinfo)
 {
     pkt_seq_t *pkt = &pinfo->seq_pkt[LATENCY_PKT];
+    latency_t *lat = &pinfo->latency;
 
     rte_memcpy(pkt, &pinfo->seq_pkt[SINGLE_PKT], sizeof(pkt_seq_t));
 
@@ -358,4 +400,7 @@ pktgen_latency_setup(port_info_t *pinfo)
     pkt->ipProto  = PG_IPPROTO_UDP;
     pkt->ethType  = RTE_ETHER_TYPE_IPV4;
     pkt->dport    = LATENCY_DPORT;
+
+    latency_quantiles_init(lat);
+
 }

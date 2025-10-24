@@ -100,6 +100,13 @@ typedef enum {
 
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
+#define RING_SIZE 1000
+typedef struct {
+    uint64_t data[RING_SIZE];
+    int head;  /**< index of next write position */
+    int count; /**< number of elements */
+} latency_ring_t;
+
 typedef struct {
     uint64_t data[MAX_LATENCY_ENTRIES]; /** Record for latencies */
     uint32_t idx;                       /**< Index to the latencies array */
@@ -127,6 +134,7 @@ typedef struct {
     uint64_t max_cycles;              /**< maximum cycles per latency packet */
     uint32_t next_index;              /**< Next index to use for sending latency packets */
     uint32_t expect_index;            /**< Expected index for received latency packets */
+    latency_ring_t tail_latencies;    /**< ring buffer for tail latencies */
     MARKER end_stats;
 } latency_t;
 

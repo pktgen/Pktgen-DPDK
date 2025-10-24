@@ -89,6 +89,10 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Minimum(us)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Average(us)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Cycles/Maximum(us)");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Percentiles:");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  90th Cycles / us");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  95th Cycles / us");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  99th Cycles / us");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter:");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Threshold (us)");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "  Count/Percent");
@@ -193,6 +197,42 @@ pktgen_print_static_data(void)
     pktgen_display_set_color(NULL);
 
     pktgen.flags &= ~PRINT_LABELS_FLAG;
+}
+/* comparator function for qsort ring */
+static int
+cmp_uint64_asc(const void *a, const void *b)
+{
+    uint64_t va = *(const uint64_t *)a;
+    uint64_t vb = *(const uint64_t *)b;
+    if (va < vb)
+        return -1;
+    if (va > vb)
+        return 1;
+    return 0;
+}
+/* returns quantile (0.9, 0.95, 0.99) */
+static uint64_t
+latency_ring_percentile(const latency_ring_t *ring, double q)
+{
+    if (ring->count == 0)
+        return 0;
+
+    uint64_t tmp[RING_SIZE];
+    for (int i = 0; i < ring->count; i++) {
+        tmp[i] = ring->data[i];
+    }
+
+    qsort(tmp, ring->count, sizeof(uint64_t), cmp_uint64_asc);
+
+    // percentile position (es. 0.9 == 90%)
+    double pos  = q * (ring->count - 1);
+    int idx     = (int)pos;
+    double frac = pos - idx;
+
+    if (idx + 1 < ring->count)
+        return tmp[idx] + (uint64_t)((tmp[idx + 1] - tmp[idx]) * frac);
+    else
+        return tmp[idx];
 }
 
 static inline double
@@ -317,6 +357,23 @@ pktgen_page_latency(void)
 
         latency = cycles_to_us(lat->max_cycles, per_cycle);
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->max_cycles, latency);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        row++; /* Skip Percentiles header */
+        double q90, q95, q99;
+        q90 = cycles_to_us(latency_ring_percentile(&lat->tail_latencies, 0.90), per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f",
+                 latency_ring_percentile(&lat->tail_latencies, 0.90), q90);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        q95 = cycles_to_us(latency_ring_percentile(&lat->tail_latencies, 0.95), per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f",
+                 latency_ring_percentile(&lat->tail_latencies, 0.95), q95);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
+        q99 = cycles_to_us(latency_ring_percentile(&lat->tail_latencies, 0.99), per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f",
+                 latency_ring_percentile(&lat->tail_latencies, 0.99), q99);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         row++; /* Skip Jitter header */

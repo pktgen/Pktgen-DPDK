@@ -299,6 +299,16 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
     }
 }
 
+/* Inserts a new value into the ring of latencies */
+static inline void
+latency_ring_insert(latency_ring_t *ring, uint64_t value)
+{
+    ring->data[ring->head] = value;
+    ring->head             = (ring->head + 1) % RING_SIZE;
+    if (ring->count < RING_SIZE)
+        ring->count++;
+}
+
 static inline void
 pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts)
 {
@@ -330,6 +340,8 @@ pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts
 
             if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS)) {
                 lat->running_cycles += cycles;
+
+                latency_ring_insert(&lat->tail_latencies, cycles);
 
                 if (lat->min_cycles == 0 || cycles < lat->min_cycles)
                     lat->min_cycles = cycles;

@@ -251,6 +251,8 @@ npm install --no-save markdownlint-cli2  # optional; hook auto-installs if missi
 
 On commit, staged `*.md` files are linted. If violations are found the commit is aborted; some fixable rules may be auto-corrected—re-add and recommit.
 
+Staged C source/header files (`*.c`, `*.h`) are auto-formatted with `clang-format` (if present) before commit.
+
 ## 11. License
 
 SPDX-License-Identifier: BSD-3-Clause

@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh
 
 if [ ! -n "$1" ]; then
 echo "Syntax is: recurse.sh dirname filesuffix"
@@ -19,7 +19,7 @@ fi
 
 file_list=`find ${1} -name "*.${filesuffix}" -type f`
 for file2indent in $file_list
-do 
+do
 echo "Indenting file $file2indent"
 #!/bin/bash
 indent "$file2indent" -o indentoutput.tmp

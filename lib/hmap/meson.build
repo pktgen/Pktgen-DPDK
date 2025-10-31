@@ -6,4 +6,3 @@ headers = files('hmap.h')
 
 libhmap = library('hmap', sources, dependencies: dpdk)
 hmap = declare_dependency(link_with: libhmap, include_directories: include_directories('.'))
-

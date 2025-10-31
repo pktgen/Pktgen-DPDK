@@ -7,4 +7,3 @@ ip link set dev ens260f0 vf 0 mac 00:11:22:33:44:01
 ip link set dev ens260f0 vf 1 mac 00:11:22:33:44:02
 
 ../dpdk/usertools/dpdk-devbind.py -b vfio-pci 82:02.0 82:02.1
-

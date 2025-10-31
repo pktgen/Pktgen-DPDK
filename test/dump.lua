@@ -10,4 +10,3 @@ printf("Pktgen Copyright : %s\n", pktgen.info.Pktgen_Copyright);
 printf("Pktgen Authors   : %s\n", pktgen.info.Pktgen_Authors);
 
 prints();
-

@@ -36,4 +36,3 @@ pktgen.seqTable(1, "all", seq_table[1] );
 pktgen.set("all", "seq_cnt", 2);
 pktgen.set("all", "seqCnt", 4);
 pktgen.page("seq");
-

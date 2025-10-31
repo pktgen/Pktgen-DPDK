@@ -229,8 +229,14 @@ struct cli_tree {
 };
 
 /**< Used to help create a directory tree */
-#define c_dir(n) {CLI_DIR_NODE, .dir = {(n), 0}}
-#define c_bin(n) {CLI_DIR_NODE, .dir = {(n), 1}}
+#define c_dir(n)                       \
+    {                                  \
+        CLI_DIR_NODE, .dir = {(n), 0 } \
+    }
+#define c_bin(n)                       \
+    {                                  \
+        CLI_DIR_NODE, .dir = {(n), 1 } \
+    }
 #define c_cmd(n, f, h)                        \
     {                                         \
         CLI_CMD_NODE, .cmd = {(n), (f), (h) } \
@@ -247,7 +253,10 @@ struct cli_tree {
     {                                         \
         CLI_STR_NODE, .str = {(n), (f), (s) } \
     }
-#define c_end() {CLI_UNK_NODE, .dir = {NULL, 0}}
+#define c_end()                          \
+    {                                    \
+        CLI_UNK_NODE, .dir = { NULL, 0 } \
+    }
 
 static inline void
 cli_set_user_state(void *val)

@@ -139,7 +139,7 @@ cli_history_next(void)
             return NULL;
 
         if (cli->curr_hist == CIRCLEQ_LAST(&cli->hd_hist))
-            return (char *)(uintptr_t)"";
+            return (char *)(uintptr_t) "";
 
         hist           = CIRCLEQ_LOOP_NEXT(&cli->hd_hist, cli->curr_hist, next);
         cli->curr_hist = hist;

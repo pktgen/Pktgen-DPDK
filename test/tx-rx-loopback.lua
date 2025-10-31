@@ -43,4 +43,3 @@ num_dropped = num_tx - num_rx;
 print("Tx: " .. num_tx .. ". Rx: " .. num_rx .. ". Dropped: " .. num_dropped);
 
 prints("DEBUG portStats", pktgen.portStats("all", "port"));
-

@@ -11,7 +11,7 @@ INPUT                   = @TOPDIR@/doc/api/doxy-api-index.md \
                           @TOPDIR@/lib/plugin \
                           @TOPDIR@/lib/utils \
                           @TOPDIR@/lib/vec \
-                          @TOPDIR@/app 
+                          @TOPDIR@/app
 INPUT                   += @API_EXAMPLES@
 FILE_PATTERNS           = pktgen-*.h
 PREDEFINED              = __DOXYGEN__ \

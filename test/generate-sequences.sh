@@ -8,7 +8,7 @@
 
 #TODO --
 # Could be improved to do multi-port and parameterized.  Maybe prompt
-# for the information 
+# for the information
 #
 
 #For Port 0/1
@@ -42,7 +42,7 @@ do
 		 #
 	echo "seq $flow 0 $DEST_MAC $SRC_MAC $DEST_IP $SRC_IP/24 $((1000 + $flow)) $((2000 + $flow)) $IPMODE $PROT $VLAN $PKTSIZE"
 	#todo maybe add changing something other than port
-	
+
 done
 
 #port 1
@@ -50,7 +50,7 @@ for flow in `seq 0 $(($FLOWS - 1))`
 do
 	echo "seq $flow 1  $SRC_MAC $DEST_MAC $SRC_IP $DEST_IP/24 $((1000+$flow)) $((2000+$flow)) $IPMODE $PROT $VLAN $PKTSIZE"
 	#todo maybe add changing something other than port
-	
+
 done
 
 echo "set 0,1 seqCnt $FLOWS"

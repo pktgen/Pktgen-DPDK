@@ -164,9 +164,9 @@
 
     /* Sequence */
     void pktgen_set_port_seqCnt(port_info_t * pinfo, uint32_t cnt);
-    void pktgen_set_seq(port_info_t * pinfo, uint32_t seqnum, struct rte_ether_addr *daddr,
-                        struct rte_ether_addr *saddr, struct pg_ipaddr *ip_daddr,
-                        struct pg_ipaddr *ip_saddr, uint32_t sport, uint32_t dport, char ip,
+    void pktgen_set_seq(port_info_t * pinfo, uint32_t seqnum, struct rte_ether_addr * daddr,
+                        struct rte_ether_addr * saddr, struct pg_ipaddr * ip_daddr,
+                        struct pg_ipaddr * ip_saddr, uint32_t sport, uint32_t dport, char ip,
                         char proto, uint16_t vlanid, uint32_t pktsize, uint32_t gtpu_teid);
     void pktgen_set_cos_tos_seq(port_info_t * pinfo, uint32_t seqnum, uint32_t cos, uint32_t tos);
     void pktgen_set_vxlan_seq(port_info_t * pinfo, uint32_t seqnum, uint32_t flag, uint32_t gid,

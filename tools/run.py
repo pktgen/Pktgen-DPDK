@@ -33,7 +33,7 @@ Options:
 --------
     -h, --help | -u, --usage:
             Display usage information and quit
-              
+
     -s, --setup:
             Setup the environment for running the configuration file.
 

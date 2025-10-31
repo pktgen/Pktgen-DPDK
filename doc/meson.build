@@ -16,4 +16,3 @@ else
 endif
 run_target('doc', command: ['echo', message, doc_target_names],
     depends: doc_targets)
-

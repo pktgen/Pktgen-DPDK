@@ -1,0 +1,81 @@
+# Pre-commit configuration for FastIPC
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+# Global exclusions - ignore build directories and specifications
+exclude: '^(builddir/.*|specs/.*|.github/.*|.githooks/.*)'
+
+repos:
+  # General code quality hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: debug-statements
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # C/C++ specific formatting and linting
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.8
+    hooks:
+      - id: clang-format
+        args: ['-i']
+        types_or: [c, c++]
+
+  # Additional C/C++ static analysis (manual use)
+  # Uncomment to enable clang-tidy in pre-commit (requires compilation database)
+  # - repo: local
+  #   hooks:
+  #     - id: clang-tidy
+  #       name: clang-tidy
+  #       entry: clang-tidy
+  #       language: system
+  #       files: \.(c|h)$
+  #       args: [--format-style=file]
+
+  # Meson build file validation (manual)
+  # Run manually with: meson setup --dry-run build-test
+
+  # Documentation and markdown
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix', '--disable', 'MD013', 'MD033']
+
+
+
+  # Shell script linting
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: v0.10.0.1
+  #   hooks:
+  #     - id: shellcheck
+
+  # Security scanning
+  #- repo: https://github.com/Yelp/detect-secrets
+  #  rev: v1.5.0
+  #  hooks:
+  #    - id: detect-secrets
+  #      args: ['--baseline', '.secrets.baseline']
+
+#ci:
+#  autofix_commit_msg: |
+#    [pre-commit.ci] auto fixes from pre-commit.com hooks
+#
+#    for more information, see https://pre-commit.ci
+#  autofix_prs: true
+#  autoupdate_branch: ''
+#  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+#  autoupdate_schedule: weekly
+#  skip: []
+#  submodules: false

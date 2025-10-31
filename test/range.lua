@@ -47,4 +47,3 @@ pktgen.range.ttl("all", "max", 64);
 --pktgen.range.traffic_class("all", "inc", 0);
 --pktgen.range.traffic_class("all", "min", 32);
 --pktgen.range.traffic_class("all", "max", 32);
-

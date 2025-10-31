@@ -7,4 +7,3 @@ for filename in $(find . -path ./Builddir -prune -o -name "*.[ch]"); do
         clang-format -style=file -i $filename; # git add $filename;
     fi
 done
-

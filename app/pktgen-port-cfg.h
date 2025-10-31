@@ -64,7 +64,7 @@ enum { /* Per port flag bits */
        SEND_VLAN_ID             = (1ULL << 17), /**< Send packets with VLAN ID */
        SEND_MPLS_LABEL          = (1ULL << 18), /**< Send MPLS label */
        SEND_Q_IN_Q_IDS          = (1ULL << 19), /**< Send packets with Q-in-Q */
-       
+
        SEND_GRE_IPv4_HEADER     = (1ULL << 20), /**< Encapsulate IPv4 in GRE */
        SEND_GRE_ETHER_HEADER    = (1ULL << 21), /**< Encapsulate Ethernet frame in GRE */
        SEND_VXLAN_PACKETS       = (1ULL << 22), /**< Send VxLAN Packets */

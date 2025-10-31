@@ -9,4 +9,3 @@ else
     py3 = ['meson', 'runpython']
 endif
 sphinx_wrapper = py3 + files('call-sphinx-build.py')
-

@@ -90,17 +90,18 @@ usage(int err)
 }
 
 static struct rte_mempool *
-create_pktmbuf_pool(const char *type, uint16_t lid, uint16_t pid, uint32_t nb_mbufs,
+create_pktmbuf_pool(const char *type, uint16_t lid, uint16_t pid, uint16_t qid, uint32_t nb_mbufs,
                     uint32_t cache_size)
 {
     struct rte_mempool *mp;
     char name[RTE_MEMZONE_NAMESIZE];
 
     /* Create the pktmbuf pool one per lcore/port */
-    snprintf(name, sizeof(name) - 1, "%s-%u/%u", type, lid, pid);
+    snprintf(name, sizeof(name) - 1, "%s-%u/%u/%u", type, lid, pid, qid);
 
-    printf("Creating %s mbuf pool for lcore %3u, port %2u, MBUF Count %'u, size %'u on NUMA %d\n",
-           name, lid, pid, nb_mbufs, info->mbuf_size, pg_eth_dev_socket_id(pid));
+    printf("Creating %s mbuf pool for lcore %3u, port %2u, qid %2u, MBUF Count %'u, size %'u on "
+           "NUMA %d\n",
+           name, lid, pid, qid, nb_mbufs, info->mbuf_size, pg_eth_dev_socket_id(pid));
 
     mp = rte_pktmbuf_pool_create(name, info->mbuf_count, cache_size, 0, info->mbuf_size,
                                  pg_eth_dev_socket_id(pid));
@@ -159,16 +160,40 @@ parse_cores(l2p_port_t *port, const char *cores, int mode)
         switch (mode) {
         case LCORE_MODE_RX:
             lport->rx_qid = port->num_rx_qids++;
-            DBG_PRINT("lcore %u is in RX mode\n", l);
+            DBG_PRINT("lcore %u:%u:%u is in RX mode\n", l, lport->port->pid, lport->rx_qid);
+
+            port->rx_mp[lport->rx_qid] = create_pktmbuf_pool(
+                "Rx", lport->lid, port->pid, lport->rx_qid, info->mbuf_count, MEMPOOL_CACHE_SIZE);
+            if (port->rx_mp[lport->rx_qid] == NULL)
+                ERR_RET("Unable to allocate Rx pktmbuf pool for lid/port %d/%d\n", lport->lid,
+                        port->pid);
             break;
         case LCORE_MODE_TX:
             lport->tx_qid = port->num_tx_qids++;
-            DBG_PRINT("lcore %u is in TX mode\n", l);
+            DBG_PRINT("lcore %u:%u:%u is in TX mode\n", l, lport->port->pid, lport->tx_qid);
+
+            port->tx_mp[lport->tx_qid] = create_pktmbuf_pool(
+                "Tx", lport->lid, port->pid, lport->tx_qid, info->mbuf_count, MEMPOOL_CACHE_SIZE);
+            if (port->tx_mp[lport->tx_qid] == NULL)
+                ERR_RET("Unable to allocate Tx pktmbuf pool for lid/port %d/%d\n", lport->lid,
+                        port->pid);
             break;
         case LCORE_MODE_BOTH:
             lport->rx_qid = port->num_rx_qids++;
             lport->tx_qid = port->num_tx_qids++;
-            DBG_PRINT("lcore %u is in RX/TX mode\n", l);
+            DBG_PRINT("lcore %u:%u:%u is in RX/TX mode\n", l, lport->port->pid, lport->rx_qid);
+
+            port->rx_mp[lport->rx_qid] = create_pktmbuf_pool(
+                "Rx", lport->lid, port->pid, lport->rx_qid, info->mbuf_count, MEMPOOL_CACHE_SIZE);
+            if (port->rx_mp[lport->rx_qid] == NULL)
+                ERR_RET("Unable to allocate Rx pktmbuf pool for lid/port %d/%d\n", lport->lid,
+                        port->pid);
+
+            port->tx_mp[lport->tx_qid] = create_pktmbuf_pool(
+                "Tx", lport->lid, port->pid, lport->tx_qid, info->mbuf_count, MEMPOOL_CACHE_SIZE);
+            if (port->tx_mp[lport->tx_qid] == NULL)
+                ERR_RET("Unable to allocate Tx pktmbuf pool for lid/port %d/%d\n", lport->lid,
+                        port->pid);
             break;
         default:
             ERR_RET("invalid port mode\n");
@@ -178,20 +203,6 @@ parse_cores(l2p_port_t *port, const char *cores, int mode)
         DBG_PRINT("lcore: %u port: %u qid: %u/%u name:'%s'\n", lport->lid, port->pid, lport->rx_qid,
                   lport->tx_qid, name);
 
-        if (port->rx_mp == NULL) {
-            port->rx_mp = create_pktmbuf_pool("Rx", lport->lid, port->pid, info->mbuf_count,
-                                              MEMPOOL_CACHE_SIZE);
-            if (port->rx_mp == NULL)
-                ERR_RET("Unable to allocate Rx pktmbuf pool for lid/port %d/%d\n", lport->lid,
-                        port->pid);
-        }
-        if (port->tx_mp == NULL) {
-            port->tx_mp = create_pktmbuf_pool("Tx", lport->lid, port->pid, info->mbuf_count,
-                                              MEMPOOL_CACHE_SIZE);
-            if (port->tx_mp == NULL)
-                ERR_RET("Unable to allocate Tx pktmbuf pool for lid/port %d/%d\n", lport->lid,
-                        port->pid);
-        }
     } while (l++ < h);
 
     DBG_PRINT("num_cores: %d\n", num_cores);
@@ -272,7 +283,7 @@ validate_args(void)
         info->burst_count = MAX_BURST_COUNT;
     DBG_PRINT("RX/TX burst count: %'u\n", info->burst_count);
 
-    if (info->pkt_size <= 0)
+    if (info->pkt_size == 0)
         info->pkt_size = DEFAULT_PKT_SIZE;
     else if (info->pkt_size > MAX_PKT_SIZE)
         info->pkt_size = MAX_PKT_SIZE;

@@ -1,6 +1,6 @@
 ## PKTPERF example application to verify Rx/Tx performance with multiple cores
 
-The `pktperf` example application is used to verify Rx/Tx performance with mutiple cores or queues. The application is configured from the command line arguments and does not have CLI to configure on the fly.
+The `pktperf` example application is used to verify Rx/Tx performance with multiple cores or queues. The application is configured from the command line arguments and does not have CLI to configure on the fly.
 
 ---
 ```console

@@ -33,6 +33,11 @@ mbuf_iterate_cb(struct rte_mempool *mp, void *opaque, void *obj, unsigned obj_id
     struct rte_mbuf *m = (struct rte_mbuf *)obj;
     uint16_t plen      = info->pkt_size - RTE_ETHER_CRC_LEN;
 
+    if (plen < RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN) {
+        printf("Invalid packet size %u, setting to minimum %u\n", plen,
+               RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN);
+        plen = RTE_ETHER_MIN_LEN - RTE_ETHER_CRC_LEN;
+    }
     packet_constructor(lport, rte_pktmbuf_mtod(m, uint8_t *), info->ip_proto);
 
     m->pool     = mp;
@@ -76,12 +81,25 @@ do_tx_process(l2p_lport_t *lport, struct rte_mbuf **mbufs, uint16_t n_mbufs, uin
     pid    = port->pid;
     tx_qid = lport->tx_qid;
     c      = &port->pq[tx_qid].curr;
-    mp     = lport->port->tx_mp;
+    mp     = lport->port->tx_mp[tx_qid];
 
     /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
     if (rte_mempool_get_bulk(mp, (void **)mbufs, n_mbufs) == 0) {
         uint16_t plen = info->pkt_size - RTE_ETHER_CRC_LEN;
         uint16_t sent, send = n_mbufs;
+
+        for (uint16_t i = 0; i < n_mbufs; i++) {
+            if (mbufs[i]->data_len != plen || mbufs[i]->pkt_len != plen) {
+                printf("Mismatch mbuf lengths mbuf[%u] data_len=%u pkt_len=%u, resetting\n", i,
+                       mbufs[i]->data_len, mbufs[i]->pkt_len);
+                /* Reset mbuf fields that might have been changed */
+                mbufs[i]->data_len = plen;
+                mbufs[i]->pkt_len  = plen;
+                mbufs[i]->next     = NULL;
+                mbufs[i]->port     = 0;
+                mbufs[i]->ol_flags = 0;
+            }
+        }
 
         do {
             sent = rte_eth_tx_burst(pid, tx_qid, mbufs, send);
@@ -107,8 +125,8 @@ rx_loop(void)
 
     lport = info->lports[rte_lcore_id()];
 
-    DBG_PRINT("Starting loop for lcore:port:queue %3u:%2u:%2u\n", rte_lcore_id(), lport->port->pid,
-              lport->rx_qid);
+    printf("Starting Rx loop for lcore:port:queue %3u:%2u:%2u\n", rte_lcore_id(), lport->port->pid,
+           lport->rx_qid);
 
     while (!info->force_quit)
         do_rx_process(lport, mbufs, rx_burst, rte_rdtsc());
@@ -129,14 +147,14 @@ tx_loop(void)
     lport = info->lports[rte_lcore_id()];
     port  = lport->port;
 
-    DBG_PRINT("Starting loop for lcore:port:queue %3u:%2u:%2u\n", rte_lcore_id(), port->pid,
-              lport->tx_qid);
+    printf("Starting Tx loop for lcore:port:queue %3u:%2u:%2u\n", rte_lcore_id(), port->pid,
+           lport->tx_qid);
 
     pthread_spin_lock(&port->tx_lock);
-    if (port->tx_inited == 0) {
-        port->tx_inited = 1;
+    if (port->tx_inited[lport->tx_qid] == 0) {
+        port->tx_inited[lport->tx_qid] = 1;
         /* iterate over all buffers in the pktmbuf pool and setup the packet data */
-        rte_mempool_obj_iter(port->tx_mp, mbuf_iterate_cb, (void *)lport);
+        rte_mempool_obj_iter(port->tx_mp[lport->tx_qid], mbuf_iterate_cb, (void *)lport);
     }
     pthread_spin_unlock(&port->tx_lock);
 
@@ -169,14 +187,14 @@ rxtx_loop(void)
     lport = info->lports[rte_lcore_id()];
     port  = lport->port;
 
-    DBG_PRINT("Starting loop for lcore:port:queue %3u:%2u:%2u.%2u\n", rte_lcore_id(), port->pid,
-              lport->rx_qid, lport->tx_qid);
+    printf("Starting Rx/Tx loop for lcore:port:queue %3u:%2u:%2u.%2u\n", rte_lcore_id(), port->pid,
+           lport->rx_qid, lport->tx_qid);
 
     pthread_spin_lock(&port->tx_lock);
-    if (port->tx_inited == 0) {
-        port->tx_inited = 1;
+    if (port->tx_inited[lport->tx_qid] == 0) {
+        port->tx_inited[lport->tx_qid] = 1;
         /* iterate over all buffers in the pktmbuf pool and setup the packet data */
-        rte_mempool_obj_iter(port->tx_mp, mbuf_iterate_cb, (void *)lport);
+        rte_mempool_obj_iter(port->tx_mp[lport->tx_qid], mbuf_iterate_cb, (void *)lport);
     }
     pthread_spin_unlock(&port->tx_lock);
 
@@ -203,8 +221,12 @@ txpkts_launch_one_lcore(__rte_unused void *dummy)
 {
     l2p_lport_t *lport = info->lports[rte_lcore_id()];
 
-    if (lport == NULL || lport->port == NULL || lport->port->pid >= RTE_MAX_ETHPORTS)
-        ERR_RET("lport or port is NULL\n");
+    if (lport == NULL)
+        ERR_RET("lport is NULL lcore(%u)\n", rte_lcore_id());
+    if (lport->port == NULL)
+        ERR_RET("lport->port is NULL lcore(%u)\n", rte_lcore_id());
+    if (lport->port->pid >= RTE_MAX_ETHPORTS)
+        ERR_RET("lport->port->pid is invalid (%u) lcore(%u)\n", lport->port->pid, rte_lcore_id());
 
     switch (lport->mode) {
     case LCORE_MODE_RX:
@@ -263,13 +285,13 @@ launch_lcore_threads(void)
 {
     int lid;
 
-    /* Scroll the screen to keep console output for debugging */
-    for (int i = 0; i < 10; i++)
-        PRINT("\n\n\n\n\n\n\n\n\n\n\n");
-
     /* launch per-lcore init on every worker lcore */
     if (rte_eal_mp_remote_launch(txpkts_launch_one_lcore, NULL, SKIP_MAIN) != 0)
         ERR_RET("Failed to launch lcore threads\n");
+
+    /* Scroll the screen to keep console output for debugging */
+    for (int i = 0; i < 10; i++)
+        PRINT("\n\n\n\n\n\n\n\n\n\n\n");
 
     /* Display the statistics  */
     do {

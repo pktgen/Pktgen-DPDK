@@ -227,7 +227,7 @@ port_setup(l2p_port_t *port)
             rxq_conf          = dev_info.default_rxconf;
             rxq_conf.offloads = conf.rxmode.offloads;
 
-            ret = rte_eth_rx_queue_setup(pid, q, info->nb_rxd, sid, &rxq_conf, port->rx_mp);
+            ret = rte_eth_rx_queue_setup(pid, q, info->nb_rxd, sid, &rxq_conf, port->rx_mp[q]);
             if (ret < 0)
                 ERR_RET("rte_eth_rx_queue_setup:err=%d, port=%u\n", ret, pid);
             DBG_PRINT("Port %u:%u configured with %u RX descriptors\n", pid, q, info->nb_rxd);

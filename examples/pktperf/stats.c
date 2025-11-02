@@ -54,14 +54,14 @@ print_stats(void)
     /* Clear screen and move to top left */
     printf("%s%s", clr, top_left);
 
-    printf("Port    : Rate Statistics per queue (%c)\n", twirl[cnt++ % 4]);
-    printf("          Size: %'u Burst: %'u ", info->pkt_size, info->burst_count);
-    printf("Mapping : ");
+    printf("Port    : Rate Statistics per queue (%c), PID:%d, ", twirl[cnt++ % 4], getpid());
+    printf("Size: %'u, Burst: %'u\n", info->pkt_size, info->burst_count);
+    printf("        : MBUFs:%'u Size:%'u Rx/Tx:%'d/%'d TxRate:%u%%\n", info->mbuf_count,
+           info->mbuf_size, info->nb_rxd, info->nb_txd, info->tx_rate);
+    printf("        : Mapping: ");
     for (int i = 0; i < info->num_mappings; i++)
         printf("%s ", info->mappings[i]);
-    printf("\n");
-    printf("          MBUFs:%'u Size:%'u Rx/Tx:%'d/%'d TxRate:%u%%, PID:%d\n", info->mbuf_count,
-           info->mbuf_size, info->nb_rxd, info->nb_txd, info->tx_rate, getpid());
+    printf("\n\n");
 
     for (uint16_t pid = 0; pid < info->num_ports; pid++) {
         l2p_port_t *port = &info->ports[pid];
@@ -113,7 +113,8 @@ print_stats(void)
 
         printf(" %2u     : %s, ", pid, link_status_text);
         packet_rate(port);
-        printf("MaxPPS:%'" PRIu64 ", TxCPB:%'" PRIu64 "\n\n", port->pps, port->tx_cycles);
+        printf("MaxPPS:%'" PRIu64 "\n        : Pkts/Thread:%'" PRIu64 ", TxCPB:%'" PRIu64 "\n\n",
+               port->pps, port->ppt, port->tx_cycles);
 
         printf("  Queue ID    ");
         for (uint16_t q = 0; q < nb_queues; q++)

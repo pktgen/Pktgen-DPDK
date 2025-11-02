@@ -94,22 +94,32 @@ pktgen_wire_size(port_info_t *pinfo)
 void
 pktgen_packet_rate(port_info_t *port)
 {
-    uint64_t link_speed, wire_size, pps, cpb;
+    uint64_t link_speed, pps, cpb, txcnt;
 
-    wire_size = pktgen_wire_size(port);
-    if (port->link.link_speed == 0) {
+    if (!port)
+        return;
+
+    // link speed in Megabits per second and tx_rate in percentage
+    if (port->link.link_speed == 0 || port->tx_rate == 0) {
         port->tx_cycles = 0;
         port->tx_pps    = 0;
         return;
     }
 
+    // total link speed in bits per second
     link_speed = (uint64_t)port->link.link_speed * Million;
-    pps        = (((link_speed / wire_size) * ((port->tx_rate == 0) ? 1 : port->tx_rate)) / 100);
-    pps        = ((pps > 0) ? pps : 1);
-    cpb        = (rte_get_timer_hz() / pps) * (uint64_t)port->tx_burst; /* Cycles per Burst */
+
+    txcnt = l2p_get_txcnt(port->pid);
+
+    // packets per second per thread based on requested (tx_rate/txcnt)
+    pps = (((link_speed / pktgen_wire_size(port)) * (port->tx_rate / txcnt)) / 100);
+    pps = ((pps > 0) ? pps : 1);
+
+    // cycles per burst is hz divided by pps times burst count
+    cpb = (rte_get_timer_hz() / pps) * (uint64_t)port->tx_burst; /* Cycles per Burst */
 
     // divide up the work between the number of transmit queues, so multiple by queue count.
-    port->tx_cycles = cpb * (uint64_t)l2p_get_txcnt(port->pid);
+    port->tx_cycles = cpb * (uint64_t)txcnt;
     port->tx_pps    = pps;
 }
 

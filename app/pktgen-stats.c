@@ -87,16 +87,18 @@ pktgen_print_static_data(void)
     if (pktgen.flags & TX_DEBUG_FLAG) {
         pktgen_display_set_color("stats.port.errlbl");
         scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
-        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
+        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "   Pkts per Queue");
+        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "   Cycles per Queue");
 
-        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Missed Rx");
-        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "mcasts Rx");
-        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "No Mbuf Rx");
+        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Rx Missed");
+        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "   mcasts");
+        scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "   No Mbuf");
     }
 
     /* Labels for static fields */
     pktgen_display_set_color("stats.stat.label");
     ip_row = row;
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Rx/Tx queue cnt");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Count/% Rate");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkt Size/Rx:Tx Burst");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Port Src/Dest");
@@ -130,6 +132,8 @@ pktgen_print_static_data(void)
         row = ip_row;
 
         pktgen_display_set_color("stats.rate.count");
+        snprintf(buff, sizeof(buff), "%d/%d", l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         pktgen_transmit_count_rate(pid, buff, sizeof(buff));
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
@@ -414,7 +418,9 @@ pktgen_page_stats(void)
         if (pktgen.flags & TX_DEBUG_FLAG) {
             snprintf(buff, sizeof(buff), "%'" PRIu64, stats.tx_failed);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-            snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->tx_pps, pinfo->tx_cycles);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, pinfo->tx_pps);
+            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+            snprintf(buff, sizeof(buff), "%'" PRIu64, pinfo->tx_cycles);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
             snprintf(buff, sizeof(buff), "%'" PRIu64, stats.imissed);

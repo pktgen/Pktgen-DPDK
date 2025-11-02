@@ -37,27 +37,41 @@ enum { DEFAULT_WND_SIZE = 8192 };
 void
 packet_rate(l2p_port_t *port)
 {
-    uint64_t link_speed, wire_size, pps, cpb;
+    uint64_t link_speed, bpp, pps, cpb, txcnt;
 
-    wire_size       = ((((uint64_t)info->pkt_size - RTE_ETHER_CRC_LEN) + PKT_OVERHEAD_SIZE) * 8);
-    port->wire_size = wire_size;
-    if (port->link.link_speed == 0) {
+    if (!port)
+        return;
+
+    // link speed in Megabits per second and tx_rate in percentage
+    if (port->link.link_speed == 0 || info->tx_rate == 0) {
         port->tx_cycles = 0;
         port->pps       = 0;
         return;
     }
 
-    link_speed = (uint64_t)port->link.link_speed * Million; /* convert to bit rate */
-    pps        = (((link_speed / wire_size) * ((info->tx_rate == 0) ? 1 : info->tx_rate)) / 100);
-    pps        = ((pps > 0) ? pps : 1);
-    cpb        = (rte_get_timer_hz() / pps) * (uint64_t)info->burst_count; /* Cycles per Burst */
+    // total link speed in bits per second
+    link_speed = (uint64_t)port->link.link_speed * Million;
 
-    port->tx_cycles = (info->tx_rate == 0) ? 0 : (uint64_t)port->num_tx_qids * cpb;
+    txcnt = port->num_tx_qids;
+
+    // bits per packet includes preamble, inter-frame gap, and FCS
+    bpp = ((((uint64_t)info->pkt_size - RTE_ETHER_CRC_LEN) + PKT_OVERHEAD_SIZE) * 8);
+
+    // packets per second per thread based on requested (tx_rate/txcnt)
+    pps = (((link_speed / bpp) * (info->tx_rate / txcnt)) / 100);
+    pps = ((pps > 0) ? pps : 1);        // Make sure pps is not zero
+
+    // cycles per burst is hz divided by pps times burst count
+    cpb = (rte_get_timer_hz() / pps) * (uint64_t)info->burst_count;
+
+    port->tx_cycles = cpb * (uint64_t)txcnt;
     port->pps       = pps;
+    port->ppt       = pps / txcnt;        // packets per thread
+    port->bpp       = bpp;
 
-    DBG_PRINT("      Speed:%'4" PRIu64 " Gbit, Bits: %'6" PRIu64 ", PPS: %'12" PRIu64
+    DBG_PRINT("      Speed:%'4" PRIu64 " Gbit, BPP: %'6" PRIu64 ", PPS: %'12" PRIu64
               ", CPB: %'" PRIu64 "\n",
-              link_speed / Billion, wire_size, pps, port->tx_cycles);
+              link_speed / Billion, bpp, pps, port->tx_cycles);
 }
 
 static __inline__ long

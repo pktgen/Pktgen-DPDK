@@ -147,24 +147,25 @@ typedef struct pq_s { /* Port/Queue structure */
 } pq_t;
 
 typedef struct l2p_port_s {
-    rte_atomic16_t inited;          /* Port initialized flag */
-    pthread_spinlock_t tx_lock;     /* Tx port lock */
-    volatile uint16_t tx_inited;    /* Tx port initialized flag */
-    uint16_t pid;                   /* Port ID attached to lcore */
-    uint16_t num_rx_qids;           /* Number of Rx queues */
-    uint16_t num_tx_qids;           /* Number of Tx queues */
-    uint16_t mtu_size;              /* MTU size */
-    uint16_t cksum_requires_phdr;   /* Flag to indicate if pseudo-header is needed for port */
-    uint64_t tx_cycles;             /* Tx cycles */
-    uint64_t wire_size;             /* Port wire size */
-    uint64_t pps;                   /* Packets per second */
-    struct rte_mempool *rx_mp;      /* Rx pktmbuf mempool per queue */
-    struct rte_mempool *tx_mp;      /* Tx pktmbuf mempool per queue */
-    struct rte_eth_link link;       /* Port link status */
-    struct rte_ether_addr mac_addr; /* MAC addresses of Port */
-    struct rte_eth_stats stats;     /* Port statistics */
-    struct rte_eth_stats pstats;    /* Previous port statistics */
-    pq_t pq[MAX_QUEUES_PER_PORT];   /* port/queue information */
+    rte_atomic16_t inited;                            /* Port initialized flag */
+    pthread_spinlock_t tx_lock;                       /* Tx port lock */
+    volatile uint16_t tx_inited[MAX_QUEUES_PER_PORT]; /* Tx port initialized flag */
+    uint16_t pid;                                     /* Port ID attached to lcore */
+    uint16_t num_rx_qids;                             /* Number of Rx queues */
+    uint16_t num_tx_qids;                             /* Number of Tx queues */
+    uint16_t mtu_size;                                /* MTU size */
+    uint16_t cksum_requires_phdr; /* Flag to indicate if pseudo-header is needed for port */
+    uint64_t tx_cycles;           /* Tx cycles */
+    uint64_t bpp;                 /* Bits per packet */
+    uint64_t pps;                 /* Packets per second */
+    uint64_t ppt;                 /* Packets per thread */
+    struct rte_mempool *rx_mp[MAX_QUEUES_PER_PORT]; /* Rx pktmbuf mempool per queue */
+    struct rte_mempool *tx_mp[MAX_QUEUES_PER_PORT]; /* Tx pktmbuf mempool per queue */
+    struct rte_eth_link link;                       /* Port link status */
+    struct rte_ether_addr mac_addr;                 /* MAC addresses of Port */
+    struct rte_eth_stats stats;                     /* Port statistics */
+    struct rte_eth_stats pstats;                    /* Previous port statistics */
+    pq_t pq[MAX_QUEUES_PER_PORT];                   /* port/queue information */
 } l2p_port_t;
 
 typedef struct l2p_lport_s { /* Each lcore has one port/queue attached */
@@ -190,7 +191,7 @@ typedef struct {
     /* Configuration values from command line options */
     uint32_t mbuf_count;     /* Number of mbufs to allocate per port. */
     uint32_t mbuf_size;      /* Size of the MBUFS being used */
-    uint16_t tx_rate;        /* packet TX rate percentage */
+    uint16_t tx_rate;        /* packet TX rate percentage in whole numbers */
     uint16_t promiscuous_on; /* Ports set in promiscuous mode off by default. */
     uint16_t jumbo_frame_on; /* Enable jumbo frame support */
     uint16_t burst_count;    /* Burst size for RX and TX */

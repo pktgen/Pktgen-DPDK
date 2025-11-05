@@ -468,7 +468,7 @@ _tx_queues(port_info_t *pinfo)
 
         pktgen_log_info("     TX queue %d enabled offloads: 0x%0lx", q, txq_conf.offloads);
 
-        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_rxd, pinfo->sid, &txq_conf);
+        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, pinfo->sid, &txq_conf);
         if (ret < 0)
             pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));

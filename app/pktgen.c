@@ -291,10 +291,11 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
     if (nb_pkts) {
         uint16_t sent, to_send = nb_pkts;
 
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
         pinfo->queue_stats.q_opackets[qid] += nb_pkts;
         for (int i = 0; i < nb_pkts; i++)
             pinfo->queue_stats.q_obytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-
+#endif
         if (pktgen_tst_port_flags(pinfo, SEND_RANDOM_PKTS))
             pktgen_rnd_bits_apply(pinfo, pkts, to_send, NULL);
 
@@ -1088,12 +1089,13 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 
     /* Read packets from RX queues and free the mbufs */
     if (likely((nb_rx = rte_eth_rx_burst(pid, qid, pkts, nb_pkts)) > 0)) {
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
         struct rte_eth_stats *qstats = &pinfo->queue_stats;
 
         qstats->q_ipackets[qid] += nb_rx;
         for (int i = 0; i < nb_rx; i++)
             qstats->q_ibytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-
+#endif
         pktgen_tstamp_check(pinfo, pkts, nb_rx);
 
         /* classify the packets for the counters */

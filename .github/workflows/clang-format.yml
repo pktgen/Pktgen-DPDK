@@ -1,17 +1,32 @@
-name: clang-format
+#name: clang-format
+#
+#on:
+#  pull_request:
+#    branches: [ main ]
+#
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#    - uses: DoozyX/clang-format-lint-action@v0.15
+#      with:
+#        source: '.'
+#        extensions: 'c,h,cc,cpp'
+#        clangFormatVersion: 15.0.2
 
-on:
-  pull_request:
-    branches: [ main ]
-
+name: clang-format Check
+on: [push, pull_request]
 jobs:
-  build:
+  formatting-check:
+    name: Formatting Check
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - uses: DoozyX/clang-format-lint-action@v0.15
+    - uses: actions/checkout@v4
+    - name: Run clang-format style check for C/C++/Protobuf programs.
+      uses: jidicula/clang-format-action@v4.16.0
       with:
-        source: '.'
-        extensions: 'c,h,cc,cpp'
-        clangFormatVersion: 15.0.2
+        clang-format-version: '13'
+        check-path: 'src'
+        #fallback-style: 'Mozilla' # optional

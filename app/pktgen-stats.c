@@ -470,7 +470,10 @@ void
 pktgen_process_stats(void)
 {
     unsigned int pid;
-    struct rte_eth_stats *curr, *rate, *prev, *base, *queue;
+    struct rte_eth_stats *curr, *rate, *prev, *base;
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
+    struct rte_eth_stats *queue;
+#endif
     port_info_t *pinfo;
     static unsigned int counter = 0;
 
@@ -496,15 +499,18 @@ pktgen_process_stats(void)
 
         pktgen_get_link_status(pinfo);
 
-        curr  = &pinfo->curr_stats;
+        curr = &pinfo->curr_stats;
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
         queue = &pinfo->queue_stats;
-        rate  = &pinfo->rate_stats;
-        prev  = &pinfo->prev_stats;
-        base  = &pinfo->base_stats;
+#endif
+        rate = &pinfo->rate_stats;
+        prev = &pinfo->prev_stats;
+        base = &pinfo->base_stats;
 
         memset(curr, 0, sizeof(struct rte_eth_stats));
         rte_eth_stats_get(pid, curr);
 
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
         memcpy(&curr->q_ipackets, &queue->q_ipackets,
                (sizeof(uint64_t) * RTE_ETHDEV_QUEUE_STAT_CNTRS));
         memcpy(&curr->q_opackets, &queue->q_opackets,
@@ -512,7 +518,7 @@ pktgen_process_stats(void)
         memcpy(&curr->q_ibytes, &queue->q_ibytes, (sizeof(uint64_t) * RTE_ETHDEV_QUEUE_STAT_CNTRS));
         memcpy(&curr->q_obytes, &queue->q_obytes, (sizeof(uint64_t) * RTE_ETHDEV_QUEUE_STAT_CNTRS));
         memcpy(&curr->q_errors, &queue->q_errors, (sizeof(uint64_t) * RTE_ETHDEV_QUEUE_STAT_CNTRS));
-
+#endif
         /* Normalize the counters */
         curr->ipackets  = curr->ipackets - base->ipackets;
         curr->opackets  = curr->opackets - base->opackets;
@@ -533,6 +539,7 @@ pktgen_process_stats(void)
         rate->imissed   = (curr->imissed - prev->imissed);
         rate->rx_nombuf = (curr->rx_nombuf - prev->rx_nombuf);
 
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
         for (int i = 0; i < RTE_ETHDEV_QUEUE_STAT_CNTRS; i++) {
             rate->q_ipackets[i] = curr->q_ipackets[i] - prev->q_ipackets[i];
             rate->q_opackets[i] = curr->q_opackets[i] - prev->q_opackets[i];
@@ -540,7 +547,7 @@ pktgen_process_stats(void)
             rate->q_obytes[i]   = curr->q_obytes[i] - prev->q_obytes[i];
             rate->q_errors[i]   = curr->q_errors[i] - prev->q_errors[i];
         }
-
+#endif
         /* Find the new max rate values */
         if (rate->ipackets > pinfo->max_ipackets)
             pinfo->max_ipackets = rate->ipackets;
@@ -623,12 +630,21 @@ pktgen_page_queue_stats(uint16_t pid)
             pktgen_display_set_color("stats.stat.values");
         }
 
-        rxpkts              = r->q_ipackets[q];
-        txpkts              = r->q_opackets[q];
-        rxbytes             = r->q_ibytes[q] / Million;
-        txbytes             = r->q_obytes[q] / Million;
-        errors              = r->q_errors[q];
-        qcnt                = pinfo->qcnt[q] - pinfo->prev_qcnt[q];
+#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
+        rxpkts  = r->q_ipackets[q];
+        txpkts  = r->q_opackets[q];
+        rxbytes = r->q_ibytes[q] / Million;
+        txbytes = r->q_obytes[q] / Million;
+        errors  = r->q_errors[q];
+        qcnt    = pinfo->qcnt[q] - pinfo->prev_qcnt[q];
+#else
+        rxpkts  = 0;
+        txpkts  = 0;
+        rxbytes = 0;
+        txbytes = 0;
+        errors  = 0;
+        qcnt    = 0;
+#endif
         pinfo->prev_qcnt[q] = pinfo->qcnt[q];
 
         scrn_printf(row++, 1, "  Q %2d  : %'14lu %'14lu %'14lu %'14lu %'14lu %'14lu", q, rxpkts,

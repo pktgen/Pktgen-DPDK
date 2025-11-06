@@ -27,6 +27,10 @@ extern "C" {
     (PG_JUMBO_ETHER_MTU -      \
      PG_JUMBO_DATAROOM_SIZE)        // 9K headroom size in the Ethernet jumbo frame
 
+#ifndef RTE_ETHDEV_QUEUE_STAT_CNTRS
+#define RTE_ETHDEV_QUEUE_STAT_CNTRS 16
+#endif
+
 static __inline__ int
 pg_socket_id(void)
 {

@@ -2,12 +2,11 @@
  * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
-TXlib */
+ */
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
 #include <stdint.h>
-#include <time.h>
 #include <inttypes.h>
 #include <math.h>
 
@@ -20,11 +19,11 @@ TXlib */
 #include <rte_hexdump.h>
 
 #include "pktgen.h"
-#include "pktgen-gre.h"
 #include "pktgen-tcp.h"
 #include "pktgen-ipv4.h"
 #include "pktgen-ipv6.h"
 #include "pktgen-udp.h"
+#include "pktgen-gre.h"
 #include "pktgen-arp.h"
 #include "pktgen-vlan.h"
 #include "pktgen-cpu.h"

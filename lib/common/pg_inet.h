@@ -22,6 +22,7 @@
 #include <rte_ether.h>
 #include <rte_net.h>
 #include <rte_icmp.h>
+#include <rte_ip6.h>
 
 #ifdef __cplusplus
 extern "C" {

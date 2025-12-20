@@ -139,7 +139,7 @@ port_setup(l2p_port_t *port)
             printf("Jumbo Frames enabled: Using Max MTU: %'d", max_mtu);
 
             conf.rxmode.mtu = max_mtu;
-#if 0        // Tx performance takes a big hit when enabled
+#if 0        // FIXME: Tx performance takes a big hit when enabled
             if (dev_info.rx_offload_capa & RTE_ETH_RX_OFFLOAD_SCATTER)
                 conf.rxmode.offloads |= RTE_ETH_RX_OFFLOAD_SCATTER;
             if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MULTI_SEGS)
@@ -149,7 +149,7 @@ port_setup(l2p_port_t *port)
 
         if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
-#if 0
+#if 0        // FIXME: performance drops a lot when enabled
         if (dev_info.tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
             printf("   Enabling Tx TCP_CKSUM offload");
             conf.txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;

@@ -35,8 +35,6 @@
 #include <assert.h>
 #include <time.h>
 
-#include <pg_compat.h>
-#include <pg_strings.h>
 #include <rte_config.h>
 
 #include <rte_errno.h>
@@ -69,7 +67,6 @@
 #include <rte_dev.h>
 #include <rte_time.h>
 
-#include <copyright_info.h>
 #include <l2p.h>
 #include <port_config.h>
 

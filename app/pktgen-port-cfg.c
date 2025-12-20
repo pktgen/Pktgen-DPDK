@@ -6,16 +6,9 @@
 
 /* Created 2010 by Keith Wiles @ intel.com */
 
-#include <pg_delay.h>
-#include <cli_scrn.h>
-#include <lua_config.h>
-
-#include "pktgen-port-cfg.h"
-
-#include "pktgen.h"
+#include "pg_compat.h"
 #include "pktgen-cmds.h"
 #include "pktgen-log.h"
-#include "pktgen-txbuff.h"
 #include "l2p.h"
 
 #include <rte_dev.h>

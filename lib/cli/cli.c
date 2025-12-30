@@ -75,23 +75,33 @@ int
 cli_add_bin(struct cli_node *dir)
 {
     struct cli *cli = this_cli;
-    int i;
 
     if (!dir || !is_directory(dir))
         return -1;
 
-    for (i = 1; i < CLI_MAX_BINS; i++)
-        if (cli->bins[i] == dir) {
+    /* Check for duplicates */
+    for (int i = 0; i < CLI_MAX_BINS; i++) {
+        struct cli_node *d = cli->bins[i];
+
+        if (!d)
+            continue;
+        if (strcmp(d->name, dir->name) == 0) {
             RTE_LOG(WARNING, EAL, "Adding duplicate bin directory (%s)\n", dir->name);
             return 0;
         }
+    }
 
+    // printf("Searching for free bin directory slot for: %s\n", dir->name);
     /* Skip first special entry for current working directory */
-    for (i = 1; i < CLI_MAX_BINS; i++)
-        if (cli->bins[i] == NULL) {
-            cli->bins[i] = dir;
-            return 0;
-        }
+    for (int i = 0; i < CLI_MAX_BINS; i++) {
+        struct cli_node *d = cli->bins[i];
+
+        if (d)
+            continue;
+        cli->bins[i] = dir;
+        return 0;
+    }
+
     return -1;
 }
 
@@ -100,12 +110,11 @@ int
 cli_del_bin(struct cli_node *dir)
 {
     struct cli *cli = this_cli;
-    int i;
 
     if (!dir || !is_directory(dir))
         return -1;
 
-    for (i = 0; i < CLI_MAX_BINS; i++)
+    for (int i = 0; i < CLI_MAX_BINS; i++)
         if (cli->bins[i] == dir) {
             cli->bins[i] = NULL;
 

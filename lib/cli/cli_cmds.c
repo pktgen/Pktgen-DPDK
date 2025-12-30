@@ -698,7 +698,7 @@ cli_default_tree_init(void)
         cli_help_add("Env", cli_env_map, cli_env_help);
 
     if (ret) {
-        RTE_LOG(ERR, EAL, "Unable to add commands or directoies\n");
+        RTE_LOG(ERR, EAL, "Unable to add commands or directories\n");
         this_cli->flags &= ~CLI_DEFAULT_TREE;
     }
 

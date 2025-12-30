@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 25.08.2 - Fix race condition in CLI.
  - 25.08.1 - Fix DPDK 25.11 ethdev queue changes
              Fix running multiple Tx queues and stats are reported incorrectly.
  - 25.08.0 - improve TX performance and change version and change log.

@@ -1092,35 +1092,34 @@ en_dis_cmd(int argc, char **argv)
         state = estate(argv[0]);
 
         switch (n) {
-        case 0:
+        case 0: // process
             foreach_port(portlist, enable_process(pinfo, state));
             break;
-        case 1:
+        case 1: // mpls
             foreach_port(portlist, enable_mpls(pinfo, state));
             break;
-        case 2:
+        case 2: // qinq
             foreach_port(portlist, enable_qinq(pinfo, state));
             break;
-        case 3:
+        case 3: // gre
             foreach_port(portlist, enable_gre(pinfo, state));
             break;
-        case 4:
+        case 4: // gre_eth
             foreach_port(portlist, enable_gre_eth(pinfo, state));
             break;
-        case 5:
+        case 5: // vlan
             foreach_port(portlist, enable_vlan(pinfo, state));
             break;
-        case 6:
+        case 6: // random
             foreach_port(portlist, enable_random(pinfo, state));
             break;
-        case 7:
-        case 18: /* lat or latency type */
+        case 7: // latency
             foreach_port(portlist, enable_latency(pinfo, state));
             break;
-        case 8:
+        case 8: // pcap
             foreach_port(portlist, enable_pcap(pinfo, state));
             break;
-        case 9:
+        case 9: // blink
             foreach_port(portlist, debug_blink(pinfo, state));
 
             if (pktgen.blinklist)
@@ -1128,28 +1127,31 @@ en_dis_cmd(int argc, char **argv)
             else
                 pktgen.flags &= ~BLINK_PORTS_FLAG;
             break;
-        case 10:
+        case 10: // icmp
             foreach_port(portlist, enable_icmp_echo(pinfo, state));
             break;
-        case 11:
+        case 11: // range
             foreach_port(portlist, enable_range(pinfo, state));
             break;
-        case 12:
+        case 12: // capture
             foreach_port(portlist, pktgen_set_capture(pinfo, state));
             break;
-        case 13:
+        case 13: // bonding
 #if defined(RTE_LIBRTE_PMD_BOND) || defined(RTE_NET_BOND)
             foreach_port(portlist, enable_bonding(pinfo, state));
 #endif
             break;
-        case 14:
+        case 14: // vxlan
             foreach_port(portlist, enable_vxlan(pinfo, state));
             break;
-        case 16:
+        case 16: // rnd_s_ip
             foreach_port(portlist, enable_rnd_s_ip(pinfo, state));
             break;
-        case 17:
+        case 17: // rnd_s_pt
             foreach_port(portlist, enable_rnd_s_pt(pinfo, state));
+            break;
+        case 18: // lat type alias latency
+            foreach_port(portlist, enable_latency(pinfo, state));
             break;
         default:
             return cli_cmd_error("Enable/Disable invalid command", "Enable", argc, argv);

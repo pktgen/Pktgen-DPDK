@@ -37,8 +37,6 @@
 #include <pthread.h>
 #include <sched.h>
 
-#define FAST_TX_MODE 0
-
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
@@ -1129,13 +1127,7 @@ pktgen_rx_workq_setup(uint16_t pid)
 static int
 pktgen_tx_workq_setup(uint16_t pid)
 {
-#if FAST_TX_MODE
-    workq_fn funcs[] = {fast_main_transmit};
-    (void)pktgen_main_transmit;
-#else
     workq_fn funcs[] = {pktgen_main_transmit};
-    (void)fast_main_transmit;
-#endif
 
     for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
         if (workq_add(WORKQ_TX, pid, funcs[i]))

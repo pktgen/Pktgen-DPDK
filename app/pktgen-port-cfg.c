@@ -262,6 +262,10 @@ _mtu_defaults(port_info_t *pinfo)
     pktgen_log_info("   Setup MTU defaults and Jumbo Frames are %s",
                     (pktgen.flags & JUMBO_PKTS_FLAG) ? "Enabled" : "Disabled");
 
+    if (pinfo->max_mtu < dinfo->min_mtu)
+        pinfo->max_mtu = dinfo->min_mtu;
+    if (pinfo->max_mtu > dinfo->max_mtu)
+        pinfo->max_mtu = dinfo->max_mtu;
     if (pktgen.flags & JUMBO_PKTS_FLAG) {
         uint32_t eth_overhead_len;
 

@@ -150,7 +150,7 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
                 return;
             }
 
-            pinfo->pkt_stats.echo_pkts++;
+            pinfo->stats.ext.echo_pkts++;
 
             icmp->icmp_type = ICMP4_ECHO_REPLY;
 
@@ -177,6 +177,6 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
             /* No need to free mbuf as it was reused. */
             return;
         } else if (unlikely(icmp->icmp_type == ICMP4_ECHO_REPLY))
-            pinfo->pkt_stats.echo_pkts++;
+            pinfo->stats.ext.echo_pkts++;
     }
 }

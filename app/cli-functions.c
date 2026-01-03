@@ -1065,9 +1065,9 @@ static const char *enable_help[] = {
     "enable|disable <portlist> vxlan    - Send VxLAN packets",
     "enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",
     "enable|disable clock_gettime       - Enable/disable use of new clock_gettime() instead of rdtsc()",
-    "enable|disable screen              - Enable/disable updating the screen and unlock/lock window"
-    "    off                            - screen off shortcut",
-    "    on                             - screen on shortcut",
+    "enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
+    "    off                            - screen disable shortcut",
+    "    on                             - screen enable shortcut",
     CLI_HELP_PAUSE,
     NULL};
 
@@ -1808,7 +1808,7 @@ misc_cmd(int argc, char **argv)
 static struct cli_map page_map[] = {
     {10, "page %d"},
     {11, "page %|main|range|cpu|system|sys|next|sequence|seq|rnd|"
-         "log|latency|lat|stats|xstats"},
+         "log|latency|lat|stats|qstats|xstats"},
     {-1, NULL}
 };
 
@@ -1827,7 +1827,7 @@ static const char *page_help[] = {
     "sequence",
     "page log                           - Display the log messages page",
     "page latency | lat                 - Display the latency page",
-    "page stats                         - Display physical ports stats for all ports",
+    "page qstats | stats                - Display per port queue stats",
     "page xstats                        - Display port XSTATS values",
     CLI_HELP_PAUSE,
     NULL

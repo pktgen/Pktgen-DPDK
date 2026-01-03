@@ -30,9 +30,7 @@
     char *pktgen_link_state(int port, char *buff, int len);
     char *pktgen_transmit_count(int port, char *buff, int len);
     char *pktgen_transmit_rate(int port, char *buff, int len);
-    int pktgen_pkt_stats(int port, pkt_stats_t *pstats);
-    int pktgen_port_stats(int port, const char *name, struct rte_eth_stats *pstats);
-    int pktgen_pkt_sizes(int port, pkt_sizes_t *psizes);
+    int pktgen_port_stats(int port, port_stats_t *pstats);
 
     /* Global commands */
     void pktgen_send_arp_requests(port_info_t * pinfo, uint32_t type);

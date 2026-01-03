@@ -287,12 +287,9 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
 {
     if (nb_pkts) {
         uint16_t sent, to_send = nb_pkts;
+        qstats_t *qs = &pinfo->stats.qstats[qid];
 
-#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
-        pinfo->queue_stats.q_opackets[qid] += nb_pkts;
-        for (int i = 0; i < nb_pkts; i++)
-            pinfo->queue_stats.q_obytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-#endif
+        qs->q_opackets += nb_pkts;
         if (pktgen_tst_port_flags(pinfo, SEND_RANDOM_PKTS))
             pktgen_rnd_bits_apply(pinfo, pkts, to_send, NULL);
 
@@ -693,9 +690,8 @@ pktgen_packet_type(struct rte_mbuf *m)
 static void
 pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
-    port_info_t *pinfo     = l2p_get_port_pinfo(pid);
-    pkt_stats_t *pkt_stats = &pinfo->pkt_stats;
-    pkt_sizes_t *pkt_sizes = &pinfo->pkt_sizes;
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
+    ext_stats_t *ext   = &pinfo->stats.ext;
     uint16_t plen;
     pktType_e pType;
 
@@ -704,16 +700,16 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
     /* Count the type of packets found. */
     switch ((int)pType) {
     case RTE_ETHER_TYPE_ARP:
-        pkt_stats->arp_pkts++;
+        ext->arp_pkts++;
         break;
     case RTE_ETHER_TYPE_IPV4:
-        pkt_stats->ip_pkts++;
+        ext->ip_pkts++;
         break;
     case RTE_ETHER_TYPE_IPV6:
-        pkt_stats->ipv6_pkts++;
+        ext->ipv6_pkts++;
         break;
     case RTE_ETHER_TYPE_VLAN:
-        pkt_stats->vlan_pkts++;
+        ext->vlan_pkts++;
         break;
     default:
         break;
@@ -741,26 +737,28 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 
     plen = rte_pktmbuf_pkt_len(m) + RTE_ETHER_CRC_LEN;
 
+    size_stats_t *sizes = &pinfo->stats.sizes;
+
     /* Count the size of each packet. */
     if (plen < RTE_ETHER_MIN_LEN)
-        pkt_sizes->runt++;
+        sizes->runt++;
     else if (plen > RTE_ETHER_MAX_LEN)
-        pkt_sizes->jumbo++;
+        sizes->jumbo++;
     else if (plen == RTE_ETHER_MIN_LEN)
-        pkt_sizes->_64++;
+        sizes->_64++;
     else if ((plen >= (RTE_ETHER_MIN_LEN + 1)) && (plen <= 127))
-        pkt_sizes->_65_127++;
+        sizes->_65_127++;
     else if ((plen >= 128) && (plen <= 255))
-        pkt_sizes->_128_255++;
+        sizes->_128_255++;
     else if ((plen >= 256) && (plen <= 511))
-        pkt_sizes->_256_511++;
+        sizes->_256_511++;
     else if ((plen >= 512) && (plen <= 1023))
-        pkt_sizes->_512_1023++;
-    else if ((plen >= 1024) && (plen <= RTE_ETHER_MAX_LEN))
-        pkt_sizes->_1024_1518++;
+        sizes->_512_1023++;
+    else if ((plen >= 1024) && (plen <= (RTE_ETHER_MAX_LEN + 4)))
+        sizes->_1024_1522++;
     else {
         pktgen_log_info("Unknown packet size: %u", plen);
-        pinfo->pkt_sizes.unknown++;
+        sizes->unknown++;
     }
 
     uint8_t *p = rte_pktmbuf_mtod(m, uint8_t *);
@@ -768,9 +766,9 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
     /* Process multicast and broadcast packets. */
     if (unlikely(p[0] & 1)) {
         if ((p[0] == 0xff) && (p[1] == 0xff))
-            pkt_sizes->broadcast++;
+            sizes->broadcast++;
         else
-            pkt_sizes->multicast++;
+            sizes->multicast++;
     }
 }
 
@@ -993,7 +991,7 @@ void
 pktgen_send_pkts(port_info_t *pinfo, uint16_t qid, struct rte_mempool *mp)
 {
     uint64_t txCnt;
-    struct rte_mbuf **pkts = pinfo->tx_pkts;
+    struct rte_mbuf **pkts = pinfo->per_queue[qid].tx_pkts;
 
     if (!pktgen_tst_port_flags(pinfo, SEND_FOREVER)) {
         txCnt = pkt_atomic64_tx_count(&pinfo->current_tx_count, pinfo->tx_burst);
@@ -1033,8 +1031,6 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
     if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
         struct rte_mempool *mp = l2p_get_tx_mp(pid);
 
-        pinfo->qcnt[qid]++; /* Count the number of times queue is sending */
-
         if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS))
             mp = l2p_get_pcap_mp(pid);
 
@@ -1047,7 +1043,7 @@ fast_main_transmit(port_info_t *pinfo, uint16_t qid)
 {
     if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
         struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
-        struct rte_mbuf **pkts = pinfo->tx_pkts;
+        struct rte_mbuf **pkts = pinfo->per_queue[qid].tx_pkts;
 
         /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
         if (rte_mempool_get_bulk(mp, (void **)pkts, pinfo->tx_burst) == 0) {
@@ -1077,7 +1073,7 @@ static inline void
 pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 {
     uint16_t nb_rx, nb_pkts = pinfo->rx_burst, pid;
-    struct rte_mbuf **pkts = pinfo->rx_pkts;
+    struct rte_mbuf **pkts = pinfo->per_queue[qid].rx_pkts;
 
     if (unlikely(pktgen_tst_port_flags(pinfo, STOP_RECEIVING_PACKETS)))
         return;
@@ -1086,13 +1082,9 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 
     /* Read packets from RX queues and free the mbufs */
     if (likely((nb_rx = rte_eth_rx_burst(pid, qid, pkts, nb_pkts)) > 0)) {
-#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
-        struct rte_eth_stats *qstats = &pinfo->queue_stats;
+        qstats_t *qs = &pinfo->stats.qstats[qid];
 
-        qstats->q_ipackets[qid] += nb_rx;
-        for (int i = 0; i < nb_rx; i++)
-            qstats->q_ibytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-#endif
+        qs->q_ipackets += nb_rx;
         pktgen_tstamp_check(pinfo, pkts, nb_rx);
 
         /* classify the packets for the counters */
@@ -1381,8 +1373,8 @@ _page_display(void)
         pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
     else if (pktgen.flags & LATENCY_PAGE_FLAG)
         pktgen_page_latency();
-    else if (pktgen.flags & STATS_PAGE_FLAG)
-        pktgen_page_queue_stats(pktgen.curr_port);
+    else if (pktgen.flags & QSTATS_PAGE_FLAG)
+        pktgen_page_qstats(pktgen.curr_port);
     else if (pktgen.flags & XSTATS_PAGE_FLAG)
         pktgen_page_xstats(pktgen.curr_port);
     else

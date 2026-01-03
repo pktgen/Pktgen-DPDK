@@ -91,7 +91,6 @@ pktgen_script_save(char *path)
     fprintf(fd, "#\n# %s\n", pktgen_version());
     fprintf(fd, "# %s, %s %s\n\n", copyright_msg(), powered_by(), rte_version());
 
-    /* TODO: Determine DPDK arguments for rank and memory, default for now. */
     fprintf(fd, "# Command line arguments: (DPDK args are defaults)\n");
     fprintf(fd, "# %s -c %" PRIx64 " -n 3 -m 512 --proc-type %s -- ", pktgen.argv[0], lcore,
             (rte_eal_process_type() == RTE_PROC_PRIMARY) ? "primary" : "secondary");
@@ -418,7 +417,6 @@ pktgen_lua_save(char *path)
     fprintf(fd, "package.path = package.path ..\";?.lua;test/?.lua;app/?.lua;\"\n");
     fprintf(fd, "require \"Pktgen\"\n\n");
 
-    /* TODO: Determine DPDK arguments for rank and memory, default for now. */
     fprintf(fd, "-- Command line arguments: (DPDK args are defaults)\n");
     fprintf(fd, "-- %s -c %" PRIx64 " -n 3 -m 512 --proc-type %s -- ", pktgen.argv[0], lcore,
             (rte_eal_process_type() == RTE_PROC_PRIMARY) ? "primary" : "secondary");
@@ -843,43 +841,7 @@ pktgen_transmit_count_rate(int port, char *buff, int len)
 
 /**
  *
- * pktgen_pkt_sizes - Current stats for all port sizes
- *
- * DESCRIPTION
- * Structure returned with all of the counts for each port size.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-int
-pktgen_pkt_sizes(int port, pkt_sizes_t *psizes)
-{
-    port_info_t *pinfo = l2p_get_port_pinfo(port);
-
-    if (!psizes)
-        return -1;
-
-    for (int qid = 0; qid < RTE_ETHDEV_QUEUE_STAT_CNTRS; qid++) {
-        psizes->broadcast += pinfo->pkt_sizes.broadcast;
-        psizes->jumbo += pinfo->pkt_sizes.jumbo;
-        psizes->multicast += pinfo->pkt_sizes.multicast;
-        psizes->runt += pinfo->pkt_sizes.runt;
-        psizes->unknown += pinfo->pkt_sizes.unknown;
-        psizes->_64 += pinfo->pkt_sizes._64;
-        psizes->_65_127 += pinfo->pkt_sizes._65_127;
-        psizes->_128_255 += pinfo->pkt_sizes._128_255;
-        psizes->_256_511 += pinfo->pkt_sizes._256_511;
-        psizes->_512_1023 += pinfo->pkt_sizes._512_1023;
-        psizes->_1024_1518 += pinfo->pkt_sizes._1024_1518;
-    }
-    return 0;
-}
-
-/**
- *
- * pktgen_pkt_stats - Get the packet stats structure.
+ * pktgen_port_stats - Get the port stats structure.
  *
  * DESCRIPTION
  * Return the packet statistics values.
@@ -890,52 +852,14 @@ pktgen_pkt_sizes(int port, pkt_sizes_t *psizes)
  */
 
 int
-pktgen_pkt_stats(int port, pkt_stats_t *pstats)
+pktgen_port_stats(int port, port_stats_t *ps)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(port);
 
-    if (!pstats)
+    if (!ps)
         return -1;
 
-    for (int qid = 0; qid < RTE_ETHDEV_QUEUE_STAT_CNTRS; qid++) {
-        pstats->arp_pkts += pinfo->pkt_stats.arp_pkts;
-        pstats->dropped_pkts += pinfo->pkt_stats.dropped_pkts;
-        pstats->echo_pkts += pinfo->pkt_stats.echo_pkts;
-        pstats->ibadcrc += pinfo->pkt_stats.ibadcrc;
-        pstats->ibadlen += pinfo->pkt_stats.ibadlen;
-        pstats->imissed += pinfo->pkt_stats.imissed;
-        pstats->ip_pkts += pinfo->pkt_stats.ip_pkts;
-        pstats->ipv6_pkts += pinfo->pkt_stats.ipv6_pkts;
-        pstats->rx_nombuf += pinfo->pkt_stats.rx_nombuf;
-        pstats->tx_failed += pinfo->pkt_stats.tx_failed;
-        pstats->unknown_pkts += pinfo->pkt_stats.unknown_pkts;
-        pstats->vlan_pkts += pinfo->pkt_stats.vlan_pkts;
-    }
-    return 0;
-}
-
-/**
- *
- * pktgen_port_stats - Get the port or rate stats for a given port
- *
- * DESCRIPTION
- * Get the ports or rate stats from a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-int
-pktgen_port_stats(int port, const char *name, struct rte_eth_stats *pstats)
-{
-    port_info_t *pinfo = l2p_get_port_pinfo(port);
-
-    if (strcmp(name, "port") == 0)
-        *pstats = pinfo->prev_stats;
-    else if (strcmp(name, "rate") == 0)
-        *pstats = pinfo->rate_stats;
-
+    *ps = pinfo->stats;
     return 0;
 }
 
@@ -1408,9 +1332,9 @@ pktgen_start_latency_sampler(port_info_t *pinfo)
     }
 
     rxq = l2p_get_rxcnt(pinfo->pid);
-    if (rxq == 0 || rxq > MAX_LATENCY_QUEUES) {
+    if (rxq == 0 || rxq > MAX_QUEUES_PER_PORT) {
         pktgen_log_error("no rx queues or rx queues over limit (%d) to sample on this port!",
-                         MAX_LATENCY_QUEUES);
+                         MAX_QUEUES_PER_PORT);
         return;
     }
 
@@ -2312,28 +2236,16 @@ range_set_gre_key(port_info_t *pinfo, uint32_t gre_key)
 void
 pktgen_clear_stats(port_info_t *pinfo)
 {
-    struct rte_eth_stats *base;
-
     /* curr_stats are reset each time the stats are read */
-    memset(&pinfo->curr_stats, 0, sizeof(struct rte_eth_stats));
-    memset(&pinfo->queue_stats, 0, sizeof(struct rte_eth_stats));
-    memset(&pinfo->rate_stats, 0, sizeof(struct rte_eth_stats));
-    memset(&pinfo->prev_stats, 0, sizeof(struct rte_eth_stats));
-    memset(&pinfo->base_stats, 0, sizeof(struct rte_eth_stats));
+    memset(&pinfo->stats, 0, sizeof(port_stats_t));
 
-    base = &pinfo->base_stats;
+    struct rte_eth_stats *base = &pinfo->stats.base;
 
     /* Normalize the stats to a zero base line */
     rte_eth_stats_get(pinfo->pid, base);
 
     pktgen.max_total_ipackets = 0;
     pktgen.max_total_opackets = 0;
-    pinfo->max_ipackets       = 0;
-    pinfo->max_opackets       = 0;
-    pinfo->max_missed         = 0;
-
-    memset(&pinfo->pkt_stats, 0, sizeof(pinfo->pkt_stats));
-    memset(&pinfo->pkt_sizes, 0, sizeof(pinfo->pkt_sizes));
 
     latency_t *lat = &pinfo->latency;
 
@@ -3775,9 +3687,9 @@ pktgen_set_page(char *str)
     } else if (_cp("cpu")) {
         pktgen.flags &= ~PAGE_MASK_BITS;
         pktgen.flags |= CPU_PAGE_FLAG;
-    } else if (_cp("stats")) {
+    } else if (_cp("stats") || _cp("qstats")) {
         pktgen.flags &= ~PAGE_MASK_BITS;
-        pktgen.flags |= STATS_PAGE_FLAG;
+        pktgen.flags |= QSTATS_PAGE_FLAG;
     } else if (_cp("xstats")) {
         pktgen.flags &= ~PAGE_MASK_BITS;
         pktgen.flags |= XSTATS_PAGE_FLAG;

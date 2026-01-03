@@ -300,32 +300,32 @@ pktgen_page_latency(void)
         pktgen_display_set_color("stats.stat.values");
         /* Rx/Tx pkts/s rate */
         row = LINK_STATE_ROW + 1;
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->max_ipackets,
-                 pinfo->rate_stats.ipackets);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->stats.ext.max_ipackets,
+                 pinfo->stats.rate.ipackets);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->max_opackets,
-                 pinfo->rate_stats.opackets);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->stats.ext.max_opackets,
+                 pinfo->stats.rate.opackets);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
-                 iBitsTotal(pinfo->rate_stats) / Million, oBitsTotal(pinfo->rate_stats) / Million);
+                 iBitsTotal(pinfo->stats.rate) / Million, oBitsTotal(pinfo->stats.rate) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        pktgen.cumm_rate_totals.ipackets += pinfo->rate_stats.ipackets;
-        pktgen.cumm_rate_totals.opackets += pinfo->rate_stats.opackets;
-        pktgen.cumm_rate_totals.ibytes += pinfo->rate_stats.ibytes;
-        pktgen.cumm_rate_totals.obytes += pinfo->rate_stats.obytes;
-        pktgen.cumm_rate_totals.ierrors += pinfo->rate_stats.ierrors;
-        pktgen.cumm_rate_totals.oerrors += pinfo->rate_stats.oerrors;
+        pktgen.cumm_rate_totals.ipackets += pinfo->stats.rate.ipackets;
+        pktgen.cumm_rate_totals.opackets += pinfo->stats.rate.opackets;
+        pktgen.cumm_rate_totals.ibytes += pinfo->stats.rate.ibytes;
+        pktgen.cumm_rate_totals.obytes += pinfo->stats.rate.obytes;
+        pktgen.cumm_rate_totals.ierrors += pinfo->stats.rate.ierrors;
+        pktgen.cumm_rate_totals.oerrors += pinfo->stats.rate.oerrors;
 
         if (pktgen.cumm_rate_totals.ipackets > pktgen.max_total_ipackets)
             pktgen.max_total_ipackets = pktgen.cumm_rate_totals.ipackets;
         if (pktgen.cumm_rate_totals.opackets > pktgen.max_total_opackets)
             pktgen.max_total_opackets = pktgen.cumm_rate_totals.opackets;
 
-        pktgen.cumm_rate_totals.imissed += pinfo->rate_stats.imissed;
-        pktgen.cumm_rate_totals.rx_nombuf += pinfo->rate_stats.rx_nombuf;
+        pktgen.cumm_rate_totals.imissed += pinfo->stats.rate.imissed;
+        pktgen.cumm_rate_totals.rx_nombuf += pinfo->stats.rate.rx_nombuf;
 
         row++; /* Skip Latency header row */
         lat             = &pinfo->latency;

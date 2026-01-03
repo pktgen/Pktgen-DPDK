@@ -35,7 +35,6 @@ extern "C" {
 #define USER_PATTERN_SIZE 16
 #define MAX_LATENCY_ENTRIES \
     50108        // Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
-#define MAX_LATENCY_QUEUES 10
 
 // clang-format off
 enum { /* Per port flag bits */
@@ -100,7 +99,7 @@ typedef enum {
 
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
-#define RING_SIZE 1000
+#define RING_SIZE 1024
 typedef struct {
     uint64_t data[RING_SIZE];
     int head;  /**< index of next write position */
@@ -135,53 +134,52 @@ typedef struct {
     uint32_t next_index;              /**< Next index to use for sending latency packets */
     uint32_t expect_index;            /**< Expected index for received latency packets */
     latency_ring_t tail_latencies;    /**< ring buffer for tail latencies */
-    MARKER end_stats;
+    MARKER end_stats;                 /* ending Marker to clear stats */
 } latency_t;
+
+typedef struct per_queue_s {
+    struct rte_mbuf **rx_pkts; /**< Array of pointers to packet buffers for RX */
+    struct rte_mbuf **tx_pkts; /**< Array of pointers to packet buffers for TX */
+} per_queue_t;
 
 typedef struct port_info_s {
     struct rte_eth_dev_info dev_info; /**< Device information */
     struct rte_eth_conf conf;         /**< Configuration settings */
-    struct rte_mbuf **rx_pkts;        /**< Array of pointers to packet buffers for RX */
-    struct rte_mbuf **tx_pkts;        /**< Array of pointers to packet buffers for TX */
-
-    rte_atomic64_t port_flags;       /**< Special send flags for ARP and other */
-    rte_atomic64_t transmit_count;   /**< Packets to transmit loaded into current_tx_count */
-    rte_atomic64_t current_tx_count; /**< Current number of packets to send */
-    volatile uint64_t tx_cycles;     /**< Number cycles between TX bursts */
-    uint16_t pid;                    /**< Port ID value */
-    uint16_t sid;                    /** Socket or NUMA ID value */
-    uint16_t rx_burst;               /**< Number of RX burst size */
-    uint16_t tx_burst;               /**< Number of TX burst packets */
-    uint16_t lsc_enabled;            /**< Enable link state change */
-    uint16_t max_mtu;                /**< Maximum MTU size */
-    uint64_t tx_pps;                 /**< Transmit packets per seconds */
-    uint64_t tx_count;               /**< Total count of tx attempts */
-    uint64_t delta;                  /**< Delta value for latency testing */
-    double tx_rate;                  /**< Percentage rate for tx packets with fractions */
-    struct rte_eth_link link;        /**< Link Information like speed and duplex */
-    struct rte_ether_addr src_mac;   /**< Source MAC address of the port */
-
-    /* Packet buffer space for traffic generator, shared for all packets per port */
-    uint16_t seqIdx;     /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
-    uint16_t seqCnt;     /**< Current packet sequence max count */
-    uint16_t prime_cnt;  /**< Set the number of packets to send in a prime command */
-    uint16_t vlanid;     /**< Set the port VLAN ID value */
-    uint8_t cos;         /**< Set the port 802.1p cos value */
-    uint8_t tos;         /**< Set the port tos value */
-    pkt_seq_t *seq_pkt;  /**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
-    range_info_t range;  /**< Range Information */
-    uint32_t mpls_entry; /**< Set the port MPLS entry */
-    uint32_t gre_key;    /**< GRE key if used */
-
-    struct rnd_bits_s *rnd_bitfields;     /**< Random bitfield settings */
-    char user_pattern[USER_PATTERN_SIZE]; /**< User set pattern values */
-    fill_t fill_pattern_type;             /**< Type of pattern to fill with */
+    struct rte_eth_link link;         /**< Link Information speed and duplex */
+    struct rte_ether_addr src_mac;    /**< Source MAC address of the port */
+    rte_atomic64_t port_flags;        /**< Special send flags for ARP and other */
+    rte_atomic64_t transmit_count;    /**< Packets to transmit loaded into current_tx_count */
+    rte_atomic64_t current_tx_count;  /**< Current number of packets to send */
+    volatile uint64_t tx_cycles;      /**< Number cycles between TX bursts */
+    pkt_seq_t *seq_pkt;               /**< Packet sequence array */
+    range_info_t range;               /**< Range Information */
+    uint16_t pid;                     /**< Port ID value */
+    uint16_t sid;                     /**< Socket or NUMA ID value */
+    uint16_t rx_burst;                /**< Number of RX burst size */
+    uint16_t tx_burst;                /**< Number of TX burst packets */
+    uint16_t max_mtu;                 /**< Maximum MTU size */
+    uint64_t tx_pps;                  /**< Transmit packets per seconds */
+    uint64_t tx_count;                /**< Total count of tx attempts */
+    uint64_t delta;                   /**< Delta value for latency testing */
+    double tx_rate;                   /**< Percentage rate for tx packets with fractions */
+    uint16_t seqIdx;                  /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
+    uint16_t seqCnt;                  /**< Current packet sequence max count */
+    uint16_t prime_cnt;               /**< Set the number of packets to send in a prime command */
+    uint16_t vlanid;                  /**< Set the port VLAN ID value */
+    uint8_t cos;                      /**< Set the port 802.1p cos value */
+    uint8_t tos;                      /**< Set the port tos value */
+    uint32_t mpls_entry;              /**< Set the port MPLS entry */
+    uint32_t gre_key;                 /**< GRE key if used */
+    per_queue_t per_queue[MAX_QUEUES_PER_PORT]; /**< Per queue info */
+    FILE *pcap_file;                            /**< PCAP file handle */
 
     /** Whether the pseudo-header is required when calculating the checksum.
      *  Depends on the original NIC driver (e.g., ixgbe NICs expect the pseudo-header)
      *  See Table 1.133: https://doc.dpdk.org/guides/nics/overview.html */
     bool cksum_requires_phdr;
-
+    struct rnd_bits_s *rnd_bitfields;     /**< Random bitfield settings */
+    char user_pattern[USER_PATTERN_SIZE]; /**< User set pattern values */
+    fill_t fill_pattern_type;             /**< Type of pattern to fill with */
     union {
         uint64_t vxlan; /**< VxLAN 64 bit word */
         struct {
@@ -191,18 +189,7 @@ typedef struct port_info_s {
         };
     };
 
-    struct rte_eth_stats curr_stats;  /**< current port statistics */
-    struct rte_eth_stats queue_stats; /**< current port queue statistics */
-    struct rte_eth_stats rate_stats;  /**< current packet rate statistics */
-    struct rte_eth_stats prev_stats;  /**< previous port statistics */
-    struct rte_eth_stats base_stats;  /**< base port statistics */
-    pkt_stats_t pkt_stats;            /**< Statistics for a number of stats */
-    pkt_sizes_t pkt_sizes;            /**< Stats for the different packet sizes */
-    uint64_t max_ipackets;            /**< Max seen input packet rate */
-    uint64_t max_opackets;            /**< Max seen output packet rate */
-    uint64_t max_missed;              /**< Max missed packets seen */
-    uint64_t qcnt[RTE_ETHDEV_QUEUE_STAT_CNTRS];
-    uint64_t prev_qcnt[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+    port_stats_t stats; /**< Port statistics */
 
     /* Packet dump related */
     struct packet {
@@ -216,13 +203,12 @@ typedef struct port_info_s {
     /* Latency sampling data */
     /* Depending on MAX_LATENCY_ENTRIES, this could blow up static array memory usage
      * over the limit allowed by x86_64 architecture */
-    latency_t latency;                                 /**< Latency information */
-    latsamp_stats_t latsamp_stats[MAX_LATENCY_QUEUES]; /**< Per core stats */
-    uint32_t latsamp_type;                             /**< Type of lat sampler  */
+    latency_t latency;                                  /**< Latency information */
+    latsamp_stats_t latsamp_stats[MAX_QUEUES_PER_PORT]; /**< Per core stats */
+    uint32_t latsamp_type;                              /**< Type of lat sampler  */
     uint32_t latsamp_rate;        /**< Sampling rate i.e., samples per second  */
     uint32_t latsamp_num_samples; /**< Number of samples to collect  */
     char latsamp_outfile[256];    /**< Path to file for dumping latency samples */
-    FILE *pcap_file;              /**< PCAP file handle */
 } port_info_t;
 
 struct vxlan {

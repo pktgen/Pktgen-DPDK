@@ -23,6 +23,7 @@
 
 #include "pktgen-cmds.h"
 #include <cli.h>
+#include <copyright_info.h>
 #include <luaconf.h>
 #include <lualib.h>
 
@@ -134,6 +135,78 @@ setf_string(lua_State *L, const char *name, const char *value)
 {
     lua_pushstring(L, value);
     lua_setfield(L, -2, name);
+}
+
+static __inline__ void
+setf_eth_stats(lua_State *L, const struct rte_eth_stats *stats)
+{
+    setf_integer(L, "ipackets", stats->ipackets);
+    setf_integer(L, "opackets", stats->opackets);
+    setf_integer(L, "ibytes", stats->ibytes);
+    setf_integer(L, "obytes", stats->obytes);
+    setf_integer(L, "ierrors", stats->ierrors);
+    setf_integer(L, "oerrors", stats->oerrors);
+    setf_integer(L, "rx_nombuf", stats->rx_nombuf);
+    setf_integer(L, "imissed", stats->imissed);
+}
+
+static __inline__ void
+setf_qstats(lua_State *L, const qstats_t *qs)
+{
+    setf_integer(L, "ipackets", qs->q_ipackets);
+    setf_integer(L, "opackets", qs->q_opackets);
+    setf_integer(L, "errors", qs->q_errors);
+}
+
+static void
+push_port_stats_t(lua_State *L, const port_stats_t *ps, uint16_t rxq_cnt)
+{
+    /* Assumes a Lua table is on the top of the stack. */
+    lua_newtable(L); /* curr */
+    setf_eth_stats(L, &ps->curr);
+    lua_setfield(L, -2, "curr");
+
+    lua_newtable(L); /* ext */
+    setf_integer(L, "arp_pkts", ps->ext.arp_pkts);
+    setf_integer(L, "echo_pkts", ps->ext.echo_pkts);
+    setf_integer(L, "ip_pkts", ps->ext.ip_pkts);
+    setf_integer(L, "ipv6_pkts", ps->ext.ipv6_pkts);
+    setf_integer(L, "vlan_pkts", ps->ext.vlan_pkts);
+    setf_integer(L, "dropped_pkts", ps->ext.dropped_pkts);
+    setf_integer(L, "unknown_pkts", ps->ext.unknown_pkts);
+    setf_integer(L, "tx_failed", ps->ext.tx_failed);
+    setf_integer(L, "imissed", ps->ext.imissed);
+    setf_integer(L, "ibadcrc", ps->ext.ibadcrc);
+    setf_integer(L, "ibadlen", ps->ext.ibadlen);
+    setf_integer(L, "rx_nombuf", ps->ext.rx_nombuf);
+    setf_integer(L, "max_ipackets", ps->ext.max_ipackets);
+    setf_integer(L, "max_opackets", ps->ext.max_opackets);
+    lua_setfield(L, -2, "ext");
+
+    lua_newtable(L); /* sizes */
+    setf_integer(L, "_64", ps->sizes._64);
+    setf_integer(L, "_65_127", ps->sizes._65_127);
+    setf_integer(L, "_128_255", ps->sizes._128_255);
+    setf_integer(L, "_256_511", ps->sizes._256_511);
+    setf_integer(L, "_512_1023", ps->sizes._512_1023);
+    setf_integer(L, "_1024_1522", ps->sizes._1024_1522);
+    setf_integer(L, "broadcast", ps->sizes.broadcast);
+    setf_integer(L, "multicast", ps->sizes.multicast);
+    setf_integer(L, "jumbo", ps->sizes.jumbo);
+    setf_integer(L, "runt", ps->sizes.runt);
+    setf_integer(L, "unknown", ps->sizes.unknown);
+    lua_setfield(L, -2, "sizes");
+
+    lua_newtable(L); /* qstats */
+    if (rxq_cnt > MAX_QUEUES_PER_PORT)
+        rxq_cnt = MAX_QUEUES_PER_PORT;
+    for (uint16_t qid = 0; qid < rxq_cnt; qid++) {
+        lua_pushinteger(L, qid);
+        lua_newtable(L);
+        setf_qstats(L, &ps->qstats[qid]);
+        lua_rawset(L, -3);
+    }
+    lua_setfield(L, -2, "qstats");
 }
 
 static __inline__ void
@@ -3044,82 +3117,7 @@ pktgen_linkState(lua_State *L)
 
 /**
  *
- * pkt_sizes - return port size stats on a port
- *
- * DESCRIPTION
- * Return the stats on packet sizes for a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static void
-pkt_sizes(lua_State *L, port_info_t *pinfo)
-{
-    pkt_sizes_t sizes = {0};
-
-    pktgen_pkt_sizes(pinfo->pid, &sizes);
-
-    lua_pushinteger(L, pinfo->pid); /* Push the table index */
-    lua_newtable(L);                /* Create the structure table for a packet */
-
-    setf_integer(L, "runt", sizes.runt);
-    setf_integer(L, "_64", sizes._64);
-    setf_integer(L, "_65_127", sizes._65_127);
-    setf_integer(L, "_128_255", sizes._128_255);
-    setf_integer(L, "_256_511", sizes._256_511);
-    setf_integer(L, "_512_1023", sizes._512_1023);
-    setf_integer(L, "_1024_1518", sizes._1024_1518);
-    setf_integer(L, "jumbo", sizes.jumbo);
-    setf_integer(L, "broadcast", sizes.broadcast);
-    setf_integer(L, "multicast", sizes.multicast);
-
-    /* Now set the table as an array with pid as the index. */
-    lua_rawset(L, -3);
-}
-
-/**
- *
- * pktgen_portSizes - return port size stats on a port
- *
- * DESCRIPTION
- * Return the stats on packet sizes for a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_portSizes(lua_State *L)
-{
-    portlist_t portlist;
-    uint32_t n;
-
-    switch (lua_gettop(L)) {
-    default:
-        return luaL_error(L, "portSizes, wrong number of arguments");
-    case 1:
-        break;
-    }
-    portlist = pktgen_get_portlist(L, 1);
-    if (portlist == INVALID_PORTLIST)
-        return luaL_error(L, "invalid portlist");
-
-    lua_newtable(L);
-
-    n = 0;
-    foreach_port(portlist, _do(pkt_sizes(L, pinfo); n++));
-
-    setf_integer(L, "n", n);
-
-    return 1;
-}
-
-/**
- *
- * pkt_stats - Return the other packet stats for a given port.
+ * port_stats - Return the other port stats for a given port.
  *
  * DESCRIPTION
  * Return the packet stats for a given port.
@@ -3128,137 +3126,20 @@ pktgen_portSizes(lua_State *L)
  *
  * SEE ALSO:
  */
-
 static void
-pkt_stats(lua_State *L, port_info_t *pinfo)
+port_stats(lua_State *L, port_info_t *pinfo)
 {
-    struct rte_ether_addr ethaddr;
-    char mac_buf[32]  = {0};
-    pkt_stats_t stats = {0};
-    unsigned nb_pkts;
-    latency_t *lat;
+    port_stats_t ps = {0};
+    uint16_t rxq_cnt;
 
-    pktgen_pkt_stats(pinfo->pid, &stats);
+    pktgen_port_stats(pinfo->pid, &ps);
 
     lua_pushinteger(L, pinfo->pid); /* Push the table index */
-    lua_newtable(L);                /* Create the structure table for a packet */
-
-    setf_integer(L, "arp_pkts", stats.arp_pkts);
-    setf_integer(L, "echo_pkts", stats.echo_pkts);
-    setf_integer(L, "ip_pkts", stats.ip_pkts);
-    setf_integer(L, "ipv6_pkts", stats.ipv6_pkts);
-    setf_integer(L, "vlan_pkts", stats.vlan_pkts);
-    setf_integer(L, "dropped_pkts", stats.dropped_pkts);
-    setf_integer(L, "unknown_pkts", stats.unknown_pkts);
-    setf_integer(L, "tx_failed", stats.tx_failed);
-
-    rte_eth_macaddr_get(pinfo->pid, &ethaddr);
-
-    rte_ether_format_addr(mac_buf, sizeof(mac_buf), &ethaddr);
-    setf_string(L, "mac_addr", mac_buf);
-
-    lat = &pinfo->latency;
-
-    lua_pushstring(L, "latency");
     lua_newtable(L);
 
-    setf_integer(L, "rate_us", lat->latency_rate_us);
-    setf_integer(L, "entropy", lat->latency_entropy);
-    setf_integer(L, "jitter_threshold", lat->jitter_threshold_us);
-
-    nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
-    lat->avg_cycles = (lat->running_cycles / nb_pkts);
-
-    setf_integer(L, "jitter_count", lat->jitter_count);
-    setf_integer(L, "num_pkts", lat->num_latency_pkts);
-    setf_integer(L, "num_skipped", lat->num_skipped);
-    setf_integer(L, "min_cycles", lat->min_cycles);
-    setf_integer(L, "avg_cycles", lat->avg_cycles);
-    setf_integer(L, "max_cycles", lat->max_cycles);
-    setf_number(L, "min_us", cycles_to_us(lat->min_cycles));
-    setf_number(L, "avg_us", cycles_to_us(lat->avg_cycles));
-    setf_number(L, "max_us", cycles_to_us(lat->max_cycles));
-    lua_settable(L, -3);
-
-    /* Now set the table as an array with pid as the index. */
-    lua_rawset(L, -3);
-}
-
-/**
- *
- * pktgen_pktStats - Return the other packet stats for a given port.
- *
- * DESCRIPTION
- * Return the packet stats for a given port.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static int
-pktgen_pktStats(lua_State *L)
-{
-    portlist_t portlist;
-    uint32_t n;
-
-    switch (lua_gettop(L)) {
-    default:
-        return luaL_error(L, "pktStats, wrong number of arguments");
-    case 1:
-        break;
-    }
-    portlist = pktgen_get_portlist(L, 1);
-    if (portlist == INVALID_PORTLIST)
-        return luaL_error(L, "invalid portlist");
-
-    lua_newtable(L);
-
-    n = 0;
-    foreach_port(portlist, _do(pkt_stats(L, pinfo); n++));
-
-    setf_integer(L, "n", n);
-
-    return 1;
-}
-
-/**
- *
- * port_stats - Return the other port stats for a given ports.
- *
- * DESCRIPTION
- * Return the other port stats for a given ports.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
- */
-
-static void
-port_stats(lua_State *L, port_info_t *pinfo, char *type)
-{
-    struct rte_eth_stats stats = {0};
-
-    pktgen_port_stats(pinfo->pid, type, &stats);
-
-    lua_pushinteger(L, pinfo->pid); /* Push the table index */
-    lua_newtable(L);                /* Create the structure table for a packet */
-
-    setf_integer(L, "ipackets", stats.ipackets);
-    setf_integer(L, "opackets", stats.opackets);
-    setf_integer(L, "ibytes", stats.ibytes);
-    setf_integer(L, "obytes", stats.obytes);
-    setf_integer(L, "ierrors", stats.ierrors);
-    setf_integer(L, "oerrors", stats.oerrors);
-    setf_integer(L, "rx_nombuf", stats.rx_nombuf);
-    setf_integer(L, "imissed", stats.imissed);
-
-    if (strcmp(type, "rate") == 0) {
-        setf_integer(L, "pkts_rx", stats.ipackets);
-        setf_integer(L, "pkts_tx", stats.opackets);
-        setf_integer(L, "mbits_rx", iBitsTotal(stats) / Million);
-        setf_integer(L, "mbits_tx", oBitsTotal(stats) / Million);
-    }
+    /* Full port_stats_t structure as nested table. */
+    rxq_cnt = l2p_get_rxcnt(pinfo->pid);
+    push_port_stats_t(L, &ps, rxq_cnt);
 
     /* Now set the table as an array with pid as the index. */
     lua_rawset(L, -3);
@@ -3281,24 +3162,22 @@ pktgen_portStats(lua_State *L)
 {
     portlist_t portlist;
     uint32_t n;
-    char *type;
 
     switch (lua_gettop(L)) {
     default:
         return luaL_error(L, "portStats, wrong number of arguments");
-    case 2:
+    case 1:
         break;
     }
 
     portlist = pktgen_get_portlist(L, 1);
     if (portlist == INVALID_PORTLIST)
         return luaL_error(L, "invalid portlist");
-    type = (char *)luaL_checkstring(L, 2);
 
     lua_newtable(L);
 
     n = 0;
-    foreach_port(portlist, _do(port_stats(L, pinfo, type); n++));
+    foreach_port(portlist, _do(port_stats(L, pinfo); n++));
 
     setf_integer(L, "n", n);
 
@@ -3307,10 +3186,10 @@ pktgen_portStats(lua_State *L)
 
 /**
  *
- * port_info - Return the other port stats for a given ports.
+ * port_info - Return the other port information for a given port.
  *
  * DESCRIPTION
- * Return the other port stats for a given ports.
+ * Return the other port information for a given port.
  *
  * RETURNS: N/A
  *
@@ -3321,70 +3200,14 @@ static void
 port_info(lua_State *L, port_info_t *pinfo)
 {
     struct rte_eth_dev_info dev = {0};
-    struct rte_eth_stats stats  = {0};
-    pkt_stats_t pkt_stats       = {0};
-    pkt_sizes_t sizes           = {0};
     pkt_seq_t *pkt;
     char buff[32] = {0};
 
     pkt = &pinfo->seq_pkt[SINGLE_PKT];
 
-    pktgen_port_stats(pinfo->pid, "port", &stats);
-
     /*------------------------------------*/
     lua_pushinteger(L, pinfo->pid); /* Push the table index */
     lua_newtable(L);                /* Create the structure table for a packet */
-
-    /*------------------------------------*/
-    lua_pushstring(L, "stats");
-    lua_newtable(L);
-    setf_integer(L, "ipackets", stats.ipackets);
-    setf_integer(L, "opackets", stats.opackets);
-    setf_integer(L, "ibytes", stats.ibytes);
-    setf_integer(L, "obytes", stats.obytes);
-    setf_integer(L, "ierrors", stats.ierrors);
-    setf_integer(L, "oerrors", stats.oerrors);
-    setf_integer(L, "rx_nombuf", stats.rx_nombuf);
-    setf_integer(L, "imissed", stats.imissed);
-    lua_rawset(L, -3);
-
-    /*------------------------------------*/
-    lua_pushstring(L, "totals");
-    lua_newtable(L);
-    setf_integer(L, "pkts_rx", stats.ipackets);
-    setf_integer(L, "pkts_tx", stats.opackets);
-    setf_integer(L, "mbits_rx", iBitsTotal(stats) / Million);
-    setf_integer(L, "mbits_tx", oBitsTotal(stats) / Million);
-    lua_rawset(L, -3);
-
-    pktgen_pkt_sizes(pinfo->pid, &sizes);
-
-    /*------------------------------------*/
-    lua_pushstring(L, "size_cnts");
-    lua_newtable(L);
-    setf_integer(L, "broadcast", sizes.broadcast);
-    setf_integer(L, "multicast", sizes.multicast);
-    setf_integer(L, "_64", sizes._64);
-    setf_integer(L, "_65_127", sizes._65_127);
-    setf_integer(L, "_128_255", sizes._128_255);
-    setf_integer(L, "_256_511", sizes._256_511);
-    setf_integer(L, "_512_1023", sizes._512_1023);
-    setf_integer(L, "_1024_1518", sizes._1024_1518);
-    setf_integer(L, "jumbo", sizes.jumbo);
-    setf_integer(L, "runts", sizes.runt);
-
-    pktgen_pkt_stats(pinfo->pid, &pkt_stats);
-    setf_integer(L, "arp_pkts", pkt_stats.arp_pkts);
-    setf_integer(L, "echo_pkts", pkt_stats.echo_pkts);
-
-    setf_integer(L, "ierrors", pinfo->prev_stats.ierrors);
-    setf_integer(L, "oerrors", pinfo->prev_stats.oerrors);
-
-    setf_integer(L, "tx_failed", pkt_stats.tx_failed);
-    setf_integer(L, "imissed", pkt_stats.imissed);
-
-    setf_integer(L, "ibadcrc", pkt_stats.rx_nombuf);
-    lua_rawset(L, -3);
 
     /*------------------------------------*/
     lua_pushstring(L, "total_stats");
@@ -3889,9 +3712,8 @@ static const char *lua_help_info[] = {
     "isSending      - Test to see if a port is sending packets\n",
     "linkState      - Return the current link state of a port\n",
     "\n",
-    "portSizes      - Return the stats on the size of packet for a port.\n",
-    "pktStats       - return the current packet stats on a port\n",
-    "portStats      - return the current port stats\n",
+    "portStats      - Return the current port stats (port_stats_t snapshot)\n",
+    "portInfo       - Return the current port configuration/info (no stats)\n",
     "portCount      - Number of port being used\n",
     "totalPorts     - Total number of ports seen by DPDK\n",
     "\n",
@@ -4069,10 +3891,8 @@ static const luaL_Reg pktgenlib[] = {
     {"isSending", pktgen_isSending}, /* Test to see if a port is sending packets */
     {"linkState", pktgen_linkState}, /* Return the current link state of a port */
 
-    {"portSizes", pktgen_portSizes}, /* Return the stats on the size of packet for a port. */
-    {"pktStats", pktgen_pktStats},   /* return the current packet stats on a port */
     {"portStats", pktgen_portStats}, /* return the current port stats */
-    {"portInfo", pktgen_portInfo},   /* return the current port stats */
+    {"portInfo", pktgen_portInfo},   /* return the current port info */
 
     {"run", pktgen_run},           /* Load a Lua string or command file and execute it. */
     {"continue", pktgen_continue}, /* Display a message and wait for keyboard key and return */

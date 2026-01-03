@@ -14,7 +14,15 @@
 extern "C" {
 #endif
 
-typedef struct pkt_stats_s {
+#define MAX_QUEUES_PER_PORT 32        // RTE_MAX_QUEUES_PER_PORT
+
+typedef struct qstats_s {
+    uint64_t q_ipackets; /**< Number of input packets */
+    uint64_t q_opackets; /**< Number of output packets */
+    uint64_t q_errors;   /**< Number of error packets */
+} qstats_t;
+
+typedef struct ext_stats_s {
     uint64_t arp_pkts;     /**< Number of ARP packets received */
     uint64_t echo_pkts;    /**< Number of ICMP echo requests received */
     uint64_t ip_pkts;      /**< Number of IPv4 packets received */
@@ -26,30 +34,43 @@ typedef struct pkt_stats_s {
     uint64_t imissed;      /**< Number of RX missed packets */
     uint64_t ibadcrc;      /**< Number of RX bad crc packets */
     uint64_t ibadlen;      /**< Number of RX bad length packets */
-    uint64_t rx_nombuf;    /**< Number of times we had not mbufs for Rx */
-} pkt_stats_t;
+    uint64_t rx_nombuf;    /**< Number of times we could not get any mbufs */
+    uint64_t max_ipackets; /**< Maximum input packets per second */
+    uint64_t max_opackets; /**< Maximum output packets per second */
+} ext_stats_t;
 
-typedef struct pkt_sizes_s {
+typedef struct size_stats_s {
     uint64_t _64;        /**< Number of 64 byte packets */
     uint64_t _65_127;    /**< Number of 65-127 byte packets */
     uint64_t _128_255;   /**< Number of 128-255 byte packets */
     uint64_t _256_511;   /**< Number of 256-511 byte packets */
     uint64_t _512_1023;  /**< Number of 512-1023 byte packets */
-    uint64_t _1024_1518; /**< Number of 1024-1518 byte packets */
+    uint64_t _1024_1522; /**< Number of 1024-1522 byte packets */
     uint64_t broadcast;  /**< Number of broadcast packets */
     uint64_t multicast;  /**< Number of multicast packets */
     uint64_t jumbo;      /**< Number of Jumbo frames */
     uint64_t runt;       /**< Number of Runt frames */
     uint64_t unknown;    /**< Number of unknown sizes */
-} pkt_sizes_t;
+} size_stats_t;
+
+typedef struct port_stats_s {
+    struct rte_eth_stats curr; /**< current port statistics */
+    struct rte_eth_stats prev; /**< previous port statistics */
+    struct rte_eth_stats rate; /**< current packet rate statistics */
+    struct rte_eth_stats base; /**< base port statistics for normalization */
+    ext_stats_t ext;           /**< Extended statistics */
+    size_stats_t sizes;        /**< Packet sizes statistics */
+
+    qstats_t qstats[MAX_QUEUES_PER_PORT];      /**< Current queue stats */
+    qstats_t prev_qstats[MAX_QUEUES_PER_PORT]; /**< Previous queue stats to determine rate */
+} port_stats_t;
 
 struct port_info_s;
 
 void pktgen_get_link_status(struct port_info_s *info);
 void pktgen_process_stats(void);
-
 void pktgen_page_stats(void);
-void pktgen_page_queue_stats(uint16_t pid);
+void pktgen_page_qstats(uint16_t pid);
 void pktgen_page_xstats(uint16_t pid);
 
 #ifdef __cplusplus

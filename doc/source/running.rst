@@ -101,7 +101,7 @@ Once ``pktgen`` is running you will see an output like the following::
 	  128-255          :                   0                   0                   0                   0
 	  256-511          :                   0                   0                   0                   0
 	  512-1023         :                   0                   0                   0                   0
-	  1024-1518        :                   0                   0                   0                   0
+	  1024-1522        :                   0                   0                   0                   0
 	Runts/Jumbos       :                 0/0                 0/0                 0/0                 0/0
 	Errors Rx/Tx       :                 0/0                 0/0                 0/0                 0/0
 	Total Rx Pkts      :                   0                   0                   0                   0

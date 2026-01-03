@@ -316,7 +316,7 @@ enum {                                    /* Pktgen flags bits */
        RND_BITFIELD_PAGE_FLAG = (1 << 21), /**< Display the random bitfield page */
        LOG_PAGE_FLAG          = (1 << 22), /**< Display the message log page */
        LATENCY_PAGE_FLAG      = (1 << 23), /**< Display latency page */
-       STATS_PAGE_FLAG        = (1 << 24), /**< Display the physical port stats */
+       QSTATS_PAGE_FLAG       = (1 << 24), /**< Display the port queue stats */
        XSTATS_PAGE_FLAG       = (1 << 25), /**< Display the physical port stats */
        RESERVED_27            = (1 << 27),
        RESERVED_28            = (1 << 28),
@@ -331,7 +331,7 @@ enum {                                    /* Pktgen flags bits */
 #define PAGE_MASK_BITS                                                                          \
     (MAIN_PAGE_FLAG | CPU_PAGE_FLAG | SEQUENCE_PAGE_FLAG | RANGE_PAGE_FLAG | SYSTEM_PAGE_FLAG | \
      RND_BITFIELD_PAGE_FLAG | LOG_PAGE_FLAG | LATENCY_PAGE_FLAG | XSTATS_PAGE_FLAG |            \
-     STATS_PAGE_FLAG)
+     QSTATS_PAGE_FLAG)
 
 extern pktgen_t pktgen;
 

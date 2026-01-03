@@ -1,9 +1,9 @@
 #
-# Pktgen 25.07.1
-# Copyright(c) <2010-2025>, Intel Corporation. All rights reserved., Powered by DPDK 25.07.0
+# Pktgen 25.08.2
+# Copyright(c) <2010-2025>, Intel Corporation. All rights reserved., Powered by DPDK 26.03.0-rc0
 
 # Command line arguments: (DPDK args are defaults)
-# ./usr/local/bin/pktgen -c 7c000 -n 3 -m 512 --proc-type primary -- -v -T -P -G -m [15:16].0 -m [17:18].1 -f themes/black-yellow.theme -f 2-ports
+# ./usr/local/bin/pktgen -c fe -n 3 -m 512 --proc-type primary -- -v -T -P -G -m [2-3:4].0 -m [5-6:7].1 -f themes/black-yellow.theme
 
 #######################################################################
 # Pktgen Configuration script information:

@@ -1339,7 +1339,6 @@ pktgen_start_latency_sampler(port_info_t *pinfo)
     }
 
     for (q = 0; q < rxq; q++) {
-        pinfo->latsamp_stats[q].pkt_counter = 0;
         pinfo->latsamp_stats[q].next        = 0;
         pinfo->latsamp_stats[q].idx         = 0;
         pinfo->latsamp_stats[q].num_samples = pinfo->latsamp_num_samples / rxq;
@@ -1404,7 +1403,6 @@ pktgen_stop_latency_sampler(port_info_t *pinfo)
 
     /* Reset stats data */
     for (q = 0; q < rxq; q++) {
-        pinfo->latsamp_stats[q].pkt_counter = 0;
         pinfo->latsamp_stats[q].next        = 0;
         pinfo->latsamp_stats[q].idx         = 0;
         pinfo->latsamp_stats[q].num_samples = 0;

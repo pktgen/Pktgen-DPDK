@@ -365,7 +365,6 @@ pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts
                 latsamp_stats_t *stats = &pinfo->latsamp_stats[qid];
                 uint64_t now           = pktgen_get_time();
 
-                stats->pkt_counter++;
                 if (stats->next == 0 || now >= stats->next) {
                     if (stats->idx < stats->num_samples) {
                         stats->data[stats->idx] = (cycles * Billion) / rte_get_tsc_hz();

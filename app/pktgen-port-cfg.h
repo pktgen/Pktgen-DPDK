@@ -109,13 +109,13 @@ typedef struct {
 typedef struct {
     uint64_t data[MAX_LATENCY_ENTRIES]; /** Record for latencies */
     uint32_t idx;                       /**< Index to the latencies array */
-    uint64_t next;                      /**< Next latency entry */
-    uint64_t pkt_counter;               /**< Pkt counter */
     uint32_t num_samples;               /**< Number of latency samples */
+    uint64_t next;                      /**< Next latency entry */
+    uint64_t reserved[2];               /**< Reserved for future use */
 } latsamp_stats_t __rte_cache_aligned;
 
 typedef struct {
-    uint64_t latency_rate_us;         /**< number micro-seconds between injecting packets */
+    uint64_t latency_rate_us;         /**< Number micro-seconds between injecting packets */
     uint64_t jitter_threshold_us;     /**< Jitter threshold in micro-seconds */
     uint64_t jitter_threshold_cycles; /**< Jitter threshold cycles */
     uint64_t latency_rate_cycles;     /**< Number of cycles between injections */

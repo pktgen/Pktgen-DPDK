@@ -26,7 +26,6 @@
 #include "pktgen-pcap.h"
 #include "pktgen-dump.h"
 #include "pktgen-ether.h"
-#include "pktgen-workq.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,8 +109,8 @@ typedef struct {
     uint64_t data[MAX_LATENCY_ENTRIES]; /** Record for latencies */
     uint32_t idx;                       /**< Index to the latencies array */
     uint32_t num_samples;               /**< Number of latency samples */
-    uint64_t next;                      /**< Next latency entry */
-    uint64_t reserved[2];               /**< Reserved for future use */
+    uint64_t next;                      /**< Next latency sample time */
+    uint64_t reserved[2];               /**< Reserved for future use and align 64 bytes */
 } latsamp_stats_t __rte_cache_aligned;
 
 typedef struct {
@@ -154,13 +153,10 @@ typedef struct port_info_s {
     pkt_seq_t *seq_pkt;               /**< Packet sequence array */
     range_info_t range;               /**< Range Information */
     uint16_t pid;                     /**< Port ID value */
-    uint16_t sid;                     /**< Socket or NUMA ID value */
     uint16_t rx_burst;                /**< Number of RX burst size */
     uint16_t tx_burst;                /**< Number of TX burst packets */
     uint16_t max_mtu;                 /**< Maximum MTU size */
     uint64_t tx_pps;                  /**< Transmit packets per seconds */
-    uint64_t tx_count;                /**< Total count of tx attempts */
-    uint64_t delta;                   /**< Delta value for latency testing */
     double tx_rate;                   /**< Percentage rate for tx packets with fractions */
     uint16_t seqIdx;                  /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
     uint16_t seqCnt;                  /**< Current packet sequence max count */
@@ -204,7 +200,7 @@ typedef struct port_info_s {
     /* Depending on MAX_LATENCY_ENTRIES, this could blow up static array memory usage
      * over the limit allowed by x86_64 architecture */
     latency_t latency;                                  /**< Latency information */
-    latsamp_stats_t latsamp_stats[MAX_QUEUES_PER_PORT]; /**< Per core stats */
+    latsamp_stats_t latsamp_stats[MAX_QUEUES_PER_PORT]; /**< Per port stats */
     uint32_t latsamp_type;                              /**< Type of lat sampler  */
     uint32_t latsamp_rate;        /**< Sampling rate i.e., samples per second  */
     uint32_t latsamp_num_samples; /**< Number of samples to collect  */

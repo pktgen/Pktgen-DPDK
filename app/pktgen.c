@@ -32,7 +32,6 @@
 #include "pktgen-log.h"
 #include "pktgen-gtpu.h"
 #include "pktgen-sys.h"
-#include "pktgen-workq.h"
 
 #include <pthread.h>
 #include <sched.h>
@@ -1037,25 +1036,6 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
     }
 }
 
-static __inline__ void
-fast_main_transmit(port_info_t *pinfo, uint16_t qid)
-{
-    if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
-        struct rte_mbuf **pkts = pinfo->per_queue[qid].tx_pkts;
-
-        /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
-        if (rte_mempool_get_bulk(mp, (void **)pkts, pinfo->tx_burst) == 0) {
-            uint16_t sent, send = pinfo->tx_burst;
-            do {
-                sent = rte_eth_tx_burst(pinfo->pid, qid, pkts, send);
-                send -= sent;
-                pkts += sent;
-            } while (send > 0);
-        }
-    }
-}
-
 /**
  *
  * pktgen_main_receive - Main receive routine for packets of a port.
@@ -1086,7 +1066,7 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
         qs->q_ipackets += nb_rx;
         pktgen_tstamp_check(pinfo, pkts, nb_rx);
 
-        /* classify the packets for the counters */
+        /* classify the packets and update counters */
         pktgen_packet_classify_bulk(pkts, nb_rx, pid, qid);
 
         if (unlikely(pinfo->dump_count > 0))
@@ -1101,39 +1081,6 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 
         rte_pktmbuf_free_bulk(pkts, nb_rx);
     }
-}
-
-static int
-pktgen_rx_workq_setup(uint16_t pid)
-{
-    workq_fn funcs[] = {pktgen_main_receive};
-
-    for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
-        if (workq_add(WORKQ_RX, pid, funcs[i]))
-            return -1;
-    }
-    return 0;
-}
-
-static int
-pktgen_tx_workq_setup(uint16_t pid)
-{
-    workq_fn funcs[] = {pktgen_main_transmit};
-
-    for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
-        if (workq_add(WORKQ_TX, pid, funcs[i]))
-            return -1;
-    }
-    return 0;
-}
-
-static int
-pktgen_workq_setup(workq_type_t wqt, uint16_t pid, void *arg)
-{
-    if (workq_port_arg_set(pid, arg))
-        return -1;
-
-    return (wqt == WORKQ_RX) ? pktgen_rx_workq_setup(pid) : pktgen_tx_workq_setup(pid);
 }
 
 /**
@@ -1173,14 +1120,9 @@ pktgen_main_rxtx_loop(void)
     printf("RX/TX lid %3d, pid %2d, qids %2d/%2d Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
            tx_qid, l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
 
-    if (pktgen_workq_setup(WORKQ_RX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Rx work queue for pid %u\n", pid);
-    if (pktgen_workq_setup(WORKQ_TX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Tx work queue for pid %u\n", pid);
-
     while (pktgen.force_quit == 0) {
-        /* Process RX workqueue list */
-        workq_run(WORKQ_RX, pid, rx_qid);
+        /* Process RX */
+        pktgen_main_receive(pinfo, rx_qid);
 
         curr_tsc = pktgen_get_time();
 
@@ -1188,8 +1130,8 @@ pktgen_main_rxtx_loop(void)
         if (curr_tsc >= tx_next_cycle) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
-            // Process TX workqueue list
-            workq_run(WORKQ_TX, pid, tx_qid);
+            // Process TX
+            pktgen_main_transmit(pinfo, tx_qid);
         }
         if (curr_tsc >= tx_bond_cycle) {
             tx_bond_cycle = curr_tsc + (pktgen_get_timer_hz() / 10);
@@ -1220,7 +1162,6 @@ pktgen_main_tx_loop(void)
     uint16_t tx_qid, lid = rte_lcore_id();
     port_info_t *pinfo = l2p_get_pinfo_by_lcore(lid);
     uint64_t curr_tsc, tx_next_cycle, tx_bond_cycle;
-    uint16_t pid = pinfo->pid;
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
@@ -1236,9 +1177,6 @@ pktgen_main_tx_loop(void)
     printf("TX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, tx_qid,
            l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
 
-    if (pktgen_workq_setup(WORKQ_TX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Tx work queue for pid %u\n", pid);
-
     while (unlikely(pktgen.force_quit == 0)) {
         curr_tsc = pktgen_get_time();
 
@@ -1246,8 +1184,8 @@ pktgen_main_tx_loop(void)
         if (unlikely(curr_tsc >= tx_next_cycle)) {
             tx_next_cycle = curr_tsc + pinfo->tx_cycles;
 
-            // Process TX workqueue list
-            workq_run(WORKQ_TX, pid, tx_qid);
+            // Process TX
+            pktgen_main_transmit(pinfo, tx_qid);
         }
         if (unlikely(curr_tsc >= tx_bond_cycle)) {
             tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
@@ -1277,7 +1215,7 @@ static void
 pktgen_main_rx_loop(void)
 {
     port_info_t *pinfo;
-    uint16_t lid = rte_lcore_id(), rx_qid = l2p_get_rxqid(lid), pid;
+    uint16_t lid = rte_lcore_id(), rx_qid = l2p_get_rxqid(lid);
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
@@ -1290,15 +1228,8 @@ pktgen_main_rx_loop(void)
     printf("RX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
            l2p_get_rx_mp(pinfo->pid)->name, l2p_get_rx_mp(pinfo->pid));
 
-    pid = pinfo->pid;
-
-    if (pktgen_workq_setup(WORKQ_RX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Rx work queue for pid %u\n", pid);
-
-    while (pktgen.force_quit == 0) {
-        workq_run(WORKQ_RX, pid, rx_qid);
-    }
-    workq_port_destroy(pid);
+    while (pktgen.force_quit == 0)
+        pktgen_main_receive(pinfo, rx_qid);
 
     pktgen_log_debug("Exit %d", lid);
 

@@ -2281,7 +2281,6 @@ pktgen_port_defaults(uint16_t pid)
     pinfo->seqCnt    = 0;
     pinfo->seqIdx    = 0;
     pinfo->prime_cnt = DEFAULT_PRIME_COUNT;
-    pinfo->delta     = 0;
 
     if (rte_eth_macaddr_get(pid, &pinfo->src_mac) < 0)
         pktgen_log_panic("Can't get MAC address: port=%u", pid);

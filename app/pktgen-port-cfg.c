@@ -164,7 +164,6 @@ allocate_port_info(uint16_t pid)
         goto leave;
 
     pinfo->pid     = pid;
-    pinfo->sid     = sid;
     pinfo->max_mtu = RTE_ETHER_MAX_LEN;
     pinfo->conf    = default_port_conf;
 
@@ -201,15 +200,15 @@ allocate_port_info(uint16_t pid)
         pktsz = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
 
     /* allocate the sequence packet array */
-    pinfo->seq_pkt = rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
-                                        RTE_CACHE_LINE_SIZE, pinfo->sid);
+    pinfo->seq_pkt =
+        rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE, sid);
     if (pinfo->seq_pkt == NULL) {
         pktgen_log_error("Unable to allocate %'ld pkt_seq_t headers", (long int)NUM_TOTAL_PKTS);
         goto leave;
     }
 
     for (int i = 0; i < NUM_TOTAL_PKTS; i++) {
-        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, pinfo->sid);
+        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, sid);
         if (pinfo->seq_pkt[i].hdr == NULL)
             pktgen_log_panic("Unable to allocate %ld pkt_seq_t buffer space", pktsz);
 
@@ -432,12 +431,14 @@ _rx_queues(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
-    uint16_t pid                   = pinfo->pid;
+    uint16_t sid, pid = pinfo->pid;
     int ret;
 
     l2p_port_t *lport = l2p_get_port(pid);
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
+
+    sid = rte_eth_dev_socket_id(pid);
 
     pktgen_log_info("   Number of RX queues %u", l2p_get_rxcnt(pid));
     for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
@@ -448,7 +449,7 @@ _rx_queues(port_info_t *pinfo)
 
         pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
 
-        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, pinfo->sid, &rxq_conf, lport->rx_mp);
+        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp);
         if (ret < 0)
             pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));
@@ -460,12 +461,14 @@ _tx_queues(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
-    uint16_t pid                   = pinfo->pid;
+    uint16_t sid, pid = pinfo->pid;
     int ret;
 
     l2p_port_t *lport = l2p_get_port(pid);
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
+
+    sid = rte_eth_dev_socket_id(pid);
 
     pktgen_log_info("   Number of TX queues %u", l2p_get_txcnt(pid));
     for (int q = 0; q < l2p_get_txcnt(pid); q++) {
@@ -476,7 +479,7 @@ _tx_queues(port_info_t *pinfo)
 
         pktgen_log_info("     TX queue %d enabled offloads: 0x%0lx", q, txq_conf.offloads);
 
-        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, pinfo->sid, &txq_conf);
+        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &txq_conf);
         if (ret < 0)
             pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));

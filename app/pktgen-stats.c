@@ -53,36 +53,33 @@ pktgen_print_static_data(void)
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Link State");
 
     pktgen_display_set_color("stats.port.sizes");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Rx");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Tx");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Rx:Tx");
 
     pktgen_display_set_color("stats.mac");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx/Tx");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "MBits/s Rx:Tx");
+
+    pktgen_display_set_color("stats.port.totals");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Max Pkts/s Rx:Tx");
 
     pktgen_display_set_color("stats.port.totlbl");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Total Rx Pkts");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx Pkts");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx/Tx MBs");
-
-    pktgen_display_set_color("stats.port.totals");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Pkts/s Rx Max");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "       Tx Max");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx:Tx MBs");
 
     pktgen_display_set_color("stats.port.errlbl");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Errors Rx/Tx");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Errors Rx/Tx/missed");
 
     row = PKT_SIZE_ROW;
     pktgen_display_set_color("stats.port.sizelbl");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Broadcast");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Multicast");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Sizes 64");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      65-127");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      128-255");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      256-511");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      512-1023");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      1024-1522");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Rx Sizes 64");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "         65-127");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "         128-255");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "         256-511");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "         512-1023");
+    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "         1024-1522");
     scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Runts/Jumbos");
-    scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
 
     if (pktgen.flags & TX_DEBUG_FLAG) {
         pktgen_display_set_color("stats.port.errlbl");
@@ -196,7 +193,7 @@ pktgen_print_static_data(void)
                      &pci[5]);
         } else
             snprintf(buff, sizeof(buff), "-1/0000:00:00.0");
-        pktgen_display_set_color("stats.bdf");
+        pktgen_display_set_color("stats.stat.values");
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         display_cnt++;
     }
@@ -341,31 +338,33 @@ pktgen_page_stats(void)
         /* Rx/Tx pkts/s rate */
         row = PKT_RATE_ROW;
         pktgen_display_set_color("stats.port.sizes");
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, rate->ipackets);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, rate->opackets);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 ":%'" PRIu64, rate->ipackets, rate->opackets);
+        scrn_printf(row++, col, "%'*s", COLUMN_WIDTH_1, buff);
 
         /* Rx/Tx Mbits per second */
-        pktgen_display_set_color("stats.mac");
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
+        pktgen_display_set_color("stats.port.sizes");
+        snprintf(buff, sizeof(buff), "%'" PRIu64 ":%'" PRIu64,
                  iBitsTotal(pinfo->stats.rate) / Million, oBitsTotal(pinfo->stats.rate) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
+        /* Max Rx/Tx packets */
+        pktgen_display_set_color("stats.port.sizes");
+        snprintf(buff, sizeof(buff), "%'" PRIu64 ":%'" PRIu64, pktgen.max_total_ipackets,
+                 pktgen.max_total_opackets);
+        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
+
         /* Total Rx/Tx packets and bytes */
-        pktgen_display_set_color("stats.port.totals");
+        pktgen_display_set_color("stats.port.sizes");
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, pinfo->stats.curr.ipackets);
         scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, pinfo->stats.curr.opackets);
-        snprintf(buff, sizeof(buff), "%'lu/%'lu", iBitsTotal(pinfo->stats.curr) / Million,
+        snprintf(buff, sizeof(buff), "%'lu:%'lu", iBitsTotal(pinfo->stats.curr) / Million,
                  oBitsTotal(pinfo->stats.curr) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        /* Max Rx/Tx packets */
-        pktgen_display_set_color("stats.port.totals");
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, pinfo->stats.ext.max_ipackets);
-        scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_1, pinfo->stats.ext.max_opackets);
-
         /* Rx/Tx Errors */
         pktgen_display_set_color("stats.port.errors");
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, prev->ierrors, prev->oerrors);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64 "/%'" PRIu64, prev->ierrors,
+                 prev->oerrors, prev->imissed);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         /* Packets Sizes */
@@ -384,22 +383,10 @@ pktgen_page_stats(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, sizes.runt, sizes.jumbo);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        ext_stats_t *ext = &pinfo->stats.ext;
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, ext->arp_pkts, ext->echo_pkts);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
         if (pktgen.flags & TX_DEBUG_FLAG) {
-            snprintf(buff, sizeof(buff), "%'" PRIu64, ext->tx_failed);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
             snprintf(buff, sizeof(buff), "%'" PRIu64, pinfo->tx_pps);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
             snprintf(buff, sizeof(buff), "%'" PRIu64, pinfo->tx_cycles);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-            snprintf(buff, sizeof(buff), "%'" PRIu64, ext->imissed);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-            scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, "None");
-            snprintf(buff, sizeof(buff), "%'" PRIu64, ext->rx_nombuf);
             scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
         }
         pktgen_display_set_color(NULL);
@@ -410,22 +397,90 @@ pktgen_page_stats(void)
     col = (COLUMN_WIDTH_1 * display_cnt) + COLUMN_WIDTH_0;
     row = PKT_RATE_ROW;
     pktgen_display_set_color("stats.port.sizes");
-    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, cumm->ipackets);
-    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, cumm->opackets);
+    snprintf(buff, sizeof(buff), "%'" PRIu64 ":%'" PRIu64, cumm->ipackets, cumm->opackets);
+    scrn_printf(row++, col, "%'*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
 
-    pktgen_display_set_color("stats.mac");
-    snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
+    pktgen_display_set_color("stats.port.sizes");
+    snprintf(buff, sizeof(buff), "%'" PRIu64 ":%'" PRIu64,
              iBitsTotal(pktgen.cumm_rate_totals) / Million,
              oBitsTotal(pktgen.cumm_rate_totals) / Million);
     scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
 
-    pktgen_display_set_color("stats.port.totals");
-    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, pktgen.max_total_ipackets);
-    scrn_printf(row++, col, "%'*llu", COLUMN_WIDTH_3, pktgen.max_total_opackets);
+    pktgen_display_set_color("stats.port.sizes");
+    snprintf(buff, sizeof(buff), "%'" PRIu64 ":%'" PRIu64, pktgen.max_total_ipackets,
+             pktgen.max_total_opackets);
+    scrn_printf(row++, col, "%*s", COLUMN_WIDTH_3, buff);
     scrn_eol();
     pktgen_display_set_color(NULL);
+}
+
+static void
+process_xstats(port_info_t *pinfo)
+{
+    xstats_t *xs = &pinfo->stats.xstats;
+    int cnt;
+
+    if (xs->cnt == 0) {
+        /* Get count */
+        cnt = rte_eth_xstats_get_names(pinfo->pid, NULL, 0);
+        if (cnt < 0) {
+            printf("Error: Cannot get count of xstats\n");
+            return;
+        }
+        if (cnt == 0)
+            return;
+
+        xs->cnt    = cnt;
+        xs->names  = rte_calloc(NULL, cnt, sizeof(struct rte_eth_xstat_name), 0);
+        xs->xstats = rte_calloc(NULL, cnt, sizeof(struct rte_eth_xstat), 0);
+        xs->prev   = rte_calloc(NULL, cnt, sizeof(struct rte_eth_xstat), 0);
+        if (xs->names == NULL || xs->xstats == NULL || xs->prev == NULL) {
+            printf("Cannot allocate memory for xstats\n");
+            return;
+        }
+        if (rte_eth_xstats_get_names(pinfo->pid, xs->names, xs->cnt) < 0) {
+            printf("Error: Cannot get xstats lookup\n");
+            return;
+        }
+    }
+
+    if (rte_eth_xstats_get(pinfo->pid, xs->xstats, xs->cnt) < 0) {
+        printf("Error: Unable to get xstats\n");
+        return;
+    }
+
+    for (int i = 0; i < xs->cnt; i++) {
+        struct rte_eth_xstat *cur = &xs->xstats[i];
+        char *name                = xs->names[i].name;
+        uint64_t val              = cur->value;
+
+        if (val == 0)
+            continue;
+
+        /* Update size stats */
+        if (strncmp(name, "rx_size_64", strlen("rx_size_64")) == 0)
+            pinfo->stats.sizes._64 = val;
+        else if (strncmp(name, "rx_size_65_127", strlen("rx_size_65_127")) == 0)
+            pinfo->stats.sizes._65_127 = val;
+        else if (strncmp(name, "rx_size_128_255", strlen("rx_size_128_255")) == 0)
+            pinfo->stats.sizes._128_255 = val;
+        else if (strncmp(name, "rx_size_256_511", strlen("rx_size_256_511")) == 0)
+            pinfo->stats.sizes._256_511 = val;
+        else if (strncmp(name, "rx_size_512_1023", strlen("rx_size_512_1023")) == 0)
+            pinfo->stats.sizes._512_1023 = val;
+        else if (strncmp(name, "rx_size_1024_1522", strlen("rx_size_1024_1522")) == 0)
+            pinfo->stats.sizes._1024_1522 = val;
+        else if (strncmp(name, "rx_oversize_errors", strlen("rx_oversize_errors")) == 0)
+            pinfo->stats.sizes.jumbo = val;
+        else if (strncmp(name, "rx_undersized_errors", strlen("rx_undersized_errors")) == 0)
+            pinfo->stats.sizes.runt = val;
+        else if (strncmp(name, "rx_broadcast_packets", strlen("rx_broadcast_packets")) == 0)
+            pinfo->stats.sizes.broadcast = val;
+        else if (strncmp(name, "rx_multicast_packets", strlen("rx_multicast_packets")) == 0)
+            pinfo->stats.sizes.multicast = val;
+    }
 }
 
 /**
@@ -497,14 +552,10 @@ pktgen_process_stats(void)
         rate->imissed   = (curr->imissed - prev->imissed);
         rate->rx_nombuf = (curr->rx_nombuf - prev->rx_nombuf);
 
-        /* Find the new max rate values */
-        if (rate->ipackets > pinfo->stats.ext.max_ipackets)
-            pinfo->stats.ext.max_ipackets = rate->ipackets;
-        if (rate->opackets > pinfo->stats.ext.max_opackets)
-            pinfo->stats.ext.max_opackets = rate->opackets;
-
         /* Save the current values in previous */
         memcpy(prev, curr, sizeof(struct rte_eth_stats));
+
+        process_xstats(pinfo);
     }
 }
 
@@ -597,80 +648,31 @@ pktgen_page_qstats(uint16_t pid)
     scrn_eol();
 }
 
-static struct xstats_info {
-    struct rte_eth_xstat_name *names;
-    struct rte_eth_xstat *xstats;
-    struct rte_eth_xstat *prev;
-    int cnt;
-} xstats_info[RTE_MAX_ETHPORTS];
-
 static void
 _xstats_display(uint16_t port_id)
 {
-    struct xstats_info *xinfo;
-    int idx_xstat, idx;
+    port_info_t *pinfo;
+    xstats_t *xs;
 
     if (!rte_eth_dev_is_valid_port(port_id)) {
         printf("Error: Invalid port number %i\n", port_id);
         return;
     }
-    xinfo = &xstats_info[port_id];
-
-    /* Get count */
-    xinfo->cnt = rte_eth_xstats_get_names(port_id, NULL, 0);
-    if (xinfo->cnt < 0) {
-        printf("Error: Cannot get count of xstats\n");
-        return;
-    }
-    if (xinfo->cnt == 0)
+    pinfo = l2p_get_port_pinfo(port_id);
+    if (pinfo == NULL)
         return;
 
-    if (xinfo->names == NULL) {
-        /* Get id-name lookup table */
-        xinfo->names = calloc(xinfo->cnt, sizeof(struct rte_eth_xstat_name));
-        if (xinfo->names == NULL) {
-            printf("Cannot allocate memory for xstats lookup\n");
-            return;
-        }
-        if (xinfo->cnt != rte_eth_xstats_get_names(port_id, xinfo->names, xinfo->cnt)) {
-            printf("Error: Cannot get xstats lookup\n");
-            return;
-        }
-    }
-
-    /* Get stats themselves */
-    if (xinfo->xstats == NULL) {
-        xinfo->xstats = calloc(xinfo->cnt, sizeof(struct rte_eth_xstat));
-        if (xinfo->xstats == NULL) {
-            printf("Cannot allocate memory for xstats\n");
-            return;
-        }
-        xinfo->prev = calloc(xinfo->cnt, sizeof(struct rte_eth_xstat));
-        if (xinfo->prev == NULL) {
-            printf("Cannot allocate memory for previous xstats\n");
-            return;
-        }
-        if (xinfo->cnt != rte_eth_xstats_get(port_id, xinfo->prev, xinfo->cnt)) {
-            printf("Error: Unable to get prev_xstats\n");
-            return;
-        }
-    }
-    if (xinfo->cnt != rte_eth_xstats_get(port_id, xinfo->xstats, xinfo->cnt)) {
-        printf("Error: Unable to get xstats\n");
-        return;
-    }
+    xs = &pinfo->stats.xstats;
 
     /* Display xstats */
-    idx = 0;
-    for (idx_xstat = 0; idx_xstat < xinfo->cnt; idx_xstat++) {
+    int idx = 0;
+    for (int idx_xstat = 0; idx_xstat < xs->cnt; idx_xstat++) {
         uint64_t value;
 
-        value = xinfo->xstats[idx_xstat].value - xinfo->prev[idx_xstat].value;
-        if (xinfo->xstats[idx_xstat].value || value) {
+        value = xs->xstats[idx_xstat].value - xs->prev[idx_xstat].value;
+        if (xs->xstats[idx_xstat].value) {
             if (idx == 0) {
-                pktgen_display_set_color("stats.port.data");
-                printf("%3d: ", port_id);
-                pktgen_display_set_color("stats.port.label");
+                printf("     ");
                 scrn_eol();
             } else if ((idx & 1) == 0) {
                 printf("\n     ");
@@ -678,16 +680,18 @@ _xstats_display(uint16_t port_id)
             }
             idx++;
 
+            pktgen_display_set_color("stats.port.status");
+            printf("%-32s", xs->names[idx_xstat].name);
             pktgen_display_set_color("stats.port.label");
-            printf("%-32s| ", xinfo->names[idx_xstat].name);
-            pktgen_display_set_color("stats.port.data");
+            printf("| ");
+            pktgen_display_set_color("stats.port.rate");
             printf("%'15" PRIu64, value);
             pktgen_display_set_color("stats.port.label");
             printf(" | ");
             scrn_eol();
         }
     }
-    rte_memcpy(xinfo->prev, xinfo->xstats, sizeof(struct rte_eth_xstat) * xinfo->cnt);
+    rte_memcpy(xs->prev, xs->xstats, sizeof(struct rte_eth_xstat) * xs->cnt);
     printf("\n");
     scrn_eol();
     printf("\n");

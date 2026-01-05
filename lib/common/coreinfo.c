@@ -106,15 +106,19 @@ set_model_name(const char *line)
 static void
 set_siblings(const char *line)
 {
-    if (hmap_add_u16(cid->map, NULL, CI_NUM_SIBLINGS, atoi(line)) < 0)
-        printf("%s: Failed to add siblings to map\n", __func__);
+    if (hmap_kvp_lookup(cid->map, NULL, CI_NUM_SIBLINGS) != NULL)
+        return;
+    if (hmap_add_value(cid->map, NULL, CI_NUM_SIBLINGS, (uint16_t)atoi(line)) < 0)
+        printf("%s: Failed to add %s to map\n", __func__, CI_NUM_SIBLINGS);
 }
 
 static void
 set_cpu_cores(const char *line)
 {
-    if (hmap_add_u16(cid->map, NULL, CI_NUM_CPU_CORES, atoi(line)) < 0)
-        printf("%s: Failed to add siblings to map\n", __func__);
+    if (hmap_kvp_lookup(cid->map, NULL, CI_NUM_CPU_CORES) != NULL)
+        return;
+    if (hmap_add_value(cid->map, NULL, CI_NUM_CPU_CORES, (uint16_t)atoi(line)) < 0)
+        printf("%s: Failed to add %s to map\n", __func__, CI_NUM_CPU_CORES);
 }
 
 static void
@@ -122,7 +126,7 @@ lcore_terminator(const char *unused __attribute__((unused)))
 {
     coreinfo_t *ci;
     char buffer[64];
-    uint16_t num_cpu_cores = 0, num_sockets = 0;
+    uint16_t num_cpu_cores = 0, num_sockets = 0, val = 0;
 
     ci = calloc(1, sizeof(coreinfo_t));
     if (!ci) {
@@ -133,8 +137,8 @@ lcore_terminator(const char *unused __attribute__((unused)))
     ci->core_id   = cid->core.core_id;
     ci->lcore_id  = cid->core.lcore_id;
 
-    hmap_get_u16(cid->map, NULL, CI_NUM_CPU_CORES, &num_cpu_cores);
-    hmap_get_u16(cid->map, NULL, CI_NUM_SOCKETS, &num_sockets);
+    hmap_get_value(cid->map, NULL, CI_NUM_CPU_CORES, &num_cpu_cores);
+    hmap_get_value(cid->map, NULL, CI_NUM_SOCKETS, &num_sockets);
     if (num_sockets == 0)
         num_sockets = 1;
     ci->thread_id       = (cid->core.lcore_id / num_cpu_cores) / num_sockets;
@@ -144,13 +148,16 @@ lcore_terminator(const char *unused __attribute__((unused)))
         cid->max_threads = cid->core.thread_id;
 
     snprintf(buffer, sizeof(buffer), CI_LCORE_FORMAT, cid->core.lcore_id);
-    hmap_add_pointer(cid->map, NULL, buffer, ci);
+    hmap_add_value(cid->map, NULL, buffer, (void *)ci);
 
     snprintf(buffer, sizeof(buffer), CI_SCT_FORMAT, cid->core.socket_id, cid->core.core_id,
              cid->core.thread_id);
-    hmap_add_u16(cid->map, NULL, buffer, cid->core.lcore_id);
+    hmap_add_value(cid->map, NULL, buffer, cid->core.lcore_id);
 
-    hmap_inc_u16(cid->map, NULL, CI_NUM_LCORES, 1);
+    if (hmap_get_value(cid->map, NULL, CI_NUM_LCORES, &val) < 0)
+        val = 0;
+    val++;
+    hmap_add_value(cid->map, NULL, CI_NUM_LCORES, val);
 }
 
 static void
@@ -193,13 +200,14 @@ coreinfo_get(uint16_t lcore_id)
     char buffer[64];
     uint16_t num_lcores = 0, num_sockets = 0, num_cores = 0, num_threads = 0;
 
-    hmap_get_u16(cid->map, NULL, CI_NUM_LCORES, &num_lcores);
-    hmap_get_u16(cid->map, NULL, CI_NUM_CPU_CORES, &num_cores);
-    hmap_get_u16(cid->map, NULL, CI_NUM_SOCKETS, &num_sockets);
-    hmap_get_u16(cid->map, NULL, CI_NUM_THREADS, &num_threads);
+    hmap_get_value(cid->map, NULL, CI_NUM_LCORES, &num_lcores);
+    hmap_get_value(cid->map, NULL, CI_NUM_CPU_CORES, &num_cores);
+    hmap_get_value(cid->map, NULL, CI_NUM_SOCKETS, &num_sockets);
+    hmap_get_value(cid->map, NULL, CI_NUM_THREADS, &num_threads);
 
     snprintf(buffer, sizeof(buffer), CI_LCORE_FORMAT, lcore_id);
-    ci = hmap_get_pointer(cid->map, NULL, buffer);
+    if (hmap_get_value(cid->map, NULL, buffer, (void **)&ci) < 0)
+        ci = NULL;
 
     return ci;
 }
@@ -238,7 +246,7 @@ coreinfo_create(void)
             set_max_socket_id(value);
     } while (1);
 
-    hmap_add_u16(cid->map, NULL, CI_NUM_SOCKETS, cid->max_socket_id + 1);
+    hmap_add_value(cid->map, NULL, CI_NUM_SOCKETS, (uint16_t)(cid->max_socket_id + 1));
 
     rewind(f);
     /* process the rest of the information */
@@ -251,7 +259,7 @@ coreinfo_create(void)
             get_matching_action(line)(value);
     } while (1);
 
-    hmap_add_u16(cid->map, NULL, CI_NUM_THREADS, cid->max_threads + 1);
+    hmap_add_value(cid->map, NULL, CI_NUM_THREADS, (uint16_t)(cid->max_threads + 1));
 
     free(line);
     fclose(f);
@@ -266,22 +274,22 @@ coreinfo_cnt(ci_type_t typ)
 
     switch (typ) {
     case CI_NUM_LCORES_TYPE:
-        hmap_get_u16(cid->map, NULL, CI_NUM_LCORES, &cnt);
+        hmap_get_value(cid->map, NULL, CI_NUM_LCORES, &cnt);
         break;
     case CI_NUM_CORES_TYPE:
-        hmap_get_u16(cid->map, NULL, CI_NUM_CORES, &cnt);
+        hmap_get_value(cid->map, NULL, CI_NUM_CORES, &cnt);
         break;
     case CI_NUM_SOCKETS_TYPE:
-        hmap_get_u16(cid->map, NULL, CI_NUM_SOCKETS, &cnt);
+        hmap_get_value(cid->map, NULL, CI_NUM_SOCKETS, &cnt);
         break;
     case CI_NUM_THREADS_TYPE:
-        hmap_get_u16(cid->map, NULL, CI_NUM_THREADS, &cnt);
+        hmap_get_value(cid->map, NULL, CI_NUM_THREADS, &cnt);
         break;
     case CI_NUM_SIBLINGS_TYPE:
-        hmap_get_u16(cid->map, NULL, CI_NUM_SIBLINGS, &cnt);
+        hmap_get_value(cid->map, NULL, CI_NUM_SIBLINGS, &cnt);
         break;
     case CI_NUM_CPU_CORES_TYPE:
-        hmap_get_u16(cid->map, NULL, CI_NUM_CPU_CORES, &cnt);
+        hmap_get_value(cid->map, NULL, CI_NUM_CPU_CORES, &cnt);
     default:
         break;
     }

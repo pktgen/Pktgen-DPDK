@@ -22,23 +22,6 @@ typedef struct qstats_s {
     uint64_t q_errors;   /**< Number of error packets */
 } qstats_t;
 
-typedef struct ext_stats_s {
-    uint64_t arp_pkts;     /**< Number of ARP packets received */
-    uint64_t echo_pkts;    /**< Number of ICMP echo requests received */
-    uint64_t ip_pkts;      /**< Number of IPv4 packets received */
-    uint64_t ipv6_pkts;    /**< Number of IPv6 packets received */
-    uint64_t vlan_pkts;    /**< Number of VLAN packets received */
-    uint64_t dropped_pkts; /**< Hyperscan dropped packets */
-    uint64_t unknown_pkts; /**< Number of Unknown packets */
-    uint64_t tx_failed;    /**< Transmits that failed to send */
-    uint64_t imissed;      /**< Number of RX missed packets */
-    uint64_t ibadcrc;      /**< Number of RX bad crc packets */
-    uint64_t ibadlen;      /**< Number of RX bad length packets */
-    uint64_t rx_nombuf;    /**< Number of times we could not get any mbufs */
-    uint64_t max_ipackets; /**< Maximum input packets per second */
-    uint64_t max_opackets; /**< Maximum output packets per second */
-} ext_stats_t;
-
 typedef struct size_stats_s {
     uint64_t _64;        /**< Number of 64 byte packets */
     uint64_t _65_127;    /**< Number of 65-127 byte packets */
@@ -53,13 +36,21 @@ typedef struct size_stats_s {
     uint64_t unknown;    /**< Number of unknown sizes */
 } size_stats_t;
 
+typedef struct xstats_s {
+    struct rte_eth_xstat_name *names;
+    struct rte_eth_xstat *xstats;
+    struct rte_eth_xstat *prev;
+    int cnt;
+} xstats_t;
+
 typedef struct port_stats_s {
     struct rte_eth_stats curr; /**< current port statistics */
     struct rte_eth_stats prev; /**< previous port statistics */
     struct rte_eth_stats rate; /**< current packet rate statistics */
     struct rte_eth_stats base; /**< base port statistics for normalization */
-    ext_stats_t ext;           /**< Extended statistics */
-    size_stats_t sizes;        /**< Packet sizes statistics */
+    xstats_t xstats;           /**< Extended statistics */
+
+    size_stats_t sizes; /**< Packet size counters */
 
     qstats_t qstats[MAX_QUEUES_PER_PORT];      /**< Current queue stats */
     qstats_t prev_qstats[MAX_QUEUES_PER_PORT]; /**< Previous queue stats to determine rate */

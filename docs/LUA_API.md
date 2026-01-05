@@ -36,11 +36,6 @@ Each port entry contains:
 - `curr`: a table containing:
   - `ipackets`, `opackets`, `ibytes`, `obytes`
   - `ierrors`, `oerrors`, `rx_nombuf`, `imissed`
-- `ext`: extended counters:
-  - `arp_pkts`, `echo_pkts`, `ip_pkts`, `ipv6_pkts`, `vlan_pkts`
-  - `dropped_pkts`, `unknown_pkts`, `tx_failed`
-  - `imissed`, `ibadcrc`, `ibadlen`, `rx_nombuf`
-  - `max_ipackets`, `max_opackets`
 - `sizes`: packet size distribution:
   - `_64`, `_65_127`, `_128_255`, `_256_511`, `_512_1023`, `_1024_1522`
   - `broadcast`, `multicast`, `jumbo`, `runt`, `unknown`
@@ -118,23 +113,6 @@ pktgen.portStats("0-1")
       ["opackets"] = 0
       ["rx_nombuf"] = 0
     }
-    ["ext"] =
-    {
-      ["arp_pkts"] = 0
-      ["dropped_pkts"] = 0
-      ["echo_pkts"] = 0
-      ["ibadcrc"] = 0
-      ["ibadlen"] = 0
-      ["imissed"] = 0
-      ["ip_pkts"] = 0
-      ["ipv6_pkts"] = 0
-      ["max_ipackets"] = 0
-      ["max_opackets"] = 0
-      ["rx_nombuf"] = 0
-      ["tx_failed"] = 0
-      ["unknown_pkts"] = 0
-      ["vlan_pkts"] = 0
-    }
     ["qstats"] =
     {
       [0] =
@@ -177,23 +155,6 @@ pktgen.portStats("0-1")
       ["oerrors"] = 0
       ["opackets"] = 0
       ["rx_nombuf"] = 0
-    }
-    ["ext"] =
-    {
-      ["arp_pkts"] = 0
-      ["dropped_pkts"] = 0
-      ["echo_pkts"] = 0
-      ["ibadcrc"] = 0
-      ["ibadlen"] = 0
-      ["imissed"] = 0
-      ["ip_pkts"] = 0
-      ["ipv6_pkts"] = 0
-      ["max_ipackets"] = 0
-      ["max_opackets"] = 0
-      ["rx_nombuf"] = 0
-      ["tx_failed"] = 0
-      ["unknown_pkts"] = 0
-      ["vlan_pkts"] = 0
     }
     ["qstats"] =
     {

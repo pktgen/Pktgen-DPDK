@@ -249,12 +249,12 @@ rte_eth_rxconf_dump(FILE *f, struct rte_eth_rxconf *rx)
 {
     fprintf(f, "  RX Conf:\n");
     fprintf(f,
-            "     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16
-            " wthresh        :%5" PRIu16 "\n",
+            "     pthresh        :%5" PRIu16 " | hthresh          :%5" PRIu16
+            " | wthresh        :%5" PRIu16 "\n",
             rx->rx_thresh.pthresh, rx->rx_thresh.hthresh, rx->rx_thresh.wthresh);
     fprintf(f,
-            "     Free Thresh    :%5" PRIu16 " Drop Enable      :%5" PRIu16
-            " Deferred Start :%5" PRIu16 "\n",
+            "     Free Thresh    :%5" PRIu16 " | Drop Enable      :%5" PRIu16
+            " | Deferred Start :%5" PRIu16 "\n",
             rx->rx_free_thresh, rx->rx_drop_en, rx->rx_deferred_start);
     fprintf(f, "     offloads       :%016" PRIx64 "\n", rx->offloads);
 }
@@ -264,12 +264,12 @@ rte_eth_txconf_dump(FILE *f, struct rte_eth_txconf *tx)
 {
     fprintf(f, "  TX Conf:\n");
     fprintf(f,
-            "     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16
-            " wthresh        :%5" PRIu16 "\n",
+            "     pthresh        :%5" PRIu16 " | hthresh          :%5" PRIu16
+            " | wthresh        :%5" PRIu16 "\n",
             tx->tx_thresh.pthresh, tx->tx_thresh.hthresh, tx->tx_thresh.wthresh);
     fprintf(f,
-            "     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16
-            " Deferred Start :%5" PRIu16 "\n",
+            "     Free Thresh    :%5" PRIu16 " | RS Thresh        :%5" PRIu16
+            " | Deferred Start :%5" PRIu16 "\n",
             tx->tx_free_thresh, tx->tx_rs_thresh, tx->tx_deferred_start);
     fprintf(f, "     offloads       :%016" PRIx64 "\n", tx->offloads);
 }
@@ -280,10 +280,10 @@ rte_eth_desc_lim_dump(FILE *f, struct rte_eth_desc_lim *lim, int tx_flag)
     fprintf(f, "  %s: descriptor Limits\n", tx_flag ? "Tx" : "Rx");
 
     fprintf(f,
-            "     nb_max         :%5" PRIu16 "  nb_min          :%5" PRIu16
-            "  nb_align      :%5" PRIu16 "\n",
+            "     nb_max         :%5" PRIu16 " | nb_min           :%5" PRIu16
+            " | nb_align       :%5" PRIu16 "\n",
             lim->nb_max, lim->nb_min, lim->nb_align);
-    fprintf(f, "     nb_seg_max     :%5" PRIu16 "  nb_mtu_seg_max  :%5" PRIu16 "\n",
+    fprintf(f, "     nb_seg_max     :%5" PRIu16 " | nb_mtu_seg_max   :%5" PRIu16 "\n",
             lim->nb_seg_max, lim->nb_mtu_seg_max);
 }
 
@@ -293,8 +293,8 @@ rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_fla
     fprintf(f, "  %s: Port Config (Default)\n", tx_flag ? "Tx" : "Rx");
 
     fprintf(f,
-            "     burst_size     :%5" PRIu16 "  ring_size       :%5" PRIu16
-            "  nb_queues     :%5" PRIu16 "\n",
+            "     burst_size     :%5" PRIu16 " | ring_size        :%5" PRIu16
+            " | nb_queues      :%5" PRIu16 "\n",
             conf->burst_size, conf->ring_size, conf->nb_queues);
 }
 
@@ -303,8 +303,8 @@ rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
 {
     fprintf(f, "  Switch Info: %s\n", sw->name);
 
-    fprintf(f, "     domain_id      :%5" PRIu16 "  port_id         :%5" PRIu16 "\n", sw->domain_id,
-            sw->port_id);
+    fprintf(f, "     domain_id      :%5" PRIu16 " | port_id          :%5" PRIu16 "\n",
+            sw->domain_id, sw->port_id);
 }
 
 static inline int

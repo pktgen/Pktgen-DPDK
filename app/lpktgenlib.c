@@ -166,23 +166,6 @@ push_port_stats_t(lua_State *L, const port_stats_t *ps, uint16_t rxq_cnt)
     setf_eth_stats(L, &ps->curr);
     lua_setfield(L, -2, "curr");
 
-    lua_newtable(L); /* ext */
-    setf_integer(L, "arp_pkts", ps->ext.arp_pkts);
-    setf_integer(L, "echo_pkts", ps->ext.echo_pkts);
-    setf_integer(L, "ip_pkts", ps->ext.ip_pkts);
-    setf_integer(L, "ipv6_pkts", ps->ext.ipv6_pkts);
-    setf_integer(L, "vlan_pkts", ps->ext.vlan_pkts);
-    setf_integer(L, "dropped_pkts", ps->ext.dropped_pkts);
-    setf_integer(L, "unknown_pkts", ps->ext.unknown_pkts);
-    setf_integer(L, "tx_failed", ps->ext.tx_failed);
-    setf_integer(L, "imissed", ps->ext.imissed);
-    setf_integer(L, "ibadcrc", ps->ext.ibadcrc);
-    setf_integer(L, "ibadlen", ps->ext.ibadlen);
-    setf_integer(L, "rx_nombuf", ps->ext.rx_nombuf);
-    setf_integer(L, "max_ipackets", ps->ext.max_ipackets);
-    setf_integer(L, "max_opackets", ps->ext.max_opackets);
-    lua_setfield(L, -2, "ext");
-
     lua_newtable(L); /* sizes */
     setf_integer(L, "_64", ps->sizes._64);
     setf_integer(L, "_65_127", ps->sizes._65_127);

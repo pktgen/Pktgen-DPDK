@@ -106,8 +106,6 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused, uint32_t pid __rte_unused,
 				goto leave;
 			}
 
-			info->echo_pkts++;
-
 			icmp->type  = ICMP4_ECHO_REPLY;
 
 			/* Recompute the ICMP checksum */

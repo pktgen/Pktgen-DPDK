@@ -2048,13 +2048,13 @@ hmap_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        hmap_list_maps(NULL);
+        hmap_list_names(NULL);
         break;
     case 20:
-        hmap_dump_all(NULL, 1);
+        hmap_list_all(NULL, true);
         break;
     case 30:
-        hmap_dump_map(NULL, argv[2], 1);
+        hmap_list_by_name(NULL, argv[2], true);
         break;
     default:
         return cli_cmd_error("Hashmap invalid command", "Hashmap", argc, argv);

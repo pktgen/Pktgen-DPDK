@@ -39,7 +39,7 @@
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
-double
+static inline double
 next_poisson_time(double rateParameter)
 {
     return -logf(1.0f - ((double)random()) / (double)(RAND_MAX)) / rateParameter;
@@ -318,66 +318,61 @@ pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts
 {
     int lid = rte_lcore_id();
     int qid = l2p_get_rxqid(lid);
-    int i;
     uint64_t cycles, jitter;
     latency_t *lat = &pinfo->latency;
 
-    for (i = 0; i < nb_pkts; i++) {
+    for (int i = 0; i < nb_pkts; i++) {
+        tstamp_t *tstamp = pktgen_tstamp_pointer(pinfo, rte_pktmbuf_mtod(pkts[i], char *));
 
-        if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS)) {
-            tstamp_t *tstamp = pktgen_tstamp_pointer(pinfo, rte_pktmbuf_mtod(pkts[i], char *));
+        if (tstamp->magic != TSTAMP_MAGIC)
+            continue;
 
-            if (tstamp->magic != TSTAMP_MAGIC)
-                continue;
+        cycles        = (pktgen_get_time() - tstamp->timestamp);
+        tstamp->magic = 0UL; /* clear timestamp magic cookie */
 
-            cycles        = (pktgen_get_time() - tstamp->timestamp);
-            tstamp->magic = 0UL; /* clear timestamp magic cookie */
+        if (tstamp->index != lat->expect_index) {
+            lat->expect_index = tstamp->index + 1;
+            lat->num_skipped++;
+            continue; /* Skip this latency packet */
+        }
+        lat->expect_index++;
 
-            if (tstamp->index != lat->expect_index) {
-                lat->expect_index = tstamp->index + 1;
-                lat->num_skipped++;
-                continue; /* Skip this latency packet */
-            }
-            lat->expect_index++;
+        lat->num_latency_pkts++;
+        lat->running_cycles += cycles;
 
-            lat->num_latency_pkts++;
+        latency_ring_insert(&lat->tail_latencies, cycles);
 
-            if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS)) {
-                lat->running_cycles += cycles;
+        if (lat->min_cycles == 0 || cycles < lat->min_cycles)
+            lat->min_cycles = cycles;
+        if (lat->max_cycles == 0 || cycles > lat->max_cycles)
+            lat->max_cycles = cycles;
 
-                latency_ring_insert(&lat->tail_latencies, cycles);
+        jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
+                                             : lat->prev_cycles - cycles;
+        if (jitter > lat->jitter_threshold_cycles)
+            lat->jitter_count++;
 
-                if (lat->min_cycles == 0 || cycles < lat->min_cycles)
-                    lat->min_cycles = cycles;
-                if (lat->max_cycles == 0 || cycles > lat->max_cycles)
-                    lat->max_cycles = cycles;
+        lat->prev_cycles = cycles;
 
-                jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
-                                                     : lat->prev_cycles - cycles;
-                if (jitter > lat->jitter_threshold_cycles)
-                    lat->jitter_count++;
+        if (pktgen_tst_port_flags(pinfo, SAMPLING_LATENCIES)) {
+            /* Record latency if it's time for sampling (seperately per queue) */
+            latsamp_stats_t *stats = &pinfo->latsamp_stats[qid];
+            uint64_t now           = pktgen_get_time();
+            uint64_t hz            = rte_get_tsc_hz();
 
-                lat->prev_cycles = cycles;
-            }
-            if (pktgen_tst_port_flags(pinfo, SAMPLING_LATENCIES)) {
-                /* Record latency if it's time for sampling (seperately per lcore) */
-                latsamp_stats_t *stats = &pinfo->latsamp_stats[qid];
-                uint64_t now           = pktgen_get_time();
-
-                if (stats->next == 0 || now >= stats->next) {
-                    if (stats->idx < stats->num_samples) {
-                        stats->data[stats->idx] = (cycles * Billion) / rte_get_tsc_hz();
-                        stats->idx++;
-                    }
-
-                    /* Calculate next sampling point */
-                    if (pinfo->latsamp_type == LATSAMPLER_POISSON) {
-                        double next_possion_time_ns = next_poisson_time(pinfo->latsamp_rate);
-
-                        stats->next = now + next_possion_time_ns * (double)rte_get_tsc_hz();
-                    } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
-                        stats->next = now + rte_get_tsc_hz() / pinfo->latsamp_rate;
+            if (stats->next == 0 || now >= stats->next) {
+                if (stats->idx < stats->num_samples) {
+                    stats->data[stats->idx] = (cycles * Billion) / hz;
+                    stats->idx++;
                 }
+
+                /* Calculate next sampling point */
+                if (pinfo->latsamp_type == LATSAMPLER_POISSON) {
+                    double next_possion_time_ns = next_poisson_time(pinfo->latsamp_rate);
+
+                    stats->next = (now + next_possion_time_ns) * (double)hz;
+                } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
+                    stats->next = (now + hz) / pinfo->latsamp_rate;
             }
         }
     }
@@ -685,33 +680,11 @@ pktgen_packet_type(struct rte_mbuf *m)
  *
  * SEE ALSO:
  */
-static void
+static inline void
 pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
-    ext_stats_t *ext   = &pinfo->stats.ext;
-    uint16_t plen;
-    pktType_e pType;
-
-    pType = pktgen_packet_type(m);
-
-    /* Count the type of packets found. */
-    switch ((int)pType) {
-    case RTE_ETHER_TYPE_ARP:
-        ext->arp_pkts++;
-        break;
-    case RTE_ETHER_TYPE_IPV4:
-        ext->ip_pkts++;
-        break;
-    case RTE_ETHER_TYPE_IPV6:
-        ext->ipv6_pkts++;
-        break;
-    case RTE_ETHER_TYPE_VLAN:
-        ext->vlan_pkts++;
-        break;
-    default:
-        break;
-    }
+    pktType_e pType    = pktgen_packet_type(m);
 
     if (unlikely(pktgen_tst_port_flags(pinfo, PROCESS_INPUT_PKTS))) {
         switch ((int)pType) {
@@ -733,9 +706,9 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
         }
     }
 
-    plen = rte_pktmbuf_pkt_len(m) + RTE_ETHER_CRC_LEN;
-
+#if 0
     size_stats_t *sizes = &pinfo->stats.sizes;
+    uint16_t plen       = rte_pktmbuf_pkt_len(m) + RTE_ETHER_CRC_LEN;
 
     /* Count the size of each packet. */
     if (plen < RTE_ETHER_MIN_LEN)
@@ -768,6 +741,7 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
         else
             sizes->multicast++;
     }
+#endif
 }
 
 /**
@@ -785,6 +759,12 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 static inline void
 pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
 {
+#if 1
+    int i;
+
+    for (i = 0; i < nb_rx; i++)
+        pktgen_packet_classify(pkts[i], pid, qid);
+#else
     int j, i;
 
     /* Prefetch first packets */
@@ -802,6 +782,7 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
     /* Handle remaining prefetched packets */
     for (; i < nb_rx; i++)
         pktgen_packet_classify(pkts[i], pid, qid);
+#endif
 }
 
 /**
@@ -1051,8 +1032,9 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
 static inline void
 pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 {
-    uint16_t nb_rx, nb_pkts = pinfo->rx_burst, pid;
     struct rte_mbuf **pkts = pinfo->per_queue[qid].rx_pkts;
+    qstats_t *qs           = &pinfo->stats.qstats[qid];
+    uint16_t nb_rx, nb_pkts = pinfo->rx_burst, pid;
 
     if (unlikely(pktgen_tst_port_flags(pinfo, STOP_RECEIVING_PACKETS)))
         return;
@@ -1061,10 +1043,10 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 
     /* Read packets from RX queues and free the mbufs */
     if (likely((nb_rx = rte_eth_rx_burst(pid, qid, pkts, nb_pkts)) > 0)) {
-        qstats_t *qs = &pinfo->stats.qstats[qid];
-
         qs->q_ipackets += nb_rx;
-        pktgen_tstamp_check(pinfo, pkts, nb_rx);
+
+        if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS))
+            pktgen_tstamp_check(pinfo, pkts, nb_rx);
 
         /* classify the packets and update counters */
         pktgen_packet_classify_bulk(pkts, nb_rx, pid, qid);

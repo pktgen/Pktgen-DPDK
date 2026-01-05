@@ -150,7 +150,7 @@ See existing examples in `cfg/` (e.g. `default.cfg`, `two-ports.cfg`, `pktgen-1.
 |-----|----------|------|---------|-------------|
 | devices | setup | tuple/list | `('81:00.0','81:00.1')` | PCI BDFs to bind to DPDK |
 | uio | setup | string | `vfio-pci` | Kernel driver to bind (vfio-pci / igb_uio / uio_pci_generic) |
-| exec | setup/run | tuple | `('sudo','-E')` | Wrapper for privileged execution |
+| exec | setup/run | tuple | `('sudo')` | Wrapper for privileged execution |
 | app_name | run | string | `pktgen` | Binary name; resolved via `app_path` list |
 | app_path | run | tuple/list | `('./app/%(target)s/%(app_name)s', ...)` | Candidate paths to locate binary |
 | cores | run | string | `14,15-16` | Control + worker cores; ranges and commas allowed |

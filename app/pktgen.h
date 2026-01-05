@@ -171,7 +171,7 @@ enum {
     PAGE_TITLE_ROWS = 1,
     PORT_FLAGS_ROWS = 1,
     LINK_STATE_ROWS = 1,
-    PKT_RATE_ROWS   = 9,
+    PKT_RATE_ROWS   = 7,
     PKT_SIZE_ROWS   = 10,
     PKT_TOTALS_ROWS = 7,
     IP_ADDR_ROWS    = 12,
@@ -348,7 +348,6 @@ void pktgen_input_start(void);
 void stat_timer_dump(void);
 void stat_timer_clear(void);
 void pktgen_timer_setup(void);
-double next_poisson_time(double rateParameter);
 
 void pktgen_setup_packets(uint16_t pid);
 

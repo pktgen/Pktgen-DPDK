@@ -723,12 +723,6 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 static inline void
 pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
 {
-#if 1
-    int i;
-
-    for (i = 0; i < nb_rx; i++)
-        pktgen_packet_classify(pkts[i], pid, qid);
-#else
     int j, i;
 
     /* Prefetch first packets */
@@ -746,7 +740,6 @@ pktgen_packet_classify_bulk(struct rte_mbuf **pkts, int nb_rx, int pid, int qid)
     /* Handle remaining prefetched packets */
     for (; i < nb_rx; i++)
         pktgen_packet_classify(pkts[i], pid, qid);
-#endif
 }
 
 /**

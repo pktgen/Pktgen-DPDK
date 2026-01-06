@@ -684,9 +684,10 @@ static inline void
 pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
-    pktType_e pType    = pktgen_packet_type(m);
 
     if (unlikely(pktgen_tst_port_flags(pinfo, PROCESS_INPUT_PKTS))) {
+        pktType_e pType = pktgen_packet_type(m);
+
         switch ((int)pType) {
         case RTE_ETHER_TYPE_ARP:
             pktgen_process_arp(m, pid, qid, 0);
@@ -705,43 +706,6 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
             break;
         }
     }
-
-#if 0
-    size_stats_t *sizes = &pinfo->stats.sizes;
-    uint16_t plen       = rte_pktmbuf_pkt_len(m) + RTE_ETHER_CRC_LEN;
-
-    /* Count the size of each packet. */
-    if (plen < RTE_ETHER_MIN_LEN)
-        sizes->runt++;
-    else if (plen > RTE_ETHER_MAX_LEN)
-        sizes->jumbo++;
-    else if (plen == RTE_ETHER_MIN_LEN)
-        sizes->_64++;
-    else if ((plen >= (RTE_ETHER_MIN_LEN + 1)) && (plen <= 127))
-        sizes->_65_127++;
-    else if ((plen >= 128) && (plen <= 255))
-        sizes->_128_255++;
-    else if ((plen >= 256) && (plen <= 511))
-        sizes->_256_511++;
-    else if ((plen >= 512) && (plen <= 1023))
-        sizes->_512_1023++;
-    else if ((plen >= 1024) && (plen <= (RTE_ETHER_MAX_LEN + 4)))
-        sizes->_1024_1522++;
-    else {
-        pktgen_log_info("Unknown packet size: %u", plen);
-        sizes->unknown++;
-    }
-
-    uint8_t *p = rte_pktmbuf_mtod(m, uint8_t *);
-
-    /* Process multicast and broadcast packets. */
-    if (unlikely(p[0] & 1)) {
-        if ((p[0] == 0xff) && (p[1] == 0xff))
-            sizes->broadcast++;
-        else
-            sizes->multicast++;
-    }
-#endif
 }
 
 /**

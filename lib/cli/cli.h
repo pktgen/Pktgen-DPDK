@@ -159,6 +159,9 @@ struct cli {
     cli_cmd_map_t cmd_maps[CLI_MAX_CMD_MAPS]; /**< command -> cli_map table */
     uint32_t nb_cmd_maps;
 
+    uint64_t ac_last_tsc;  /**< Auto-complete last tab timestamp (cycles) */
+    uint32_t ac_last_hash; /**< Auto-complete last tab line hash */
+
     TAILQ_HEAD(, help_node) help_nodes; /**< head of help */
     TAILQ_HEAD(, cli_node) free_nodes;  /**< Free list of nodes */
     CIRCLEQ_HEAD(, cli_hist) free_hist; /**< free list of history nodes */

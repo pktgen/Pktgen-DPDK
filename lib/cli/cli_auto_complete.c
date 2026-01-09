@@ -4,6 +4,8 @@
 
 #include <fnmatch.h>
 
+#include <rte_timer.h>
+
 #include <rte_string_fns.h>
 #include <pg_strings.h>
 
@@ -34,6 +36,27 @@ _gb_peek_prev(const struct gapbuf *gb)
     }
 
     return *(point - 1);
+}
+
+static uint32_t
+_ac_hash_line(const char *s, int arg_index, int at_new_token)
+{
+    /* 32-bit FNV-1a */
+    uint32_t h = 2166136261u;
+
+    if (s) {
+        for (const unsigned char *p = (const unsigned char *)s; *p != '\0'; p++) {
+            h ^= (uint32_t)(*p);
+            h *= 16777619u;
+        }
+    }
+
+    h ^= (uint32_t)arg_index;
+    h *= 16777619u;
+    h ^= (uint32_t)at_new_token;
+    h *= 16777619u;
+
+    return h;
 }
 
 static int
@@ -398,6 +421,9 @@ cli_auto_complete(void)
     struct cli_map *maps = NULL;
     char **cands         = NULL;
     int cand_cnt         = 0;
+    uint64_t now_tsc;
+    uint32_t line_hash;
+    int force_usage = 0;
 
     memset(argv, '\0', sizeof(argv));
 
@@ -430,6 +456,21 @@ cli_auto_complete(void)
         arg_index = 0;
     else
         arg_index = at_new_token ? argc : (argc - 1);
+
+    /* Double-tab detection: same line state within a short time window */
+    now_tsc   = rte_get_timer_cycles();
+    line_hash = _ac_hash_line(line, arg_index, at_new_token);
+    {
+        const uint64_t hz            = rte_get_timer_hz();
+        const uint64_t window_cycles = (hz) ? (hz * 4 / 10) : 0; /* ~400ms */
+
+        if (window_cycles && this_cli->ac_last_hash == line_hash &&
+            (now_tsc - this_cli->ac_last_tsc) <= window_cycles)
+            force_usage = 1;
+
+        this_cli->ac_last_hash = line_hash;
+        this_cli->ac_last_tsc  = now_tsc;
+    }
 
     if (argc == 0) {
         ret = complete_args(argc, argv, CLI_ALL_TYPE);
@@ -469,6 +510,10 @@ cli_auto_complete(void)
         } else if (at_new_token) {
             /* If next token is user input, don't spam usage; otherwise show usage safely. */
             if (!_map_next_is_user_value(maps, argc, argv, arg_index)) {
+                cli_printf("\n");
+                cli_maps_show(maps, argc, argv);
+                cli_redisplay_line();
+            } else if (force_usage) {
                 cli_printf("\n");
                 cli_maps_show(maps, argc, argv);
                 cli_redisplay_line();

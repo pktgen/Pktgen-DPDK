@@ -176,7 +176,7 @@ void
 cli_auto_complete(void)
 {
     char *argv[CLI_MAX_ARGVS + 1];
-    char *line;
+    char *line = NULL;
     int argc, size, ret;
 
     memset(argv, '\0', sizeof(argv));
@@ -185,10 +185,11 @@ cli_auto_complete(void)
     if (!size)
         return;
 
-    line = alloca(size + 1);
+    size = RTE_MIN(size, (int)(CLI_MAX_SCRATCH_LENGTH - 1));
+
+    line = calloc(1, (size_t)size + 1);
     if (!line)
         return;
-    memset(line, '\0', size + 1);
 
     gb_copy_to_buf(this_cli->gb, line, size);
 
@@ -199,6 +200,7 @@ cli_auto_complete(void)
 
         if (ret)
             cli_redisplay_line();
+        free(line);
         return;
     }
 
@@ -213,12 +215,12 @@ cli_auto_complete(void)
         if (ret)
             cli_redisplay_line();
     } else {
-        char *save = alloca(size + 1);
+        char *save = calloc(1, (size_t)size + 1);
 
-        if (!save)
+        if (!save) {
+            free(line);
             return;
-
-        memset(save, '\0', size + 1);
+        }
 
         /* Call function to print out help text, plus save a copy */
         gb_copy_to_buf(this_cli->gb, save, size);
@@ -235,5 +237,9 @@ cli_auto_complete(void)
         gb_str_insert(this_cli->gb, save, size);
 
         cli_redisplay_line();
+
+        free(save);
     }
+
+    free(line);
 }

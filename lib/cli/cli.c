@@ -269,7 +269,7 @@ __add_node(const char *name, struct cli_node *parent, int type, cli_funcs_t func
     return node;
 }
 
-/* Add a direcrtory to the CLI tree */
+/* Add a directory to the CLI tree */
 struct cli_node *
 cli_add_dir(const char *name, struct cli_node *dir)
 {
@@ -304,7 +304,7 @@ cli_add_dir(const char *name, struct cli_node *dir)
 
     if (p[0] == '/') { /* Start from root */
         dir = cli->root.tqh_first;
-        p++;           /* Skip the / in the orignal path */
+        p++;           /* Skip the / in the original path */
         path[0] = '/'; /* Add root to the path */
     }
 
@@ -312,8 +312,21 @@ cli_add_dir(const char *name, struct cli_node *dir)
 
     n = NULL;
     for (i = 0; i < cnt; i++) {
-        /* Append each directory part to the search path */
-        strcat(path, argv[i]);
+        /* Append each directory part to the search path (with bounds + '/') */
+        size_t used       = strnlen(path, sizeof(path));
+        size_t need_slash = (used > 0 && path[used - 1] != '/');
+        int wrote;
+
+        if (need_slash) {
+            wrote = snprintf(path + used, sizeof(path) - used, "/");
+            if (wrote < 0 || (size_t)wrote >= (sizeof(path) - used))
+                return NULL;
+            used += (size_t)wrote;
+        }
+
+        wrote = snprintf(path + used, sizeof(path) - used, "%s", argv[i]);
+        if (wrote < 0 || (size_t)wrote >= (sizeof(path) - used))
+            return NULL;
 
         if (cli_find_node(path, &ret)) {
             dir = ret;
@@ -453,42 +466,42 @@ cli_execute(void)
     struct cli_node *node;
     int argc, ret, sz;
     struct gapbuf *gb = cli->gb;
-    char *line, *p, *hist;
+    char *line        = NULL, *p, *hist;
 
     RTE_ASSERT(cli != NULL);
 
     sz = gb_data_size(gb);
     sz = RTE_MAX(sz, CLI_MAX_PATH_LENGTH);
+    sz = RTE_MIN(sz, (int)(CLI_MAX_SCRATCH_LENGTH - 1));
 
-    line = alloca(sz + 1);
+    line = calloc(1, (size_t)sz + 1);
     if (!line)
         return -1;
-
-    memset(line, '\0', sz + 1);
 
     /* gb_copy_to_buf() forces linebuf to be null terminated */
     gb_copy_to_buf(gb, line, sz);
 
-    /* Trim the string of whitspace on front and back */
+    /* Trim the string of whitespace on front and back */
     p = pg_strtrim(line);
     if (!strlen(p))
-        return 0;
+        goto out_ok;
 
     if (p[0] == '#') /* Found a comment line starting with a '#' */
-        return 0;
+        goto out_ok;
     else if (p[0] == '!') { /* History command */
         hist = cli_history_line(atoi(&p[1]));
         if (!hist) {
             cli_printf("Unknown history line number %d\n", atoi(&p[1]));
-            return 0;
+            goto out_ok;
         }
         /* History lines are already trimmed and ready to be executed */
-        strcpy(line, hist);
+        snprintf(line, (size_t)sz + 1, "%s", hist);
 #ifdef RTE_CLI_HOST_COMMANDS
     } else if (p[0] == '@') { /* System execute a command */
         ret = cli_system(&p[1]);
         if (!ret)
             cli_history_add(p);
+        free(line);
         return ret;
 #endif
     } else
@@ -500,12 +513,13 @@ cli_execute(void)
     argc = pg_strqtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
 
     if (!argc)
-        return 0;
+        goto out_ok;
 
     node = cli_find_cmd(cli->argv[0]);
     if (!node) {
         cli_printf("** command not found (%s)\n", cli->argv[0]);
-        return -1;
+        ret = -1;
+        goto out;
     }
 
     ret = -1;
@@ -564,7 +578,14 @@ cli_execute(void)
         break;
     }
     cli_history_reset();
+
+out:
+    free(line);
     return ret;
+
+out_ok:
+    ret = 0;
+    goto out;
 }
 
 /* Main entry point into the CLI system to start accepting user input */

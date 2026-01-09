@@ -277,7 +277,7 @@ static int
 more_cmd(int argc, char **argv)
 {
     struct cli_node *node;
-    char *buf, c;
+    char buf[513], c;
     int i, len, n, k, lines = 24;
     int opt;
 
@@ -298,10 +298,8 @@ more_cmd(int argc, char **argv)
     if (optind >= argc)
         return 0;
 
-    len = 256;
-    buf = alloca(len + 1);
-    if (!buf)
-        return -1;
+    len = (int)(sizeof(buf) - 1);
+    memset(buf, '\0', sizeof(buf));
 
     for (i = optind; i < argc; i++) {
         k    = 0;
@@ -545,7 +543,7 @@ static int
 mkdir_cmd(int argc, char **argv)
 {
     if (argc != 2) {
-        cli_printf("Must have at least one path/driectory\n");
+        cli_printf("Must have at least one path/directory\n");
         return -1;
     }
 
@@ -583,7 +581,7 @@ static struct cli_map cli_env_map[] = {
 
 // clang-format off
 static const char *cli_env_help[] = {
-    "env                       - Display current evironment variables",
+    "env                       - Display current environment variables",
     "env get <string>          - Get the requested variable",
     "env set <string> <string> - Set the given variable to string",
     "env del <string>          - Delete the given variable",

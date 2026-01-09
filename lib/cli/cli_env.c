@@ -154,12 +154,9 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
     if (!env || !line || sz <= 0)
         return;
 
-    /* Allocate string space on the stack */
-    tmp = alloca(sz + 1);
+    tmp = calloc(1, (size_t)sz + 1);
     if (!tmp)
         return;
-
-    memset(tmp, '\0', sz + 1);
 
     /* Determine the end of the string */
     e = line + sz;
@@ -204,6 +201,8 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
     *t = '\0';
 
     snprintf(line, sz, "%s", tmp);
+
+    free(tmp);
 }
 
 int

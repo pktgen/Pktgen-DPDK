@@ -16,7 +16,7 @@ cli_map_list_search(const char *fmt, char *item, int index)
     char *opts[CLI_MAX_ARGVS + 1];
 
     size = strlen(fmt) + 1;
-    buf  = alloca(size);
+    buf  = malloc(size);
     if (!buf)
         return -1;
 
@@ -27,7 +27,10 @@ cli_map_list_search(const char *fmt, char *item, int index)
     pg_strtok(buf, " ", opts, CLI_MAX_ARGVS);
 
     /* Skip the %| in the string options */
-    return pg_stropt(&opts[index][2], item, "|");
+    int ret = pg_stropt(&opts[index][2], item, "|");
+
+    free(buf);
+    return ret;
 }
 
 static int
@@ -136,7 +139,7 @@ cli_mapping(struct cli_map *maps, int argc, char **argv)
 
     p = line;
     for (i = 0; (m = maps[i].fmt) != NULL; i++) {
-        strcpy(p, m);
+        snprintf(p, sizeof(line), "%s", m);
 
         nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
@@ -176,7 +179,7 @@ decode_map(const char *fmt)
 
     memset(argv, '\0', sizeof(argv));
 
-    strcpy(line, fmt);
+    snprintf(line, sizeof(line), "%s", fmt);
     if (fmt[0] != '%') {
         cli_printf("%s ", fmt);
         return;
@@ -255,7 +258,7 @@ cli_map_show(struct cli_map *m)
 
     p = line;
 
-    strcpy(p, m->fmt);
+    snprintf(p, sizeof(line), "%s", m->fmt);
 
     nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
@@ -280,7 +283,7 @@ cli_maps_show(struct cli_map *maps, int argc, char **argv)
         line[0] = '\0';
         map[0]  = NULL;
 
-        strcpy(line, m->fmt);
+        snprintf(line, sizeof(line), "%s", m->fmt);
 
         nb_args = pg_strtok(line, " ", map, CLI_MAX_ARGVS);
 
@@ -312,7 +315,7 @@ cli_map_dump(struct cli_map *maps, int argc, char **argv)
         cli_printf("\n");
     }
 
-    strcpy(p, m->fmt);
+    snprintf(p, sizeof(line), "%s", m->fmt);
 
     nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 

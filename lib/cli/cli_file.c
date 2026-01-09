@@ -227,9 +227,9 @@ cli_file_create(const char *path, const char *type)
     if (node)
         return node;
 
-    mypath = alloca(strlen(path) + 1);
-
-    strcpy(mypath, path);
+    mypath = strdup(path);
+    if (!mypath)
+        return NULL;
 
     file = basename(mypath);
 
@@ -245,11 +245,13 @@ cli_file_create(const char *path, const char *type)
                 if (type && strchr(type, 'r') && !strchr(type, 'w') && !strchr(type, '+'))
                     node->fflags |= CLI_DATA_RDONLY;
                 node->foffset = 0;
+                free(mypath);
                 return node;
             }
         }
     }
 
+    free(mypath);
     free(data);
     return NULL;
 }

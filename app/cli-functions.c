@@ -2141,6 +2141,7 @@ init_tree(void)
     cli_help_add("Page", page_map, page_help);
     cli_help_add("Enable", enable_map, enable_help);
     cli_help_add("Set", set_map, set_help);
+    cli_register_cmd_map("set", set_map);
     cli_help_add("Range", range_map, range_help);
     cli_help_add("Sequence", seq_map, seq_help);
     cli_help_add("PCAP", pcap_map, pcap_help);

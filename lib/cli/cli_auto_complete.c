@@ -138,6 +138,120 @@ _is_choice_token(const char *tok)
     return tok && tok[0] == '%' && tok[1] == '|';
 }
 
+static const char *
+_placeholder_hint(const char *tok)
+{
+    if (!tok || tok[0] != '%' || tok[1] == '\0')
+        return NULL;
+
+    /* Only provide hints for structured values to avoid noisy "<string>/<int>" suggestions. */
+    switch (tok[1]) {
+    case 'P':
+        return "<portlist>";
+    case 'C':
+        return "<corelist>";
+    case 'm':
+        return "<mac>";
+    case '4':
+        return "<ipv4>";
+    case '6':
+        return "<ipv6>";
+    case 'k':
+        return "<kvargs>";
+    case 'l':
+        return "<list>";
+    default:
+        return NULL;
+    }
+}
+
+static int
+_is_hint_candidate(const char *s)
+{
+    size_t len;
+
+    if (!s)
+        return 0;
+
+    len = strlen(s);
+    return (len >= 3 && s[0] == '<' && s[len - 1] == '>');
+}
+
+static int
+_env_collect_var_candidates(const char *prefix, char ***out_list, int *out_cnt)
+{
+    struct cli_env *env = this_cli ? this_cli->env : NULL;
+    struct env_node **list;
+    int max;
+    int n;
+
+    if (!env || !out_list || !out_cnt)
+        return 0;
+
+    max = cli_env_count(env);
+    if (max <= 0)
+        return 0;
+
+    list = calloc((size_t)max, sizeof(*list));
+    if (!list)
+        return 0;
+
+    n = cli_env_get_all(env, list, max);
+    for (int i = 0; i < n; i++) {
+        const char *name;
+
+        if (!list[i])
+            continue;
+        name = list[i]->var;
+        if (!name || name[0] == '\0')
+            continue;
+        if (prefix && *prefix && strncmp(name, prefix, strlen(prefix)))
+            continue;
+        if (_str_list_add_unique(out_list, out_cnt, name)) {
+            free(list);
+            return -1;
+        }
+    }
+
+    free(list);
+    return *out_cnt;
+}
+
+static int
+_portlist_collect_candidates(const char *prefix, char ***out_list, int *out_cnt)
+{
+    /* Minimal, but useful: the CLI help documents 'all' as a valid portlist. */
+    if (prefix && *prefix && strncmp("all", prefix, strlen(prefix)))
+        return *out_cnt;
+
+    if (_str_list_add_unique(out_list, out_cnt, "all"))
+        return -1;
+
+    return *out_cnt;
+}
+
+static int
+_map_collect_placeholder_candidates(const char *cmd, char **mtoks, int mtokc, int arg_index,
+                                    int argc, char **argv, const char *placeholder,
+                                    const char *prefix, char ***out_list, int *out_cnt)
+{
+    (void)mtokc;
+
+    if (!cmd || !mtoks || !argv || !out_list || !out_cnt)
+        return 0;
+
+    /* env get|set|del <VAR> : complete existing environment variable names */
+    if (!strcmp(cmd, "env") && arg_index == 2 && argc >= 2 && argv[1] &&
+        (!strcmp(argv[1], "get") || !strcmp(argv[1], "set") || !strcmp(argv[1], "del")))
+        return _env_collect_var_candidates(prefix, out_list, out_cnt);
+
+    /* %P (portlist) : suggest common values like 'all' */
+    if (placeholder && placeholder[0] == '%' && placeholder[1] == 'P')
+        return _portlist_collect_candidates(prefix, out_list, out_cnt);
+
+    return 0;
+}
+
 static int
 _map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_index,
                         const char *prefix, char ***out_list, int *out_cnt)
@@ -177,9 +291,20 @@ _map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_ind
         if (!cand_tok || cand_tok[0] == '\0')
             continue;
 
-        /* Skip user-input placeholders like %s/%d/%4/... */
-        if (_is_placeholder(cand_tok) && !_is_choice_token(cand_tok))
+        /* Placeholder-aware completion (e.g., env var names for env get/set/del). */
+        if (_is_placeholder(cand_tok) && !_is_choice_token(cand_tok)) {
+            if (_map_collect_placeholder_candidates(argv[0], mtoks, mtokc, arg_index, argc, argv,
+                                                    cand_tok, prefix, out_list, out_cnt) < 0)
+                return -1;
+
+            /* If no better candidates exist, provide a human hint like "<portlist>". */
+            if (!prefix || !*prefix) {
+                const char *hint = _placeholder_hint(cand_tok);
+                if (hint && _str_list_add_unique(out_list, out_cnt, hint))
+                    return -1;
+            }
             continue;
+        }
 
         if (_is_choice_token(cand_tok)) {
             /* cand_tok is like "%|a|b|c" */
@@ -499,7 +624,10 @@ cli_auto_complete(void)
             const char *ins = cands[0];
             size_t plen     = (prefix) ? strlen(prefix) : 0;
 
-            if (plen <= strlen(ins)) {
+            if (_is_hint_candidate(ins)) {
+                _print_strings(cands, cand_cnt, prefix);
+                cli_redisplay_line();
+            } else if (plen <= strlen(ins)) {
                 gb_str_insert(this_cli->gb, (char *)(uintptr_t)&ins[plen], strlen(ins) - plen);
                 gb_str_insert(this_cli->gb, (char *)(uintptr_t)" ", 1);
                 cli_redisplay_line();

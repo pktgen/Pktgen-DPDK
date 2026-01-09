@@ -75,6 +75,7 @@ enum {
 
 struct cli;
 struct cli_node;
+struct cli_node_chunk;
 
 typedef int (*cli_cfunc_t)(int argc, char **argv);
 /**< CLI function pointer type for a command/alias node  */
@@ -143,6 +144,8 @@ struct cli {
 
     struct cli_node *node_mem; /**< Base address of node memory */
     struct cli_hist *hist_mem; /**< Base address of history memory */
+
+    TAILQ_HEAD(, cli_node_chunk) node_chunks; /**< Extra node chunks when unlimited */
 
     TAILQ_HEAD(, help_node) help_nodes; /**< head of help */
     TAILQ_HEAD(, cli_node) free_nodes;  /**< Free list of nodes */

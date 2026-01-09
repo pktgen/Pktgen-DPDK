@@ -11,29 +11,40 @@
 uint32_t
 gb_copy_to_buf(struct gapbuf *gb, char *dst, uint32_t size)
 {
-    uint32_t cnt, tcnt = 0;
+    uint32_t tcnt = 0;
+    uint32_t to_copy;
+    uint32_t left_len, right_len;
+    uint32_t left_copy, right_copy;
 
     RTE_ASSERT(gb != NULL);
     RTE_ASSERT(dst != NULL);
 
-    /* Only copy the request size or data size */
-    size = RTE_MIN(size, gb_data_size(gb));
-
-    if (size) {
-        /* Move data before the gap */
-        cnt = gb->gap - gb->buf; /* Could be zero */
-        rte_memcpy(dst, gb->buf, cnt);
-        dst += cnt;
-        tcnt += cnt;
-
-        /* Move data after the gap */
-        cnt = gb->ebuf - gb->egap; /* Could be zero */
-        rte_memcpy(dst, gb->egap, cnt);
-        dst += cnt;
-        tcnt += cnt;
+    /* Always NUL terminate even if size is 0 */
+    if (size == 0) {
+        dst[0] = '\0';
+        return 0;
     }
 
-    /* Force a NULL terminated string */
+    /* Only copy up to the smaller of request size or data size */
+    to_copy = RTE_MIN(size, gb_data_size(gb));
+
+    left_len  = (uint32_t)(gb->gap - gb->buf);
+    right_len = (uint32_t)(gb->ebuf - gb->egap);
+
+    left_copy = RTE_MIN(left_len, to_copy);
+    if (left_copy) {
+        rte_memcpy(dst, gb->buf, left_copy);
+        dst += left_copy;
+        tcnt += left_copy;
+    }
+
+    right_copy = RTE_MIN(right_len, (to_copy - left_copy));
+    if (right_copy) {
+        rte_memcpy(dst, gb->egap, right_copy);
+        dst += right_copy;
+        tcnt += right_copy;
+    }
+
     *dst = '\0';
 
     return tcnt;

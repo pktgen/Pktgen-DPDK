@@ -108,8 +108,7 @@ cli_pause(const char *msg, const char *keys)
     prompt[0] = '\0';
 
     if (msg) {
-        strcpy(prompt, msg);
-        strcat(prompt, ": ");
+        snprintf(prompt, sizeof(prompt), "%s: ", msg);
         cli_printf("%s", prompt);
     }
 

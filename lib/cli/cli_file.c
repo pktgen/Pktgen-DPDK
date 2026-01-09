@@ -182,6 +182,9 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
         if (len <= 0)
             return 0;
 
+        if (node->foffset >= node->file_size)
+            return 0;
+
         len = RTE_MIN(len, (int)(node->file_size - node->foffset));
 
         p = node->file_data + node->foffset;
@@ -190,7 +193,7 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
 
         node->foffset += len;
     } else if (is_file_wr(opt)) {
-        if (!is_data_rdonly(node->fflags))
+        if (is_data_rdonly(node->fflags))
             return -1;
         if (len <= 0)
             return 0;
@@ -199,8 +202,12 @@ cli_file_handler(struct cli_node *node, char *buff, int len, uint32_t opt)
             memcpy(p, buff, len);
             node->foffset += len;
         } else {
-            p               = realloc(node->file_data, (node->foffset + len));
-            node->file_data = p;
+            char *new_data = realloc(node->file_data, (node->foffset + len));
+
+            if (!new_data)
+                return -1;
+
+            node->file_data = new_data;
             node->file_size = node->foffset + len;
             node->foffset += len;
         }
@@ -235,11 +242,9 @@ cli_file_create(const char *path, const char *type)
                 node->file_data = data;
                 node->file_size = CLI_FILE_SIZE;
                 node->fflags    = CLI_FREE_DATA;
-                if (strchr(type, 'r') && !strchr(type, 'w'))
+                if (type && strchr(type, 'r') && !strchr(type, 'w') && !strchr(type, '+'))
                     node->fflags |= CLI_DATA_RDONLY;
                 node->foffset = 0;
-                node->fflags  = 0;
-                node->fstate  = 0;
                 return node;
             }
         }

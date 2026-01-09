@@ -69,14 +69,22 @@ static struct env_node *
 __env_set(struct cli_env *env, const char *var, const char *val)
 {
     struct env_node *n;
+    const char *safe_val;
 
     if (!env || !var)
         return NULL;
 
+    safe_val = (val) ? val : "";
+
     n = find_env(env, var);
     if (n) {
+        char *new_val = strdup(safe_val);
+
+        if (!new_val)
+            return NULL;
+
         free((char *)(uintptr_t)n->val);
-        n->var = strdup(val);
+        n->val = new_val;
         return n;
     }
 
@@ -85,7 +93,13 @@ __env_set(struct cli_env *env, const char *var, const char *val)
         return NULL;
 
     n->var = strdup(var);
-    n->val = strdup(val);
+    n->val = strdup(safe_val);
+    if (!n->var || !n->val) {
+        free((char *)(uintptr_t)n->var);
+        free((char *)(uintptr_t)n->val);
+        free(n);
+        return NULL;
+    }
 
     TAILQ_INSERT_TAIL(&env->head, n, next);
     env->count++;
@@ -135,6 +149,7 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
 {
     char *p, *s, *e, *t, *tmp;
     const char *v;
+    size_t remaining;
 
     if (!env || !line || sz <= 0)
         return;
@@ -148,6 +163,8 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
 
     /* Determine the end of the string */
     e = line + sz;
+
+    remaining = (size_t)sz;
 
     for (p = line, t = tmp; (p[0] != '\0') && (p < e); p++) {
         /* Look for the '$' then the open bracket */
@@ -170,12 +187,19 @@ cli_env_substitution(struct cli_env *env, char *line, int sz)
         if (!v)
             v = "oops!";
 
-        memcpy(t, v, strlen(v));
-        t += strlen(v);
+        if (remaining > 1) {
+            size_t vlen = strnlen(v, remaining - 1);
+            memcpy(t, v, vlen);
+            t += vlen;
+            remaining -= vlen;
+        }
         p = s; /* Point 'p' past the variable */
         continue;
     next:
+        if (remaining <= 1)
+            break;
         *t++ = *p;
+        remaining--;
     }
     *t = '\0';
 

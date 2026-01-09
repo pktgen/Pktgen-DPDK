@@ -19,6 +19,12 @@
 
 static int (*__dofile_lua)(void *, const char *);
 
+struct cli_node_chunk {
+    TAILQ_ENTRY(cli_node_chunk) next;
+    struct cli_node *mem;
+    uint32_t count;
+};
+
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
 int
@@ -40,24 +46,31 @@ cli_alloc(void)
     if (node)
         TAILQ_REMOVE(&cli->free_nodes, node, next);
     else if (cli_nodes_unlimited()) {
-        struct cli_node *orig = cli->node_mem;
-        size_t size;
+        struct cli_node_chunk *chunk;
+        struct cli_node *mem;
 
-        size          = (cli->nb_nodes + CLI_DEFAULT_NB_NODES) * sizeof(struct cli_node);
-        cli->node_mem = realloc(cli->node_mem, size);
-        if (cli->node_mem == NULL) {
-            cli->node_mem = orig;
+        chunk = calloc(1, sizeof(*chunk));
+        if (!chunk)
+            return NULL;
+
+        mem = calloc(CLI_DEFAULT_NB_NODES, sizeof(*mem));
+        if (!mem) {
+            free(chunk);
             return NULL;
         }
-        if (cli->node_mem == orig) {
-            uint32_t i;
 
-            node = &cli->node_mem[cli->nb_nodes];
-            for (i = 0; i < CLI_DEFAULT_NB_NODES; i++, node++)
-                TAILQ_INSERT_TAIL(&cli->free_nodes, node, next);
-            cli->nb_nodes += CLI_DEFAULT_NB_NODES;
-        } else
-            return NULL;
+        chunk->mem   = mem;
+        chunk->count = CLI_DEFAULT_NB_NODES;
+        TAILQ_INSERT_TAIL(&cli->node_chunks, chunk, next);
+
+        for (uint32_t i = 0; i < chunk->count; i++)
+            TAILQ_INSERT_TAIL(&cli->free_nodes, &mem[i], next);
+
+        cli->nb_nodes += chunk->count;
+
+        node = (struct cli_node *)TAILQ_FIRST(&cli->free_nodes);
+        if (node)
+            TAILQ_REMOVE(&cli->free_nodes, node, next);
     }
 
     return node;
@@ -657,6 +670,7 @@ cli_init(int nb_entries, uint32_t nb_hist)
     TAILQ_INIT(&cli->root);       /* Init the directory list */
     TAILQ_INIT(&cli->free_nodes); /* List of free nodes */
     TAILQ_INIT(&cli->help_nodes); /* List of help nodes */
+    TAILQ_INIT(&cli->node_chunks);
 
     CIRCLEQ_INIT(&cli->free_hist); /* List of free hist nodes */
     CIRCLEQ_INIT(&cli->hd_hist);   /* Init the history for list head */
@@ -746,6 +760,14 @@ cli_destroy(void)
     free(cli->argv);
     free(cli->hist_mem);
     free(cli->node_mem);
+
+    while (!TAILQ_EMPTY(&cli->node_chunks)) {
+        struct cli_node_chunk *chunk = TAILQ_FIRST(&cli->node_chunks);
+        TAILQ_REMOVE(&cli->node_chunks, chunk, next);
+        free(chunk->mem);
+        free(chunk);
+    }
+
     free(cli);
 
     this_cli = NULL;

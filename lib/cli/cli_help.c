@@ -23,6 +23,22 @@ cli_help_add(const char *group, struct cli_map *map, const char **help_data)
     node->help_data = help_data;
     snprintf(node->group, sizeof(node->group), "%s", group);
 
+    /* If a map is provided, register it for the command name (first token). */
+    if (map && map[0].fmt && map[0].fmt[0] != '\0') {
+        const char *fmt = map[0].fmt;
+        const char *sp  = strchr(fmt, ' ');
+        size_t len      = sp ? (size_t)(sp - fmt) : strlen(fmt);
+        char cmd[CLI_NAME_LEN];
+
+        if (len > 0) {
+            if (len >= sizeof(cmd))
+                len = sizeof(cmd) - 1;
+            memcpy(cmd, fmt, len);
+            cmd[len] = '\0';
+            cli_register_cmd_map(cmd, map);
+        }
+    }
+
     TAILQ_INSERT_TAIL(&this_cli->help_nodes, node, next);
 
     return 0;

@@ -28,6 +28,66 @@ struct cli_node_chunk {
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
 
 int
+cli_register_cmd_map(const char *cmd, struct cli_map *map)
+{
+    struct cli *cli = this_cli;
+
+    if (!cli || !cmd || (*cmd == '\0'))
+        return -1;
+
+    /* Unregister */
+    if (!map) {
+        for (uint32_t i = 0; i < cli->nb_cmd_maps; i++) {
+            if (cli->cmd_maps[i].cmd && !strcmp(cli->cmd_maps[i].cmd, cmd)) {
+                free(cli->cmd_maps[i].cmd);
+                memmove(&cli->cmd_maps[i], &cli->cmd_maps[i + 1],
+                        (cli->nb_cmd_maps - (i + 1)) * sizeof(cli->cmd_maps[0]));
+                cli->nb_cmd_maps--;
+                memset(&cli->cmd_maps[cli->nb_cmd_maps], 0, sizeof(cli->cmd_maps[0]));
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    /* Update existing */
+    for (uint32_t i = 0; i < cli->nb_cmd_maps; i++) {
+        if (cli->cmd_maps[i].cmd && !strcmp(cli->cmd_maps[i].cmd, cmd)) {
+            cli->cmd_maps[i].map = map;
+            return 0;
+        }
+    }
+
+    if (cli->nb_cmd_maps >= CLI_MAX_CMD_MAPS)
+        return -1;
+
+    cli->cmd_maps[cli->nb_cmd_maps].cmd = strdup(cmd);
+    if (!cli->cmd_maps[cli->nb_cmd_maps].cmd)
+        return -1;
+
+    cli->cmd_maps[cli->nb_cmd_maps].map = map;
+    cli->nb_cmd_maps++;
+
+    return 0;
+}
+
+struct cli_map *
+cli_get_cmd_map(const char *cmd)
+{
+    struct cli *cli = this_cli;
+
+    if (!cli || !cmd || (*cmd == '\0'))
+        return NULL;
+
+    for (uint32_t i = 0; i < cli->nb_cmd_maps; i++) {
+        if (cli->cmd_maps[i].cmd && !strcmp(cli->cmd_maps[i].cmd, cmd))
+            return cli->cmd_maps[i].map;
+    }
+
+    return NULL;
+}
+
+int
 cli_nodes_unlimited(void)
 {
     if (!this_cli)
@@ -781,6 +841,10 @@ cli_destroy(void)
     free(cli->argv);
     free(cli->hist_mem);
     free(cli->node_mem);
+
+    for (uint32_t i = 0; i < cli->nb_cmd_maps; i++)
+        free(cli->cmd_maps[i].cmd);
+    cli->nb_cmd_maps = 0;
 
     while (!TAILQ_EMPTY(&cli->node_chunks)) {
         struct cli_node_chunk *chunk = TAILQ_FIRST(&cli->node_chunks);

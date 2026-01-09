@@ -11,6 +11,179 @@
 #include "cli_input.h"
 #include "cli_auto_complete.h"
 
+/*
+ * gb_get_prev() has side-effects (it can move gb->point across the gap).
+ * Auto-complete should never mutate cursor state just to inspect a character.
+ */
+static inline char
+_gb_peek_prev(const struct gapbuf *gb)
+{
+    const char *point;
+
+    if (!gb)
+        return '\0';
+
+    point = gb->point;
+    if (point == gb->egap)
+        point = gb->gap;
+
+    if (point == gb->buf) {
+        if (point == gb->gap)
+            return '\0';
+        return *point;
+    }
+
+    return *(point - 1);
+}
+
+static int
+_str_list_add_unique(char ***list, int *count, const char *s)
+{
+    if (!list || !count || !s || (*s == '\0'))
+        return -1;
+
+    for (int i = 0; i < *count; i++) {
+        if (!strcmp((*list)[i], s))
+            return 0;
+    }
+
+    char **new_list = realloc(*list, (size_t)(*count + 1) * sizeof(char *));
+    if (!new_list)
+        return -1;
+    *list = new_list;
+
+    (*list)[*count] = strdup(s);
+    if (!(*list)[*count])
+        return -1;
+
+    (*count)++;
+    return 0;
+}
+
+static void
+_str_list_free(char **list, int count)
+{
+    if (!list)
+        return;
+    for (int i = 0; i < count; i++)
+        free(list[i]);
+    free(list);
+}
+
+static void
+_print_strings(char **items, int item_cnt, const char *match)
+{
+    uint32_t mlen = 8, csize, ccnt, cnt = 0;
+    uint32_t slen = (match) ? strlen(match) : 0;
+
+    if (!items || item_cnt <= 0)
+        return;
+
+    for (int i = 0; i < item_cnt; i++)
+        mlen = RTE_MAX(mlen, (uint32_t)strlen(items[i]));
+    mlen++;
+
+    csize = mlen;
+    ccnt  = CLI_SCREEN_WIDTH / mlen;
+    if (ccnt == 0)
+        ccnt = 1;
+
+    for (int i = 0; i < item_cnt; i++) {
+        if (slen && strncmp(items[i], match, slen))
+            continue;
+
+        if (!cnt)
+            cli_printf("\n");
+
+        cli_printf("%-*s", csize, items[i]);
+        if ((++cnt % ccnt) == 0)
+            cli_printf("\n");
+    }
+    if (cnt % ccnt)
+        cli_printf("\n");
+}
+
+static int
+_is_placeholder(const char *tok)
+{
+    return tok && tok[0] == '%' && tok[1] != '\0';
+}
+
+static int
+_is_choice_token(const char *tok)
+{
+    return tok && tok[0] == '%' && tok[1] == '|';
+}
+
+static int
+_map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_index,
+                        const char *prefix, char ***out_list, int *out_cnt)
+{
+    char fmt_copy[CLI_MAX_PATH_LENGTH + 1];
+    char *mtoks[CLI_MAX_ARGVS + 1];
+
+    if (!maps || argc <= 0 || !argv || !argv[0] || arg_index < 1)
+        return 0;
+
+    for (int mi = 0; maps[mi].fmt != NULL; mi++) {
+        memset(mtoks, 0, sizeof(mtoks));
+        snprintf(fmt_copy, sizeof(fmt_copy), "%s", maps[mi].fmt);
+
+        int mtokc = pg_strtok(fmt_copy, " ", mtoks, CLI_MAX_ARGVS);
+        if (mtokc <= arg_index)
+            continue;
+
+        /* map must be for this command */
+        if (!mtoks[0] || strcmp(mtoks[0], argv[0]))
+            continue;
+
+        /* must match already-typed tokens before the arg we are completing */
+        int ok = 1;
+        for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
+            if (_is_placeholder(mtoks[i]))
+                continue;
+            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+                ok = 0;
+                break;
+            }
+        }
+        if (!ok)
+            continue;
+
+        const char *cand_tok = mtoks[arg_index];
+        if (!cand_tok || cand_tok[0] == '\0')
+            continue;
+
+        /* Skip user-input placeholders like %s/%d/%4/... */
+        if (_is_placeholder(cand_tok) && !_is_choice_token(cand_tok))
+            continue;
+
+        if (_is_choice_token(cand_tok)) {
+            /* cand_tok is like "%|a|b|c" */
+            char opt_copy[CLI_MAX_PATH_LENGTH + 1];
+            char *opts[CLI_MAX_ARGVS + 1];
+            memset(opts, 0, sizeof(opts));
+            snprintf(opt_copy, sizeof(opt_copy), "%s", cand_tok + 2);
+            int n = pg_strtok(opt_copy, "|", opts, CLI_MAX_ARGVS);
+            for (int oi = 0; oi < n; oi++) {
+                if (!opts[oi])
+                    continue;
+                if (prefix && *prefix && strncmp(opts[oi], prefix, strlen(prefix)))
+                    continue;
+                if (_str_list_add_unique(out_list, out_cnt, opts[oi]))
+                    return -1;
+            }
+        } else {
+            if (prefix && *prefix && strncmp(cand_tok, prefix, strlen(prefix)))
+                continue;
+            if (_str_list_add_unique(out_list, out_cnt, cand_tok))
+                return -1;
+        }
+    }
+
+    return *out_cnt;
+}
+
 static uint32_t
 _column_count(struct cli_node **nodes, uint32_t node_cnt, uint32_t *len)
 {
@@ -178,6 +351,11 @@ cli_auto_complete(void)
     char *argv[CLI_MAX_ARGVS + 1];
     char *line = NULL;
     int argc, size, ret;
+    int at_new_token;
+    int arg_index;
+    struct cli_map *maps = NULL;
+    char **cands         = NULL;
+    int cand_cnt         = 0;
 
     memset(argv, '\0', sizeof(argv));
 
@@ -193,7 +371,23 @@ cli_auto_complete(void)
 
     gb_copy_to_buf(this_cli->gb, line, size);
 
-    argc = pg_strtok(line, " \r\n", argv, CLI_MAX_ARGVS);
+    argc = pg_strqtok(line, " \r\n", argv, CLI_MAX_ARGVS);
+
+    /* Be defensive: some tokenizers may yield empty/NULL trailing tokens. */
+    while (argc > 0 && (!argv[argc - 1] || argv[argc - 1][0] == '\0'))
+        argc--;
+
+    at_new_token = 0;
+    if (!gb_point_at_start(this_cli->gb)) {
+        char prev    = _gb_peek_prev(this_cli->gb);
+        at_new_token = (prev == ' ' || prev == '\t' || prev == '\n' || prev == '\r');
+    }
+
+    /* Determine which argv slot we are completing */
+    if (argc == 0)
+        arg_index = 0;
+    else
+        arg_index = at_new_token ? argc : (argc - 1);
 
     if (argc == 0) {
         ret = complete_args(argc, argv, CLI_ALL_TYPE);
@@ -204,8 +398,46 @@ cli_auto_complete(void)
         return;
     }
 
+    /* If the first token is a known command with a map, try map-driven completion */
+    maps = (argc > 0 && argv[0]) ? cli_get_cmd_map(argv[0]) : NULL;
+    if (maps && arg_index >= 1) {
+        const char *prefix = NULL;
+        if (!at_new_token && arg_index < argc && argv[arg_index])
+            prefix = argv[arg_index];
+
+        ret = _map_collect_candidates(maps, argc, argv, arg_index, prefix, &cands, &cand_cnt);
+        if (ret < 0) {
+            _str_list_free(cands, cand_cnt);
+            free(line);
+            return;
+        }
+
+        if (cand_cnt == 1) {
+            const char *ins = cands[0];
+            size_t plen     = (prefix) ? strlen(prefix) : 0;
+
+            if (plen <= strlen(ins)) {
+                gb_str_insert(this_cli->gb, (char *)(uintptr_t)&ins[plen], strlen(ins) - plen);
+                gb_str_insert(this_cli->gb, (char *)(uintptr_t)" ", 1);
+                cli_redisplay_line();
+            }
+        } else if (cand_cnt > 1) {
+            _print_strings(cands, cand_cnt, prefix);
+            cli_redisplay_line();
+        } else if (at_new_token) {
+            /* No fixed completions here; show map usage safely (no command execution) */
+            cli_printf("\n");
+            cli_maps_show(maps, argc, argv);
+            cli_redisplay_line();
+        }
+
+        _str_list_free(cands, cand_cnt);
+        free(line);
+        return;
+    }
+
     /* no space before cursor maybe a command completion request */
-    if (gb_get_prev(this_cli->gb) != ' ') {
+    if (gb_point_at_start(this_cli->gb) || _gb_peek_prev(this_cli->gb) != ' ') {
         if (argc == 1) /* Only one word then look for a command */
             ret = complete_args(argc, argv, CLI_ALL_TYPE);
         else /* If more then one word then look for file/dir */

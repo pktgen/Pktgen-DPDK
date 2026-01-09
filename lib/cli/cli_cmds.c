@@ -595,7 +595,7 @@ env_cmd(int argc, char **argv)
 
     m = cli_mapping(cli_env_map, argc, argv);
     if (!m)
-        cli_cmd_error("Environment command error:", "Env", argc, argv);
+        return cli_cmd_error("Environment command error:", "Env", argc, argv);
     switch (m->index) {
     case 10:
         cli_env_show(this_cli->env);
@@ -610,7 +610,7 @@ env_cmd(int argc, char **argv)
         cli_env_del(this_cli->env, argv[2]);
         break;
     default:
-        cli_help_show_group("env");
+        cli_help_show_group("Env");
         return -1;
     }
     return 0;
@@ -692,8 +692,10 @@ cli_default_tree_init(void)
     this_cli->flags |= CLI_DEFAULT_TREE;
 
     /* Add the list of commands/dirs in cli_cmds.c file */
-    if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0)
+    if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0) {
         cli_help_add("Env", cli_env_map, cli_env_help);
+        cli_register_cmd_map("env", cli_env_map);
+    }
 
     if (ret) {
         RTE_LOG(ERR, EAL, "Unable to add commands or directories\n");

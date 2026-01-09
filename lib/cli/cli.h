@@ -51,6 +51,10 @@ enum {
     CLI_SCREEN_WIDTH       = 80    /**< Size of screen width */
 };
 
+enum {
+    CLI_MAX_CMD_MAPS = 64 /**< Max number of command->map registrations */
+};
+
 #define CLI_RECURSE_FLAG   (1 << 0)
 #define CLI_LONG_LIST_FLAG (1 << 1)
 
@@ -76,6 +80,11 @@ enum {
 struct cli;
 struct cli_node;
 struct cli_node_chunk;
+
+typedef struct {
+    char *cmd;
+    struct cli_map *map;
+} cli_cmd_map_t;
 
 typedef int (*cli_cfunc_t)(int argc, char **argv);
 /**< CLI function pointer type for a command/alias node  */
@@ -147,11 +156,39 @@ struct cli {
 
     TAILQ_HEAD(, cli_node_chunk) node_chunks; /**< Extra node chunks when unlimited */
 
+    cli_cmd_map_t cmd_maps[CLI_MAX_CMD_MAPS]; /**< command -> cli_map table */
+    uint32_t nb_cmd_maps;
+
     TAILQ_HEAD(, help_node) help_nodes; /**< head of help */
     TAILQ_HEAD(, cli_node) free_nodes;  /**< Free list of nodes */
     CIRCLEQ_HEAD(, cli_hist) free_hist; /**< free list of history nodes */
     void *user_state;                   /**< Pointer to some state variable */
 } __rte_cache_aligned;
+
+/**
+ * Register a cli_map table for a command name.
+ *
+ * This is used by auto-complete and other helpers that want to understand
+ * which tokens are fixed subcommands vs user-supplied values.
+ *
+ * @param cmd
+ *   Command name (argv[0])
+ * @param map
+ *   Pointer to a cli_map array (terminated by {-1, NULL}). If NULL, unregister.
+ * @return
+ *   0 on success, -1 on error
+ */
+int cli_register_cmd_map(const char *cmd, struct cli_map *map);
+
+/**
+ * Lookup a registered cli_map table by command name.
+ *
+ * @param cmd
+ *   Command name (argv[0])
+ * @return
+ *   Pointer to cli_map table or NULL
+ */
+struct cli_map *cli_get_cmd_map(const char *cmd);
 
 RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define this_cli RTE_PER_LCORE(cli)

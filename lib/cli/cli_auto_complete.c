@@ -163,22 +163,42 @@ _placeholder_hint(const char *tok)
     if (!tok || tok[0] != '%' || tok[1] == '\0')
         return NULL;
 
-    /* Only provide hints for structured values to avoid noisy "<string>/<int>" suggestions. */
+    /*
+     * Provide human-readable hints for placeholders.
+     * These are displayed only when the completion prefix is empty, and are
+     * printed (not inserted) by the completion engine.
+     */
     switch (tok[1]) {
+    case 'd':
+        return "<32bit number>";
+    case 'D':
+        return "<64bit number>";
+    case 'h':
+        return "<32bit hex>";
+    case 'H':
+        return "<64bit hex>";
+    case 'u':
+        return "<32bit unsigned>";
+    case 'U':
+        return "<64bit unsigned>";
     case 'P':
         return "<portlist>";
     case 'C':
         return "<corelist>";
+    case 's':
+        return "<string>";
     case 'm':
-        return "<mac>";
+        return "<mac-addr>";
     case '4':
-        return "<ipv4>";
+        return "<ipv4-addr>";
     case '6':
-        return "<ipv6>";
+        return "<ipv6-addr>";
     case 'k':
         return "<kvargs>";
     case 'l':
         return "<list>";
+    case 'b':
+        return "<8bit number>";
     default:
         return NULL;
     }
@@ -328,12 +348,13 @@ _map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_ind
 
         /* Placeholder-aware completion (e.g., env var names for env get/set/del). */
         if (_is_placeholder(cand_tok) && !_is_choice_token(cand_tok)) {
+            const int before_cnt = *out_cnt;
             if (_map_collect_placeholder_candidates(argv[0], mtoks, mtokc, arg_index, argc, argv,
                                                     cand_tok, prefix, out_list, out_cnt) < 0)
                 return -1;
 
             /* If no better candidates exist, provide a human hint like "<portlist>". */
-            if (!prefix || !*prefix) {
+            if ((!prefix || !*prefix) && (*out_cnt == before_cnt)) {
                 const char *hint = _placeholder_hint(cand_tok);
                 if (hint && _str_list_add_unique(out_list, out_cnt, hint))
                     return -1;
@@ -634,7 +655,30 @@ complete_args(int argc, char **argv, uint32_t types)
         if (node_cnt > 1)
             qsort(nodes, node_cnt, sizeof(void *), qsort_compare);
 
-        found = _print_nodes(nodes, node_cnt, dir_only, match, &mnode);
+        slen = (match) ? strlen(match) : 0;
+
+        /*
+         * If there is exactly one match, do not print the candidate list.
+         * Just complete the token (shell-like behavior).
+         */
+        uint32_t match_cnt = 0;
+        for (uint32_t i = 0; i < node_cnt; i++) {
+            struct cli_node *n = nodes[i];
+
+            if (dir_only && !is_directory(n))
+                continue;
+            if (slen && strncmp(n->name, match, slen))
+                continue;
+
+            mnode = n;
+            if (++match_cnt > 1)
+                break;
+        }
+
+        if (match_cnt == 1)
+            found = 1;
+        else if (match_cnt > 1)
+            found = _print_nodes(nodes, node_cnt, dir_only, match, &mnode);
 
         /*
          * _match is a pointer to the last matched node
@@ -735,6 +779,87 @@ cli_auto_complete(void)
             cli_redisplay_line();
         free(line);
         return;
+    }
+
+    /*
+     * If the user typed an exact executable command token (no trailing space),
+     * treat <Tab> as "accept command and complete next token".
+     *
+     * - If a map exists: complete the next token from the map.
+     * - Otherwise: fall back to the legacy "-?" help behavior.
+     */
+    if (argc == 1 && !at_new_token && argv[0]) {
+        struct cli_node *node = NULL;
+        if (!cli_find_node(argv[0], &node) && node && is_executable(node) &&
+            node->name[0] != '\0' && !strcmp(node->name, argv[0])) {
+            gb_str_insert(this_cli->gb, (char *)(uintptr_t)" ", 1);
+            cli_redisplay_line();
+
+            maps = cli_get_cmd_map(argv[0]);
+            if (maps) {
+                ret = _map_collect_candidates(maps, argc, argv, 1, NULL, &cands, &cand_cnt);
+                if (ret < 0) {
+                    _str_list_free(cands, cand_cnt);
+                    free(line);
+                    return;
+                }
+
+                if (cand_cnt == 1) {
+                    const char *ins = cands[0];
+                    if (_is_hint_candidate(ins)) {
+                        _print_strings(cands, cand_cnt, NULL);
+                        cli_redisplay_line();
+                    } else {
+                        gb_str_insert(this_cli->gb, (char *)(uintptr_t)ins, strlen(ins));
+                        gb_str_insert(this_cli->gb, (char *)(uintptr_t)" ", 1);
+                        cli_redisplay_line();
+                    }
+                } else if (cand_cnt > 1) {
+                    _print_strings(cands, cand_cnt, NULL);
+                    cli_redisplay_line();
+                } else {
+                    /* If next token is user input, don't spam usage; otherwise show usage safely.
+                     */
+                    if (!_map_next_is_user_value(maps, argc, argv, 1)) {
+                        cli_printf("\n");
+                        cli_maps_show(maps, argc, argv);
+                        cli_redisplay_line();
+                    } else if (force_usage) {
+                        cli_printf("\n");
+                        cli_maps_show(maps, argc, argv);
+                        cli_redisplay_line();
+                    }
+                }
+
+                _str_list_free(cands, cand_cnt);
+                free(line);
+                return;
+            }
+
+            /* No map registered: fall back to legacy "-?" help output. */
+            {
+                int cur_size = gb_data_size(this_cli->gb);
+                cur_size     = RTE_MIN(cur_size, (int)(CLI_MAX_SCRATCH_LENGTH - 1));
+                char *save   = calloc(1, (size_t)cur_size + 1);
+
+                if (!save) {
+                    free(line);
+                    return;
+                }
+
+                gb_copy_to_buf(this_cli->gb, save, cur_size);
+                gb_str_insert(this_cli->gb, (char *)(uintptr_t)"-?", 2);
+                cli_execute();
+
+                gb_reset_buf(this_cli->gb);
+                gb_str_insert(this_cli->gb, save, cur_size);
+                cli_redisplay_line();
+                free(save);
+            }
+
+            free(line);
+            return;
+        }
     }
 
     /* If the first token is a known command with a map, try map-driven completion */

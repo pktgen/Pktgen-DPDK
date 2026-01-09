@@ -184,6 +184,48 @@ _map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_ind
     return *out_cnt;
 }
 
+static int
+_map_next_is_user_value(struct cli_map *maps, int argc, char **argv, int arg_index)
+{
+    char fmt_copy[CLI_MAX_PATH_LENGTH + 1];
+    char *mtoks[CLI_MAX_ARGVS + 1];
+
+    if (!maps || argc <= 0 || !argv || !argv[0] || arg_index < 1)
+        return 0;
+
+    for (int mi = 0; maps[mi].fmt != NULL; mi++) {
+        memset(mtoks, 0, sizeof(mtoks));
+        snprintf(fmt_copy, sizeof(fmt_copy), "%s", maps[mi].fmt);
+        int mtokc = pg_strtok(fmt_copy, " ", mtoks, CLI_MAX_ARGVS);
+        if (mtokc <= arg_index)
+            continue;
+
+        if (!mtoks[0] || strcmp(mtoks[0], argv[0]))
+            continue;
+
+        int ok = 1;
+        for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
+            if (_is_placeholder(mtoks[i]))
+                continue;
+            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+                ok = 0;
+                break;
+            }
+        }
+        if (!ok)
+            continue;
+
+        const char *tok = mtoks[arg_index];
+        if (!tok || tok[0] == '\0')
+            continue;
+
+        if (_is_placeholder(tok) && !_is_choice_token(tok))
+            return 1;
+    }
+
+    return 0;
+}
+
 static uint32_t
 _column_count(struct cli_node **nodes, uint32_t node_cnt, uint32_t *len)
 {
@@ -425,10 +467,12 @@ cli_auto_complete(void)
             _print_strings(cands, cand_cnt, prefix);
             cli_redisplay_line();
         } else if (at_new_token) {
-            /* No fixed completions here; show map usage safely (no command execution) */
-            cli_printf("\n");
-            cli_maps_show(maps, argc, argv);
-            cli_redisplay_line();
+            /* If next token is user input, don't spam usage; otherwise show usage safely. */
+            if (!_map_next_is_user_value(maps, argc, argv, arg_index)) {
+                cli_printf("\n");
+                cli_maps_show(maps, argc, argv);
+                cli_redisplay_line();
+            }
         }
 
         _str_list_free(cands, cand_cnt);

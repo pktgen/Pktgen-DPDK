@@ -138,6 +138,25 @@ _is_choice_token(const char *tok)
     return tok && tok[0] == '%' && tok[1] == '|';
 }
 
+static int
+_choice_token_contains(const char *choice_tok, const char *word)
+{
+    char tmp[CLI_MAX_PATH_LENGTH + 1];
+    char *opts[CLI_MAX_ARGVS + 1];
+
+    if (!choice_tok || !word || !_is_choice_token(choice_tok))
+        return 0;
+
+    snprintf(tmp, sizeof(tmp), "%s", choice_tok + 2);
+    memset(opts, 0, sizeof(opts));
+    int n = pg_strtok(tmp, "|", opts, CLI_MAX_ARGVS);
+    for (int i = 0; i < n; i++) {
+        if (opts[i] && !strcmp(opts[i], word))
+            return 1;
+    }
+    return 0;
+}
+
 static const char *
 _placeholder_hint(const char *tok)
 {
@@ -245,6 +264,16 @@ _map_collect_placeholder_candidates(const char *cmd, char **mtoks, int mtokc, in
         (!strcmp(argv[1], "get") || !strcmp(argv[1], "set") || !strcmp(argv[1], "del")))
         return _env_collect_var_candidates(prefix, out_list, out_cnt);
 
+    /* seq/sequence <seq#> ... : show a helpful hint for the required sequence number */
+    if ((!strcmp(cmd, "seq") || !strcmp(cmd, "sequence")) && arg_index == 1 && placeholder &&
+        !strcmp(placeholder, "%d")) {
+        if (!prefix || !*prefix) {
+            if (_str_list_add_unique(out_list, out_cnt, "<seq#>"))
+                return -1;
+        }
+        return *out_cnt;
+    }
+
     /* %P (portlist) : suggest common values like 'all' */
     if (placeholder && placeholder[0] == '%' && placeholder[1] == 'P')
         return _portlist_collect_candidates(prefix, out_list, out_cnt);
@@ -271,8 +300,14 @@ _map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_ind
             continue;
 
         /* map must be for this command */
-        if (!mtoks[0] || strcmp(mtoks[0], argv[0]))
+        if (!mtoks[0])
             continue;
+        if (_is_choice_token(mtoks[0])) {
+            if (!_choice_token_contains(mtoks[0], argv[0]))
+                continue;
+        } else if (strcmp(mtoks[0], argv[0])) {
+            continue;
+        }
 
         /* must match already-typed tokens before the arg we are completing */
         int ok = 1;
@@ -348,8 +383,14 @@ _map_next_is_user_value(struct cli_map *maps, int argc, char **argv, int arg_ind
         if (mtokc <= arg_index)
             continue;
 
-        if (!mtoks[0] || strcmp(mtoks[0], argv[0]))
+        if (!mtoks[0])
             continue;
+        if (_is_choice_token(mtoks[0])) {
+            if (!_choice_token_contains(mtoks[0], argv[0]))
+                continue;
+        } else if (strcmp(mtoks[0], argv[0])) {
+            continue;
+        }
 
         int ok = 1;
         for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
@@ -368,6 +409,96 @@ _map_next_is_user_value(struct cli_map *maps, int argc, char **argv, int arg_ind
             continue;
 
         if (_is_placeholder(tok) && !_is_choice_token(tok))
+            return 1;
+    }
+
+    return 0;
+}
+
+static int
+_map_current_is_user_value(struct cli_map *maps, int argc, char **argv, int arg_index)
+{
+    char fmt_copy[CLI_MAX_PATH_LENGTH + 1];
+    char *mtoks[CLI_MAX_ARGVS + 1];
+
+    if (!maps || argc <= 0 || !argv || !argv[0] || arg_index < 1)
+        return 0;
+
+    for (int mi = 0; maps[mi].fmt != NULL; mi++) {
+        memset(mtoks, 0, sizeof(mtoks));
+        snprintf(fmt_copy, sizeof(fmt_copy), "%s", maps[mi].fmt);
+        int mtokc = pg_strtok(fmt_copy, " ", mtoks, CLI_MAX_ARGVS);
+        if (mtokc <= arg_index)
+            continue;
+
+        if (!mtoks[0])
+            continue;
+        if (_is_choice_token(mtoks[0])) {
+            if (!_choice_token_contains(mtoks[0], argv[0]))
+                continue;
+        } else if (strcmp(mtoks[0], argv[0])) {
+            continue;
+        }
+
+        int ok = 1;
+        for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
+            if (_is_placeholder(mtoks[i]))
+                continue;
+            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+                ok = 0;
+                break;
+            }
+        }
+        if (!ok)
+            continue;
+
+        const char *tok = mtoks[arg_index];
+        if (!tok || tok[0] == '\0')
+            continue;
+
+        if (_is_placeholder(tok) && !_is_choice_token(tok))
+            return 1;
+    }
+
+    return 0;
+}
+
+static int
+_map_has_tokens_after(struct cli_map *maps, int argc, char **argv, int arg_index)
+{
+    char fmt_copy[CLI_MAX_PATH_LENGTH + 1];
+    char *mtoks[CLI_MAX_ARGVS + 1];
+
+    if (!maps || argc <= 0 || !argv || !argv[0] || arg_index < 1)
+        return 0;
+
+    for (int mi = 0; maps[mi].fmt != NULL; mi++) {
+        memset(mtoks, 0, sizeof(mtoks));
+        snprintf(fmt_copy, sizeof(fmt_copy), "%s", maps[mi].fmt);
+        int mtokc = pg_strtok(fmt_copy, " ", mtoks, CLI_MAX_ARGVS);
+
+        if (!mtoks[0])
+            continue;
+        if (_is_choice_token(mtoks[0])) {
+            if (!_choice_token_contains(mtoks[0], argv[0]))
+                continue;
+        } else if (strcmp(mtoks[0], argv[0])) {
+            continue;
+        }
+
+        int ok = 1;
+        for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
+            if (_is_placeholder(mtoks[i]))
+                continue;
+            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+                ok = 0;
+                break;
+            }
+        }
+        if (!ok)
+            continue;
+
+        if (mtokc > (arg_index + 1))
             return 1;
     }
 
@@ -618,6 +749,32 @@ cli_auto_complete(void)
             _str_list_free(cands, cand_cnt);
             free(line);
             return;
+        }
+
+        /*
+         * If we are sitting on a user-value token with no suggestions (e.g. "set 0<Tab>"),
+         * treat Tab as end-of-token: insert a space and complete the next map token.
+         */
+        if (cand_cnt == 0 && !at_new_token && prefix && *prefix &&
+            _map_current_is_user_value(maps, argc, argv, arg_index) &&
+            _map_has_tokens_after(maps, argc, argv, arg_index)) {
+            gb_str_insert(this_cli->gb, (char *)(uintptr_t)" ", 1);
+            cli_redisplay_line();
+
+            _str_list_free(cands, cand_cnt);
+            cands    = NULL;
+            cand_cnt = 0;
+
+            at_new_token = 1;
+            arg_index    = argc;
+            prefix       = NULL;
+
+            ret = _map_collect_candidates(maps, argc, argv, arg_index, prefix, &cands, &cand_cnt);
+            if (ret < 0) {
+                _str_list_free(cands, cand_cnt);
+                free(line);
+                return;
+            }
         }
 
         if (cand_cnt == 1) {

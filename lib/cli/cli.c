@@ -71,6 +71,63 @@ cli_register_cmd_map(const char *cmd, struct cli_map *map)
     return 0;
 }
 
+int
+cli_register_cmd_maps(struct cli_map *maps)
+{
+    char token[CLI_NAME_LEN];
+    char choices[CLI_MAX_PATH_LENGTH + 1];
+
+    if (!maps)
+        return -1;
+
+    for (int mi = 0; maps[mi].fmt != NULL; mi++) {
+        const char *fmt = maps[mi].fmt;
+        const char *sp;
+        size_t len;
+
+        if (!fmt)
+            continue;
+
+        while (*fmt == ' ')
+            fmt++;
+        if (*fmt == '\0')
+            continue;
+
+        sp  = strchr(fmt, ' ');
+        len = sp ? (size_t)(sp - fmt) : strlen(fmt);
+        if (len == 0)
+            continue;
+
+        if (len >= sizeof(token))
+            len = sizeof(token) - 1;
+        memcpy(token, fmt, len);
+        token[len] = '\0';
+
+        /* Skip tokens that are placeholders except for %|choice lists. */
+        if (token[0] == '%') {
+            if (token[1] != '|')
+                continue;
+
+            /* Register each choice (e.g. %|seq|sequence). */
+            snprintf(choices, sizeof(choices), "%s", token + 2);
+            char *saveptr = NULL;
+            for (char *opt = strtok_r(choices, "|", &saveptr); opt != NULL;
+                 opt       = strtok_r(NULL, "|", &saveptr)) {
+                if (*opt == '\0')
+                    continue;
+                if (cli_register_cmd_map(opt, maps) < 0)
+                    return -1;
+            }
+            continue;
+        }
+
+        if (cli_register_cmd_map(token, maps) < 0)
+            return -1;
+    }
+
+    return 0;
+}
+
 struct cli_map *
 cli_get_cmd_map(const char *cmd)
 {

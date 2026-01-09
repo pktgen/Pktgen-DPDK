@@ -184,6 +184,20 @@ struct cli {
 int cli_register_cmd_map(const char *cmd, struct cli_map *map);
 
 /**
+ * Register all command names referenced by a cli_map table.
+ *
+ * This scans each map entry's first token (command word) and registers that
+ * command with the provided map table. If the first token is a choice token
+ * (e.g. "%|seq|sequence"), each choice is registered.
+ *
+ * @param maps
+ *   Pointer to a cli_map array (terminated by {-1, NULL}).
+ * @return
+ *   0 on success, -1 on error
+ */
+int cli_register_cmd_maps(struct cli_map *maps);
+
+/**
  * Lookup a registered cli_map table by command name.
  *
  * @param cmd

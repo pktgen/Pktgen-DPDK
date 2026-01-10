@@ -2,6 +2,14 @@
  * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
+/**
+ * @file
+ * CLI input handling.
+ *
+ * Wraps VT100/screen I/O and provides the character-by-character input loop
+ * used by the interactive CLI.
+ */
+
 #include <stdio.h>
 #include <poll.h>
 #include <string.h>

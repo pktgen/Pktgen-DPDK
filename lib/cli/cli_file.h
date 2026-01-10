@@ -7,8 +7,10 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI file node helpers.
  *
+ * Implements in-memory file nodes used by the CLI tree. File nodes can be
+ * backed by a callback for dynamic content or can store data directly.
  */
 
 #include "cli.h"

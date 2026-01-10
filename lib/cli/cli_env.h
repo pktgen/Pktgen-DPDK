@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause
  * Copyright(c) <2016-2025>, Intel Corporation.
  */
-/* Create by: Keith Wiles @ intel.com */
+/* Created by Keith Wiles @ intel.com */
 
 #include <sys/queue.h>
 
@@ -10,8 +10,10 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI environment variables.
  *
+ * Supports simple key/value variables and dynamic variables backed by a
+ * callback. Variables can be expanded in user input (e.g. $(FOO)).
  */
 
 #ifdef __cplusplus
@@ -20,22 +22,22 @@ extern "C" {
 struct cli;
 
 typedef char *(*cli_sfunc_t)(const char *str);
-/**< CLI function pointer type for a Environment node  */
+/**< Callback to compute a dynamic environment variable string. */
 
 struct env_node {
     TAILQ_ENTRY(env_node) next;
-    const char *var;
-    const char *val;
-    cli_sfunc_t sfunc;
+    const char *var;   /**< Variable name */
+    const char *val;   /**< Variable value (owned by env) */
+    cli_sfunc_t sfunc; /**< Optional callback to compute value */
 };
 
 struct cli_env {
     TAILQ_HEAD(, env_node) head; /**< link list of vars */
-    int count;
+    int count;                   /**< Number of variables */
 };
 
 /**
- * Create a environment for the cli
+ * Create an environment variable container.
  *
  * @return
  *   NULL on error or cli_env pointer
@@ -43,15 +45,17 @@ struct cli_env {
 struct cli_env *cli_env_create(void);
 
 /**
- * Delete the environment for the CLI
+ * Destroy an environment variable container.
  *
- * @param cli
- *   The pointer to the enviroment structure
+ * @param env
+ *   Pointer to the environment structure
  */
 void cli_env_destroy(struct cli_env *env);
 
 /**
- * Set a environment variable for the CLI
+ * Set an environment variable.
+ *
+ * Adds or replaces a variable with a string value.
  *
  * @param env
  *   The cli_env pointer
@@ -65,7 +69,9 @@ void cli_env_destroy(struct cli_env *env);
 int cli_env_set(struct cli_env *env, const char *var, const char *val);
 
 /**
- * Set a environment variable for the CLI with a function pointer
+ * Set an environment variable with an optional callback.
+ *
+ * If @p sfunc is non-NULL, it may be used to generate a dynamic string value.
  *
  * @param env
  *   The cli_env pointer
@@ -81,7 +87,7 @@ int cli_env_set(struct cli_env *env, const char *var, const char *val);
 int cli_env_string(struct cli_env *env, const char *var, cli_sfunc_t sfunc, const char *val);
 
 /**
- * Get the environment variable from the cli
+ * Get an environment variable value.
  *
  * @param env
  *   The cli_env pointer
@@ -93,7 +99,7 @@ int cli_env_string(struct cli_env *env, const char *var, cli_sfunc_t sfunc, cons
 const char *cli_env_get(struct cli_env *env, const char *var);
 
 /**
- * Remove the environment variable from the cli
+ * Remove an environment variable.
  *
  * @param env
  *   The cli_env pointer
@@ -105,7 +111,9 @@ const char *cli_env_get(struct cli_env *env, const char *var);
 int cli_env_del(struct cli_env *env, const char *var);
 
 /**
- * Do enviroment variable subsitution on the line.
+ * Perform environment variable substitution on a command line.
+ *
+ * Expands occurrences of $(VAR) using values in @p env.
  *
  * @param env
  *   Pointer to the enviroment structure
@@ -119,7 +127,7 @@ int cli_env_del(struct cli_env *env, const char *var);
 void cli_env_substitution(struct cli_env *env, char *line, int sz);
 
 /**
- * Get the number of variables in the environment
+ * Get the number of variables in the environment.
  *
  * @param env
  *   Pointer to environment structure
@@ -133,7 +141,7 @@ cli_env_count(struct cli_env *env)
 }
 
 /**
- * Get all of the environment variables
+ * Get a snapshot list of environment variables.
  *
  * @param env
  *   Pointer to environment list
@@ -145,7 +153,7 @@ cli_env_count(struct cli_env *env)
 int cli_env_get_all(struct cli_env *env, struct env_node **list, int max_size);
 
 /**
- * Show all enviroment variable
+ * Print all environment variables.
  *
  * @param env
  *   Pointer to the cli_env structure.

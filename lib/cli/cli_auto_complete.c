@@ -2,6 +2,15 @@
  * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
+/**
+ * @file
+ * CLI tab completion implementation.
+ *
+ * Provides shell-like completion for commands, directories, and files.
+ * When a command has a registered cli_map table, completion can be driven by
+ * the map tokens to offer context-aware suggestions and placeholder hints.
+ */
+
 #include <fnmatch.h>
 
 #include <rte_timer.h>

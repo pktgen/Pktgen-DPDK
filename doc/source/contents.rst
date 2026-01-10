@@ -31,18 +31,19 @@ Pktgen was created 2010 by Keith Wiles @ windriver.com, now at intel.com
 
 
 .. toctree::
-   :maxdepth: 1
+	:maxdepth: 1
 
-   getting_started.rst
-   running.rst
-   usage_eal.rst
-   usage_pktgen.rst
-   commands.rst
-   cli.rst
-   cli_lib.rst
-   scripts.rst
-   lua.rst
-   socket.rst
-   changes.rst
-   copyright.rst
-   license.rst
+	getting_started.rst
+	running.rst
+	usage_eal.rst
+	usage_pktgen.rst
+	commands.rst
+	cli.rst
+	cli_lib.rst
+	cli_design.rst
+	scripts.rst
+	lua.rst
+	socket.rst
+	changes.rst
+	copyright.rst
+	license.rst

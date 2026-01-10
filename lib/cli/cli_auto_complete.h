@@ -7,8 +7,10 @@
 
 /**
  * @file
- * Command line interface auto complete routines.
+ * CLI auto-complete.
  *
+ * Handles TAB completion for commands/paths and optionally uses registered
+ * cli_map tables to offer context-aware token hints.
  */
 
 #include "cli.h"
@@ -18,7 +20,11 @@ extern "C" {
 #endif
 
 /**
- * Handle the tab key for auto complete (Internal)
+ * Handle the tab key for auto-complete.
+ *
+ * This function reads the current input buffer, computes candidate
+ * completions, and either inserts text (single match) or prints a candidate
+ * list (multiple matches).
  *
  * @return
  *   N/A

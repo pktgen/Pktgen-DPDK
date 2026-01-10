@@ -3,6 +3,15 @@
  */
 /* Created by Keith Wiles @ intel.com */
 
+/**
+ * @file
+ * CLI core implementation.
+ *
+ * Owns the CLI tree, history, prompt handling, and command execution.
+ * Also includes the command-to-map registry used by map-driven features such
+ * as auto-complete.
+ */
+
 #include <stdio.h>
 #include <poll.h>
 #include <string.h>

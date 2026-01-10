@@ -7,8 +7,10 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI built-in command tree.
  *
+ * Provides helpers to populate the default directory structure and common
+ * built-in commands (e.g., ls/cd/pwd/help/history).
  */
 
 #ifdef __cplusplus
@@ -16,7 +18,7 @@ extern "C" {
 #endif
 
 /**
- * Add the default set of directories and commands
+ * Add the default set of directories and commands.
  *
  * @note Uses a thread variable called this_cli
  *

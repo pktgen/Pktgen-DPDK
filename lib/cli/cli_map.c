@@ -2,6 +2,14 @@
  * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
+/**
+ * @file
+ * CLI map (command pattern) matching.
+ *
+ * Implements the lightweight printf-like token format used to select a
+ * command variant based on argc/argv.
+ */
+
 #include <rte_string_fns.h>
 #include <pg_strings.h>
 #include <_atoip.h>

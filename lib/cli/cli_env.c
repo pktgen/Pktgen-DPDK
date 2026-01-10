@@ -2,6 +2,11 @@
  * Copyright(c) <2016-2025>, Intel Corporation.
  */
 /* Created by: Keith Wiles @ intel */
+
+/**
+ * @file
+ * CLI environment variable implementation.
+ */
 #include <stdlib.h>
 
 #include "cli.h"

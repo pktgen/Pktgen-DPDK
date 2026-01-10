@@ -15,8 +15,10 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI node search and directory scanning.
  *
+ * Provides helpers to locate nodes in the CLI tree (commands/files/directories)
+ * and to enumerate nodes in a directory or along the executable search path.
  */
 
 #ifdef __cplusplus
@@ -49,14 +51,14 @@ typedef int (*cli_scan_t)(struct cli_node *node, uint32_t flags, args_t *args);
  *
  * @note Uses a thread variable called this_cli.
  *
- * @param files
- *   Type of nodes to find
  * @param dir
  *   Node pointer to directory to scan
  * @param func
  *   cli_scan_t function pointer
- * @param arg
- *   void * used by the function being called.
+ * @param flags
+ *   Bitmap of node types to include (e.g., CLI_CMD_NODE|CLI_DIR_NODE)
+ * @param args
+ *   Optional argument block passed to @p func
  * @return
  *   0 on success or -1 on error
  */
@@ -89,7 +91,7 @@ int cli_find_node(const char *path, struct cli_node **ret);
 struct cli_node *cli_find_cmd(const char *path);
 
 /**
- * Count the number of type(s) of nodes available in a given node
+ * Count the number of nodes of the given type(s) in a directory.
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -127,7 +129,7 @@ uint32_t cli_path_cmd_count(void);
 uint32_t cli_node_list_with_type(struct cli_node *node, uint32_t flags, void **ret);
 
 /**
- * Free a node back to the free list
+ * Free a list returned by cli_node_list_with_type().
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -151,7 +153,7 @@ void cli_node_list_free(void *nodes);
 uint32_t cli_path_item_count(uint32_t types);
 
 /**
- * Find and return the last node in a give path string
+ * Find and return the last directory node in a given path string.
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -163,7 +165,7 @@ uint32_t cli_path_item_count(uint32_t types);
 struct cli_node *cli_last_dir_in_path(const char *path);
 
 /**
- * Scan a directory for a given string matching name
+ * Scan a directory for a node matching a name and type.
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -179,7 +181,7 @@ struct cli_node *cli_last_dir_in_path(const char *path);
 struct cli_node *cli_search_dir(struct cli_node *dir, const char *name, uint32_t type);
 
 /**
- * Scan the directory given by the path
+ * Scan the directory given by @p path.
  *
  * @note Uses a thread variable called this_cli.
  *

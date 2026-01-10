@@ -394,6 +394,13 @@ _portlist_collect_candidates(const char *prefix, char ***out_list, int *out_cnt)
     if (_str_list_add_unique(out_list, out_cnt, "all"))
         return -1;
 
+    /* Also show the placeholder hint alongside real values when no prefix is typed. */
+    if (!prefix || !*prefix) {
+        const char *hint = _placeholder_hint("%P");
+        if (hint && _str_list_add_unique(out_list, out_cnt, hint))
+            return -1;
+    }
+
     return *out_cnt;
 }
 

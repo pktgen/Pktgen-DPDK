@@ -157,7 +157,7 @@ lcore_terminator(const char *unused __attribute__((unused)))
     if (hmap_get_value(cid->map, NULL, CI_NUM_LCORES, &val) < 0)
         val = 0;
     val++;
-    hmap_add_value(cid->map, NULL, CI_NUM_LCORES, val);
+    hmap_update_value(cid->map, NULL, CI_NUM_LCORES, val);
 }
 
 static void

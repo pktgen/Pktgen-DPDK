@@ -969,8 +969,10 @@ __get_kvp(hmap_t *hmap, const char *prefix, const char *key, hmap_type_t type)
         HMAP_NULL_RET("get failed - hmap not defined %s(%s)\n", prefix ? prefix : "", key);
 
     kvp = hmap_kvp_lookup(hmap, prefix, key);
-    if (!kvp || kvp->type != type)
-        HMAP_NULL_RET("get failed for %s(%s)\n", prefix ? prefix : "", key);
+    if (!kvp)
+        return kvp;
+    else if (kvp->type != type)
+        HMAP_NULL_RET("wrong type for %s(%s)\n", prefix ? prefix : "", key);
 
     return kvp;
 }

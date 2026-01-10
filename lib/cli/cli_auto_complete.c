@@ -157,6 +157,123 @@ _choice_token_contains(const char *choice_tok, const char *word)
     return 0;
 }
 
+static int
+_tok_all_digits(const char *s)
+{
+    if (!s || *s == '\0')
+        return 0;
+    if (*s == '-')
+        s++;
+    if (*s == '\0')
+        return 0;
+    for (const unsigned char *p = (const unsigned char *)s; *p != '\0'; p++) {
+        if (!isdigit(*p))
+            return 0;
+    }
+    return 1;
+}
+
+static int
+_tok_all_hex_with_seps(const char *s)
+{
+    if (!s || *s == '\0')
+        return 0;
+    for (const unsigned char *p = (const unsigned char *)s; *p != '\0'; p++) {
+        if (isxdigit(*p) || *p == ':' || *p == '-' || *p == '.')
+            continue;
+        return 0;
+    }
+    return 1;
+}
+
+static int
+_tok_looks_like_ipv4(const char *s)
+{
+    int dots = 0;
+    if (!s || *s == '\0')
+        return 0;
+    for (const unsigned char *p = (const unsigned char *)s; *p != '\0'; p++) {
+        if (*p == '.')
+            dots++;
+        else if (isdigit(*p) || *p == '/')
+            ;
+        else
+            return 0;
+    }
+    return (dots >= 1);
+}
+
+static int
+_tok_looks_like_ipv6(const char *s)
+{
+    int colons = 0;
+    if (!s || *s == '\0')
+        return 0;
+    for (const unsigned char *p = (const unsigned char *)s; *p != '\0'; p++) {
+        if (*p == ':')
+            colons++;
+        else if (isxdigit(*p) || *p == '/' || *p == '.')
+            ;
+        else
+            return 0;
+    }
+    return (colons >= 1);
+}
+
+static int
+_map_tok_compatible_with_user_tok(const char *map_tok, const char *user_tok)
+{
+    if (!map_tok || !user_tok)
+        return 0;
+
+    if (_is_choice_token(map_tok))
+        return _choice_token_contains(map_tok, user_tok);
+
+    if (!_is_placeholder(map_tok))
+        return !strcmp(map_tok, user_tok);
+
+    switch (map_tok[1]) {
+    case 'd':
+    case 'D':
+    case 'u':
+    case 'U':
+    case 'b':
+    case 'n':
+        return _tok_all_digits(user_tok);
+    case 'h':
+    case 'H':
+        /* Allow 0x prefix, otherwise require hex chars. */
+        if (!strncmp(user_tok, "0x", 2) || !strncmp(user_tok, "0X", 2))
+            return _tok_all_hex_with_seps(user_tok + 2);
+        return _tok_all_hex_with_seps(user_tok);
+    case 'm':
+        /* MAC-like: hex digits with common separators (rejects keywords like 'tcp'). */
+        return _tok_all_hex_with_seps(user_tok);
+    case '4':
+        return _tok_looks_like_ipv4(user_tok);
+    case '6':
+        return _tok_looks_like_ipv6(user_tok);
+    case 'P':
+    case 'C':
+        /* Accept 'all' or a digit-based list like 0,1-3 */
+        if (!strcmp(user_tok, "all"))
+            return 1;
+        for (const unsigned char *p = (const unsigned char *)user_tok; *p != '\0'; p++) {
+            if (isdigit(*p) || *p == ',' || *p == '-')
+                continue;
+            return 0;
+        }
+        return 1;
+    case 's':
+    case 'c':
+    case 'k':
+    case 'l':
+        return 1;
+    default:
+        return 1;
+    }
+}
+
 static const char *
 _placeholder_hint(const char *tok)
 {
@@ -187,6 +304,8 @@ _placeholder_hint(const char *tok)
         return "<corelist>";
     case 's':
         return "<string>";
+    case 'c':
+        return "<comma-list>";
     case 'm':
         return "<mac-addr>";
     case '4':
@@ -332,9 +451,7 @@ _map_collect_candidates(struct cli_map *maps, int argc, char **argv, int arg_ind
         /* must match already-typed tokens before the arg we are completing */
         int ok = 1;
         for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
-            if (_is_placeholder(mtoks[i]))
-                continue;
-            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+            if (!_map_tok_compatible_with_user_tok(mtoks[i], argv[i])) {
                 ok = 0;
                 break;
             }
@@ -415,9 +532,7 @@ _map_next_is_user_value(struct cli_map *maps, int argc, char **argv, int arg_ind
 
         int ok = 1;
         for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
-            if (_is_placeholder(mtoks[i]))
-                continue;
-            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+            if (!_map_tok_compatible_with_user_tok(mtoks[i], argv[i])) {
                 ok = 0;
                 break;
             }

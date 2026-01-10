@@ -24,8 +24,12 @@ cli_help_add(const char *group, struct cli_map *map, const char **help_data)
     snprintf(node->group, sizeof(node->group), "%s", group);
 
     /* If a map is provided, register all command tokens it references. */
-    if (map)
-        cli_register_cmd_maps(map);
+    if (map) {
+        if (cli_register_cmd_maps(map) < 0) {
+            free(node);
+            return -1;
+        }
+    }
 
     TAILQ_INSERT_TAIL(&this_cli->help_nodes, node, next);
 

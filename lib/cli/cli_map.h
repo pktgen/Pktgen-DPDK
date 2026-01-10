@@ -34,6 +34,7 @@ struct cli_map {
  *   %P - Portlist
  *   %C - Corelist
  *   %s - string
+ *   %c - comma separated list string
  *   %m - MAC address format
  *   %4 - IPv4 address
  *   %6 - IPv6 address

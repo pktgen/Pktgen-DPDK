@@ -58,8 +58,24 @@ cli_register_cmd_map(const char *cmd, struct cli_map *map)
         }
     }
 
-    if (cli->nb_cmd_maps >= CLI_MAX_CMD_MAPS)
-        return -1;
+    /* Grow registry if needed */
+    if (cli->nb_cmd_maps >= cli->cmd_maps_cap) {
+        uint32_t new_cap = cli->cmd_maps_cap ? (cli->cmd_maps_cap * 2) : (uint32_t)CLI_MAX_CMD_MAPS;
+        if (new_cap < cli->nb_cmd_maps + 1)
+            new_cap = cli->nb_cmd_maps + 1;
+
+        cli_cmd_map_t *new_maps = realloc(cli->cmd_maps, (size_t)new_cap * sizeof(*new_maps));
+        if (!new_maps)
+            return -1;
+
+        /* Zero the new slots */
+        if (new_cap > cli->cmd_maps_cap)
+            memset(&new_maps[cli->cmd_maps_cap], 0,
+                   (size_t)(new_cap - cli->cmd_maps_cap) * sizeof(*new_maps));
+
+        cli->cmd_maps     = new_maps;
+        cli->cmd_maps_cap = new_cap;
+    }
 
     cli->cmd_maps[cli->nb_cmd_maps].cmd = strdup(cmd);
     if (!cli->cmd_maps[cli->nb_cmd_maps].cmd)
@@ -828,6 +844,12 @@ cli_init(int nb_entries, uint32_t nb_hist)
     if (!cli->argv)
         goto error_exit;
 
+    /* command -> cli_map registry */
+    cli->cmd_maps = calloc((size_t)CLI_MAX_CMD_MAPS, sizeof(*cli->cmd_maps));
+    if (!cli->cmd_maps)
+        goto error_exit;
+    cli->cmd_maps_cap = CLI_MAX_CMD_MAPS;
+
     /* Create the pool for the number of nodes */
     node = cli->node_mem;
     for (i = 0; i < nb_entries; i++, node++)
@@ -899,9 +921,14 @@ cli_destroy(void)
     free(cli->hist_mem);
     free(cli->node_mem);
 
-    for (uint32_t i = 0; i < cli->nb_cmd_maps; i++)
-        free(cli->cmd_maps[i].cmd);
-    cli->nb_cmd_maps = 0;
+    if (cli->cmd_maps) {
+        for (uint32_t i = 0; i < cli->nb_cmd_maps; i++)
+            free(cli->cmd_maps[i].cmd);
+        free(cli->cmd_maps);
+        cli->cmd_maps = NULL;
+    }
+    cli->nb_cmd_maps  = 0;
+    cli->cmd_maps_cap = 0;
 
     while (!TAILQ_EMPTY(&cli->node_chunks)) {
         struct cli_node_chunk *chunk = TAILQ_FIRST(&cli->node_chunks);

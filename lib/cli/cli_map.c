@@ -40,7 +40,7 @@ is_map_valid(const char *fmt, char *arg)
     char *p;
     struct rte_ipaddr ip;
 
-    if (strchr("%bdDuUhHsn46mkPC|l", fmt[1]) == NULL)
+    if (strchr("%bdDuUhHsnc46mkPC|l", fmt[1]) == NULL)
         return ret;
 
     /* validate all of the characters matching the format */
@@ -79,6 +79,10 @@ is_map_valid(const char *fmt, char *arg)
                 ret = 1;
             break;
         case 's':
+            if (isprint(*arg))
+                ret = 1;
+            break;
+        case 'c':
             if (isprint(*arg))
                 ret = 1;
             break;
@@ -212,6 +216,9 @@ decode_map(const char *fmt)
         break;
     case 's':
         cli_printf("<string> ");
+        break;
+    case 'c':
+        cli_printf("<comma-list> ");
         break;
     case '4':
         cli_printf("<IPv4 Address> ");

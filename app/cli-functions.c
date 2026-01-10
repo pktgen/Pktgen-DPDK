@@ -102,7 +102,7 @@ static struct cli_map range_map[] = {
     {37, "range %P src ip %6 %6 %6 %6"},
     {40, "range %P proto %|tcp|udp"},
     {41, "range %P type %|ipv4|ipv6"},
-    {42, "range %P tcp %|flag|flags %s"},
+    {42, "range %P tcp %|flag|flags %c"},
     {44, "range %P tcp seq %d %d %d %d"},
     {45, "range %P tcp ack %d %d %d %d"},
     {46, "range %P tcp seq " SMMI " %d"},
@@ -537,7 +537,7 @@ static struct cli_map set_map[] = {
     {31, "set %P dst ip %4"},
     {32, "set %P src ip %6"},
     {33, "set %P dst ip %6"},
-    {34, "set %P tcp %|flag|flags %s"},
+    {34, "set %P tcp %|flag|flags %c"},
     {36, "set %P tcp seq %d"},
     {37, "set %P tcp ack %d"},
     {40, "set ports_per_page %d"},
@@ -1553,7 +1553,7 @@ static struct cli_map seq_map[] = {
     {16, "%|seq|sequence %d %P vxlan %d gid %d vid %d"},
     {17, "%|seq|sequence %d %P vxlan %h gid %d vid %d"},
 
-    {18, "%|seq|sequence %d %P tcp %|flag|flags %s"},
+    {18, "%|seq|sequence %d %P tcp %|flag|flags %c"},
     {-1, NULL}
 };
 // clang-format on

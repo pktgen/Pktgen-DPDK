@@ -52,7 +52,8 @@ enum {
 };
 
 enum {
-    CLI_MAX_CMD_MAPS = 64 /**< Max number of command->map registrations */
+    /* Initial number of command->map registrations. The registry can grow. */
+    CLI_MAX_CMD_MAPS = 64
 };
 
 #define CLI_RECURSE_FLAG   (1 << 0)
@@ -156,8 +157,10 @@ struct cli {
 
     TAILQ_HEAD(, cli_node_chunk) node_chunks; /**< Extra node chunks when unlimited */
 
-    cli_cmd_map_t cmd_maps[CLI_MAX_CMD_MAPS]; /**< command -> cli_map table */
+    /* command -> cli_map table (growable) */
+    cli_cmd_map_t *cmd_maps;
     uint32_t nb_cmd_maps;
+    uint32_t cmd_maps_cap;
 
     uint64_t ac_last_tsc;  /**< Auto-complete last tab timestamp (cycles) */
     uint32_t ac_last_hash; /**< Auto-complete last tab line hash */

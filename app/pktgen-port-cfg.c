@@ -172,18 +172,28 @@ allocate_port_info(uint16_t pid)
         goto leave;
     }
 
-    for (int qid = 0; qid < l2p_get_rxcnt(pid); qid++) {
+    for (int qid = 0; qid < l2p_get_txcnt(pid); qid++) {
         per_queue_t *pq = &pinfo->per_queue[qid];
         char buff[64];
 
         snprintf(buff, sizeof(buff), "RxMbufs-%u-%d", pid, qid);
         pq->rx_pkts = rte_calloc_socket(buff, MAX_PKT_RX_BURST, sizeof(struct rte_mbuf *),
                                         RTE_CACHE_LINE_SIZE, sid);
+        if (pq->rx_pkts == NULL) {
+            pktgen_log_error("Cannot allocate RX burst for port %u-%d", pid, qid);
+            goto leave;
+        }
+    }
+
+    for (int qid = 0; qid < l2p_get_txcnt(pid); qid++) {
+        per_queue_t *pq = &pinfo->per_queue[qid];
+        char buff[64];
+
         snprintf(buff, sizeof(buff), "TxMbufs-%u-%d", pid, qid);
         pq->tx_pkts = rte_calloc_socket(buff, MAX_PKT_TX_BURST, sizeof(struct rte_mbuf *),
                                         RTE_CACHE_LINE_SIZE, sid);
-        if (pq->rx_pkts == NULL || pq->tx_pkts == NULL) {
-            pktgen_log_error("Cannot allocate RX/TX burst for port %u-%d", pid, qid);
+        if (pq->tx_pkts == NULL) {
+            pktgen_log_error("Cannot allocate TX burst for port %u-%d", pid, qid);
             goto leave;
         }
     }

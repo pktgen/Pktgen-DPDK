@@ -1221,16 +1221,28 @@ debug_mempool_dump(port_info_t *pinfo __rte_unused, char *name __rte_unused)
     all = !strcmp(name, "all");
 
     if (all || !strcmp(name, "rx")) {
-        for (uint16_t q = 0; q < l2p_get_rxcnt(pinfo->pid); q++)
-            rte_mempool_dump(stdout, l2p_get_rx_mp(pinfo->pid, q));
+        for (uint16_t q = 0; q < l2p_get_rxcnt(pinfo->pid); q++) {
+            struct rte_mempool *mp = l2p_get_rx_mp(pinfo->pid, q);
+            if (mp)
+                fprintf(stdout, "\nPort %u RX qid %u: %s @ %p\n", pinfo->pid, q, mp->name, mp);
+            __mempool_dump(stdout, mp);
+        }
     }
     if (all || !strcmp(name, "tx")) {
-        for (uint16_t q = 0; q < l2p_get_txcnt(pinfo->pid); q++)
-            __mempool_dump(stdout, l2p_get_tx_mp(pinfo->pid, q));
+        for (uint16_t q = 0; q < l2p_get_txcnt(pinfo->pid); q++) {
+            struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid, q);
+            if (mp)
+                fprintf(stdout, "\nPort %u TX qid %u: %s @ %p\n", pinfo->pid, q, mp->name, mp);
+            __mempool_dump(stdout, mp);
+        }
     }
     if (all || !strcmp(name, "arp")) {
-        for (uint16_t q = 0; q < l2p_get_txcnt(pinfo->pid); q++)
-            __mempool_dump(stdout, l2p_get_sp_mp(pinfo->pid, q));
+        for (uint16_t q = 0; q < l2p_get_txcnt(pinfo->pid); q++) {
+            struct rte_mempool *mp = l2p_get_sp_mp(pinfo->pid, q);
+            if (mp)
+                fprintf(stdout, "\nPort %u SP qid %u: %s @ %p\n", pinfo->pid, q, mp->name, mp);
+            __mempool_dump(stdout, mp);
+        }
     }
 }
 

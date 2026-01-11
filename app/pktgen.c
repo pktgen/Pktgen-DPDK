@@ -1058,8 +1058,10 @@ pktgen_main_rxtx_loop(void)
     rx_qid = l2p_get_rxqid(lid);
     tx_qid = l2p_get_txqid(lid);
 
-    printf("RX/TX lid %3d, pid %2d, qids %2d/%2d Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
-           tx_qid, l2p_get_tx_mp(pinfo->pid, tx_qid)->name, l2p_get_tx_mp(pinfo->pid, tx_qid));
+    printf("RX/TX lid %3d, pid %2d, qids %2d/%2d RX-MP %-16s @ %p TX-MP %-16s @ %p\n", lid,
+           pinfo->pid, rx_qid, tx_qid, l2p_get_rx_mp(pinfo->pid, rx_qid)->name,
+           l2p_get_rx_mp(pinfo->pid, rx_qid), l2p_get_tx_mp(pinfo->pid, tx_qid)->name,
+           l2p_get_tx_mp(pinfo->pid, tx_qid));
 
     while (pktgen.force_quit == 0) {
         /* Process RX */
@@ -1115,7 +1117,7 @@ pktgen_main_tx_loop(void)
 
     tx_qid = l2p_get_txqid(lid);
 
-    printf("TX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, tx_qid,
+    printf("TX lid %3d, pid %2d, qid %2d, TX-MP %-16s @ %p\n", lid, pinfo->pid, tx_qid,
            l2p_get_tx_mp(pinfo->pid, tx_qid)->name, l2p_get_tx_mp(pinfo->pid, tx_qid));
 
     while (unlikely(pktgen.force_quit == 0)) {
@@ -1166,7 +1168,7 @@ pktgen_main_rx_loop(void)
     pinfo  = l2p_get_pinfo_by_lcore(lid);
     rx_qid = l2p_get_rxqid(lid);
 
-    printf("RX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
+    printf("RX lid %3d, pid %2d, qid %2d, RX-MP %-16s @ %p\n", lid, pinfo->pid, rx_qid,
            l2p_get_rx_mp(pinfo->pid, rx_qid)->name, l2p_get_rx_mp(pinfo->pid, rx_qid));
 
     while (pktgen.force_quit == 0)

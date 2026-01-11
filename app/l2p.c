@@ -79,7 +79,7 @@ l2p_pktmbuf_create(const char *type, l2p_port_t *port, uint16_t qid, int nb_mbuf
                  "Cannot create mbuf pool (%s) port %d, queue %u, nb_mbufs %d, NUMA %d: %s\n", name,
                  port->pid, qid, nb_mbufs, sid, rte_strerror(rte_errno));
 
-    pktgen_log_info("  Create: '%-*s' - Memory used (MBUFs %'6u x size %'6u) = %'8lu KB @ %p\n", 16,
+    pktgen_log_info("  Create: '%-*s' - Memory used (MBUFs %'6u x size %'6u) = %'8lu KB @ %p\n", 24,
                     name, nb_mbufs, bufSize, sz / 1024, mp);
 
     return mp;

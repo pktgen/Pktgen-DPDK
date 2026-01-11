@@ -17,6 +17,7 @@
 
 #include <pktgen-pcap.h>
 #include <pktgen-log.h>
+#include <pktgen-stats.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,14 +38,14 @@ enum { LCORE_MODE_UNKNOWN = 0, LCORE_MODE_RX = 1, LCORE_MODE_TX = 2, LCORE_MODE_
 struct port_info_s;
 
 typedef struct l2p_port_s {
-    struct port_info_s *pinfo;                     /* Port information pointer */
-    uint16_t pid;                                  /* Port ID attached to lcore */
-    uint16_t num_rx_qids;                          /* Number of Rx queues */
-    uint16_t num_tx_qids;                          /* Number of Tx queues */
-    struct rte_mempool *rx_mp __rte_cache_aligned; /* Rx pktmbuf mempool per queue */
-    struct rte_mempool *tx_mp;                     /* Tx pktmbuf mempool per queue */
-    struct rte_mempool *sp_mp;                     /* Pool pointer for special TX mbufs */
-    pcap_info_t *pcap_info;                        /* PCAP packet structure */
+    struct port_info_s *pinfo;                      /* Port information pointer */
+    uint16_t pid;                                   /* Port ID attached to lcore */
+    uint16_t num_rx_qids;                           /* Number of Rx queues */
+    uint16_t num_tx_qids;                           /* Number of Tx queues */
+    struct rte_mempool *rx_mp[MAX_QUEUES_PER_PORT]; /* Rx pktmbuf per queue */
+    struct rte_mempool *tx_mp[MAX_QUEUES_PER_PORT]; /* Tx pktmbuf per queue */
+    struct rte_mempool *sp_mp[MAX_QUEUES_PER_PORT]; /* Special TX pktmbuf per queue */
+    pcap_info_t *pcap_info;                         /* PCAP packet structure */
 } l2p_port_t;
 
 typedef struct l2p_lport_s { /* Each lcore has one port/queue attached */
@@ -126,36 +127,45 @@ l2p_get_pid_by_lcore(uint16_t lid)
 }
 
 static __inline__ struct rte_mempool *
-l2p_get_rx_mp(uint16_t pid)
+l2p_get_rx_mp(uint16_t pid, uint16_t qid)
 {
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
         L2P_NULL_RET("Invalid port ID %u", pid);
 
-    return l2p->ports[pid].rx_mp;
+    if (qid >= MAX_QUEUES_PER_PORT)
+        L2P_NULL_RET("Invalid queue ID %u", qid);
+
+    return l2p->ports[pid].rx_mp[qid];
 }
 
 static __inline__ struct rte_mempool *
-l2p_get_tx_mp(uint16_t pid)
+l2p_get_tx_mp(uint16_t pid, uint16_t qid)
 {
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
         L2P_NULL_RET("Invalid port ID %u", pid);
 
-    return l2p->ports[pid].tx_mp;
+    if (qid >= MAX_QUEUES_PER_PORT)
+        L2P_NULL_RET("Invalid queue ID %u", qid);
+
+    return l2p->ports[pid].tx_mp[qid];
 }
 
 static __inline__ struct rte_mempool *
-l2p_get_sp_mp(uint16_t pid)
+l2p_get_sp_mp(uint16_t pid, uint16_t qid)
 {
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
         L2P_NULL_RET("Invalid port ID %u", pid);
 
-    return l2p->ports[pid].sp_mp;
+    if (qid >= MAX_QUEUES_PER_PORT)
+        L2P_NULL_RET("Invalid queue ID %u", qid);
+
+    return l2p->ports[pid].sp_mp[qid];
 }
 
 static __inline__ int

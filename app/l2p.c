@@ -53,8 +53,7 @@ l2p_create(void)
 }
 
 static struct rte_mempool *
-l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int nb_mbufs,
-                   int cache_size)
+l2p_pktmbuf_create(const char *type, l2p_port_t *port, uint16_t qid, int nb_mbufs, int cache_size)
 {
     struct rte_mempool *mp;
     char name[RTE_MEMZONE_NAMESIZE];
@@ -63,7 +62,7 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
 
     sid = pg_eth_dev_socket_id(port->pid);
 
-    snprintf(name, sizeof(name) - 1, "%s-L%u/P%u/S%u", type, lport->lid, port->pid, sid);
+    snprintf(name, sizeof(name) - 1, "%s-P%u/Q%u/S%u", type, port->pid, qid, sid);
 
     const int bufSize = pktgen.mbuf_buf_size;
 
@@ -77,8 +76,8 @@ l2p_pktmbuf_create(const char *type, l2p_lport_t *lport, l2p_port_t *port, int n
     mp = rte_pktmbuf_pool_create(name, nb_mbufs, cache_size, DEFAULT_PRIV_SIZE, bufSize, sid);
     if (mp == NULL)
         rte_exit(EXIT_FAILURE,
-                 "Cannot create mbuf pool (%s) port %d, queue %d, nb_mbufs %d, NUMA %d: %s\n", name,
-                 port->pid, lport->rx_qid, nb_mbufs, sid, rte_strerror(rte_errno));
+                 "Cannot create mbuf pool (%s) port %d, queue %u, nb_mbufs %d, NUMA %d: %s\n", name,
+                 port->pid, qid, nb_mbufs, sid, rte_strerror(rte_errno));
 
     pktgen_log_info("  Create: '%-*s' - Memory used (MBUFs %'6u x size %'6u) = %'8lu KB @ %p\n", 16,
                     name, nb_mbufs, bufSize, sz / 1024, mp);
@@ -137,12 +136,24 @@ parse_cores(uint16_t pid, const char *cores, int mode)
         lport->mode = mode;
         switch (mode) {
         case LCORE_MODE_RX:
+            if (port->num_rx_qids >= MAX_QUEUES_PER_PORT)
+                rte_exit(EXIT_FAILURE, "Too many RX queues for port %u (max %u)\n", port->pid,
+                         (unsigned)MAX_QUEUES_PER_PORT);
             lport->rx_qid = port->num_rx_qids++;
             break;
         case LCORE_MODE_TX:
+            if (port->num_tx_qids >= MAX_QUEUES_PER_PORT)
+                rte_exit(EXIT_FAILURE, "Too many TX queues for port %u (max %u)\n", port->pid,
+                         (unsigned)MAX_QUEUES_PER_PORT);
             lport->tx_qid = port->num_tx_qids++;
             break;
         case LCORE_MODE_BOTH:
+            if (port->num_rx_qids >= MAX_QUEUES_PER_PORT)
+                rte_exit(EXIT_FAILURE, "Too many RX queues for port %u (max %u)\n", port->pid,
+                         (unsigned)MAX_QUEUES_PER_PORT);
+            if (port->num_tx_qids >= MAX_QUEUES_PER_PORT)
+                rte_exit(EXIT_FAILURE, "Too many TX queues for port %u (max %u)\n", port->pid,
+                         (unsigned)MAX_QUEUES_PER_PORT);
             lport->rx_qid = port->num_rx_qids++;
             lport->tx_qid = port->num_tx_qids++;
             break;
@@ -151,22 +162,34 @@ parse_cores(uint16_t pid, const char *cores, int mode)
             break;
         }
 
-        if (port->rx_mp == NULL) {
-            /* Create the Rx mbuf pool one per lcore/port/queue */
-            port->rx_mp = l2p_pktmbuf_create("RX", lport, port, mbuf_count, MEMPOOL_CACHE_SIZE);
-            if (port->rx_mp == NULL)
-                rte_exit(EXIT_FAILURE, "Cannot init port %d for Default RX mbufs", port->pid);
+        if (mode == LCORE_MODE_RX || mode == LCORE_MODE_BOTH) {
+            const uint16_t qid = lport->rx_qid;
+            if (port->rx_mp[qid] == NULL) {
+                /* Create the Rx mbuf pool one per port/queue */
+                port->rx_mp[qid] =
+                    l2p_pktmbuf_create("RX", port, qid, mbuf_count, MEMPOOL_CACHE_SIZE);
+                if (port->rx_mp[qid] == NULL)
+                    rte_exit(EXIT_FAILURE, "Cannot init port %d qid %u for Default RX mbufs",
+                             port->pid, qid);
+            }
         }
-        if (port->tx_mp == NULL) {
-            port->tx_mp = l2p_pktmbuf_create("TX", lport, port, mbuf_count, MEMPOOL_CACHE_SIZE);
-            if (port->tx_mp == NULL)
-                rte_exit(EXIT_FAILURE, "Cannot init port %d for Default TX mbufs", port->pid);
-        }
-        if (port->sp_mp == NULL) {
-            /* Used for sending special packets like ARP requests */
-            port->sp_mp = l2p_pktmbuf_create("SP", lport, port, MAX_SPECIAL_MBUFS, 0);
-            if (port->sp_mp == NULL)
-                rte_exit(EXIT_FAILURE, "Cannot init port %d for Special TX mbufs", pid);
+
+        if (mode == LCORE_MODE_TX || mode == LCORE_MODE_BOTH) {
+            const uint16_t qid = lport->tx_qid;
+            if (port->tx_mp[qid] == NULL) {
+                port->tx_mp[qid] =
+                    l2p_pktmbuf_create("TX", port, qid, mbuf_count, MEMPOOL_CACHE_SIZE);
+                if (port->tx_mp[qid] == NULL)
+                    rte_exit(EXIT_FAILURE, "Cannot init port %d qid %u for Default TX mbufs",
+                             port->pid, qid);
+            }
+            if (port->sp_mp[qid] == NULL) {
+                /* Used for sending special packets like ARP requests */
+                port->sp_mp[qid] = l2p_pktmbuf_create("SP", port, qid, MAX_SPECIAL_MBUFS, 0);
+                if (port->sp_mp[qid] == NULL)
+                    rte_exit(EXIT_FAILURE, "Cannot init port %d qid %u for Special TX mbufs", pid,
+                             qid);
+            }
         }
     } while (l++ < h);
 

@@ -257,7 +257,7 @@ pktgen_tstamp_inject(port_info_t *pinfo, uint16_t qid)
         lat->latency_timo_cycles = curr_ts + lat->latency_rate_cycles;
 
         port = l2p_get_port(pinfo->pid);
-        if (rte_mempool_get(port->sp_mp, (void **)&mbuf) == 0) {
+        if (rte_mempool_get(port->sp_mp[qid], (void **)&mbuf) == 0) {
             uint16_t pktsize = pkt->pkt_size;
             uint16_t to_send;
 
@@ -881,12 +881,8 @@ mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
 void
 pktgen_setup_packets(uint16_t pid)
 {
-    struct rte_mempool *tx_mp = l2p_get_tx_mp(pid);
-    l2p_port_t *port          = l2p_get_port(pid);
-    port_info_t *pinfo        = l2p_get_port_pinfo(pid);
-
-    if (unlikely(tx_mp == NULL))
-        rte_exit(EXIT_FAILURE, "Invalid mempool for port %d\n", pid);
+    l2p_port_t *port   = l2p_get_port(pid);
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
 
     if (port == NULL)
         rte_exit(EXIT_FAILURE, "Invalid l2p port for %d\n", pid);
@@ -907,7 +903,13 @@ pktgen_setup_packets(uint16_t pid)
 
             s.pinfo   = pinfo;
             s.seq_idx = idx;
-            rte_mempool_obj_iter(tx_mp, mempool_setup_cb, &s);
+
+            for (uint16_t q = 0; q < l2p_get_txcnt(pid); q++) {
+                struct rte_mempool *tx_mp = l2p_get_tx_mp(pid, q);
+                if (unlikely(tx_mp == NULL))
+                    rte_exit(EXIT_FAILURE, "Invalid TX mempool for port %d qid %u\n", pid, q);
+                rte_mempool_obj_iter(tx_mp, mempool_setup_cb, &s);
+            }
         }
     }
 }
@@ -965,7 +967,7 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
 
     /* When not transmitting on this port then continue. */
     if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        struct rte_mempool *mp = l2p_get_tx_mp(pid);
+        struct rte_mempool *mp = l2p_get_tx_mp(pid, qid);
 
         if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS))
             mp = l2p_get_pcap_mp(pid);
@@ -1057,7 +1059,7 @@ pktgen_main_rxtx_loop(void)
     tx_qid = l2p_get_txqid(lid);
 
     printf("RX/TX lid %3d, pid %2d, qids %2d/%2d Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
-           tx_qid, l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
+           tx_qid, l2p_get_tx_mp(pinfo->pid, tx_qid)->name, l2p_get_tx_mp(pinfo->pid, tx_qid));
 
     while (pktgen.force_quit == 0) {
         /* Process RX */
@@ -1114,7 +1116,7 @@ pktgen_main_tx_loop(void)
     tx_qid = l2p_get_txqid(lid);
 
     printf("TX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, tx_qid,
-           l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
+           l2p_get_tx_mp(pinfo->pid, tx_qid)->name, l2p_get_tx_mp(pinfo->pid, tx_qid));
 
     while (unlikely(pktgen.force_quit == 0)) {
         curr_tsc = pktgen_get_time();
@@ -1165,7 +1167,7 @@ pktgen_main_rx_loop(void)
     rx_qid = l2p_get_rxqid(lid);
 
     printf("RX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
-           l2p_get_rx_mp(pinfo->pid)->name, l2p_get_rx_mp(pinfo->pid));
+           l2p_get_rx_mp(pinfo->pid, rx_qid)->name, l2p_get_rx_mp(pinfo->pid, rx_qid));
 
     while (pktgen.force_quit == 0)
         pktgen_main_receive(pinfo, rx_qid);

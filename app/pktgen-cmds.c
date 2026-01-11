@@ -1220,12 +1220,18 @@ debug_mempool_dump(port_info_t *pinfo __rte_unused, char *name __rte_unused)
 
     all = !strcmp(name, "all");
 
-    if (all || !strcmp(name, "rx"))
-        rte_mempool_dump(stdout, l2p_get_rx_mp(pinfo->pid));
-    if (all || !strcmp(name, "tx"))
-        __mempool_dump(stdout, l2p_get_tx_mp(pinfo->pid));
-    if (all || !strcmp(name, "arp"))
-        __mempool_dump(stdout, l2p_get_sp_mp(pinfo->pid));
+    if (all || !strcmp(name, "rx")) {
+        for (uint16_t q = 0; q < l2p_get_rxcnt(pinfo->pid); q++)
+            rte_mempool_dump(stdout, l2p_get_rx_mp(pinfo->pid, q));
+    }
+    if (all || !strcmp(name, "tx")) {
+        for (uint16_t q = 0; q < l2p_get_txcnt(pinfo->pid); q++)
+            __mempool_dump(stdout, l2p_get_tx_mp(pinfo->pid, q));
+    }
+    if (all || !strcmp(name, "arp")) {
+        for (uint16_t q = 0; q < l2p_get_txcnt(pinfo->pid); q++)
+            __mempool_dump(stdout, l2p_get_sp_mp(pinfo->pid, q));
+    }
 }
 
 /**

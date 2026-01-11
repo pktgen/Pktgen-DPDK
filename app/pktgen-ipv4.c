@@ -80,9 +80,12 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     l2p_port_t *port;
 
     port = l2p_get_port(pid);
-    if (rte_mempool_get(port->sp_mp, (void **)&m)) {
-        pktgen_log_warning("No packet buffers found");
-        return;
+    {
+        const uint16_t tx_qid = l2p_get_txqid(rte_lcore_id());
+        if (rte_mempool_get(port->sp_mp[tx_qid], (void **)&m)) {
+            pktgen_log_warning("No packet buffers found");
+            return;
+        }
     }
     *ppkt = *spkt; /* Copy the sequence setup to the ping setup. */
     pktgen_packet_ctor(pinfo, SPECIAL_PKT, ICMP4_ECHO);

@@ -459,7 +459,7 @@ _rx_queues(port_info_t *pinfo)
 
         pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
 
-        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp);
+        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp[q]);
         if (ret < 0)
             pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));

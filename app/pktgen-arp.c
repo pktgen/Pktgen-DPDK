@@ -70,7 +70,7 @@ pktgen_send_arp(uint32_t pid, uint32_t type, uint8_t seq_idx)
 
     pkt  = &pinfo->seq_pkt[seq_idx];
     port = l2p_get_port(pid);
-    if (rte_mempool_get(port->special_mp, (void **)&m)) {
+    if (rte_mempool_get(port->sp_mp, (void **)&m)) {
         pktgen_log_warning("No packet buffers found");
         return;
     }
@@ -159,7 +159,7 @@ pktgen_process_arp(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vlan
 
             pkt  = &pinfo->seq_pkt[idx];
             port = l2p_get_port(pid);
-            m1   = rte_pktmbuf_copy(m, port->special_mp, 0, UINT32_MAX);
+            m1   = rte_pktmbuf_copy(m, port->sp_mp, 0, UINT32_MAX);
             if (unlikely(m1 == NULL))
                 return;
             eth = rte_pktmbuf_mtod(m1, struct rte_ether_hdr *);

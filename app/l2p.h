@@ -43,7 +43,7 @@ typedef struct l2p_port_s {
     uint16_t num_tx_qids;                          /* Number of Tx queues */
     struct rte_mempool *rx_mp __rte_cache_aligned; /* Rx pktmbuf mempool per queue */
     struct rte_mempool *tx_mp;                     /* Tx pktmbuf mempool per queue */
-    struct rte_mempool *special_mp;                /* Pool pointer for special TX mbufs */
+    struct rte_mempool *sp_mp;                     /* Pool pointer for special TX mbufs */
     pcap_info_t *pcap_info;                        /* PCAP packet structure */
 } l2p_port_t;
 
@@ -148,14 +148,14 @@ l2p_get_tx_mp(uint16_t pid)
 }
 
 static __inline__ struct rte_mempool *
-l2p_get_special_mp(uint16_t pid)
+l2p_get_sp_mp(uint16_t pid)
 {
     l2p_t *l2p = l2p_get();
 
     if (pid >= RTE_MAX_ETHPORTS)
         L2P_NULL_RET("Invalid port ID %u", pid);
 
-    return l2p->ports[pid].special_mp;
+    return l2p->ports[pid].sp_mp;
 }
 
 static __inline__ int

@@ -162,10 +162,10 @@ parse_cores(uint16_t pid, const char *cores, int mode)
             if (port->tx_mp == NULL)
                 rte_exit(EXIT_FAILURE, "Cannot init port %d for Default TX mbufs", port->pid);
         }
-        if (port->special_mp == NULL) {
+        if (port->sp_mp == NULL) {
             /* Used for sending special packets like ARP requests */
-            port->special_mp = l2p_pktmbuf_create("SP", lport, port, MAX_SPECIAL_MBUFS, 0);
-            if (port->special_mp == NULL)
+            port->sp_mp = l2p_pktmbuf_create("SP", lport, port, MAX_SPECIAL_MBUFS, 0);
+            if (port->sp_mp == NULL)
                 rte_exit(EXIT_FAILURE, "Cannot init port %d for Special TX mbufs", pid);
         }
     } while (l++ < h);

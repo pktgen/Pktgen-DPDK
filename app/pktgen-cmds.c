@@ -1225,7 +1225,7 @@ debug_mempool_dump(port_info_t *pinfo __rte_unused, char *name __rte_unused)
     if (all || !strcmp(name, "tx"))
         __mempool_dump(stdout, l2p_get_tx_mp(pinfo->pid));
     if (all || !strcmp(name, "arp"))
-        __mempool_dump(stdout, l2p_get_special_mp(pinfo->pid));
+        __mempool_dump(stdout, l2p_get_sp_mp(pinfo->pid));
 }
 
 /**

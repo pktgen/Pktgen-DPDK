@@ -80,7 +80,7 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     l2p_port_t *port;
 
     port = l2p_get_port(pid);
-    if (rte_mempool_get(port->special_mp, (void **)&m)) {
+    if (rte_mempool_get(port->sp_mp, (void **)&m)) {
         pktgen_log_warning("No packet buffers found");
         return;
     }

@@ -257,7 +257,7 @@ pktgen_tstamp_inject(port_info_t *pinfo, uint16_t qid)
         lat->latency_timo_cycles = curr_ts + lat->latency_rate_cycles;
 
         port = l2p_get_port(pinfo->pid);
-        if (rte_mempool_get(port->special_mp, (void **)&mbuf) == 0) {
+        if (rte_mempool_get(port->sp_mp, (void **)&mbuf) == 0) {
             uint16_t pktsize = pkt->pkt_size;
             uint16_t to_send;
 

@@ -204,6 +204,9 @@ decode_map(const char *fmt)
     case 'b':
         cli_printf("<8bit number> ");
         break;
+    case 'n':
+        cli_printf("<number> ");
+        break;
     case 'u':
         cli_printf("<32bit unsigned> ");
         break;
@@ -229,13 +232,13 @@ decode_map(const char *fmt)
         cli_printf("<comma-list> ");
         break;
     case '4':
-        cli_printf("<IPv4 Address> ");
+        cli_printf("<ipv4-addr> ");
         break;
     case '6':
-        cli_printf("<IPv6 Address> ");
+        cli_printf("<ipv6-addr> ");
         break;
     case 'm':
-        cli_printf("<MAC address> ");
+        cli_printf("<mac-addr> ");
         break;
     case 'k':
         cli_printf("<kvargs> ");

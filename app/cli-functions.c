@@ -1704,7 +1704,6 @@ static struct cli_map misc_map[] = {
     {100, "reset %P"},
     {110, "restart %P"},
     {130, "port %d"},
-    {135, "ports per page %d"},
     {140, "ping4 %P"},
 #ifdef INCLUDE_PING6
     {141, "ping6 %P"},
@@ -2061,8 +2060,6 @@ hmap_cmd(int argc, char **argv)
     }
 
     pktgen_update_display();
-    return 0;
-
     return 0;
 }
 

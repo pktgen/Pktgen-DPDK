@@ -694,7 +694,6 @@ cli_default_tree_init(void)
     /* Add the list of commands/dirs in cli_cmds.c file */
     if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0) {
         cli_help_add("Env", cli_env_map, cli_env_help);
-        cli_register_cmd_map("env", cli_env_map);
     }
 
     if (ret) {

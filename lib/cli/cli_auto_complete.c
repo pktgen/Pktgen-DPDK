@@ -327,6 +327,8 @@ _placeholder_hint(const char *tok)
         return "<list>";
     case 'b':
         return "<8bit number>";
+    case 'n':
+        return "<number>";
     default:
         return NULL;
     }
@@ -594,9 +596,7 @@ _map_current_is_user_value(struct cli_map *maps, int argc, char **argv, int arg_
 
         int ok = 1;
         for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
-            if (_is_placeholder(mtoks[i]))
-                continue;
-            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+            if (!_map_tok_compatible_with_user_tok(mtoks[i], argv[i])) {
                 ok = 0;
                 break;
             }
@@ -640,9 +640,7 @@ _map_has_tokens_after(struct cli_map *maps, int argc, char **argv, int arg_index
 
         int ok = 1;
         for (int i = 0; i < arg_index && i < argc && i < mtokc; i++) {
-            if (_is_placeholder(mtoks[i]))
-                continue;
-            if (!argv[i] || strcmp(mtoks[i], argv[i])) {
+            if (!_map_tok_compatible_with_user_tok(mtoks[i], argv[i])) {
                 ok = 0;
                 break;
             }

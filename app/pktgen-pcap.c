@@ -98,8 +98,6 @@ pcap_get_info(pcap_info_t *pcap)
         if (hdr.incl_len > pcap->max_pkt_size)
             pcap->max_pkt_size = hdr.incl_len;
     }
-    pcap->max_pkt_size += RTE_PKTMBUF_HEADROOM;
-    pcap->max_pkt_size = RTE_ALIGN_CEIL(pcap->max_pkt_size, RTE_CACHE_LINE_SIZE);
     printf("PCAP: Max Packet Size: %d\n", pcap->max_pkt_size);
 
     pcap_rewind(pcap);
@@ -190,8 +188,9 @@ pktgen_pcap_open(void)
             pkt_count = (DEFAULT_TX_DESC * 4);
 
         snprintf(name, sizeof(name), "pcap-%d", pid);
-        mp =
-            rte_pktmbuf_pool_create(name, pkt_count, 0, DEFAULT_PRIV_SIZE, pcap->max_pkt_size, sid);
+        uint32_t dataroom =
+            RTE_ALIGN_CEIL(pcap->max_pkt_size + RTE_PKTMBUF_HEADROOM, RTE_CACHE_LINE_SIZE);
+        mp = rte_pktmbuf_pool_create(name, pkt_count, 0, DEFAULT_PRIV_SIZE, dataroom, sid);
         if (mp == NULL)
             rte_exit(EXIT_FAILURE,
                      "Cannot create mbuf pool (%s) port %d, nb_mbufs %d, socket_id %d: %s", name,

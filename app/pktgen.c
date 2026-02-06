@@ -64,7 +64,7 @@ pktgen_wire_size(port_info_t *pinfo)
     if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS)) {
         pcap_info_t *pcap = l2p_get_pcap(pinfo->pid);
 
-        size = WIRE_SIZE(pcap->max_pkt_size, uint64_t);
+        size = WIRE_SIZE(pcap->avg_pkt_size, uint64_t);
     } else {
         if (unlikely(pinfo->seqCnt > 0)) {
             for (i = 0; i < pinfo->seqCnt; i++)
@@ -111,11 +111,10 @@ pktgen_packet_rate(port_info_t *port)
     pps = (((link_speed / pktgen_wire_size(port)) * (port->tx_rate / txcnt)) / 100);
     pps = ((pps > 0) ? pps : 1);
 
-    // cycles per burst is hz divided by pps times burst count
-    cpb = (rte_get_timer_hz() / pps) * (uint64_t)port->tx_burst; /* Cycles per Burst */
-
-    // divide up the work between the number of transmit queues, so multiple by queue count.
-    port->tx_cycles = cpb * (uint64_t)txcnt;
+    // Do all multiplications first to reduce rounding errors.
+    // Add pps/2 to do rounding instead of truncation.
+    cpb             = (pps / 2 + (uint64_t)txcnt * port->tx_burst * rte_get_timer_hz()) / pps;
+    port->tx_cycles = cpb;
     port->tx_pps    = pps;
 }
 
@@ -1070,9 +1069,11 @@ pktgen_main_rxtx_loop(void)
         curr_tsc = pktgen_get_time();
 
         /* Determine when is the next time to send packets */
-        if (curr_tsc >= tx_next_cycle) {
-            tx_next_cycle = curr_tsc + pinfo->tx_cycles;
-
+        const int64_t max_tx_lag =
+            DEFAULT_MAX_TX_LAG;        // Allow some lag, ideally make this configurable.
+        int64_t dt = curr_tsc - tx_next_cycle;
+        if (dt >= 0) {
+            tx_next_cycle = curr_tsc + pinfo->tx_cycles - (dt <= max_tx_lag ? dt : 0);
             // Process TX
             pktgen_main_transmit(pinfo, tx_qid);
         }
@@ -1124,8 +1125,11 @@ pktgen_main_tx_loop(void)
         curr_tsc = pktgen_get_time();
 
         /* Determine when is the next time to send packets */
-        if (unlikely(curr_tsc >= tx_next_cycle)) {
-            tx_next_cycle = curr_tsc + pinfo->tx_cycles;
+        const int64_t max_tx_lag =
+            DEFAULT_MAX_TX_LAG;        // Allow some lag, ideally make this configurable.
+        int64_t dt = curr_tsc - tx_next_cycle;
+        if (dt >= 0) {
+            tx_next_cycle = curr_tsc + pinfo->tx_cycles - (dt <= max_tx_lag ? dt : 0);
 
             // Process TX
             pktgen_main_transmit(pinfo, tx_qid);

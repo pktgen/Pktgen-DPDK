@@ -41,6 +41,7 @@ typedef struct pcap_info_s {
     struct rte_mempool *mp;          /**< Mempool for storing packets */
     uint32_t convert;                /**< Endian flag value if 1 convert to host endian format */
     uint32_t max_pkt_size;           /**< largest packet found in pcap file */
+    uint32_t avg_pkt_size;           /**< average packet size in pcap file */
     uint32_t pkt_count;              /**< Number of packets in pcap file */
     uint32_t pkt_index;              /**< Index of current packet in pcap file */
     pcap_hdr_t info;                 /**< information on the PCAP file */

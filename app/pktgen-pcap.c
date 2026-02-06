@@ -82,7 +82,9 @@ pcap_get_info(pcap_info_t *pcap)
         pcap->info.network       = ntohl(pcap->info.network);
     }
 
-    pcap->max_pkt_size = 0;
+    pcap->max_pkt_size  = 0;
+    pcap->avg_pkt_size  = 0;
+    uint64_t total_size = 0;
     /* count the number of packets and get the largest size packet */
     for (;;) {
         if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
@@ -97,8 +99,14 @@ pcap_get_info(pcap_info_t *pcap)
         pcap->pkt_count++;
         if (hdr.incl_len > pcap->max_pkt_size)
             pcap->max_pkt_size = hdr.incl_len;
+
+        total_size += hdr.incl_len;
     }
     printf("PCAP: Max Packet Size: %d\n", pcap->max_pkt_size);
+
+    pcap->avg_pkt_size = total_size / pcap->pkt_count;
+
+    printf("PCAP: Avg Packet Size: %d\n", pcap->avg_pkt_size);
 
     pcap_rewind(pcap);
 }

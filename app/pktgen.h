@@ -167,6 +167,8 @@ enum {
     COLUMN_WIDTH_1 = 24,
     COLUMN_WIDTH_3 = 24,
 
+    DEFAULT_MAX_TX_LAG = 20000, /* Allow some lag, ideally make this configurable. */
+
     /* Row locations for start of data */
     PAGE_TITLE_ROWS = 1,
     PORT_FLAGS_ROWS = 1,

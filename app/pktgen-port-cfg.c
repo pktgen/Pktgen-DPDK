@@ -448,7 +448,7 @@ _rx_queues(port_info_t *pinfo)
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
 
-    sid = rte_eth_dev_socket_id(pid);
+    sid = pg_eth_dev_socket_id(pid);
 
     pktgen_log_info("   Number of RX queues %u", l2p_get_rxcnt(pid));
     for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
@@ -457,7 +457,8 @@ _rx_queues(port_info_t *pinfo)
         rxq_conf          = dinfo->default_rxconf;
         rxq_conf.offloads = conf->rxmode.offloads;
 
-        pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
+        pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx, socket_id %u, mp %p", q,
+                        rxq_conf.offloads, sid, lport->rx_mp[q]);
 
         ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp[q]);
         if (ret < 0)
@@ -478,7 +479,7 @@ _tx_queues(port_info_t *pinfo)
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
 
-    sid = rte_eth_dev_socket_id(pid);
+    sid = pg_eth_dev_socket_id(pid);
 
     pktgen_log_info("   Number of TX queues %u", l2p_get_txcnt(pid));
     for (int q = 0; q < l2p_get_txcnt(pid); q++) {

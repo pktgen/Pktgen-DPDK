@@ -69,7 +69,7 @@ endif
 
 if get_option('only_docs')
 	subdir('tools')
-	subdir('doc')
+	subdir('docs')
 else
 	dpdk = dependency('libdpdk', required: true, method: 'pkg-config')
 	dpdk_prefix = dpdk.get_variable('prefix')
@@ -79,7 +79,7 @@ else
 
 	dpdk_bond = cc.find_library('rte_net_bond', dirs: [dpdk_libs_path], required: false)
 
-	subdirs =['tools', 'lib', 'examples', 'app', 'doc']
+	subdirs =['tools', 'lib', 'examples', 'app', 'docs']
 	foreach d:subdirs
 		subdir(d)
 	endforeach

@@ -6,7 +6,10 @@
 
 /**
  * @file
- * Routines to help create a mutex.
+ *
+ * HMAP internal helper routines: mutex creation/destruction, the global
+ * hmap registry, per-hmap locking, hash computation, key comparison, and
+ * KVP memory management.
  */
 
 #include <errno.h>
@@ -18,8 +21,9 @@
 extern "C" {
 #endif
 
-/* Global registry of all created hmaps. */
+/** Global TAILQ registry of all created hmap instances. */
 static TAILQ_HEAD(hmap_hmap_list, hmap) hmap_registry;
+/** Mutex protecting @ref hmap_registry. */
 static pthread_mutex_t hmap_list_mutex;
 
 /**
@@ -91,6 +95,11 @@ hmap_mutex_destroy(pthread_mutex_t *mutex)
     return (ret != 0) ? -1 : 0;
 }
 
+/**
+ * Acquire the global hmap registry mutex.
+ *
+ * Logs an error if the lock cannot be obtained.
+ */
 static inline void
 hmap_list_lock(void)
 {
@@ -100,6 +109,11 @@ hmap_list_lock(void)
         HMAP_LOG("failed: %s\n", strerror(ret));
 }
 
+/**
+ * Release the global hmap registry mutex.
+ *
+ * Logs a warning if the unlock fails.
+ */
 static inline void
 hmap_list_unlock(void)
 {
@@ -109,6 +123,12 @@ hmap_list_unlock(void)
         HMAP_WARN("failed: %s\n", strerror(ret));
 }
 
+/**
+ * Acquire the per-hmap mutex.
+ *
+ * @param hmap
+ *   Pointer to the hmap whose mutex should be locked.
+ */
 static inline void
 hmap_lock(hmap_t *hmap)
 {
@@ -118,6 +138,12 @@ hmap_lock(hmap_t *hmap)
         HMAP_WARN("failed: %s\n", strerror(ret));
 }
 
+/**
+ * Release the per-hmap mutex.
+ *
+ * @param hmap
+ *   Pointer to the hmap whose mutex should be unlocked.
+ */
 static inline void
 hmap_unlock(hmap_t *hmap)
 {
@@ -127,6 +153,19 @@ hmap_unlock(hmap_t *hmap)
         HMAP_WARN("failed: %s\n", strerror(ret));
 }
 
+/**
+ * Default hash function used when no custom hash is provided.
+ *
+ * Computes a Jenkins-style one-at-a-time hash over the concatenation of
+ * @p prefix (if non-NULL) and @p key.
+ *
+ * @param prefix
+ *   Optional namespace prefix string, or NULL.
+ * @param key
+ *   Key string to hash.
+ * @return
+ *   32-bit hash value.
+ */
 static uint32_t
 _hmap_hash(const char *prefix, const char *key)
 {
@@ -156,7 +195,22 @@ _hmap_hash(const char *prefix, const char *key)
     return hash;
 }
 
-/* Return true or false, true or non-zero for a match, else zero */
+/**
+ * Default key comparison function used when no custom comparator is provided.
+ *
+ * Returns non-zero if @p kvp matches the given prefix and key pair, zero
+ * otherwise. Both prefix and kvp->prefix must be NULL or non-NULL together
+ * for a match to occur.
+ *
+ * @param kvp
+ *   Key-value pair to compare against.
+ * @param prefix
+ *   Optional namespace prefix, or NULL.
+ * @param key
+ *   Key string to match.
+ * @return
+ *   Non-zero on match, 0 on mismatch.
+ */
 static inline int
 _hmap_cmp(const hmap_kvp_t *kvp, const char *prefix, const char *key)
 {
@@ -168,7 +222,16 @@ _hmap_cmp(const hmap_kvp_t *kvp, const char *prefix, const char *key)
         return 0;
 }
 
-/* The hmap lock should be held while freeing the kvp */
+/**
+ * Free hmap-managed storage within a KVP and reset its fields.
+ *
+ * Releases the key and prefix strings allocated by hmap. Caller-managed
+ * value storage (arrays, pointers) is NOT freed here. The hmap lock must
+ * be held by the caller before invoking this function.
+ *
+ * @param kvp
+ *   Pointer to the key-value pair to free. If NULL, the call is a no-op.
+ */
 static void
 _hmap_free(hmap_kvp_t *kvp)
 {
@@ -192,18 +255,52 @@ _hmap_free(hmap_kvp_t *kvp)
     kvp->type  = HMAP_EMPTY_TYPE;
 }
 
+/**
+ * Compute a bucket index for the given prefix/key pair using the hmap's hash function.
+ *
+ * @param hmap
+ *   Pointer to the hmap.
+ * @param prefix
+ *   Optional namespace prefix, or NULL.
+ * @param key
+ *   Key string.
+ * @return
+ *   Bucket index in the range [0, hmap->capacity).
+ */
 static inline uint32_t
 hmap_get_hash(hmap_t *hmap, const char *prefix, const char *key)
 {
     return hmap->fns.hash_fn(prefix, key) % hmap->capacity;
 }
 
+/**
+ * Compare a KVP against the given prefix/key pair using the hmap's comparator.
+ *
+ * @param hmap
+ *   Pointer to the hmap.
+ * @param kvp
+ *   Key-value pair to compare.
+ * @param prefix
+ *   Optional namespace prefix, or NULL.
+ * @param key
+ *   Key string.
+ * @return
+ *   Non-zero on match, 0 on mismatch.
+ */
 static inline int
 hmap_compare(hmap_t *hmap, const hmap_kvp_t *kvp, const char *prefix, const char *key)
 {
     return hmap->fns.cmp_fn(kvp, prefix, key);
 }
 
+/**
+ * Free a KVP using the hmap's registered free function.
+ *
+ * @param hmap
+ *   Pointer to the hmap.
+ * @param kvp
+ *   Pointer to the key-value pair to free.
+ */
 static inline void
 hmap_free_kvp(hmap_t *hmap, hmap_kvp_t *kvp)
 {

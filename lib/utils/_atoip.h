@@ -19,22 +19,23 @@
 extern "C" {
 #endif
 
-#define RTE_IPADDR_V4      0x01
-#define RTE_IPADDR_V6      0x02
-#define RTE_IPADDR_NETWORK 0x04
+#define RTE_IPADDR_V4      0x01 /**< Flag: address is IPv4 */
+#define RTE_IPADDR_V6      0x02 /**< Flag: address is IPv6 */
+#define RTE_IPADDR_NETWORK 0x04 /**< Flag: parse as network/prefix notation */
 
-#define RTE_INADDRSZ    4
-#define RTE_IN6ADDRSZ   16
-#define RTE_PREFIXMAX   128
-#define RTE_V4PREFIXMAX 32
+#define RTE_INADDRSZ    4   /**< Size of an IPv4 address in bytes */
+#define RTE_IN6ADDRSZ   16  /**< Size of an IPv6 address in bytes */
+#define RTE_PREFIXMAX   128 /**< Maximum IPv6 prefix length in bits */
+#define RTE_V4PREFIXMAX 32  /**< Maximum IPv4 prefix length in bits */
 
+/** Holds a parsed IPv4 or IPv6 address, optionally with a prefix length. */
 struct rte_ipaddr {
-    uint8_t family;
+    uint8_t family; /**< Address family: AF_INET or AF_INET6 */
     union {
-        struct in_addr ipv4;
-        struct rte_ipv6_addr ipv6;
+        struct in_addr ipv4;       /**< IPv4 address (when family == AF_INET) */
+        struct rte_ipv6_addr ipv6; /**< IPv6 address (when family == AF_INET6) */
     };
-    unsigned int prefixlen; /* in case of network only */
+    unsigned int prefixlen; /**< Network prefix length in bits (0 if not a network address) */
 };
 
 /**

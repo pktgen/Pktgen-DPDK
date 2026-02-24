@@ -23,22 +23,22 @@
 extern "C" {
 #endif
 
-#define HMAP_LOG(args...)   RTE_LOG(INFO, USER2, ##args)
-#define HMAP_ERR(args...)   RTE_LOG(ERR, USER2, ##args)
-#define HMAP_WARN(args...)  RTE_LOG(WARNING, USER2, ##args)
+/** Log an INFO-level message to the USER2 facility. */
+#define HMAP_LOG(args...) RTE_LOG(INFO, USER2, ##args)
+/** Log an ERR-level message to the USER2 facility. */
+#define HMAP_ERR(args...) RTE_LOG(ERR, USER2, ##args)
+/** Log a WARNING-level message to the USER2 facility. */
+#define HMAP_WARN(args...) RTE_LOG(WARNING, USER2, ##args)
+/** Log a DEBUG-level message to the USER2 facility. */
 #define HMAP_DEBUG(args...) RTE_LOG(DEBUG, USER2, ##args)
 
 /**
- * Generates a log message regardless of log level.
+ * Log a message at a caller-specified level to the USER2 facility.
  *
- * @param f
- *   The fmt string, as in printf(3), followed by the variable arguments
- *   required by the format.
+ * @param l
+ *   DPDK log level (e.g. INFO, ERR, DEBUG) passed to RTE_LOG.
  * @param args
- *   Variable arguments depend on Application.
- * @return
- *   - The number of characters printed on success.
- *   - A negative value on error.
+ *   Format string followed by variable arguments, as in printf(3).
  */
 #define HMAP_PRINT(l, args...) RTE_LOG(l, USER2, ##args)
 

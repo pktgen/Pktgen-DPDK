@@ -24,11 +24,11 @@ extern "C" {
 #define GB_DEFAULT_GAP_SIZE 8
 
 struct gapbuf {
-    char *buf;   /** Pointer to start of buffer */
-    char *ebuf;  /** Pointer to end of buffer */
-    char *point; /** Pointer to point in the buffer */
-    char *gap;   /** Pointer to the start of the gap */
-    char *egap;  /** Pointer to the end of the gap */
+    char *buf;   /**< Pointer to start of the allocated buffer */
+    char *ebuf;  /**< Pointer one past the end of the allocated buffer */
+    char *point; /**< Current insertion/cursor position */
+    char *gap;   /**< Pointer to the start of the gap */
+    char *egap;  /**< Pointer to the end of the gap (first char after gap) */
 };
 
 /**
@@ -254,7 +254,7 @@ gb_point_at_gap(struct gapbuf *gb)
 }
 
 /**
- * Set point to a givewn index into the buffer
+ * Set point to a given index into the buffer
  *
  * @param gb
  *   The gapbuf structure pointer.
@@ -607,9 +607,9 @@ gb_del(struct gapbuf *gb, int cnt)
  * @param gb
  *   The gapbuf structure pointer.
  * @param str
- *   String to put at point
- * @param
- *   Size of the string to insert at point, if zero use strlen() to find length
+ *   String to insert at point.
+ * @param size
+ *   Number of bytes to insert; if zero, strlen(@p str) is used.
  * @return
  *   Number of bytes inserted
  */

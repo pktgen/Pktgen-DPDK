@@ -4,8 +4,12 @@
 
 /**
  * @file
+ * CLI argument map matching.
  *
- * String-related functions as replacement for libc equivalents
+ * Provides the cli_map structure and pattern-matching logic used to dispatch
+ * CLI commands. Each map entry pairs a format string (with % tokens such as
+ * %d, %4, %m, %P, %|opt1|opt2) with an integer index returned when the
+ * user-supplied argc/argv matches that pattern.
  */
 
 #ifndef _CLI_MAP_H_
@@ -17,9 +21,10 @@
 extern "C" {
 #endif
 
+/** One entry in a command dispatch table. */
 struct cli_map {
-    int index;
-    const char *fmt;
+    int index;       /**< Value returned by cli_mapping() on a successful match */
+    const char *fmt; /**< Space-separated format string; see cli_mapping() for tokens */
 };
 
 /**
@@ -85,16 +90,16 @@ void cli_maps_show(struct cli_map *maps, int argc, char **argv);
 void cli_map_dump(struct cli_map *maps, int argc, char **argv);
 
 /**
- * Determine index value for the list item
+ * Search a choice token in a cli_map format string for a matching item.
  *
  * @param fmt
- *   cli_map format string
+ *   cli_map format string containing one or more %|opt1|opt2|… tokens.
  * @param item
- *   pointer to the item to search for in the list.
- * @param
- *   index value for which list in format string to scan
+ *   The string to look up within the choice token.
+ * @param index
+ *   Zero-based index of the choice token within @p fmt to search.
  * @return
- *  -1 on error or index into list selections.
+ *   Zero-based position of @p item within the choice list, or -1 if not found.
  */
 int cli_map_list_search(const char *fmt, char *item, int index);
 

@@ -25,26 +25,28 @@
 extern "C" {
 #endif
 
+/** Generic 64-bit argument word that can be interpreted several ways. */
 typedef union {
-    void *voidp;     /** void * value */
-    char chr[8];     /** 8 characters */
-    uint64_t u64;    /** 64bit value */
-    uint32_t u32[2]; /** 2 32bit value */
-    uint16_t u16[4]; /** 4 16bit values */
-} arg_u;             /** Union for argument word */
+    void *voidp;     /**< Pointer value */
+    char chr[8];     /**< Up to 8 raw bytes */
+    uint64_t u64;    /**< 64-bit unsigned integer */
+    uint32_t u32[2]; /**< Two 32-bit unsigned integers */
+    uint16_t u16[4]; /**< Four 16-bit unsigned integers */
+} arg_u;
 
+/** Four-word argument block passed to cli_scan_t callbacks. */
 typedef struct {
-    arg_u arg1; /* Argument Word 1 */
-    arg_u arg2; /* Argument Word 2 */
-    arg_u arg3; /* Argument Word 3 */
-    arg_u arg4; /* Argument Word 4 */
-} args_t;       /* 32 bytes of arguments */
+    arg_u arg1; /**< Argument word 1 */
+    arg_u arg2; /**< Argument word 2 */
+    arg_u arg3; /**< Argument word 3 */
+    arg_u arg4; /**< Argument word 4 */
+} args_t;
 
 struct cli;
 struct cli_node;
 
+/** Callback invoked by cli_scan_directory() for each matching node. */
 typedef int (*cli_scan_t)(struct cli_node *node, uint32_t flags, args_t *args);
-/** typedef of function passed in cli_scan_directory() */
 
 /**
  * Scan a directory and call the func with the node found.

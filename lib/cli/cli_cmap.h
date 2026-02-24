@@ -2,6 +2,14 @@
  * Copyright(c) <2016-2025>, Intel Corporation.
  */
 
+/**
+ * @file
+ * CPU core map — parses /proc/cpuinfo into a lcore/socket/core/thread table.
+ *
+ * Used internally by the CLI cpu-info display to map logical cores to their
+ * physical socket, core, and hyper-thread IDs.
+ */
+
 #ifndef __CLI_CMAP_H
 #define __CLI_CMAP_H
 
@@ -11,28 +19,31 @@
 
 #define PROC_CPUINFO "/proc/cpuinfo"
 
+/** Per-logical-core topology descriptor packed into a single 32-bit word. */
 typedef union {
     struct {
-        uint8_t lid; /* Logical core ID */
-        uint8_t sid; /* CPU socket ID */
-        uint8_t cid; /* Physical CPU core ID */
-        uint8_t tid; /* Hyper-thread ID */
+        uint8_t lid; /**< Logical core ID */
+        uint8_t sid; /**< CPU socket ID */
+        uint8_t cid; /**< Physical CPU core ID */
+        uint8_t tid; /**< Hyper-thread ID */
     };
-    uint32_t word;
+    uint32_t word; /**< Raw 32-bit representation */
 } lc_info_t;
 
+/** Linked-list node for a single logical core entry. */
 typedef struct lcore {
-    struct lcore *next;
-    lc_info_t u;
+    struct lcore *next; /**< Next lcore in the singly-linked list */
+    lc_info_t u;        /**< Topology info for this lcore */
 } lcore_t;
 
+/** Aggregated CPU topology table for the whole system. */
 struct cmap {
-    uint16_t num_cores;
-    uint16_t sid_cnt;
-    uint16_t cid_cnt;
-    uint16_t tid_cnt;
-    lc_info_t *linfo;
-    char *model;
+    uint16_t num_cores; /**< Total number of logical cores */
+    uint16_t sid_cnt;   /**< Number of distinct socket IDs */
+    uint16_t cid_cnt;   /**< Number of distinct physical core IDs */
+    uint16_t tid_cnt;   /**< Number of distinct hyper-thread IDs */
+    lc_info_t *linfo;   /**< Flat array of per-lcore topology info */
+    char *model;        /**< CPU model name string (from /proc/cpuinfo) */
 };
 
 typedef lcore_t *(*do_line_fn)(const char *line, lcore_t *);
@@ -143,12 +154,17 @@ cmap_thread_id(const lcore_t *lc)
 }
 
 /**
- * Returns the number of unique values that exist of the property.
+ * Return the count of unique values for a given topology property.
+ *
+ * Walks the lcore linked list and returns (max_value + 1) for the
+ * property selected by @p get (e.g. socket ID, core ID, or thread ID).
  *
  * @param lc
- *   Pointer to the lcore structure
+ *   Head of the singly-linked lcore list.
  * @param get
- *   A function pointer to help count the type of values
+ *   Getter function that extracts the property to count from an lcore_t.
+ * @return
+ *   Number of unique values (max observed value + 1), or 0 if @p get is NULL.
  */
 static inline unsigned int
 cmap_cnt(lcore_t *lc, getter_fn get)

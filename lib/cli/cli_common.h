@@ -18,8 +18,10 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI common output helpers.
  *
+ * Provides cli_printf(), the primary console output routine used throughout
+ * the CLI library, routed through the active cli_scrn file descriptor.
  */
 
 #ifdef __cplusplus
@@ -31,14 +33,16 @@ extern "C" {
 #endif
 
 /**
- * CLI printf like routine to write on the console.
+ * printf-like routine to write formatted text to the CLI console.
  *
- * @note Uses thread variable this_cli.
+ * Output is written to this_scrn->fd_out and flushed immediately.
  *
- * @param va_args
- *   va_args for the rest of the printf ouput.
+ * @param fmt
+ *   printf-compatible format string.
+ * @param ...
+ *   Variable arguments for @p fmt.
  * @return
- *   N/A
+ *   Number of characters written, as returned by vfprintf().
  */
 
 static inline int __attribute__((format(printf, 1, 2)))

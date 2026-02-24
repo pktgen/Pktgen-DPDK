@@ -1781,7 +1781,6 @@ misc_cmd(int argc, char **argv)
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_port_restart(pinfo));
         break;
-    case 120:
     case 130:
         pktgen_set_port_number((uint16_t)atoi(argv[1]));
         break;

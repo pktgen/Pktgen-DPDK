@@ -8,8 +8,11 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI engine — core structs, node management, and setup API.
  *
+ * Defines the cli_node and cli directory-tree types, the per-lcore struct cli
+ * instance, and all public functions for initialising, populating, and running
+ * the interactive CLI engine.
  */
 #include <libgen.h>
 #include <sys/queue.h>
@@ -224,18 +227,38 @@ RTE_DECLARE_PER_LCORE(struct cli *, cli);
 #define CLI_YIELD_IO        (1 << 10)
 #define CLI_DEFAULT_TREE    (1 << 11)
 
+/**
+ * Set one or more CLI flags.
+ *
+ * @param x
+ *   Bitmask of flags to set in this_cli->flags.
+ */
 static inline void
 cli_set_flag(uint32_t x)
 {
     this_cli->flags |= x;
 }
 
+/**
+ * Clear one or more CLI flags.
+ *
+ * @param x
+ *   Bitmask of flags to clear in this_cli->flags.
+ */
 static inline void
 cli_clr_flag(uint32_t x)
 {
     this_cli->flags &= ~x;
 }
 
+/**
+ * Test whether any of the given CLI flags are set.
+ *
+ * @param x
+ *   Bitmask of flags to test.
+ * @return
+ *   Non-zero if any flag in @p x is set, zero otherwise.
+ */
 static inline int
 cli_tst_flag(uint32_t x)
 {
@@ -309,6 +332,14 @@ struct cli_tree {
     }
 #define c_end() {CLI_UNK_NODE, .dir = {NULL, 0}}
 
+/**
+ * Store an arbitrary user-state pointer in the CLI instance.
+ *
+ * @note Uses thread variable this_cli.
+ *
+ * @param val
+ *   Pointer to store as the user state value.
+ */
 static inline void
 cli_set_user_state(void *val)
 {
@@ -564,14 +595,12 @@ cli_path_string(struct cli_node *node, char *path)
 }
 
 /**
- * path string of current working directory
+ * Return the path string for the current working directory.
  *
  * @note Uses thread variable this_cli.
  *
- * @param entry
- *   The node to free.
  * @return
- *   N/A
+ *   Pointer to the scratch buffer containing the CWD path string.
  */
 static inline char *
 cli_cwd_path(void)
@@ -674,8 +703,24 @@ int cli_init(int nb_entries, uint32_t nb_hist);
  */
 int cli_create_with_defaults(void);
 
+/**
+ * Create the CLI engine using compiled-in defaults.
+ *
+ * @return
+ *   0 on success or -1 on error
+ */
 int cli_create(void);
 
+/**
+ * Configure the CLI with a prompt function and optional default tree.
+ *
+ * @param prompt
+ *   Function pointer for displaying the CLI prompt, or NULL for default.
+ * @param default_func
+ *   Function pointer to populate the initial command tree, or NULL.
+ * @return
+ *   0 on success or -1 on error
+ */
 int cli_setup(cli_prompt_t prompt, cli_tree_t default_func);
 
 /**
@@ -941,6 +986,12 @@ int cli_execute_cmdfile(const char *path);
  */
 int cli_execute_cmdfiles(void);
 
+/**
+ * Return the number of command files registered with cli_add_cmdfile().
+ *
+ * @return
+ *   Count of pending command files.
+ */
 int cli_num_cmdfiles(void);
 
 /**
@@ -975,6 +1026,13 @@ cli_quit(void)
     this_cli->quit_flag = 1;
 }
 
+/**
+ * Register a Lua evaluation callback used by the CLI Lua command.
+ *
+ * @param func
+ *   Function pointer with signature int(void *lua_state, const char *script).
+ *   Pass NULL to unregister.
+ */
 void cli_set_lua_callback(int (*func)(void *, const char *));
 
 #ifdef __cplusplus

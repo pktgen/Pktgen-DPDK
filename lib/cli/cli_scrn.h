@@ -120,9 +120,9 @@ enum vt100_parse_state {
 
 #define VT100_BUF_SIZE 8
 struct cli_vt100 {
-    int bufpos;                   /** Current offset into buffer */
-    char buf[VT100_BUF_SIZE];     /** cli_vt100 command buffer */
-    enum vt100_parse_state state; /** current cli_vt100 parser state */
+    int bufpos;                   /**< Current write offset into @p buf */
+    char buf[VT100_BUF_SIZE];     /**< Accumulator for multi-byte VT100 escape sequences */
+    enum vt100_parse_state state; /**< Current parser state for escape-sequence detection */
 };
 
 struct vt100_cmds {
@@ -534,10 +534,32 @@ scrn_rgb_str(char *str, uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b)
     return snprintf(str, 16, ESC "[%d;2;%d;%d;%dm", fg_bg, r, g, b);
 }
 
-/** External functions used for positioning the cursor and outputing a string
-   like printf */
+/**
+ * Create and initialise the global cli_scrn instance.
+ *
+ * @param scrn_type
+ *   Screen I/O type: SCRN_STDIN_TYPE for interactive TTY,
+ *   SCRN_NOTTY_TYPE for non-TTY (pipe/file) output.
+ * @param theme
+ *   Initial theme state: SCRN_THEME_ON or SCRN_THEME_OFF.
+ * @return
+ *   0 on success or -1 on error.
+ */
 int scrn_create(int scrn_type, int theme);
+
+/**
+ * Create the global cli_scrn with default stdin/stdout I/O and theme off.
+ *
+ * @param theme
+ *   Initial theme state: SCRN_THEME_ON or SCRN_THEME_OFF.
+ * @return
+ *   0 on success or -1 on error.
+ */
 int scrn_create_with_defaults(int theme);
+
+/**
+ * Destroy the global cli_scrn instance and free its resources.
+ */
 void scrn_destroy(void);
 
 /**
@@ -570,7 +592,20 @@ void vt100_free(struct cli_vt100 *vt);
  */
 int vt100_parse_input(struct cli_vt100 *vt, uint8_t c);
 
+/**
+ * Execute the VT100 command at the given index in vt100_commands[].
+ *
+ * @param idx
+ *   Index into the vt100_commands[] dispatch table (VT100_KEY_* enum value).
+ */
 void vt100_do_cmd(int idx);
+
+/**
+ * Return the vt100_cmds dispatch table.
+ *
+ * @return
+ *   Pointer to the internal vt100_cmds array.
+ */
 struct vt100_cmds *vt100_get_cmds(void);
 
 #ifdef __cplusplus

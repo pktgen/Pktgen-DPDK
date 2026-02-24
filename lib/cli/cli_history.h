@@ -19,13 +19,13 @@ extern "C" {
 #endif
 
 enum {
-    CLI_DEFAULT_HISTORY = -1, /** Use the default history count */
-    CLI_NO_HISTORY      = 0,  /** No history */
+    CLI_DEFAULT_HISTORY = -1, /**< Use the default history line count */
+    CLI_NO_HISTORY      = 0,  /**< Disable history entirely */
 };
 
 struct cli_hist {
-    CIRCLEQ_ENTRY(cli_hist) next; /** link list of history lines */
-    char *line;                   /** line is strdup of original line */
+    CIRCLEQ_ENTRY(cli_hist) next; /**< Circular-queue linkage for history list */
+    char *line;                   /**< strdup'd copy of the saved command line */
 };
 
 struct cli;
@@ -129,12 +129,13 @@ int cli_set_history(uint32_t nb_hist);
 char *cli_history_prev(void);
 
 /**
- * Return the next history line
+ * Return the next (more recent) history line.
  *
- * @param cli
- *   Pointer to the allocated cli structure
+ * @note Uses the thread variable this_cli. Wraps around when the end is
+ *   reached.
+ *
  * @return
- *   pointer to the next history line wrap if needed
+ *   Pointer to the next history line, or NULL if history is empty.
  */
 char *cli_history_next(void);
 
@@ -146,12 +147,9 @@ char *cli_history_next(void);
 void cli_history_reset(void);
 
 /**
- * Add the default set of directories and commands
+ * Print all history lines to the CLI console.
  *
- * @note Uses the thread variable this_cli
- *
- * @return
- *   0 is ok, -1 is error
+ * @note Uses the thread variable this_cli.
  */
 void cli_history_dump(void);
 

@@ -16,8 +16,11 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI help subsystem for grouped command documentation.
  *
+ * Manages named help groups, each consisting of a cli_map table and an array
+ * of descriptive strings. Groups are registered via cli_help_add() and can be
+ * displayed individually or all at once.
  */
 
 #ifdef __cplusplus
@@ -67,18 +70,19 @@ int cli_help_show_all(const char *msg);
 int cli_help_show_group(const char *group);
 
 /**
- * Add help string group to a help structure
+ * Register a named help group with an optional command map.
  *
- * @param
- *   The help pointer structure
+ * Adds the group to the per-lcore help list and registers all first-token
+ * command names from @p map so that auto-complete can find them.
+ *
  * @param group
- *   The group name for this help list
+ *   Name string for this help group (e.g. "Range", "Set").
  * @param map
- *   The pointer to the MAP structure if present.
- * @param help_data
- *   The array of string pointers for the help group
- * @returns
- *   0 on OK and -1 on error
+ *   Pointer to the cli_map table for this group, or NULL if none.
+ * @param hd
+ *   NULL-terminated array of help strings for this group.
+ * @return
+ *   0 on success or -1 on error
  */
 int cli_help_add(const char *group, struct cli_map *map, const char **hd);
 
@@ -113,6 +117,20 @@ is_help(int argc, char **argv)
  */
 void cli_help_foreach(void (*func)(void *arg, const char **h), void *arg);
 
+/**
+ * Print an error message and show the help group for a failed command.
+ *
+ * @param msg
+ *   Short error description to print.
+ * @param group
+ *   Help group name whose entries will be displayed after the error.
+ * @param argc
+ *   Number of arguments in @p argv (for context in the error message).
+ * @param argv
+ *   Argument strings from the failed command invocation.
+ * @return
+ *   Always returns -1 (for use as a one-liner return value).
+ */
 int cli_cmd_error(const char *msg, const char *group, int argc, char **argv);
 
 #ifdef __cplusplus

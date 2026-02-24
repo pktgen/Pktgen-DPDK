@@ -50,31 +50,32 @@ extern "C" {
 struct hmap;
 
 // clang-format off
+/** Value type stored in an hmap key-value pair. */
 typedef enum {
-    HMAP_EMPTY_TYPE,
-    HMAP_STR_TYPE,
-    HMAP_U64_TYPE,
-    HMAP_U32_TYPE,
-    HMAP_U16_TYPE,
-    HMAP_U8_TYPE,
-    HMAP_I64_TYPE,
-    HMAP_I32_TYPE,
-    HMAP_I16_TYPE,
-    HMAP_I8_TYPE,
-    HMAP_DOUBLE_TYPE,
-    HMAP_POINTER_TYPE,
-	HMAP_STR_ARRAY_TYPE,
-	HMAP_U64_ARRAY_TYPE,
-	HMAP_U32_ARRAY_TYPE,
-    HMAP_U16_ARRAY_TYPE,
-    HMAP_U8_ARRAY_TYPE,
-    HMAP_I64_ARRAY_TYPE,
-    HMAP_I32_ARRAY_TYPE,
-    HMAP_I16_ARRAY_TYPE,
-    HMAP_I8_ARRAY_TYPE,
-    HMAP_DOUBLE_ARRAY_TYPE,
-    HMAP_PTR_ARRAY_TYPE,
-    HMAP_NUM_TYPES
+    HMAP_EMPTY_TYPE,        /**< Slot is empty / unoccupied */
+    HMAP_STR_TYPE,          /**< NUL-terminated string (char *) */
+    HMAP_U64_TYPE,          /**< Unsigned 64-bit integer */
+    HMAP_U32_TYPE,          /**< Unsigned 32-bit integer */
+    HMAP_U16_TYPE,          /**< Unsigned 16-bit integer */
+    HMAP_U8_TYPE,           /**< Unsigned 8-bit integer */
+    HMAP_I64_TYPE,          /**< Signed 64-bit integer */
+    HMAP_I32_TYPE,          /**< Signed 32-bit integer */
+    HMAP_I16_TYPE,          /**< Signed 16-bit integer */
+    HMAP_I8_TYPE,           /**< Signed 8-bit integer */
+    HMAP_DOUBLE_TYPE,       /**< IEEE 754 double-precision float */
+    HMAP_POINTER_TYPE,      /**< Generic void pointer */
+    HMAP_STR_ARRAY_TYPE,    /**< Array of NUL-terminated strings (char **) */
+    HMAP_U64_ARRAY_TYPE,    /**< Array of unsigned 64-bit integers */
+    HMAP_U32_ARRAY_TYPE,    /**< Array of unsigned 32-bit integers */
+    HMAP_U16_ARRAY_TYPE,    /**< Array of unsigned 16-bit integers */
+    HMAP_U8_ARRAY_TYPE,     /**< Array of unsigned 8-bit integers */
+    HMAP_I64_ARRAY_TYPE,    /**< Array of signed 64-bit integers */
+    HMAP_I32_ARRAY_TYPE,    /**< Array of signed 32-bit integers */
+    HMAP_I16_ARRAY_TYPE,    /**< Array of signed 16-bit integers */
+    HMAP_I8_ARRAY_TYPE,     /**< Array of signed 8-bit integers */
+    HMAP_DOUBLE_ARRAY_TYPE, /**< Array of double-precision floats */
+    HMAP_PTR_ARRAY_TYPE,    /**< Array of generic pointers */
+    HMAP_NUM_TYPES          /**< Sentinel: number of defined types */
 } hmap_type_t;
 // clang-format on
 

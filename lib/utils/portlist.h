@@ -39,18 +39,45 @@ typedef uint64_t portlist_t;
 int portlist_parse(const char *str, int nb_ports, portlist_t *portlist);
 
 /**
- * Parse a portmasl string into a mask or bitmap value.
+ * Parse a portmask string into a mask or bitmap value.
  *
  * @param str
  *   String to parse
- * @param portlist
+ * @param portmask
  *   Pointer to uint64_t value for returned bitmap
  * @return
  *   -1 on error or 0 on success.
  */
 int portmask_parse(const char *str, portlist_t *portmask);
 
+/**
+ * Convert a portlist bitmap to a human-readable string (e.g. "0,1,3-5").
+ *
+ * @param portlist
+ *   64-bit bitmap of port indices to serialise.
+ * @param buf
+ *   Destination buffer for the result string.
+ * @param len
+ *   Size of @p buf in bytes.
+ * @return
+ *   Pointer to @p buf on success, or NULL on error.
+ */
 char *portlist_string(uint64_t portlist, char *buf, int len);
+
+/**
+ * Convert a portlist bitmap to a string and print it to file @p f.
+ *
+ * @param f
+ *   Output file (e.g. stdout).
+ * @param portlist
+ *   64-bit bitmap of port indices to serialise.
+ * @param buf
+ *   Scratch buffer used to build the string.
+ * @param len
+ *   Size of @p buf in bytes.
+ * @return
+ *   Pointer to @p buf on success, or NULL on error.
+ */
 char *portlist_print(FILE *f, uint64_t portlist, char *buf, int len);
 
 #ifdef __cplusplus

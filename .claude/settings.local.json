@@ -5,7 +5,9 @@
       "Bash(wc:*)",
       "Bash(ls:*)",
       "Read(//work/projects/intel/pktgen-dpdk/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(clang-format:*)",
+      "Bash(git -C /work/projects/intel/pktgen-dpdk diff --stat lib/)"
     ]
   }
 }

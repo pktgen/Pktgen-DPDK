@@ -182,10 +182,12 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
                     printf("\n>>> Hit packet length zero at %'u of %'u\n", i, cap->nb_pkts);
                     break;
                 }
-                pcap_hdr.ts.tv_sec  = 0; /* FIXME use real timestamp */
-                pcap_hdr.ts.tv_usec = 0; /* FIXME use real timestamp */
+                struct timespec ts;
+                clock_gettime(CLOCK_REALTIME, &ts);
                 pcap_hdr.len        = hdr->pkt_len;
                 pcap_hdr.caplen     = hdr->data_len;
+                pcap_hdr.ts.tv_sec  = ts.tv_sec;
+                pcap_hdr.ts.tv_usec = ts.tv_nsec / 1000;
 
                 pcap_dump((u_char *)pcap_dumper, &pcap_hdr, (const u_char *)hdr->pkt);
 

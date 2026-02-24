@@ -1468,10 +1468,8 @@ single_set_proto(port_info_t *pinfo, char *type)
 {
     pinfo->seq_pkt[SINGLE_PKT].ipProto = (type[0] == 'u')   ? PG_IPPROTO_UDP
                                          : (type[0] == 'i') ? PG_IPPROTO_ICMP
-                                         : (type[0] == 't')
-                                             ? PG_IPPROTO_TCP
-                                             :
-                                             /* TODO print error: unknown type */ PG_IPPROTO_TCP;
+                                         : (type[0] == 't') ? PG_IPPROTO_TCP
+                                                            : PG_IPPROTO_TCP;
 
     /* ICMP only works on IPv4 packets. */
     if (type[0] == 'i')
@@ -1497,10 +1495,8 @@ range_set_proto(port_info_t *pinfo, const char *type)
 {
     pinfo->seq_pkt[RANGE_PKT].ipProto = (type[0] == 'u')   ? PG_IPPROTO_UDP
                                         : (type[0] == 'i') ? PG_IPPROTO_ICMP
-                                        : (type[0] == 't')
-                                            ? PG_IPPROTO_TCP
-                                            :
-                                            /* TODO print error: unknown type */ PG_IPPROTO_TCP;
+                                        : (type[0] == 't') ? PG_IPPROTO_TCP
+                                                           : PG_IPPROTO_TCP;
     pinfo->range.ip_proto             = pinfo->seq_pkt[RANGE_PKT].ipProto;
 
     /* ICMP only works on IPv4 packets. */
@@ -1822,12 +1818,10 @@ show_bonding_mode(port_info_t *pinfo)
 void
 range_set_pkt_type(port_info_t *pinfo, const char *type)
 {
-    pinfo->seq_pkt[RANGE_PKT].ethType =
-        (type[0] == 'a')   ? RTE_ETHER_TYPE_ARP
-        : (type[3] == '4') ? RTE_ETHER_TYPE_IPV4
-        : (type[3] == '6') ? RTE_ETHER_TYPE_IPV6
-                           :
-                           /* TODO print error: unknown type */ RTE_ETHER_TYPE_IPV4;
+    pinfo->seq_pkt[RANGE_PKT].ethType = (type[0] == 'a')   ? RTE_ETHER_TYPE_ARP
+                                        : (type[3] == '4') ? RTE_ETHER_TYPE_IPV4
+                                        : (type[3] == '6') ? RTE_ETHER_TYPE_IPV6
+                                                           : RTE_ETHER_TYPE_IPV4;
     if (pinfo->seq_pkt[RANGE_PKT].ethType == RTE_ETHER_TYPE_IPV6) {
         if (pinfo->range.pkt_size < MIN_v6_PKT_SIZE)
             pinfo->range.pkt_size = MIN_v6_PKT_SIZE;

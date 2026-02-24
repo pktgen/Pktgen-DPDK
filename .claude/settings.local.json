@@ -4,7 +4,8 @@
       "Bash(ninja:*)",
       "Bash(wc:*)",
       "Bash(ls:*)",
-      "Read(//work/projects/intel/pktgen-dpdk/**)"
+      "Read(//work/projects/intel/pktgen-dpdk/**)",
+      "Bash(find:*)"
     ]
   }
 }

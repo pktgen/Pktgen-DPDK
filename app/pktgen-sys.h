@@ -9,10 +9,19 @@
 #ifndef _PKTGEN_SYS_H_
 #define _PKTGEN_SYS_H_
 
+/**
+ * @file
+ *
+ * System information display page for Pktgen.
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * Render the system information display page to the console.
+ */
 void pktgen_page_system(void);
 
 #ifdef __cplusplus

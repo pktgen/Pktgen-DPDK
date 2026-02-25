@@ -6,6 +6,7 @@ Pktgen-DPDK - Traffic Generator powered by DPDK
 ** (Pktgen) Sounds like 'Packet-Gen'**
 
 **=== Modifications ===**
+ - 26.02.4 - Clean up doxygen comments and update copyrights.
  - 26.02.3 - Fix up documentation builds.
  - 26.02.2 - Fix case where socket id request returns -1 or SOCKET_ID_ANY force to 0.
  - 26.02.1 - Fix PCAP rate issues not using the average size packet.

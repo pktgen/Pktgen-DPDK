@@ -6,7 +6,7 @@ Pktgen is a traffic generator powered by DPDK at wire rate traffic with 64 byte 
 ## (Pktgen) Sounds like 'Packet-Gen'
 
 ---
-**Copyright &copy; \<2010-2024\>, Intel Corporation. All rights reserved.**
+**Copyright &copy; \<2010-2026\>, Intel Corporation. All rights reserved.**
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

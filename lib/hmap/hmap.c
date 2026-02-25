@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2016-2023 Intel Corporation
+ * Copyright (c) 2016-2026 Intel Corporation
  */
 
 #include <stdlib.h>               // for free, calloc, malloc, qsort

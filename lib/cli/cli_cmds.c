@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 
 #include <stdio.h>
@@ -447,7 +447,7 @@ path_cmd(int argc __rte_unused, char **argv __rte_unused)
 static const char *copyright =
     "   BSD LICENSE\n"
     "\n"
-    "   Copyright(c) <2010-2025> Intel Corporation. All rights reserved.\n"
+    "   Copyright(c) <2010-2026> Intel Corporation. All rights reserved.\n"
     "\n"
     "   Redistribution and use in source and binary forms, with or without\n"
     "   modification, are permitted provided that the following conditions\n"

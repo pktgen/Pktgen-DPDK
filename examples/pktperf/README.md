@@ -4,7 +4,7 @@ The `pktperf` example application is used to verify Rx/Tx performance with multi
 
 ---
 ```console
-**Copyright &copy; <2023>, Intel Corporation. All rights reserved.**
+**Copyright &copy; <2023-2026>, Intel Corporation. All rights reserved.**
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

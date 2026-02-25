@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright (c) 2024-2025 Intel Corporation
+# Copyright (c) 2024-2026 Intel Corporation
 
 sources = files('hmap.c')
 headers = files('hmap.h')

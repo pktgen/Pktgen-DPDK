@@ -256,7 +256,7 @@ Staged C source/header files (`*.c`, `*.h`) are auto-formatted with `clang-forma
 ## 11. License
 
 SPDX-License-Identifier: BSD-3-Clause
-Copyright © 2010-2025 Intel Corporation
+Copyright © 2010-2026 Intel Corporation
 
 Full license text is available in [`LICENSE`](./LICENSE).
 

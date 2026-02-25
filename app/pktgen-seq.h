@@ -8,6 +8,16 @@
 #ifndef _PKTGEN_SEQ_H_
 #define _PKTGEN_SEQ_H_
 
+/**
+ * @file
+ *
+ * Packet sequence template for Pktgen.
+ *
+ * Defines pkt_seq_t, the per-slot packet template that stores all layer-2
+ * through layer-7 parameters needed to build a transmit packet.
+ * Each port has an array of NUM_TOTAL_PKTS such templates.
+ */
+
 #include <rte_ether.h>
 #include <cmdline_parse.h>
 #include <cmdline_parse_ipaddr.h>
@@ -21,6 +31,7 @@ extern "C" {
 
 __extension__ typedef void *MARKER[0]; /**< generic marker for a point in a structure */
 
+/** Per-slot packet template containing all fields needed to build a packet. */
 typedef struct pkt_seq_s {
     /* Packet type and information */
     struct rte_ether_addr eth_dst_addr; /**< Destination Ethernet address */
@@ -73,8 +84,19 @@ typedef struct pkt_seq_s {
 
 struct port_info_s;
 
+/**
+ * Build and transmit the sequence packet at a given slot index.
+ *
+ * @param info     Per-port state.
+ * @param seq_idx  Sequence slot index (0 .. NUM_SEQ_PKTS-1).
+ */
 void pktgen_send_seq_pkt(struct port_info_s *info, uint32_t seq_idx);
 
+/**
+ * Render the sequence-mode display page to the terminal.
+ *
+ * @param pid  Port ID whose sequence slots are displayed.
+ */
 void pktgen_page_seq(uint32_t pid);
 
 #ifdef __cplusplus

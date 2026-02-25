@@ -9,6 +9,14 @@
 #ifndef _PKTGEN_DISPLAY_H_
 #define _PKTGEN_DISPLAY_H_
 
+/**
+ * @file
+ *
+ * Terminal display helpers for Pktgen: screen initialisation, top/dash
+ * line drawing, geometry queries, colour-theme management, and column
+ * divider rendering.
+ */
+
 /* TODO create pktgen_display_*() abstractions and remove this #include */
 #include <cli_scrn.h>
 
@@ -20,151 +28,111 @@
 extern "C" {
 #endif
 
-/* Initialize screen data structures */
+/**
+ * Initialise the terminal screen and colour theme.
+ *
+ * @param theme
+ *   Non-zero to enable the colour theme; 0 for monochrome output.
+ */
 void pktgen_init_screen(int theme);
 
 /**
+ * Print the top banner line of the display with page title and port range.
  *
- * display_topline - Print out the top line on the screen.
- *
- * DESCRIPTION
- * Print out the top line on the screen and any other information.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param msg
+ *   Page title string to centre in the top line.
+ * @param pstart
+ *   First port index included on this display page.
+ * @param pstop
+ *   Last port index included on this display page (inclusive).
+ * @param pcnt
+ *   Total number of ports shown on this page.
  */
 void display_topline(const char *msg, int pstart, int pstop, int pcnt);
 
 /**
+ * Print a full-width dashed separator line at the given row.
  *
- * display_dashline - Print out the dashed line on the screen.
- *
- * DESCRIPTION
- * Print out the dashed line on the screen and any other information.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param last_row
+ *   Terminal row number at which to draw the dashed line.
  */
 void display_dashline(int last_row);
 
 /**
+ * Query the current terminal geometry.
  *
- * pktgen_display_get_geometry - Get the display geometry
- *
- * DESCRIPTION
- * Get the display geometry.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param rows
+ *   Output: number of terminal rows.
+ * @param cols
+ *   Output: number of terminal columns.
  */
 void pktgen_display_get_geometry(uint16_t *rows, uint16_t *cols);
 
 /**
+ * Apply the foreground/background colours associated with theme element @p elem.
  *
- * pktgen_display_set_color - Changes the color to the color of the specified element.
- *
- * DESCRIPTION
- * Changes the color to the color of the specified element.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param elem
+ *   Theme element name string (e.g. "top.page", "stats.total.label").
  */
 void pktgen_display_set_color(const char *elem);
 
 /**
+ * Update the CLI prompt string to reflect the current colour theme.
  *
- * pktgen_set_prompt - Sets the prompt for the command line.
- * The new string will include color support if enabled, which includes
- * ANSI color codes to style the prompt according to the color theme.
- *
- * DESCRIPTION
- * None
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * When the colour theme is enabled the prompt includes ANSI escape codes;
+ * when disabled it is plain text.
  */
 void pktgen_set_prompt(void);
 
 /**
- *
- * pktgen_show_theme - Display the current color theme information
- *
- * DESCRIPTION
- * Display the current color theme information with color
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * Print all defined colour theme entries with their associated colours.
  */
 void pktgen_show_theme(void);
 
 /**
+ * Set the colours and text attribute for a named theme item.
  *
- * pktgen_set_theme_item - Set the given item name with the colors and attribute
- *
- * DESCRIPTION
- * Set the given theme item with the colors and attributes.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param item
+ *   Theme item name to update.
+ * @param fg_color
+ *   Foreground colour name string (e.g. "red", "default").
+ * @param bg_color
+ *   Background colour name string.
+ * @param attr
+ *   Text attribute string (e.g. "bold", "underline", "none").
  */
 void pktgen_set_theme_item(char *item, char *fg_color, char *bg_color, char *attr);
 
 /**
+ * Save the current colour theme as a sequence of Pktgen commands to @p filename.
  *
- * pktgen_theme_save - Save the theme to a file.
- *
- * DESCRIPTION
- * Save a set of commands to set the theme colors and attributes.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param filename
+ *   Path to the file in which the theme commands are written.
  */
 void pktgen_theme_save(char *filename);
 
 /**
+ * Enable or disable the colour theme.
  *
- * pktgen_theme_state - Set the current theme state.
- *
- * DESCRIPTION
- * Set the current theme state.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param state
+ *   "on" to enable the colour theme, "off" to disable it.
  */
 void pktgen_theme_state(const char *state);
 
 /**
- *
- * pktgen_theme_show - Show the current theme state.
- *
- * DESCRIPTION
- * Show the current theme state.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * Print the current colour-theme enable/disable state to the console.
  */
 void pktgen_theme_show(void);
 
 /**
+ * Draw a vertical column divider (colon characters) between two rows.
  *
- * pktgen_print_div - Draw the column divider with colons
- *
- * DESCRIPTION
- * Draw the column divider with colons.
- *
- * RETURNS: N/A
- *
- * SEE ALSO:
+ * @param row_first
+ *   First terminal row at which to start drawing the divider.
+ * @param row_last
+ *   Last terminal row at which to stop drawing the divider (inclusive).
+ * @param col
+ *   Terminal column at which the divider is drawn.
  */
 void pktgen_print_div(uint32_t row_first, uint32_t row_last, uint32_t col);
 

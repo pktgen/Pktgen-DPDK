@@ -12,25 +12,34 @@
 #ifndef _PKTGEN_TXBUFF_H_
 #define _PKTGEN_TXBUFF_H_
 
+/**
+ * @file
+ *
+ * Software TX coalescing buffer for Pktgen.
+ *
+ * Provides a small per-port/queue packet buffer that collects mbufs and
+ * flushes them to the NIC in a single rte_eth_tx_burst() call, reducing
+ * PCIe overhead for bursty traffic patterns.
+ */
+
 #include <rte_mbuf.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** Callback invoked when packets remain unsent after a flush attempt. */
 typedef void (*tx_buffer_error_fn)(struct rte_mbuf **unsent, uint16_t count, void *userdata);
 
 /**
- * Structure used to buffer packets for future Tx
- * Used by APIs pg_eth_tx_buffer and pg_eth_tx_buffer_flush
+ * Packet coalescing buffer used by tx_buffer() and tx_buffer_flush().
  */
 struct eth_tx_buffer {
-    uint16_t size;   /**< Size of buffer for buffered Tx */
-    uint16_t length; /**< Number of packets in the array */
-    uint16_t pid;    /**< Port ID */
-    uint16_t qid;    /**< Queue ID */
-    /** Pending packets to be sent on explicit flush or when full */
-    struct rte_mbuf *pkts[];
+    uint16_t size;           /**< Maximum number of packets the buffer can hold */
+    uint16_t length;         /**< Current number of packets held in the buffer */
+    uint16_t pid;            /**< Port ID to transmit on */
+    uint16_t qid;            /**< Queue ID to transmit on */
+    struct rte_mbuf *pkts[]; /**< Pending packets to be sent on flush or when full */
 };
 
 /**

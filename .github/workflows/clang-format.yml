@@ -1,14 +1,60 @@
 name: clang-format Check
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+
 jobs:
   formatting-check:
     name: Formatting Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Run clang-format style check for C/C++/Protobuf programs.
-      uses: jidicula/clang-format-action@v4.16.0
-      with:
-        clang-format-version: '21'
-        #check-path: 'src'
-        #fallback-style: 'Mozilla' # optional
+      - uses: actions/checkout@v4
+        with:
+          # Fetch enough history to diff against the base branch on PRs,
+          # or against the previous commit on direct pushes.
+          fetch-depth: 0
+
+      - name: Install clang-format-21
+        run: |
+          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 21
+          sudo apt-get install -y clang-format-21
+          sudo update-alternatives --install /usr/bin/clang-format clang-format \
+            /usr/bin/clang-format-21 100
+          clang-format --version
+
+      - name: Resolve changed C/C++ files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+
+          # Gracefully handle the first push to a branch (no previous commit).
+          if git cat-file -t "$BASE" 2>/dev/null | grep -q commit; then
+            FILES=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD \
+              | grep -E '\.(c|h|cpp|hpp|cc|hh)$' || true)
+          else
+            FILES=$(git ls-files '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.hh')
+          fi
+
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FILES"     >> "$GITHUB_OUTPUT"
+          echo "EOF"        >> "$GITHUB_OUTPUT"
+
+          if [ -z "$FILES" ]; then
+            echo "No C/C++ files changed – skipping format check."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Checking $(echo "$FILES" | wc -l) file(s):"
+            echo "$FILES"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check formatting
+        if: steps.changed.outputs.skip == 'false'
+        run: |
+          echo "${{ steps.changed.outputs.files }}" \
+            | xargs -r clang-format --dry-run --Werror

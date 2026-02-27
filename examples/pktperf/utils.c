@@ -147,7 +147,7 @@ packet_constructor(l2p_lport_t *lport, uint8_t *pkt, uint16_t proto)
         udp->dst_port = rte_cpu_to_be_16(get_rand(0xFFFE) + 1);
 
         len              = (uint16_t)(info->pkt_size - sizeof(struct rte_ether_hdr) -
-                         sizeof(struct rte_ipv4_hdr) - RTE_ETHER_CRC_LEN);
+                                      sizeof(struct rte_ipv4_hdr) - RTE_ETHER_CRC_LEN);
         udp->dgram_len   = rte_cpu_to_be_16(len);
         udp->dgram_cksum = 0;
         udp->dgram_cksum = rte_ipv4_udptcp_cksum(ipv4, (const void *)udp);

@@ -556,6 +556,15 @@ pktgen_process_stats(void)
         memcpy(prev, curr, sizeof(struct rte_eth_stats));
 
         process_xstats(pinfo);
+
+        /* Snapshot per-queue counters written by worker lcores.
+         * rte_smp_rmb() ensures all worker stores are visible before the copy.
+         * snap_qstats is owned exclusively by this timer thread; the display
+         * reads from snap_qstats so it never races with the worker hot path. */
+        rte_smp_rmb();
+        int nq = RTE_MAX(l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+        for (int q = 0; q < nq && q < MAX_QUEUES_PER_PORT; q++)
+            pinfo->stats.snap_qstats[q] = pinfo->stats.qstats[q];
     }
 }
 
@@ -618,9 +627,10 @@ pktgen_page_qstats(uint16_t pid)
     row += 6;
     ipackets = opackets = errs = 0;
     hdr                        = 0;
-    for (q = 0; q < RTE_ETHDEV_QUEUE_STAT_CNTRS; q++) {
+    int nq                     = RTE_MAX(l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
+    for (q = 0; q < (unsigned int)nq; q++) {
         uint64_t rxpkts, txpkts, errors;
-        qstats_t *qs      = &pinfo->stats.qstats[q];
+        qstats_t *qs      = &pinfo->stats.snap_qstats[q];
         qstats_t *prev_qs = &pinfo->stats.prev_qstats[q];
 
         if (!hdr) {

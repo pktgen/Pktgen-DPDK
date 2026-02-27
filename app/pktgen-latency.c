@@ -314,9 +314,12 @@ pktgen_page_latency(void)
         pktgen.cumm_rate_totals.rx_nombuf += pinfo->stats.rate.rx_nombuf;
 
         row++; /* Skip Latency header row */
-        lat             = &pinfo->latency;
-        nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
-        lat->avg_cycles = (lat->running_cycles / nb_pkts);
+        lat = &pinfo->latency;
+        /* Ensure all RX worker stores to latency fields are visible before reading */
+        rte_smp_rmb();
+        nb_pkts = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
+        uint64_t avg_cycles =
+            lat->running_cycles / nb_pkts; /* compute locally; do not write back */
 
         snprintf(buff, sizeof(buff), "%'" PRIu64, lat->latency_rate_us);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -337,8 +340,8 @@ pktgen_page_latency(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->min_cycles, latency);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        latency = cycles_to_us(lat->avg_cycles, per_cycle);
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->avg_cycles, latency);
+        latency = cycles_to_us(avg_cycles, per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", avg_cycles, latency);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         latency = cycles_to_us(lat->max_cycles, per_cycle);

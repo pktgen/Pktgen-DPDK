@@ -7,7 +7,8 @@
       "Read(//work/projects/intel/pktgen-dpdk/**)",
       "Bash(find:*)",
       "Bash(clang-format:*)",
-      "Bash(git -C /work/projects/intel/pktgen-dpdk diff --stat lib/)"
+      "Bash(git -C /work/projects/intel/pktgen-dpdk diff --stat lib/)",
+      "Bash(grep -rn \"pktgen_stats_clear\\\\|\\\\.qstats\\\\|\\\\.curr\\\\|\\\\.prev\\\\|\\\\.rate\\\\|rte_eth_stats_get\" /work/projects/intel/pktgen-dpdk/app/*.c)"
     ]
   }
 }

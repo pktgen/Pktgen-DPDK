@@ -65,8 +65,9 @@ typedef struct port_stats_s {
 
     size_stats_t sizes; /**< Packet size counters */
 
-    qstats_t qstats[MAX_QUEUES_PER_PORT];      /**< Current queue stats */
-    qstats_t prev_qstats[MAX_QUEUES_PER_PORT]; /**< Previous queue stats to determine rate */
+    qstats_t qstats[MAX_QUEUES_PER_PORT];      /**< Hot-path: written only by worker lcores */
+    qstats_t snap_qstats[MAX_QUEUES_PER_PORT]; /**< Snapshot: written only by timer thread */
+    qstats_t prev_qstats[MAX_QUEUES_PER_PORT]; /**< Previous snapshot for rate calculation */
 } port_stats_t;
 
 struct port_info_s;

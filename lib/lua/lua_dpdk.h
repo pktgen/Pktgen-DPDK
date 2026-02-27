@@ -13,7 +13,7 @@
  *
  * Defines common structures (pkt_data), iteration macros (foreach_port),
  * argument validation helpers (validate_arg_count), and a set of
- * setf_*/getf_* inline functions for pushing and pulling values between
+ * setf_* and getf_* inline functions for pushing and pulling values between
  * C and Lua table fields.
  */
 

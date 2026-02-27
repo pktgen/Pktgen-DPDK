@@ -85,8 +85,8 @@ static inline void
 l_message(const char *pname, const char *msg)
 {
     if (pname)
-        lua_writestringerror("%s: ", pname);
-    lua_writestringerror("%s\n", msg);
+        fprintf(stderr, "%s: ", pname);
+    fprintf(stderr, "%s\n", msg);
 }
 
 /**

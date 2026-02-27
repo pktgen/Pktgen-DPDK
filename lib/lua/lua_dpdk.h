@@ -27,8 +27,7 @@
 #include <lauxlib.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #define LUA_DPDK_LIBNAME "dpdk"

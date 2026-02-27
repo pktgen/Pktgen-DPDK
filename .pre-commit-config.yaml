@@ -8,7 +8,7 @@ exclude: '^(builddir/.*|specs/.*|.github/.*|.githooks/.*)'
 repos:
   # General code quality hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
@@ -26,7 +26,7 @@ repos:
 
   # C/C++ specific formatting and linting
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v21.1.5
+    rev: v22.1.0
     hooks:
       - id: clang-format
         args: ['-i']
@@ -48,7 +48,7 @@ repos:
 
   # Documentation and markdown
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
+    rev: v0.47.0
     hooks:
       - id: markdownlint
         args: ['--fix', '--disable', 'MD013', 'MD033']

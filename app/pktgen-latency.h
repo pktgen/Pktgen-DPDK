@@ -26,10 +26,10 @@ extern "C" {
 
 #define DEFAULT_JITTER_THRESHOLD (50)    /**< Default jitter threshold in microseconds */
 #define DEFAULT_LATENCY_RATE     (10000) /**< Default probe injection rate in microseconds */
-#define MAX_LATENCY_RATE         (1000000) /**< Maximum allowed probe injection rate in microseconds */
-#define DEFAULT_LATENCY_ENTROPY  (0) /**< Default entropy seed for source port randomisation */
-#define LATENCY_PKT_SIZE         RTE_ETHER_MIN_LEN /**< Latency probe packet size (64 B + 4 B FCS) */
-#define LATENCY_DPORT            1028 /**< Destination UDP port used for latency probes */
+#define MAX_LATENCY_RATE (1000000)  /**< Maximum allowed probe injection rate in microseconds */
+#define DEFAULT_LATENCY_ENTROPY (0) /**< Default entropy seed for source port randomisation */
+#define LATENCY_PKT_SIZE        RTE_ETHER_MIN_LEN /**< Latency probe packet size (64 B + 4 B FCS) */
+#define LATENCY_DPORT           1028 /**< Destination UDP port used for latency probes */
 
 /**
  * Render the latency statistics display page to the console.

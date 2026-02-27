@@ -59,7 +59,7 @@ static struct rte_eth_conf default_port_conf = {
                 {
                     .rss_key = NULL,
                     .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+                               RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
                 },
         },
     .intr_conf =

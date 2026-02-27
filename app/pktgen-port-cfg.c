@@ -343,7 +343,6 @@ _tx_offload_defaults(port_info_t *pinfo)
     if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
 
-#if 0        // FIXME: Tx performance drops when using these offloads.
     if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
         pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
@@ -358,7 +357,6 @@ _tx_offload_defaults(port_info_t *pinfo)
         pktgen_log_info("   Enabling Tx IPV4_CKSUM offload\r\n");
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
     }
-#endif
 }
 
 static void

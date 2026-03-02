@@ -145,6 +145,7 @@ struct cli_scrn {
     uint16_t theme;                           /**< Current theme state on or off */
     uint16_t type;                            /**< screen I/O type */
     uint16_t no_write;                        /**< Disable screen write */
+    uint16_t oldterm_saved;                   /**< Old terminal setup saved */
     struct termios oldterm;                   /**< Old terminal setup information */
     FILE *fd_out;                             /**< File descriptor for output */
     FILE *fd_in;                              /**< File descriptor for input */

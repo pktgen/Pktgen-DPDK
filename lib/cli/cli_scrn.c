@@ -158,9 +158,12 @@ scrn_create(int scrn_type, int theme)
     scrn->type  = scrn_type;
 
     if (scrn_type == SCRN_STDIN_TYPE) {
-        if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm)) {
-            fprintf(stderr, "%s: tcgetattr failed\n", __func__);
-            exit(-1);
+        if (!scrn->oldterm_saved) {
+            if (tcgetattr(fileno(scrn->fd_in), &scrn->oldterm)) {
+                fprintf(stderr, "%s: tcgetattr failed\n", __func__);
+                exit(-1);
+            }
+            scrn->oldterm_saved = 1;
         }
         memset(&sa, 0, sizeof(struct sigaction));
         sa.sa_handler = handle_winch;

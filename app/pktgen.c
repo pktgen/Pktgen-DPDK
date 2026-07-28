@@ -113,7 +113,7 @@ pktgen_packet_rate(port_info_t *port)
 
     // Do all multiplications first to reduce rounding errors.
     // Add pps/2 to do rounding instead of truncation.
-    cpb             = (pps / 2 + (uint64_t)txcnt * port->tx_burst * rte_get_timer_hz()) / pps;
+    cpb             = (pps / 2 + (uint64_t)port->tx_burst * rte_get_timer_hz()) / pps;
     port->tx_cycles = cpb;
     port->tx_pps    = pps;
 }

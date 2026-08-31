@@ -151,9 +151,8 @@ print(lua_State *L)
     for (int i = 1; i <= n; i++) {
         size_t len;
         const char *s = luaL_tolstring(L, i, &len);
-        if (i > 1) {
+        if (i > 1)
             fputc('\t', p->f);
-        }
         fwrite(s, len, 1, p->f);
     }
 

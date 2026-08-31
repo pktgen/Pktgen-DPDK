@@ -103,6 +103,13 @@ void lua_signal_set_stdfiles(luaData_t *ld);
  */
 void lua_signal_reset_stdfiles(luaData_t *ld);
 
+/**
+ * Set Lua's global print function to use socket streams as output.
+ *
+ * @param ld   Lua instance.
+ */
+void lua_set_print(luaData_t *ld);
+
 #ifdef __cplusplus
 }
 #endif

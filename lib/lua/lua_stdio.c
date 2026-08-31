@@ -138,3 +138,34 @@ lua_create_stdfile(luaData_t *ld, FILE *f, const char *k, const char *fname)
     }
     lua_setfield(L, -2, fname); /* add file to module */
 }
+
+static int
+print(lua_State *L)
+{
+    int n = lua_gettop(L);
+
+    lua_getfield(L, LUA_REGISTRYINDEX, IO_OUTPUT);
+    LStream *p = luaL_checkudata(L, -1, LUA_FILEHANDLE);
+    lua_pop(L, 1);
+
+    for (int i = 1; i <= n; i++) {
+        size_t len;
+        const char *s = luaL_tolstring(L, i, &len);
+        if (i > 1) {
+            fputc('\t', p->f);
+        }
+        fwrite(s, len, 1, p->f);
+    }
+
+    fputc('\n', p->f);
+    fflush(p->f);
+
+    return 0;
+}
+
+void
+lua_set_print(luaData_t *ld)
+{
+    lua_pushcfunction(ld->L, print);
+    lua_setglobal(ld->L, "print");
+}

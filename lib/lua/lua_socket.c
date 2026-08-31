@@ -269,6 +269,7 @@ handle_server_requests(luaData_t *ld)
         if (ld->client_socket > 0) {
             _socket_open(ld);
             lua_set_stdfiles(ld);
+            lua_set_print(ld);
 
             doREPL(ld);
 

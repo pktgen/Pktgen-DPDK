@@ -272,14 +272,13 @@ int
 lua_docall(lua_State *L, int narg, int nres)
 {
     int status;
-    int base = 0;
-
-    base = lua_gettop(L);
+    int base = 1;
 
     lua_pushcfunction(L, msghandler);
     lua_insert(L, base);
 
     status = _k(L, lua_pcallk(L, narg, nres, base, 0, _k), 0);
+    lua_remove(L, base); /* remove message handler */
 
     return status;
 }

@@ -43,9 +43,8 @@ extern "C" {
 /** Lcore operating mode: unknown, RX-only, TX-only, or both. */
 enum { LCORE_MODE_UNKNOWN = 0, LCORE_MODE_RX = 1, LCORE_MODE_TX = 2, LCORE_MODE_BOTH = 3 };
 
-#define MAX_MAPPINGS       32   /**< Maximum number of port/queue mappings */
-#define MAX_ALLOCA_SIZE    1024 /**< Maximum size of a stack allocation */
-#define MEMPOOL_CACHE_SIZE (RTE_MEMPOOL_CACHE_MAX_SIZE / 2) /**< Per-lcore mempool cache size */
+#define MAX_MAPPINGS    32   /**< Maximum number of port/queue mappings */
+#define MAX_ALLOCA_SIZE 1024 /**< Maximum size of a stack allocation */
 
 struct port_info_s;
 

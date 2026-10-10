@@ -166,8 +166,7 @@ parse_cores(uint16_t pid, const char *cores, int mode)
             const uint16_t qid = lport->rx_qid;
             if (port->rx_mp[qid] == NULL) {
                 /* Create the Rx mbuf pool one per port/queue */
-                port->rx_mp[qid] =
-                    l2p_pktmbuf_create("RX", port, qid, mbuf_count, MEMPOOL_CACHE_SIZE);
+                port->rx_mp[qid] = l2p_pktmbuf_create("RX", port, qid, mbuf_count, MBUF_CACHE_SIZE);
                 if (port->rx_mp[qid] == NULL)
                     rte_exit(EXIT_FAILURE, "Cannot init port %d qid %u for Default RX mbufs",
                              port->pid, qid);
@@ -177,8 +176,7 @@ parse_cores(uint16_t pid, const char *cores, int mode)
         if (mode == LCORE_MODE_TX || mode == LCORE_MODE_BOTH) {
             const uint16_t qid = lport->tx_qid;
             if (port->tx_mp[qid] == NULL) {
-                port->tx_mp[qid] =
-                    l2p_pktmbuf_create("TX", port, qid, mbuf_count, MEMPOOL_CACHE_SIZE);
+                port->tx_mp[qid] = l2p_pktmbuf_create("TX", port, qid, mbuf_count, MBUF_CACHE_SIZE);
                 if (port->tx_mp[qid] == NULL)
                     rte_exit(EXIT_FAILURE, "Cannot init port %d qid %u for Default TX mbufs",
                              port->pid, qid);

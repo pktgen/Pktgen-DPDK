@@ -192,8 +192,8 @@ pktgen_pcap_open(void)
             fclose(pcap->fp);
             rte_exit(EXIT_FAILURE, "%s: PCAP file is empty: %s\n", __func__, pcap->filename);
         }
-        if (pkt_count < (DEFAULT_TX_DESC * 4))
-            pkt_count = (DEFAULT_TX_DESC * 4);
+        if (pkt_count < ((uint32_t)pktgen.nb_txd * 4))
+            pkt_count = ((uint32_t)pktgen.nb_txd * 4);
 
         snprintf(name, sizeof(name), "pcap-%d", pid);
         uint32_t dataroom =

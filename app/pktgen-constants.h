@@ -29,9 +29,10 @@ enum {
     DEFAULT_TX_DESC                   = 1024, /**< Default TX descriptor ring size */
     DEFAULT_MBUFS_PER_PORT_MULTIPLIER = 16,   /**< Multiplier for mbufs-per-port calculation */
     MAX_SPECIAL_MBUFS                 = 1024, /**< Maximum special mbufs per port */
-    MBUF_CACHE_SIZE                   = 256,  /**< Per-lcore mempool cache size */
     DEFAULT_PRIV_SIZE                 = 0,    /**< Default mbuf private data size */
 };
+
+#define MBUF_CACHE_SIZE (RTE_MEMPOOL_CACHE_MAX_SIZE / 2) /**< Per-lcore mempool cache size */
 
 /** Compute the total mbufs needed for a port given its descriptor ring sizes. */
 #define MAX_MBUFS_PER_PORT(rxd, txd) ((rxd + txd) * DEFAULT_MBUFS_PER_PORT_MULTIPLIER)

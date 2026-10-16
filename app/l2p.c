@@ -93,7 +93,7 @@ parse_cores(uint16_t pid, const char *cores, int mode)
     char *core_map   = NULL;
     int num_cores    = 0, l, h, num_fields;
     char *fields[3]  = {0}, *f0, *f1;
-    int mbuf_count   = MAX_MBUFS_PER_PORT(DEFAULT_RX_DESC, DEFAULT_TX_DESC);
+    int mbuf_count   = MAX_MBUFS_PER_PORT(pktgen.nb_rxd, pktgen.nb_txd);
     char name[64];
 
     core_map = alloca(MAX_ALLOCA_SIZE);

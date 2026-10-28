@@ -58,15 +58,16 @@ INSTALL for setting up Pktgen with DPDK on Ubuntu 22.04 to 23.10 desktop it shou
 > Tested with Ubuntu 23.10 kernel version 6.5.0-28-generic (Mantic), and other earlier versions should work.
 > Please use the latest DPDK and latest Pktgen versions other combinations may work, but with limited resources and time the latest versions are the only ones tested.
 >
-> Please install the latest version of DPDK from dpdk.org and follow the build instructions using meson/ninja. Then install DPDK on your system.
+> DPDK can be installed separately as described below, or downloaded and built automatically by Meson.
 
 ## Building Pktgen
 
 Pktgen has been converted to use meson/ninja for configuration and building. **Makefiles have been removed.** This may require DPDK to be built
-using meson/ninja. At least a libdpdk.pc file must be present in the system for Pktgen to locate the headers and libraries.
+using meson/ninja. Meson 0.60+ uses an installed DPDK via `libdpdk.pc`, or automatically downloads and builds it as a subproject.
+See [Building](README.md#4-building-details) for fallback options and prerequisites.
 
 >Please read the DPDK.org documentation to understand more on building DPDK. The following is the minimum set of
-instructions to build DPDK. You may need to install meson and ninja, if not already installed.
+instructions to build DPDK separately. You may need to install meson and ninja, if not already installed.
 
 May need to install the BSD headers to build Pktgen code base for Ubuntu do the following:
 
@@ -94,7 +95,7 @@ DPDK places the libdpdk.pc (pkg-config file) in a non-standard location and you 
 export PKG_CONFIG_PATH=/usr/local/lib/x86_64-linux-gnu/pkgconfig
 ```
 
-Building Pktgen after you have built and installed DPDK. The new build system uses meson/ninja, but Pktgen has a build script
+Building Pktgen with an installed or automatically built DPDK. The new build system uses meson/ninja, but Pktgen has a build script
 called 'tools/pktgen-build.sh' and uses a very simple Makefile to help build Pktgen without having to fully understand meson/ninja command line.
 
 If you prefer you can still use meson/ninja directly.

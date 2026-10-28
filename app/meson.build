@@ -35,16 +35,11 @@ endif
 
 cflags = ['-D__PROJECT_VERSION="' + meson.project_version() + '"']
 
-deps = [dpdk, common, utils, vec, plugin, cli, lua, hmap]
+deps = [dpdk, common, utils, vec, plugin, cli, lua, hmap] + dpdk_driver_deps
 
 if fgen_dep.found()
     deps += [fgen_dep]
 endif
-
-deps += [cc.find_library('rte_net_i40e', dirs: [dpdk_libs_path], required: false)]
-deps += [cc.find_library('rte_net_ixgbe', dirs: [dpdk_libs_path], required: false)]
-deps += [cc.find_library('rte_net_ice', dirs: [dpdk_libs_path], required: false)]
-deps += [cc.find_library('rte_bus_vdev', dirs: [dpdk_libs_path], required: false)]
 
 deps += [dependency('threads')]
 deps += [dependency('numa', required: true)]
@@ -57,4 +52,4 @@ pktgen = executable('pktgen',
 		sources,
 		c_args: cflags,
 		install: true,
-		dependencies: [deps, lua_dep, dpdk_bond])
+		dependencies: [deps, lua_dep])

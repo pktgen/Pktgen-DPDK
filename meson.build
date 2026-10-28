@@ -9,7 +9,7 @@ project('pktgen', 'C',
 		'warning_level=3',
 		'werror=true'
 	],
-	meson_version: '>= 0.58.0'
+	meson_version: '>= 0.60.0'
 )
 
 pktgen_conf = configuration_data()
@@ -71,13 +71,25 @@ if get_option('only_docs')
 	subdir('tools')
 	subdir('docs')
 else
-	dpdk = dependency('libdpdk', required: true, method: 'pkg-config')
-	dpdk_prefix = dpdk.get_variable('prefix')
-	message('prefix: ' + dpdk_prefix + ' libdir: ' + get_option('libdir'))
-	dpdk_libs_path = join_paths(dpdk_prefix, get_option('libdir'))
-	message('DPDK lib path: ' + dpdk_libs_path)
+	dpdk = dependency('libdpdk', required: true, method: 'pkg-config',
+		fallback: ['dpdk', 'libdpdk_dep'],
+		default_options: [
+			'default_library=static',
+			'tests=false',
+			'disable_apps=*',
+			'enable_docs=false',
+			'werror=false',
+		])
 
-	dpdk_bond = cc.find_library('rte_net_bond', dirs: [dpdk_libs_path], required: false)
+	# The static subproject dependency already includes its enabled drivers.
+	dpdk_driver_deps = []
+	if dpdk.type_name() == 'pkgconfig'
+		dpdk_libs_path = dpdk.get_variable('libdir')
+		message('DPDK lib path: ' + dpdk_libs_path)
+		foreach driver: ['rte_net_bond', 'rte_net_i40e', 'rte_net_ixgbe', 'rte_net_ice', 'rte_bus_vdev']
+			dpdk_driver_deps += cc.find_library(driver, dirs: [dpdk_libs_path], required: false)
+		endforeach
+	endif
 
 	subdirs =['tools', 'lib', 'examples', 'app', 'docs']
 	foreach d:subdirs

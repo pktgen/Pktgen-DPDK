@@ -17,5 +17,8 @@ gulpfile.js
 x86_64-*
 lib/lua/build
 builddir/
+subprojects/.wraplock
+subprojects/dpdk/
+subprojects/packagecache/
 usr/local
 tx_perf

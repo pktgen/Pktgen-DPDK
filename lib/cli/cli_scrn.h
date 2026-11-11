@@ -139,7 +139,8 @@ struct vt100_cmds {
 
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
-    rte_atomic32_t pause __rte_cache_aligned; /**< Pause the update of the screen. */
+    __rte_cache_aligned
+    RTE_ATOMIC(int32_t) pause;                /**< Pause the update of the screen. */
     uint16_t nrows;                           /**< Max number of rows. */
     uint16_t ncols;                           /**< Max number of columns. */
     uint16_t theme;                           /**< Current theme state on or off */
@@ -384,7 +385,7 @@ scrn_pause(void)
 {
     if (!this_scrn)
         printf("**** this scrn is NULL\n");
-    rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_PAUSED);
+    rte_atomic_store_explicit(&this_scrn->pause, SCRN_SCRN_PAUSED, rte_memory_order_relaxed);
     __set_prompt();
 }
 
@@ -392,7 +393,7 @@ scrn_pause(void)
 static __inline__ void
 scrn_resume(void)
 {
-    rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_RUNNING);
+    rte_atomic_store_explicit(&this_scrn->pause, SCRN_SCRN_RUNNING, rte_memory_order_relaxed);
     __set_prompt();
 }
 
@@ -400,7 +401,7 @@ scrn_resume(void)
 static __inline__ int
 scrn_is_paused(void)
 {
-    return rte_atomic32_read(&this_scrn->pause) == SCRN_SCRN_PAUSED;
+    return rte_atomic_load_explicit(&this_scrn->pause, rte_memory_order_relaxed) == SCRN_SCRN_PAUSED;
 }
 
 /** Output a message of the current line centered */

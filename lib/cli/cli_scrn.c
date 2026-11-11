@@ -152,7 +152,7 @@ scrn_create(int scrn_type, int theme)
         exit(-1);
     }
 
-    rte_atomic32_set(&scrn->pause, SCRN_SCRN_PAUSED);
+    rte_atomic_store_explicit(&scrn->pause, SCRN_SCRN_PAUSED, rte_memory_order_relaxed);
 
     scrn->theme = theme;
     scrn->type  = scrn_type;

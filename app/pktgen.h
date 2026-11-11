@@ -491,8 +491,9 @@ pktgen_set_port_flags(port_info_t *pinfo, uint64_t flags)
     uint64_t val;
 
     do {
-        val = rte_atomic64_read(&pinfo->port_flags);
-    } while (!rte_atomic64_cmpset((volatile uint64_t *)&pinfo->port_flags.cnt, val, (val | flags)));
+        val = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
+    } while (!rte_atomic_compare_exchange_strong_explicit(&pinfo->port_flags,
+		&val, val | flags, rte_memory_order_seq_cst, rte_memory_order_relaxed));
 }
 
 /**
@@ -507,9 +508,9 @@ pktgen_clr_port_flags(port_info_t *pinfo, uint64_t flags)
     uint64_t val;
 
     do {
-        val = rte_atomic64_read(&pinfo->port_flags);
-    } while (
-        !rte_atomic64_cmpset((volatile uint64_t *)&pinfo->port_flags.cnt, val, (val & ~flags)));
+        val = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
+    } while (!rte_atomic_compare_exchange_strong_explicit(&pinfo->port_flags,
+		&val, val & ~flags, rte_memory_order_seq_cst, rte_memory_order_relaxed));
 }
 
 /**
@@ -523,7 +524,11 @@ pktgen_clr_port_flags(port_info_t *pinfo, uint64_t flags)
 static __inline__ int
 pktgen_tst_port_flags(port_info_t *pinfo, uint64_t flags)
 {
-    return ((rte_atomic64_read(&pinfo->port_flags) & flags) ? 1 : 0);
+    if (unlikely(pinfo == NULL))
+        return 0;
+
+    uint64_t pflags = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_acquire);
+    return ((pflags & flags) ? 1 : 0);
 }
 
 /** Enable/disable state values for CLI and command arguments. */

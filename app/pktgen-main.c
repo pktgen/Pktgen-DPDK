@@ -559,6 +559,6 @@ pktgen_stop_running(void)
     lua_execute_close(pktgen.ld);
 #endif
 
-    pktgen.timer_running = 0;
-    pktgen.force_quit    = 1;
+    rte_atomic_store_explicit(&pktgen.timer_running, 0, rte_memory_order_relaxed);
+    rte_atomic_store_explicit(&pktgen.force_quit, 1, rte_memory_order_relaxed);
 }

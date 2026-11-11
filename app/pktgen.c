@@ -1062,7 +1062,7 @@ pktgen_main_rxtx_loop(void)
            l2p_get_rx_mp(pinfo->pid, rx_qid), l2p_get_tx_mp(pinfo->pid, tx_qid)->name,
            l2p_get_tx_mp(pinfo->pid, tx_qid));
 
-    while (pktgen.force_quit == 0) {
+    while (rte_atomic_load_explicit(&pktgen.force_quit, rte_memory_order_relaxed) == 0) {
         /* Process RX */
         pktgen_main_receive(pinfo, rx_qid);
 
@@ -1121,7 +1121,7 @@ pktgen_main_tx_loop(void)
     printf("TX lid %3d, pid %2d, qid %2d, TX-MP %-16s @ %p\n", lid, pinfo->pid, tx_qid,
            l2p_get_tx_mp(pinfo->pid, tx_qid)->name, l2p_get_tx_mp(pinfo->pid, tx_qid));
 
-    while (unlikely(pktgen.force_quit == 0)) {
+    while (unlikely(rte_atomic_load_explicit(&pktgen.force_quit, rte_memory_order_relaxed) == 0)) {
         curr_tsc = pktgen_get_time();
 
         /* Determine when is the next time to send packets */
@@ -1175,7 +1175,7 @@ pktgen_main_rx_loop(void)
     printf("RX lid %3d, pid %2d, qid %2d, RX-MP %-16s @ %p\n", lid, pinfo->pid, rx_qid,
            l2p_get_rx_mp(pinfo->pid, rx_qid)->name, l2p_get_rx_mp(pinfo->pid, rx_qid));
 
-    while (pktgen.force_quit == 0)
+    while (rte_atomic_load_explicit(&pktgen.force_quit, rte_memory_order_relaxed) == 0)
         pktgen_main_receive(pinfo, rx_qid);
 
     pktgen_log_debug("Exit %d", lid);
@@ -1314,9 +1314,9 @@ _timer_thread(void *arg)
     process     = page + pktgen.stats_timeout;
     page += pktgen.page_timeout;
 
-    pktgen.timer_running = 1;
+    rte_atomic_store_explicit(&pktgen.timer_running, 1, rte_memory_order_relaxed);
 
-    while (pktgen.timer_running) {
+    while (rte_atomic_load_explicit(&pktgen.timer_running, rte_memory_order_relaxed)) {
         uint64_t curr;
 
         curr = pktgen_get_time();

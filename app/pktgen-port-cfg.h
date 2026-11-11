@@ -164,9 +164,9 @@ typedef struct port_info_s {
     struct rte_eth_conf conf;         /**< Configuration settings */
     struct rte_eth_link link;         /**< Link Information speed and duplex */
     struct rte_ether_addr src_mac;    /**< Source MAC address of the port */
-    rte_atomic64_t port_flags;        /**< Special send flags for ARP and other */
-    rte_atomic64_t transmit_count;    /**< Packets to transmit loaded into current_tx_count */
-    rte_atomic64_t current_tx_count;  /**< Current number of packets to send */
+    RTE_ATOMIC(uint64_t) port_flags;        /**< Special send flags for ARP and other */
+    RTE_ATOMIC(uint64_t) transmit_count;    /**< Packets to transmit loaded into current_tx_count */
+    RTE_ATOMIC(uint64_t) current_tx_count;  /**< Current number of packets to send */
     volatile uint64_t tx_cycles;      /**< Number cycles between TX bursts */
     pkt_seq_t *seq_pkt;               /**< Packet sequence array */
     range_info_t range;               /**< Range Information */
@@ -265,19 +265,19 @@ void tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, u
  *   The number of packets to burst out
  */
 static inline uint64_t
-pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
+pkt_atomic64_tx_count(RTE_ATOMIC(uint64_t) *v, int64_t burst)
 {
-    int success;
-    int64_t tmp2;
+    uint64_t tmp1;
+    uint64_t tmp2;
 
     do {
-        int64_t tmp1 = v->cnt;
+        tmp1 = rte_atomic_load_explicit(v, rte_memory_order_relaxed);
 
         if (tmp1 == 0)
             return 0;
-        tmp2    = likely(tmp1 > burst) ? burst : tmp1;
-        success = rte_atomic64_cmpset((volatile uint64_t *)&v->cnt, tmp1, tmp1 - tmp2);
-    } while (success == 0);
+        tmp2 = likely(tmp1 > (uint64_t)burst) ? (uint64_t)burst : tmp1;
+    } while (!rte_atomic_compare_exchange_strong_explicit(v, &tmp1, tmp1 - tmp2,
+		rte_memory_order_seq_cst, rte_memory_order_relaxed));
 
     return tmp2;
 }

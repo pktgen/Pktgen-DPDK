@@ -3214,10 +3214,11 @@ port_info(lua_State *L, port_info_t *pinfo)
                 : (pinfo->fill_pattern_type == ZERO_FILL_PATTERN) ? "Zero"
                                                                   : pinfo->user_pattern);
 
-    if (rte_atomic64_read(&pinfo->transmit_count) == 0)
+    if (rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed) == 0)
         setf_string(L, "tx_count", "Forever");
     else
-        setf_integer(L, "tx_count", rte_atomic64_read(&pinfo->transmit_count));
+        setf_integer(L, "tx_count",
+                     rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed));
     setf_integer(L, "tx_rate", pinfo->tx_rate);
 
     setf_integer(L, "pkt_size", pkt->pkt_size + RTE_ETHER_CRC_LEN);
@@ -3232,7 +3233,8 @@ port_info(lua_State *L, port_info_t *pinfo)
     setf_string(L, "proto_type",
                 (pkt->ipProto == PG_IPPROTO_TCP)                               ? "TCP"
                 : (pkt->ipProto == PG_IPPROTO_ICMP)                            ? "ICMP"
-                : (rte_atomic64_read(&pinfo->port_flags) & SEND_VXLAN_PACKETS) ? "VXLAN"
+                : (rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed) &
+                                                           SEND_VXLAN_PACKETS) ? "VXLAN"
                                                                                : "UDP");
     setf_integer(L, "vlanid", pkt->vlanid);
 

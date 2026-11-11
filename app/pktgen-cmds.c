@@ -123,12 +123,13 @@ pktgen_script_save(char *path)
         lat = &pinfo->latency;
 
         fprintf(fd, "######################### Port %2d ##################################\n", i);
-        if (rte_atomic64_read(&pinfo->transmit_count) == 0)
+        if (rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed) == 0)
             strcpy(buff, "Forever");
         else
-            snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&pinfo->transmit_count));
+            snprintf(buff, sizeof(buff), "%" PRIu64,
+                     rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed));
         fprintf(fd, "#\n");
-        flags = rte_atomic64_read(&pinfo->port_flags);
+        flags = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
         fprintf(fd, "# Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%16x, TX Count:%s\n",
                 pinfo->pid, pinfo->rx_burst, pinfo->tx_burst, pinfo->tx_rate, flags, buff);
         fprintf(fd, "#           Sequence count:%d, Prime:%d VLAN ID:%04x, ", pinfo->seqCnt,
@@ -138,7 +139,7 @@ pktgen_script_save(char *path)
 
         fprintf(fd, "#\n# Set up the primary port information:\n");
         fprintf(fd, "set %d count %" PRIu64 "\n", pinfo->pid,
-                rte_atomic64_read(&pinfo->transmit_count));
+                rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed));
         fprintf(fd, "set %d size %d\n", pinfo->pid, pkt->pkt_size + RTE_ETHER_CRC_LEN);
         fprintf(fd, "set %d rate %g\n", pinfo->pid, pinfo->tx_rate);
         fprintf(fd, "set %d rxburst %d\n", pinfo->pid, pinfo->rx_burst);
@@ -453,12 +454,13 @@ pktgen_lua_save(char *path)
 
         fprintf(fd, "-- ######################### Port %2d ##################################\n",
                 i);
-        if (rte_atomic64_read(&pinfo->transmit_count) == 0)
+        if (rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed) == 0)
             strcpy(buff, "Forever");
         else
-            snprintf(buff, sizeof(buff), "%" PRIu64, rte_atomic64_read(&pinfo->transmit_count));
+            snprintf(buff, sizeof(buff), "%" PRIu64,
+                     rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed));
         fprintf(fd, "-- \n");
-        flags = rte_atomic64_read(&pinfo->port_flags);
+        flags = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
         fprintf(fd, "-- Port: %2d, Burst (Rx/Tx):%3d/%3d, Rate:%g%%, Flags:%16x, TX Count:%s\n",
                 pinfo->pid, pinfo->rx_burst, pinfo->tx_burst, pinfo->tx_rate, flags, buff);
         fprintf(fd, "--           Sequence Count:%d, Prime:%d VLAN ID:%04x, ", pinfo->seqCnt,
@@ -468,7 +470,7 @@ pktgen_lua_save(char *path)
 
         fprintf(fd, "--\n-- Set up the primary port information:\n");
         fprintf(fd, "pktgen.set('%d', 'count', %" PRIu64 ");\n", pinfo->pid,
-                rte_atomic64_read(&pinfo->transmit_count));
+                rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed));
         fprintf(fd, "pktgen.set('%d', 'size', %d);\n", pinfo->pid,
                 pkt->pkt_size + RTE_ETHER_CRC_LEN);
         fprintf(fd, "pktgen.set('%d', 'rate', %g);\n", pinfo->pid, pinfo->tx_rate);
@@ -830,10 +832,11 @@ pktgen_transmit_count_rate(int port, char *buff, int len)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(port);
 
-    if (rte_atomic64_read(&pinfo->transmit_count) == 0)
+    if (rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed) == 0)
         snprintf(buff, len, "Forever /%g%%", pinfo->tx_rate);
     else
-        snprintf(buff, len, "%" PRIu64 " /%g%%", rte_atomic64_read(&pinfo->transmit_count),
+        snprintf(buff, len, "%" PRIu64 " /%g%%",
+                 rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed),
                  pinfo->tx_rate);
 
     return buff;
@@ -879,7 +882,7 @@ char *
 pktgen_flags_string(port_info_t *pinfo)
 {
     static char buff[64];
-    uint64_t flags = rte_atomic64_read(&pinfo->port_flags);
+    uint64_t flags = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
 
     buff[0] = '\0';
     // clang-format off
@@ -1262,9 +1265,11 @@ void
 pktgen_start_transmitting(port_info_t *pinfo)
 {
     if (!pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        rte_atomic64_set(&pinfo->current_tx_count, rte_atomic64_read(&pinfo->transmit_count));
+        rte_atomic_store_explicit(&pinfo->current_tx_count,
+            rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed),
+            rte_memory_order_relaxed);
 
-        if (rte_atomic64_read(&pinfo->current_tx_count) == 0)
+        if (rte_atomic_load_explicit(&pinfo->current_tx_count, rte_memory_order_relaxed) == 0)
             pktgen_set_port_flags(pinfo, SEND_FOREVER);
 
         pktgen_set_port_flags(pinfo, SETUP_TRANSMIT_PKTS);
@@ -1446,7 +1451,8 @@ pktgen_stop_latency_sampler(port_info_t *pinfo)
 void
 pktgen_prime_ports(port_info_t *pinfo)
 {
-    rte_atomic64_set(&pinfo->current_tx_count, pinfo->prime_cnt);
+    rte_atomic_store_explicit(&pinfo->current_tx_count, pinfo->prime_cnt,
+                              rte_memory_order_relaxed);
     pktgen_set_port_flags(pinfo, SENDING_PACKETS);
     rte_delay_us_sleep(300 * 1000);
 }
@@ -2281,8 +2287,11 @@ pktgen_port_defaults(uint16_t pid)
 {
     port_info_t *pinfo = l2p_get_port_pinfo(pid);
 
-    rte_atomic64_set(&pinfo->transmit_count, DEFAULT_TX_COUNT);
-    rte_atomic64_init(&pinfo->current_tx_count);
+    if (unlikely(pinfo == NULL))
+        return;
+
+    rte_atomic_store_explicit(&pinfo->transmit_count, DEFAULT_TX_COUNT, rte_memory_order_relaxed);
+    rte_atomic_store_explicit(&pinfo->current_tx_count, 0, rte_memory_order_relaxed);
 
     pinfo->tx_rate   = DEFAULT_TX_RATE;
     pinfo->tx_burst  = DEFAULT_PKT_TX_BURST;
@@ -2506,7 +2515,7 @@ pktgen_port_restart(port_info_t *pinfo)
 void
 single_set_tx_count(port_info_t *pinfo, uint32_t cnt)
 {
-    rte_atomic64_set(&pinfo->transmit_count, cnt);
+    rte_atomic_store_explicit(&pinfo->transmit_count, cnt, rte_memory_order_relaxed);
 }
 
 /**

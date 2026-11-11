@@ -316,7 +316,7 @@ pktgen_page_latency(void)
         row++; /* Skip Latency header row */
         lat = &pinfo->latency;
         /* Ensure all RX worker stores to latency fields are visible before reading */
-        rte_smp_rmb();
+        rte_atomic_thread_fence(rte_memory_order_acquire);
         nb_pkts = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
         uint64_t avg_cycles =
             lat->running_cycles / nb_pkts; /* compute locally; do not write back */

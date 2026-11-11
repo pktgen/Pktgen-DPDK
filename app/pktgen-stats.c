@@ -559,10 +559,10 @@ pktgen_process_stats(void)
         process_xstats(pinfo);
 
         /* Snapshot per-queue counters written by worker lcores.
-         * rte_smp_rmb() ensures all worker stores are visible before the copy.
+         * The acquire fence ensures all worker stores are visible before the copy.
          * snap_qstats is owned exclusively by this timer thread; the display
          * reads from snap_qstats so it never races with the worker hot path. */
-        rte_smp_rmb();
+        rte_atomic_thread_fence(rte_memory_order_acquire);
         int nq = RTE_MAX(l2p_get_rxcnt(pid), l2p_get_txcnt(pid));
         for (int q = 0; q < nq && q < MAX_QUEUES_PER_PORT; q++)
             pinfo->stats.snap_qstats[q] = pinfo->stats.qstats[q];

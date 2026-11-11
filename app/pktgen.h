@@ -285,12 +285,12 @@ typedef struct pktgen_s {
     int32_t argc;                          /**< Number of arguments */
     uint32_t blinklist;                    /**< Port list for blinking the led */
     uint32_t flags;                        /**< Flag values */
-    volatile int force_quit;               /**< Flag to force quit */
+    RTE_ATOMIC(int) force_quit;            /**< Flag to force quit */
     struct cmdline *cl;                    /**< Command Line information pointer */
     char *argv[64];                        /**< Argument list */
     char *hostname;                        /**< hostname */
     int32_t socket_port;                   /**< port number */
-    volatile uint8_t timer_running;        /**< flag to denote timer is running */
+    RTE_ATOMIC(uint8_t) timer_running;     /**< flag to denote timer is running */
     uint16_t ident;                        /**< IPv4 ident value */
     uint16_t last_row;                     /**< last static row of the screen */
     uint16_t nb_ports;                     /**< Number of ports in the system */

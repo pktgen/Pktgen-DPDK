@@ -13,7 +13,6 @@
 #include <rte_common.h>
 #include <rte_log.h>
 #include <rte_tailq.h>
-#include <rte_atomic.h>
 
 /**
  * @file
@@ -63,7 +62,6 @@ struct plugin {
     char *plugin;             /**< short name of plugin <name>.do */
     char *path;               /**< path to plugin */
     void *dl;                 /**< dlopen handle pointer */
-    rte_atomic32_t refcnt;    /**< reference count */
     uint32_t hash;            /**< Plugin ID value */
     int inst;                 /**< Plugin instance ID value */
     struct plugin_info *info; /**< Pointer to plugin info struct */
@@ -88,6 +86,9 @@ int plugin_create(char *name, char *path);
  *   The inst number for the plugin.
  * @return
  *    < 0 is error and 0 is success.
+ *
+ * A running plugin must be stopped before destruction. Destruction must not
+ * race with another operation on the same instance.
  */
 int plugin_destroy(int inst);
 
@@ -120,6 +121,9 @@ int plugin_stop(int inst);
  *    The instance index value
  * @return
  *    The struct rte+plugin pointer for the instance or NULL
+ *
+ * The returned pointer is borrowed and must not be used concurrently with
+ * plugin_destroy().
  */
 struct plugin *plugin_get(int inst);
 

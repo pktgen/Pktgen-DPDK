@@ -1876,7 +1876,8 @@ static int
 plugin_cmd(int argc, char **argv)
 {
     struct cli_map *m;
-    int inst;
+    char *path;
+    int inst, loaded;
 
     m = cli_mapping(plugin_map, argc, argv);
     if (!m)
@@ -1888,12 +1889,19 @@ plugin_cmd(int argc, char **argv)
         break;
     case 20:
     case 21:
-        if ((inst = plugin_create(argv[2], argv[3])) < 0) {
-            printf("Plugin not loaded %s, %s\n", argv[2], argv[3]);
+        path   = (argc > 3) ? argv[3] : NULL;
+        loaded = plugin_find_by_name(argv[2]);
+        if ((inst = plugin_create(argv[2], path)) < 0) {
+            printf("Plugin not loaded %s, %s\n", argv[2], (path) ? path : "");
             return -1;
         }
 
-        if (plugin_start(inst, NULL), 0) {
+        if (inst == loaded) {
+            printf("Plugin %s already loaded\n", argv[2]);
+            break;
+        }
+
+        if (plugin_start(inst, NULL) != 0) {
             plugin_destroy(inst);
             return -1;
         }

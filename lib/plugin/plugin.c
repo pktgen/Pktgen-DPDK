@@ -53,6 +53,8 @@ plugin_add_inst(struct plugin *pin)
     for (inst = 0; inst < PLUGIN_MAX_INST; inst++) {
         if (plugin_inst[inst] == NULL) {
             plugin_inst[inst] = pin;
+            pin->inst         = inst;
+            TAILQ_INSERT_TAIL(&plugin_head, pin, next);
 
             rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
             return inst;
@@ -66,49 +68,32 @@ plugin_add_inst(struct plugin *pin)
 static int
 plugin_del_inst(int inst)
 {
-    struct plugin *pin = plugin_get(inst);
+    struct plugin *pin;
 
+    if (inst < 0 || inst >= PLUGIN_MAX_INST)
+        return -1;
+
+    rte_rwlock_write_lock(RTE_PLUGIN_TAILQ_RWLOCK);
+
+    pin = plugin_inst[inst];
     if (!pin) {
+        rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
         PLUGIN_LOG(DEBUG, "Plugin pointer is NULL or info is NULL\n");
         return -1;
     }
 
-    /* remove the plugin from the global list */
-    rte_rwlock_write_lock(RTE_PLUGIN_TAILQ_RWLOCK);
-
     plugin_inst[inst] = NULL;
+    TAILQ_REMOVE(&plugin_head, pin, next);
 
-    if (rte_atomic32_dec_and_test(&pin->refcnt)) {
-        /* remove instance when refcnt becomes zero */
-        TAILQ_REMOVE(&plugin_head, pin, next);
+    rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
 
+    if (pin->dl)
         dlclose(pin->dl);
+    free(pin->plugin);
+    free(pin->path);
+    free(pin);
 
-        free(pin->plugin);
-        free(pin->path);
-        free(pin);
-    }
-
-    rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
     return 0;
-}
-
-static int
-plugin_find_inst(struct plugin *pin)
-{
-    int inst;
-
-    rte_rwlock_write_lock(RTE_PLUGIN_TAILQ_RWLOCK);
-
-    for (inst = 0; inst < PLUGIN_MAX_INST; inst++) {
-        if (plugin_inst[inst] == pin) {
-            rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
-            return inst;
-        }
-    }
-
-    rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
-    return -1;
 }
 
 #pragma GCC diagnostic push
@@ -185,38 +170,32 @@ plugin_create(char *plugin, char *path)
     /* Make sure we have not already loaded this plugin */
     inst = plugin_find_by_name(plugin);
     if (inst >= 0) {
-        pin = plugin_get(inst);
+        rte_rwlock_read_lock(RTE_PLUGIN_TAILQ_RWLOCK);
+        pin = plugin_inst[inst];
 
-        /* Did we find a new instance of the same plugin */
-        if (pin && !strcmp(path, pin->path)) {
+        if (pin && !strcmp(plugin, pin->plugin) &&
+            ((path == NULL && pin->path == NULL) ||
+                (path != NULL && pin->path != NULL && !strcmp(path, pin->path)))) {
             info = pin->info;
 
             PLUGIN_LOG(DEBUG, "Plugin: '%s' - %s, version: %d.%02d.%02d-rc%d\n", pin->plugin,
                        info->desc, info->major, info->minor, info->patch, info->release);
+            rte_rwlock_read_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
             return inst;
         }
-        /* not the same plugin */
+
+        rte_rwlock_read_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
     }
 
     /* Create the plugin structure and begin loading plugin */
     pin = calloc(1, sizeof(struct plugin));
     if (!pin)
         return -1;
-    memset(pin, 0, sizeof(struct plugin));
     pin->inst = -1;
-
-    inst = plugin_add_inst(pin);
-    if (inst < 0) {
-        PLUGIN_LOG(ERR, "plugin_add_inst() failed for %s\n", plugin);
-        free(pin);
-        return -1;
-    }
-
-    pin->inst = inst;
 
     /* Save these away for later comparsions */
     pin->plugin = strdup(plugin);
-    pin->path   = strdup(path);
+    pin->path   = (path) ? strdup(path) : NULL;
 
     if (plugin_open(pin)) {
         PLUGIN_LOG(ERR, "dlopen() unable to load %s\n", pin->plugin);
@@ -238,19 +217,25 @@ plugin_create(char *plugin, char *path)
 
     /* Create the CRC 32bit value using plugin name, path and info data */
     pin->hash = hash_func(pin->plugin, strlen(pin->plugin), pin->hash);
-    pin->hash = hash_func(pin->path, strlen(pin->path), pin->hash);
+    if (pin->path)
+        pin->hash = hash_func(pin->path, strlen(pin->path), pin->hash);
     pin->hash = hash_func(pin->info, sizeof(struct plugin_info), pin->hash);
 
-    /* add the plugin to the global list */
-    rte_rwlock_write_lock(RTE_PLUGIN_TAILQ_RWLOCK);
-    TAILQ_INSERT_TAIL(&plugin_head, pin, next);
-    rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
+    inst = plugin_add_inst(pin);
+    if (inst < 0) {
+        PLUGIN_LOG(ERR, "plugin_add_inst() failed for %s\n", plugin);
+        goto err_exit;
+    }
 
     return inst;
 
 err_exit:
     PLUGIN_LOG(ERR, "Failed to create plugin %s\n", plugin);
-    plugin_del_inst(inst);
+    if (pin->dl)
+        dlclose(pin->dl);
+    free(pin->plugin);
+    free(pin->path);
+    free(pin);
     return -1;
 }
 
@@ -328,7 +313,7 @@ plugin_find_by_id(uint32_t h)
 
     TAILQ_FOREACH (pin, &plugin_head, next) {
         if (h == pin->hash) {
-            int inst = plugin_find_inst(pin);
+            int inst = pin->inst;
             rte_rwlock_write_unlock(RTE_PLUGIN_TAILQ_RWLOCK);
             return inst;
         }
@@ -350,7 +335,7 @@ _plugin_dump(FILE *f, struct plugin *pin)
         return;
     }
 
-    fprintf(f, "%08x %-16s %6d %s\n", pin->hash, pin->plugin, rte_atomic32_read(&pin->refcnt),
+    fprintf(f, "%08x %-16s %s\n", pin->hash, pin->plugin,
             (pin->info) ? pin->info->desc : "---");
 }
 
@@ -363,7 +348,7 @@ plugin_dump(FILE *f)
     rte_rwlock_read_lock(RTE_PLUGIN_TAILQ_RWLOCK);
 
     fprintf(f, "**** Plugins ****\n");
-    fprintf(f, "%-8s %-16s %-6s %s\n", "ID", "Name", "refcnt", "Description");
+    fprintf(f, "%-8s %-16s %s\n", "ID", "Name", "Description");
     TAILQ_FOREACH (pin, &plugin_head, next) {
         _plugin_dump(f, pin);
         cnt++;

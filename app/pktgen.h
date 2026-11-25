@@ -492,8 +492,8 @@ pktgen_set_port_flags(port_info_t *pinfo, uint64_t flags)
 
     do {
         val = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
-    } while (!rte_atomic_compare_exchange_strong_explicit(&pinfo->port_flags,
-		&val, val | flags, rte_memory_order_seq_cst, rte_memory_order_relaxed));
+    } while (!rte_atomic_compare_exchange_strong_explicit(
+        &pinfo->port_flags, &val, val | flags, rte_memory_order_seq_cst, rte_memory_order_relaxed));
 }
 
 /**
@@ -509,8 +509,9 @@ pktgen_clr_port_flags(port_info_t *pinfo, uint64_t flags)
 
     do {
         val = rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed);
-    } while (!rte_atomic_compare_exchange_strong_explicit(&pinfo->port_flags,
-		&val, val & ~flags, rte_memory_order_seq_cst, rte_memory_order_relaxed));
+    } while (!rte_atomic_compare_exchange_strong_explicit(&pinfo->port_flags, &val, val & ~flags,
+                                                          rte_memory_order_seq_cst,
+                                                          rte_memory_order_relaxed));
 }
 
 /**

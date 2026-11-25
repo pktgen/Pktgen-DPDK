@@ -134,8 +134,8 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
                                     * frame overhead: 84 bytes per packet */
         );
     } else {
-          if (!(rte_atomic_load_explicit(&pinfo->port_flags,
-                                         rte_memory_order_relaxed) & CAPTURE_PKTS))
+        if (!(rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed) &
+              CAPTURE_PKTS))
             return;
 
         int sid;

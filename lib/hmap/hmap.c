@@ -2,13 +2,13 @@
  * Copyright (c) 2016-2026 Intel Corporation
  */
 
-#include <stdlib.h>               // for free, calloc, malloc, qsort
-#include <string.h>               // for strlen, strncmp, strerror, strnlen
-#include <errno.h>                // for EEXIST
+#include <stdlib.h>        // for free, calloc, malloc, qsort
+#include <string.h>        // for strlen, strncmp, strerror, strnlen
+#include <errno.h>         // for EEXIST
 #include <sys/queue.h>
 #include <rte_log.h>
-#include <rte_string_fns.h>       // for strlcpy
-#include <rte_tailq.h>            // for RTE_TAILQ_FOREACH_SAFE
+#include <rte_string_fns.h>        // for strlcpy
+#include <rte_tailq.h>             // for RTE_TAILQ_FOREACH_SAFE
 
 #include "hmap.h"
 #include "hmap_log.h"
@@ -172,7 +172,7 @@ hmap_destroy_by_name(const char *name)
 {
     hmap_t *hmap, *tvar;
 
-    RTE_TAILQ_FOREACH_SAFE(hmap, &hmap_registry, next, tvar) {
+    RTE_TAILQ_FOREACH_SAFE (hmap, &hmap_registry, next, tvar) {
         if (!strncmp(name, hmap->name, strlen(name)))
             return hmap_destroy(hmap);
     }
@@ -620,7 +620,7 @@ hmap_list_names(FILE *f)
         f = stdout;
 
     printf("\n**** Hashmap List ****\n");
-    RTE_TAILQ_FOREACH_SAFE(hmap, &hmap_registry, next, tvar)
+    RTE_TAILQ_FOREACH_SAFE (hmap, &hmap_registry, next, tvar)
         printf("   %s\n", hmap->name);
 }
 
@@ -633,7 +633,7 @@ hmap_list_by_name(FILE *f, char *name, bool sort)
         f = stdout;
 
     printf("\n**** Hashmap List ****\n");
-    RTE_TAILQ_FOREACH_SAFE(hmap, &hmap_registry, next, tvar)
+    RTE_TAILQ_FOREACH_SAFE (hmap, &hmap_registry, next, tvar)
         if (!strncmp(name, hmap->name, strlen(name)))
             hmap_list(f, hmap, sort);
 }
@@ -646,7 +646,7 @@ hmap_list_all(FILE *f, bool sort)
     if (!f)
         f = stdout;
 
-    RTE_TAILQ_FOREACH_SAFE(hmap, &hmap_registry, next, tvar)
+    RTE_TAILQ_FOREACH_SAFE (hmap, &hmap_registry, next, tvar)
         hmap_list(f, hmap, sort);
 }
 

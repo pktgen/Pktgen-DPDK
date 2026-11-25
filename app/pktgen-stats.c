@@ -145,11 +145,12 @@ pktgen_print_static_data(void)
                  : (pkt->ethType == RTE_ETHER_TYPE_IPV6) ? "IPv6"
                  : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "ARP"
                                                          : "Other",
-                 (pkt->ipProto == PG_IPPROTO_TCP)                               ? "TCP"
-                 : (pkt->ipProto == PG_IPPROTO_ICMP)                            ? "ICMP"
+                 (pkt->ipProto == PG_IPPROTO_TCP)    ? "TCP"
+                 : (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP"
                  : (rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed) &
-                                                            SEND_VXLAN_PACKETS) ? "VXLAN"
-                                                                                : "UDP",
+                    SEND_VXLAN_PACKETS)
+                     ? "VXLAN"
+                     : "UDP",
                  pkt->vlanid, pkt->tcp_flags);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 

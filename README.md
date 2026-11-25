@@ -86,9 +86,9 @@ Use `--force-fallback-for=libdpdk` to select the subproject even when DPDK is in
 or `--wrap-mode=nofallback` to require an installed DPDK.
 Pass DPDK options with `-Ddpdk:<option>=<value>`; driver selections must include `net/bonding`.
 
-The `pktperf` example is disabled by default. Pass `-Denable_fgen=true` to
-build it with libfgen. If libfgen is missing or unusable, Meson reports that
-the example is skipped.
+The `pktperf` example uses libfgen and is built when it is usable. If libfgen
+is missing or unusable, Meson reports that the example is skipped. Pass
+`-Denable_fgen=false` to skip the dependency lookup and the example.
 
 1. (Optional) Build and install DPDK so `libdpdk.pc` is installed (often under `/usr/local/lib/x86_64-linux-gnu/pkgconfig`).
 1. Export or append to `PKG_CONFIG_PATH` if that path is non‑standard:

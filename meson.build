@@ -44,8 +44,6 @@ foreach arg: warning_flags
 	endif
 endforeach
 
-fgen_dep = dependency('libfgen', required: false)
-
 lua_dep = dependency('', required: false)
 
 if get_option('enable_lua')
@@ -89,6 +87,29 @@ else
 		foreach driver: ['rte_net_bond', 'rte_net_i40e', 'rte_net_ixgbe', 'rte_net_ice', 'rte_bus_vdev']
 			dpdk_driver_deps += cc.find_library(driver, dirs: [dpdk_libs_path], required: false)
 		endforeach
+	endif
+
+	fgen_available = false
+	if get_option('enable_fgen')
+		fgen_dep = dependency('libfgen', required: false)
+		if fgen_dep.found()
+			fgen_available = cc.links('''
+				#include <rte_common.h>
+				#include <rte_mbuf.h>
+				#include <fgen_common.h>
+				#include <fgen.h>
+
+				int main(void) {
+					fgen_t *fgen = fgen_create(0);
+					char *arg = "";
+					return fgen_load_strings(fgen, &arg, 1) +
+					       fgen_load_files(fgen, &arg, 1);
+				}
+			''', dependencies: [fgen_dep, dpdk], name: 'usable libfgen')
+		endif
+		if not fgen_available
+			message('libfgen missing or unusable; skipping components that require it (pktperf)')
+		endif
 	endif
 
 	subdirs =['tools', 'lib', 'examples', 'app', 'docs']

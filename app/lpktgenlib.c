@@ -3264,13 +3264,11 @@ port_info(lua_State *L, port_info_t *pinfo)
     if (dev.device)
         bus = rte_bus_find_by_device(dev.device);
     if (bus && !strcmp(rte_bus_name(bus), "pci")) {
-        char name[RTE_ETH_NAME_MAX_LEN];
         char vend[8], device[8];
 
         vend[0] = device[0] = '\0';
         sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
-        rte_eth_dev_get_name_by_port(pinfo->pid, name);
         snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
                  rte_dev_name(dev.device));
     } else

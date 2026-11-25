@@ -30,6 +30,7 @@
 #undef BPF_MAJOR_VERSION
 #include <pcap/pcap.h>
 
+#include "pg_compat.h"
 #include "pktgen-seq.h"
 #include "pktgen-range.h"
 #include "pktgen-stats.h"
@@ -536,9 +537,9 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     if (!f)
         f = stderr;
 
-    char dev_name[64];
+    char dev_name[RTE_ETH_NAME_MAX_LEN] = "unknown";
 
-    rte_eth_dev_get_name_by_port(pid, dev_name);
+    pg_eth_dev_get_name_by_port(pid, dev_name);
     fprintf(f, "\n** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n", dev_name,
             di->if_index, *di->dev_flags);
 

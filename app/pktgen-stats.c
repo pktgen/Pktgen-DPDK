@@ -182,13 +182,11 @@ pktgen_print_static_data(void)
         if (dev.device)
             bus = rte_bus_find_by_device(dev.device);
         if (bus && !strcmp(rte_bus_name(bus), "pci")) {
-            char name[RTE_ETH_NAME_MAX_LEN];
             char vend[8], device[8], pci[32];
 
             vend[0] = device[0] = '\0';
             sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
-            rte_eth_dev_get_name_by_port(pid, name);
             strcpy(pci, rte_dev_name(dev.device));
             snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
                      &pci[5]);
@@ -575,7 +573,7 @@ pktgen_page_qstats(uint16_t pid)
     unsigned int col, row, q, hdr, width;
     struct rte_eth_stats *s, *r;
     struct rte_ether_addr ethaddr;
-    char buff[128], mac_buf[32], dev_name[64];
+    char buff[128], mac_buf[32], dev_name[RTE_ETH_NAME_MAX_LEN] = "unknown";
     uint64_t ipackets, opackets, errs;
     port_info_t *pinfo;
 
@@ -602,7 +600,7 @@ pktgen_page_qstats(uint16_t pid)
     width = COLUMN_WIDTH_1 + 8;
 
     pktgen_display_set_color("stats.stat.values");
-    rte_eth_dev_get_name_by_port(pid, dev_name);
+    pg_eth_dev_get_name_by_port(pid, dev_name);
     snprintf(buff, sizeof(buff), "%s", dev_name);
     scrn_printf(row + 0, col, "%*s", width, buff);
 

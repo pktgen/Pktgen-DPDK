@@ -158,7 +158,7 @@ See existing examples in `cfg/` (e.g. `default.cfg`, `two-ports.cfg`, `pktgen-1.
 ## 6. Configuration Key Reference
 
 | Key | Location | Type | Example | Description |
-|-----|----------|------|---------|-------------|
+| ----- | ---------- | ------ | --------- | ------------- |
 | devices | setup | tuple/list | `('81:00.0','81:00.1')` | PCI BDFs to bind to DPDK |
 | uio | setup | string | `vfio-pci` | Kernel driver to bind (vfio-pci / igb_uio / uio_pci_generic) |
 | exec | setup/run | tuple | `('sudo')` | Wrapper for privileged execution |

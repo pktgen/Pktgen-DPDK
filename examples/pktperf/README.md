@@ -1,8 +1,9 @@
-## PKTPERF example application to verify Rx/Tx performance with multiple cores
+# PKTPERF example application to verify Rx/Tx performance with multiple cores
 
 The `pktperf` example application is used to verify Rx/Tx performance with multiple cores or queues. The application is configured from the command line arguments and does not have CLI to configure on the fly.
 
 ---
+
 ```console
 **Copyright &copy; <2023-2026>, Intel Corporation. All rights reserved.**
 
@@ -39,32 +40,34 @@ SPDX-License-Identifier: BSD-3-Clause
 
 pktperf: Created 2023 by Keith Wiles @ Intel.com
 ```
+
 ---
 
-### Overview
+## Overview
 
 The implementation uses multiple Rx/Tx queues per port, which is required to achieve maximum performance for receiving and transmitting frames. If your NIC does not support multiple queues, but does support multiple `virtual functions` per physical port, then you should create multiple `virtual functions` network devices and configure them using the `-m` mapping parameters. A single core can only be attached to one network device or port, which means you can not have a single core processing more then one network device or port.
 
 Having a single core processing more then one network device or port was almost never used and made the code more complicated. This is why the implementation was removed from the `pktperf` application.
 
-### Command line arguments
+## Command line arguments
 
 The command line arguments contain the standard DPDK arguments with the pktperf parameters after the '--' option. Please look at the DPDK documentation for the EAL arguments. The pktperf parameter can be displayed using the -h or --help option after the '--' option.
 
 ```console
 pktperf [EAL options] -- [-b burst] [-s size] [-r rate] [-d rxd/txd] [-m map] [-T secs] [-P] [-M mbufs] [-v] [-h]
-	-b|--burst-count <burst> Number of packets for Rx/Tx burst (default 32)
-	-s|--pkt-size <size>     Packet size in bytes (default 64) includes FCS bytes
-	-r|--rate <rate>         Packet TX rate percentage 0=off (default 100)
-	-d|--descriptors <Rx/Tx> Number of RX/TX descriptors (default 1,024/1,024)
-	-m|--map <map>           Core to Port/queue mapping '[Rx-Cores:Tx-Cores].port'
-	-T|--timeout <secs>      Timeout period in seconds (default 1 second)
-	-P|--no-promiscuous      Turn off promiscuous mode (default On)
-	-M|--mbuf-count <count>  Number of mbufs to allocate (default 8,192, max 131,072)
-	-v|--verbose             Verbose output
-	-h|--help                Print this help
+    -b|--burst-count <burst> Number of packets for Rx/Tx burst (default 32)
+    -s|--pkt-size <size>     Packet size in bytes (default 64) includes FCS bytes
+    -r|--rate <rate>         Packet TX rate percentage 0=off (default 100)
+    -d|--descriptors <Rx/Tx> Number of RX/TX descriptors (default 1,024/1,024)
+    -m|--map <map>           Core to Port/queue mapping '[Rx-Cores:Tx-Cores].port'
+    -T|--timeout <secs>      Timeout period in seconds (default 1 second)
+    -P|--no-promiscuous      Turn off promiscuous mode (default On)
+    -M|--mbuf-count <count>  Number of mbufs to allocate (default 8,192, max 131,072)
+    -v|--verbose             Verbose output
+    -h|--help                Print this help
 ```
-### Command line example
+
+## Command line example
 
 ```bash
 sudo builddir/examples/pktperf/pktperf -l 1,2-9,14-21 -a 03:00.0 -a 82:00.0 -- -m "2-5:6-9.0" -m "14-17:18-21.1"

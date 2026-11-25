@@ -66,7 +66,7 @@ Notes:
 - This API intentionally does **not** include `port_stats_t`.
 - This API intentionally does **not** include `rte_eth_stats` (`stats`/`totals` style counters).
 
-### Return value
+### Port info return value
 
 A table with:
 
@@ -83,7 +83,7 @@ Each per-port entry includes a set of informational subtables (non-exhaustive):
 - `VxLAN`: VxLAN fields and `link_state`
 - `pci_vendor`: PCI/vendor string (top-level field, if available)
 
-### Example
+### Port info example
 
 ```lua
 local info = pktgen.portInfo("0")

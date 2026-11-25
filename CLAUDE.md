@@ -61,7 +61,7 @@ This runs `clang-format -i` on staged C files and `markdownlint` on staged Markd
 
 From `CONTRIBUTING.md`:
 
-```
+```text
 <short summary in imperative mood>
 
 <context / motivation>
@@ -79,7 +79,7 @@ Pktgen is a DPDK-based wire-rate packet generator. The binary is `builddir/app/p
 
 ### Module layout
 
-```
+```text
 lib/
   hmap/      Hash-map (type-safe, 64-bit unified storage)
   common/    Shared utilities: checksums, IP parsing, strings, CPU info, port config
@@ -112,7 +112,7 @@ app/
 
 ### Build dependency order (lib subdirectories)
 
-```
+```text
 hmap → common → utils → vec → plugin → cli → lua
 ```
 
@@ -122,13 +122,13 @@ All lib modules compile to static libraries and are linked into the single `pktg
 
 1. **Initialisation** (`pktgen-main.c`): parse `-m` matrix string → populate `l2p_t` (which lcores own which ports/queues) → allocate per-queue mempools (`rx_mp`, `tx_mp`, `sp_mp`) → build default packet templates via `pktgen_packet_ctor()` → launch one worker per lcore.
 
-2. **TX loop** (`pktgen.c:pktgen_launch_one_lcore`): each worker polls its assigned port/queue. The active sending mode is determined by the port's `port_flags` atomic (e.g. `SEND_SINGLE_PKTS`, `SEND_RANGE_PKTS`, `SEND_SEQ_PKTS`, `SEND_PCAP_PKTS`). Rate limiting uses cycle-based inter-burst timing (`tx_cycles`).
+1. **TX loop** (`pktgen.c:pktgen_launch_one_lcore`): each worker polls its assigned port/queue. The active sending mode is determined by the port's `port_flags` atomic (e.g. `SEND_SINGLE_PKTS`, `SEND_RANGE_PKTS`, `SEND_SEQ_PKTS`, `SEND_PCAP_PKTS`). Rate limiting uses cycle-based inter-burst timing (`tx_cycles`).
 
-3. **RX path**: received packets are optionally processed (`PROCESS_INPUT_PKTS` — handles ARP/ICMP echo), captured (`CAPTURE_PKTS`), or used for latency measurement (`SAMPLING_LATENCIES`).
+1. **RX path**: received packets are optionally processed (`PROCESS_INPUT_PKTS` — handles ARP/ICMP echo), captured (`CAPTURE_PKTS`), or used for latency measurement (`SAMPLING_LATENCIES`).
 
-4. **CLI / command path**: the interactive shell runs on the main lcore. Commands are dispatched via `cli_map` pattern matching in `cli-functions.c` → actual logic in `pktgen-cmds.c`. Changing a port setting typically sets a flag (`SETUP_TRANSMIT_PKTS`) so the worker rebuilds its packet template on the next iteration.
+1. **CLI / command path**: the interactive shell runs on the main lcore. Commands are dispatched via `cli_map` pattern matching in `cli-functions.c` → actual logic in `pktgen-cmds.c`. Changing a port setting typically sets a flag (`SETUP_TRANSMIT_PKTS`) so the worker rebuilds its packet template on the next iteration.
 
-5. **Display refresh**: a periodic timer (`UPDATE_DISPLAY_TICK_RATE`) triggers `pktgen_page_display()` which re-renders the current screen page using stats collected via `rte_eth_stats_get` / extended stats.
+1. **Display refresh**: a periodic timer (`UPDATE_DISPLAY_TICK_RATE`) triggers `pktgen_page_display()` which re-renders the current screen page using stats collected via `rte_eth_stats_get` / extended stats.
 
 ### Key global state
 
@@ -142,7 +142,7 @@ All lib modules compile to static libraries and are linked into the single `pktg
 `port_flags` is a 64-bit atomic on each `port_info_t`. Bits are grouped:
 
 | Group | Bits | Semantics |
-|---|---|---|
+| --- | --- | --- |
 | Non-exclusive RX/misc | 0–9 | ARP, ICMP echo, capture, latency sampling |
 | Exclusive TX mode | 12–15 | Exactly one of SINGLE/PCAP/RANGE/SEQ must be set |
 | Exclusive pkt-type | 16–23 | VLAN, MPLS, GRE, VxLAN, random, latency |
@@ -155,7 +155,7 @@ The macros `EXCLUSIVE_MODES` and `EXCLUSIVE_PKT_MODES` define the mutual-exclusi
 TAB completion has two layers:
 
 1. **Tree completion** — walks `cli_node` children of the current directory, matches prefixes of command/dir/file names.
-2. **Map completion** — once the first token (command name) is typed, `cli_get_cmd_map(argv[0])` returns the registered `cli_map` table. The completer scans all map entries whose fixed tokens match what has been typed so far, then offers candidates or placeholder hints (e.g. `<portlist>`, `<ipv4-addr>`) for the current argument position.
+1. **Map completion** — once the first token (command name) is typed, `cli_get_cmd_map(argv[0])` returns the registered `cli_map` table. The completer scans all map entries whose fixed tokens match what has been typed so far, then offers candidates or placeholder hints (e.g. `<portlist>`, `<ipv4-addr>`) for the current argument position.
 
 Map registration happens automatically: `cli_help_add(group, map, help)` calls `cli_register_cmd_maps(map)` which extracts every unique first-token and stores `{token → map}` in the growable `cmd_maps` array on `this_cli`. Do not call `cli_register_cmd_map()` manually after `cli_help_add()` — it would be a redundant no-op.
 
@@ -166,7 +166,7 @@ Map format tokens: `%d` (32-bit), `%D` (64-bit), `%u`/`%U` (unsigned), `%h`/`%H`
 Each port has `NUM_TOTAL_PKTS = 20` slots:
 
 | Index | Role |
-|---|---|
+| --- | --- |
 | 0–15 | Sequence packets (cycled in `SEND_SEQ_PKTS` mode) |
 | 16 (`SINGLE_PKT`) | Default single-packet template |
 | 17 (`SPECIAL_PKT`) | Temporary / scratch packet |
@@ -191,7 +191,7 @@ Each port has `NUM_TOTAL_PKTS = 20` slots:
 Three workflows run on every PR:
 
 | Workflow | What it checks |
-|---|---|
+| --- | --- |
 | `clang-format.yml` | All C/C++ files pass `clang-format --dry-run` (clang-format 21) |
 | `markdownlint.yml` | All `.md` files pass `markdownlint-cli2` (config in `.markdownlint.yml`) |
 | `doc.yml` | Sphinx docs build cleanly (runs on push to `main` only) |

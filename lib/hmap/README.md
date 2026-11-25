@@ -31,6 +31,7 @@ HMAP uses a mixed memory ownership model:
 ### Benefits
 
 This design provides:
+
 - **Flexible keys**: Use dynamic strings, constants, or temporaries for keys/prefixes
 - **Efficient values**: No allocation overhead for scalar values
 - **Predictable performance**: No hidden allocations except for keys/prefixes
@@ -80,13 +81,13 @@ hmap_get_value(hmap, "test", "temp", &result);  // result now points to freed me
 char **allowed_ips = malloc(3 * sizeof(char *));
 int allocated = 1;
 if (allocated) {
-	allowed_ips[0] = strdup("192.168.1.1");
-	allowed_ips[1] = strdup("10.0.0.1");
-	allowed_ips[2] = strdup("172.16.0.1");
+    allowed_ips[0] = strdup("192.168.1.1");
+    allowed_ips[1] = strdup("10.0.0.1");
+    allowed_ips[2] = strdup("172.16.0.1");
 } else { // Or use string literals
-	allowed_ips[0] = "192.168.1.1";
-	allowed_ips[1] = "10.0.0.1";
-	allowed_ips[2] = "172.16.0.1";
+    allowed_ips[0] = "192.168.1.1";
+    allowed_ips[1] = "10.0.0.1";
+    allowed_ips[2] = "172.16.0.1";
 }
 
 hmap_add_array(hmap, "security", "allowed_ips", allowed_ips, 3);
@@ -95,8 +96,8 @@ hmap_destroy(hmap);
 
 // Free AFTER hmap is destroyed only when entries are allocated by caller
 if (allocated) {
-	for (int i = 0; i < 3; i++)
-		free(allowed_ips[i]);
+    for (int i = 0; i < 3; i++)
+        free(allowed_ips[i]);
 }
 free(allowed_ips);
 ```
@@ -162,6 +163,7 @@ free(ips);
 ### Memory Allocation Behavior
 
 HMAP uses a **flat array with linear probing** for optimal cache performance:
+
 - ✓ No per-entry allocation - entries occupy pre-allocated array slots
 - ✓ Cache-friendly 32-byte KVP structures
 - ✓ Only allocates when resizing the array
@@ -185,6 +187,7 @@ for (int i = 0; i < 1000; i++)
 ```
 
 **Capacity Guidelines**:
+
 - Set `max_capacity` to ~1.3x expected maximum entries
 - Hash table performs best at 60-80% full
 - Example: For 1000 entries, use capacity of 1300-1500
@@ -211,7 +214,7 @@ printf("This hmap performed %lu allocations\n", hmap_allocs);
 ### Performance Comparison
 
 | Approach | Allocs (1000 inserts) | Performance | Use Case |
-|----------|----------------------|-------------|----------|
+| ---------- | ---------------------- | ------------- | ---------- |
 | Default capacity | 5-7 (resizing) | Good | General use |
 | **Pre-sized** | **1** | **Excellent** | **Recommended** |
 
@@ -295,8 +298,8 @@ if (kvp) {
     hmap_val_t new_val = {.u64 = 9090};
     hmap_kvp_update(hmap, kvp, &new_val);
 } else {
-	// Key not found
-	hmap_add_value(hmap, "settings", "port", 9090);
+    // Key not found
+    hmap_add_value(hmap, "settings", "port", 9090);
 }
 ```
 
@@ -417,6 +420,7 @@ int main(void)
 ## Supported Types
 
 ### Scalar Types
+
 - **Strings**: `char *` - Null-terminated C strings
 - **Integers**: `int8_t`, `int16_t`, `int32_t`, `int64_t`
 - **Unsigned**: `uint8_t`, `uint16_t`, `uint32_t`, `uint64_t`
@@ -425,7 +429,9 @@ int main(void)
 - **Pointer**: `void *` - Generic pointer
 
 ### Array Types
+
 All scalar types have corresponding array versions:
+
 - `char **` - String arrays
 - `uint32_t *`, `int64_t *`, etc. - Numeric arrays
 - `uint8_t *` - Boolean arrays (0=false, 1=true)
@@ -475,6 +481,7 @@ hmap_get_value(hmap, "database", "port", &db_port);    // 5432
 ### Memory Management
 
 HMAP manages memory automatically:
+
 - **Strings**: Copies are made internally, freed on destroy
 - **Arrays**: Stores pointers only - caller manages array memory
 - **String arrays**: Deep copies made for string array elements
@@ -507,6 +514,7 @@ hmap_add_string_array(hmap, "users", "names", names, 2);
 ## Error Handling
 
 Most functions return:
+
 - `0` on success, `-1` on failure (add/update/get operations)
 - `NULL` on failure (creation, lookup operations)
 - Array count or `-1` on failure (array get operations)
@@ -525,22 +533,24 @@ if (!kvp) {
 ## Best Practices
 
 1. **Use the generic macros**: `hmap_add_value()`, `hmap_add_array()`, `hmap_get_value()`, and `hmap_get_array()` provide type-safe, readable code
-2. **Choose meaningful prefixes**: Group related configuration logically
-3. **Set appropriate capacity**: Avoid rehashing by estimating entry count
-4. **Check return values**: Always verify operations succeeded
-5. **Manage array lifetimes**: Keep array data valid while referenced by hmap
-6. **Use sorted listings**: Enable sorting for better debugging/inspection
-7. **Destroy when done**: Always call `hmap_destroy()` to prevent leaks
+1. **Choose meaningful prefixes**: Group related configuration logically
+1. **Set appropriate capacity**: Avoid rehashing by estimating entry count
+1. **Check return values**: Always verify operations succeeded
+1. **Manage array lifetimes**: Keep array data valid while referenced by hmap
+1. **Use sorted listings**: Enable sorting for better debugging/inspection
+1. **Destroy when done**: Always call `hmap_destroy()` to prevent leaks
 
 ## API Reference
 
 ### Creation & Destruction
+
 - `hmap_create()` - Create with default functions
 - `hmap_create_with_funcs()` - Create with custom functions
 - `hmap_create_with_ext_storage()` - Create with external storage
 - `hmap_destroy()` - Free all resources
 
-### Adding Values
+### Adding Values API
+
 - **`hmap_add_value(hmap, prefix, key, value)`** - Type-safe scalar setter
   - Supports: `char*`, `bool`, `uint64_t`, `uint32_t`, `uint16_t`, `uint8_t`, `int64_t`, `int32_t`, `int16_t`, `int8_t`, `double`, `float`, `void*`
   - Returns: `0` on success, `-1` on failure
@@ -550,6 +560,7 @@ if (!kvp) {
   - Returns: `0` on success, `-1` on failure
 
 ### Getting Values
+
 - **`hmap_get_value(hmap, prefix, key, &value)`** - Type-safe scalar getter
   - Type inferred from value pointer
   - Returns: `0` on success, `-1` on failure
@@ -559,10 +570,12 @@ if (!kvp) {
   - Returns: Array count on success, `-1` on failure
 
 ### Lookup & Update
+
 - `hmap_kvp_lookup()` - Find key-value pair
 - `hmap_kvp_update()` - Update existing value
 
 ### Inspection
+
 - `hmap_list()` - Print to file stream
 - `hmap_kvp_list()` - Get array of pointers
 - `hmap_iterate()` - Callback-based iteration

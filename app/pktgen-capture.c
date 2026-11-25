@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -87,7 +87,7 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
 
     if (onOff == ENABLE_STATE) {
         /* Enabling an already enabled port is a no-op */
-        if (rte_atomic64_read(&pinfo->port_flags) & CAPTURE_PKTS)
+        if (rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed) & CAPTURE_PKTS)
             return;
 
         /* Find an lcore that can capture packets for the requested port */
@@ -134,7 +134,8 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
                                     * frame overhead: 84 bytes per packet */
         );
     } else {
-        if (!(rte_atomic64_read(&pinfo->port_flags) & CAPTURE_PKTS))
+          if (!(rte_atomic_load_explicit(&pinfo->port_flags,
+                                         rte_memory_order_relaxed) & CAPTURE_PKTS))
             return;
 
         int sid;
@@ -182,10 +183,12 @@ pktgen_set_capture(port_info_t *pinfo, uint32_t onOff)
                     printf("\n>>> Hit packet length zero at %'u of %'u\n", i, cap->nb_pkts);
                     break;
                 }
-                pcap_hdr.ts.tv_sec  = 0; /* FIXME use real timestamp */
-                pcap_hdr.ts.tv_usec = 0; /* FIXME use real timestamp */
+                struct timespec ts;
+                clock_gettime(CLOCK_REALTIME, &ts);
                 pcap_hdr.len        = hdr->pkt_len;
                 pcap_hdr.caplen     = hdr->data_len;
+                pcap_hdr.ts.tv_sec  = ts.tv_sec;
+                pcap_hdr.ts.tv_usec = ts.tv_nsec / 1000;
 
                 pcap_dump((u_char *)pcap_dumper, &pcap_hdr, (const u_char *)hdr->pkt);
 

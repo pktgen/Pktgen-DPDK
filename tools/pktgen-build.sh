@@ -105,7 +105,7 @@ function ninja_build_docs() {
         fi
 	fi
 
-	ninja -C $build_path doc
+	ninja -C $build_path docs
 
 	if [[ $? -ne 0 ]]; then
 		return 1;

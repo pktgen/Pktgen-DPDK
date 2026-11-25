@@ -1,7 +1,16 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 /* Created by Keith Wiles @ intel.com */
+
+/**
+ * @file
+ * CLI core implementation.
+ *
+ * Owns the CLI tree, history, prompt handling, and command execution.
+ * Also includes the command-to-map registry used by map-driven features such
+ * as auto-complete.
+ */
 
 #include <stdio.h>
 #include <poll.h>
@@ -19,7 +28,146 @@
 
 static int (*__dofile_lua)(void *, const char *);
 
+struct cli_node_chunk {
+    TAILQ_ENTRY(cli_node_chunk) next;
+    struct cli_node *mem;
+    uint32_t count;
+};
+
 RTE_DEFINE_PER_LCORE(struct cli *, cli);
+
+int
+cli_register_cmd_map(const char *cmd, struct cli_map *map)
+{
+    struct cli *cli = this_cli;
+
+    if (!cli || !cmd || (*cmd == '\0'))
+        return -1;
+
+    /* Unregister */
+    if (!map) {
+        for (uint32_t i = 0; i < cli->nb_cmd_maps; i++) {
+            if (cli->cmd_maps[i].cmd && !strcmp(cli->cmd_maps[i].cmd, cmd)) {
+                free(cli->cmd_maps[i].cmd);
+                memmove(&cli->cmd_maps[i], &cli->cmd_maps[i + 1],
+                        (cli->nb_cmd_maps - (i + 1)) * sizeof(cli->cmd_maps[0]));
+                cli->nb_cmd_maps--;
+                memset(&cli->cmd_maps[cli->nb_cmd_maps], 0, sizeof(cli->cmd_maps[0]));
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    /* Update existing */
+    for (uint32_t i = 0; i < cli->nb_cmd_maps; i++) {
+        if (cli->cmd_maps[i].cmd && !strcmp(cli->cmd_maps[i].cmd, cmd)) {
+            cli->cmd_maps[i].map = map;
+            return 0;
+        }
+    }
+
+    /* Grow registry if needed */
+    if (cli->nb_cmd_maps >= cli->cmd_maps_cap) {
+        uint32_t new_cap = cli->cmd_maps_cap ? (cli->cmd_maps_cap * 2) : (uint32_t)CLI_MAX_CMD_MAPS;
+        if (new_cap < cli->nb_cmd_maps + 1)
+            new_cap = cli->nb_cmd_maps + 1;
+
+        cli_cmd_map_t *new_maps = realloc(cli->cmd_maps, (size_t)new_cap * sizeof(*new_maps));
+        if (!new_maps)
+            return -1;
+
+        /* Zero the new slots */
+        if (new_cap > cli->cmd_maps_cap)
+            memset(&new_maps[cli->cmd_maps_cap], 0,
+                   (size_t)(new_cap - cli->cmd_maps_cap) * sizeof(*new_maps));
+
+        cli->cmd_maps     = new_maps;
+        cli->cmd_maps_cap = new_cap;
+    }
+
+    cli->cmd_maps[cli->nb_cmd_maps].cmd = strdup(cmd);
+    if (!cli->cmd_maps[cli->nb_cmd_maps].cmd)
+        return -1;
+
+    cli->cmd_maps[cli->nb_cmd_maps].map = map;
+    cli->nb_cmd_maps++;
+
+    return 0;
+}
+
+int
+cli_register_cmd_maps(struct cli_map *maps)
+{
+    char token[CLI_NAME_LEN];
+    char choices[CLI_MAX_PATH_LENGTH + 1];
+
+    if (!maps)
+        return -1;
+
+    for (int mi = 0; maps[mi].fmt != NULL; mi++) {
+        const char *fmt = maps[mi].fmt;
+        const char *sp;
+        size_t len;
+
+        if (!fmt)
+            continue;
+
+        while (*fmt == ' ')
+            fmt++;
+        if (*fmt == '\0')
+            continue;
+
+        sp  = strchr(fmt, ' ');
+        len = sp ? (size_t)(sp - fmt) : strlen(fmt);
+        if (len == 0)
+            continue;
+
+        if (len >= sizeof(token))
+            len = sizeof(token) - 1;
+        memcpy(token, fmt, len);
+        token[len] = '\0';
+
+        /* Skip tokens that are placeholders except for %|choice lists. */
+        if (token[0] == '%') {
+            if (token[1] != '|')
+                continue;
+
+            /* Register each choice (e.g. %|seq|sequence). */
+            snprintf(choices, sizeof(choices), "%s", token + 2);
+            char *saveptr = NULL;
+            for (char *opt = strtok_r(choices, "|", &saveptr); opt != NULL;
+                 opt       = strtok_r(NULL, "|", &saveptr)) {
+                if (*opt == '\0')
+                    continue;
+                if (cli_register_cmd_map(opt, maps) < 0)
+                    return -1;
+            }
+            continue;
+        }
+
+        if (cli_register_cmd_map(token, maps) < 0)
+            return -1;
+    }
+
+    return 0;
+}
+
+struct cli_map *
+cli_get_cmd_map(const char *cmd)
+{
+    struct cli *cli = this_cli;
+
+    if (!cli || !cmd || (*cmd == '\0'))
+        return NULL;
+
+    for (uint32_t i = 0; i < cli->nb_cmd_maps; i++) {
+        if (cli->cmd_maps[i].cmd && !strcmp(cli->cmd_maps[i].cmd, cmd))
+            return cli->cmd_maps[i].map;
+    }
+
+    return NULL;
+}
 
 int
 cli_nodes_unlimited(void)
@@ -40,24 +188,31 @@ cli_alloc(void)
     if (node)
         TAILQ_REMOVE(&cli->free_nodes, node, next);
     else if (cli_nodes_unlimited()) {
-        struct cli_node *orig = cli->node_mem;
-        size_t size;
+        struct cli_node_chunk *chunk;
+        struct cli_node *mem;
 
-        size          = (cli->nb_nodes + CLI_DEFAULT_NB_NODES) * sizeof(struct cli_node);
-        cli->node_mem = realloc(cli->node_mem, size);
-        if (cli->node_mem == NULL) {
-            cli->node_mem = orig;
+        chunk = calloc(1, sizeof(*chunk));
+        if (!chunk)
+            return NULL;
+
+        mem = calloc(CLI_DEFAULT_NB_NODES, sizeof(*mem));
+        if (!mem) {
+            free(chunk);
             return NULL;
         }
-        if (cli->node_mem == orig) {
-            uint32_t i;
 
-            node = &cli->node_mem[cli->nb_nodes];
-            for (i = 0; i < CLI_DEFAULT_NB_NODES; i++, node++)
-                TAILQ_INSERT_TAIL(&cli->free_nodes, node, next);
-            cli->nb_nodes += CLI_DEFAULT_NB_NODES;
-        } else
-            return NULL;
+        chunk->mem   = mem;
+        chunk->count = CLI_DEFAULT_NB_NODES;
+        TAILQ_INSERT_TAIL(&cli->node_chunks, chunk, next);
+
+        for (uint32_t i = 0; i < chunk->count; i++)
+            TAILQ_INSERT_TAIL(&cli->free_nodes, &mem[i], next);
+
+        cli->nb_nodes += chunk->count;
+
+        node = (struct cli_node *)TAILQ_FIRST(&cli->free_nodes);
+        if (node)
+            TAILQ_REMOVE(&cli->free_nodes, node, next);
     }
 
     return node;
@@ -256,7 +411,7 @@ __add_node(const char *name, struct cli_node *parent, int type, cli_funcs_t func
     return node;
 }
 
-/* Add a direcrtory to the CLI tree */
+/* Add a directory to the CLI tree */
 struct cli_node *
 cli_add_dir(const char *name, struct cli_node *dir)
 {
@@ -291,7 +446,7 @@ cli_add_dir(const char *name, struct cli_node *dir)
 
     if (p[0] == '/') { /* Start from root */
         dir = cli->root.tqh_first;
-        p++;           /* Skip the / in the orignal path */
+        p++;           /* Skip the / in the original path */
         path[0] = '/'; /* Add root to the path */
     }
 
@@ -299,8 +454,21 @@ cli_add_dir(const char *name, struct cli_node *dir)
 
     n = NULL;
     for (i = 0; i < cnt; i++) {
-        /* Append each directory part to the search path */
-        strcat(path, argv[i]);
+        /* Append each directory part to the search path (with bounds + '/') */
+        size_t used       = strnlen(path, sizeof(path));
+        size_t need_slash = (used > 0 && path[used - 1] != '/');
+        int wrote;
+
+        if (need_slash) {
+            wrote = snprintf(path + used, sizeof(path) - used, "/");
+            if (wrote < 0 || (size_t)wrote >= (sizeof(path) - used))
+                return NULL;
+            used += (size_t)wrote;
+        }
+
+        wrote = snprintf(path + used, sizeof(path) - used, "%s", argv[i]);
+        if (wrote < 0 || (size_t)wrote >= (sizeof(path) - used))
+            return NULL;
 
         if (cli_find_node(path, &ret)) {
             dir = ret;
@@ -440,42 +608,42 @@ cli_execute(void)
     struct cli_node *node;
     int argc, ret, sz;
     struct gapbuf *gb = cli->gb;
-    char *line, *p, *hist;
+    char *line        = NULL, *p, *hist;
 
     RTE_ASSERT(cli != NULL);
 
     sz = gb_data_size(gb);
     sz = RTE_MAX(sz, CLI_MAX_PATH_LENGTH);
+    sz = RTE_MIN(sz, (int)(CLI_MAX_SCRATCH_LENGTH - 1));
 
-    line = alloca(sz + 1);
+    line = calloc(1, (size_t)sz + 1);
     if (!line)
         return -1;
-
-    memset(line, '\0', sz + 1);
 
     /* gb_copy_to_buf() forces linebuf to be null terminated */
     gb_copy_to_buf(gb, line, sz);
 
-    /* Trim the string of whitspace on front and back */
+    /* Trim the string of whitespace on front and back */
     p = pg_strtrim(line);
     if (!strlen(p))
-        return 0;
+        goto out_ok;
 
     if (p[0] == '#') /* Found a comment line starting with a '#' */
-        return 0;
+        goto out_ok;
     else if (p[0] == '!') { /* History command */
         hist = cli_history_line(atoi(&p[1]));
         if (!hist) {
             cli_printf("Unknown history line number %d\n", atoi(&p[1]));
-            return 0;
+            goto out_ok;
         }
         /* History lines are already trimmed and ready to be executed */
-        strcpy(line, hist);
+        snprintf(line, (size_t)sz + 1, "%s", hist);
 #ifdef RTE_CLI_HOST_COMMANDS
     } else if (p[0] == '@') { /* System execute a command */
         ret = cli_system(&p[1]);
         if (!ret)
             cli_history_add(p);
+        free(line);
         return ret;
 #endif
     } else
@@ -487,12 +655,13 @@ cli_execute(void)
     argc = pg_strqtok(p, " \r\n", cli->argv, CLI_MAX_ARGVS);
 
     if (!argc)
-        return 0;
+        goto out_ok;
 
     node = cli_find_cmd(cli->argv[0]);
     if (!node) {
         cli_printf("** command not found (%s)\n", cli->argv[0]);
-        return -1;
+        ret = -1;
+        goto out;
     }
 
     ret = -1;
@@ -551,7 +720,14 @@ cli_execute(void)
         break;
     }
     cli_history_reset();
+
+out:
+    free(line);
     return ret;
+
+out_ok:
+    ret = 0;
+    goto out;
 }
 
 /* Main entry point into the CLI system to start accepting user input */
@@ -657,6 +833,7 @@ cli_init(int nb_entries, uint32_t nb_hist)
     TAILQ_INIT(&cli->root);       /* Init the directory list */
     TAILQ_INIT(&cli->free_nodes); /* List of free nodes */
     TAILQ_INIT(&cli->help_nodes); /* List of help nodes */
+    TAILQ_INIT(&cli->node_chunks);
 
     CIRCLEQ_INIT(&cli->free_hist); /* List of free hist nodes */
     CIRCLEQ_INIT(&cli->hd_hist);   /* Init the history for list head */
@@ -675,6 +852,12 @@ cli_init(int nb_entries, uint32_t nb_hist)
     cli->argv = calloc(CLI_MAX_ARGVS, sizeof(void *));
     if (!cli->argv)
         goto error_exit;
+
+    /* command -> cli_map registry */
+    cli->cmd_maps = calloc((size_t)CLI_MAX_CMD_MAPS, sizeof(*cli->cmd_maps));
+    if (!cli->cmd_maps)
+        goto error_exit;
+    cli->cmd_maps_cap = CLI_MAX_CMD_MAPS;
 
     /* Create the pool for the number of nodes */
     node = cli->node_mem;
@@ -746,6 +929,23 @@ cli_destroy(void)
     free(cli->argv);
     free(cli->hist_mem);
     free(cli->node_mem);
+
+    if (cli->cmd_maps) {
+        for (uint32_t i = 0; i < cli->nb_cmd_maps; i++)
+            free(cli->cmd_maps[i].cmd);
+        free(cli->cmd_maps);
+        cli->cmd_maps = NULL;
+    }
+    cli->nb_cmd_maps  = 0;
+    cli->cmd_maps_cap = 0;
+
+    while (!TAILQ_EMPTY(&cli->node_chunks)) {
+        struct cli_node_chunk *chunk = TAILQ_FIRST(&cli->node_chunks);
+        TAILQ_REMOVE(&cli->node_chunks, chunk, next);
+        free(chunk->mem);
+        free(chunk);
+    }
+
     free(cli);
 
     this_cli = NULL;

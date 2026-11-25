@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -59,7 +59,7 @@ static struct rte_eth_conf default_port_conf = {
                 {
                     .rss_key = NULL,
                     .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+                               RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
                 },
         },
     .intr_conf =
@@ -164,22 +164,39 @@ allocate_port_info(uint16_t pid)
         goto leave;
 
     pinfo->pid     = pid;
-    pinfo->sid     = sid;
     pinfo->max_mtu = RTE_ETHER_MAX_LEN;
     pinfo->conf    = default_port_conf;
+    rte_atomic_store_explicit(&pinfo->port_flags, 0, rte_memory_order_relaxed);
 
     if (rte_eth_dev_info_get(pid, &pinfo->dev_info) < 0) {
         pktgen_log_error("Cannot get device info for port %u", pid);
         goto leave;
     }
 
-    pinfo->rx_pkts = rte_calloc_socket("RxMbufs", MAX_PKT_RX_BURST, sizeof(struct rte_mbuf *),
-                                       RTE_CACHE_LINE_SIZE, sid);
-    pinfo->tx_pkts = rte_calloc_socket("TxMbufs", MAX_PKT_TX_BURST, sizeof(struct rte_mbuf *),
-                                       RTE_CACHE_LINE_SIZE, sid);
-    if (pinfo->rx_pkts == NULL || pinfo->tx_pkts == NULL) {
-        pktgen_log_error("Cannot allocate RX/TX burst for port %u", pid);
-        goto leave;
+    for (int qid = 0; qid < l2p_get_txcnt(pid); qid++) {
+        per_queue_t *pq = &pinfo->per_queue[qid];
+        char buff[64];
+
+        snprintf(buff, sizeof(buff), "RxMbufs-%u-%d", pid, qid);
+        pq->rx_pkts = rte_calloc_socket(buff, MAX_PKT_RX_BURST, sizeof(struct rte_mbuf *),
+                                        RTE_CACHE_LINE_SIZE, sid);
+        if (pq->rx_pkts == NULL) {
+            pktgen_log_error("Cannot allocate RX burst for port %u-%d", pid, qid);
+            goto leave;
+        }
+    }
+
+    for (int qid = 0; qid < l2p_get_txcnt(pid); qid++) {
+        per_queue_t *pq = &pinfo->per_queue[qid];
+        char buff[64];
+
+        snprintf(buff, sizeof(buff), "TxMbufs-%u-%d", pid, qid);
+        pq->tx_pkts = rte_calloc_socket(buff, MAX_PKT_TX_BURST, sizeof(struct rte_mbuf *),
+                                        RTE_CACHE_LINE_SIZE, sid);
+        if (pq->tx_pkts == NULL) {
+            pktgen_log_error("Cannot allocate TX burst for port %u-%d", pid, qid);
+            goto leave;
+        }
     }
 
     if (l2p_set_port_pinfo(pid, pinfo)) {
@@ -194,15 +211,15 @@ allocate_port_info(uint16_t pid)
         pktsz = RTE_ETHER_MAX_JUMBO_FRAME_LEN;
 
     /* allocate the sequence packet array */
-    pinfo->seq_pkt = rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS),
-                                        RTE_CACHE_LINE_SIZE, pinfo->sid);
+    pinfo->seq_pkt =
+        rte_zmalloc_socket(NULL, (sizeof(pkt_seq_t) * NUM_TOTAL_PKTS), RTE_CACHE_LINE_SIZE, sid);
     if (pinfo->seq_pkt == NULL) {
         pktgen_log_error("Unable to allocate %'ld pkt_seq_t headers", (long int)NUM_TOTAL_PKTS);
         goto leave;
     }
 
     for (int i = 0; i < NUM_TOTAL_PKTS; i++) {
-        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, pinfo->sid);
+        pinfo->seq_pkt[i].hdr = rte_zmalloc_socket(NULL, pktsz, RTE_CACHE_LINE_SIZE, sid);
         if (pinfo->seq_pkt[i].hdr == NULL)
             pktgen_log_panic("Unable to allocate %ld pkt_seq_t buffer space", pktsz);
 
@@ -220,8 +237,12 @@ allocate_port_info(uint16_t pid)
     return pinfo;
 leave:
     if (pinfo) {
-        rte_free(pinfo->rx_pkts);
-        rte_free(pinfo->tx_pkts);
+        for (int i = 0; i < MAX_QUEUES_PER_PORT; i++) {
+            per_queue_t *pq = &pinfo->per_queue[i];
+
+            rte_free(pq->rx_pkts);
+            rte_free(pq->tx_pkts);
+        }
         rte_free(pinfo);
         l2p_set_port_pinfo(pid, NULL);
     }
@@ -323,7 +344,6 @@ _tx_offload_defaults(port_info_t *pinfo)
     if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE)
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_MBUF_FAST_FREE;
 
-#if 0        // FIXME: Tx performance drops when using these offloads.
     if (dinfo->tx_offload_capa & RTE_ETH_TX_OFFLOAD_TCP_CKSUM) {
         pktgen_log_info("   Enabling Tx TCP_CKSUM offload");
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_TCP_CKSUM;
@@ -338,7 +358,6 @@ _tx_offload_defaults(port_info_t *pinfo)
         pktgen_log_info("   Enabling Tx IPV4_CKSUM offload\r\n");
         conf->txmode.offloads |= RTE_ETH_TX_OFFLOAD_IPV4_CKSUM;
     }
-#endif
 }
 
 static void
@@ -421,12 +440,14 @@ _rx_queues(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
-    uint16_t pid                   = pinfo->pid;
+    uint16_t sid, pid = pinfo->pid;
     int ret;
 
     l2p_port_t *lport = l2p_get_port(pid);
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
+
+    sid = pg_eth_dev_socket_id(pid);
 
     pktgen_log_info("   Number of RX queues %u", l2p_get_rxcnt(pid));
     for (int q = 0; q < l2p_get_rxcnt(pid); q++) {
@@ -435,9 +456,10 @@ _rx_queues(port_info_t *pinfo)
         rxq_conf          = dinfo->default_rxconf;
         rxq_conf.offloads = conf->rxmode.offloads;
 
-        pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx", q, rxq_conf.offloads);
+        pktgen_log_info("     RX queue %d enabled offloads: 0x%0lx, socket_id %u, mp %p", q,
+                        rxq_conf.offloads, sid, lport->rx_mp[q]);
 
-        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, pinfo->sid, &rxq_conf, lport->rx_mp);
+        ret = rte_eth_rx_queue_setup(pid, q, pktgen.nb_rxd, sid, &rxq_conf, lport->rx_mp[q]);
         if (ret < 0)
             pktgen_log_panic("rte_eth_rx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));
@@ -449,12 +471,14 @@ _tx_queues(port_info_t *pinfo)
 {
     struct rte_eth_dev_info *dinfo = &pinfo->dev_info;
     struct rte_eth_conf *conf      = &pinfo->conf;
-    uint16_t pid                   = pinfo->pid;
+    uint16_t sid, pid = pinfo->pid;
     int ret;
 
     l2p_port_t *lport = l2p_get_port(pid);
     if (lport == NULL)
         pktgen_log_panic("Failed: l2p_port_t for port %u not found", pid);
+
+    sid = pg_eth_dev_socket_id(pid);
 
     pktgen_log_info("   Number of TX queues %u", l2p_get_txcnt(pid));
     for (int q = 0; q < l2p_get_txcnt(pid); q++) {
@@ -465,7 +489,7 @@ _tx_queues(port_info_t *pinfo)
 
         pktgen_log_info("     TX queue %d enabled offloads: 0x%0lx", q, txq_conf.offloads);
 
-        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, pinfo->sid, &txq_conf);
+        ret = rte_eth_tx_queue_setup(pid, q, pktgen.nb_txd, sid, &txq_conf);
         if (ret < 0)
             pktgen_log_panic("rte_eth_tx_queue_setup: err=%d, port=%d, %s", ret, pid,
                              rte_strerror(-ret));

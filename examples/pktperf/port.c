@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) 2023 Intel Corporation
+ * Copyright(c) 2023-2026 Intel Corporation
  */
 
 #include <stdio.h>
@@ -49,7 +49,7 @@ static struct rte_eth_conf port_conf = {
                 {
                     .rss_key = NULL,
                     .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+                               RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
                 },
         },
     .intr_conf =

@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,6 +7,16 @@
 
 #ifndef _PKTGEN_PORT_CFG_H_
 #define _PKTGEN_PORT_CFG_H_
+
+/**
+ * @file
+ *
+ * Per-port configuration, port flags, and key data structures for Pktgen.
+ *
+ * Defines port_info_t (the central per-port state), the SEND_* flag bits
+ * that control TX behaviour, the latency sampling structs, and a set of
+ * diagnostic dump helpers for NIC capabilities.
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -26,16 +36,14 @@
 #include "pktgen-pcap.h"
 #include "pktgen-dump.h"
 #include "pktgen-ether.h"
-#include "pktgen-workq.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define USER_PATTERN_SIZE 16
+#define USER_PATTERN_SIZE 16 /**< Maximum length of the user-defined fill pattern */
 #define MAX_LATENCY_ENTRIES \
-    50108        // Max 101000?, limited by max allowed size of latsamp_stats_t.data[]
-#define MAX_LATENCY_QUEUES 10
+    50108 /**< Max latency records (limited by latsamp_stats_t.data[] max size) */
 
 // clang-format off
 enum { /* Per port flag bits */
@@ -91,38 +99,44 @@ enum { /* Per port flag bits */
 
 #define RTE_PMD_PARAM_UNSET -1
 
+/** Payload fill pattern mode. */
 typedef enum {
-    ZERO_FILL_PATTERN = 1,
-    ABC_FILL_PATTERN,
-    USER_FILL_PATTERN,
-    NO_FILL_PATTERN,
+    ZERO_FILL_PATTERN = 1, /**< Fill payload with zero bytes */
+    ABC_FILL_PATTERN,      /**< Fill payload with repeating 0x00..0xff pattern */
+    USER_FILL_PATTERN,     /**< Fill payload with the user-defined pattern */
+    NO_FILL_PATTERN,       /**< Leave payload bytes unchanged */
 } fill_t;
 
+/** Function pointer type for a port's TX handler. */
 typedef void (*tx_func_t)(struct port_info_s *info, uint16_t qid);
 
-#define RING_SIZE 1000
+#define RING_SIZE 1024 /**< Number of entries in the tail-latency ring buffer */
+
+/** Ring buffer for recording tail-latency samples. */
 typedef struct {
-    uint64_t data[RING_SIZE];
-    int head;  /**< index of next write position */
-    int count; /**< number of elements */
+    uint64_t data[RING_SIZE]; /**< Latency sample values (in TSC cycles) */
+    int head;                 /**< Index of next write position */
+    int count;                /**< Number of elements currently in the ring */
 } latency_ring_t;
 
+/** Per-queue latency sample collection buffer. */
 typedef struct {
-    uint64_t data[MAX_LATENCY_ENTRIES]; /** Record for latencies */
+    uint64_t data[MAX_LATENCY_ENTRIES]; /**< Recorded latency values in cycles */
     uint32_t idx;                       /**< Index to the latencies array */
-    uint64_t next;                      /**< Next latency entry */
-    uint64_t pkt_counter;               /**< Pkt counter */
     uint32_t num_samples;               /**< Number of latency samples */
+    uint64_t next;                      /**< Next latency sample time */
+    uint64_t reserved[2];               /**< Reserved for future use and align 64 bytes */
 } latsamp_stats_t __rte_cache_aligned;
 
+/** Per-port latency measurement state and running statistics. */
 typedef struct {
-    uint64_t latency_rate_us;         /**< number micro-seconds between injecting packets */
+    uint64_t latency_rate_us;         /**< Number micro-seconds between injecting packets */
     uint64_t jitter_threshold_us;     /**< Jitter threshold in micro-seconds */
     uint64_t jitter_threshold_cycles; /**< Jitter threshold cycles */
     uint64_t latency_rate_cycles;     /**< Number of cycles between injections */
     uint64_t latency_timo_cycles;     /**< Number of cycles to next latency injection */
     uint16_t latency_entropy;         /**< Entropy value to be used to increment sport */
-    MARKER stats;                     /* starting Marker to clear stats */
+    MARKER stats;                     /**< Start marker for stats region (used to clear stats) */
     uint64_t jitter_count;            /**< Number of jitter stats */
     uint64_t num_latency_pkts;        /**< Total number of latency packets */
     uint64_t num_latency_tx_pkts;     /**< Total number of TX latency packets */
@@ -135,53 +149,51 @@ typedef struct {
     uint32_t next_index;              /**< Next index to use for sending latency packets */
     uint32_t expect_index;            /**< Expected index for received latency packets */
     latency_ring_t tail_latencies;    /**< ring buffer for tail latencies */
-    MARKER end_stats;
+    MARKER end_stats;                 /**< End marker for stats region (used to clear stats) */
 } latency_t;
 
+/** Per-queue packet buffer arrays for RX and TX. */
+typedef struct per_queue_s {
+    struct rte_mbuf **rx_pkts; /**< Array of pointers to packet buffers for RX */
+    struct rte_mbuf **tx_pkts; /**< Array of pointers to packet buffers for TX */
+} per_queue_t;
+
+/** Central per-port state for Pktgen. */
 typedef struct port_info_s {
     struct rte_eth_dev_info dev_info; /**< Device information */
     struct rte_eth_conf conf;         /**< Configuration settings */
-    struct rte_mbuf **rx_pkts;        /**< Array of pointers to packet buffers for RX */
-    struct rte_mbuf **tx_pkts;        /**< Array of pointers to packet buffers for TX */
-
-    rte_atomic64_t port_flags;       /**< Special send flags for ARP and other */
-    rte_atomic64_t transmit_count;   /**< Packets to transmit loaded into current_tx_count */
-    rte_atomic64_t current_tx_count; /**< Current number of packets to send */
-    volatile uint64_t tx_cycles;     /**< Number cycles between TX bursts */
-    uint16_t pid;                    /**< Port ID value */
-    uint16_t sid;                    /** Socket or NUMA ID value */
-    uint16_t rx_burst;               /**< Number of RX burst size */
-    uint16_t tx_burst;               /**< Number of TX burst packets */
-    uint16_t lsc_enabled;            /**< Enable link state change */
-    uint16_t max_mtu;                /**< Maximum MTU size */
-    uint64_t tx_pps;                 /**< Transmit packets per seconds */
-    uint64_t tx_count;               /**< Total count of tx attempts */
-    uint64_t delta;                  /**< Delta value for latency testing */
-    double tx_rate;                  /**< Percentage rate for tx packets with fractions */
-    struct rte_eth_link link;        /**< Link Information like speed and duplex */
-    struct rte_ether_addr src_mac;   /**< Source MAC address of the port */
-
-    /* Packet buffer space for traffic generator, shared for all packets per port */
-    uint16_t seqIdx;     /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
-    uint16_t seqCnt;     /**< Current packet sequence max count */
-    uint16_t prime_cnt;  /**< Set the number of packets to send in a prime command */
-    uint16_t vlanid;     /**< Set the port VLAN ID value */
-    uint8_t cos;         /**< Set the port 802.1p cos value */
-    uint8_t tos;         /**< Set the port tos value */
-    pkt_seq_t *seq_pkt;  /**< Sequence of packets seq_pkt[NUM_SEQ_PKTS]=default packet */
-    range_info_t range;  /**< Range Information */
-    uint32_t mpls_entry; /**< Set the port MPLS entry */
-    uint32_t gre_key;    /**< GRE key if used */
-
-    struct rnd_bits_s *rnd_bitfields;     /**< Random bitfield settings */
-    char user_pattern[USER_PATTERN_SIZE]; /**< User set pattern values */
-    fill_t fill_pattern_type;             /**< Type of pattern to fill with */
+    struct rte_eth_link link;         /**< Link Information speed and duplex */
+    struct rte_ether_addr src_mac;    /**< Source MAC address of the port */
+    RTE_ATOMIC(uint64_t) port_flags;        /**< Special send flags for ARP and other */
+    RTE_ATOMIC(uint64_t) transmit_count;    /**< Packets to transmit loaded into current_tx_count */
+    RTE_ATOMIC(uint64_t) current_tx_count;  /**< Current number of packets to send */
+    volatile uint64_t tx_cycles;      /**< Number cycles between TX bursts */
+    pkt_seq_t *seq_pkt;               /**< Packet sequence array */
+    range_info_t range;               /**< Range Information */
+    uint16_t pid;                     /**< Port ID value */
+    uint16_t rx_burst;                /**< Number of RX burst size */
+    uint16_t tx_burst;                /**< Number of TX burst packets */
+    uint16_t max_mtu;                 /**< Maximum MTU size */
+    uint64_t tx_pps;                  /**< Transmit packets per seconds */
+    double tx_rate;                   /**< Percentage rate for tx packets with fractions */
+    uint16_t seqIdx;                  /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
+    uint16_t seqCnt;                  /**< Current packet sequence max count */
+    uint16_t prime_cnt;               /**< Set the number of packets to send in a prime command */
+    uint16_t vlanid;                  /**< Set the port VLAN ID value */
+    uint8_t cos;                      /**< Set the port 802.1p cos value */
+    uint8_t tos;                      /**< Set the port tos value */
+    uint32_t mpls_entry;              /**< Set the port MPLS entry */
+    uint32_t gre_key;                 /**< GRE key if used */
+    per_queue_t per_queue[MAX_QUEUES_PER_PORT]; /**< Per queue info */
+    FILE *pcap_file;                            /**< PCAP file handle */
 
     /** Whether the pseudo-header is required when calculating the checksum.
      *  Depends on the original NIC driver (e.g., ixgbe NICs expect the pseudo-header)
      *  See Table 1.133: https://doc.dpdk.org/guides/nics/overview.html */
     bool cksum_requires_phdr;
-
+    struct rnd_bits_s *rnd_bitfields;     /**< Random bitfield settings */
+    char user_pattern[USER_PATTERN_SIZE]; /**< User set pattern values */
+    fill_t fill_pattern_type;             /**< Type of pattern to fill with */
     union {
         uint64_t vxlan; /**< VxLAN 64 bit word */
         struct {
@@ -191,18 +203,7 @@ typedef struct port_info_s {
         };
     };
 
-    struct rte_eth_stats curr_stats;  /**< current port statistics */
-    struct rte_eth_stats queue_stats; /**< current port queue statistics */
-    struct rte_eth_stats rate_stats;  /**< current packet rate statistics */
-    struct rte_eth_stats prev_stats;  /**< previous port statistics */
-    struct rte_eth_stats base_stats;  /**< base port statistics */
-    pkt_stats_t pkt_stats;            /**< Statistics for a number of stats */
-    pkt_sizes_t pkt_sizes;            /**< Stats for the different packet sizes */
-    uint64_t max_ipackets;            /**< Max seen input packet rate */
-    uint64_t max_opackets;            /**< Max seen output packet rate */
-    uint64_t max_missed;              /**< Max missed packets seen */
-    uint64_t qcnt[RTE_ETHDEV_QUEUE_STAT_CNTRS];
-    uint64_t prev_qcnt[RTE_ETHDEV_QUEUE_STAT_CNTRS];
+    port_stats_t stats; /**< Port statistics */
 
     /* Packet dump related */
     struct packet {
@@ -216,22 +217,41 @@ typedef struct port_info_s {
     /* Latency sampling data */
     /* Depending on MAX_LATENCY_ENTRIES, this could blow up static array memory usage
      * over the limit allowed by x86_64 architecture */
-    latency_t latency;                                 /**< Latency information */
-    latsamp_stats_t latsamp_stats[MAX_LATENCY_QUEUES]; /**< Per core stats */
-    uint32_t latsamp_type;                             /**< Type of lat sampler  */
+    latency_t latency;                                  /**< Latency information */
+    latsamp_stats_t latsamp_stats[MAX_QUEUES_PER_PORT]; /**< Per port stats */
+    uint32_t latsamp_type;                              /**< Type of lat sampler  */
     uint32_t latsamp_rate;        /**< Sampling rate i.e., samples per second  */
     uint32_t latsamp_num_samples; /**< Number of samples to collect  */
     char latsamp_outfile[256];    /**< Path to file for dumping latency samples */
-    FILE *pcap_file;              /**< PCAP file handle */
 } port_info_t;
 
+/** VxLAN tunnel header fields. */
 struct vxlan {
     uint16_t vni_flags; /**< VxLAN Flags */
     uint16_t group_id;  /**< VxLAN Group Policy ID */
     uint32_t vxlan_id;  /**< VxLAN VNI */
 };
 
+/**
+ * Configure and initialise all Ethernet ports.
+ *
+ * Sets up RX/TX queues, applies offload settings, and populates each
+ * port's port_info_t from the l2p_t mapping.
+ */
 void pktgen_config_ports(void);
+
+/**
+ * Transmit a burst of packets on a port queue.
+ *
+ * @param pinfo
+ *   Per-port state, used to obtain flags and statistics.
+ * @param qid
+ *   Queue ID to transmit on.
+ * @param pkts
+ *   Array of mbufs to send.
+ * @param nb_pkts
+ *   Number of mbufs in @p pkts.
+ */
 void tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16_t nb_pkts);
 
 /**
@@ -245,86 +265,142 @@ void tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, u
  *   The number of packets to burst out
  */
 static inline uint64_t
-pkt_atomic64_tx_count(rte_atomic64_t *v, int64_t burst)
+pkt_atomic64_tx_count(RTE_ATOMIC(uint64_t) *v, int64_t burst)
 {
-    int success;
-    int64_t tmp2;
+    uint64_t tmp1;
+    uint64_t tmp2;
 
     do {
-        int64_t tmp1 = v->cnt;
+        tmp1 = rte_atomic_load_explicit(v, rte_memory_order_relaxed);
 
         if (tmp1 == 0)
             return 0;
-        tmp2    = likely(tmp1 > burst) ? burst : tmp1;
-        success = rte_atomic64_cmpset((volatile uint64_t *)&v->cnt, tmp1, tmp1 - tmp2);
-    } while (success == 0);
+        tmp2 = likely(tmp1 > (uint64_t)burst) ? (uint64_t)burst : tmp1;
+    } while (!rte_atomic_compare_exchange_strong_explicit(v, &tmp1, tmp1 - tmp2,
+		rte_memory_order_seq_cst, rte_memory_order_relaxed));
 
     return tmp2;
 }
 
+/**
+ * Print RX queue configuration to a file stream.
+ *
+ * @param f
+ *   Output stream.
+ * @param rx
+ *   RX queue configuration to display.
+ */
 static inline void
 rte_eth_rxconf_dump(FILE *f, struct rte_eth_rxconf *rx)
 {
     fprintf(f, "  RX Conf:\n");
     fprintf(f,
-            "     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16
-            " wthresh        :%5" PRIu16 "\n",
+            "     pthresh        :%5" PRIu16 " | hthresh          :%5" PRIu16
+            " | wthresh        :%5" PRIu16 "\n",
             rx->rx_thresh.pthresh, rx->rx_thresh.hthresh, rx->rx_thresh.wthresh);
     fprintf(f,
-            "     Free Thresh    :%5" PRIu16 " Drop Enable      :%5" PRIu16
-            " Deferred Start :%5" PRIu16 "\n",
+            "     Free Thresh    :%5" PRIu16 " | Drop Enable      :%5" PRIu16
+            " | Deferred Start :%5" PRIu16 "\n",
             rx->rx_free_thresh, rx->rx_drop_en, rx->rx_deferred_start);
     fprintf(f, "     offloads       :%016" PRIx64 "\n", rx->offloads);
 }
 
+/**
+ * Print TX queue configuration to a file stream.
+ *
+ * @param f
+ *   Output stream.
+ * @param tx
+ *   TX queue configuration to display.
+ */
 static inline void
 rte_eth_txconf_dump(FILE *f, struct rte_eth_txconf *tx)
 {
     fprintf(f, "  TX Conf:\n");
     fprintf(f,
-            "     pthresh        :%5" PRIu16 " hthresh          :%5" PRIu16
-            " wthresh        :%5" PRIu16 "\n",
+            "     pthresh        :%5" PRIu16 " | hthresh          :%5" PRIu16
+            " | wthresh        :%5" PRIu16 "\n",
             tx->tx_thresh.pthresh, tx->tx_thresh.hthresh, tx->tx_thresh.wthresh);
     fprintf(f,
-            "     Free Thresh    :%5" PRIu16 " RS Thresh        :%5" PRIu16
-            " Deferred Start :%5" PRIu16 "\n",
+            "     Free Thresh    :%5" PRIu16 " | RS Thresh        :%5" PRIu16
+            " | Deferred Start :%5" PRIu16 "\n",
             tx->tx_free_thresh, tx->tx_rs_thresh, tx->tx_deferred_start);
     fprintf(f, "     offloads       :%016" PRIx64 "\n", tx->offloads);
 }
 
+/**
+ * Print descriptor limits for an RX or TX queue.
+ *
+ * @param f
+ *   Output stream.
+ * @param lim
+ *   Descriptor limit structure to display.
+ * @param tx_flag
+ *   Non-zero to label the output as TX, zero for RX.
+ */
 static inline void
 rte_eth_desc_lim_dump(FILE *f, struct rte_eth_desc_lim *lim, int tx_flag)
 {
     fprintf(f, "  %s: descriptor Limits\n", tx_flag ? "Tx" : "Rx");
 
     fprintf(f,
-            "     nb_max         :%5" PRIu16 "  nb_min          :%5" PRIu16
-            "  nb_align      :%5" PRIu16 "\n",
+            "     nb_max         :%5" PRIu16 " | nb_min           :%5" PRIu16
+            " | nb_align       :%5" PRIu16 "\n",
             lim->nb_max, lim->nb_min, lim->nb_align);
-    fprintf(f, "     nb_seg_max     :%5" PRIu16 "  nb_mtu_seg_max  :%5" PRIu16 "\n",
+    fprintf(f, "     nb_seg_max     :%5" PRIu16 " | nb_mtu_seg_max   :%5" PRIu16 "\n",
             lim->nb_seg_max, lim->nb_mtu_seg_max);
 }
 
+/**
+ * Print the default RX or TX port configuration.
+ *
+ * @param f
+ *   Output stream.
+ * @param conf
+ *   Default port configuration to display.
+ * @param tx_flag
+ *   Non-zero to label the output as TX, zero for RX.
+ */
 static inline void
 rte_eth_dev_portconf_dump(FILE *f, struct rte_eth_dev_portconf *conf, int tx_flag)
 {
     fprintf(f, "  %s: Port Config (Default)\n", tx_flag ? "Tx" : "Rx");
 
     fprintf(f,
-            "     burst_size     :%5" PRIu16 "  ring_size       :%5" PRIu16
-            "  nb_queues     :%5" PRIu16 "\n",
+            "     burst_size     :%5" PRIu16 " | ring_size        :%5" PRIu16
+            " | nb_queues      :%5" PRIu16 "\n",
             conf->burst_size, conf->ring_size, conf->nb_queues);
 }
 
+/**
+ * Print switch info for a device.
+ *
+ * @param f
+ *   Output stream.
+ * @param sw
+ *   Switch info structure to display.
+ */
 static inline void
 rte_eth_switch_info_dump(FILE *f, struct rte_eth_switch_info *sw)
 {
     fprintf(f, "  Switch Info: %s\n", sw->name);
 
-    fprintf(f, "     domain_id      :%5" PRIu16 "  port_id         :%5" PRIu16 "\n", sw->domain_id,
-            sw->port_id);
+    fprintf(f, "     domain_id      :%5" PRIu16 " | port_id          :%5" PRIu16 "\n",
+            sw->domain_id, sw->port_id);
 }
 
+/**
+ * Format the RX offload capability flags as a space-separated string.
+ *
+ * @param rx_capa
+ *   Bitmask of RTE_ETH_RX_OFFLOAD_* flags.
+ * @param buf
+ *   Output buffer to write the names into.
+ * @param len
+ *   Size of @p buf in bytes.
+ * @return
+ *   0 on success, -1 if @p len is zero or the buffer is too small.
+ */
 static inline int
 rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
 {
@@ -373,6 +449,18 @@ rte_get_rx_capa_list(uint64_t rx_capa, char *buf, size_t len)
     return 0;
 }
 
+/**
+ * Format the TX offload capability flags as a space-separated string.
+ *
+ * @param tx_capa
+ *   Bitmask of RTE_ETH_TX_OFFLOAD_* flags.
+ * @param buf
+ *   Output buffer to write the names into.
+ * @param len
+ *   Size of @p buf in bytes.
+ * @return
+ *   0 on success, -1 if @p len is zero or the buffer is too small.
+ */
 static inline int
 rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
 {
@@ -426,6 +514,14 @@ rte_get_tx_capa_list(uint64_t tx_capa, char *buf, size_t len)
     return 0;
 }
 
+/**
+ * Print a comprehensive device information summary to a file stream.
+ *
+ * @param f
+ *   Output stream (defaults to stderr if NULL).
+ * @param pid
+ *   Port ID whose device info is displayed.
+ */
 static inline void
 rte_eth_dev_info_dump(FILE *f, uint16_t pid)
 {

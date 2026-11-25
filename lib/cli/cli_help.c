@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2016-2025> Intel Corporation. All rights reserved.
+ * Copyright(c) <2016-2026> Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -22,6 +22,14 @@ cli_help_add(const char *group, struct cli_map *map, const char **help_data)
     node->map       = map;
     node->help_data = help_data;
     snprintf(node->group, sizeof(node->group), "%s", group);
+
+    /* If a map is provided, register all command tokens it references. */
+    if (map) {
+        if (cli_register_cmd_maps(map) < 0) {
+            free(node);
+            return -1;
+        }
+    }
 
     TAILQ_INSERT_TAIL(&this_cli->help_nodes, node, next);
 

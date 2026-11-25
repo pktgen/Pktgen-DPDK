@@ -48,7 +48,7 @@ Pktgen is a multi‑port, multi‑core traffic generator built on top of [DPDK].
 
 Prerequisites (typical Ubuntu 22.04+):
 
-- Latest DPDK (build + install using Meson/Ninja)
+- DPDK (installed, or built automatically as described below)
 - libbsd (`sudo apt install libbsd-dev`)
 - Hugepages configured (e.g. 1G or 2M pages) and NICs bound to `vfio-pci` or `igb_uio`
 - Python 3.x for helper scripts
@@ -79,7 +79,15 @@ sudo ./builddir/app/pktgen -l 0-3 -n 4 -- -P -m "[1:2].0" -T
 
 Pktgen uses Meson/Ninja. A convenience `Makefile` and `tools/pktgen-build.sh` wrap standard steps.
 
-1. Build and install DPDK so `libdpdk.pc` is installed (often under `/usr/local/lib/x86_64-linux-gnu/pkgconfig`).
+Meson 0.60+ uses an installed DPDK if available; otherwise it downloads,
+verifies and builds the release specified in `subprojects/dpdk.wrap` as a static subproject.
+The fallback requires internet access and DPDK build dependencies,
+including Python pyelftools and libnuma development headers.
+Use `--force-fallback-for=libdpdk` to select the subproject even when DPDK is installed,
+or `--wrap-mode=nofallback` to require an installed DPDK.
+Pass DPDK options with `-Ddpdk:<option>=<value>`; driver selections must include `net/bonding`.
+
+1. (Optional) Build and install DPDK so `libdpdk.pc` is installed (often under `/usr/local/lib/x86_64-linux-gnu/pkgconfig`).
 1. Export or append to `PKG_CONFIG_PATH` if that path is non‑standard:
 
 ```bash
@@ -101,7 +109,7 @@ make rebuild  # clean reconfigure & build
 make rebuildlua
 ```
 
-1. (Optional) Install Pktgen artifacts via Meson if desired.
+1. (Optional) Install Pktgen artifacts via Meson if desired (also installs DPDK when using the subproject).
 
 Troubleshooting hints:
 
@@ -150,7 +158,7 @@ See existing examples in `cfg/` (e.g. `default.cfg`, `two-ports.cfg`, `pktgen-1.
 |-----|----------|------|---------|-------------|
 | devices | setup | tuple/list | `('81:00.0','81:00.1')` | PCI BDFs to bind to DPDK |
 | uio | setup | string | `vfio-pci` | Kernel driver to bind (vfio-pci / igb_uio / uio_pci_generic) |
-| exec | setup/run | tuple | `('sudo','-E')` | Wrapper for privileged execution |
+| exec | setup/run | tuple | `('sudo')` | Wrapper for privileged execution |
 | app_name | run | string | `pktgen` | Binary name; resolved via `app_path` list |
 | app_path | run | tuple/list | `('./app/%(target)s/%(app_name)s', ...)` | Candidate paths to locate binary |
 | cores | run | string | `14,15-16` | Control + worker cores; ranges and commas allowed |
@@ -256,7 +264,7 @@ Staged C source/header files (`*.c`, `*.h`) are auto-formatted with `clang-forma
 ## 11. License
 
 SPDX-License-Identifier: BSD-3-Clause
-Copyright © 2010-2025 Intel Corporation
+Copyright © 2010-2026 Intel Corporation
 
 Full license text is available in [`LICENSE`](./LICENSE).
 

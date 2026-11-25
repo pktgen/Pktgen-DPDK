@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2020-2025> Intel Corporation.
+ * Copyright(c) <2020-2026> Intel Corporation.
  */
 
 /* Created 2010 by Keith Wiles @ intel.com */
@@ -269,6 +269,7 @@ handle_server_requests(luaData_t *ld)
         if (ld->client_socket > 0) {
             _socket_open(ld);
             lua_set_stdfiles(ld);
+            lua_set_print(ld);
 
             doREPL(ld);
 

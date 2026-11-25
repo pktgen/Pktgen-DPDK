@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 
 #ifndef _CLI_SEARCH_H_
@@ -15,48 +15,52 @@
 
 /**
  * @file
- * RTE Command line interface
+ * CLI node search and directory scanning.
  *
+ * Provides helpers to locate nodes in the CLI tree (commands/files/directories)
+ * and to enumerate nodes in a directory or along the executable search path.
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** Generic 64-bit argument word that can be interpreted several ways. */
 typedef union {
-    void *voidp;     /** void * value */
-    char chr[8];     /** 8 characters */
-    uint64_t u64;    /** 64bit value */
-    uint32_t u32[2]; /** 2 32bit value */
-    uint16_t u16[4]; /** 4 16bit values */
-} arg_u;             /** Union for argument word */
+    void *voidp;     /**< Pointer value */
+    char chr[8];     /**< Up to 8 raw bytes */
+    uint64_t u64;    /**< 64-bit unsigned integer */
+    uint32_t u32[2]; /**< Two 32-bit unsigned integers */
+    uint16_t u16[4]; /**< Four 16-bit unsigned integers */
+} arg_u;
 
+/** Four-word argument block passed to cli_scan_t callbacks. */
 typedef struct {
-    arg_u arg1; /* Argument Word 1 */
-    arg_u arg2; /* Argument Word 2 */
-    arg_u arg3; /* Argument Word 3 */
-    arg_u arg4; /* Argument Word 4 */
-} args_t;       /* 32 bytes of arguments */
+    arg_u arg1; /**< Argument word 1 */
+    arg_u arg2; /**< Argument word 2 */
+    arg_u arg3; /**< Argument word 3 */
+    arg_u arg4; /**< Argument word 4 */
+} args_t;
 
 struct cli;
 struct cli_node;
 
+/** Callback invoked by cli_scan_directory() for each matching node. */
 typedef int (*cli_scan_t)(struct cli_node *node, uint32_t flags, args_t *args);
-/** typedef of function passed in cli_scan_directory() */
 
 /**
  * Scan a directory and call the func with the node found.
  *
  * @note Uses a thread variable called this_cli.
  *
- * @param files
- *   Type of nodes to find
  * @param dir
  *   Node pointer to directory to scan
  * @param func
  *   cli_scan_t function pointer
- * @param arg
- *   void * used by the function being called.
+ * @param flags
+ *   Bitmap of node types to include (e.g., CLI_CMD_NODE|CLI_DIR_NODE)
+ * @param args
+ *   Optional argument block passed to @p func
  * @return
  *   0 on success or -1 on error
  */
@@ -89,7 +93,7 @@ int cli_find_node(const char *path, struct cli_node **ret);
 struct cli_node *cli_find_cmd(const char *path);
 
 /**
- * Count the number of type(s) of nodes available in a given node
+ * Count the number of nodes of the given type(s) in a directory.
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -127,7 +131,7 @@ uint32_t cli_path_cmd_count(void);
 uint32_t cli_node_list_with_type(struct cli_node *node, uint32_t flags, void **ret);
 
 /**
- * Free a node back to the free list
+ * Free a list returned by cli_node_list_with_type().
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -151,7 +155,7 @@ void cli_node_list_free(void *nodes);
 uint32_t cli_path_item_count(uint32_t types);
 
 /**
- * Find and return the last node in a give path string
+ * Find and return the last directory node in a given path string.
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -163,7 +167,7 @@ uint32_t cli_path_item_count(uint32_t types);
 struct cli_node *cli_last_dir_in_path(const char *path);
 
 /**
- * Scan a directory for a given string matching name
+ * Scan a directory for a node matching a name and type.
  *
  * @note Uses a thread variable called this_cli.
  *
@@ -179,7 +183,7 @@ struct cli_node *cli_last_dir_in_path(const char *path);
 struct cli_node *cli_search_dir(struct cli_node *dir, const char *name, uint32_t type);
 
 /**
- * Scan the directory given by the path
+ * Scan the directory given by @p path.
  *
  * @note Uses a thread variable called this_cli.
  *

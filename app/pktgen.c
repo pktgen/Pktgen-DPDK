@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -32,7 +32,6 @@
 #include "pktgen-log.h"
 #include "pktgen-gtpu.h"
 #include "pktgen-sys.h"
-#include "pktgen-workq.h"
 
 #include <pthread.h>
 #include <sched.h>
@@ -40,7 +39,7 @@
 /* Allocated the pktgen structure for global use */
 pktgen_t pktgen;
 
-double
+static inline double
 next_poisson_time(double rateParameter)
 {
     return -logf(1.0f - ((double)random()) / (double)(RAND_MAX)) / rateParameter;
@@ -65,7 +64,7 @@ pktgen_wire_size(port_info_t *pinfo)
     if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS)) {
         pcap_info_t *pcap = l2p_get_pcap(pinfo->pid);
 
-        size = WIRE_SIZE(pcap->max_pkt_size, uint64_t);
+        size = WIRE_SIZE(pcap->avg_pkt_size, uint64_t);
     } else {
         if (unlikely(pinfo->seqCnt > 0)) {
             for (i = 0; i < pinfo->seqCnt; i++)
@@ -112,11 +111,10 @@ pktgen_packet_rate(port_info_t *port)
     pps = (((link_speed / pktgen_wire_size(port)) * (port->tx_rate / txcnt)) / 100);
     pps = ((pps > 0) ? pps : 1);
 
-    // cycles per burst is hz divided by pps times burst count
-    cpb = (rte_get_timer_hz() / pps) * (uint64_t)port->tx_burst; /* Cycles per Burst */
-
-    // divide up the work between the number of transmit queues, so multiple by queue count.
-    port->tx_cycles = cpb * (uint64_t)txcnt;
+    // Do all multiplications first to reduce rounding errors.
+    // Add pps/2 to do rounding instead of truncation.
+    cpb             = (pps / 2 + (uint64_t)port->tx_burst * rte_get_timer_hz()) / pps;
+    port->tx_cycles = cpb;
     port->tx_pps    = pps;
 }
 
@@ -258,7 +256,7 @@ pktgen_tstamp_inject(port_info_t *pinfo, uint16_t qid)
         lat->latency_timo_cycles = curr_ts + lat->latency_rate_cycles;
 
         port = l2p_get_port(pinfo->pid);
-        if (rte_mempool_get(port->special_mp, (void **)&mbuf) == 0) {
+        if (rte_mempool_get(port->sp_mp[qid], (void **)&mbuf) == 0) {
             uint16_t pktsize = pkt->pkt_size;
             uint16_t to_send;
 
@@ -287,12 +285,9 @@ tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, uint16
 {
     if (nb_pkts) {
         uint16_t sent, to_send = nb_pkts;
+        qstats_t *qs = &pinfo->stats.qstats[qid];
 
-#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
-        pinfo->queue_stats.q_opackets[qid] += nb_pkts;
-        for (int i = 0; i < nb_pkts; i++)
-            pinfo->queue_stats.q_obytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-#endif
+        qs->q_opackets += nb_pkts;
         if (pktgen_tst_port_flags(pinfo, SEND_RANDOM_PKTS))
             pktgen_rnd_bits_apply(pinfo, pkts, to_send, NULL);
 
@@ -322,67 +317,61 @@ pktgen_tstamp_check(port_info_t *pinfo, struct rte_mbuf **pkts, uint16_t nb_pkts
 {
     int lid = rte_lcore_id();
     int qid = l2p_get_rxqid(lid);
-    int i;
     uint64_t cycles, jitter;
     latency_t *lat = &pinfo->latency;
 
-    for (i = 0; i < nb_pkts; i++) {
+    for (int i = 0; i < nb_pkts; i++) {
+        tstamp_t *tstamp = pktgen_tstamp_pointer(pinfo, rte_pktmbuf_mtod(pkts[i], char *));
 
-        if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS)) {
-            tstamp_t *tstamp = pktgen_tstamp_pointer(pinfo, rte_pktmbuf_mtod(pkts[i], char *));
+        if (tstamp->magic != TSTAMP_MAGIC)
+            continue;
 
-            if (tstamp->magic != TSTAMP_MAGIC)
-                continue;
+        cycles        = (pktgen_get_time() - tstamp->timestamp);
+        tstamp->magic = 0UL; /* clear timestamp magic cookie */
 
-            cycles        = (pktgen_get_time() - tstamp->timestamp);
-            tstamp->magic = 0UL; /* clear timestamp magic cookie */
+        if (tstamp->index != lat->expect_index) {
+            lat->expect_index = tstamp->index + 1;
+            lat->num_skipped++;
+            continue; /* Skip this latency packet */
+        }
+        lat->expect_index++;
 
-            if (tstamp->index != lat->expect_index) {
-                lat->expect_index = tstamp->index + 1;
-                lat->num_skipped++;
-                continue; /* Skip this latency packet */
-            }
-            lat->expect_index++;
+        lat->num_latency_pkts++;
+        lat->running_cycles += cycles;
 
-            lat->num_latency_pkts++;
+        latency_ring_insert(&lat->tail_latencies, cycles);
 
-            if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS)) {
-                lat->running_cycles += cycles;
+        if (lat->min_cycles == 0 || cycles < lat->min_cycles)
+            lat->min_cycles = cycles;
+        if (lat->max_cycles == 0 || cycles > lat->max_cycles)
+            lat->max_cycles = cycles;
 
-                latency_ring_insert(&lat->tail_latencies, cycles);
+        jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
+                                             : lat->prev_cycles - cycles;
+        if (jitter > lat->jitter_threshold_cycles)
+            lat->jitter_count++;
 
-                if (lat->min_cycles == 0 || cycles < lat->min_cycles)
-                    lat->min_cycles = cycles;
-                if (lat->max_cycles == 0 || cycles > lat->max_cycles)
-                    lat->max_cycles = cycles;
+        lat->prev_cycles = cycles;
 
-                jitter = (cycles > lat->prev_cycles) ? cycles - lat->prev_cycles
-                                                     : lat->prev_cycles - cycles;
-                if (jitter > lat->jitter_threshold_cycles)
-                    lat->jitter_count++;
+        if (pktgen_tst_port_flags(pinfo, SAMPLING_LATENCIES)) {
+            /* Record latency if it's time for sampling (seperately per queue) */
+            latsamp_stats_t *stats = &pinfo->latsamp_stats[qid];
+            uint64_t now           = pktgen_get_time();
+            uint64_t hz            = rte_get_tsc_hz();
 
-                lat->prev_cycles = cycles;
-            }
-            if (pktgen_tst_port_flags(pinfo, SAMPLING_LATENCIES)) {
-                /* Record latency if it's time for sampling (seperately per lcore) */
-                latsamp_stats_t *stats = &pinfo->latsamp_stats[qid];
-                uint64_t now           = pktgen_get_time();
-
-                stats->pkt_counter++;
-                if (stats->next == 0 || now >= stats->next) {
-                    if (stats->idx < stats->num_samples) {
-                        stats->data[stats->idx] = (cycles * Billion) / rte_get_tsc_hz();
-                        stats->idx++;
-                    }
-
-                    /* Calculate next sampling point */
-                    if (pinfo->latsamp_type == LATSAMPLER_POISSON) {
-                        double next_possion_time_ns = next_poisson_time(pinfo->latsamp_rate);
-
-                        stats->next = now + next_possion_time_ns * (double)rte_get_tsc_hz();
-                    } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
-                        stats->next = now + rte_get_tsc_hz() / pinfo->latsamp_rate;
+            if (stats->next == 0 || now >= stats->next) {
+                if (stats->idx < stats->num_samples) {
+                    stats->data[stats->idx] = (cycles * Billion) / hz;
+                    stats->idx++;
                 }
+
+                /* Calculate next sampling point */
+                if (pinfo->latsamp_type == LATSAMPLER_POISSON) {
+                    double next_possion_time_ns = next_poisson_time(pinfo->latsamp_rate);
+
+                    stats->next = (now + next_possion_time_ns) * (double)hz;
+                } else        // LATSAMPLER_SIMPLE or LATSAMPLER_UNSPEC
+                    stats->next = (now + hz) / pinfo->latsamp_rate;
             }
         }
     }
@@ -690,36 +679,14 @@ pktgen_packet_type(struct rte_mbuf *m)
  *
  * SEE ALSO:
  */
-static void
+static inline void
 pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
 {
-    port_info_t *pinfo     = l2p_get_port_pinfo(pid);
-    pkt_stats_t *pkt_stats = &pinfo->pkt_stats;
-    pkt_sizes_t *pkt_sizes = &pinfo->pkt_sizes;
-    uint16_t plen;
-    pktType_e pType;
-
-    pType = pktgen_packet_type(m);
-
-    /* Count the type of packets found. */
-    switch ((int)pType) {
-    case RTE_ETHER_TYPE_ARP:
-        pkt_stats->arp_pkts++;
-        break;
-    case RTE_ETHER_TYPE_IPV4:
-        pkt_stats->ip_pkts++;
-        break;
-    case RTE_ETHER_TYPE_IPV6:
-        pkt_stats->ipv6_pkts++;
-        break;
-    case RTE_ETHER_TYPE_VLAN:
-        pkt_stats->vlan_pkts++;
-        break;
-    default:
-        break;
-    }
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
 
     if (unlikely(pktgen_tst_port_flags(pinfo, PROCESS_INPUT_PKTS))) {
+        pktType_e pType = pktgen_packet_type(m);
+
         switch ((int)pType) {
         case RTE_ETHER_TYPE_ARP:
             pktgen_process_arp(m, pid, qid, 0);
@@ -737,40 +704,6 @@ pktgen_packet_classify(struct rte_mbuf *m, int pid, int qid)
         default:
             break;
         }
-    }
-
-    plen = rte_pktmbuf_pkt_len(m) + RTE_ETHER_CRC_LEN;
-
-    /* Count the size of each packet. */
-    if (plen < RTE_ETHER_MIN_LEN)
-        pkt_sizes->runt++;
-    else if (plen > RTE_ETHER_MAX_LEN)
-        pkt_sizes->jumbo++;
-    else if (plen == RTE_ETHER_MIN_LEN)
-        pkt_sizes->_64++;
-    else if ((plen >= (RTE_ETHER_MIN_LEN + 1)) && (plen <= 127))
-        pkt_sizes->_65_127++;
-    else if ((plen >= 128) && (plen <= 255))
-        pkt_sizes->_128_255++;
-    else if ((plen >= 256) && (plen <= 511))
-        pkt_sizes->_256_511++;
-    else if ((plen >= 512) && (plen <= 1023))
-        pkt_sizes->_512_1023++;
-    else if ((plen >= 1024) && (plen <= RTE_ETHER_MAX_LEN))
-        pkt_sizes->_1024_1518++;
-    else {
-        pktgen_log_info("Unknown packet size: %u", plen);
-        pinfo->pkt_sizes.unknown++;
-    }
-
-    uint8_t *p = rte_pktmbuf_mtod(m, uint8_t *);
-
-    /* Process multicast and broadcast packets. */
-    if (unlikely(p[0] & 1)) {
-        if ((p[0] == 0xff) && (p[1] == 0xff))
-            pkt_sizes->broadcast++;
-        else
-            pkt_sizes->multicast++;
     }
 }
 
@@ -947,12 +880,8 @@ mempool_setup_cb(struct rte_mempool *mp __rte_unused, void *opaque, void *obj,
 void
 pktgen_setup_packets(uint16_t pid)
 {
-    struct rte_mempool *tx_mp = l2p_get_tx_mp(pid);
-    l2p_port_t *port          = l2p_get_port(pid);
-    port_info_t *pinfo        = l2p_get_port_pinfo(pid);
-
-    if (unlikely(tx_mp == NULL))
-        rte_exit(EXIT_FAILURE, "Invalid mempool for port %d\n", pid);
+    l2p_port_t *port   = l2p_get_port(pid);
+    port_info_t *pinfo = l2p_get_port_pinfo(pid);
 
     if (port == NULL)
         rte_exit(EXIT_FAILURE, "Invalid l2p port for %d\n", pid);
@@ -973,7 +902,13 @@ pktgen_setup_packets(uint16_t pid)
 
             s.pinfo   = pinfo;
             s.seq_idx = idx;
-            rte_mempool_obj_iter(tx_mp, mempool_setup_cb, &s);
+
+            for (uint16_t q = 0; q < l2p_get_txcnt(pid); q++) {
+                struct rte_mempool *tx_mp = l2p_get_tx_mp(pid, q);
+                if (unlikely(tx_mp == NULL))
+                    rte_exit(EXIT_FAILURE, "Invalid TX mempool for port %d qid %u\n", pid, q);
+                rte_mempool_obj_iter(tx_mp, mempool_setup_cb, &s);
+            }
         }
     }
 }
@@ -993,7 +928,7 @@ void
 pktgen_send_pkts(port_info_t *pinfo, uint16_t qid, struct rte_mempool *mp)
 {
     uint64_t txCnt;
-    struct rte_mbuf **pkts = pinfo->tx_pkts;
+    struct rte_mbuf **pkts = pinfo->per_queue[qid].tx_pkts;
 
     if (!pktgen_tst_port_flags(pinfo, SEND_FOREVER)) {
         txCnt = pkt_atomic64_tx_count(&pinfo->current_tx_count, pinfo->tx_burst);
@@ -1031,33 +966,12 @@ pktgen_main_transmit(port_info_t *pinfo, uint16_t qid)
 
     /* When not transmitting on this port then continue. */
     if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        struct rte_mempool *mp = l2p_get_tx_mp(pid);
-
-        pinfo->qcnt[qid]++; /* Count the number of times queue is sending */
+        struct rte_mempool *mp = l2p_get_tx_mp(pid, qid);
 
         if (pktgen_tst_port_flags(pinfo, SEND_PCAP_PKTS))
             mp = l2p_get_pcap_mp(pid);
 
         pktgen_send_pkts(pinfo, qid, mp);
-    }
-}
-
-static __inline__ void
-fast_main_transmit(port_info_t *pinfo, uint16_t qid)
-{
-    if (pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        struct rte_mempool *mp = l2p_get_tx_mp(pinfo->pid);
-        struct rte_mbuf **pkts = pinfo->tx_pkts;
-
-        /* Use mempool routines instead of pktmbuf to make sure the mbufs is not altered */
-        if (rte_mempool_get_bulk(mp, (void **)pkts, pinfo->tx_burst) == 0) {
-            uint16_t sent, send = pinfo->tx_burst;
-            do {
-                sent = rte_eth_tx_burst(pinfo->pid, qid, pkts, send);
-                send -= sent;
-                pkts += sent;
-            } while (send > 0);
-        }
     }
 }
 
@@ -1076,8 +990,9 @@ fast_main_transmit(port_info_t *pinfo, uint16_t qid)
 static inline void
 pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 {
+    struct rte_mbuf **pkts = pinfo->per_queue[qid].rx_pkts;
+    qstats_t *qs           = &pinfo->stats.qstats[qid];
     uint16_t nb_rx, nb_pkts = pinfo->rx_burst, pid;
-    struct rte_mbuf **pkts = pinfo->rx_pkts;
 
     if (unlikely(pktgen_tst_port_flags(pinfo, STOP_RECEIVING_PACKETS)))
         return;
@@ -1086,16 +1001,12 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 
     /* Read packets from RX queues and free the mbufs */
     if (likely((nb_rx = rte_eth_rx_burst(pid, qid, pkts, nb_pkts)) > 0)) {
-#if RTE_VERSION < RTE_VERSION_NUM(25, 11, 0, 0)
-        struct rte_eth_stats *qstats = &pinfo->queue_stats;
+        qs->q_ipackets += nb_rx;
 
-        qstats->q_ipackets[qid] += nb_rx;
-        for (int i = 0; i < nb_rx; i++)
-            qstats->q_ibytes[qid] += rte_pktmbuf_pkt_len(pkts[i]);
-#endif
-        pktgen_tstamp_check(pinfo, pkts, nb_rx);
+        if (pktgen_tst_port_flags(pinfo, SEND_LATENCY_PKTS))
+            pktgen_tstamp_check(pinfo, pkts, nb_rx);
 
-        /* classify the packets for the counters */
+        /* classify the packets and update counters */
         pktgen_packet_classify_bulk(pkts, nb_rx, pid, qid);
 
         if (unlikely(pinfo->dump_count > 0))
@@ -1110,39 +1021,6 @@ pktgen_main_receive(port_info_t *pinfo, uint16_t qid)
 
         rte_pktmbuf_free_bulk(pkts, nb_rx);
     }
-}
-
-static int
-pktgen_rx_workq_setup(uint16_t pid)
-{
-    workq_fn funcs[] = {pktgen_main_receive};
-
-    for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
-        if (workq_add(WORKQ_RX, pid, funcs[i]))
-            return -1;
-    }
-    return 0;
-}
-
-static int
-pktgen_tx_workq_setup(uint16_t pid)
-{
-    workq_fn funcs[] = {pktgen_main_transmit};
-
-    for (uint16_t i = 0; i < RTE_DIM(funcs); i++) {
-        if (workq_add(WORKQ_TX, pid, funcs[i]))
-            return -1;
-    }
-    return 0;
-}
-
-static int
-pktgen_workq_setup(workq_type_t wqt, uint16_t pid, void *arg)
-{
-    if (workq_port_arg_set(pid, arg))
-        return -1;
-
-    return (wqt == WORKQ_RX) ? pktgen_rx_workq_setup(pid) : pktgen_tx_workq_setup(pid);
 }
 
 /**
@@ -1179,26 +1057,25 @@ pktgen_main_rxtx_loop(void)
     rx_qid = l2p_get_rxqid(lid);
     tx_qid = l2p_get_txqid(lid);
 
-    printf("RX/TX lid %3d, pid %2d, qids %2d/%2d Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
-           tx_qid, l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
+    printf("RX/TX lid %3d, pid %2d, qids %2d/%2d RX-MP %-16s @ %p TX-MP %-16s @ %p\n", lid,
+           pinfo->pid, rx_qid, tx_qid, l2p_get_rx_mp(pinfo->pid, rx_qid)->name,
+           l2p_get_rx_mp(pinfo->pid, rx_qid), l2p_get_tx_mp(pinfo->pid, tx_qid)->name,
+           l2p_get_tx_mp(pinfo->pid, tx_qid));
 
-    if (pktgen_workq_setup(WORKQ_RX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Rx work queue for pid %u\n", pid);
-    if (pktgen_workq_setup(WORKQ_TX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Tx work queue for pid %u\n", pid);
-
-    while (pktgen.force_quit == 0) {
-        /* Process RX workqueue list */
-        workq_run(WORKQ_RX, pid, rx_qid);
+    while (rte_atomic_load_explicit(&pktgen.force_quit, rte_memory_order_relaxed) == 0) {
+        /* Process RX */
+        pktgen_main_receive(pinfo, rx_qid);
 
         curr_tsc = pktgen_get_time();
 
         /* Determine when is the next time to send packets */
-        if (curr_tsc >= tx_next_cycle) {
-            tx_next_cycle = curr_tsc + pinfo->tx_cycles;
-
-            // Process TX workqueue list
-            workq_run(WORKQ_TX, pid, tx_qid);
+        const int64_t max_tx_lag =
+            DEFAULT_MAX_TX_LAG;        // Allow some lag, ideally make this configurable.
+        int64_t dt = curr_tsc - tx_next_cycle;
+        if (dt >= 0) {
+            tx_next_cycle = curr_tsc + pinfo->tx_cycles - (dt <= max_tx_lag ? dt : 0);
+            // Process TX
+            pktgen_main_transmit(pinfo, tx_qid);
         }
         if (curr_tsc >= tx_bond_cycle) {
             tx_bond_cycle = curr_tsc + (pktgen_get_timer_hz() / 10);
@@ -1229,7 +1106,6 @@ pktgen_main_tx_loop(void)
     uint16_t tx_qid, lid = rte_lcore_id();
     port_info_t *pinfo = l2p_get_pinfo_by_lcore(lid);
     uint64_t curr_tsc, tx_next_cycle, tx_bond_cycle;
-    uint16_t pid = pinfo->pid;
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
@@ -1242,21 +1118,21 @@ pktgen_main_tx_loop(void)
 
     tx_qid = l2p_get_txqid(lid);
 
-    printf("TX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, tx_qid,
-           l2p_get_tx_mp(pinfo->pid)->name, l2p_get_tx_mp(pinfo->pid));
+    printf("TX lid %3d, pid %2d, qid %2d, TX-MP %-16s @ %p\n", lid, pinfo->pid, tx_qid,
+           l2p_get_tx_mp(pinfo->pid, tx_qid)->name, l2p_get_tx_mp(pinfo->pid, tx_qid));
 
-    if (pktgen_workq_setup(WORKQ_TX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Tx work queue for pid %u\n", pid);
-
-    while (unlikely(pktgen.force_quit == 0)) {
+    while (unlikely(rte_atomic_load_explicit(&pktgen.force_quit, rte_memory_order_relaxed) == 0)) {
         curr_tsc = pktgen_get_time();
 
         /* Determine when is the next time to send packets */
-        if (unlikely(curr_tsc >= tx_next_cycle)) {
-            tx_next_cycle = curr_tsc + pinfo->tx_cycles;
+        const int64_t max_tx_lag =
+            DEFAULT_MAX_TX_LAG;        // Allow some lag, ideally make this configurable.
+        int64_t dt = curr_tsc - tx_next_cycle;
+        if (dt >= 0) {
+            tx_next_cycle = curr_tsc + pinfo->tx_cycles - (dt <= max_tx_lag ? dt : 0);
 
-            // Process TX workqueue list
-            workq_run(WORKQ_TX, pid, tx_qid);
+            // Process TX
+            pktgen_main_transmit(pinfo, tx_qid);
         }
         if (unlikely(curr_tsc >= tx_bond_cycle)) {
             tx_bond_cycle = curr_tsc + pktgen_get_timer_hz() / 10;
@@ -1286,7 +1162,7 @@ static void
 pktgen_main_rx_loop(void)
 {
     port_info_t *pinfo;
-    uint16_t lid = rte_lcore_id(), rx_qid = l2p_get_rxqid(lid), pid;
+    uint16_t lid = rte_lcore_id(), rx_qid = l2p_get_rxqid(lid);
 
     if (lid == rte_get_main_lcore()) {
         printf("Using %d initial lcore for Rx/Tx\n", lid);
@@ -1296,18 +1172,11 @@ pktgen_main_rx_loop(void)
     pinfo  = l2p_get_pinfo_by_lcore(lid);
     rx_qid = l2p_get_rxqid(lid);
 
-    printf("RX lid %3d, pid %2d, qid %2d, Mempool %-16s @ %p\n", lid, pinfo->pid, rx_qid,
-           l2p_get_rx_mp(pinfo->pid)->name, l2p_get_rx_mp(pinfo->pid));
+    printf("RX lid %3d, pid %2d, qid %2d, RX-MP %-16s @ %p\n", lid, pinfo->pid, rx_qid,
+           l2p_get_rx_mp(pinfo->pid, rx_qid)->name, l2p_get_rx_mp(pinfo->pid, rx_qid));
 
-    pid = pinfo->pid;
-
-    if (pktgen_workq_setup(WORKQ_RX, pid, pinfo))
-        rte_exit(EXIT_FAILURE, "Error setting up Rx work queue for pid %u\n", pid);
-
-    while (pktgen.force_quit == 0) {
-        workq_run(WORKQ_RX, pid, rx_qid);
-    }
-    workq_port_destroy(pid);
+    while (rte_atomic_load_explicit(&pktgen.force_quit, rte_memory_order_relaxed) == 0)
+        pktgen_main_receive(pinfo, rx_qid);
 
     pktgen_log_debug("Exit %d", lid);
 
@@ -1381,8 +1250,8 @@ _page_display(void)
         pktgen_page_log(pktgen.flags & PRINT_LABELS_FLAG);
     else if (pktgen.flags & LATENCY_PAGE_FLAG)
         pktgen_page_latency();
-    else if (pktgen.flags & STATS_PAGE_FLAG)
-        pktgen_page_queue_stats(pktgen.curr_port);
+    else if (pktgen.flags & QSTATS_PAGE_FLAG)
+        pktgen_page_qstats(pktgen.curr_port);
     else if (pktgen.flags & XSTATS_PAGE_FLAG)
         pktgen_page_xstats(pktgen.curr_port);
     else
@@ -1445,9 +1314,9 @@ _timer_thread(void *arg)
     process     = page + pktgen.stats_timeout;
     page += pktgen.page_timeout;
 
-    pktgen.timer_running = 1;
+    rte_atomic_store_explicit(&pktgen.timer_running, 1, rte_memory_order_relaxed);
 
-    while (pktgen.timer_running) {
+    while (rte_atomic_load_explicit(&pktgen.timer_running, rte_memory_order_relaxed)) {
         uint64_t curr;
 
         curr = pktgen_get_time();

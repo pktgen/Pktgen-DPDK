@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2020-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2020-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -102,7 +102,7 @@ static struct cli_map range_map[] = {
     {37, "range %P src ip %6 %6 %6 %6"},
     {40, "range %P proto %|tcp|udp"},
     {41, "range %P type %|ipv4|ipv6"},
-    {42, "range %P tcp %|flag|flags %s"},
+    {42, "range %P tcp %|flag|flags %c"},
     {44, "range %P tcp seq %d %d %d %d"},
     {45, "range %P tcp ack %d %d %d %d"},
     {46, "range %P tcp seq " SMMI " %d"},
@@ -537,7 +537,7 @@ static struct cli_map set_map[] = {
     {31, "set %P dst ip %4"},
     {32, "set %P src ip %6"},
     {33, "set %P dst ip %6"},
-    {34, "set %P tcp %|flag|flags %s"},
+    {34, "set %P tcp %|flag|flags %c"},
     {36, "set %P tcp seq %d"},
     {37, "set %P tcp ack %d"},
     {40, "set ports_per_page %d"},
@@ -1065,9 +1065,9 @@ static const char *enable_help[] = {
     "enable|disable <portlist> vxlan    - Send VxLAN packets",
     "enable|disable mac_from_arp        - Enable/disable MAC address from ARP packet",
     "enable|disable clock_gettime       - Enable/disable use of new clock_gettime() instead of rdtsc()",
-    "enable|disable screen              - Enable/disable updating the screen and unlock/lock window"
-    "    off                            - screen off shortcut",
-    "    on                             - screen on shortcut",
+    "enable|disable screen              - Enable/disable updating the screen and unlock/lock window",
+    "    off                            - screen disable shortcut",
+    "    on                             - screen enable shortcut",
     CLI_HELP_PAUSE,
     NULL};
 
@@ -1553,7 +1553,7 @@ static struct cli_map seq_map[] = {
     {16, "%|seq|sequence %d %P vxlan %d gid %d vid %d"},
     {17, "%|seq|sequence %d %P vxlan %h gid %d vid %d"},
 
-    {18, "%|seq|sequence %d %P tcp %|flag|flags %s"},
+    {18, "%|seq|sequence %d %P tcp %|flag|flags %c"},
     {-1, NULL}
 };
 // clang-format on
@@ -1704,7 +1704,6 @@ static struct cli_map misc_map[] = {
     {100, "reset %P"},
     {110, "restart %P"},
     {130, "port %d"},
-    {135, "ports per page %d"},
     {140, "ping4 %P"},
 #ifdef INCLUDE_PING6
     {141, "ping6 %P"},
@@ -1782,7 +1781,6 @@ misc_cmd(int argc, char **argv)
         portlist_parse(argv[1], pktgen.nb_ports, &portlist);
         foreach_port(portlist, pktgen_port_restart(pinfo));
         break;
-    case 120:
     case 130:
         pktgen_set_port_number((uint16_t)atoi(argv[1]));
         break;
@@ -1808,7 +1806,7 @@ misc_cmd(int argc, char **argv)
 static struct cli_map page_map[] = {
     {10, "page %d"},
     {11, "page %|main|range|cpu|system|sys|next|sequence|seq|rnd|"
-         "log|latency|lat|stats|xstats"},
+         "log|latency|lat|stats|qstats|xstats"},
     {-1, NULL}
 };
 
@@ -1827,7 +1825,7 @@ static const char *page_help[] = {
     "sequence",
     "page log                           - Display the log messages page",
     "page latency | lat                 - Display the latency page",
-    "page stats                         - Display physical ports stats for all ports",
+    "page qstats | stats                - Display per port queue stats",
     "page xstats                        - Display port XSTATS values",
     CLI_HELP_PAUSE,
     NULL
@@ -1878,7 +1876,8 @@ static int
 plugin_cmd(int argc, char **argv)
 {
     struct cli_map *m;
-    int inst;
+    char *path;
+    int inst, loaded;
 
     m = cli_mapping(plugin_map, argc, argv);
     if (!m)
@@ -1890,12 +1889,19 @@ plugin_cmd(int argc, char **argv)
         break;
     case 20:
     case 21:
-        if ((inst = plugin_create(argv[2], argv[3])) < 0) {
-            printf("Plugin not loaded %s, %s\n", argv[2], argv[3]);
+        path   = (argc > 3) ? argv[3] : NULL;
+        loaded = plugin_find_by_name(argv[2]);
+        if ((inst = plugin_create(argv[2], path)) < 0) {
+            printf("Plugin not loaded %s, %s\n", argv[2], (path) ? path : "");
             return -1;
         }
 
-        if (plugin_start(inst, NULL), 0) {
+        if (inst == loaded) {
+            printf("Plugin %s already loaded\n", argv[2]);
+            break;
+        }
+
+        if (plugin_start(inst, NULL) != 0) {
             plugin_destroy(inst);
             return -1;
         }
@@ -2048,21 +2054,19 @@ hmap_cmd(int argc, char **argv)
 
     switch (m->index) {
     case 10:
-        hmap_list_maps(NULL);
+        hmap_list_names(NULL);
         break;
     case 20:
-        hmap_dump_all(NULL, 1);
+        hmap_list_all(NULL, true);
         break;
     case 30:
-        hmap_dump_map(NULL, argv[2], 1);
+        hmap_list_by_name(NULL, argv[2], true);
         break;
     default:
         return cli_cmd_error("Hashmap invalid command", "Hashmap", argc, argv);
     }
 
     pktgen_update_display();
-    return 0;
-
     return 0;
 }
 

@@ -1,5 +1,13 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
+ */
+
+/**
+ * @file
+ * CLI input handling.
+ *
+ * Wraps VT100/screen I/O and provides the character-by-character input loop
+ * used by the interactive CLI.
  */
 
 #include <stdio.h>
@@ -108,8 +116,7 @@ cli_pause(const char *msg, const char *keys)
     prompt[0] = '\0';
 
     if (msg) {
-        strcpy(prompt, msg);
-        strcat(prompt, ": ");
+        snprintf(prompt, sizeof(prompt), "%s: ", msg);
         cli_printf("%s", prompt);
     }
 

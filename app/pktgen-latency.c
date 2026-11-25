@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2016-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2016-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -300,37 +300,26 @@ pktgen_page_latency(void)
         pktgen_display_set_color("stats.stat.values");
         /* Rx/Tx pkts/s rate */
         row = LINK_STATE_ROW + 1;
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->max_ipackets,
-                 pinfo->rate_stats.ipackets);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64, pinfo->max_opackets,
-                 pinfo->rate_stats.opackets);
-        scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
-
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'" PRIu64,
-                 iBitsTotal(pinfo->rate_stats) / Million, oBitsTotal(pinfo->rate_stats) / Million);
+                 iBitsTotal(pinfo->stats.rate) / Million, oBitsTotal(pinfo->stats.rate) / Million);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        pktgen.cumm_rate_totals.ipackets += pinfo->rate_stats.ipackets;
-        pktgen.cumm_rate_totals.opackets += pinfo->rate_stats.opackets;
-        pktgen.cumm_rate_totals.ibytes += pinfo->rate_stats.ibytes;
-        pktgen.cumm_rate_totals.obytes += pinfo->rate_stats.obytes;
-        pktgen.cumm_rate_totals.ierrors += pinfo->rate_stats.ierrors;
-        pktgen.cumm_rate_totals.oerrors += pinfo->rate_stats.oerrors;
-
-        if (pktgen.cumm_rate_totals.ipackets > pktgen.max_total_ipackets)
-            pktgen.max_total_ipackets = pktgen.cumm_rate_totals.ipackets;
-        if (pktgen.cumm_rate_totals.opackets > pktgen.max_total_opackets)
-            pktgen.max_total_opackets = pktgen.cumm_rate_totals.opackets;
-
-        pktgen.cumm_rate_totals.imissed += pinfo->rate_stats.imissed;
-        pktgen.cumm_rate_totals.rx_nombuf += pinfo->rate_stats.rx_nombuf;
+        pktgen.cumm_rate_totals.ipackets += pinfo->stats.rate.ipackets;
+        pktgen.cumm_rate_totals.opackets += pinfo->stats.rate.opackets;
+        pktgen.cumm_rate_totals.ibytes += pinfo->stats.rate.ibytes;
+        pktgen.cumm_rate_totals.obytes += pinfo->stats.rate.obytes;
+        pktgen.cumm_rate_totals.ierrors += pinfo->stats.rate.ierrors;
+        pktgen.cumm_rate_totals.oerrors += pinfo->stats.rate.oerrors;
+        pktgen.cumm_rate_totals.imissed += pinfo->stats.rate.imissed;
+        pktgen.cumm_rate_totals.rx_nombuf += pinfo->stats.rate.rx_nombuf;
 
         row++; /* Skip Latency header row */
-        lat             = &pinfo->latency;
-        nb_pkts         = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
-        lat->avg_cycles = (lat->running_cycles / nb_pkts);
+        lat = &pinfo->latency;
+        /* Ensure all RX worker stores to latency fields are visible before reading */
+        rte_atomic_thread_fence(rte_memory_order_acquire);
+        nb_pkts = (lat->num_latency_pkts == 0) ? 1 : lat->num_latency_pkts;
+        uint64_t avg_cycles =
+            lat->running_cycles / nb_pkts; /* compute locally; do not write back */
 
         snprintf(buff, sizeof(buff), "%'" PRIu64, lat->latency_rate_us);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
@@ -351,8 +340,8 @@ pktgen_page_latency(void)
         snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->min_cycles, latency);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
-        latency = cycles_to_us(lat->avg_cycles, per_cycle);
-        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", lat->avg_cycles, latency);
+        latency = cycles_to_us(avg_cycles, per_cycle);
+        snprintf(buff, sizeof(buff), "%'" PRIu64 "/%'8.2f", avg_cycles, latency);
         scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 
         latency = cycles_to_us(lat->max_cycles, per_cycle);

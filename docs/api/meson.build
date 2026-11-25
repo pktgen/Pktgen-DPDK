@@ -15,7 +15,7 @@ generate_doxygen = find_program('generate_doxygen.sh')
 generate_examples = find_program('generate_examples.sh')
 generate_css = find_program('doxy-html-custom.sh')
 
-htmldir = join_paths(get_option('datadir'), 'doc', 'dpdk')
+htmldir = join_paths(get_option('datadir'), 'docs', 'dpdk')
 
 # due to the following bug: https://github.com/mesonbuild/meson/issues/4107
 # if install is set to true it will override build_by_default and it will
@@ -32,8 +32,8 @@ example = custom_target('examples.dox',
 
 cdata = configuration_data()
 cdata.set('VERSION', meson.project_version())
-cdata.set('API_EXAMPLES', join_paths(meson.project_build_root(), 'doc', 'api', 'examples.dox'))
-cdata.set('OUTPUT', join_paths(meson.project_build_root(), 'doc', 'api'))
+cdata.set('API_EXAMPLES', join_paths(meson.project_build_root(), 'docs', 'api', 'examples.dox'))
+cdata.set('OUTPUT', join_paths(meson.project_build_root(), 'docs', 'api'))
 cdata.set('HTML_OUTPUT', 'api')
 cdata.set('TOPDIR', meson.project_source_root())
 cdata.set('STRIP_FROM_PATH', meson.project_source_root())

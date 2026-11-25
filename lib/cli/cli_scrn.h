@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 
 /* Created by Keith Wiles @ intel.com */
@@ -120,9 +120,9 @@ enum vt100_parse_state {
 
 #define VT100_BUF_SIZE 8
 struct cli_vt100 {
-    int bufpos;                   /** Current offset into buffer */
-    char buf[VT100_BUF_SIZE];     /** cli_vt100 command buffer */
-    enum vt100_parse_state state; /** current cli_vt100 parser state */
+    int bufpos;                   /**< Current write offset into @p buf */
+    char buf[VT100_BUF_SIZE];     /**< Accumulator for multi-byte VT100 escape sequences */
+    enum vt100_parse_state state; /**< Current parser state for escape-sequence detection */
 };
 
 struct vt100_cmds {
@@ -139,12 +139,14 @@ struct vt100_cmds {
 
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
-    rte_atomic32_t pause __rte_cache_aligned; /**< Pause the update of the screen. */
+    __rte_cache_aligned
+    RTE_ATOMIC(int32_t) pause;                /**< Pause the update of the screen. */
     uint16_t nrows;                           /**< Max number of rows. */
     uint16_t ncols;                           /**< Max number of columns. */
     uint16_t theme;                           /**< Current theme state on or off */
     uint16_t type;                            /**< screen I/O type */
     uint16_t no_write;                        /**< Disable screen write */
+    uint16_t oldterm_saved;                   /**< Old terminal setup saved */
     struct termios oldterm;                   /**< Old terminal setup information */
     FILE *fd_out;                             /**< File descriptor for output */
     FILE *fd_in;                              /**< File descriptor for input */
@@ -383,7 +385,7 @@ scrn_pause(void)
 {
     if (!this_scrn)
         printf("**** this scrn is NULL\n");
-    rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_PAUSED);
+    rte_atomic_store_explicit(&this_scrn->pause, SCRN_SCRN_PAUSED, rte_memory_order_relaxed);
     __set_prompt();
 }
 
@@ -391,7 +393,7 @@ scrn_pause(void)
 static __inline__ void
 scrn_resume(void)
 {
-    rte_atomic32_set(&this_scrn->pause, SCRN_SCRN_RUNNING);
+    rte_atomic_store_explicit(&this_scrn->pause, SCRN_SCRN_RUNNING, rte_memory_order_relaxed);
     __set_prompt();
 }
 
@@ -399,7 +401,7 @@ scrn_resume(void)
 static __inline__ int
 scrn_is_paused(void)
 {
-    return rte_atomic32_read(&this_scrn->pause) == SCRN_SCRN_PAUSED;
+    return rte_atomic_load_explicit(&this_scrn->pause, rte_memory_order_relaxed) == SCRN_SCRN_PAUSED;
 }
 
 /** Output a message of the current line centered */
@@ -534,10 +536,32 @@ scrn_rgb_str(char *str, uint8_t fg_bg, scrn_rgb_t r, scrn_rgb_t g, scrn_rgb_t b)
     return snprintf(str, 16, ESC "[%d;2;%d;%d;%dm", fg_bg, r, g, b);
 }
 
-/** External functions used for positioning the cursor and outputing a string
-   like printf */
+/**
+ * Create and initialise the global cli_scrn instance.
+ *
+ * @param scrn_type
+ *   Screen I/O type: SCRN_STDIN_TYPE for interactive TTY,
+ *   SCRN_NOTTY_TYPE for non-TTY (pipe/file) output.
+ * @param theme
+ *   Initial theme state: SCRN_THEME_ON or SCRN_THEME_OFF.
+ * @return
+ *   0 on success or -1 on error.
+ */
 int scrn_create(int scrn_type, int theme);
+
+/**
+ * Create the global cli_scrn with default stdin/stdout I/O and theme off.
+ *
+ * @param theme
+ *   Initial theme state: SCRN_THEME_ON or SCRN_THEME_OFF.
+ * @return
+ *   0 on success or -1 on error.
+ */
 int scrn_create_with_defaults(int theme);
+
+/**
+ * Destroy the global cli_scrn instance and free its resources.
+ */
 void scrn_destroy(void);
 
 /**
@@ -570,7 +594,20 @@ void vt100_free(struct cli_vt100 *vt);
  */
 int vt100_parse_input(struct cli_vt100 *vt, uint8_t c);
 
+/**
+ * Execute the VT100 command at the given index in vt100_commands[].
+ *
+ * @param idx
+ *   Index into the vt100_commands[] dispatch table (VT100_KEY_* enum value).
+ */
 void vt100_do_cmd(int idx);
+
+/**
+ * Return the vt100_cmds dispatch table.
+ *
+ * @return
+ *   Pointer to the internal vt100_cmds array.
+ */
 struct vt100_cmds *vt100_get_cmds(void);
 
 #ifdef __cplusplus

@@ -11,7 +11,23 @@ copyright = '2010-2024, Keith Wiles'
 version = '23.06.1'
 release = version
 
-source_suffix = '.rst'
+extensions = []
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+}
+
+# Optional Markdown support for developer-friendly docs.
+# If myst_parser is installed, Sphinx can render .md sources referenced by
+# toctrees (e.g. docs/QUICKSTART.md and lib/cli/DESIGN.md).
+try:
+    import myst_parser  # noqa: F401
+except Exception:  # pragma: no cover
+    pass
+else:
+    extensions.append('myst_parser')
+    source_suffix['.md'] = 'markdown'
+
 initial_doc = 'index'
 pygments_style = 'sphinx'
 html_theme = 'default'

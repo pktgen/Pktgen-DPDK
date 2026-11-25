@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 
 #include "cli.h"
@@ -112,7 +112,7 @@ key_ctrl_k(void)
     gb_move_gap_to_point(cli->gb);
     free(cli->kill);
     if (gb_right_data_size(cli->gb))
-        cli->kill = strndup(gb_end_of_gap(cli->gb), gb_right_data_size(cli->gb) + 1);
+        cli->kill = strndup(gb_end_of_gap(cli->gb), gb_right_data_size(cli->gb));
     gb_del(cli->gb, gb_right_data_size(cli->gb));
 }
 

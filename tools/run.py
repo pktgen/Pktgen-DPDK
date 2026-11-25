@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-#   Copyright(c) <2020-2025> Intel Corporation. All rights reserved.
+#   Copyright(c) <2020-2026> Intel Corporation. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 #
@@ -336,7 +336,7 @@ def setup_cfg(cfg_file):
                 fn = (hugepage_path % i)
                 if verbose:
                         print("  Set %d socket to %d hugepages" % (i, nb_hugepages))
-                subprocess.call(['sudo', '-E', 'sh', '-c', 'eval',
+                subprocess.call(['sudo', 'sh', '-c', 'eval',
                                          'echo %s > %s' % (nb_hugepages, fn)])
 
         # locate the binding tool

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2020-2025> Intel Corporation.
+ * Copyright(c) <2020-2026> Intel Corporation.
  */
 
 /**
@@ -18,8 +18,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define __RTE_VERSION RTE_VERSION_NUM(RTE_VER_YEAR, RTE_VER_MONTH, RTE_VER_MINOR, RTE_VER_RELEASE)
 
 #define PG_JUMBO_ETHER_MTU     9216        // 9K total size of the Ethernet jumbo frame
 #define PG_JUMBO_DATAROOM_SIZE 9000        // 9K data room size in the Ethernet jumbo frame

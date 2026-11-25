@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -105,8 +105,6 @@ pktgen_process_ping6(struct rte_mbuf *m __rte_unused, uint32_t pid __rte_unused,
 							     INADDR_BROADCAST));
 				goto leave;
 			}
-
-			info->echo_pkts++;
 
 			icmp->type  = ICMP4_ECHO_REPLY;
 

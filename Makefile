@@ -41,9 +41,6 @@ uninstall: FORCE
 docs: FORCE
 	${Build} docs
 
-doc: FORCE
-	${Build} docs
-
 help: FORCE
 	${Build} help
 

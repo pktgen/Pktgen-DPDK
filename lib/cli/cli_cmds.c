@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 
 #include <stdio.h>
@@ -277,7 +277,7 @@ static int
 more_cmd(int argc, char **argv)
 {
     struct cli_node *node;
-    char *buf, c;
+    char buf[513], c;
     int i, len, n, k, lines = 24;
     int opt;
 
@@ -298,10 +298,8 @@ more_cmd(int argc, char **argv)
     if (optind >= argc)
         return 0;
 
-    len = 256;
-    buf = alloca(len + 1);
-    if (!buf)
-        return -1;
+    len = (int)(sizeof(buf) - 1);
+    memset(buf, '\0', sizeof(buf));
 
     for (i = optind; i < argc; i++) {
         k    = 0;
@@ -449,7 +447,7 @@ path_cmd(int argc __rte_unused, char **argv __rte_unused)
 static const char *copyright =
     "   BSD LICENSE\n"
     "\n"
-    "   Copyright(c) <2010-2025> Intel Corporation. All rights reserved.\n"
+    "   Copyright(c) <2010-2026> Intel Corporation. All rights reserved.\n"
     "\n"
     "   Redistribution and use in source and binary forms, with or without\n"
     "   modification, are permitted provided that the following conditions\n"
@@ -545,7 +543,7 @@ static int
 mkdir_cmd(int argc, char **argv)
 {
     if (argc != 2) {
-        cli_printf("Must have at least one path/driectory\n");
+        cli_printf("Must have at least one path/directory\n");
         return -1;
     }
 
@@ -583,7 +581,7 @@ static struct cli_map cli_env_map[] = {
 
 // clang-format off
 static const char *cli_env_help[] = {
-    "env                       - Display current evironment variables",
+    "env                       - Display current environment variables",
     "env get <string>          - Get the requested variable",
     "env set <string> <string> - Set the given variable to string",
     "env del <string>          - Delete the given variable",
@@ -597,7 +595,7 @@ env_cmd(int argc, char **argv)
 
     m = cli_mapping(cli_env_map, argc, argv);
     if (!m)
-        cli_cmd_error("Environment command error:", "Env", argc, argv);
+        return cli_cmd_error("Environment command error:", "Env", argc, argv);
     switch (m->index) {
     case 10:
         cli_env_show(this_cli->env);
@@ -612,7 +610,7 @@ env_cmd(int argc, char **argv)
         cli_env_del(this_cli->env, argv[2]);
         break;
     default:
-        cli_help_show_group("env");
+        cli_help_show_group("Env");
         return -1;
     }
     return 0;
@@ -694,8 +692,9 @@ cli_default_tree_init(void)
     this_cli->flags |= CLI_DEFAULT_TREE;
 
     /* Add the list of commands/dirs in cli_cmds.c file */
-    if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0)
+    if ((ret = cli_add_tree(NULL, cli_default_tree)) == 0) {
         cli_help_add("Env", cli_env_map, cli_env_help);
+    }
 
     if (ret) {
         RTE_LOG(ERR, EAL, "Unable to add commands or directories\n");

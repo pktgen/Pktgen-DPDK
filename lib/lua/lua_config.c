@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2020-2025> Intel Corporation.
+ * Copyright(c) <2020-2026> Intel Corporation.
  */
 
 /* Create from lua.c 2018 by Keith Wiles @ intel.com */
@@ -179,8 +179,7 @@ lua_create_instance(void)
     rte_mcfg_tailq_read_unlock();
 
     /* Make sure we display the copyright string for Lua. */
-    lua_writestring(LUA_COPYRIGHT, strlen(LUA_COPYRIGHT));
-    lua_writeline();
+    printf("%s\n", LUA_COPYRIGHT);
 
     return ld;
 }
@@ -273,14 +272,13 @@ int
 lua_docall(lua_State *L, int narg, int nres)
 {
     int status;
-    int base = 0;
-
-    base = lua_gettop(L);
+    int base = 1;
 
     lua_pushcfunction(L, msghandler);
     lua_insert(L, base);
 
     status = _k(L, lua_pcallk(L, narg, nres, base, 0, _k), 0);
+    lua_remove(L, base); /* remove message handler */
 
     return status;
 }

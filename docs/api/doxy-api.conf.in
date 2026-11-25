@@ -3,8 +3,8 @@
 
 PROJECT_NAME            = Pktgen-DPDK
 PROJECT_NUMBER          = @VERSION@
-USE_MDFILE_AS_MAINPAGE  = @TOPDIR@/doc/api/doxy-api-index.md
-INPUT                   = @TOPDIR@/doc/api/doxy-api-index.md \
+USE_MDFILE_AS_MAINPAGE  = @TOPDIR@/docs/api/doxy-api-index.md
+INPUT                   = @TOPDIR@/docs/api/doxy-api-index.md \
                           @TOPDIR@/lib/common \
                           @TOPDIR@/lib/cli \
                           @TOPDIR@/lib/lua \

@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -80,9 +80,12 @@ pktgen_send_ping4(uint32_t pid, uint8_t seq_idx)
     l2p_port_t *port;
 
     port = l2p_get_port(pid);
-    if (rte_mempool_get(port->special_mp, (void **)&m)) {
-        pktgen_log_warning("No packet buffers found");
-        return;
+    {
+        const uint16_t tx_qid = l2p_get_txqid(rte_lcore_id());
+        if (rte_mempool_get(port->sp_mp[tx_qid], (void **)&m)) {
+            pktgen_log_warning("No packet buffers found");
+            return;
+        }
     }
     *ppkt = *spkt; /* Copy the sequence setup to the ping setup. */
     pktgen_packet_ctor(pinfo, SPECIAL_PKT, ICMP4_ECHO);
@@ -119,7 +122,8 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
         ip = (struct rte_ipv4_hdr *)((char *)ip + sizeof(struct rte_vlan_hdr));
 
     /* Look for a ICMP echo requests, but only if enabled. */
-    if ((rte_atomic64_read(&pinfo->port_flags) & ICMP_ECHO_ENABLE_FLAG) &&
+    if ((rte_atomic_load_explicit(&pinfo->port_flags,
+                                  rte_memory_order_relaxed) & ICMP_ECHO_ENABLE_FLAG) &&
         (ip->next_proto_id == PG_IPPROTO_ICMP)) {
         struct rte_icmp_hdr *icmp =
             (struct rte_icmp_hdr *)((uintptr_t)ip + sizeof(struct rte_ipv4_hdr));
@@ -150,8 +154,6 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
                 return;
             }
 
-            pinfo->pkt_stats.echo_pkts++;
-
             icmp->icmp_type = ICMP4_ECHO_REPLY;
 
             /* Recompute the ICMP checksum */
@@ -176,7 +178,6 @@ pktgen_process_ping4(struct rte_mbuf *m, uint32_t pid, uint32_t qid, uint32_t vl
 
             /* No need to free mbuf as it was reused. */
             return;
-        } else if (unlikely(icmp->icmp_type == ICMP4_ECHO_REPLY))
-            pinfo->pkt_stats.echo_pkts++;
+        }
     }
 }

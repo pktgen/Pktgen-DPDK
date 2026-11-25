@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
  */
 
 #include <rte_string_fns.h>
@@ -72,7 +72,6 @@ node_list_with_type(uint32_t flags, void **ret)
              * the first entry in the bins list.
              */
             if ((i > 0) && (bin == get_cwd())) {
-                cli_printf("skip %s\n", bin->name);
                 continue;
             }
 

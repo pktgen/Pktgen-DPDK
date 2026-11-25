@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -82,7 +82,9 @@ pcap_get_info(pcap_info_t *pcap)
         pcap->info.network       = ntohl(pcap->info.network);
     }
 
-    pcap->max_pkt_size = 0;
+    pcap->max_pkt_size  = 0;
+    pcap->avg_pkt_size  = 0;
+    uint64_t total_size = 0;
     /* count the number of packets and get the largest size packet */
     for (;;) {
         if (fread(&hdr, 1, sizeof(pcap_record_hdr_t), pcap->fp) != sizeof(hdr))
@@ -97,10 +99,14 @@ pcap_get_info(pcap_info_t *pcap)
         pcap->pkt_count++;
         if (hdr.incl_len > pcap->max_pkt_size)
             pcap->max_pkt_size = hdr.incl_len;
+
+        total_size += hdr.incl_len;
     }
-    pcap->max_pkt_size += RTE_PKTMBUF_HEADROOM;
-    pcap->max_pkt_size = RTE_ALIGN_CEIL(pcap->max_pkt_size, RTE_CACHE_LINE_SIZE);
     printf("PCAP: Max Packet Size: %d\n", pcap->max_pkt_size);
+
+    pcap->avg_pkt_size = total_size / pcap->pkt_count;
+
+    printf("PCAP: Avg Packet Size: %d\n", pcap->avg_pkt_size);
 
     pcap_rewind(pcap);
 }
@@ -186,12 +192,13 @@ pktgen_pcap_open(void)
             fclose(pcap->fp);
             rte_exit(EXIT_FAILURE, "%s: PCAP file is empty: %s\n", __func__, pcap->filename);
         }
-        if (pkt_count < (DEFAULT_TX_DESC * 4))
-            pkt_count = (DEFAULT_TX_DESC * 4);
+        if (pkt_count < ((uint32_t)pktgen.nb_txd * 4))
+            pkt_count = ((uint32_t)pktgen.nb_txd * 4);
 
         snprintf(name, sizeof(name), "pcap-%d", pid);
-        mp =
-            rte_pktmbuf_pool_create(name, pkt_count, 0, DEFAULT_PRIV_SIZE, pcap->max_pkt_size, sid);
+        uint32_t dataroom =
+            RTE_ALIGN_CEIL(pcap->max_pkt_size + RTE_PKTMBUF_HEADROOM, RTE_CACHE_LINE_SIZE);
+        mp = rte_pktmbuf_pool_create(name, pkt_count, 0, DEFAULT_PRIV_SIZE, dataroom, sid);
         if (mp == NULL)
             rte_exit(EXIT_FAILURE,
                      "Cannot create mbuf pool (%s) port %d, nb_mbufs %d, socket_id %d: %s", name,

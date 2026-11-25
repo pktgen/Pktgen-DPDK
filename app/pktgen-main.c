@@ -1,5 +1,5 @@
 /*-
- * Copyright(c) <2010-2025>, Intel Corporation. All rights reserved.
+ * Copyright(c) <2010-2026>, Intel Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -469,9 +469,6 @@ main(int argc, char **argv)
         pktgen_log_info("=== Display processing on lcore %d", rte_lcore_id());
     }
 
-    if (workq_create())
-        rte_exit(EXIT_FAILURE, "Cannot create work queues\n");
-
     /* launch per-lcore init on every lcore except initial and initial + 1 lcores */
     ret = rte_eal_mp_remote_launch(pktgen_launch_one_lcore, NULL, SKIP_MAIN);
     if (ret != 0)
@@ -541,7 +538,6 @@ main(int argc, char **argv)
 
     cli_destroy();
     scrn_destroy();
-    workq_destroy();
     return 0;
 }
 
@@ -563,6 +559,6 @@ pktgen_stop_running(void)
     lua_execute_close(pktgen.ld);
 #endif
 
-    pktgen.timer_running = 0;
-    pktgen.force_quit    = 1;
+    rte_atomic_store_explicit(&pktgen.timer_running, 0, rte_memory_order_relaxed);
+    rte_atomic_store_explicit(&pktgen.force_quit, 1, rte_memory_order_relaxed);
 }

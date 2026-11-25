@@ -1,5 +1,13 @@
 /* SPDX-License-Identifier: BSD-3-Clause
- * Copyright(c) <2016-2025>, Intel Corporation.
+ * Copyright(c) <2016-2026>, Intel Corporation.
+ */
+
+/**
+ * @file
+ * CLI map (command pattern) matching.
+ *
+ * Implements the lightweight printf-like token format used to select a
+ * command variant based on argc/argv.
  */
 
 #include <rte_string_fns.h>
@@ -16,7 +24,7 @@ cli_map_list_search(const char *fmt, char *item, int index)
     char *opts[CLI_MAX_ARGVS + 1];
 
     size = strlen(fmt) + 1;
-    buf  = alloca(size);
+    buf  = malloc(size);
     if (!buf)
         return -1;
 
@@ -27,7 +35,10 @@ cli_map_list_search(const char *fmt, char *item, int index)
     pg_strtok(buf, " ", opts, CLI_MAX_ARGVS);
 
     /* Skip the %| in the string options */
-    return pg_stropt(&opts[index][2], item, "|");
+    int ret = pg_stropt(&opts[index][2], item, "|");
+
+    free(buf);
+    return ret;
 }
 
 static int
@@ -37,7 +48,7 @@ is_map_valid(const char *fmt, char *arg)
     char *p;
     struct rte_ipaddr ip;
 
-    if (strchr("%bdDuUhHsn46mkPC|l", fmt[1]) == NULL)
+    if (strchr("%bdDuUhHsnc46mkPC|l", fmt[1]) == NULL)
         return ret;
 
     /* validate all of the characters matching the format */
@@ -76,6 +87,10 @@ is_map_valid(const char *fmt, char *arg)
                 ret = 1;
             break;
         case 's':
+            if (isprint(*arg))
+                ret = 1;
+            break;
+        case 'c':
             if (isprint(*arg))
                 ret = 1;
             break;
@@ -136,7 +151,7 @@ cli_mapping(struct cli_map *maps, int argc, char **argv)
 
     p = line;
     for (i = 0; (m = maps[i].fmt) != NULL; i++) {
-        strcpy(p, m);
+        snprintf(p, sizeof(line), "%s", m);
 
         nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
@@ -176,7 +191,7 @@ decode_map(const char *fmt)
 
     memset(argv, '\0', sizeof(argv));
 
-    strcpy(line, fmt);
+    snprintf(line, sizeof(line), "%s", fmt);
     if (fmt[0] != '%') {
         cli_printf("%s ", fmt);
         return;
@@ -188,6 +203,9 @@ decode_map(const char *fmt)
         break;
     case 'b':
         cli_printf("<8bit number> ");
+        break;
+    case 'n':
+        cli_printf("<number> ");
         break;
     case 'u':
         cli_printf("<32bit unsigned> ");
@@ -210,14 +228,17 @@ decode_map(const char *fmt)
     case 's':
         cli_printf("<string> ");
         break;
+    case 'c':
+        cli_printf("<comma-list> ");
+        break;
     case '4':
-        cli_printf("<IPv4 Address> ");
+        cli_printf("<ipv4-addr> ");
         break;
     case '6':
-        cli_printf("<IPv6 Address> ");
+        cli_printf("<ipv6-addr> ");
         break;
     case 'm':
-        cli_printf("<MAC address> ");
+        cli_printf("<mac-addr> ");
         break;
     case 'k':
         cli_printf("<kvargs> ");
@@ -255,7 +276,7 @@ cli_map_show(struct cli_map *m)
 
     p = line;
 
-    strcpy(p, m->fmt);
+    snprintf(p, sizeof(line), "%s", m->fmt);
 
     nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 
@@ -280,7 +301,7 @@ cli_maps_show(struct cli_map *maps, int argc, char **argv)
         line[0] = '\0';
         map[0]  = NULL;
 
-        strcpy(line, m->fmt);
+        snprintf(line, sizeof(line), "%s", m->fmt);
 
         nb_args = pg_strtok(line, " ", map, CLI_MAX_ARGVS);
 
@@ -312,7 +333,7 @@ cli_map_dump(struct cli_map *maps, int argc, char **argv)
         cli_printf("\n");
     }
 
-    strcpy(p, m->fmt);
+    snprintf(p, sizeof(line), "%s", m->fmt);
 
     nb_args = pg_strtok(p, " ", map, CLI_MAX_ARGVS);
 

@@ -2,7 +2,7 @@
 
 ## Build and verification
 
-- Build with `meson setup builddir` then `meson compile -C builddir`. Meson requires `libdpdk` via pkg-config plus NUMA, pcap and BSD development libraries; set `PKG_CONFIG_PATH` if DPDK is installed outside the default search path. Defaults are release, static libraries and warnings as errors.
+- Build with `meson setup builddir` then `meson compile -C builddir`. Meson requires `libdpdk` via pkg-config plus NUMA and pcap development libraries; set `PKG_CONFIG_PATH` if DPDK is installed outside the default search path. Defaults are release, static libraries and warnings as errors.
 - Lua is **disabled by default**. For Lua scripts or the remote Lua socket, configure with `meson setup builddir -Denable_lua=true` (or `meson configure builddir -Denable_lua=true` on an existing build); Lua development libraries are required.
 - `make` wraps Meson/Ninja and also installs into `./usr/local` by default. `make rebuild`, `make buildlua`, `make debug`, `make debuglua` and `make debugopt` first delete `builddir` (or `PKTGEN_BUILD`); do not use them casually on an existing build. The README's `make rebuildlua` target does not exist.
 - There are no Meson test definitions. `test/*.lua` are Pktgen runtime scripts, not standalone unit tests; some start traffic or assume specific ports and addresses. Runtime verification generally requires configured hugepages and suitable DPDK ports.

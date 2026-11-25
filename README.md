@@ -49,7 +49,6 @@ Pktgen is a multi‑port, multi‑core traffic generator built on top of [DPDK].
 Prerequisites (typical Ubuntu 22.04+):
 
 - DPDK (installed, or built automatically as described below)
-- libbsd (`sudo apt install libbsd-dev`)
 - Hugepages configured (e.g. 1G or 2M pages) and NICs bound to `vfio-pci` or `igb_uio`
 - Python 3.x for helper scripts
 

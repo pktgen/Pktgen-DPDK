@@ -66,7 +66,7 @@ print_stats(void)
     for (uint16_t pid = 0; pid < info->num_ports; pid++) {
         l2p_port_t *port = &info->ports[pid];
 
-        if (rte_atomic16_read(&port->inited) == 0) {
+        if (rte_atomic_load_explicit(&port->inited, rte_memory_order_relaxed) == 0) {
             printf("Port %u is not initialized\n", pid);
             continue;
         }

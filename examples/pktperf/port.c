@@ -49,7 +49,7 @@ static struct rte_eth_conf port_conf = {
                 {
                     .rss_key = NULL,
                     .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                               RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
                 },
         },
     .intr_conf =
@@ -99,6 +99,7 @@ port_setup(l2p_port_t *port)
     struct rte_eth_txconf txq_conf;
     struct rte_eth_conf conf = port_conf;
     struct rte_eth_dev_info dev_info;
+    uint16_t expected = 0;
 
     if (!port)
         ERR_RET("%s: port is NULL\n", __func__);
@@ -107,7 +108,8 @@ port_setup(l2p_port_t *port)
 
     port->mtu_size = RTE_ETHER_MTU;
 
-    if (rte_atomic16_cmpset(&port->inited.cnt, 0, 1) > 0) {
+    if (rte_atomic_compare_exchange_strong_explicit(
+            &port->inited, &expected, 1, rte_memory_order_seq_cst, rte_memory_order_seq_cst)) {
         int ret;
 
         DBG_PRINT("Initializing port %u\n", pid);

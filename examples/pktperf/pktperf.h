@@ -25,6 +25,7 @@ extern "C" {
 #include <rte_ethdev.h>
 #include <rte_mempool.h>
 #include <rte_mbuf.h>
+#include <rte_stdatomic.h>
 #include <rte_string_fns.h>
 
 #include <fgen_common.h>
@@ -147,7 +148,7 @@ typedef struct pq_s { /* Port/Queue structure */
 } pq_t;
 
 typedef struct l2p_port_s {
-    rte_atomic16_t inited;                            /* Port initialized flag */
+    RTE_ATOMIC(uint16_t) inited;                      /* Port initialized flag */
     pthread_spinlock_t tx_lock;                       /* Tx port lock */
     volatile uint16_t tx_inited[MAX_QUEUES_PER_PORT]; /* Tx port initialized flag */
     uint16_t pid;                                     /* Port ID attached to lcore */

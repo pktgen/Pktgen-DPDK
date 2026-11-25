@@ -42,7 +42,6 @@ deps += [dependency('numa', required: true)]
 deps += [dependency('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]
 deps += [cc.find_library('m', required: false)]
-deps += [cc.find_library('bsd', required: true)]
 
 pktgen = executable('pktgen',
 		sources,

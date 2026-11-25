@@ -5,11 +5,17 @@ on:
     paths:
       - '**/*.md'
       - '.markdownlint.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/markdownlint.yml'
   push:
     branches: [ main ]
     paths:
       - '**/*.md'
       - '.markdownlint.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/markdownlint.yml'
 
 jobs:
   markdownlint:
@@ -21,16 +27,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install markdownlint tools
         run: |
-          npm install --no-save markdownlint-cli2
+          npm ci
 
       - name: Run markdownlint
         run: |
-          npx markdownlint-cli2 "**/*.md" "!usr/**" "!builddir/**"
+          npm run lint:markdown
 
       - name: Upload markdownlint report (always)
         if: always()

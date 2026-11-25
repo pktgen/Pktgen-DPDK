@@ -53,7 +53,7 @@ ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
 chmod +x .githooks/pre-commit
 ```
 
-This runs `clang-format -i` on staged C files and `markdownlint` on staged Markdown.
+This runs the same full-tree Markdown check as CI. Install its dependencies with `npm ci` first.
 
 ---
 

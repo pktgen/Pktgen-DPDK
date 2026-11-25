@@ -47,11 +47,14 @@ repos:
   # Run manually with: meson setup --dry-run build-test
 
   # Documentation and markdown
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+  - repo: local
     hooks:
       - id: markdownlint
-        args: ['--fix', '--disable', 'MD013', 'MD033']
+        name: Markdown lint (same as CI)
+        entry: npm run lint:markdown
+        language: system
+        pass_filenames: false
+        always_run: true
 
 
 

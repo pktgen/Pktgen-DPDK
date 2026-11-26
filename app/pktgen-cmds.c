@@ -1265,7 +1265,8 @@ void
 pktgen_start_transmitting(port_info_t *pinfo)
 {
     if (!pktgen_tst_port_flags(pinfo, SENDING_PACKETS)) {
-        rte_atomic_store_explicit(&pinfo->current_tx_count,
+        rte_atomic_store_explicit(
+            &pinfo->current_tx_count,
             rte_atomic_load_explicit(&pinfo->transmit_count, rte_memory_order_relaxed),
             rte_memory_order_relaxed);
 
@@ -1451,8 +1452,7 @@ pktgen_stop_latency_sampler(port_info_t *pinfo)
 void
 pktgen_prime_ports(port_info_t *pinfo)
 {
-    rte_atomic_store_explicit(&pinfo->current_tx_count, pinfo->prime_cnt,
-                              rte_memory_order_relaxed);
+    rte_atomic_store_explicit(&pinfo->current_tx_count, pinfo->prime_cnt, rte_memory_order_relaxed);
     pktgen_set_port_flags(pinfo, SENDING_PACKETS);
     rte_delay_us_sleep(300 * 1000);
 }

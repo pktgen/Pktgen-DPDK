@@ -29,6 +29,17 @@ extern "C" {
 #define RTE_ETHDEV_QUEUE_STAT_CNTRS 16
 #endif
 
+/* The size argument was added in DPDK 26.11. */
+static __inline__ int
+pg_eth_dev_get_name_by_port(uint16_t pid, char name[RTE_ETH_NAME_MAX_LEN])
+{
+#if RTE_VERSION >= RTE_VERSION_NUM(26, 11, 0, 0)
+    return rte_eth_dev_get_name_by_port(pid, name, RTE_ETH_NAME_MAX_LEN);
+#else
+    return rte_eth_dev_get_name_by_port(pid, name);
+#endif
+}
+
 static __inline__ int
 pg_socket_id(void)
 {

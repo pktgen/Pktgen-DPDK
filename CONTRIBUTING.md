@@ -91,7 +91,7 @@ By contributing you agree your changes are under the existing project license (B
 ## 11. Quick Reference
 
 | Area | Where to Look |
-|------|---------------|
+| ------ | --------------- |
 | Build & Run | README Quick Start / Build sections |
 | Config examples | `cfg/` directory |
 | Lua automation | README Automation section / `test/*.lua` |

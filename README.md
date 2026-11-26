@@ -49,7 +49,6 @@ Pktgen is a multi‑port, multi‑core traffic generator built on top of [DPDK].
 Prerequisites (typical Ubuntu 22.04+):
 
 - DPDK (installed, or built automatically as described below)
-- libbsd (`sudo apt install libbsd-dev`)
 - Hugepages configured (e.g. 1G or 2M pages) and NICs bound to `vfio-pci` or `igb_uio`
 - Python 3.x for helper scripts
 
@@ -86,6 +85,10 @@ including Python pyelftools and libnuma development headers.
 Use `--force-fallback-for=libdpdk` to select the subproject even when DPDK is installed,
 or `--wrap-mode=nofallback` to require an installed DPDK.
 Pass DPDK options with `-Ddpdk:<option>=<value>`; driver selections must include `net/bonding`.
+
+The `pktperf` example is disabled by default. Pass `-Denable_fgen=true` to
+build it with libfgen. If libfgen is missing or unusable, Meson reports that
+the example is skipped.
 
 1. (Optional) Build and install DPDK so `libdpdk.pc` is installed (often under `/usr/local/lib/x86_64-linux-gnu/pkgconfig`).
 1. Export or append to `PKG_CONFIG_PATH` if that path is non‑standard:
@@ -155,7 +158,7 @@ See existing examples in `cfg/` (e.g. `default.cfg`, `two-ports.cfg`, `pktgen-1.
 ## 6. Configuration Key Reference
 
 | Key | Location | Type | Example | Description |
-|-----|----------|------|---------|-------------|
+| ----- | ---------- | ------ | --------- | ------------- |
 | devices | setup | tuple/list | `('81:00.0','81:00.1')` | PCI BDFs to bind to DPDK |
 | uio | setup | string | `vfio-pci` | Kernel driver to bind (vfio-pci / igb_uio / uio_pci_generic) |
 | exec | setup/run | tuple | `('sudo')` | Wrapper for privileged execution |
@@ -239,27 +242,26 @@ When filing issues include:
 - NIC model(s) & driver
 - Reproduction steps + minimal config
 
-### 10.1 Markdown Linting (Pre-Commit Hook)
+### 10.1 Markdown Linting
 
-Documentation style is enforced via markdownlint.
+Documentation style is enforced with the same pinned markdownlint-cli2 version locally and in CI.
+Install Node.js 22 or later, then install the locked dependencies and run the check:
 
-Enable the hook:
+```bash
+npm ci
+npm run lint:markdown
+```
+
+To run the check on every commit, enable the provided hook:
 
 ```bash
 ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
 chmod +x .githooks/pre-commit
 ```
 
-Requirements:
-
-```bash
-node --version   # ensure Node.js installed
-npm install --no-save markdownlint-cli2  # optional; hook auto-installs if missing
-```
-
-On commit, staged `*.md` files are linted. If violations are found the commit is aborted; some fixable rules may be auto-corrected—re-add and recommit.
-
-Staged C source/header files (`*.c`, `*.h`) are auto-formatted with `clang-format` (if present) before commit.
+Alternatively, `pre-commit install` enables the checks in `.pre-commit-config.yaml`.
+Both hooks lint all project Markdown and abort the commit on violations.
+The `pre-commit` framework temporarily hides unstaged changes during a commit.
 
 ## 11. License
 

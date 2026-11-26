@@ -1,0 +1,13 @@
+{
+  "name": "pktgen-dpdk",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint:markdown": "markdownlint-cli2 \"**/*.md\" \"!usr/**\" \"!builddir/**\" \"!node_modules/**\""
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "0.24.2"
+  }
+}

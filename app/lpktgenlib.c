@@ -3231,11 +3231,12 @@ port_info(lua_State *L, port_info_t *pinfo)
                 : (pkt->ethType == RTE_ETHER_TYPE_ARP)  ? "ARP"
                                                         : "Other");
     setf_string(L, "proto_type",
-                (pkt->ipProto == PG_IPPROTO_TCP)                               ? "TCP"
-                : (pkt->ipProto == PG_IPPROTO_ICMP)                            ? "ICMP"
+                (pkt->ipProto == PG_IPPROTO_TCP)    ? "TCP"
+                : (pkt->ipProto == PG_IPPROTO_ICMP) ? "ICMP"
                 : (rte_atomic_load_explicit(&pinfo->port_flags, rte_memory_order_relaxed) &
-                                                           SEND_VXLAN_PACKETS) ? "VXLAN"
-                                                                               : "UDP");
+                   SEND_VXLAN_PACKETS)
+                    ? "VXLAN"
+                    : "UDP");
     setf_integer(L, "vlanid", pkt->vlanid);
 
     /*------------------------------------*/
@@ -3264,13 +3265,11 @@ port_info(lua_State *L, port_info_t *pinfo)
     if (dev.device)
         bus = rte_bus_find_by_device(dev.device);
     if (bus && !strcmp(rte_bus_name(bus), "pci")) {
-        char name[RTE_ETH_NAME_MAX_LEN];
         char vend[8], device[8];
 
         vend[0] = device[0] = '\0';
         sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
-        rte_eth_dev_get_name_by_port(pinfo->pid, name);
         snprintf(buff, sizeof(buff), "%d/%s:%s/%s", rte_dev_numa_node(dev.device), vend, device,
                  rte_dev_name(dev.device));
     } else

@@ -59,7 +59,7 @@ static struct rte_eth_conf default_port_conf = {
                 {
                     .rss_key = NULL,
                     .rss_hf  = RTE_ETH_RSS_IP | RTE_ETH_RSS_TCP | RTE_ETH_RSS_UDP |
-                               RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
+                              RTE_ETH_RSS_SCTP | RTE_ETH_RSS_L2_PAYLOAD,
                 },
         },
     .intr_conf =
@@ -90,13 +90,11 @@ dump_device_info(void)
         if (dev.device)
             bus = rte_bus_find_by_device(dev.device);
         if (bus && !strcmp(rte_bus_name(bus), "pci")) {
-            char name[RTE_ETH_NAME_MAX_LEN];
             char vend[8], device[8];
 
             vend[0] = device[0] = '\0';
             sscanf(rte_dev_bus_info(dev.device), "vendor_id=%4s, device_id=%4s", vend, device);
 
-            rte_eth_dev_get_name_by_port(i, name);
             snprintf(buff, sizeof(buff), "%s:%s/%s", vend, device, rte_dev_name(dev.device));
         } else
             snprintf(buff, sizeof(buff), "non-PCI device");

@@ -175,7 +175,7 @@ plugin_create(char *plugin, char *path)
 
         if (pin && !strcmp(plugin, pin->plugin) &&
             ((path == NULL && pin->path == NULL) ||
-                (path != NULL && pin->path != NULL && !strcmp(path, pin->path)))) {
+             (path != NULL && pin->path != NULL && !strcmp(path, pin->path)))) {
             info = pin->info;
 
             PLUGIN_LOG(DEBUG, "Plugin: '%s' - %s, version: %d.%02d.%02d-rc%d\n", pin->plugin,
@@ -335,8 +335,7 @@ _plugin_dump(FILE *f, struct plugin *pin)
         return;
     }
 
-    fprintf(f, "%08x %-16s %s\n", pin->hash, pin->plugin,
-            (pin->info) ? pin->info->desc : "---");
+    fprintf(f, "%08x %-16s %s\n", pin->hash, pin->plugin, (pin->info) ? pin->info->desc : "---");
 }
 
 void

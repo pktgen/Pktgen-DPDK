@@ -5,6 +5,7 @@ It implements a small shell-like environment with a directory tree of nodes (com
 aliases, and directories), history and editing, and TAB completion.
 
 If you want the full historical narrative and sample application details, also see:
+
 - `lib/cli/cli.rst` (CLI sample application guide)
 - `lib/cli/cli_lib.rst` (CLI library guide)
 
@@ -76,7 +77,7 @@ as needed.
 The CLI supports two common ways to interpret a command line:
 
 1. **Direct argv parsing** in your command callback.
-2. **Map-driven selection** using `struct cli_map` and `cli_mapping()`.
+1. **Map-driven selection** using `struct cli_map` and `cli_mapping()`.
 
 A map is an array of format strings with an index:
 
@@ -116,7 +117,7 @@ TAB completion provides two layers:
 
 1. **Shell-like completion** for commands, directories, and files by scanning the CLI tree and
    search path.
-2. **Map-driven completion** when a command has a map registered.
+1. **Map-driven completion** when a command has a map registered.
 
 ### Registering maps for completion
 
@@ -138,6 +139,7 @@ When there is no concrete completion (because the next token is a user-provided 
 engine may print a *hint* like `<portlist>` or `<ipv4-addr>`.
 
 In general:
+
 - hints are printed when the completion prefix is empty
 - hints are not inserted into the input line
 

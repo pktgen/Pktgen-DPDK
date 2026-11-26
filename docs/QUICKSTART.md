@@ -8,7 +8,6 @@ This guide provides a concise path from a clean system to generating traffic wit
 - Root (or sudo) access
 - Git, build-essential (gcc/clang, make), Python 3
 - Meson & Ninja: `pip install meson ninja` (or distro packages)
-- libbsd headers: `sudo apt install libbsd-dev`
 - Huge pages configured (e.g. 1G or 2M pages) and IOMMU enabled if using `vfio-pci`
 - Latest DPDK source (<https://www.dpdk.org/>)
 

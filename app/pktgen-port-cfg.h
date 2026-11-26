@@ -30,6 +30,7 @@
 #undef BPF_MAJOR_VERSION
 #include <pcap/pcap.h>
 
+#include "pg_compat.h"
 #include "pktgen-seq.h"
 #include "pktgen-range.h"
 #include "pktgen-stats.h"
@@ -160,30 +161,30 @@ typedef struct per_queue_s {
 
 /** Central per-port state for Pktgen. */
 typedef struct port_info_s {
-    struct rte_eth_dev_info dev_info; /**< Device information */
-    struct rte_eth_conf conf;         /**< Configuration settings */
-    struct rte_eth_link link;         /**< Link Information speed and duplex */
-    struct rte_ether_addr src_mac;    /**< Source MAC address of the port */
-    RTE_ATOMIC(uint64_t) port_flags;        /**< Special send flags for ARP and other */
-    RTE_ATOMIC(uint64_t) transmit_count;    /**< Packets to transmit loaded into current_tx_count */
-    RTE_ATOMIC(uint64_t) current_tx_count;  /**< Current number of packets to send */
-    volatile uint64_t tx_cycles;      /**< Number cycles between TX bursts */
-    pkt_seq_t *seq_pkt;               /**< Packet sequence array */
-    range_info_t range;               /**< Range Information */
-    uint16_t pid;                     /**< Port ID value */
-    uint16_t rx_burst;                /**< Number of RX burst size */
-    uint16_t tx_burst;                /**< Number of TX burst packets */
-    uint16_t max_mtu;                 /**< Maximum MTU size */
-    uint64_t tx_pps;                  /**< Transmit packets per seconds */
-    double tx_rate;                   /**< Percentage rate for tx packets with fractions */
-    uint16_t seqIdx;                  /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
-    uint16_t seqCnt;                  /**< Current packet sequence max count */
-    uint16_t prime_cnt;               /**< Set the number of packets to send in a prime command */
-    uint16_t vlanid;                  /**< Set the port VLAN ID value */
-    uint8_t cos;                      /**< Set the port 802.1p cos value */
-    uint8_t tos;                      /**< Set the port tos value */
-    uint32_t mpls_entry;              /**< Set the port MPLS entry */
-    uint32_t gre_key;                 /**< GRE key if used */
+    struct rte_eth_dev_info dev_info;      /**< Device information */
+    struct rte_eth_conf conf;              /**< Configuration settings */
+    struct rte_eth_link link;              /**< Link Information speed and duplex */
+    struct rte_ether_addr src_mac;         /**< Source MAC address of the port */
+    RTE_ATOMIC(uint64_t) port_flags;       /**< Special send flags for ARP and other */
+    RTE_ATOMIC(uint64_t) transmit_count;   /**< Packets to transmit loaded into current_tx_count */
+    RTE_ATOMIC(uint64_t) current_tx_count; /**< Current number of packets to send */
+    volatile uint64_t tx_cycles;           /**< Number cycles between TX bursts */
+    pkt_seq_t *seq_pkt;                    /**< Packet sequence array */
+    range_info_t range;                    /**< Range Information */
+    uint16_t pid;                          /**< Port ID value */
+    uint16_t rx_burst;                     /**< Number of RX burst size */
+    uint16_t tx_burst;                     /**< Number of TX burst packets */
+    uint16_t max_mtu;                      /**< Maximum MTU size */
+    uint64_t tx_pps;                       /**< Transmit packets per seconds */
+    double tx_rate;                        /**< Percentage rate for tx packets with fractions */
+    uint16_t seqIdx;                       /**< Current Packet sequence index 0 to NUM_SEQ_PKTS */
+    uint16_t seqCnt;                       /**< Current packet sequence max count */
+    uint16_t prime_cnt;  /**< Set the number of packets to send in a prime command */
+    uint16_t vlanid;     /**< Set the port VLAN ID value */
+    uint8_t cos;         /**< Set the port 802.1p cos value */
+    uint8_t tos;         /**< Set the port tos value */
+    uint32_t mpls_entry; /**< Set the port MPLS entry */
+    uint32_t gre_key;    /**< GRE key if used */
     per_queue_t per_queue[MAX_QUEUES_PER_PORT]; /**< Per queue info */
     FILE *pcap_file;                            /**< PCAP file handle */
 
@@ -265,7 +266,7 @@ void tx_send_packets(port_info_t *pinfo, uint16_t qid, struct rte_mbuf **pkts, u
  *   The number of packets to burst out
  */
 static inline uint64_t
-pkt_atomic64_tx_count(RTE_ATOMIC(uint64_t) *v, int64_t burst)
+pkt_atomic64_tx_count(RTE_ATOMIC(uint64_t) * v, int64_t burst)
 {
     uint64_t tmp1;
     uint64_t tmp2;
@@ -276,8 +277,8 @@ pkt_atomic64_tx_count(RTE_ATOMIC(uint64_t) *v, int64_t burst)
         if (tmp1 == 0)
             return 0;
         tmp2 = likely(tmp1 > (uint64_t)burst) ? (uint64_t)burst : tmp1;
-    } while (!rte_atomic_compare_exchange_strong_explicit(v, &tmp1, tmp1 - tmp2,
-		rte_memory_order_seq_cst, rte_memory_order_relaxed));
+    } while (!rte_atomic_compare_exchange_strong_explicit(
+        v, &tmp1, tmp1 - tmp2, rte_memory_order_seq_cst, rte_memory_order_relaxed));
 
     return tmp2;
 }
@@ -536,9 +537,9 @@ rte_eth_dev_info_dump(FILE *f, uint16_t pid)
     if (!f)
         f = stderr;
 
-    char dev_name[64];
+    char dev_name[RTE_ETH_NAME_MAX_LEN] = "unknown";
 
-    rte_eth_dev_get_name_by_port(pid, dev_name);
+    pg_eth_dev_get_name_by_port(pid, dev_name);
     fprintf(f, "\n** Device Info (%s, if_index:%" PRId32 ", flags %08" PRIu32 ") **\n", dev_name,
             di->if_index, *di->dev_flags);
 

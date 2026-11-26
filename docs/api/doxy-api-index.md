@@ -1,5 +1,4 @@
-API
-===
+# API
 
 <!--
   SPDX-License-Identifier: BSD-3-Clause
@@ -141,7 +140,7 @@ The public API headers are grouped by topics:
   [bitmap]             (@ref rte_bitmap.h)
 
 - **packet framework**:
-  * [port]             (@ref rte_port.h):
+  - [port]             (@ref rte_port.h):
     [ethdev]           (@ref rte_port_ethdev.h),
     [ring]             (@ref rte_port_ring.h),
     [frag]             (@ref rte_port_frag.h),
@@ -149,19 +148,19 @@ The public API headers are grouped by topics:
     [sched]            (@ref rte_port_sched.h),
     [kni]              (@ref rte_port_kni.h),
     [src/sink]         (@ref rte_port_source_sink.h)
-  * [table]            (@ref rte_table.h):
+  - [table]            (@ref rte_table.h):
     [lpm IPv4]         (@ref rte_table_lpm.h),
     [lpm IPv6]         (@ref rte_table_lpm_ipv6.h),
     [ACL]              (@ref rte_table_acl.h),
     [hash]             (@ref rte_table_hash.h),
     [array]            (@ref rte_table_array.h),
     [stub]             (@ref rte_table_stub.h)
-  * [pipeline]         (@ref rte_pipeline.h)
+  - [pipeline]         (@ref rte_pipeline.h)
     [port_in_action]   (@ref rte_port_in_action.h)
     [table_action]     (@ref rte_table_action.h)
-  * [graph]            (@ref rte_graph.h):
+  - [graph]            (@ref rte_graph.h):
     [graph_worker]     (@ref rte_graph_worker.h)
-  * graph_nodes:
+  - graph_nodes:
     [eth_node]         (@ref rte_node_eth_api.h),
     [ip4_node]         (@ref rte_node_ip4_api.h)
 

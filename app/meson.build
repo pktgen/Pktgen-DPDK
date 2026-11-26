@@ -37,16 +37,11 @@ cflags = ['-D__PROJECT_VERSION="' + meson.project_version() + '"']
 
 deps = [dpdk, common, utils, vec, plugin, cli, lua, hmap] + dpdk_driver_deps
 
-if fgen_dep.found()
-    deps += [fgen_dep]
-endif
-
 deps += [dependency('threads')]
 deps += [dependency('numa', required: true)]
 deps += [dependency('pcap', required: true)]
 deps += [cc.find_library('dl', required: false)]
 deps += [cc.find_library('m', required: false)]
-deps += [cc.find_library('bsd', required: true)]
 
 pktgen = executable('pktgen',
 		sources,

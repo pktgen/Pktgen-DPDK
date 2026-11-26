@@ -139,17 +139,16 @@ struct vt100_cmds {
 
 /** Structure to hold information about the screen and control access. */
 struct cli_scrn {
-    __rte_cache_aligned
-    RTE_ATOMIC(int32_t) pause;                /**< Pause the update of the screen. */
-    uint16_t nrows;                           /**< Max number of rows. */
-    uint16_t ncols;                           /**< Max number of columns. */
-    uint16_t theme;                           /**< Current theme state on or off */
-    uint16_t type;                            /**< screen I/O type */
-    uint16_t no_write;                        /**< Disable screen write */
-    uint16_t oldterm_saved;                   /**< Old terminal setup saved */
-    struct termios oldterm;                   /**< Old terminal setup information */
-    FILE *fd_out;                             /**< File descriptor for output */
-    FILE *fd_in;                              /**< File descriptor for input */
+    __rte_cache_aligned RTE_ATOMIC(int32_t) pause; /**< Pause the update of the screen. */
+    uint16_t nrows;                                /**< Max number of rows. */
+    uint16_t ncols;                                /**< Max number of columns. */
+    uint16_t theme;                                /**< Current theme state on or off */
+    uint16_t type;                                 /**< screen I/O type */
+    uint16_t no_write;                             /**< Disable screen write */
+    uint16_t oldterm_saved;                        /**< Old terminal setup saved */
+    struct termios oldterm;                        /**< Old terminal setup information */
+    FILE *fd_out;                                  /**< File descriptor for output */
+    FILE *fd_in;                                   /**< File descriptor for input */
 };
 
 /** A single byte to hold port of a Red/Green/Blue color value */
@@ -401,7 +400,8 @@ scrn_resume(void)
 static __inline__ int
 scrn_is_paused(void)
 {
-    return rte_atomic_load_explicit(&this_scrn->pause, rte_memory_order_relaxed) == SCRN_SCRN_PAUSED;
+    return rte_atomic_load_explicit(&this_scrn->pause, rte_memory_order_relaxed) ==
+           SCRN_SCRN_PAUSED;
 }
 
 /** Output a message of the current line centered */

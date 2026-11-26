@@ -69,12 +69,6 @@ See [Building](README.md#4-building-details) for fallback options and prerequisi
 >Please read the DPDK.org documentation to understand more on building DPDK. The following is the minimum set of
 instructions to build DPDK separately. You may need to install meson and ninja, if not already installed.
 
-May need to install the BSD headers to build Pktgen code base for Ubuntu do the following:
-
-```console
-sudo apt-get install libbsd-dev
-```
-
 ```console
 git clone git://dpdk.org/dpdk
 

@@ -69,7 +69,7 @@ It complements `CONTRIBUTING.md` and the root `.markdownlint.yml` configuration.
 ## 11. Common Patterns
 
 | Pattern | Example |
-|---------|---------|
+| --------- | --------- |
 | Command sequence | `meson setup builddir && meson compile -C builddir` |
 | Config file snippet | ``setup = { 'devices': ('81:00.0',) }`` |
 | Shell pipeline | ``echo \"test\" \| socat - TCP4:localhost:22022`` |
@@ -85,7 +85,7 @@ It complements `CONTRIBUTING.md` and the root `.markdownlint.yml` configuration.
 ## 13. Do / Avoid Summary
 
 | Do | Avoid |
-|----|-------|
+| ---- | ------- |
 | Provide a runnable example for new features | Giant monolithic examples without explanation |
 | Use consistent fenced code | Mixing indentation and fenced styles |
 | Reference existing sections instead of duplicating content | Copy-pasting large README segments |

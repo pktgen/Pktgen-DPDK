@@ -1,6 +1,7 @@
 # Pktgen — DPDK Traffic Generator
 
 High‑performance, scriptable packet generator capable of wire‑rate transmission with 64‑byte frames.
+Using a TUI like interface with a command line or scriptable interface.
 
 Pronounced: “packet‑gen”
 
